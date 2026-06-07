@@ -2,21 +2,33 @@
   {
     "title": "Pargod",
     "meta": "Mixed media · 2020",
-    "image": "/media/works/woman.jpg"
+    "description": "",
+    "images": [
+      "/media/works/woman.jpg"
+    ]
   },
   {
     "title": "Sliding Wall 1",
     "meta": "Mixed media · 2021",
-    "image": "/media/works/sliding-wall-1.jpeg"
+    "description": "",
+    "images": [
+      "/media/works/sliding-wall-1.jpeg"
+    ]
   },
   {
     "title": "Sliding Wall 2",
     "meta": "Mixed media · 2021",
-    "image": "/media/works/sliding-wall-2.jpeg"
+    "description": "",
+    "images": [
+      "/media/works/sliding-wall-2.jpeg"
+    ]
   },
   {
     "title": "Wood Panel",
     "meta": "Oil and wood · 2022",
-    "image": "/media/works/wood-panel.jpeg"
+    "description": "",
+    "images": [
+      "/media/works/wood-panel.jpeg"
+    ]
   }
 ]

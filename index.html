@@ -732,6 +732,71 @@
   }
 
   section.active { animation: fadeIn 0.5s ease; }
+
+  /* ── EXHIBITIONS LANDING (cards) ── */
+  .exh-cards { max-width: 920px; }
+  .exh-card {
+    display: grid; grid-template-columns: 240px 1fr auto; gap: 30px; align-items: center;
+    padding: 22px 0; border-bottom: 0.5px solid var(--border); cursor: pointer; transition: opacity .2s;
+  }
+  .exh-card:hover { opacity: .68; }
+  .exh-card .exh-cover { width: 240px; aspect-ratio: 4/3; overflow: hidden; background: #e8e4dd; }
+  .exh-card .exh-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
+  .exh-card:hover .exh-cover img { transform: scale(1.04); }
+  .exh-card .exh-name { font-family: var(--serif); font-size: 27px; font-style: italic; line-height: 1.15; margin-bottom: 8px; }
+  .exh-card .exh-sub { font-size: 13px; color: var(--muted); letter-spacing: .03em; }
+  .exh-card .exh-arrow { font-size: 22px; color: var(--accent); }
+
+  /* ── DETAIL PAGE + CAROUSEL ── */
+  .detail-back {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); cursor: pointer; margin-bottom: 28px; background: none; border: none;
+  }
+  .detail-back:hover { color: var(--ink); }
+  .carousel { position: relative; background: #ece8e1; border: 0.5px solid var(--border); }
+  .cstage { display: flex; align-items: center; justify-content: center; min-height: 40vh; max-height: 76vh; overflow: hidden; }
+  .cstage img { max-width: 100%; max-height: 76vh; object-fit: contain; display: block; }
+  .cbtn {
+    position: absolute; top: 50%; transform: translateY(-50%); width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(244,241,236,.9); border: 0.5px solid var(--border); font-size: 22px; color: var(--ink);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s; z-index: 2;
+  }
+  .cbtn:hover { background: #fff; }
+  .cbtn.prev { inset-inline-start: 16px; }   /* RTL-aware */
+  .cbtn.next { inset-inline-end: 16px; }
+  .cdots { display: flex; gap: 8px; justify-content: center; padding: 16px 0 4px; }
+  .cdot { width: 8px; height: 8px; border-radius: 50%; background: #cfc9bf; border: none; cursor: pointer; padding: 0; }
+  .cdot.active { background: var(--ink); }
+  .ccount { text-align: center; font-size: 12px; color: var(--muted); letter-spacing: .08em; margin-top: 6px; }
+  .detail-text { max-width: 760px; margin: 34px auto 0; text-align: center; }
+  .detail-title { font-family: var(--serif); font-size: 34px; font-style: italic; font-weight: 400; margin-bottom: 10px; }
+  .detail-meta { font-size: 13.5px; color: var(--muted); letter-spacing: .04em; margin-bottom: 22px; }
+  .detail-desc { font-size: 15px; line-height: 1.95; color: #3a3632; white-space: pre-line; }
+
+  /* ── CV PAGE ── */
+  .cv-wrap { max-width: 760px; }
+  .cv-actions { margin-bottom: 30px; }
+  .btn-cvdl {
+    display: inline-block; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; text-decoration: none;
+    color: var(--ink); padding: 10px 22px; border: 0.5px solid var(--ink); transition: all .2s;
+  }
+  .btn-cvdl:hover { background: var(--ink); color: var(--cream); }
+  .cv-group { margin-bottom: 40px; }
+  .cv-group h3 {
+    font-family: var(--serif); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 16px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border); font-weight: 500;
+  }
+  .cv-row { display: grid; grid-template-columns: 90px 1fr; gap: 18px; padding: 11px 0; border-bottom: 0.5px solid var(--line2, rgba(26,23,20,.07)); }
+  .cv-row .cv-yr { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13.5px; }
+  .cv-row .cv-ttl { font-family: var(--serif); font-size: 17px; font-style: italic; }
+  .cv-row .cv-ven { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  @media (max-width: 768px) {
+    .exh-card { grid-template-columns: 110px 1fr; gap: 16px; }
+    .exh-card .exh-cover { width: 110px; }
+    .exh-card .exh-arrow { display: none; }
+    .cbtn { width: 38px; height: 38px; font-size: 18px; }
+  }
 </style>
 </head>
 <body>
@@ -744,6 +809,7 @@
     <li><a href="#" onclick="showSection('objects')" data-section="objects">Objects</a></li>
     <li><a href="#" onclick="showSection('exhibitions')" data-section="exhibitions">Exhibitions</a></li>
     <li><a href="#" onclick="showSection('shop')" data-section="shop">Shop</a></li>
+    <li><a href="#" onclick="showSection('cv')" data-section="cv">CV</a></li>
     <li><a href="#" onclick="showSection('about')" data-section="about">About</a></li>
     <li><a href="#" onclick="showSection('contact')" data-section="contact">Contact</a></li>
   </ul>
@@ -758,6 +824,7 @@
   <a href="#" onclick="showSection('objects');toggleMobile()" data-section="objects">Objects</a>
   <a href="#" onclick="showSection('exhibitions');toggleMobile()" data-section="exhibitions">Exhibitions</a>
   <a href="#" onclick="showSection('shop');toggleMobile()" data-section="shop">Shop</a>
+  <a href="#" onclick="showSection('cv');toggleMobile()" data-section="cv">CV</a>
   <a href="#" onclick="showSection('about');toggleMobile()" data-section="about">About</a>
   <a href="#" onclick="showSection('contact');toggleMobile()" data-section="contact">Contact</a>
 </div>
@@ -803,23 +870,51 @@
   </div>
 </section>
 
-<!-- OBJECTS -->
+<!-- OBJECTS (landing — each object clickable) -->
 <section id="objects">
   <div class="section-header">
-    <h2 class="section-title">Objects</h2>
+    <h2 class="section-title" data-section-title="objects">Objects</h2>
   </div>
   <div class="objects-grid" id="objectsGrid">
     <!-- populated by JS -->
   </div>
 </section>
 
-<!-- EXHIBITIONS -->
+<!-- EXHIBITIONS (landing — each exhibition clickable) -->
 <section id="exhibitions">
   <div class="section-header">
-    <h2 class="section-title">Exhibitions</h2>
+    <h2 class="section-title" data-section-title="exhibitions">Exhibitions</h2>
   </div>
-  <div class="exhibitions-list" id="exhibitionsList">
+  <div class="exh-cards" id="exhibitionsList">
     <!-- populated by JS -->
+  </div>
+</section>
+
+<!-- DETAIL (shared: exhibition / object page with carousel) -->
+<section id="detail">
+  <button class="detail-back" onclick="goBack()">← <span id="backLabel">Back</span></button>
+  <div class="carousel" id="carousel">
+    <button class="cbtn prev" onclick="carouselMove(-1)" aria-label="Previous">‹</button>
+    <div class="cstage"><img id="cimg" src="" alt=""></div>
+    <button class="cbtn next" onclick="carouselMove(1)" aria-label="Next">›</button>
+  </div>
+  <div class="cdots" id="cdots"></div>
+  <div class="ccount" id="ccount"></div>
+  <div class="detail-text">
+    <h2 class="detail-title" id="detailTitle"></h2>
+    <p class="detail-meta" id="detailMeta"></p>
+    <p class="detail-desc" id="detailDesc"></p>
+  </div>
+</section>
+
+<!-- CV -->
+<section id="cv">
+  <div class="section-header">
+    <h2 class="section-title" data-section-title="cv">CV</h2>
+  </div>
+  <div class="cv-wrap">
+    <div class="cv-actions"><a class="btn-cvdl" id="cvDownload" href="#" target="_blank">Download PDF ↓</a></div>
+    <div id="cvList"><!-- populated by JS --></div>
   </div>
 </section>
 
@@ -892,7 +987,7 @@
 
 <script>
 // ── Elad Amsalem site — content loaded from /content/*.json (edited via Pages CMS) ──
-let WORKS = [];
+let WORKS = [], OBJ = [], EXH = [], CV = [];
 
 function fmt(n){ return '₪ ' + Number(n).toLocaleString('he-IL'); }
 function nl2br(s){ return (s||'').replace(/\n/g,'<br>'); }
@@ -920,6 +1015,8 @@ function applySettings(s){
 
   const cv = document.getElementById('aboutCv');
   if(s.cv_url){ cv.href = s.cv_url; } else { cv.style.display = 'none'; }
+  const cvdl = document.getElementById('cvDownload');
+  if(cvdl){ if(s.cv_url){ cvdl.href = s.cv_url; cvdl.style.display=''; } else { cvdl.style.display='none'; } }
   const ig = s.instagram || '#';
   document.getElementById('aboutIg').href = ig;
   document.getElementById('contactIg').href = ig;
@@ -947,15 +1044,20 @@ function applyMenu(menu){
     const label = el.querySelector('.hn-label');
     if(label && menu[key]) label.textContent = menu[key];
   });
-  // paintings section title follows the "paintings" menu label
-  const pt = document.querySelector('[data-section-title="paintings"]');
-  if(pt && menu.paintings) pt.textContent = menu.paintings;
+  // section titles follow their menu label
+  document.querySelectorAll('[data-section-title]').forEach(el => {
+    const key = el.getAttribute('data-section-title');
+    if(menu[key]) el.textContent = menu[key];
+  });
 }
 
-// ── YEAR FILTER (auto-built from the works' years) ──
+// ── YEAR FILTER (fixed range 2019–2026, auto-extends if works fall outside) ──
 function buildYearFilter(){
-  const years = [...new Set(WORKS.map(w => String(w.year)).filter(Boolean))]
-    .sort((a,b) => b.localeCompare(a, undefined, {numeric:true}));
+  const ny = WORKS.map(w => parseInt(w.year,10)).filter(n => !isNaN(n));
+  const maxY = Math.max(2026, ...(ny.length ? ny : [2026]));
+  const minY = Math.min(2019, ...(ny.length ? ny : [2019]));
+  const years = [];
+  for(let y = maxY; y >= minY; y--) years.push(String(y));
   const wrap = document.getElementById('yearFilter');
   if(!wrap) return;
   wrap.innerHTML =
@@ -1000,13 +1102,15 @@ function renderShop(){
   `).join('');
 }
 
-// ── OBJECTS ──
-function renderObjects(items){
+// ── OBJECTS (landing — each object opens its own page) ──
+function firstImg(item){ return (item.images && item.images[0]) || item.image || ''; }
+function renderObjects(){
   const grid = document.getElementById('objectsGrid');
-  grid.innerHTML = items.map(o => `
-    <div class="object-card">
+  if(!OBJ.length){ grid.innerHTML = ''; return; }
+  grid.innerHTML = OBJ.map((o,i) => `
+    <div class="object-card" onclick="openDetail('object', ${i})" style="cursor:pointer">
       <div class="object-image">
-        <img src="${o.image}" alt="${esc(o.title)}" loading="lazy">
+        <img src="${firstImg(o)}" alt="${esc(o.title)}" loading="lazy">
       </div>
       <p class="object-title">${esc(o.title)}</p>
       <p class="object-meta">${esc(o.meta)}</p>
@@ -1014,29 +1118,78 @@ function renderObjects(items){
   `).join('');
 }
 
-// ── EXHIBITIONS (grouped by year) ──
-function renderExhibitions(items){
+// ── EXHIBITIONS (landing — each exhibition opens its own page) ──
+function renderExhibitions(){
+  const wrap = document.getElementById('exhibitionsList');
+  if(!EXH.length){ wrap.innerHTML = '<p style="color:var(--muted)">No exhibitions yet.</p>'; return; }
+  wrap.innerHTML = EXH.map((e,i) => `
+    <div class="exh-card" onclick="openDetail('exhibition', ${i})">
+      <div class="exh-cover"><img src="${firstImg(e)}" alt="${esc(e.title)}" loading="lazy"></div>
+      <div class="exh-info">
+        <div class="exh-name">${esc(e.title)}</div>
+        <div class="exh-sub">${esc(e.year)}${e.venue ? ' · ' + esc(e.venue) : ''}</div>
+      </div>
+      <div class="exh-arrow">→</div>
+    </div>
+  `).join('');
+}
+
+// ── CV (grouped chronological list) ──
+function renderCV(){
+  const wrap = document.getElementById('cvList');
+  if(!CV.length){ wrap.innerHTML = ''; return; }
   const groups = [];
-  items.forEach(e => {
-    let g = groups.find(x => x.year === e.year);
-    if(!g){ g = { year: e.year, items: [] }; groups.push(g); }
-    g.items.push(e);
+  CV.forEach(r => {
+    let g = groups.find(x => x.name === (r.group||'Other'));
+    if(!g){ g = { name: r.group||'Other', rows: [] }; groups.push(g); }
+    g.rows.push(r);
   });
-  document.getElementById('exhibitionsList').innerHTML = groups.map(g => `
-    <div class="exhibition-year-group">
-      <p class="exh-year">${esc(g.year)}</p>
-      ${g.items.map(e => `
-        <div class="exh-item">
-          <span class="exh-type"${/res/i.test(e.type) ? ' style="color:var(--muted)"' : ''}>${esc(e.type)}</span>
+  wrap.innerHTML = groups.map(g => `
+    <div class="cv-group">
+      <h3>${esc(g.name)}</h3>
+      ${g.rows.map(r => `
+        <div class="cv-row">
+          <div class="cv-yr">${esc(r.year)}</div>
           <div>
-            <p class="exh-title">${esc(e.title)}</p>
-            <p class="exh-venue">${esc(e.venue)}</p>
+            <div class="cv-ttl">${esc(r.title)}</div>
+            ${r.venue ? `<div class="cv-ven">${esc(r.venue)}</div>` : ''}
           </div>
         </div>
       `).join('')}
     </div>
   `).join('');
 }
+
+// ── DETAIL PAGE + CAROUSEL ──
+let CIMGS = [], CIDX = 0, DETAIL_ORIGIN = 'exhibitions';
+function openDetail(kind, i){
+  const item = kind === 'exhibition' ? EXH[i] : OBJ[i];
+  if(!item) return;
+  DETAIL_ORIGIN = kind === 'exhibition' ? 'exhibitions' : 'objects';
+  CIMGS = (item.images && item.images.length) ? item.images.slice() : (item.image ? [item.image] : []);
+  CIDX = 0;
+  document.getElementById('detailTitle').textContent = item.title || '';
+  document.getElementById('detailMeta').textContent =
+    kind === 'exhibition' ? [item.year, item.venue].filter(Boolean).join(' · ') : (item.meta || '');
+  document.getElementById('detailDesc').textContent = item.description || '';
+  document.getElementById('backLabel').textContent =
+    (SETTINGS.menu && SETTINGS.menu[DETAIL_ORIGIN]) || (kind==='exhibition'?'Exhibitions':'Objects');
+  carouselGo(0);
+  showSection('detail');
+}
+function carouselGo(idx){
+  if(!CIMGS.length) return;
+  CIDX = (idx + CIMGS.length) % CIMGS.length;
+  document.getElementById('cimg').src = CIMGS[CIDX];
+  const single = CIMGS.length <= 1;
+  document.querySelector('.cbtn.prev').style.display = single ? 'none' : '';
+  document.querySelector('.cbtn.next').style.display = single ? 'none' : '';
+  document.getElementById('ccount').textContent = single ? '' : (CIDX+1) + ' / ' + CIMGS.length;
+  document.getElementById('cdots').innerHTML = single ? '' :
+    CIMGS.map((_,k)=>`<button class="cdot ${k===CIDX?'active':''}" onclick="carouselGo(${k})" aria-label="image ${k+1}"></button>`).join('');
+}
+function carouselMove(d){ carouselGo(CIDX + d); }
+function goBack(){ showSection(DETAIL_ORIGIN); }
 
 // ── FILTER / LIGHTBOX / NAV ──
 function filterYear(year, btn){
@@ -1067,7 +1220,20 @@ function closeLightbox(e){
   document.body.style.overflow = '';
 }
 
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox({target: document.getElementById('lightbox')}); });
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeLightbox({target: document.getElementById('lightbox')});
+  if(document.getElementById('detail').classList.contains('active') && CIMGS.length > 1){
+    if(e.key === 'ArrowLeft') carouselMove(1);   // RTL: left = next
+    if(e.key === 'ArrowRight') carouselMove(-1);
+  }
+});
+// touch swipe on the carousel
+(function(){
+  let x0=null; const stage=document.querySelector('#carousel .cstage');
+  if(!stage) return;
+  stage.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;},{passive:true});
+  stage.addEventListener('touchend',e=>{ if(x0===null)return; const dx=e.changedTouches[0].clientX-x0; if(Math.abs(dx)>40) carouselMove(dx<0?1:-1); x0=null; },{passive:true});
+})();
 
 function showSection(id){
   document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
@@ -1086,20 +1252,25 @@ function toggleMobile(){
 let SETTINGS = {};
 (async function init(){
   try {
-    const [settings, works, objects, exhibitions] = await Promise.all([
+    const [settings, works, objects, exhibitions, cv] = await Promise.all([
       loadJSON('/content/settings.json'),
       loadJSON('/content/works.json'),
       loadJSON('/content/objects.json'),
       loadJSON('/content/exhibitions.json'),
+      loadJSON('/content/cv.json').catch(() => []),
     ]);
     SETTINGS = settings;
     WORKS = works.map((w, i) => ({ ...w, id: i }));
+    OBJ = objects || [];
+    EXH = exhibitions || [];
+    CV = cv || [];
     applySettings(settings);
     buildYearFilter();
     renderPaintings('all');
     renderShop();
-    renderObjects(objects);
-    renderExhibitions(exhibitions);
+    renderObjects();
+    renderExhibitions();
+    renderCV();
   } catch (err) {
     console.error(err);
   }

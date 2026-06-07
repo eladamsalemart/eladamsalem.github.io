@@ -88,6 +88,22 @@
 
   .addbar{margin-bottom:18px}
   .empty{color:var(--muted);font-size:14px;padding:30px;text-align:center;border:1px dashed var(--line);border-radius:12px}
+  .cardhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line2)}
+  .cardhead strong{font-family:var(--serif);font-size:19px;font-weight:500}
+  .itemactions.row{flex-direction:row}
+  /* gallery (multi-image) */
+  .gallery{display:flex;flex-wrap:wrap;gap:10px}
+  .gthumb{position:relative;width:96px;height:96px;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:#e8e4dd}
+  .gthumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .gthumb .badge{position:absolute;top:4px;inset-inline-start:4px;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px}
+  .gbar{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;gap:4px;padding:4px;background:rgba(26,23,20,.55);opacity:0;transition:opacity .15s}
+  .gthumb:hover .gbar{opacity:1}
+  .gbtn{width:22px;height:22px;border:none;border-radius:5px;background:rgba(255,255,255,.9);color:var(--ink);font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .gbtn:hover{background:#fff}
+  .gbtn.gdel:hover{background:var(--danger);color:#fff}
+  .gadd{width:96px;height:96px;border:1.5px dashed var(--line);border-radius:9px;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;cursor:pointer;transition:all .15s}
+  .gadd:hover{border-color:var(--accent);color:var(--ink)}
+  .gadd.drag,.thumb.drag{border-color:var(--accent);box-shadow:0 0 0 3px rgba(181,148,106,.25)}
 
   /* ── LOGIN ── */
   .login{max-width:560px;margin:60px auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:40px;box-shadow:var(--shadow)}
@@ -148,6 +164,7 @@
       <button class="tab" data-view="works"><span class="ic">🎨</span> ציורים ומכירה</button>
       <button class="tab" data-view="objects"><span class="ic">🧱</span> אובייקטים</button>
       <button class="tab" data-view="exhibitions"><span class="ic">📅</span> תערוכות</button>
+      <button class="tab" data-view="cv"><span class="ic">📄</span> קורות חיים</button>
       <button class="tab" data-view="about"><span class="ic">👤</span> אודות</button>
       <button class="tab" data-view="menu"><span class="ic">🔗</span> תפריט וקישורים</button>
     </nav>
@@ -164,6 +181,7 @@ const FILES = {
   works:'content/works.json',
   objects:'content/objects.json',
   exhibitions:'content/exhibitions.json',
+  cv:'content/cv.json',
 };
 const TOKEN_KEY = 'ea_admin_token';
 
@@ -171,6 +189,7 @@ let TOKEN = localStorage.getItem(TOKEN_KEY) || '';
 let DATA = {};          // key -> {sha, content}
 let DIRTY = new Set();  // file keys changed
 let PENDING = {};       // repo path -> base64 (new images to upload)
+let PREVIEW = {};       // public path -> dataURL (local preview before publish)
 let VIEW = 'home';
 
 /* ---------- helpers ---------- */
@@ -229,19 +248,39 @@ async function loadAll(){
 
 /* ============ VIEWS ============ */
 function render(){
-  $('#main').innerHTML = ({home:viewHome,works:viewWorks,objects:viewObjects,exhibitions:viewExh,about:viewAbout,menu:viewMenu}[VIEW])();
+  $('#main').innerHTML = ({home:viewHome,works:viewWorks,objects:viewObjects,exhibitions:viewExh,cv:viewCV,about:viewAbout,menu:viewMenu}[VIEW])();
 }
 
 function header(title,sub){return `<div class="page-title">${title}</div><div class="page-sub">${sub}</div>`;}
 
 /* image picker field (shared) */
 function thumbHtml(src, key, idx, field){
-  const isPending = src && src.startsWith('data:');
+  const shown = (src && PREVIEW[src]) || src || '';
+  const isPending = !!(src && PREVIEW[src]);
   return `<div class="thumb" data-pick="${key}:${idx}:${field}">
-    <img src="${esc(src||'')}" alt="">
+    <img src="${esc(shown)}" alt="">
     ${isPending?'<span class="badge">חדש</span>':''}
     <div class="overlay"><span style="font-size:18px">↻</span><span>החלף תמונה</span><span style="opacity:.7">או גרור לכאן</span></div>
   </div>`;
+}
+
+/* multi-image gallery (for objects & exhibitions) */
+function galleryHtml(key, idx, images){
+  const imgs = images||[];
+  return `<div class="gallery">
+    ${imgs.map((src,k)=>`
+      <div class="gthumb">
+        <img src="${esc((src&&PREVIEW[src])||src||'')}" alt="">
+        ${(src&&PREVIEW[src])?'<span class="badge">חדש</span>':''}
+        <div class="gbar">
+          <button class="gbtn" data-act="imgup:${key}:${idx}:${k}" title="הקדם">‹</button>
+          <button class="gbtn" data-act="imgdown:${key}:${idx}:${k}" title="אחר">›</button>
+          <button class="gbtn gdel" data-act="delimg:${key}:${idx}:${k}" title="הסר">×</button>
+        </div>
+      </div>`).join('')}
+    <button class="gadd" data-addimg="${key}:${idx}"><span style="font-size:20px">＋</span><span>הוסף תמונה</span></button>
+  </div>
+  <div class="hint">התמונה הראשונה היא תמונת השער. גרור תמונה לכפתור, או לחץ עליו.</div>`;
 }
 
 function viewHome(){
@@ -294,47 +333,76 @@ function viewWorks(){
 function viewObjects(){
   const arr=DATA.objects.content;
   let cards=arr.map((o,i)=>`
-   <div class="card"><div class="item">
-     ${thumbHtml(o.image,'objects',i,'image')}
-     <div>
+   <div class="card">
+     <div class="cardhead">
+       <strong>${esc(o.title)||'אובייקט'}</strong>
+       <div class="itemactions row">
+         <button class="iconbtn" data-act="up:objects:${i}" title="העלה">↑</button>
+         <button class="iconbtn" data-act="down:objects:${i}" title="הורד">↓</button>
+         <button class="iconbtn del" data-act="del:objects:${i}" title="מחק">🗑</button>
+       </div>
+     </div>
+     <div class="row">
        <div class="field"><label>שם</label><input type="text" data-bind="objects:${i}:title" value="${esc(o.title)}"></div>
        <div class="field"><label>פרטים (חומר · שנה)</label><input type="text" data-bind="objects:${i}:meta" value="${esc(o.meta)}"></div>
      </div>
-     <div class="itemactions">
-       <button class="iconbtn" data-act="up:objects:${i}" title="העלה">↑</button>
-       <button class="iconbtn" data-act="down:objects:${i}" title="הורד">↓</button>
-       <button class="iconbtn del" data-act="del:objects:${i}" title="מחק">🗑</button>
-     </div>
-   </div></div>`).join('');
+     <div class="field"><label>תיאור (מופיע בעמוד האובייקט)</label><textarea data-bind="objects:${i}:description">${esc(o.description)}</textarea></div>
+     <div class="field"><label>תמונות (גלריה)</label>${galleryHtml('objects',i,o.images)}</div>
+   </div>`).join('');
   if(!arr.length) cards='<div class="empty">אין אובייקטים עדיין.</div>';
-  return header('אובייקטים','עבודות תלת‑ממד / מיצב.')+
+  return header('אובייקטים','כל אובייקט הוא עמוד נפרד עם גלריית תמונות ותיאור.')+
     `<div class="addbar"><button class="btn primary small" data-act="add:objects">＋ הוסף אובייקט</button></div>`+cards;
 }
 
 function viewExh(){
   const arr=DATA.exhibitions.content;
-  const types=['Solo','Group','Res.'];
   let cards=arr.map((e,i)=>`
+   <div class="card">
+     <div class="cardhead">
+       <strong>${esc(e.title)||'תערוכה'}</strong>
+       <div class="itemactions row">
+         <button class="iconbtn" data-act="up:exhibitions:${i}" title="העלה">↑</button>
+         <button class="iconbtn" data-act="down:exhibitions:${i}" title="הורד">↓</button>
+         <button class="iconbtn del" data-act="del:exhibitions:${i}" title="מחק">🗑</button>
+       </div>
+     </div>
+     <div class="row3">
+       <div class="field"><label>שם התערוכה</label><input type="text" data-bind="exhibitions:${i}:title" value="${esc(e.title)}"></div>
+       <div class="field"><label>שנה</label><input type="text" data-bind="exhibitions:${i}:year" value="${esc(e.year)}"></div>
+       <div class="field"><label>גלריה / מקום</label><input type="text" data-bind="exhibitions:${i}:venue" value="${esc(e.venue)}"></div>
+     </div>
+     <div class="field"><label>תיאור התערוכה</label><textarea data-bind="exhibitions:${i}:description" style="min-height:90px">${esc(e.description)}</textarea></div>
+     <div class="field"><label>תמונות מהתערוכה (גלריה)</label>${galleryHtml('exhibitions',i,e.images)}</div>
+   </div>`).join('');
+  if(!arr.length) cards='<div class="empty">אין תערוכות עדיין.</div>';
+  return header('תערוכות','כל תערוכה היא עמוד נפרד: שם · שנה · גלריה ככותרת, ולחיצה פותחת גלריית תמונות + תיאור.')+
+    `<div class="addbar"><button class="btn primary small" data-act="add:exhibitions">＋ הוסף תערוכה</button></div>`+cards;
+}
+
+function viewCV(){
+  const arr=DATA.cv.content;
+  const groups=['Education','Solo Exhibitions','Group Exhibitions','Residency','Awards','Other'];
+  let rows=arr.map((r,i)=>`
    <div class="card"><div class="item" style="grid-template-columns:1fr auto">
      <div>
        <div class="row3">
-         <div class="field"><label>שנה</label><input type="text" data-bind="exhibitions:${i}:year" value="${esc(e.year)}"></div>
-         <div class="field"><label>סוג</label>
-           <select data-bind="exhibitions:${i}:type">${types.map(t=>`<option ${e.type===t?'selected':''}>${t}</option>`).join('')}</select>
+         <div class="field"><label>קטגוריה</label>
+           <select data-bind="cv:${i}:group">${groups.map(g=>`<option ${r.group===g?'selected':''}>${g}</option>`).join('')}</select>
          </div>
-         <div class="field"><label>שם התערוכה</label><input type="text" data-bind="exhibitions:${i}:title" value="${esc(e.title)}"></div>
+         <div class="field"><label>שנה</label><input type="text" data-bind="cv:${i}:year" value="${esc(r.year)}"></div>
+         <div class="field"><label>כותרת</label><input type="text" data-bind="cv:${i}:title" value="${esc(r.title)}"></div>
        </div>
-       <div class="field"><label>מקום / פרטים</label><input type="text" data-bind="exhibitions:${i}:venue" value="${esc(e.venue)}"></div>
+       <div class="field"><label>מקום / פרטים</label><input type="text" data-bind="cv:${i}:venue" value="${esc(r.venue)}"></div>
      </div>
      <div class="itemactions">
-       <button class="iconbtn" data-act="up:exhibitions:${i}" title="העלה">↑</button>
-       <button class="iconbtn" data-act="down:exhibitions:${i}" title="הורד">↓</button>
-       <button class="iconbtn del" data-act="del:exhibitions:${i}" title="מחק">🗑</button>
+       <button class="iconbtn" data-act="up:cv:${i}" title="העלה">↑</button>
+       <button class="iconbtn" data-act="down:cv:${i}" title="הורד">↓</button>
+       <button class="iconbtn del" data-act="del:cv:${i}" title="מחק">🗑</button>
      </div>
    </div></div>`).join('');
-  if(!arr.length) cards='<div class="empty">אין תערוכות עדיין.</div>';
-  return header('תערוכות','התצוגה באתר מקבצת אוטומטית לפי שנה, לפי הסדר כאן.')+
-    `<div class="addbar"><button class="btn primary small" data-act="add:exhibitions">＋ הוסף תערוכה</button></div>`+cards;
+  if(!arr.length) rows='<div class="empty">אין שורות CV עדיין.</div>';
+  return header('קורות חיים (CV)','הרשימה הכרונולוגית בעמוד ה‑CV. מקובצת אוטומטית לפי קטגוריה.')+
+    `<div class="addbar"><button class="btn primary small" data-act="add:cv">＋ הוסף שורה</button></div>`+rows;
 }
 
 function viewAbout(){
@@ -383,32 +451,43 @@ function setValue(key,idx,field,val){
 
 const BLANK = {
   works:{title:'New work',year:'2026',tech:'Oil on canvas',size:'',price:0,available:true,image:''},
-  objects:{title:'New object',meta:'',image:''},
-  exhibitions:{year:'2026',type:'Solo',title:'',venue:''},
+  objects:{title:'New object',meta:'',description:'',images:[]},
+  exhibitions:{title:'New exhibition',year:'2026',venue:'',description:'',images:[]},
+  cv:{group:'Group Exhibitions',year:'2026',title:'',venue:''},
 };
 function doAct(act){
-  const [op,key,idxs]=act.split(':'); const i=Number(idxs);
+  const parts=act.split(':'); const op=parts[0], key=parts[1], i=Number(parts[2]), j=Number(parts[3]);
   const arr=DATA[key]?.content;
   if(op==='add'){ DATA[key].content.unshift(JSON.parse(JSON.stringify(BLANK[key]))); markDirty(key); render(); }
   else if(op==='del'){ if(confirm('למחוק את הפריט הזה?')){ arr.splice(i,1); markDirty(key); render(); } }
   else if(op==='up' && i>0){ [arr[i-1],arr[i]]=[arr[i],arr[i-1]]; markDirty(key); render(); }
   else if(op==='down' && i<arr.length-1){ [arr[i+1],arr[i]]=[arr[i],arr[i+1]]; markDirty(key); render(); }
+  else if(op==='delimg'){ const im=arr[i].images||[]; im.splice(j,1); markDirty(key); render(); }
+  else if(op==='imgup' && j>0){ const im=arr[i].images; [im[j-1],im[j]]=[im[j],im[j-1]]; markDirty(key); render(); }
+  else if(op==='imgdown'){ const im=arr[i].images; if(j<im.length-1){ [im[j+1],im[j]]=[im[j],im[j+1]]; markDirty(key); render(); } }
 }
 
-/* image pick */
+/* image pick — compress, queue upload, stash a local preview */
+async function stageImage(file){
+  const {dataUrl,base64,kb}=await compress(file);
+  const name=`${slug(file.name.replace(/\.[^.]+$/,''))}-${Date.now()}.jpg`;
+  const repoPath=`media/works/${name}`;
+  PENDING[repoPath]=base64;
+  const publicPath='/'+repoPath;
+  PREVIEW[publicPath]=dataUrl;   // so the editor shows it before publishing
+  return {publicPath,kb};
+}
 async function pickImage(key,idx,field,file){
-  try{
-    toast('מעבד תמונה…');
-    const {dataUrl,base64,kb}=await compress(file);
-    const name=`${slug(file.name.replace(/\.[^.]+$/,''))}-${Date.now()}.jpg`;
-    const repoPath=`media/works/${name}`;
-    PENDING[repoPath]=base64;
-    const publicPath='/'+repoPath;
+  try{ toast('מעבד תמונה…'); const {publicPath,kb}=await stageImage(file);
     if(key==='settings') DATA.settings.content[field]=publicPath; else DATA[key].content[Number(idx)][field]=publicPath;
-    // show instant preview by stashing dataUrl on the element after re-render
     markDirty(key); render();
-    // set preview img to dataUrl for the just-changed thumb
-    const el=document.querySelector(`[data-pick="${key}:${idx}:${field}"] img`); if(el) el.src=dataUrl;
+    toast(`תמונה נוספה (${kb}KB) — לחץ "פרסם" לשמירה`,'ok');
+  }catch(e){ console.error(e); toast('שגיאה בעיבוד התמונה','bad'); }
+}
+async function pickImageArray(key,idx,file){
+  try{ toast('מעבד תמונה…'); const {publicPath,kb}=await stageImage(file);
+    const it=DATA[key].content[Number(idx)]; it.images=it.images||[]; it.images.push(publicPath);
+    markDirty(key); render();
     toast(`תמונה נוספה (${kb}KB) — לחץ "פרסם" לשמירה`,'ok');
   }catch(e){ console.error(e); toast('שגיאה בעיבוד התמונה','bad'); }
 }
@@ -454,19 +533,26 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('click',e=>{
   const tab=e.target.closest('.tab'); if(tab){ VIEW=tab.dataset.view; document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===tab)); render(); return; }
-  const actBtn=e.target.closest('[data-act]'); if(actBtn){ doAct(actBtn.getAttribute('data-act')); return; }
-  const pick=e.target.closest('[data-pick]'); if(pick){ openPicker(pick.getAttribute('data-pick')); return; }
+  // don't trigger picker when clicking the small gallery buttons
+  if(e.target.closest('[data-act]')){ doAct(e.target.closest('[data-act]').getAttribute('data-act')); return; }
+  const pick=e.target.closest('[data-pick]'); if(pick){ openPicker('single',pick.getAttribute('data-pick')); return; }
+  const add=e.target.closest('[data-addimg]'); if(add){ openPicker('array',add.getAttribute('data-addimg')); return; }
 });
 let _pickInput;
-function openPicker(token){
+function openPicker(mode, token){
   if(!_pickInput){_pickInput=document.createElement('input');_pickInput.type='file';_pickInput.accept='image/*';_pickInput.style.display='none';document.body.appendChild(_pickInput);}
-  _pickInput.onchange=()=>{const f=_pickInput.files[0];if(f){const[key,idx,field]=token.split(':');pickImage(key,idx,field,f);}_pickInput.value='';};
+  _pickInput.onchange=()=>{const f=_pickInput.files[0];
+    if(f){ if(mode==='single'){const[key,idx,field]=token.split(':');pickImage(key,idx,field,f);} else {const[key,idx]=token.split(':');pickImageArray(key,idx,f);} }
+    _pickInput.value='';};
   _pickInput.click();
 }
-/* drag & drop on thumbs */
-document.addEventListener('dragover',e=>{const t=e.target.closest('[data-pick]');if(t){e.preventDefault();t.classList.add('drag');}});
-document.addEventListener('dragleave',e=>{const t=e.target.closest('[data-pick]');if(t)t.classList.remove('drag');});
-document.addEventListener('drop',e=>{const t=e.target.closest('[data-pick]');if(t){e.preventDefault();t.classList.remove('drag');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const[key,idx,field]=t.getAttribute('data-pick').split(':');pickImage(key,idx,field,f);}}});
+/* drag & drop on thumbs and gallery add-tiles */
+document.addEventListener('dragover',e=>{const t=e.target.closest('[data-pick],[data-addimg]');if(t){e.preventDefault();t.classList.add('drag');}});
+document.addEventListener('dragleave',e=>{const t=e.target.closest('[data-pick],[data-addimg]');if(t)t.classList.remove('drag');});
+document.addEventListener('drop',e=>{const t=e.target.closest('[data-pick],[data-addimg]');if(!t)return;e.preventDefault();t.classList.remove('drag');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){
+  if(t.hasAttribute('data-pick')){const[key,idx,field]=t.getAttribute('data-pick').split(':');pickImage(key,idx,field,f);}
+  else {const[key,idx]=t.getAttribute('data-addimg').split(':');pickImageArray(key,idx,f);}
+}});
 window.addEventListener('beforeunload',e=>{ if(DIRTY.size||Object.keys(PENDING).length){e.preventDefault();e.returnValue='';} });
 
 $('#publishBtn').addEventListener('click',publish);

@@ -1,62 +1,32 @@
 [
   {
+    "title": "Ritual",
     "year": "2026",
-    "type": "Solo",
-    "title": "\"Ritual\"",
-    "venue": "Jerusalem Artists' House — curated by Hadas Glazer"
+    "venue": "Jerusalem Artists' House — curated by Hadas Glazer",
+    "description": "A solo exhibition gathering recent paintings in which bodies, nature and spirituality meet in ritual scenes. Faceless figures assemble around offerings within lush botanical landscapes, building a personal mythology of body, belonging and transcendence.",
+    "images": [
+      "/media/works/ritual.jpg",
+      "/media/works/gathering.jpg"
+    ]
   },
   {
+    "title": "In Full Bloom",
     "year": "2024",
-    "type": "Group",
-    "title": "\"In Full Bloom\"",
-    "venue": "Herzl House — curated by Yahel Nevo"
+    "venue": "Herzl House — curated by Yahel Nevo",
+    "description": "A group exhibition exploring growth, nature and the human figure.",
+    "images": [
+      "/media/works/adam-lamp.jpg",
+      "/media/works/sliding-wall-1.jpeg"
+    ]
   },
   {
-    "year": "2023",
-    "type": "Group",
-    "title": "\"Nature of Man II\"",
-    "venue": "Maayan Tzvi — Place for Culture"
-  },
-  {
+    "title": "Nature of Man",
     "year": "2022",
-    "type": "Solo",
-    "title": "\"Nature of Man\"",
-    "venue": "Nulobaz Gallery"
-  },
-  {
-    "year": "2020",
-    "type": "Group",
-    "title": "\"Salon Hacubia\"",
-    "venue": "The Cube Gallery, Jerusalem — curated by Ella Cohen Vansover & Dan Orimian"
-  },
-  {
-    "year": "2019",
-    "type": "Solo",
-    "title": "BFA Graduate Exhibition",
-    "venue": "Shenkar College, Department of Multidisciplinary Art"
-  },
-  {
-    "year": "2019",
-    "type": "Group",
-    "title": "\"Are Published\"",
-    "venue": "Portfolio Magazine — curated by Hagit Peleg & Yuval Sahar"
-  },
-  {
-    "year": "2019",
-    "type": "Group",
-    "title": "Sublet",
-    "venue": "Jerusalem — abandoned movie theater transformed into cultural space"
-  },
-  {
-    "year": "2017",
-    "type": "Group",
-    "title": "\"Naked / Nude\"",
-    "venue": "The Cuckoo's Nest, Jaffa"
-  },
-  {
-    "year": "Residency",
-    "type": "Res.",
-    "title": "Artesumapaz",
-    "venue": "Colombia, August–September 2021"
+    "venue": "Nulobaz Gallery",
+    "description": "A solo exhibition presenting the figure within nature — between the real and the visionary.",
+    "images": [
+      "/media/works/two.jpg",
+      "/media/works/woman.jpg"
+    ]
   }
 ]
