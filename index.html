@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elad Amsalem — Painter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cream: #F4F1EC;
+    --ink: #1a1714;
+    --muted: #7a7470;
+    --accent: #b5946a;
+    --border: rgba(26,23,20,0.12);
+    --serif: 'EB Garamond', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--cream);
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    height: 60px;
+  }
+
+  .nav-logo {
+    font-family: var(--serif);
+    font-size: 17px;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--ink); }
+
+  .nav-links a.active { color: var(--ink); }
+
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px;
+  }
+
+  .hamburger span {
+    display: block;
+    width: 22px;
+    height: 1px;
+    background: var(--ink);
+    transition: all 0.3s;
+  }
+
+  /* ── MOBILE NAV ── */
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: 60px; left: 0; right: 0; bottom: 0;
+    background: var(--cream);
+    z-index: 99;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+  }
+
+  .mobile-menu.open { display: flex; }
+
+  .mobile-menu a {
+    font-family: var(--serif);
+    font-size: 28px;
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    display: none;
+    padding: 100px 40px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  section.active { display: block; }
+
+  /* ── HOME ── */
+  #home {
+    padding: 0;
+    max-width: 100%;
+    display: none;
+  }
+
+  #home.active { display: block; }
+
+  .hero {
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .hero-image {
+    position: relative;
+    overflow: hidden;
+    background: #2a2420;
+  }
+
+  .hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.92;
+    transition: transform 8s ease;
+  }
+
+  .hero-image:hover img { transform: scale(1.03); }
+
+  .hero-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 60px 60px 80px;
+    background: var(--cream);
+  }
+
+  .hero-label {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .hero-title {
+    font-family: var(--serif);
+    font-size: clamp(42px, 5vw, 72px);
+    line-height: 1.0;
+    font-weight: 400;
+    margin-bottom: 32px;
+  }
+
+  .hero-statement {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--muted);
+    max-width: 380px;
+    margin-bottom: 48px;
+    font-style: italic;
+    font-family: var(--serif);
+  }
+
+  .hero-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .hero-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 12px 0;
+    border-top: 0.5px solid var(--border);
+    transition: gap 0.3s;
+    cursor: pointer;
+  }
+
+  .hero-nav-link:hover { gap: 24px; }
+
+  .hero-nav-link .arrow {
+    font-size: 16px;
+    color: var(--accent);
+  }
+
+  /* ── PAINTINGS ── */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 48px;
+    border-bottom: 0.5px solid var(--border);
+    padding-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .year-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .year-btn {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    padding: 5px 14px;
+    border: 0.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--sans);
+  }
+
+  .year-btn:hover, .year-btn.active {
+    background: var(--ink);
+    color: var(--cream);
+    border-color: var(--ink);
+  }
+
+  /* Masonry grid */
+  .paintings-grid {
+    columns: 3;
+    column-gap: 20px;
+  }
+
+  .painting-item {
+    break-inside: avoid;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    background: #e8e4dd;
+  }
+
+  .painting-item img {
+    width: 100%;
+    display: block;
+    transition: transform 0.5s ease, opacity 0.3s;
+  }
+
+  .painting-item:hover img {
+    transform: scale(1.04);
+    opacity: 0.88;
+  }
+
+  .painting-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 24px 18px 18px;
+    background: linear-gradient(transparent, rgba(26,23,20,0.7));
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .painting-item:hover .painting-overlay { opacity: 1; }
+
+  .painting-name {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-style: italic;
+    margin-bottom: 2px;
+  }
+
+  .painting-meta {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    opacity: 0.8;
+  }
+
+  .painting-price {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #d4b896;
+  }
+
+  /* ── SHOP ── */
+  .shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 32px;
+  }
+
+  .shop-card {
+    background: white;
+    border: 0.5px solid var(--border);
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+  }
+
+  .shop-card:hover {
+    box-shadow: 0 8px 40px rgba(26,23,20,0.10);
+  }
+
+  .shop-card-image {
+    aspect-ratio: 4/5;
+    overflow: hidden;
+    background: #e8e4dd;
+  }
+
+  .shop-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+  }
+
+  .shop-card:hover .shop-card-image img { transform: scale(1.05); }
+
+  .shop-card-info {
+    padding: 20px;
+    border-top: 0.5px solid var(--border);
+  }
+
+  .shop-card-title {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-style: italic;
+    margin-bottom: 4px;
+  }
+
+  .shop-card-meta {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    margin-bottom: 16px;
+  }
+
+  .shop-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .shop-price {
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--ink);
+  }
+
+  .shop-status {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border: 0.5px solid currentColor;
+  }
+
+  .status-available { color: #5a7a5a; }
+  .status-sold { color: var(--muted); }
+
+  .btn-inquire {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 11px;
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    font-family: var(--sans);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .btn-inquire:hover { background: #3a3330; }
+
+  /* ── EXHIBITIONS ── */
+  .exhibitions-list { max-width: 720px; }
+
+  .exhibition-year-group { margin-bottom: 48px; }
+
+  .exh-year {
+    font-family: var(--serif);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .exh-item {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 20px;
+    padding: 16px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .exh-type {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding-top: 2px;
+  }
+
+  .exh-title {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-style: italic;
+    margin-bottom: 4px;
+  }
+
+  .exh-venue {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* ── ABOUT ── */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .about-image {
+    position: sticky;
+    top: 80px;
+  }
+
+  .about-image img {
+    width: 100%;
+    display: block;
+    filter: grayscale(8%);
+  }
+
+  .about-image-caption {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-top: 12px;
+    text-transform: uppercase;
+  }
+
+  .about-text h1 {
+    font-family: var(--serif);
+    font-size: 38px;
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.1;
+    margin-bottom: 32px;
+  }
+
+  .about-text p {
+    font-size: 15px;
+    line-height: 1.9;
+    color: #3a3632;
+    margin-bottom: 24px;
+  }
+
+  .about-links {
+    display: flex;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 0.5px solid var(--border);
+  }
+
+  .about-link {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink);
+    padding: 10px 24px;
+    border: 0.5px solid var(--ink);
+    transition: all 0.2s;
+  }
+
+  .about-link:hover {
+    background: var(--ink);
+    color: var(--cream);
+  }
+
+  /* ── OBJECTS ── */
+  .objects-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+  }
+
+  .object-card { position: relative; }
+
+  .object-image {
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    background: #e8e4dd;
+    margin-bottom: 16px;
+  }
+
+  .object-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+  }
+
+  .object-card:hover .object-image img { transform: scale(1.04); }
+
+  .object-title {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-style: italic;
+    margin-bottom: 4px;
+  }
+
+  .object-meta { font-size: 12px; color: var(--muted); }
+
+  /* ── LIGHTBOX ── */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20,17,14,0.94);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+
+  .lightbox.open { display: flex; }
+
+  .lightbox-inner {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 48px;
+    max-width: 1000px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .lightbox-img-wrap {
+    position: relative;
+    text-align: center;
+  }
+
+  .lightbox-img-wrap img {
+    max-height: 80vh;
+    max-width: 100%;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .lightbox-info { color: white; }
+
+  .lightbox-title {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-style: italic;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .lightbox-meta {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  .lightbox-price {
+    font-family: var(--serif);
+    font-size: 24px;
+    color: #d4b896;
+    margin-top: 20px;
+    margin-bottom: 24px;
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    opacity: 0.6;
+    line-height: 1;
+    padding: 8px;
+  }
+
+  .lightbox-close:hover { opacity: 1; }
+
+  /* ── CONTACT ── */
+  .contact-wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 80px 0;
+  }
+
+  .contact-wrap h2 {
+    font-family: var(--serif);
+    font-size: 36px;
+    font-style: italic;
+    font-weight: 400;
+    margin-bottom: 16px;
+  }
+
+  .contact-wrap p {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 48px;
+    line-height: 1.8;
+  }
+
+  .contact-email {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 0.5px solid var(--accent);
+    padding-bottom: 2px;
+    transition: color 0.2s;
+  }
+
+  .contact-email:hover { color: var(--accent); }
+
+  .contact-social {
+    margin-top: 48px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .contact-social a {
+    color: var(--ink);
+    text-decoration: none;
+    margin-left: 8px;
+    border-bottom: 0.5px solid var(--border);
+    padding-bottom: 1px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 0.5px solid var(--border);
+    padding: 24px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+
+    section { padding: 80px 20px 40px; }
+
+    .hero { grid-template-columns: 1fr; }
+    .hero-image { height: 60vh; }
+    .hero-text { padding: 40px 24px 60px; }
+    .hero-title { font-size: 40px; }
+
+    .paintings-grid { columns: 2; }
+
+    .about-grid { grid-template-columns: 1fr; }
+    .about-image { position: static; }
+
+    .objects-grid { grid-template-columns: 1fr; }
+
+    .shop-grid { grid-template-columns: 1fr; }
+
+    .lightbox-inner { grid-template-columns: 1fr; }
+    .lightbox-info { display: none; }
+
+    footer { flex-direction: column; gap: 8px; text-align: center; }
+  }
+
+  @media (max-width: 480px) {
+    .paintings-grid { columns: 1; }
+  }
+
+  /* Fade in */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  section.active { animation: fadeIn 0.5s ease; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#" onclick="showSection('home')">Elad Amsalem</a>
+  <ul class="nav-links">
+    <li><a href="#" onclick="showSection('paintings')" data-section="paintings">Paintings</a></li>
+    <li><a href="#" onclick="showSection('objects')" data-section="objects">Objects</a></li>
+    <li><a href="#" onclick="showSection('exhibitions')" data-section="exhibitions">Exhibitions</a></li>
+    <li><a href="#" onclick="showSection('shop')" data-section="shop">Shop</a></li>
+    <li><a href="#" onclick="showSection('about')" data-section="about">About</a></li>
+    <li><a href="#" onclick="showSection('contact')" data-section="contact">Contact</a></li>
+  </ul>
+  <button class="hamburger" onclick="toggleMobile()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#" onclick="showSection('paintings');toggleMobile()">Paintings</a>
+  <a href="#" onclick="showSection('objects');toggleMobile()">Objects</a>
+  <a href="#" onclick="showSection('exhibitions');toggleMobile()">Exhibitions</a>
+  <a href="#" onclick="showSection('shop');toggleMobile()">Shop</a>
+  <a href="#" onclick="showSection('about');toggleMobile()">About</a>
+  <a href="#" onclick="showSection('contact');toggleMobile()">Contact</a>
+</div>
+
+<!-- HOME -->
+<section id="home" class="active">
+  <div class="hero">
+    <div class="hero-image">
+      <img src="https://static.wixstatic.com/media/2fd4a0_49a99f67d5684c07830ab572127b9fe9~mv2.jpg" alt="Elad Amsalem painting" loading="eager">
+    </div>
+    <div class="hero-text">
+      <p class="hero-label">Painter · Hof HaCarmel, Israel</p>
+      <h1 class="hero-title">Elad<br>Amsalem</h1>
+      <p class="hero-statement">"There is a ritual energy in my paintings — a waystation between the material and the spiritual, between the sacred and the profane."</p>
+      <nav class="hero-nav">
+        <a class="hero-nav-link" onclick="showSection('paintings')">
+          <span class="arrow">→</span> Paintings
+        </a>
+        <a class="hero-nav-link" onclick="showSection('shop')">
+          <span class="arrow">→</span> Available Works
+        </a>
+        <a class="hero-nav-link" onclick="showSection('exhibitions')">
+          <span class="arrow">→</span> Exhibitions
+        </a>
+        <a class="hero-nav-link" onclick="showSection('about')">
+          <span class="arrow">→</span> About
+        </a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- PAINTINGS -->
+<section id="paintings">
+  <div class="section-header">
+    <h2 class="section-title">Paintings</h2>
+    <div class="year-filter">
+      <button class="year-btn active" onclick="filterYear('all', this)">All</button>
+      <button class="year-btn" onclick="filterYear('2026', this)">2026</button>
+      <button class="year-btn" onclick="filterYear('2025', this)">2025</button>
+      <button class="year-btn" onclick="filterYear('2024', this)">2024</button>
+      <button class="year-btn" onclick="filterYear('2023', this)">2023</button>
+      <button class="year-btn" onclick="filterYear('2022', this)">2022</button>
+      <button class="year-btn" onclick="filterYear('2019', this)">2019</button>
+    </div>
+  </div>
+  <div class="paintings-grid" id="paintingsGrid">
+    <!-- populated by JS -->
+  </div>
+</section>
+
+<!-- OBJECTS -->
+<section id="objects">
+  <div class="section-header">
+    <h2 class="section-title">Objects</h2>
+  </div>
+  <div class="objects-grid">
+    <div class="object-card">
+      <div class="object-image">
+        <img src="https://static.wixstatic.com/media/2fd4a0_255d751e8e9e4cd28f0173750d862389~mv2.jpg" alt="Pargod" loading="lazy">
+      </div>
+      <p class="object-title">Pargod</p>
+      <p class="object-meta">Mixed media · 2020</p>
+    </div>
+    <div class="object-card">
+      <div class="object-image">
+        <img src="https://static.wixstatic.com/media/2fd4a0_4d85e0c206f44a18931e9b44dfecf59d~mv2.jpeg" alt="Sliding Wall 1" loading="lazy">
+      </div>
+      <p class="object-title">Sliding Wall 1</p>
+      <p class="object-meta">Mixed media · 2021</p>
+    </div>
+    <div class="object-card">
+      <div class="object-image">
+        <img src="https://static.wixstatic.com/media/2fd4a0_b08b84c65cc54f539cd1f9f63c899e03~mv2.jpeg" alt="Sliding Wall 2" loading="lazy">
+      </div>
+      <p class="object-title">Sliding Wall 2</p>
+      <p class="object-meta">Mixed media · 2021</p>
+    </div>
+    <div class="object-card">
+      <div class="object-image">
+        <img src="https://static.wixstatic.com/media/2fd4a0_737de2b2e8a94e8084a282c0995098ac~mv2.jpeg" alt="Wood Panel" loading="lazy">
+      </div>
+      <p class="object-title">Wood Panel</p>
+      <p class="object-meta">Oil and wood · 2022</p>
+    </div>
+  </div>
+</section>
+
+<!-- EXHIBITIONS -->
+<section id="exhibitions">
+  <div class="section-header">
+    <h2 class="section-title">Exhibitions</h2>
+  </div>
+  <div class="exhibitions-list">
+
+    <div class="exhibition-year-group">
+      <p class="exh-year">2026</p>
+      <div class="exh-item">
+        <span class="exh-type">Solo</span>
+        <div>
+          <p class="exh-title">"Ritual"</p>
+          <p class="exh-venue">Jerusalem Artists' House — curated by Hadas Glazer</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="exhibition-year-group">
+      <p class="exh-year">2024</p>
+      <div class="exh-item">
+        <span class="exh-type">Group</span>
+        <div>
+          <p class="exh-title">"In Full Bloom"</p>
+          <p class="exh-venue">Herzl House — curated by Yahel Nevo</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="exhibition-year-group">
+      <p class="exh-year">2023</p>
+      <div class="exh-item">
+        <span class="exh-type">Group</span>
+        <div>
+          <p class="exh-title">"Nature of Man II"</p>
+          <p class="exh-venue">Maayan Tzvi — Place for Culture</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="exhibition-year-group">
+      <p class="exh-year">2022</p>
+      <div class="exh-item">
+        <span class="exh-type">Solo</span>
+        <div>
+          <p class="exh-title">"Nature of Man"</p>
+          <p class="exh-venue">Nulobaz Gallery</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="exhibition-year-group">
+      <p class="exh-year">2020</p>
+      <div class="exh-item">
+        <span class="exh-type">Group</span>
+        <div>
+          <p class="exh-title">"Salon Hacubia"</p>
+          <p class="exh-venue">The Cube Gallery, Jerusalem — curated by Ella Cohen Vansover & Dan Orimian</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="exhibition-year-group">
+      <p class="exh-year">2019</p>
+      <div class="exh-item">
+        <span class="exh-type">Solo</span>
+        <div>
+          <p class="exh-title">BFA Graduate Exhibition</p>
+          <p class="exh-venue">Shenkar College, Department of Multidisciplinary Art</p>
+        </div>
+      </div>
+      <div class="exh-item">
+        <span class="exh-type">Group</span>
+        <div>
+          <p class="exh-title">"Are Published"</p>
+          <p class="exh-venue">Portfolio Magazine — curated by Hagit Peleg & Yuval Sahar</p>
+        </div>
+      </div>
+      <div class="exh-item">
+        <span class="exh-type">Group</span>
+        <div>
+          <p class="exh-title">Sublet</p>
+          <p class="exh-venue">Jerusalem — abandoned movie theater transformed into cultural space</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="exhibition-year-group">
+      <p class="exh-year">2017</p>
+      <div class="exh-item">
+        <span class="exh-type">Group</span>
+        <div>
+          <p class="exh-title">"Naked / Nude"</p>
+          <p class="exh-venue">The Cuckoo's Nest, Jaffa</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="exhibition-year-group">
+      <p class="exh-year">Residency</p>
+      <div class="exh-item">
+        <span class="exh-type" style="color:var(--muted)">Res.</span>
+        <div>
+          <p class="exh-title">Artesumapaz</p>
+          <p class="exh-venue">Colombia, August–September 2021</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SHOP -->
+<section id="shop">
+  <div class="section-header">
+    <h2 class="section-title">Available Works</h2>
+    <span style="font-size:13px;color:var(--muted)">Inquiries welcome</span>
+  </div>
+  <div class="shop-grid" id="shopGrid">
+    <!-- populated by JS -->
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-image">
+      <img src="https://static.wixstatic.com/media/2fd4a0_a1ed17c283314aac8350d89cfd131aee~mv2.jpg" alt="Elad Amsalem">
+      <p class="about-image-caption">Elad Amsalem · b. 1991, Hof HaCarmel</p>
+    </div>
+    <div class="about-text">
+      <h1>Painter,<br>Hof HaCarmel</h1>
+      <p>I paint. In every painting there is at least one figure; it is the beginning of the work, and around it — through it — the painting is built and takes place. Between the figure and the painting itself, in the acts of painting, a tension emerges between concealment and unity, with elements from nature and from the worlds of ritual and tradition.</p>
+      <p>I use tattoo markings on the figure's body and on the painting itself to connect the figure to color and to the materiality of painting — marks that place the body within the surface and bind it to layers of paint, stain, and erasure.</p>
+      <p>There is a ritual energy in my paintings, as if from another dimension — a waystation between the material and the spiritual, between the sacred and the profane. The figure is not a private portrait but an open form that allows the viewer to complete what is missing: traces of movement, light and shadow, areas left unresolved alongside precise passages.</p>
+      <p>In this way, the painting functions not as documentation but as an active site where body, nature, and ritual meet — and from within it the figure continues to lead the unfolding.</p>
+      <p style="color:var(--muted);font-size:13px;">Graduate of the Department of Multidisciplinary Art, Shenkar College, Tel Aviv (BFA with Excellence, 2019).</p>
+      <div class="about-links">
+        <a class="about-link" href="https://www.eladamsalem.com/_files/ugd/2fd4a0_5cfa628959ff4a54bd22750348a30a2d.pdf" target="_blank">Download CV</a>
+        <a class="about-link" href="https://instagram.com/eladamsalem1" target="_blank">Instagram</a>
+        <a class="about-link" onclick="showSection('contact')" style="cursor:pointer">Contact</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-wrap">
+    <h2>Get in Touch</h2>
+    <p>For inquiries about available works, exhibitions, commissions, or workshops — feel free to reach out directly.</p>
+    <a class="contact-email" href="mailto:eladamsalem1@gmail.com">eladamsalem1@gmail.com</a>
+    <div class="contact-social">
+      Follow on <a href="https://instagram.com/eladamsalem1" target="_blank">Instagram</a>
+    </div>
+  </div>
+</section>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">×</button>
+  <div class="lightbox-inner">
+    <div class="lightbox-img-wrap">
+      <img id="lightboxImg" src="" alt="">
+    </div>
+    <div class="lightbox-info">
+      <p id="lightboxTitle" class="lightbox-title"></p>
+      <p id="lightboxTech" class="lightbox-meta"></p>
+      <p id="lightboxSize" class="lightbox-meta"></p>
+      <p id="lightboxYear" class="lightbox-meta"></p>
+      <p id="lightboxPrice" class="lightbox-price"></p>
+      <a id="lightboxInquire" href="mailto:eladamsalem1@gmail.com" class="btn-inquire">Inquire About This Work</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2026 Elad Amsalem</span>
+  <span><a href="https://instagram.com/eladamsalem1" target="_blank" style="color:inherit;text-decoration:none;">Instagram</a></span>
+</footer>
+
+<script>
+const WORKS = [
+  { id:1, title:"Adam, Adam and a Lamp", year:"2025", tech:"Oil on canvas", size:"70 × 120 cm", price:4500, available:true,
+    img:"https://static.wixstatic.com/media/2fd4a0_ced25b89c7ee46b9b40e1aeb5f5a3df9~mv2.jpg" },
+  { id:2, title:"Flowers 1", year:"2026", tech:"Oil on canvas", size:"30 × 30 cm", price:2500, available:true,
+    img:"https://static.wixstatic.com/media/2fd4a0_737de2b2e8a94e8084a282c0995098ac~mv2.jpeg" },
+  { id:3, title:"Flowers 2", year:"2026", tech:"Oil on canvas", size:"30 × 30 cm", price:2500, available:true,
+    img:"https://static.wixstatic.com/media/2fd4a0_4d85e0c206f44a18931e9b44dfecf59d~mv2.jpeg" },
+  { id:4, title:"Flowers 3", year:"2026", tech:"Oil on canvas", size:"30 × 30 cm", price:2500, available:true,
+    img:"https://static.wixstatic.com/media/2fd4a0_b08b84c65cc54f539cd1f9f63c899e03~mv2.jpeg" },
+  { id:5, title:"Gathering", year:"2026", tech:"Oil on canvas", size:"140 × 170 cm", price:18000, available:true,
+    img:"https://static.wixstatic.com/media/2fd4a0_49a99f67d5684c07830ab572127b9fe9~mv2.jpg" },
+  { id:6, title:"Woman", year:"2025", tech:"Oil on canvas", size:"110 × 90 cm", price:5000, available:true,
+    img:"https://static.wixstatic.com/media/2fd4a0_255d751e8e9e4cd28f0173750d862389~mv2.jpg" },
+  { id:7, title:"Ritual", year:"2025", tech:"Oil on canvas", size:"130 × 110 cm", price:7000, available:true,
+    img:"https://static.wixstatic.com/media/2fd4a0_a160026cf0e14505b08ccdcb37f82af9~mv2.jpg" },
+  { id:8, title:"Two", year:"2022", tech:"Oil on canvas", size:"110 × 140 cm", price:7000, available:false,
+    img:"https://static.wixstatic.com/media/2fd4a0_b910500f288243ce8a52403e3c8b157e~mv2.jpg" },
+  { id:9, title:"Woman and a Gun", year:"2025", tech:"Oil on canvas + ceramic", size:"120 × 130 cm", price:8500, available:true,
+    img:"https://static.wixstatic.com/media/2fd4a0_49a99f67d5684c07830ab572127b9fe9~mv2.jpg" },
+  { id:10, title:"Human Nature", year:"2025", tech:"Oil on canvas", size:"90 × 70 cm", price:3500, available:true,
+    img:"https://static.wixstatic.com/media/2fd4a0_a1ed17c283314aac8350d89cfd131aee~mv2.jpg" },
+];
+
+function fmt(n){ return '₪ ' + n.toLocaleString('he-IL'); }
+
+function renderPaintings(year){
+  const grid = document.getElementById('paintingsGrid');
+  const filtered = year === 'all' ? WORKS : WORKS.filter(w => w.year === year);
+  grid.innerHTML = filtered.map(w => `
+    <div class="painting-item" onclick="openLightbox(${w.id})">
+      <img src="${w.img}" alt="${w.title}" loading="lazy">
+      <div class="painting-overlay">
+        <p class="painting-name">${w.title}</p>
+        <p class="painting-meta">${w.tech} · ${w.size} · ${w.year}</p>
+        ${w.available ? `<p class="painting-price">${fmt(w.price)}</p>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderShop(){
+  const grid = document.getElementById('shopGrid');
+  grid.innerHTML = WORKS.map(w => `
+    <div class="shop-card">
+      <div class="shop-card-image">
+        <img src="${w.img}" alt="${w.title}" loading="lazy">
+      </div>
+      <div class="shop-card-info">
+        <p class="shop-card-title">${w.title}</p>
+        <p class="shop-card-meta">${w.tech} · ${w.size} · ${w.year}</p>
+        <div class="shop-card-footer">
+          <span class="shop-price">${fmt(w.price)}</span>
+          <span class="shop-status ${w.available ? 'status-available' : 'status-sold'}">${w.available ? 'Available' : 'Sold'}</span>
+        </div>
+        ${w.available ? `<a href="mailto:eladamsalem1@gmail.com?subject=Inquiry: ${w.title}" class="btn-inquire">Inquire →</a>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterYear(year, btn){
+  document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPaintings(year);
+}
+
+function openLightbox(id){
+  const w = WORKS.find(x => x.id === id);
+  if(!w) return;
+  document.getElementById('lightboxImg').src = w.img;
+  document.getElementById('lightboxImg').alt = w.title;
+  document.getElementById('lightboxTitle').textContent = w.title;
+  document.getElementById('lightboxTech').textContent = w.tech;
+  document.getElementById('lightboxSize').textContent = w.size;
+  document.getElementById('lightboxYear').textContent = w.year;
+  document.getElementById('lightboxPrice').textContent = w.available ? fmt(w.price) : 'Sold';
+  document.getElementById('lightboxInquire').href = `mailto:eladamsalem1@gmail.com?subject=Inquiry: ${w.title}`;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox(e){
+  if(e && e.target !== document.getElementById('lightbox') && !e.target.classList.contains('lightbox-close')) return;
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox({target: document.getElementById('lightbox')}); });
+
+function showSection(id){
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    a.classList.toggle('active', a.dataset.section === id);
+  });
+  window.scrollTo(0,0);
+}
+
+function toggleMobile(){
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+
+// Init
+renderPaintings('all');
+renderShop();
+</script>
+</body>
+</html>
