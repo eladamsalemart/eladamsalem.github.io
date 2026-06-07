@@ -1,0 +1,92 @@
+[
+  {
+    "title": "Adam, Adam and a Lamp",
+    "year": "2025",
+    "tech": "Oil on canvas",
+    "size": "70 × 120 cm",
+    "price": 4500,
+    "available": true,
+    "image": "/media/works/adam-lamp.jpg"
+  },
+  {
+    "title": "Flowers 1",
+    "year": "2026",
+    "tech": "Oil on canvas",
+    "size": "30 × 30 cm",
+    "price": 2500,
+    "available": true,
+    "image": "/media/works/wood-panel.jpeg"
+  },
+  {
+    "title": "Flowers 2",
+    "year": "2026",
+    "tech": "Oil on canvas",
+    "size": "30 × 30 cm",
+    "price": 2500,
+    "available": true,
+    "image": "/media/works/sliding-wall-1.jpeg"
+  },
+  {
+    "title": "Flowers 3",
+    "year": "2026",
+    "tech": "Oil on canvas",
+    "size": "30 × 30 cm",
+    "price": 2500,
+    "available": true,
+    "image": "/media/works/sliding-wall-2.jpeg"
+  },
+  {
+    "title": "Gathering",
+    "year": "2026",
+    "tech": "Oil on canvas",
+    "size": "140 × 170 cm",
+    "price": 18000,
+    "available": true,
+    "image": "/media/works/gathering.jpg"
+  },
+  {
+    "title": "Woman",
+    "year": "2025",
+    "tech": "Oil on canvas",
+    "size": "110 × 90 cm",
+    "price": 5000,
+    "available": true,
+    "image": "/media/works/woman.jpg"
+  },
+  {
+    "title": "Ritual",
+    "year": "2025",
+    "tech": "Oil on canvas",
+    "size": "130 × 110 cm",
+    "price": 7000,
+    "available": true,
+    "image": "/media/works/ritual.jpg"
+  },
+  {
+    "title": "Two",
+    "year": "2022",
+    "tech": "Oil on canvas",
+    "size": "110 × 140 cm",
+    "price": 7000,
+    "available": false,
+    "image": "/media/works/two.jpg"
+  },
+  {
+    "title": "Woman and a Gun",
+    "year": "2025",
+    "tech": "Oil on canvas + ceramic",
+    "size": "120 × 130 cm",
+    "price": 8500,
+    "available": true,
+    "image": "/media/works/gathering.jpg"
+  },
+  {
+    "title": "Human Nature",
+    "year": "2025",
+    "tech": "Oil on canvas",
+    "size": "90 × 70 cm",
+    "price": 3500,
+    "available": true,
+    "image": "/media/works/portrait.jpg"
+  }
+]

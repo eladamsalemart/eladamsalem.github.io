@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -32,7 +32,7 @@
   }
 
   /* ── NAV ── */
-  nav {
+  .site-nav {
     position: fixed;
     top: 0; left: 0; right: 0;
     z-index: 100;
@@ -695,7 +695,7 @@
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
-    nav { padding: 0 20px; }
+    .site-nav { padding: 0 20px; }
     .nav-links { display: none; }
     .hamburger { display: flex; }
 
@@ -737,7 +737,7 @@
 <body>
 
 <!-- NAV -->
-<nav>
+<nav class="site-nav">
   <a class="nav-logo" href="#" onclick="showSection('home')">Elad Amsalem</a>
   <ul class="nav-links">
     <li><a href="#" onclick="showSection('paintings')" data-section="paintings">Paintings</a></li>
@@ -766,12 +766,12 @@
 <section id="home" class="active">
   <div class="hero">
     <div class="hero-image">
-      <img src="https://static.wixstatic.com/media/2fd4a0_49a99f67d5684c07830ab572127b9fe9~mv2.jpg" alt="Elad Amsalem painting" loading="eager">
+      <img id="heroImg" src="" alt="Elad Amsalem painting" loading="eager">
     </div>
     <div class="hero-text">
-      <p class="hero-label">Painter · Hof HaCarmel, Israel</p>
-      <h1 class="hero-title">Elad<br>Amsalem</h1>
-      <p class="hero-statement">"There is a ritual energy in my paintings — a waystation between the material and the spiritual, between the sacred and the profane."</p>
+      <p class="hero-label" id="heroLabel"></p>
+      <h1 class="hero-title" id="heroTitle"></h1>
+      <p class="hero-statement" id="heroStatement"></p>
       <nav class="hero-nav">
         <a class="hero-nav-link" onclick="showSection('paintings')">
           <span class="arrow">→</span> Paintings
@@ -814,35 +814,8 @@
   <div class="section-header">
     <h2 class="section-title">Objects</h2>
   </div>
-  <div class="objects-grid">
-    <div class="object-card">
-      <div class="object-image">
-        <img src="https://static.wixstatic.com/media/2fd4a0_255d751e8e9e4cd28f0173750d862389~mv2.jpg" alt="Pargod" loading="lazy">
-      </div>
-      <p class="object-title">Pargod</p>
-      <p class="object-meta">Mixed media · 2020</p>
-    </div>
-    <div class="object-card">
-      <div class="object-image">
-        <img src="https://static.wixstatic.com/media/2fd4a0_4d85e0c206f44a18931e9b44dfecf59d~mv2.jpeg" alt="Sliding Wall 1" loading="lazy">
-      </div>
-      <p class="object-title">Sliding Wall 1</p>
-      <p class="object-meta">Mixed media · 2021</p>
-    </div>
-    <div class="object-card">
-      <div class="object-image">
-        <img src="https://static.wixstatic.com/media/2fd4a0_b08b84c65cc54f539cd1f9f63c899e03~mv2.jpeg" alt="Sliding Wall 2" loading="lazy">
-      </div>
-      <p class="object-title">Sliding Wall 2</p>
-      <p class="object-meta">Mixed media · 2021</p>
-    </div>
-    <div class="object-card">
-      <div class="object-image">
-        <img src="https://static.wixstatic.com/media/2fd4a0_737de2b2e8a94e8084a282c0995098ac~mv2.jpeg" alt="Wood Panel" loading="lazy">
-      </div>
-      <p class="object-title">Wood Panel</p>
-      <p class="object-meta">Oil and wood · 2022</p>
-    </div>
+  <div class="objects-grid" id="objectsGrid">
+    <!-- populated by JS -->
   </div>
 </section>
 
@@ -851,110 +824,8 @@
   <div class="section-header">
     <h2 class="section-title">Exhibitions</h2>
   </div>
-  <div class="exhibitions-list">
-
-    <div class="exhibition-year-group">
-      <p class="exh-year">2026</p>
-      <div class="exh-item">
-        <span class="exh-type">Solo</span>
-        <div>
-          <p class="exh-title">"Ritual"</p>
-          <p class="exh-venue">Jerusalem Artists' House — curated by Hadas Glazer</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="exhibition-year-group">
-      <p class="exh-year">2024</p>
-      <div class="exh-item">
-        <span class="exh-type">Group</span>
-        <div>
-          <p class="exh-title">"In Full Bloom"</p>
-          <p class="exh-venue">Herzl House — curated by Yahel Nevo</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="exhibition-year-group">
-      <p class="exh-year">2023</p>
-      <div class="exh-item">
-        <span class="exh-type">Group</span>
-        <div>
-          <p class="exh-title">"Nature of Man II"</p>
-          <p class="exh-venue">Maayan Tzvi — Place for Culture</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="exhibition-year-group">
-      <p class="exh-year">2022</p>
-      <div class="exh-item">
-        <span class="exh-type">Solo</span>
-        <div>
-          <p class="exh-title">"Nature of Man"</p>
-          <p class="exh-venue">Nulobaz Gallery</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="exhibition-year-group">
-      <p class="exh-year">2020</p>
-      <div class="exh-item">
-        <span class="exh-type">Group</span>
-        <div>
-          <p class="exh-title">"Salon Hacubia"</p>
-          <p class="exh-venue">The Cube Gallery, Jerusalem — curated by Ella Cohen Vansover & Dan Orimian</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="exhibition-year-group">
-      <p class="exh-year">2019</p>
-      <div class="exh-item">
-        <span class="exh-type">Solo</span>
-        <div>
-          <p class="exh-title">BFA Graduate Exhibition</p>
-          <p class="exh-venue">Shenkar College, Department of Multidisciplinary Art</p>
-        </div>
-      </div>
-      <div class="exh-item">
-        <span class="exh-type">Group</span>
-        <div>
-          <p class="exh-title">"Are Published"</p>
-          <p class="exh-venue">Portfolio Magazine — curated by Hagit Peleg & Yuval Sahar</p>
-        </div>
-      </div>
-      <div class="exh-item">
-        <span class="exh-type">Group</span>
-        <div>
-          <p class="exh-title">Sublet</p>
-          <p class="exh-venue">Jerusalem — abandoned movie theater transformed into cultural space</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="exhibition-year-group">
-      <p class="exh-year">2017</p>
-      <div class="exh-item">
-        <span class="exh-type">Group</span>
-        <div>
-          <p class="exh-title">"Naked / Nude"</p>
-          <p class="exh-venue">The Cuckoo's Nest, Jaffa</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="exhibition-year-group">
-      <p class="exh-year">Residency</p>
-      <div class="exh-item">
-        <span class="exh-type" style="color:var(--muted)">Res.</span>
-        <div>
-          <p class="exh-title">Artesumapaz</p>
-          <p class="exh-venue">Colombia, August–September 2021</p>
-        </div>
-      </div>
-    </div>
-
+  <div class="exhibitions-list" id="exhibitionsList">
+    <!-- populated by JS -->
   </div>
 </section>
 
@@ -973,19 +844,16 @@
 <section id="about">
   <div class="about-grid">
     <div class="about-image">
-      <img src="https://static.wixstatic.com/media/2fd4a0_a1ed17c283314aac8350d89cfd131aee~mv2.jpg" alt="Elad Amsalem">
-      <p class="about-image-caption">Elad Amsalem · b. 1991, Hof HaCarmel</p>
+      <img id="aboutImg" src="" alt="Elad Amsalem">
+      <p class="about-image-caption" id="aboutCaption"></p>
     </div>
     <div class="about-text">
-      <h1>Painter,<br>Hof HaCarmel</h1>
-      <p>I paint. In every painting there is at least one figure; it is the beginning of the work, and around it — through it — the painting is built and takes place. Between the figure and the painting itself, in the acts of painting, a tension emerges between concealment and unity, with elements from nature and from the worlds of ritual and tradition.</p>
-      <p>I use tattoo markings on the figure's body and on the painting itself to connect the figure to color and to the materiality of painting — marks that place the body within the surface and bind it to layers of paint, stain, and erasure.</p>
-      <p>There is a ritual energy in my paintings, as if from another dimension — a waystation between the material and the spiritual, between the sacred and the profane. The figure is not a private portrait but an open form that allows the viewer to complete what is missing: traces of movement, light and shadow, areas left unresolved alongside precise passages.</p>
-      <p>In this way, the painting functions not as documentation but as an active site where body, nature, and ritual meet — and from within it the figure continues to lead the unfolding.</p>
-      <p style="color:var(--muted);font-size:13px;">Graduate of the Department of Multidisciplinary Art, Shenkar College, Tel Aviv (BFA with Excellence, 2019).</p>
+      <h1 id="aboutHeading"></h1>
+      <div id="aboutBody"></div>
+      <p style="color:var(--muted);font-size:13px;" id="aboutCredit"></p>
       <div class="about-links">
-        <a class="about-link" href="https://www.eladamsalem.com/_files/ugd/2fd4a0_5cfa628959ff4a54bd22750348a30a2d.pdf" target="_blank">Download CV</a>
-        <a class="about-link" href="https://instagram.com/eladamsalem1" target="_blank">Instagram</a>
+        <a class="about-link" id="aboutCv" href="#" target="_blank">Download CV</a>
+        <a class="about-link" id="aboutIg" href="#" target="_blank">Instagram</a>
         <a class="about-link" onclick="showSection('contact')" style="cursor:pointer">Contact</a>
       </div>
     </div>
@@ -997,9 +865,9 @@
   <div class="contact-wrap">
     <h2>Get in Touch</h2>
     <p>For inquiries about available works, exhibitions, commissions, or workshops — feel free to reach out directly.</p>
-    <a class="contact-email" href="mailto:eladamsalem1@gmail.com">eladamsalem1@gmail.com</a>
+    <a class="contact-email" id="contactEmail" href="#">email</a>
     <div class="contact-social">
-      Follow on <a href="https://instagram.com/eladamsalem1" target="_blank">Instagram</a>
+      Follow on <a id="contactIg" href="#" target="_blank">Instagram</a>
     </div>
   </div>
 </section>
@@ -1025,70 +893,126 @@
 <!-- FOOTER -->
 <footer>
   <span>© 2026 Elad Amsalem</span>
-  <span><a href="https://instagram.com/eladamsalem1" target="_blank" style="color:inherit;text-decoration:none;">Instagram</a></span>
+  <span><a id="footerIg" href="#" target="_blank" style="color:inherit;text-decoration:none;">Instagram</a></span>
 </footer>
 
 <script>
-const WORKS = [
-  { id:1, title:"Adam, Adam and a Lamp", year:"2025", tech:"Oil on canvas", size:"70 × 120 cm", price:4500, available:true,
-    img:"https://static.wixstatic.com/media/2fd4a0_ced25b89c7ee46b9b40e1aeb5f5a3df9~mv2.jpg" },
-  { id:2, title:"Flowers 1", year:"2026", tech:"Oil on canvas", size:"30 × 30 cm", price:2500, available:true,
-    img:"https://static.wixstatic.com/media/2fd4a0_737de2b2e8a94e8084a282c0995098ac~mv2.jpeg" },
-  { id:3, title:"Flowers 2", year:"2026", tech:"Oil on canvas", size:"30 × 30 cm", price:2500, available:true,
-    img:"https://static.wixstatic.com/media/2fd4a0_4d85e0c206f44a18931e9b44dfecf59d~mv2.jpeg" },
-  { id:4, title:"Flowers 3", year:"2026", tech:"Oil on canvas", size:"30 × 30 cm", price:2500, available:true,
-    img:"https://static.wixstatic.com/media/2fd4a0_b08b84c65cc54f539cd1f9f63c899e03~mv2.jpeg" },
-  { id:5, title:"Gathering", year:"2026", tech:"Oil on canvas", size:"140 × 170 cm", price:18000, available:true,
-    img:"https://static.wixstatic.com/media/2fd4a0_49a99f67d5684c07830ab572127b9fe9~mv2.jpg" },
-  { id:6, title:"Woman", year:"2025", tech:"Oil on canvas", size:"110 × 90 cm", price:5000, available:true,
-    img:"https://static.wixstatic.com/media/2fd4a0_255d751e8e9e4cd28f0173750d862389~mv2.jpg" },
-  { id:7, title:"Ritual", year:"2025", tech:"Oil on canvas", size:"130 × 110 cm", price:7000, available:true,
-    img:"https://static.wixstatic.com/media/2fd4a0_a160026cf0e14505b08ccdcb37f82af9~mv2.jpg" },
-  { id:8, title:"Two", year:"2022", tech:"Oil on canvas", size:"110 × 140 cm", price:7000, available:false,
-    img:"https://static.wixstatic.com/media/2fd4a0_b910500f288243ce8a52403e3c8b157e~mv2.jpg" },
-  { id:9, title:"Woman and a Gun", year:"2025", tech:"Oil on canvas + ceramic", size:"120 × 130 cm", price:8500, available:true,
-    img:"https://static.wixstatic.com/media/2fd4a0_49a99f67d5684c07830ab572127b9fe9~mv2.jpg" },
-  { id:10, title:"Human Nature", year:"2025", tech:"Oil on canvas", size:"90 × 70 cm", price:3500, available:true,
-    img:"https://static.wixstatic.com/media/2fd4a0_a1ed17c283314aac8350d89cfd131aee~mv2.jpg" },
-];
+// ── Elad Amsalem site — content loaded from /content/*.json (edited via Pages CMS) ──
+let WORKS = [];
 
-function fmt(n){ return '₪ ' + n.toLocaleString('he-IL'); }
+function fmt(n){ return '₪ ' + Number(n).toLocaleString('he-IL'); }
+function nl2br(s){ return (s||'').replace(/\n/g,'<br>'); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+async function loadJSON(path){
+  const res = await fetch(path + '?v=' + Date.now());
+  if(!res.ok) throw new Error('Failed to load ' + path);
+  return res.json();
+}
+
+// ── SETTINGS (hero, about, contact, footer) ──
+function applySettings(s){
+  document.getElementById('heroImg').src = s.hero_image || '';
+  document.getElementById('heroLabel').textContent = s.hero_label || '';
+  document.getElementById('heroTitle').innerHTML = nl2br(esc(s.hero_title));
+  document.getElementById('heroStatement').textContent = s.hero_statement || '';
+
+  document.getElementById('aboutImg').src = s.about_portrait || '';
+  document.getElementById('aboutCaption').textContent = s.about_caption || '';
+  document.getElementById('aboutHeading').innerHTML = nl2br(esc(s.about_heading));
+  document.getElementById('aboutBody').innerHTML =
+    (s.about_text || '').split(/\n\s*\n/).map(p => '<p>' + esc(p).replace(/\n/g,'<br>') + '</p>').join('');
+  document.getElementById('aboutCredit').textContent = s.about_credit || '';
+
+  const cv = document.getElementById('aboutCv');
+  if(s.cv_url){ cv.href = s.cv_url; } else { cv.style.display = 'none'; }
+  const ig = s.instagram || '#';
+  document.getElementById('aboutIg').href = ig;
+  document.getElementById('contactIg').href = ig;
+  document.getElementById('footerIg').href = ig;
+
+  const email = s.email || '';
+  const ce = document.getElementById('contactEmail');
+  ce.textContent = email;
+  ce.href = 'mailto:' + email;
+}
+
+// ── PAINTINGS (masonry + year filter) ──
 function renderPaintings(year){
   const grid = document.getElementById('paintingsGrid');
   const filtered = year === 'all' ? WORKS : WORKS.filter(w => w.year === year);
   grid.innerHTML = filtered.map(w => `
     <div class="painting-item" onclick="openLightbox(${w.id})">
-      <img src="${w.img}" alt="${w.title}" loading="lazy">
+      <img src="${w.image}" alt="${esc(w.title)}" loading="lazy">
       <div class="painting-overlay">
-        <p class="painting-name">${w.title}</p>
-        <p class="painting-meta">${w.tech} · ${w.size} · ${w.year}</p>
+        <p class="painting-name">${esc(w.title)}</p>
+        <p class="painting-meta">${esc(w.tech)} · ${esc(w.size)} · ${esc(w.year)}</p>
         ${w.available ? `<p class="painting-price">${fmt(w.price)}</p>` : ''}
       </div>
     </div>
   `).join('');
 }
 
+// ── SHOP (available works) ──
 function renderShop(){
   const grid = document.getElementById('shopGrid');
   grid.innerHTML = WORKS.map(w => `
     <div class="shop-card">
       <div class="shop-card-image">
-        <img src="${w.img}" alt="${w.title}" loading="lazy">
+        <img src="${w.image}" alt="${esc(w.title)}" loading="lazy">
       </div>
       <div class="shop-card-info">
-        <p class="shop-card-title">${w.title}</p>
-        <p class="shop-card-meta">${w.tech} · ${w.size} · ${w.year}</p>
+        <p class="shop-card-title">${esc(w.title)}</p>
+        <p class="shop-card-meta">${esc(w.tech)} · ${esc(w.size)} · ${esc(w.year)}</p>
         <div class="shop-card-footer">
           <span class="shop-price">${fmt(w.price)}</span>
           <span class="shop-status ${w.available ? 'status-available' : 'status-sold'}">${w.available ? 'Available' : 'Sold'}</span>
         </div>
-        ${w.available ? `<a href="mailto:eladamsalem1@gmail.com?subject=Inquiry: ${w.title}" class="btn-inquire">Inquire →</a>` : ''}
+        ${w.available ? `<a href="mailto:${SETTINGS.email}?subject=${encodeURIComponent('Inquiry: ' + w.title)}" class="btn-inquire">Inquire →</a>` : ''}
       </div>
     </div>
   `).join('');
 }
 
+// ── OBJECTS ──
+function renderObjects(items){
+  const grid = document.getElementById('objectsGrid');
+  grid.innerHTML = items.map(o => `
+    <div class="object-card">
+      <div class="object-image">
+        <img src="${o.image}" alt="${esc(o.title)}" loading="lazy">
+      </div>
+      <p class="object-title">${esc(o.title)}</p>
+      <p class="object-meta">${esc(o.meta)}</p>
+    </div>
+  `).join('');
+}
+
+// ── EXHIBITIONS (grouped by year) ──
+function renderExhibitions(items){
+  const groups = [];
+  items.forEach(e => {
+    let g = groups.find(x => x.year === e.year);
+    if(!g){ g = { year: e.year, items: [] }; groups.push(g); }
+    g.items.push(e);
+  });
+  document.getElementById('exhibitionsList').innerHTML = groups.map(g => `
+    <div class="exhibition-year-group">
+      <p class="exh-year">${esc(g.year)}</p>
+      ${g.items.map(e => `
+        <div class="exh-item">
+          <span class="exh-type"${/res/i.test(e.type) ? ' style="color:var(--muted)"' : ''}>${esc(e.type)}</span>
+          <div>
+            <p class="exh-title">${esc(e.title)}</p>
+            <p class="exh-venue">${esc(e.venue)}</p>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+// ── FILTER / LIGHTBOX / NAV ──
 function filterYear(year, btn){
   document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -1098,14 +1022,15 @@ function filterYear(year, btn){
 function openLightbox(id){
   const w = WORKS.find(x => x.id === id);
   if(!w) return;
-  document.getElementById('lightboxImg').src = w.img;
+  document.getElementById('lightboxImg').src = w.image;
   document.getElementById('lightboxImg').alt = w.title;
   document.getElementById('lightboxTitle').textContent = w.title;
   document.getElementById('lightboxTech').textContent = w.tech;
   document.getElementById('lightboxSize').textContent = w.size;
   document.getElementById('lightboxYear').textContent = w.year;
   document.getElementById('lightboxPrice').textContent = w.available ? fmt(w.price) : 'Sold';
-  document.getElementById('lightboxInquire').href = `mailto:eladamsalem1@gmail.com?subject=Inquiry: ${w.title}`;
+  document.getElementById('lightboxInquire').href =
+    'mailto:' + SETTINGS.email + '?subject=' + encodeURIComponent('Inquiry: ' + w.title);
   document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -1131,9 +1056,27 @@ function toggleMobile(){
   document.getElementById('mobileMenu').classList.toggle('open');
 }
 
-// Init
-renderPaintings('all');
-renderShop();
+// ── INIT ──
+let SETTINGS = {};
+(async function init(){
+  try {
+    const [settings, works, objects, exhibitions] = await Promise.all([
+      loadJSON('/content/settings.json'),
+      loadJSON('/content/works.json'),
+      loadJSON('/content/objects.json'),
+      loadJSON('/content/exhibitions.json'),
+    ]);
+    SETTINGS = settings;
+    WORKS = works.map((w, i) => ({ ...w, id: i }));
+    applySettings(settings);
+    renderPaintings('all');
+    renderShop();
+    renderObjects(objects);
+    renderExhibitions(exhibitions);
+  } catch (err) {
+    console.error(err);
+  }
+})();
 </script>
 </body>
 </html>

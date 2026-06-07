@@ -1,0 +1,61 @@
+media:
+  input: media
+  output: /media
+
+content:
+  - name: settings
+    label: "Site texts & contact"
+    type: file
+    path: content/settings.json
+    format: json
+    fields:
+      - { name: hero_image, label: "Home — main image", type: image }
+      - { name: hero_label, label: "Home — small label", type: string }
+      - { name: hero_title, label: "Home — big title", type: text }
+      - { name: hero_statement, label: "Home — quote", type: text }
+      - { name: about_heading, label: "About — heading", type: text }
+      - { name: about_portrait, label: "About — portrait photo", type: image }
+      - { name: about_caption, label: "About — photo caption", type: string }
+      - { name: about_text, label: "About — main text (blank line = new paragraph)", type: text }
+      - { name: about_credit, label: "About — education credit line", type: string }
+      - { name: cv_url, label: "CV (PDF link)", type: string }
+      - { name: instagram, label: "Instagram URL", type: string }
+      - { name: email, label: "Contact email", type: string }
+
+  - name: works
+    label: "Paintings & Available Works"
+    type: file
+    path: content/works.json
+    format: json
+    list: true
+    fields:
+      - { name: title, label: Title, type: string }
+      - { name: year, label: Year, type: string }
+      - { name: tech, label: Technique, type: string }
+      - { name: size, label: Size, type: string }
+      - { name: price, label: "Price (₪)", type: number }
+      - { name: available, label: "Available for sale", type: boolean }
+      - { name: image, label: Image, type: image }
+
+  - name: objects
+    label: "Objects"
+    type: file
+    path: content/objects.json
+    format: json
+    list: true
+    fields:
+      - { name: title, label: Title, type: string }
+      - { name: meta, label: "Medium · year", type: string }
+      - { name: image, label: Image, type: image }
+
+  - name: exhibitions
+    label: "Exhibitions"
+    type: file
+    path: content/exhibitions.json
+    format: json
+    list: true
+    fields:
+      - { name: year, label: "Year (or 'Residency')", type: string }
+      - { name: type, label: "Type (Solo / Group / Res.)", type: string }
+      - { name: title, label: Title, type: string }
+      - { name: venue, label: Venue / details, type: string }
