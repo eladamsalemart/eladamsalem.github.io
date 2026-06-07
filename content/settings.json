@@ -10,5 +10,13 @@
   "about_credit": "Graduate of the Department of Multidisciplinary Art, Shenkar College, Tel Aviv (BFA with Excellence, 2019).",
   "cv_url": "https://www.eladamsalem.com/_files/ugd/2fd4a0_5cfa628959ff4a54bd22750348a30a2d.pdf",
   "instagram": "https://instagram.com/eladamsalem1",
-  "email": "eladamsalem1@gmail.com"
+  "email": "eladamsalem1@gmail.com",
+  "menu": {
+    "paintings": "Paintings",
+    "objects": "Objects",
+    "exhibitions": "Exhibitions",
+    "shop": "Available Works",
+    "about": "About",
+    "contact": "Contact"
+  }
 }
