@@ -565,10 +565,12 @@ $('#connectBtn').addEventListener('click',async()=>{
   if(!t){err.textContent='נא להדביק Token';return;}
   err.textContent='בודק…'; TOKEN=t;
   try{
-    const res=await gh('');
-    if(!res.ok) throw new Error('הרשאה נכשלה ('+res.status+'). ודא שבחרת את הריפו הנכון והרשאת Contents: Read and write.');
+    const res=await gh('contents/'+FILES.settings+'?ref='+CFG.branch);
+    if(res.status===401) throw new Error('המפתח נדחה (401). ודא שהעתקת את כל המפתח.');
+    if(res.status===404) throw new Error('אין גישה לריפו (404). ודא שבחרת את eladamsalem.github.io והרשאת Contents.');
+    if(!res.ok) throw new Error('הרשאה נכשלה ('+res.status+'). ודא הרשאת Contents: Read and write.');
     localStorage.setItem(TOKEN_KEY,t); boot();
-  }catch(e){ TOKEN=''; err.textContent=e.message; }
+  }catch(e){ TOKEN=''; err.textContent = e.message==='Failed to fetch' ? 'אין חיבור ל‑GitHub. בדוק אינטרנט ונסה שוב.' : e.message; }
 });
 $('#tokenInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#connectBtn').click();});
 
