@@ -361,6 +361,8 @@ function viewByYear(){
           <div class="field"><label>תיאור / פירוט העבודה</label><textarea data-bind="works:${i}:description" placeholder="מלל חופשי על העבודה — רעיון, חומרים, רקע…">${esc(w.description)}</textarea></div>
         </div>
         <div class="itemactions">
+          <button class="iconbtn" data-act="yup:works:${i}" title="הקדם (בתוך השנה)">↑</button>
+          <button class="iconbtn" data-act="ydown:works:${i}" title="אחֵר (בתוך השנה)">↓</button>
           <button class="iconbtn del" data-act="del:works:${i}" title="מחק">🗑</button>
         </div>
       </div></div>`).join('');
@@ -504,6 +506,13 @@ function doAct(act){
   else if(op==='delimg'){ const im=arr[i].images||[]; im.splice(j,1); markDirty(key); render(); }
   else if(op==='imgup' && j>0){ const im=arr[i].images; [im[j-1],im[j]]=[im[j],im[j-1]]; markDirty(key); render(); }
   else if(op==='imgdown'){ const im=arr[i].images; if(j<im.length-1){ [im[j+1],im[j]]=[im[j],im[j+1]]; markDirty(key); render(); } }
+  else if(op==='yup' || op==='ydown'){
+    // reorder a painting within its own year group (controls the on-site order)
+    const a=DATA.works.content, y=String(a[i].year), step=(op==='yup')?-1:1;
+    let n=-1;
+    for(let k=i+step; k>=0 && k<a.length; k+=step){ if(String(a[k].year)===y){ n=k; break; } }
+    if(n>=0){ [a[n],a[i]]=[a[i],a[n]]; markDirty('works'); render(); }
+  }
 }
 
 /* image pick — compress, queue upload, stash a local preview */
