@@ -1,5 +1,65 @@
 [
   {
+    "title": "New work",
+    "year": "2022",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/in-nature-100x130-2022-1780920039334.jpg",
+    "description": ""
+  },
+  {
+    "title": "New work",
+    "year": "2023",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/img-8692-1780920024948.jpg",
+    "description": ""
+  },
+  {
+    "title": "New work",
+    "year": "2024",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/img-8026-1-1780920009268.jpg",
+    "description": ""
+  },
+  {
+    "title": "New work",
+    "year": "2024",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/img-9828-1780919997900.jpg",
+    "description": ""
+  },
+  {
+    "title": "New work",
+    "year": "2024",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/img-8022-1-1780919987508.jpg",
+    "description": ""
+  },
+  {
+    "title": "New work",
+    "year": "2025",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/unnamed-1780919962781.jpg",
+    "description": ""
+  },
+  {
     "title": "Adam, Adam and a Lamp",
     "year": "2025",
     "tech": "Oil on canvas",
@@ -24,7 +84,7 @@
     "size": "30 × 30 cm",
     "price": 2500,
     "available": true,
-    "image": "/media/works/sliding-wall-1.jpeg"
+    "image": "/media/works/66-1780919777734.jpg"
   },
   {
     "title": "Flowers 3",
@@ -33,7 +93,7 @@
     "size": "30 × 30 cm",
     "price": 2500,
     "available": true,
-    "image": "/media/works/sliding-wall-2.jpeg"
+    "image": "/media/works/888-1780919799905.jpg"
   },
   {
     "title": "Gathering",
@@ -42,7 +102,7 @@
     "size": "140 × 170 cm",
     "price": 18000,
     "available": true,
-    "image": "/media/works/gathering.jpg"
+    "image": "/media/works/6666-1780919828634.jpg"
   },
   {
     "title": "Woman",
@@ -51,7 +111,7 @@
     "size": "110 × 90 cm",
     "price": 5000,
     "available": true,
-    "image": "/media/works/woman.jpg"
+    "image": "/media/works/img-7601-1780919854372.jpg"
   },
   {
     "title": "Ritual",
@@ -60,7 +120,7 @@
     "size": "130 × 110 cm",
     "price": 7000,
     "available": true,
-    "image": "/media/works/ritual.jpg"
+    "image": "/media/works/img-9895-1780919976150.jpg"
   },
   {
     "title": "Two",
@@ -78,7 +138,7 @@
     "size": "120 × 130 cm",
     "price": 8500,
     "available": true,
-    "image": "/media/works/gathering.jpg"
+    "image": "/media/works/22-1780919892762.jpg"
   },
   {
     "title": "Human Nature",
@@ -87,6 +147,6 @@
     "size": "90 × 70 cm",
     "price": 3500,
     "available": true,
-    "image": "/media/works/portrait.jpg"
+    "image": "/media/works/44-1780919907801.jpg"
   }
 ]
