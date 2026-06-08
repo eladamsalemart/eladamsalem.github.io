@@ -1,5 +1,25 @@
 [
   {
+    "title": "Nature of man",
+    "year": "2022",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/nature-of-man-1780926065258.jpg",
+    "description": "oil on canvas\n110x130cm"
+  },
+  {
+    "title": "Three",
+    "year": "2022",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/3-1780926009368.jpg",
+    "description": "oil on canvas\n30x40cm"
+  },
+  {
     "title": "Toda",
     "year": "2022",
     "tech": "Oil on canvas",
@@ -7,7 +27,7 @@
     "price": 0,
     "available": true,
     "image": "/media/works/img-7210-1780924680691.jpg",
-    "description": "oil on canvas\n30x20cm"
+    "description": "oil on canvas\n30x50cm"
   },
   {
     "title": "Gathering",
