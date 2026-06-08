@@ -264,6 +264,16 @@ function thumbHtml(src, key, idx, field){
   </div>`;
 }
 
+/* year dropdown for paintings (2019–2026, keeps any out-of-range value) */
+function yearOptions(cur){
+  cur = String(cur || '');
+  const ys = [];
+  for(let y=2026; y>=2019; y--) ys.push(String(y));
+  if(cur && !ys.includes(cur)) ys.unshift(cur);
+  if(!cur) ys.unshift('');
+  return ys.map(y => `<option value="${esc(y)}" ${y===cur?'selected':''}>${y||'— בחר שנה —'}</option>`).join('');
+}
+
 /* multi-image gallery (for objects & exhibitions) */
 function galleryHtml(key, idx, images){
   const imgs = images||[];
@@ -307,7 +317,7 @@ function viewWorks(){
       <div>
         <div class="field"><label>שם העבודה</label><input type="text" data-bind="works:${i}:title" value="${esc(w.title)}"></div>
         <div class="row3">
-          <div class="field"><label>שנה</label><input type="text" data-bind="works:${i}:year" value="${esc(w.year)}"></div>
+          <div class="field"><label>שנה</label><select data-bind="works:${i}:year">${yearOptions(w.year)}</select></div>
           <div class="field"><label>טכניקה</label><input type="text" data-bind="works:${i}:tech" value="${esc(w.tech)}"></div>
           <div class="field"><label>מידות</label><input type="text" data-bind="works:${i}:size" value="${esc(w.size)}"></div>
         </div>
