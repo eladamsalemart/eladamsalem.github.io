@@ -258,61 +258,55 @@
     border-color: var(--ink);
   }
 
-  /* Masonry grid */
+  /* ── Paintings gallery — spacious "white-cube" grid, museum-style labels ── */
   .paintings-grid {
-    columns: 3;
-    column-gap: 20px;
+    columns: 2;
+    column-gap: 56px;
+    max-width: 1080px;
+    margin: 0 auto;
   }
 
   .painting-item {
     break-inside: avoid;
-    margin-bottom: 20px;
-    position: relative;
-    overflow: hidden;
+    margin-bottom: 56px;
     cursor: pointer;
+  }
+
+  .painting-figure {
+    overflow: hidden;
     background: #e8e4dd;
   }
 
   .painting-item img {
     width: 100%;
     display: block;
-    transition: transform 0.5s ease, opacity 0.3s;
+    transition: transform 0.7s ease, opacity 0.3s;
   }
 
   .painting-item:hover img {
-    transform: scale(1.04);
-    opacity: 0.88;
+    transform: scale(1.03);
+    opacity: 0.94;
   }
 
-  .painting-overlay {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    padding: 24px 18px 18px;
-    background: linear-gradient(transparent, rgba(26,23,20,0.7));
-    color: white;
-    opacity: 0;
-    transition: opacity 0.3s;
+  /* museum-style caption, always visible below the work */
+  .painting-cap {
+    margin-top: 14px;
+    text-align: center;
   }
 
-  .painting-item:hover .painting-overlay { opacity: 1; }
-
-  .painting-name {
+  .painting-cap .t {
     font-family: var(--serif);
-    font-size: 15px;
     font-style: italic;
-    margin-bottom: 2px;
+    font-size: 18px;
+    color: var(--ink);
   }
 
-  .painting-meta {
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    opacity: 0.8;
-  }
-
-  .painting-price {
-    margin-top: 6px;
-    font-size: 13px;
-    color: #d4b896;
+  .painting-cap .m {
+    font-size: 11.5px;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    margin-top: 4px;
+    text-transform: uppercase;
   }
 
   /* ── SHOP ── */
@@ -777,7 +771,8 @@
   /* Tablet / iPad landscape (≤1024) */
   @media (max-width: 1024px) {
     section { padding: 92px 28px 50px; }
-    .paintings-grid { columns: 2; }
+    .paintings-grid { columns: 2; column-gap: 40px; }
+    .painting-item { margin-bottom: 40px; }
     .nav-links { gap: 20px; }
     .nav-links a { font-size: 12px; letter-spacing: 0.05em; }
     .hero-title { font-size: clamp(40px, 6vw, 60px); }
@@ -812,7 +807,7 @@
     .hero-statement { max-width: none; }
 
     .section-header { flex-wrap: wrap; gap: 12px; }
-    .paintings-grid { columns: 2; }
+    .paintings-grid { columns: 1; max-width: 460px; }
     .objects-grid { grid-template-columns: 1fr; }
     .shop-grid { grid-template-columns: 1fr; }
 
@@ -1111,15 +1106,17 @@ function buildYearFilter(){
 function renderPaintings(year){
   const grid = document.getElementById('paintingsGrid');
   const filtered = year === 'all' ? WORKS : WORKS.filter(w => w.year === year);
-  grid.innerHTML = filtered.map(w => `
+  grid.innerHTML = filtered.map(w => {
+    const meta = [w.year, w.tech, w.size].filter(Boolean).join('  ·  ');
+    return `
     <div class="painting-item" onclick="openLightbox(${w.id})">
-      <img src="${w.image}" alt="${esc(w.title)}" loading="lazy">
-      <div class="painting-overlay">
-        <p class="painting-name">${esc(w.title)}</p>
-        <p class="painting-meta">${esc(w.tech)} · ${esc(w.size)} · ${esc(w.year)}</p>
+      <div class="painting-figure"><img src="${w.image}" alt="${esc(w.title)}" loading="lazy"></div>
+      <div class="painting-cap">
+        <div class="t">${esc(w.title)}</div>
+        ${meta ? `<div class="m">${esc(meta)}</div>` : ''}
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 // ── SHOP (available works) ──
@@ -1246,10 +1243,11 @@ function openLightbox(id){
   document.getElementById('lightboxImg').src = w.image;
   document.getElementById('lightboxImg').alt = w.title;
   document.getElementById('lightboxTitle').textContent = w.title;
-  document.getElementById('lightboxTech').textContent = w.tech;
-  document.getElementById('lightboxSize').textContent = w.size;
-  document.getElementById('lightboxYear').textContent = w.year;
-  document.getElementById('lightboxDesc').textContent = w.description || '';
+  // single clean detail line — no duplicated info
+  document.getElementById('lightboxTech').textContent = [w.year, w.tech, w.size].filter(Boolean).join('  ·  ');
+  document.getElementById('lightboxSize').textContent = '';
+  document.getElementById('lightboxYear').textContent = '';
+  document.getElementById('lightboxDesc').textContent = '';
   // Paintings is a portfolio view — no sale info here (price/sold/inquire live in the Shop only)
   document.getElementById('lightboxPrice').textContent = '';
   document.getElementById('lightboxInquire').style.display = 'none';
