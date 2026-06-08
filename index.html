@@ -785,10 +785,19 @@
     .exh-card { grid-template-columns: 210px 1fr auto; gap: 24px; }
   }
 
-  /* Collapse the 7-item menu to a hamburger early (covers iPad portrait 768–834) */
+  /* Portrait tablets (iPad 768–900): hamburger + stack hero & about so they
+     aren't cramped two-column layouts on a narrow-tall screen. */
   @media (max-width: 900px) {
     .nav-links { display: none; }
     .hamburger { display: flex; }
+
+    .hero { height: auto; min-height: 0; grid-template-columns: 1fr; }
+    .hero-image { height: 58vh; }
+    .hero-text { padding: 44px 48px 60px; }
+    .hero-statement { max-width: none; }
+
+    .about-grid { grid-template-columns: 1fr; gap: 40px; }
+    .about-image { position: static; max-width: 440px; }
   }
 
   /* Phones & narrow tablets (≤768) */
@@ -796,9 +805,9 @@
     .site-nav { padding: 0 20px; }
     section { padding: 80px 20px 46px; }
 
-    .hero { height: auto; min-height: 100vh; grid-template-columns: 1fr; }
-    .hero-image { height: 56vh; }
-    .hero-text { padding: 34px 24px 56px; }
+    .hero { height: auto; min-height: 0; grid-template-columns: 1fr; }
+    .hero-image { height: 54vh; }
+    .hero-text { padding: 32px 24px 52px; }
     .hero-title { font-size: 46px; }
     .hero-statement { max-width: none; }
 
