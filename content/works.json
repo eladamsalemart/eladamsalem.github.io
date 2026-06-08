@@ -1,5 +1,45 @@
 [
   {
+    "title": "Harmony",
+    "year": "2021",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/harmony-190x115cm-2021-1780926537745.jpg",
+    "description": "oil on canvas\n190x115cm"
+  },
+  {
+    "title": "Adan and Hava",
+    "year": "2021",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/img-5877-1780926453069.jpg",
+    "description": "oil and ink on canvas\n135x165cm"
+  },
+  {
+    "title": "Adam and Eve",
+    "year": "2021",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/img-2011-1780926441257.jpg",
+    "description": "oil and ink on canvas\n135x165cm"
+  },
+  {
+    "title": "Q",
+    "year": "2022",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/1-1780926373422.jpg",
+    "description": "oil on canvas\n35x35cm"
+  },
+  {
     "title": "Nature of man",
     "year": "2022",
     "tech": "Oil on canvas",
