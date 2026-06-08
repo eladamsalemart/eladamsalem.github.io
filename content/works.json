@@ -1,5 +1,45 @@
 [
   {
+    "title": "New work",
+    "year": "2019",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "",
+    "description": ""
+  },
+  {
+    "title": "Room",
+    "year": "2019",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/room-oil-on-canvas-210-210-2019-1780937822726.jpg",
+    "description": "oil on canvas\n210x210cm"
+  },
+  {
+    "title": "Gallery",
+    "year": "2019",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/gallery-180x160-2019-1780937791495.jpg",
+    "description": "oil on canvas\n160x180cm"
+  },
+  {
+    "title": "Group solo exhibition",
+    "year": "2019",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/group-solo-exhibition-oil-on-canvas-160x-1780937744215.jpg",
+    "description": "oil on canvas\n160x180cm"
+  },
+  {
     "title": "Carpet TV",
     "year": "2019",
     "tech": "Oil on canvas",
