@@ -275,6 +275,17 @@ function yearOptions(cur){
   return ys.map(y => `<option value="${esc(y)}" ${y===cur?'selected':''}>${y||'— בחר שנה —'}</option>`).join('');
 }
 
+/* price per square metre (₪5000/m²), from the work's size text */
+const SHOP_RATE = 5000;
+function priceFromWork(w){
+  const txt = ((w.description||'') + ' ' + (w.size||''));
+  const m = txt.match(/(\d{2,3})\s*[x×]\s*(\d{2,3})/);
+  if(!m) return null;
+  const area = (parseInt(m[1],10)/100) * (parseInt(m[2],10)/100);
+  const raw = area * SHOP_RATE;
+  return raw < 1000 ? 500 : Math.round(raw/500)*500;
+}
+
 /* multi-image gallery (for objects & exhibitions) */
 function galleryHtml(key, idx, images){
   const imgs = images||[];
@@ -504,7 +515,7 @@ function doAct(act){
   const parts=act.split(':'); const op=parts[0], key=parts[1], i=Number(parts[2]), j=Number(parts[3]);
   const arr=DATA[key]?.content;
   if(op==='add'){ DATA[key].content.unshift(JSON.parse(JSON.stringify(BLANK[key]))); markDirty(key); render(); }
-  else if(op==='addyear'){ const nw=JSON.parse(JSON.stringify(BLANK.works)); nw.year=key; DATA.works.content.unshift(nw); markDirty('works'); render(); }
+  else if(op==='addyear'){ const nw=JSON.parse(JSON.stringify(BLANK.works)); nw.year=key; nw.forSale=false; DATA.works.content.unshift(nw); markDirty('works'); render(); }
   else if(op==='del'){ if(confirm('למחוק את הפריט הזה?')){ arr.splice(i,1); markDirty(key); render(); } }
   else if(op==='up' && i>0){ [arr[i-1],arr[i]]=[arr[i],arr[i-1]]; markDirty(key); render(); }
   else if(op==='down' && i<arr.length-1){ [arr[i+1],arr[i]]=[arr[i],arr[i+1]]; markDirty(key); render(); }
@@ -584,6 +595,15 @@ document.addEventListener('change',e=>{
     const [key,idx,field]=b.split(':'); setValue(key,idx,field,e.target.checked);
     const lbl=e.target.parentElement.querySelector('.togglelabel');
     if(lbl){ lbl.textContent = (field==='forSale') ? (e.target.checked?'כן':'לא') : (e.target.checked?'זמין':'נמכר'); }
+    // when a work is added to the shop, auto-price it by size (if no price yet)
+    if(field==='forSale' && key==='works' && e.target.checked){
+      const w = DATA.works.content[Number(idx)];
+      if(!w.price){
+        const p = priceFromWork(w);
+        if(p){ w.price = p; render(); toast('נוסף לחנות · מחיר לפי גודל: ₪'+p.toLocaleString('he-IL'),'ok'); }
+        else { toast('נוסף לחנות — לא נמצא גודל, הזן מחיר ידנית','ok'); }
+      } else { toast('נוסף לחנות','ok'); }
+    }
   }
 });
 document.addEventListener('click',e=>{
