@@ -1,432 +1,162 @@
 [
-  {
-    "title": "Carpet 2",
-    "year": "2019",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/carpet-2-oil-on-canvas-70x90cm-2019-1780937932817.jpg",
-    "description": "oil on canvas\n70ox90cm"
-  },
-  {
-    "title": "Carpet",
-    "year": "2019",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/carpet-oil-on-canvas-70x90cm-2019-1780937914660.jpg",
-    "description": "oil on canvas\n70x90cm"
-  },
-  {
-    "title": "2 people",
-    "year": "2019",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/2-people-oil-on-canvas-100x100cm-2019-1780937870030.jpg",
-    "description": "oil on canvas\n100x100cm"
-  },
-  {
-    "title": "Room",
-    "year": "2019",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/room-oil-on-canvas-210-210-2019-1780937822726.jpg",
-    "description": "oil on canvas\n210x210cm"
-  },
-  {
-    "title": "Gallery",
-    "year": "2019",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/gallery-180x160-2019-1780937791495.jpg",
-    "description": "oil on canvas\n160x180cm"
-  },
-  {
-    "title": "Group solo exhibition",
-    "year": "2019",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/group-solo-exhibition-oil-on-canvas-160x-1780937744215.jpg",
-    "description": "oil on canvas\n160x180cm"
-  },
-  {
-    "title": "Carpet TV",
-    "year": "2019",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/carpet-tv-130x110-2019-1780937516301.jpg",
-    "description": "oil on canvas\n130x110cm"
-  },
-  {
-    "title": "Main space",
-    "year": "2019",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/main-space-170x190-2018-1780937489678.jpg",
-    "description": "oil on canvas\n170x190cm"
-  },
-  {
-    "title": "Inside garden",
-    "year": "2020",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/inside-garden-120x170-2020-1780932752222.jpg",
-    "description": "oil on canvas\n120x170cm"
-  },
-  {
-    "title": "Someone",
-    "year": "2020",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/someone-90-60-2020-1780932737849.jpg",
-    "description": "oil on canvas\n90x60cm"
-  },
-  {
-    "title": "Dynamics",
-    "year": "2020",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/dynamics-100x140-2020-1780932721754.jpg",
-    "description": "oil on canvas\n100x140cm"
-  },
-  {
-    "title": "Corner",
-    "year": "2020",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/corner-50x100-2020-1780932712776.jpg",
-    "description": "oil on canvas\n50x100cm"
-  },
-  {
-    "title": "Cave",
-    "year": "2020",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/cave-oil-on-canvas-140x110cm-2020-1780932707565.jpg",
-    "description": "oil on canvas \n110x140cm"
-  },
-  {
-    "title": "New workRefugee from newspaper",
-    "year": "2020",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/refugee-from-newspaper-oil-on-canvas-50x-1780932463173.jpg",
-    "description": "oil on canvas \n50x30cm"
-  },
-  {
-    "title": "Man shape",
-    "year": "2021",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/man-shape-37x57cm-1780927069932.jpg",
-    "description": "oil on canvas\n37x57cm"
-  },
-  {
-    "title": "Pura vida",
-    "year": "2021",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/img-0565-1780926831629.jpg",
-    "description": "oil on canvas\n70x60cm"
-  },
-  {
-    "title": "Arising",
-    "year": "2021",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/arising-210x105cm-1780926824913.jpg",
-    "description": "oil and ink on canvas\n210x105cm"
-  },
-  {
-    "title": "Emptiness",
-    "year": "2021",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/img-0530-1780926813596.jpg",
-    "description": "oil on three canvases \n35x45cm each one"
-  },
-  {
-    "title": "Left Right Center",
-    "year": "2021",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/left-center-right-100x120cm-2021-1780926712439.jpg",
-    "description": "oil on canvas\nthree canvases - 100x120cm each one"
-  },
-  {
-    "title": "Moroccan pattern ",
-    "year": "2021",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/moroccan-pattern-60x50cm-2021-1780926642244.jpg",
-    "description": "oil on canvas\n60x50cm"
-  },
-  {
-    "title": "Harmony",
-    "year": "2021",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/harmony-190x115cm-2021-1780926537745.jpg",
-    "description": "oil on canvas\n190x115cm"
-  },
-  {
-    "title": "Adan and Hava",
-    "year": "2021",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/img-5877-1780926453069.jpg",
-    "description": "oil and ink on canvas\n135x165cm"
-  },
-  {
-    "title": "Adam and Eve",
-    "year": "2021",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/img-2011-1780926441257.jpg",
-    "description": "oil and ink on canvas\n135x165cm"
-  },
-  {
-    "title": "Q",
-    "year": "2022",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/1-1780926373422.jpg",
-    "description": "oil on canvas\n35x35cm"
-  },
-  {
-    "title": "Nature of man",
-    "year": "2022",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/nature-of-man-1780926065258.jpg",
-    "description": "oil on canvas\n110x130cm"
-  },
-  {
-    "title": "Three",
-    "year": "2022",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/3-1780926009368.jpg",
-    "description": "oil on canvas\n30x40cm"
-  },
-  {
-    "title": "Toda",
-    "year": "2022",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/img-7210-1780924680691.jpg",
-    "description": "oil on canvas\n30x50cm"
-  },
-  {
-    "title": "Gathering",
-    "year": "2026",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/img-7601-1780924375439.jpg",
-    "description": "oil on canvas\n170x140cm"
-  },
-  {
-    "title": "In nature",
-    "year": "2022",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/in-nature-100x130-2022-1780920039334.jpg",
-    "description": "oil and ink on canvas\n100x130cm"
-  },
-  {
-    "title": "Toda",
-    "year": "2023",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/img-8692-1780920024948.jpg",
-    "description": "oil and ink on canvas\n70x50cm"
-  },
-  {
-    "title": "Here",
-    "year": "2024",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/img-8026-1-1780920009268.jpg",
-    "description": "oil on canvas\n50x70cm"
-  },
-  {
-    "title": "Yehudiya",
-    "year": "2024",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/img-9828-1780919997900.jpg",
-    "description": "oil on canvas\n35x45cm"
-  },
-  {
-    "title": "Menora",
-    "year": "2024",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/img-8022-1-1780919987508.jpg",
-    "description": "oil on canvas\n50x70cm"
-  },
-  {
-    "title": "Nature",
-    "year": "2025",
-    "tech": "Oil on canvas",
-    "size": "",
-    "price": 0,
-    "available": true,
-    "image": "/media/works/unnamed-1780919962781.jpg",
-    "description": "oil on canvas\n45x35cm"
-  },
-  {
-    "title": "Human nature",
-    "year": "2025",
-    "tech": "Oil on canvas",
-    "size": "70 × 120 cm",
-    "price": 4500,
-    "available": true,
-    "image": "/media/works/adam-lamp.jpg",
-    "description": "oil on canvas\n90x70cm"
-  },
-  {
-    "title": "Woman and a gun",
-    "year": "2025",
-    "tech": "Oil on canvas",
-    "size": "30 × 30 cm",
-    "price": 8500,
-    "available": true,
-    "image": "/media/works/wood-panel.jpeg",
-    "description": "oil on canvas and ceramics\n120x130cm"
-  },
-  {
-    "title": "Flowers 2",
-    "year": "2026",
-    "tech": "Oil on canvas",
-    "size": "30 × 30 cm",
-    "price": 2500,
-    "available": true,
-    "image": "/media/works/66-1780919777734.jpg",
-    "description": "oil on canvas\n30x30cm"
-  },
-  {
-    "title": "Flowers 3",
-    "year": "2026",
-    "tech": "Oil on canvas",
-    "size": "30 × 30 cm",
-    "price": 2500,
-    "available": true,
-    "image": "/media/works/888-1780919799905.jpg",
-    "description": "oil on canvas\n30x30cm"
-  },
-  {
-    "title": "Flowers 1",
-    "year": "2026",
-    "tech": "Oil on canvas",
-    "size": "140 × 170 cm",
-    "price": 18000,
-    "available": true,
-    "image": "/media/works/6666-1780919828634.jpg",
-    "description": "oil on canvas\n30x30cm"
-  },
-  {
-    "title": "Woman",
-    "year": "2025",
-    "tech": "Oil on canvas",
-    "size": "130 × 110 cm",
-    "price": 7000,
-    "available": true,
-    "image": "/media/works/img-9895-1780919976150.jpg",
-    "description": "oil on canvas\n110x90cm"
-  },
-  {
-    "title": "Two",
-    "year": "2022",
-    "tech": "Oil on canvas",
-    "size": "110 × 140 cm",
-    "price": 7000,
-    "available": false,
-    "image": "/media/works/two.jpg",
-    "description": "oil and ink on canvas\n100x140cm"
-  },
-  {
-    "title": "Adam, Adam and a Lamp",
-    "year": "2025",
-    "tech": "Oil on canvas + ceramic",
-    "size": "120 × 130 cm",
-    "price": 8500,
-    "available": true,
-    "image": "/media/works/22-1780919892762.jpg",
-    "description": "oil and ink on canvas\n120x70cm"
-  },
-  {
-    "title": "Ritual",
-    "year": "2025",
-    "tech": "Oil on canvas",
-    "size": "90 × 70 cm",
-    "price": 3500,
-    "available": true,
-    "image": "/media/works/44-1780919907801.jpg",
-    "description": "oil and ink on canvas\n130x110cm"
-  }
+    {
+        "title":  "Q",
+        "year":  "2022",
+        "tech":  "Oil on canvas",
+        "size":  "",
+        "price":  0,
+        "available":  true,
+        "image":  "/media/works/1-1780926373422.jpg",
+        "description":  "oil on canvas\n35x35cm"
+    },
+    {
+        "title":  "Nature of man",
+        "year":  "2022",
+        "tech":  "Oil on canvas",
+        "size":  "",
+        "price":  0,
+        "available":  true,
+        "image":  "/media/works/nature-of-man-1780926065258.jpg",
+        "description":  "oil on canvas\n110x130cm"
+    },
+    {
+        "title":  "Three",
+        "year":  "2022",
+        "tech":  "Oil on canvas",
+        "size":  "",
+        "price":  0,
+        "available":  true,
+        "image":  "/media/works/3-1780926009368.jpg",
+        "description":  "oil on canvas\n30x40cm"
+    },
+    {
+        "title":  "Toda",
+        "year":  "2022",
+        "tech":  "Oil on canvas",
+        "size":  "",
+        "price":  0,
+        "available":  true,
+        "image":  "/media/works/img-7210-1780924680691.jpg",
+        "description":  "oil on canvas\n30x50cm"
+    },
+    {
+        "title":  "Gathering",
+        "year":  "2026",
+        "tech":  "Oil on canvas",
+        "size":  "",
+        "price":  0,
+        "available":  true,
+        "image":  "/media/works/img-7601-1780924375439.jpg",
+        "description":  "oil on canvas\n170x140cm"
+    },
+    {
+        "title":  "In nature",
+        "year":  "2022",
+        "tech":  "Oil on canvas",
+        "size":  "",
+        "price":  0,
+        "available":  true,
+        "image":  "/media/works/in-nature-100x130-2022-1780920039334.jpg",
+        "description":  "oil and ink on canvas\n100x130cm"
+    },
+    {
+        "title":  "Nature",
+        "year":  "2025",
+        "tech":  "Oil on canvas",
+        "size":  "",
+        "price":  0,
+        "available":  true,
+        "image":  "/media/works/unnamed-1780919962781.jpg",
+        "description":  "oil on canvas\n45x35cm"
+    },
+    {
+        "title":  "Human nature",
+        "year":  "2025",
+        "tech":  "Oil on canvas",
+        "size":  "70 × 120 cm",
+        "price":  4500,
+        "available":  true,
+        "image":  "/media/works/adam-lamp.jpg",
+        "description":  "oil on canvas\n90x70cm"
+    },
+    {
+        "title":  "Woman and a gun",
+        "year":  "2025",
+        "tech":  "Oil on canvas",
+        "size":  "30 × 30 cm",
+        "price":  8500,
+        "available":  true,
+        "image":  "/media/works/wood-panel.jpeg",
+        "description":  "oil on canvas and ceramics\n120x130cm"
+    },
+    {
+        "title":  "Flowers 2",
+        "year":  "2026",
+        "tech":  "Oil on canvas",
+        "size":  "30 × 30 cm",
+        "price":  2500,
+        "available":  true,
+        "image":  "/media/works/66-1780919777734.jpg",
+        "description":  "oil on canvas\n30x30cm"
+    },
+    {
+        "title":  "Flowers 3",
+        "year":  "2026",
+        "tech":  "Oil on canvas",
+        "size":  "30 × 30 cm",
+        "price":  2500,
+        "available":  true,
+        "image":  "/media/works/888-1780919799905.jpg",
+        "description":  "oil on canvas\n30x30cm"
+    },
+    {
+        "title":  "Flowers 1",
+        "year":  "2026",
+        "tech":  "Oil on canvas",
+        "size":  "140 × 170 cm",
+        "price":  18000,
+        "available":  true,
+        "image":  "/media/works/6666-1780919828634.jpg",
+        "description":  "oil on canvas\n30x30cm"
+    },
+    {
+        "title":  "Woman",
+        "year":  "2025",
+        "tech":  "Oil on canvas",
+        "size":  "130 × 110 cm",
+        "price":  7000,
+        "available":  true,
+        "image":  "/media/works/img-9895-1780919976150.jpg",
+        "description":  "oil on canvas\n110x90cm"
+    },
+    {
+        "title":  "Two",
+        "year":  "2022",
+        "tech":  "Oil on canvas",
+        "size":  "110 × 140 cm",
+        "price":  7000,
+        "available":  false,
+        "image":  "/media/works/two.jpg",
+        "description":  "oil and ink on canvas\n100x140cm"
+    },
+    {
+        "title":  "Adam, Adam and a Lamp",
+        "year":  "2025",
+        "tech":  "Oil on canvas + ceramic",
+        "size":  "120 × 130 cm",
+        "price":  8500,
+        "available":  true,
+        "image":  "/media/works/22-1780919892762.jpg",
+        "description":  "oil and ink on canvas\n120x70cm"
+    },
+    {
+        "title":  "Ritual",
+        "year":  "2025",
+        "tech":  "Oil on canvas",
+        "size":  "90 × 70 cm",
+        "price":  3500,
+        "available":  true,
+        "image":  "/media/works/44-1780919907801.jpg",
+        "description":  "oil and ink on canvas\n130x110cm"
+    }
 ]
