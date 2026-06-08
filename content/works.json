@@ -50,32 +50,34 @@
     "description": ""
   },
   {
-    "title": "New work",
+    "title": "Nature",
     "year": "2025",
     "tech": "Oil on canvas",
     "size": "",
     "price": 0,
     "available": true,
     "image": "/media/works/unnamed-1780919962781.jpg",
-    "description": ""
+    "description": "oil on canvas"
   },
   {
-    "title": "Adam, Adam and a Lamp",
+    "title": "Human nature",
     "year": "2025",
     "tech": "Oil on canvas",
     "size": "70 × 120 cm",
     "price": 4500,
     "available": true,
-    "image": "/media/works/adam-lamp.jpg"
+    "image": "/media/works/adam-lamp.jpg",
+    "description": "oil on canvas\n90x70cm"
   },
   {
-    "title": "woman and a gun",
+    "title": "Woman and a gun",
     "year": "2025",
     "tech": "Oil on canvas",
     "size": "30 × 30 cm",
     "price": 8500,
     "available": true,
-    "image": "/media/works/wood-panel.jpeg"
+    "image": "/media/works/wood-panel.jpeg",
+    "description": "oil on canvas and ceramics\n120x130cm"
   },
   {
     "title": "Flowers 2",
@@ -135,7 +137,7 @@
     "image": "/media/works/two.jpg"
   },
   {
-    "title": "Woman and a Gun",
+    "title": "Adam, Adam and a Lamp",
     "year": "2025",
     "tech": "Oil on canvas + ceramic",
     "size": "120 × 130 cm",
