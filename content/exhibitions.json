@@ -1,20 +1,5 @@
 [
   {
-    "title": "BFA graduate exhibition",
-    "year": "2019",
-    "venue": "Shenkar College, Department of Multidisciplinary Art",
-    "description": " \"Solo group exhibition\", BFA graduate exhibition at the Department of \nMultidisciplinary Art, Shenkar. ",
-    "images": [
-      "/media/works/dsc-0853-1780918223331.jpg",
-      "/media/works/dsc-0734-1780918236364.jpg",
-      "/media/works/dsc-0848-1780918243181.jpg",
-      "/media/works/dsc-0734-1780918270567.jpg",
-      "/media/works/dsc-0623-1780918277383.jpg",
-      "/media/works/dsc-0634-1780918283735.jpg",
-      "/media/works/dsc-0775-1780918299530.jpg"
-    ]
-  },
-  {
     "title": "Ritual",
     "year": "2026",
     "venue": "Solo exhivition at Jerusalem Artists' House — curated by Hadas Glazer",
@@ -40,6 +25,21 @@
       "/media/works/d33e82cf-d360-4766-bb4e-6854c7758fe6-1780917555137.jpg",
       "/media/works/362c4b70-67e2-48c1-a3eb-fe69060d172a-1780917560187.jpg",
       "/media/works/1670f7f4-5624-4021-8881-d656129280a1-1780917574396.jpg"
+    ]
+  },
+  {
+    "title": "BFA graduate exhibition",
+    "year": "2019",
+    "venue": "Shenkar College, Department of Multidisciplinary Art",
+    "description": " \"Solo group exhibition\", BFA graduate exhibition at the Department of \nMultidisciplinary Art, Shenkar. ",
+    "images": [
+      "/media/works/dsc-0853-1780918223331.jpg",
+      "/media/works/dsc-0734-1780918236364.jpg",
+      "/media/works/dsc-0848-1780918243181.jpg",
+      "/media/works/dsc-0734-1780918270567.jpg",
+      "/media/works/dsc-0623-1780918277383.jpg",
+      "/media/works/dsc-0634-1780918283735.jpg",
+      "/media/works/dsc-0775-1780918299530.jpg"
     ]
   }
 ]
