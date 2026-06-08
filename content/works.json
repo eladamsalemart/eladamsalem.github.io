@@ -84,7 +84,8 @@
     "size": "30 × 30 cm",
     "price": 2500,
     "available": true,
-    "image": "/media/works/66-1780919777734.jpg"
+    "image": "/media/works/66-1780919777734.jpg",
+    "description": "oil on canvas\n30x30cm"
   },
   {
     "title": "Flowers 3",
@@ -93,16 +94,18 @@
     "size": "30 × 30 cm",
     "price": 2500,
     "available": true,
-    "image": "/media/works/888-1780919799905.jpg"
+    "image": "/media/works/888-1780919799905.jpg",
+    "description": "oil on canvas\n30x30cm"
   },
   {
-    "title": "Gathering",
+    "title": "Flowers 1",
     "year": "2026",
     "tech": "Oil on canvas",
     "size": "140 × 170 cm",
     "price": 18000,
     "available": true,
-    "image": "/media/works/6666-1780919828634.jpg"
+    "image": "/media/works/6666-1780919828634.jpg",
+    "description": "oil on canvas\n30x30cm"
   },
   {
     "title": "Woman",
