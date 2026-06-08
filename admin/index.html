@@ -357,12 +357,7 @@ function viewByYear(){
         ${thumbHtml(w.image,'works',i,'image')}
         <div>
           <div class="field"><label>שם העבודה</label><input type="text" data-bind="works:${i}:title" value="${esc(w.title)}"></div>
-          <div class="row">
-            <div class="field"><label>שנה</label><select data-bind="works:${i}:year">${yearOptions(w.year)}</select></div>
-            <div class="field"><label>סטטוס</label>
-              <label class="toggle"><input type="checkbox" data-bind="works:${i}:available" ${w.available?'checked':''}><span class="track"></span><span class="togglelabel">${w.available?'זמין למכירה':'נמכר'}</span></label>
-            </div>
-          </div>
+          <div class="field"><label>שנה</label><select data-bind="works:${i}:year">${yearOptions(w.year)}</select></div>
           <div class="field"><label>תיאור / פירוט העבודה</label><textarea data-bind="works:${i}:description" placeholder="מלל חופשי על העבודה — רעיון, חומרים, רקע…">${esc(w.description)}</textarea></div>
         </div>
         <div class="itemactions">

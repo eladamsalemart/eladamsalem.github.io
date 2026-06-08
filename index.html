@@ -1250,9 +1250,9 @@ function openLightbox(id){
   document.getElementById('lightboxSize').textContent = w.size;
   document.getElementById('lightboxYear').textContent = w.year;
   document.getElementById('lightboxDesc').textContent = w.description || '';
-  document.getElementById('lightboxPrice').textContent = w.available ? '' : 'Sold';
-  document.getElementById('lightboxInquire').href =
-    'mailto:' + SETTINGS.email + '?subject=' + encodeURIComponent('Inquiry: ' + w.title);
+  // Paintings is a portfolio view — no sale info here (price/sold/inquire live in the Shop only)
+  document.getElementById('lightboxPrice').textContent = '';
+  document.getElementById('lightboxInquire').style.display = 'none';
   document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
