@@ -169,11 +169,11 @@
     "year": "2021",
     "tech": "Oil on canvas",
     "size": "",
-    "price": 0,
+    "price": 2500,
     "available": true,
     "image": "/media/works/img-0565-1780926831629.jpg",
     "description": "oil on canvas\n70x60cm",
-    "forSale": false
+    "forSale": true
   },
   {
     "title": "Arising",
@@ -224,33 +224,33 @@
     "year": "2021",
     "tech": "Oil on canvas",
     "size": "",
-    "price": 0,
+    "price": 8000,
     "available": true,
     "image": "/media/works/harmony-190x115cm-2021-1780926537745.jpg",
     "description": "oil on canvas\n190x115cm",
-    "forSale": false
+    "forSale": true
   },
   {
     "title": "Adan and Hava",
     "year": "2021",
     "tech": "Oil on canvas",
     "size": "",
-    "price": 0,
+    "price": 8000,
     "available": true,
     "image": "/media/works/img-5877-1780926453069.jpg",
     "description": "oil and ink on canvas\n135x165cm",
-    "forSale": false
+    "forSale": true
   },
   {
     "title": "Adam and Eve",
     "year": "2021",
     "tech": "Oil on canvas",
     "size": "",
-    "price": 0,
+    "price": 8000,
     "available": true,
     "image": "/media/works/img-2011-1780926441257.jpg",
     "description": "oil and ink on canvas\n135x165cm",
-    "forSale": false
+    "forSale": true
   },
   {
     "title": "Q",
