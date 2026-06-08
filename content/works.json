@@ -1,23 +1,63 @@
 [
   {
-    "title": "New work",
+    "title": "Inside garden",
     "year": "2020",
     "tech": "Oil on canvas",
     "size": "",
     "price": 0,
     "available": true,
-    "image": "",
-    "description": ""
+    "image": "/media/works/inside-garden-120x170-2020-1780932752222.jpg",
+    "description": "oil on canvas\n120x170cm"
   },
   {
-    "title": "New work",
+    "title": "Someone",
+    "year": "2020",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/someone-90-60-2020-1780932737849.jpg",
+    "description": "oil on canvas\n50x70cm"
+  },
+  {
+    "title": "Dynamics",
+    "year": "2020",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/dynamics-100x140-2020-1780932721754.jpg",
+    "description": "oil on canvas\n100x140cm"
+  },
+  {
+    "title": "Corner",
+    "year": "2020",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/corner-50x100-2020-1780932712776.jpg",
+    "description": "oil on canvas\n50x100cm"
+  },
+  {
+    "title": "Cave",
+    "year": "2020",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/cave-oil-on-canvas-140x110cm-2020-1780932707565.jpg",
+    "description": "oil on canvas \n110x140cm"
+  },
+  {
+    "title": "New workRefugee from newspaper",
     "year": "2020",
     "tech": "Oil on canvas",
     "size": "",
     "price": 0,
     "available": true,
     "image": "/media/works/refugee-from-newspaper-oil-on-canvas-50x-1780932463173.jpg",
-    "description": ""
+    "description": "oil on canvas \n50x30cm"
   },
   {
     "title": "Man shape",
