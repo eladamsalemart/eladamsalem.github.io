@@ -1,13 +1,33 @@
 [
   {
-    "title": "New work",
+    "title": "Carpet 2",
     "year": "2019",
     "tech": "Oil on canvas",
     "size": "",
     "price": 0,
     "available": true,
-    "image": "",
-    "description": ""
+    "image": "/media/works/carpet-2-oil-on-canvas-70x90cm-2019-1780937932817.jpg",
+    "description": "oil on canvas\n70ox90cm"
+  },
+  {
+    "title": "Carpet",
+    "year": "2019",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/carpet-oil-on-canvas-70x90cm-2019-1780937914660.jpg",
+    "description": "oil on canvas\n70x90cm"
+  },
+  {
+    "title": "2 people",
+    "year": "2019",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/2-people-oil-on-canvas-100x100cm-2019-1780937870030.jpg",
+    "description": "oil on canvas\n100x100cm"
   },
   {
     "title": "Room",
