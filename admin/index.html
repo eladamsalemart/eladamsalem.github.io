@@ -162,6 +162,7 @@
       <h4>עריכה</h4>
       <button class="tab active" data-view="home"><span class="ic">🏠</span> דף הבית</button>
       <button class="tab" data-view="works"><span class="ic">🎨</span> ציורים ומכירה</button>
+      <button class="tab" data-view="byyear"><span class="ic">🗓️</span> ציורים לפי שנים</button>
       <button class="tab" data-view="objects"><span class="ic">🧱</span> אובייקטים</button>
       <button class="tab" data-view="exhibitions"><span class="ic">📅</span> תערוכות</button>
       <button class="tab" data-view="cv"><span class="ic">📄</span> קורות חיים</button>
@@ -248,7 +249,7 @@ async function loadAll(){
 
 /* ============ VIEWS ============ */
 function render(){
-  $('#main').innerHTML = ({home:viewHome,works:viewWorks,objects:viewObjects,exhibitions:viewExh,cv:viewCV,about:viewAbout,menu:viewMenu}[VIEW])();
+  $('#main').innerHTML = ({home:viewHome,works:viewWorks,byyear:viewByYear,objects:viewObjects,exhibitions:viewExh,cv:viewCV,about:viewAbout,menu:viewMenu}[VIEW])();
 }
 
 function header(title,sub){return `<div class="page-title">${title}</div><div class="page-sub">${sub}</div>`;}
@@ -338,6 +339,37 @@ function viewWorks(){
   if(!arr.length) cards='<div class="empty">אין עדיין עבודות. לחץ "הוסף עבודה".</div>';
   return header('ציורים ומכירה','כל העבודות שמופיעות בגלריה ובדף המכירה. גרור תמונה או לחץ עליה כדי להחליף.')+
     `<div class="addbar"><button class="btn primary small" data-act="add:works">＋ הוסף עבודה</button></div>`+cards;
+}
+
+function viewByYear(){
+  const arr=DATA.works.content;
+  const years=[]; for(let y=2026;y>=2019;y--) years.push(String(y));
+  arr.forEach(w=>{ const y=String(w.year||''); if(y && !years.includes(y)) years.unshift(y); });
+  let html=header('ציורים לפי שנים','אותם ציורים שב"ציורים ומכירה", מסודרים לפי שנה. שינוי כאן מתעדכן בכל מקום.');
+  years.forEach(y=>{
+    const items=arr.map((w,i)=>({w,i})).filter(x=>String(x.w.year)===y);
+    html+=`<div class="cardhead" style="margin-top:26px;padding-bottom:8px"><strong>${y} <span style="color:var(--muted);font-weight:400;font-size:14px">(${items.length})</span></strong>
+      <button class="btn primary small" data-act="addyear:${y}">＋ הוסף ציור ל-${y}</button></div>`;
+    if(!items.length){ html+=`<div class="empty" style="padding:14px;margin-bottom:8px">אין ציורים בשנה ${y}</div>`; return; }
+    html+=items.map(({w,i})=>`
+      <div class="card"><div class="item">
+        ${thumbHtml(w.image,'works',i,'image')}
+        <div>
+          <div class="field"><label>שם העבודה</label><input type="text" data-bind="works:${i}:title" value="${esc(w.title)}"></div>
+          <div class="row3">
+            <div class="field"><label>שנה</label><select data-bind="works:${i}:year">${yearOptions(w.year)}</select></div>
+            <div class="field"><label>מחיר (₪)</label><input type="number" data-bind="works:${i}:price" value="${esc(w.price)}"></div>
+            <div class="field"><label>סטטוס</label>
+              <label class="toggle"><input type="checkbox" data-bind="works:${i}:available" ${w.available?'checked':''}><span class="track"></span><span class="togglelabel">${w.available?'זמין למכירה':'נמכר'}</span></label>
+            </div>
+          </div>
+        </div>
+        <div class="itemactions">
+          <button class="iconbtn del" data-act="del:works:${i}" title="מחק">🗑</button>
+        </div>
+      </div></div>`).join('');
+  });
+  return html;
 }
 
 function viewObjects(){
@@ -469,6 +501,7 @@ function doAct(act){
   const parts=act.split(':'); const op=parts[0], key=parts[1], i=Number(parts[2]), j=Number(parts[3]);
   const arr=DATA[key]?.content;
   if(op==='add'){ DATA[key].content.unshift(JSON.parse(JSON.stringify(BLANK[key]))); markDirty(key); render(); }
+  else if(op==='addyear'){ const nw=JSON.parse(JSON.stringify(BLANK.works)); nw.year=key; DATA.works.content.unshift(nw); markDirty('works'); render(); }
   else if(op==='del'){ if(confirm('למחוק את הפריט הזה?')){ arr.splice(i,1); markDirty(key); render(); } }
   else if(op==='up' && i>0){ [arr[i-1],arr[i]]=[arr[i],arr[i-1]]; markDirty(key); render(); }
   else if(op==='down' && i<arr.length-1){ [arr[i+1],arr[i]]=[arr[i],arr[i+1]]; markDirty(key); render(); }
