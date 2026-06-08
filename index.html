@@ -1056,7 +1056,7 @@
       <p id="lightboxYear" class="lightbox-meta"></p>
       <p id="lightboxDesc" class="lightbox-desc"></p>
       <p id="lightboxPrice" class="lightbox-price"></p>
-      <a id="lightboxInquire" href="mailto:eladamsalem1@gmail.com" class="btn-inquire">Inquire About This Work</a>
+      <a id="lightboxInquire" href="mailto:eladamsalem1@gmail.com" class="btn-inquire">Contact about this work</a>
     </div>
   </div>
 </div>
@@ -1201,7 +1201,7 @@ function renderShop(){
           <span class="shop-price">${fmt(w.price)}</span>
           <span class="shop-status ${w.available ? 'status-available' : 'status-sold'}">${w.available ? 'Available' : 'Sold'}</span>
         </div>
-        ${w.available ? `<a href="mailto:${SETTINGS.email}?subject=${encodeURIComponent('Inquiry: ' + w.title)}" class="btn-inquire">Inquire →</a>` : ''}
+        ${w.available ? `<a href="mailto:${SETTINGS.email}?subject=${encodeURIComponent('Inquiry: ' + w.title)}" class="btn-inquire">Contact about this work →</a>` : ''}
       </div>
     </div>
   `).join('');
