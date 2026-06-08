@@ -352,20 +352,25 @@ function viewByYear(){
     html+=`<div class="cardhead" style="margin-top:26px;padding-bottom:8px"><strong>${y} <span style="color:var(--muted);font-weight:400;font-size:14px">(${items.length})</span></strong>
       <button class="btn primary small" data-act="addyear:${y}">＋ הוסף ציור ל-${y}</button></div>`;
     if(!items.length){ html+=`<div class="empty" style="padding:14px;margin-bottom:8px">אין ציורים בשנה ${y}</div>`; return; }
-    html+=items.map(({w,i})=>`
-      <div class="card"><div class="item">
-        ${thumbHtml(w.image,'works',i,'image')}
-        <div>
-          <div class="field"><label>שם העבודה</label><input type="text" data-bind="works:${i}:title" value="${esc(w.title)}"></div>
-          <div class="field"><label>שנה</label><select data-bind="works:${i}:year">${yearOptions(w.year)}</select></div>
-          <div class="field"><label>תיאור / פירוט העבודה</label><textarea data-bind="works:${i}:description" placeholder="מלל חופשי על העבודה — רעיון, חומרים, רקע…">${esc(w.description)}</textarea></div>
+    html+=items.map(({w,i},pos)=>`
+      <div class="card">
+        <div class="cardhead">
+          <strong>${esc(w.title)||'ציור'} <span style="color:var(--muted);font-weight:400;font-size:13px">· ${pos+1} מתוך ${items.length}</span></strong>
+          <div class="itemactions row">
+            <button class="btn ghost small" data-act="yup:works:${i}" ${pos===0?'disabled':''}>↑ הקדם</button>
+            <button class="btn ghost small" data-act="ydown:works:${i}" ${pos===items.length-1?'disabled':''}>↓ אחֵר</button>
+            <button class="iconbtn del" data-act="del:works:${i}" title="מחק">🗑</button>
+          </div>
         </div>
-        <div class="itemactions">
-          <button class="iconbtn" data-act="yup:works:${i}" title="הקדם (בתוך השנה)">↑</button>
-          <button class="iconbtn" data-act="ydown:works:${i}" title="אחֵר (בתוך השנה)">↓</button>
-          <button class="iconbtn del" data-act="del:works:${i}" title="מחק">🗑</button>
+        <div class="item">
+          ${thumbHtml(w.image,'works',i,'image')}
+          <div>
+            <div class="field"><label>שם העבודה</label><input type="text" data-bind="works:${i}:title" value="${esc(w.title)}"></div>
+            <div class="field"><label>שנה</label><select data-bind="works:${i}:year">${yearOptions(w.year)}</select></div>
+            <div class="field"><label>תיאור / פירוט העבודה</label><textarea data-bind="works:${i}:description" placeholder="מלל חופשי על העבודה — רעיון, חומרים, רקע…">${esc(w.description)}</textarea></div>
+          </div>
         </div>
-      </div></div>`).join('');
+      </div>`).join('');
   });
   return html;
 }
