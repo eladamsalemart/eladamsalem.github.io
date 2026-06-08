@@ -278,7 +278,14 @@
     flex-direction: column;
     position: sticky;
     top: 96px;
+    max-height: calc(100vh - 130px);
+    overflow-y: auto;
+    padding-right: 8px;
   }
+  /* slim, subtle scrollbar for the title list */
+  .work-list::-webkit-scrollbar { width: 5px; }
+  .work-list::-webkit-scrollbar-thumb { background: rgba(26,23,20,0.2); border-radius: 3px; }
+  .work-list { scrollbar-width: thin; }
 
   .work-list button {
     text-align: left;
@@ -595,6 +602,7 @@
   .lightbox-img-wrap {
     position: relative;
     text-align: center;
+    overflow: hidden;
   }
 
   .lightbox-img-wrap img {
@@ -603,6 +611,23 @@
     object-fit: contain;
     display: block;
     margin: 0 auto;
+    cursor: zoom-in;
+    transition: transform 0.25s ease;
+    will-change: transform;
+  }
+
+  .lightbox-img-wrap img.zoomed {
+    transform: scale(2.6);
+    cursor: zoom-out;
+    transition: transform 0.1s ease;
+  }
+
+  .lightbox-zoomhint {
+    position: absolute;
+    bottom: 12px; left: 50%; transform: translateX(-50%);
+    font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); background: rgba(244,241,236,.8); padding: 5px 12px; border-radius: 20px;
+    pointer-events: none; transition: opacity .3s;
   }
 
   .lightbox-info { color: var(--ink); }
@@ -826,7 +851,7 @@
     .work-stage { order: -1; grid-template-columns: 1fr; gap: 18px; text-align: center; }
     .work-stage .stage-figure { min-height: 0; }
     .work-stage .stage-info { text-align: center; }
-    .work-list { position: static; }
+    .work-list { position: static; max-height: none; overflow: visible; padding-right: 0; }
     .work-stage img { max-height: 62vh; }
     .objects-grid { grid-template-columns: 1fr; }
     .shop-grid { grid-template-columns: 1fr; }
@@ -1023,6 +1048,7 @@
   <div class="lightbox-inner">
     <div class="lightbox-img-wrap">
       <img id="lightboxImg" src="" alt="">
+      <span class="lightbox-zoomhint" id="lightboxZoomHint">Click to zoom</span>
     </div>
     <div class="lightbox-info">
       <p id="lightboxTitle" class="lightbox-title"></p>
@@ -1279,12 +1305,42 @@ function openLightbox(id){
   // Paintings is a portfolio view — no sale info here (price/sold/inquire live in the Shop only)
   document.getElementById('lightboxPrice').textContent = '';
   document.getElementById('lightboxInquire').style.display = 'none';
+  lbResetZoom();
   document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
+function lbResetZoom(){
+  const img = document.getElementById('lightboxImg');
+  img.classList.remove('zoomed');
+  img.style.transformOrigin = 'center center';
+  const hint = document.getElementById('lightboxZoomHint');
+  if(hint) hint.style.opacity = '1';
+}
+
+// click the artwork to zoom in/out; move the mouse to inspect different areas
+(function(){
+  const img = document.getElementById('lightboxImg');
+  const hint = document.getElementById('lightboxZoomHint');
+  if(!img) return;
+  img.addEventListener('click', e => {
+    e.stopPropagation();
+    const z = img.classList.toggle('zoomed');
+    if(hint) hint.style.opacity = z ? '0' : '1';
+    if(!z) img.style.transformOrigin = 'center center';
+  });
+  img.addEventListener('mousemove', e => {
+    if(!img.classList.contains('zoomed')) return;
+    const r = img.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * 100;
+    const y = ((e.clientY - r.top) / r.height) * 100;
+    img.style.transformOrigin = x + '% ' + y + '%';
+  });
+})();
+
 function closeLightbox(e){
   if(e && e.target !== document.getElementById('lightbox') && !e.target.classList.contains('lightbox-close')) return;
+  lbResetZoom();
   document.getElementById('lightbox').classList.remove('open');
   document.body.style.overflow = '';
 }
