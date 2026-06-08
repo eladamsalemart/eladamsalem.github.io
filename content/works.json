@@ -1,5 +1,25 @@
 [
   {
+    "title": "Carpet TV",
+    "year": "2019",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/carpet-tv-130x110-2019-1780937516301.jpg",
+    "description": "oil on canvas\n130x110cm"
+  },
+  {
+    "title": "Main space",
+    "year": "2019",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/main-space-170x190-2018-1780937489678.jpg",
+    "description": "oil on canvas\n170x190cm"
+  },
+  {
     "title": "Inside garden",
     "year": "2020",
     "tech": "Oil on canvas",
