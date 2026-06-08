@@ -328,6 +328,7 @@ function viewWorks(){
             <label class="toggle"><input type="checkbox" data-bind="works:${i}:available" ${w.available?'checked':''}><span class="track"></span><span class="togglelabel">${w.available?'זמין למכירה':'נמכר'}</span></label>
           </div>
         </div>
+        <div class="field"><label>תיאור / פירוט העבודה</label><textarea data-bind="works:${i}:description" placeholder="מלל חופשי על העבודה — רעיון, חומרים, רקע…">${esc(w.description)}</textarea></div>
       </div>
       <div class="itemactions">
         <button class="iconbtn" data-act="up:works:${i}" title="העלה למעלה">↑</button>
@@ -492,7 +493,7 @@ function setValue(key,idx,field,val){
 }
 
 const BLANK = {
-  works:{title:'New work',year:'2026',tech:'Oil on canvas',size:'',price:0,available:true,image:''},
+  works:{title:'New work',year:'2026',tech:'Oil on canvas',size:'',price:0,available:true,image:'',description:''},
   objects:{title:'New object',meta:'',description:'',images:[]},
   exhibitions:{title:'New exhibition',year:'2026',venue:'',description:'',images:[]},
   cv:{group:'Group Exhibitions',year:'2026',title:'',venue:''},
