@@ -298,23 +298,29 @@
   .work-list button.active { color: var(--ink); }
   .work-list button .wl-yr { font-style: normal; font-size: 11px; letter-spacing: .08em; color: var(--accent); margin-left: 8px; }
 
-  .work-stage { text-align: center; }
+  /* stage = the painting + a label to its side */
+  .work-stage {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    gap: 48px;
+    align-items: center;
+  }
   .work-stage .stage-figure {
     display: flex; align-items: center; justify-content: center;
-    min-height: 40vh; max-height: 74vh;
+    min-height: 56vh; max-height: 76vh;
   }
   .work-stage img {
     max-width: 100%;
-    max-height: 74vh;
+    max-height: 76vh;
     object-fit: contain;
     display: block;
     cursor: zoom-in;
     animation: fadeIn 0.5s ease;
   }
-  .work-stage .cap { margin-top: 22px; }
-  .work-stage .cap .t { font-family: var(--serif); font-style: italic; font-size: 22px; color: var(--ink); }
-  .work-stage .cap .m { font-size: 11.5px; letter-spacing: .08em; color: var(--muted); margin-top: 6px; text-transform: uppercase; }
-  .work-stage .cap .d { font-size: 13.5px; line-height: 1.8; color: #3a3632; margin-top: 14px; max-width: 560px; margin-inline: auto; white-space: pre-line; }
+  .work-stage .stage-info { text-align: left; }
+  .work-stage .stage-info .t { font-family: var(--serif); font-style: italic; font-size: 25px; line-height: 1.2; color: var(--ink); margin-bottom: 18px; }
+  .work-stage .stage-info .m { font-size: 12px; letter-spacing: .07em; color: var(--muted); text-transform: uppercase; margin-bottom: 7px; }
+  .work-stage .stage-info .d { font-size: 13.5px; line-height: 1.8; color: #3a3632; margin-top: 16px; white-space: pre-line; }
 
   /* ── SHOP ── */
   .shop-grid {
@@ -568,11 +574,11 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(20,17,14,0.94);
+    background: rgba(244,241,236,0.98);   /* clean light backdrop */
     z-index: 200;
     align-items: center;
     justify-content: center;
-    padding: 40px;
+    padding: 48px;
   }
 
   .lightbox.open { display: flex; }
@@ -599,8 +605,8 @@
     margin: 0 auto;
   }
 
-  .lightbox-info { color: white; }
-  .lightbox-desc { font-size: 13.5px; line-height: 1.8; color: rgba(255,255,255,0.72); margin: 14px 0 4px; white-space: pre-line; max-height: 38vh; overflow: auto; }
+  .lightbox-info { color: var(--ink); }
+  .lightbox-desc { font-size: 13.5px; line-height: 1.8; color: #3a3632; margin: 14px 0 4px; white-space: pre-line; max-height: 38vh; overflow: auto; }
 
   .lightbox-title {
     font-family: var(--serif);
@@ -608,32 +614,34 @@
     font-style: italic;
     margin-bottom: 16px;
     line-height: 1.2;
+    color: var(--ink);
   }
 
   .lightbox-meta {
-    font-size: 13px;
-    color: rgba(255,255,255,0.5);
-    margin-bottom: 6px;
-    letter-spacing: 0.04em;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 7px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
   }
 
   .lightbox-price {
     font-family: var(--serif);
     font-size: 24px;
-    color: #d4b896;
+    color: var(--ink);
     margin-top: 20px;
     margin-bottom: 24px;
   }
 
   .lightbox-close {
-    position: absolute;
-    top: 20px; right: 20px;
+    position: fixed;
+    top: 22px; right: 28px;
     background: none;
     border: none;
-    color: white;
-    font-size: 28px;
+    color: var(--ink);
+    font-size: 30px;
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 0.55;
     line-height: 1;
     padding: 8px;
   }
@@ -815,7 +823,9 @@
     .section-header { flex-wrap: wrap; gap: 12px; }
     /* paintings viewer stacks: large work first, title list below */
     .paintings-viewer { grid-template-columns: 1fr; gap: 26px; }
-    .work-stage { order: -1; }
+    .work-stage { order: -1; grid-template-columns: 1fr; gap: 18px; text-align: center; }
+    .work-stage .stage-figure { min-height: 0; }
+    .work-stage .stage-info { text-align: center; }
     .work-list { position: static; }
     .work-stage img { max-height: 62vh; }
     .objects-grid { grid-template-columns: 1fr; }
@@ -1127,12 +1137,12 @@ function renderPaintings(year){
 }
 function showWork(i){
   const w = PFILTERED[i]; if(!w) return;
-  const meta = [w.year, w.tech, w.size].filter(Boolean).join('  ·  ');
+  const lines = [w.year, w.tech, w.size].filter(Boolean).map(x => `<div class="m">${esc(x)}</div>`).join('');
   document.getElementById('workStage').innerHTML = `
     <div class="stage-figure"><img src="${w.image}" alt="${esc(w.title)}" onclick="openLightbox(${w.id})"></div>
-    <div class="cap">
+    <div class="stage-info">
       <div class="t">${esc(w.title)}</div>
-      ${meta ? `<div class="m">${esc(meta)}</div>` : ''}
+      ${lines}
     </div>`;
   document.querySelectorAll('#workList button').forEach(b => b.classList.toggle('active', Number(b.dataset.wi) === i));
 }
