@@ -310,39 +310,31 @@ function viewHome(){
 }
 
 function viewWorks(){
-  const arr=DATA.works.content;
-  let cards=arr.map((w,i)=>`
+  const items = DATA.works.content.map((w,i)=>({w,i})).filter(x => x.w.forSale !== false);
+  let cards=items.map(({w,i})=>`
    <div class="card">
+    <div class="cardhead">
+      <strong>${esc(w.title)||'עבודה'}</strong>
+      <button class="btn ghost small" data-act="unshop:works:${i}" title="העבודה תישאר בגלריה, רק תוסר מהחנות">הסר מהחנות</button>
+    </div>
     <div class="item">
       ${thumbHtml(w.image,'works',i,'image')}
       <div>
         <div class="field"><label>שם העבודה</label><input type="text" data-bind="works:${i}:title" value="${esc(w.title)}"></div>
         <div class="row3">
           <div class="field"><label>שנה</label><select data-bind="works:${i}:year">${yearOptions(w.year)}</select></div>
-          <div class="field"><label>טכניקה</label><input type="text" data-bind="works:${i}:tech" value="${esc(w.tech)}"></div>
-          <div class="field"><label>מידות</label><input type="text" data-bind="works:${i}:size" value="${esc(w.size)}"></div>
-        </div>
-        <div class="row3">
           <div class="field"><label>מחיר (₪)</label><input type="number" data-bind="works:${i}:price" value="${esc(w.price)}"></div>
           <div class="field"><label>סטטוס</label>
             <label class="toggle"><input type="checkbox" data-bind="works:${i}:available" ${w.available?'checked':''}><span class="track"></span><span class="togglelabel">${w.available?'זמין':'נמכר'}</span></label>
           </div>
-          <div class="field"><label>מוצג בחנות</label>
-            <label class="toggle"><input type="checkbox" data-bind="works:${i}:forSale" ${w.forSale!==false?'checked':''}><span class="track"></span><span class="togglelabel">${w.forSale!==false?'כן':'לא'}</span></label>
-          </div>
         </div>
-        <div class="field"><label>תיאור / פירוט העבודה</label><textarea data-bind="works:${i}:description" placeholder="מלל חופשי על העבודה — רעיון, חומרים, רקע…">${esc(w.description)}</textarea></div>
-      </div>
-      <div class="itemactions">
-        <button class="iconbtn" data-act="up:works:${i}" title="העלה למעלה">↑</button>
-        <button class="iconbtn" data-act="down:works:${i}" title="הורד למטה">↓</button>
-        <button class="iconbtn del" data-act="del:works:${i}" title="מחק">🗑</button>
+        <div class="field"><label>תיאור / פירוט (טכניקה ומידות)</label><textarea data-bind="works:${i}:description" placeholder="oil on canvas&#10;120x90cm">${esc(w.description)}</textarea></div>
       </div>
     </div>
    </div>`).join('');
-  if(!arr.length) cards='<div class="empty">אין עדיין עבודות. לחץ "הוסף עבודה".</div>';
-  return header('ציורים ומכירה','כל העבודות שמופיעות בגלריה ובדף המכירה. גרור תמונה או לחץ עליה כדי להחליף.')+
-    `<div class="addbar"><button class="btn primary small" data-act="add:works">＋ הוסף עבודה</button></div>`+cards;
+  if(!items.length) cards='<div class="empty">אין ציורים בחנות. בלשונית "ציורים לפי שנים" סמן "מוצג בחנות" לציורים שתרצה למכור.</div>';
+  return header('ציורים ומכירה (החנות)','רק הציורים שמסומנים "מוצג בחנות". כאן קובעים מחיר וסטטוס. הסרה מכאן לא מוחקת — העבודה נשארת בגלריה.')+
+    `<div class="addbar"><button class="btn primary small" data-act="add:works">＋ הוסף עבודה חדשה לחנות</button></div>`+cards;
 }
 
 function viewByYear(){
@@ -368,8 +360,13 @@ function viewByYear(){
         <div class="item">
           ${thumbHtml(w.image,'works',i,'image')}
           <div>
-            <div class="field"><label>שם העבודה</label><input type="text" data-bind="works:${i}:title" value="${esc(w.title)}"></div>
-            <div class="field"><label>שנה</label><select data-bind="works:${i}:year">${yearOptions(w.year)}</select></div>
+            <div class="row">
+              <div class="field"><label>שם העבודה</label><input type="text" data-bind="works:${i}:title" value="${esc(w.title)}"></div>
+              <div class="field"><label>שנה</label><select data-bind="works:${i}:year">${yearOptions(w.year)}</select></div>
+            </div>
+            <div class="field"><label>מוצג בחנות (Available Works)</label>
+              <label class="toggle"><input type="checkbox" data-bind="works:${i}:forSale" ${w.forSale!==false?'checked':''}><span class="track"></span><span class="togglelabel">${w.forSale!==false?'כן':'לא'}</span></label>
+            </div>
             <div class="field"><label>תיאור / פירוט העבודה</label><textarea data-bind="works:${i}:description" placeholder="מלל חופשי על העבודה — רעיון, חומרים, רקע…">${esc(w.description)}</textarea></div>
           </div>
         </div>
@@ -514,6 +511,7 @@ function doAct(act){
   else if(op==='delimg'){ const im=arr[i].images||[]; im.splice(j,1); markDirty(key); render(); }
   else if(op==='imgup' && j>0){ const im=arr[i].images; [im[j-1],im[j]]=[im[j],im[j-1]]; markDirty(key); render(); }
   else if(op==='imgdown'){ const im=arr[i].images; if(j<im.length-1){ [im[j+1],im[j]]=[im[j],im[j+1]]; markDirty(key); render(); } }
+  else if(op==='unshop'){ DATA.works.content[i].forSale=false; markDirty('works'); render(); }
   else if(op==='yup' || op==='ydown'){
     // reorder a painting within its own year group (controls the on-site order)
     const a=DATA.works.content, y=String(a[i].year), step=(op==='yup')?-1:1;
