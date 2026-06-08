@@ -322,10 +322,13 @@ function viewWorks(){
           <div class="field"><label>טכניקה</label><input type="text" data-bind="works:${i}:tech" value="${esc(w.tech)}"></div>
           <div class="field"><label>מידות</label><input type="text" data-bind="works:${i}:size" value="${esc(w.size)}"></div>
         </div>
-        <div class="row">
+        <div class="row3">
           <div class="field"><label>מחיר (₪)</label><input type="number" data-bind="works:${i}:price" value="${esc(w.price)}"></div>
           <div class="field"><label>סטטוס</label>
-            <label class="toggle"><input type="checkbox" data-bind="works:${i}:available" ${w.available?'checked':''}><span class="track"></span><span class="togglelabel">${w.available?'זמין למכירה':'נמכר'}</span></label>
+            <label class="toggle"><input type="checkbox" data-bind="works:${i}:available" ${w.available?'checked':''}><span class="track"></span><span class="togglelabel">${w.available?'זמין':'נמכר'}</span></label>
+          </div>
+          <div class="field"><label>מוצג בחנות</label>
+            <label class="toggle"><input type="checkbox" data-bind="works:${i}:forSale" ${w.forSale!==false?'checked':''}><span class="track"></span><span class="togglelabel">${w.forSale!==false?'כן':'לא'}</span></label>
           </div>
         </div>
         <div class="field"><label>תיאור / פירוט העבודה</label><textarea data-bind="works:${i}:description" placeholder="מלל חופשי על העבודה — רעיון, חומרים, רקע…">${esc(w.description)}</textarea></div>
@@ -495,7 +498,7 @@ function setValue(key,idx,field,val){
 }
 
 const BLANK = {
-  works:{title:'New work',year:'2026',tech:'Oil on canvas',size:'',price:0,available:true,image:'',description:''},
+  works:{title:'New work',year:'2026',tech:'Oil on canvas',size:'',price:0,available:true,forSale:true,image:'',description:''},
   objects:{title:'New object',meta:'',description:'',images:[]},
   exhibitions:{title:'New exhibition',year:'2026',venue:'',description:'',images:[]},
   cv:{group:'Group Exhibitions',year:'2026',title:'',venue:''},
@@ -581,7 +584,8 @@ document.addEventListener('change',e=>{
   const b=e.target.getAttribute('data-bind');
   if(b && e.target.type==='checkbox'){
     const [key,idx,field]=b.split(':'); setValue(key,idx,field,e.target.checked);
-    const lbl=e.target.parentElement.querySelector('.togglelabel'); if(lbl) lbl.textContent=e.target.checked?'זמין למכירה':'נמכר';
+    const lbl=e.target.parentElement.querySelector('.togglelabel');
+    if(lbl){ lbl.textContent = (field==='forSale') ? (e.target.checked?'כן':'לא') : (e.target.checked?'זמין':'נמכר'); }
   }
 });
 document.addEventListener('click',e=>{

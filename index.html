@@ -1187,7 +1187,8 @@ function showWork(i){
 // ── SHOP (available works) ──
 function renderShop(){
   const grid = document.getElementById('shopGrid');
-  grid.innerHTML = WORKS.map(w => `
+  // the shop shows only works marked "for sale" (the gallery still shows all)
+  grid.innerHTML = WORKS.filter(w => w.forSale !== false).map(w => `
     <div class="shop-card">
       <div class="shop-card-image">
         <img src="${w.image}" alt="${esc(w.title)}" loading="lazy">
