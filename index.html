@@ -702,37 +702,8 @@
     letter-spacing: 0.04em;
   }
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 768px) {
-    .site-nav { padding: 0 20px; }
-    .nav-links { display: none; }
-    .hamburger { display: flex; }
-
-    section { padding: 80px 20px 40px; }
-
-    .hero { grid-template-columns: 1fr; }
-    .hero-image { height: 60vh; }
-    .hero-text { padding: 40px 24px 60px; }
-    .hero-title { font-size: 40px; }
-
-    .paintings-grid { columns: 2; }
-
-    .about-grid { grid-template-columns: 1fr; }
-    .about-image { position: static; }
-
-    .objects-grid { grid-template-columns: 1fr; }
-
-    .shop-grid { grid-template-columns: 1fr; }
-
-    .lightbox-inner { grid-template-columns: 1fr; }
-    .lightbox-info { display: none; }
-
-    footer { flex-direction: column; gap: 8px; text-align: center; }
-  }
-
-  @media (max-width: 480px) {
-    .paintings-grid { columns: 1; }
-  }
+  /* ── RESPONSIVE rules live at the very end of this stylesheet (after all
+        component styles) so the media-query overrides reliably win. ── */
 
   /* Fade in */
   @keyframes fadeIn {
@@ -800,11 +771,77 @@
   .cv-row .cv-ttl { font-family: var(--serif); font-size: 17px; font-style: italic; }
   .cv-row .cv-ven { font-size: 13px; color: var(--muted); margin-top: 2px; }
 
+  /* ================= RESPONSIVE (tablet + phone) ================= */
+  /* Placed last so media-query overrides reliably win the cascade. */
+
+  /* Tablet / iPad landscape (≤1024) */
+  @media (max-width: 1024px) {
+    section { padding: 92px 28px 50px; }
+    .paintings-grid { columns: 2; }
+    .nav-links { gap: 20px; }
+    .nav-links a { font-size: 12px; letter-spacing: 0.05em; }
+    .hero-title { font-size: clamp(40px, 6vw, 60px); }
+    .about-grid { gap: 50px; }
+    .exh-card { grid-template-columns: 210px 1fr auto; gap: 24px; }
+  }
+
+  /* Collapse the 7-item menu to a hamburger early (covers iPad portrait 768–834) */
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+  }
+
+  /* Phones & narrow tablets (≤768) */
   @media (max-width: 768px) {
-    .exh-card { grid-template-columns: 110px 1fr; gap: 16px; }
-    .exh-card .exh-cover { width: 110px; }
+    .site-nav { padding: 0 20px; }
+    section { padding: 80px 20px 46px; }
+
+    .hero { height: auto; min-height: 100vh; grid-template-columns: 1fr; }
+    .hero-image { height: 56vh; }
+    .hero-text { padding: 34px 24px 56px; }
+    .hero-title { font-size: 46px; }
+    .hero-statement { max-width: none; }
+
+    .section-header { flex-wrap: wrap; gap: 12px; }
+    .paintings-grid { columns: 2; }
+    .objects-grid { grid-template-columns: 1fr; }
+    .shop-grid { grid-template-columns: 1fr; }
+
+    .about-grid { grid-template-columns: 1fr; gap: 30px; }
+    .about-image { position: static; max-width: 380px; }
+
+    .exh-card { grid-template-columns: 96px 1fr; gap: 16px; }
+    .exh-card .exh-cover { width: 96px; }
     .exh-card .exh-arrow { display: none; }
+    .exh-card .exh-name { font-size: 21px; }
+
+    /* Artwork popup: stack image + info, and KEEP the info visible on mobile */
+    .lightbox { padding: 16px; }
+    .lightbox-inner { grid-template-columns: 1fr; gap: 16px; max-height: 92vh; overflow: auto; }
+    .lightbox-info { display: block; text-align: center; }
+    .lightbox-img-wrap img { max-height: 56vh; }
+    .lightbox-title { font-size: 22px; }
+
+    /* Detail carousel */
+    .cstage { min-height: 34vh; }
+    .cstage img { max-height: 60vh; }
     .cbtn { width: 38px; height: 38px; font-size: 18px; }
+    .detail-title { font-size: 26px; }
+    .detail-text { margin-top: 26px; }
+
+    footer { flex-direction: column; gap: 8px; text-align: center; }
+  }
+
+  /* Small phones (≤480) */
+  @media (max-width: 480px) {
+    section { padding: 74px 16px 38px; }
+    .paintings-grid { columns: 1; }
+    .hero-title { font-size: 40px; }
+    .hero-image { height: 50vh; }
+    .section-title { font-size: 26px; }
+    .year-filter { gap: 5px; }
+    .year-btn { padding: 5px 11px; font-size: 11px; }
+    .exh-card .exh-name { font-size: 19px; }
   }
 </style>
 </head>
