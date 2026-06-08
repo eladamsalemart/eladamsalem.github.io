@@ -1108,7 +1108,6 @@ function renderPaintings(year){
       <div class="painting-overlay">
         <p class="painting-name">${esc(w.title)}</p>
         <p class="painting-meta">${esc(w.tech)} · ${esc(w.size)} · ${esc(w.year)}</p>
-        ${w.available ? `<p class="painting-price">${fmt(w.price)}</p>` : ''}
       </div>
     </div>
   `).join('');
@@ -1242,7 +1241,7 @@ function openLightbox(id){
   document.getElementById('lightboxSize').textContent = w.size;
   document.getElementById('lightboxYear').textContent = w.year;
   document.getElementById('lightboxDesc').textContent = w.description || '';
-  document.getElementById('lightboxPrice').textContent = w.available ? fmt(w.price) : 'Sold';
+  document.getElementById('lightboxPrice').textContent = w.available ? '' : 'Sold';
   document.getElementById('lightboxInquire').href =
     'mailto:' + SETTINGS.email + '?subject=' + encodeURIComponent('Inquiry: ' + w.title);
   document.getElementById('lightbox').classList.add('open');
