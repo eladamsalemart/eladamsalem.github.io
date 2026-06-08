@@ -1,5 +1,15 @@
 [
   {
+    "title": "Toda",
+    "year": "2022",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/img-7210-1780924680691.jpg",
+    "description": "oil on canvas\n30x20cm"
+  },
+  {
     "title": "Gathering",
     "year": "2026",
     "tech": "Oil on canvas",
@@ -20,14 +30,14 @@
     "description": "oil and ink on canvas\n100x130cm"
   },
   {
-    "title": "New work",
+    "title": "Toda",
     "year": "2023",
     "tech": "Oil on canvas",
     "size": "",
     "price": 0,
     "available": true,
     "image": "/media/works/img-8692-1780920024948.jpg",
-    "description": ""
+    "description": "oil and ink on canvas\n70x50cm"
   },
   {
     "title": "New work",
