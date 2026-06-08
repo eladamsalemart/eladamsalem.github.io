@@ -1,5 +1,15 @@
 [
   {
+    "title": "Gathering",
+    "year": "2026",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/img-7601-1780924375439.jpg",
+    "description": "oil on canvas\n170x140cm"
+  },
+  {
     "title": "New work",
     "year": "2022",
     "tech": "Oil on canvas",
@@ -57,7 +67,7 @@
     "price": 0,
     "available": true,
     "image": "/media/works/unnamed-1780919962781.jpg",
-    "description": "oil on canvas"
+    "description": "oil on canvas\n45x35cm"
   },
   {
     "title": "Human nature",
@@ -113,19 +123,11 @@
     "title": "Woman",
     "year": "2025",
     "tech": "Oil on canvas",
-    "size": "110 × 90 cm",
-    "price": 5000,
-    "available": true,
-    "image": "/media/works/img-7601-1780919854372.jpg"
-  },
-  {
-    "title": "Ritual",
-    "year": "2025",
-    "tech": "Oil on canvas",
     "size": "130 × 110 cm",
     "price": 7000,
     "available": true,
-    "image": "/media/works/img-9895-1780919976150.jpg"
+    "image": "/media/works/img-9895-1780919976150.jpg",
+    "description": "oil on canvas\n110x90cm"
   },
   {
     "title": "Two",
@@ -143,15 +145,17 @@
     "size": "120 × 130 cm",
     "price": 8500,
     "available": true,
-    "image": "/media/works/22-1780919892762.jpg"
+    "image": "/media/works/22-1780919892762.jpg",
+    "description": "oil on canvas\n120x70cm"
   },
   {
-    "title": "Human Nature",
+    "title": "Ritual",
     "year": "2025",
     "tech": "Oil on canvas",
     "size": "90 × 70 cm",
     "price": 3500,
     "available": true,
-    "image": "/media/works/44-1780919907801.jpg"
+    "image": "/media/works/44-1780919907801.jpg",
+    "description": "oil on canvas\n130x110cm"
   }
 ]
