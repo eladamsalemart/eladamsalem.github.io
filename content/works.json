@@ -1,5 +1,55 @@
 [
   {
+    "title": "P",
+    "year": "2021",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/img-0565-1780926831629.jpg",
+    "description": ""
+  },
+  {
+    "title": "Arising",
+    "year": "2021",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/arising-210x105cm-1780926824913.jpg",
+    "description": "oil and ink on canvas\n210x105cm"
+  },
+  {
+    "title": "Emptiness",
+    "year": "2021",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/img-0530-1780926813596.jpg",
+    "description": "oil on three canvases \n35x45cm each one"
+  },
+  {
+    "title": "Left Right Center",
+    "year": "2021",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/left-center-right-100x120cm-2021-1780926712439.jpg",
+    "description": "oil on canvas\nthree canvases - 100x120cm each one"
+  },
+  {
+    "title": "Moroccan pattern ",
+    "year": "2021",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "image": "/media/works/moroccan-pattern-60x50cm-2021-1780926642244.jpg",
+    "description": "oil on canvas\n60x50cm"
+  },
+  {
     "title": "Harmony",
     "year": "2021",
     "tech": "Oil on canvas",
