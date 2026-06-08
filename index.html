@@ -1160,9 +1160,22 @@ function renderPaintings(year){
   ).join('');
   showWork(0);
 }
+// detail lines for a work: year, then the artist's own "פירוט" text
+// (which holds medium + size); falls back to the structured fields.
+function workLines(w){
+  const out = [];
+  if(w.year) out.push(String(w.year));
+  if(w.description && w.description.trim()){
+    w.description.split('\n').forEach(l => { l = l.trim(); if(l) out.push(l); });
+  } else {
+    if(w.tech) out.push(w.tech);
+    if(w.size) out.push(w.size);
+  }
+  return out;
+}
 function showWork(i){
   const w = PFILTERED[i]; if(!w) return;
-  const lines = [w.year, w.tech, w.size].filter(Boolean).map(x => `<div class="m">${esc(x)}</div>`).join('');
+  const lines = workLines(w).map(x => `<div class="m">${esc(x)}</div>`).join('');
   document.getElementById('workStage').innerHTML = `
     <div class="stage-figure"><img src="${w.image}" alt="${esc(w.title)}" onclick="openLightbox(${w.id})"></div>
     <div class="stage-info">
@@ -1296,11 +1309,12 @@ function openLightbox(id){
   document.getElementById('lightboxImg').src = w.image;
   document.getElementById('lightboxImg').alt = w.title;
   document.getElementById('lightboxTitle').textContent = w.title;
-  // single clean detail line — no duplicated info
-  document.getElementById('lightboxTech').textContent = [w.year, w.tech, w.size].filter(Boolean).join('  ·  ');
+  document.getElementById('lightboxTech').textContent = w.year || '';
   document.getElementById('lightboxSize').textContent = '';
   document.getElementById('lightboxYear').textContent = '';
-  document.getElementById('lightboxDesc').textContent = '';
+  // show the artist's medium/size text (from "פירוט"), falling back to structured fields
+  document.getElementById('lightboxDesc').textContent =
+    (w.description && w.description.trim()) ? w.description : [w.tech, w.size].filter(Boolean).join('\n');
   // Paintings is a portfolio view — no sale info here (price/sold/inquire live in the Shop only)
   document.getElementById('lightboxPrice').textContent = '';
   document.getElementById('lightboxInquire').style.display = 'none';
