@@ -767,20 +767,21 @@
     text-transform: uppercase; color: var(--muted); cursor: pointer; margin-bottom: 28px; background: none; border: none;
   }
   .detail-back:hover { color: var(--ink); }
-  /* arrows sit BESIDE the image (not over it) */
-  .carousel { display: flex; align-items: center; gap: 10px; }
-  .cstage { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; min-height: 40vh; max-height: 76vh; overflow: hidden; background: #ece8e1; border: 0.5px solid var(--border); }
+  /* image full-width; small arrows sit in a row BELOW it */
+  .carousel { }
+  .cstage { display: flex; align-items: center; justify-content: center; min-height: 40vh; max-height: 76vh; overflow: hidden; background: #ece8e1; border: 0.5px solid var(--border); }
   .cstage img { max-width: 100%; max-height: 76vh; object-fit: contain; display: block; }
+  .cnav { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 14px; }
   .cbtn {
-    flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%;
-    background: rgba(244,241,236,.9); border: 0.5px solid var(--border); font-size: 22px; color: var(--ink);
+    flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(244,241,236,.9); border: 0.5px solid var(--border); font-size: 18px; color: var(--ink);
     cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s;
   }
   .cbtn:hover { background: #fff; }
-  .cdots { display: flex; gap: 8px; justify-content: center; padding: 16px 0 4px; }
+  .cdots { display: flex; gap: 8px; justify-content: center; align-items: center; }
   .cdot { width: 8px; height: 8px; border-radius: 50%; background: #cfc9bf; border: none; cursor: pointer; padding: 0; }
   .cdot.active { background: var(--ink); }
-  .ccount { text-align: center; font-size: 12px; color: var(--muted); letter-spacing: .08em; margin-top: 6px; }
+  .ccount { text-align: center; font-size: 12px; color: var(--muted); letter-spacing: .08em; margin-top: 8px; }
   .detail-text { max-width: 760px; margin: 34px auto 0; text-align: center; }
   .detail-title { font-family: var(--serif); font-size: 34px; font-style: italic; font-weight: 400; margin-bottom: 10px; }
   .detail-meta { font-size: 13.5px; color: var(--muted); letter-spacing: .04em; margin-bottom: 22px; }
@@ -873,8 +874,9 @@
 
     /* Detail carousel */
     .cstage { min-height: 34vh; }
-    .cstage img { max-height: 60vh; }
-    .cbtn { width: 38px; height: 38px; font-size: 18px; }
+    .cstage img { max-height: 66vh; }
+    .cbtn { width: 30px; height: 30px; font-size: 16px; }
+    .cnav { gap: 14px; margin-top: 12px; }
     .detail-title { font-size: 26px; }
     .detail-text { margin-top: 26px; }
 
@@ -975,11 +977,13 @@
 <section id="detail">
   <button class="detail-back" onclick="goBack()">← <span id="backLabel">Back</span></button>
   <div class="carousel" id="carousel">
-    <button class="cbtn prev" onclick="carouselMove(-1)" aria-label="Previous">‹</button>
     <div class="cstage"><img id="cimg" src="" alt=""></div>
+  </div>
+  <div class="cnav">
+    <button class="cbtn prev" onclick="carouselMove(-1)" aria-label="Previous">‹</button>
+    <div class="cdots" id="cdots"></div>
     <button class="cbtn next" onclick="carouselMove(1)" aria-label="Next">›</button>
   </div>
-  <div class="cdots" id="cdots"></div>
   <div class="ccount" id="ccount"></div>
   <div class="detail-text">
     <h2 class="detail-title" id="detailTitle"></h2>
