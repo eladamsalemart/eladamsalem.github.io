@@ -825,11 +825,11 @@
     .nav-links { display: none; }
     .hamburger { display: flex; }
 
-    .hero { height: auto; min-height: 0; grid-template-columns: 1fr; }
-    /* on entry: a big, centred photo that fills most of the first screen */
-    .hero-image { height: auto; min-height: 84vh; padding: 64px 14px 8px; align-items: center; }
-    .hero-image img { width: auto; height: auto; max-width: 100%; max-height: 72vh; }
-    .hero-text { padding: 28px 32px 56px; }
+    /* on entry: photo on top, name + text below — both visible, ~one screen */
+    .hero { height: auto; min-height: 100vh; grid-template-columns: 1fr; grid-template-rows: 54vh 1fr; }
+    .hero-image { height: auto; min-height: 0; padding: 60px 14px 4px; align-items: center; }
+    .hero-image img { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+    .hero-text { padding: 8px 30px 22px; justify-content: center; }
     .hero-statement { max-width: none; }
 
     .about-grid { grid-template-columns: 1fr; gap: 40px; }
@@ -841,10 +841,11 @@
     .site-nav { padding: 0 20px; }
     section { padding: 80px 20px 46px; }
 
-    .hero { height: auto; min-height: 0; grid-template-columns: 1fr; }
-    .hero-text { padding: 30px 22px 50px; }
-    .hero-title { font-size: 46px; }
-    .hero-statement { max-width: none; }
+    .hero { min-height: 100vh; grid-template-columns: 1fr; grid-template-rows: 52vh 1fr; }
+    .hero-text { padding: 6px 24px 20px; justify-content: center; }
+    .hero-title { font-size: 42px; margin-bottom: 20px; }
+    .hero-label { margin-bottom: 14px; }
+    .hero-statement { max-width: none; margin-bottom: 0; }
 
     .section-header { flex-wrap: wrap; gap: 12px; }
     /* paintings viewer stacks: large work first, title list below */
