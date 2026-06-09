@@ -445,7 +445,7 @@
     "tech": "Oil on canvas",
     "size": "110 × 140 cm",
     "price": 7000,
-    "available": true,
+    "available": false,
     "image": "/media/works/two.jpg",
     "description": "oil and ink on canvas\n100x140cm",
     "forSale": true
