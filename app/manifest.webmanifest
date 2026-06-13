@@ -1,0 +1,14 @@
+{
+  "name": "קעקועים — העוזר האישי",
+  "short_name": "קעקועים",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F2F0ED",
+  "theme_color": "#F2F0ED",
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="קעקועים">
+<meta name="theme-color" content="#F2F0ED">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.png">
+<title>Elad Amsalem · העוזר האישי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700&family=Heebo:wght@300;400;500;600;700&family=EB+Garamond:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F0ED; --card:#FFFFFF; --ink:#1C1B19; --ink2:#55524C; --line:#E2DFD9;
+  --accent:#7A5C3E; --accent2:#A98B6A; --good:#3E6B4F; --warn:#A8762B; --bad:#9B3B30;
+  --gold:#C9A36A; --shadow:0 2px 14px rgba(28,27,25,.07);
+  --aw:#3A5A78; --tr:#3E6B4F; --ac:#9B3B30;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Heebo',sans-serif;font-size:15px;line-height:1.55;min-height:100vh}
+h1,h2,h3{font-family:'Frank Ruhl Libre',serif;font-weight:500}
+header{padding:24px 34px 0;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:10px}
+header h1{font-size:25px}
+header h1 .en{font-family:'EB Garamond',serif;font-style:italic;color:var(--accent);font-size:19px;margin-inline-start:8px}
+header .sub{color:var(--ink2);font-size:12.5px}
+nav{display:flex;gap:2px;padding:16px 34px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav button{background:none;border:none;font-family:'Heebo';font-size:14.5px;font-weight:500;color:var(--ink2);padding:10px 15px;cursor:pointer;border-bottom:2.5px solid transparent;transition:.15s}
+nav button:hover{color:var(--ink)}
+nav button.active{color:var(--ink);border-bottom-color:var(--accent)}
+main{padding:24px 34px 60px;max-width:1180px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)}
+.kpi .lbl{font-size:12px;color:var(--ink2);margin-bottom:3px}
+.kpi .val{font-size:26px;font-family:'Frank Ruhl Libre',serif}
+.kpi .delta{font-size:11.5px;margin-top:2px;color:var(--ink2)}
+.up{color:var(--good)}.down{color:var(--bad)}
+h2.sec{font-size:18px;margin:26px 0 12px;display:flex;align-items:center;gap:10px}
+h2.sec::after{content:"";flex:1;height:1px;background:var(--line)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:right;font-weight:600;color:var(--ink2);font-size:11.5px;padding:8px 9px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+td{padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAF8F5}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.tag.reel{background:#EFE6DA;color:var(--accent)}
+.tag.carousel{background:#E4EAE2;color:var(--good)}
+.tag.photo{background:#EAE6F0;color:#5B4A7A}
+.tag.boost{background:#F3E7D9;color:var(--warn)}
+.tag.ads{background:#E2E9F0;color:#3A5A78}
+.tag.aw{background:#E2E9F0;color:var(--aw)}
+.tag.tr{background:#E4EAE2;color:var(--tr)}
+.tag.ac{background:#F2E0DD;color:var(--ac)}
+.flag{font-size:10.5px;padding:2px 7px;border-radius:4px;font-weight:600}
+.flag.good{background:#E4EAE2;color:var(--good)}
+.flag.warn{background:#F5EBD9;color:var(--warn)}
+.flag.bad{background:#F2E0DD;color:var(--bad)}
+form.row{display:flex;flex-wrap:wrap;gap:9px;align-items:flex-end;margin:10px 0 16px}
+.fld{display:flex;flex-direction:column;gap:3px}
+.fld label{font-size:11px;color:var(--ink2);font-weight:500}
+input,select,textarea{font-family:'Heebo';font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#FCFBFA;color:var(--ink);outline:none}
+input:focus,select:focus{border-color:var(--accent2)}
+input[type=number]{width:86px}
+input[type=date]{width:138px}
+button.btn{background:var(--ink);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:'Heebo';font-size:14px;font-weight:500;cursor:pointer;transition:.15s}
+button.btn:hover{background:var(--accent)}
+button.btn.ghost{background:none;color:var(--ink2);border:1px solid var(--line)}
+button.btn.ghost:hover{color:var(--accent);border-color:var(--accent);background:none}
+button.mini{background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink2);padding:3px 6px}
+button.mini:hover{color:var(--bad)}
+.advice{border-inline-start:3px solid var(--accent);padding:13px 17px;margin-bottom:11px;background:var(--card);border-radius:0 10px 10px 0;box-shadow:var(--shadow)}
+.advice.good{border-color:var(--good)}
+.advice.warn{border-color:var(--warn)}
+.advice.bad{border-color:var(--bad)}
+.advice h3{font-size:15px;font-family:'Heebo';font-weight:600;margin-bottom:3px}
+.advice p{font-size:13.5px;color:var(--ink2)}
+.advice .why{font-size:12px;color:var(--accent);margin-top:5px;font-style:italic}
+.empty{color:var(--ink2);font-size:13.5px;padding:16px;text-align:center;border:1.5px dashed var(--line);border-radius:10px;margin:8px 0}
+.note{font-size:12.5px;color:var(--ink2);background:#FAF7F2;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0}
+/* daily check-in */
+.checkin{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.checkin .q{display:flex;align-items:center;gap:8px;background:#FAF8F5;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13.5px;cursor:pointer;user-select:none}
+.checkin .q.on{background:#E4EAE2;border-color:var(--good);color:var(--good);font-weight:600}
+.onething{background:linear-gradient(135deg,#1C1B19,#3A332B);color:#F2F0ED;border-radius:14px;padding:22px 26px;margin:16px 0;box-shadow:var(--shadow)}
+.onething .k{font-size:11.5px;letter-spacing:2px;color:var(--gold);font-weight:600;margin-bottom:6px}
+.onething .t{font-size:18px;font-family:'Frank Ruhl Libre',serif;line-height:1.45}
+.streak{display:inline-flex;align-items:center;gap:6px;background:#F5EBD9;color:var(--warn);border-radius:20px;padding:3px 12px;font-size:12.5px;font-weight:600}
+/* planner */
+.planner{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:11px}
+.slot{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px;min-height:110px}
+.slot h4{font-size:12.5px;font-weight:600;color:var(--accent);margin-bottom:6px}
+.slot .hint{font-size:11px;color:var(--ink2);margin-bottom:8px}
+.idea{background:#FAF8F5;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:12.5px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;gap:5px}
+.idea .st{font-size:10px;padding:1px 7px;border-radius:10px;cursor:pointer;font-weight:600;white-space:nowrap}
+.st.s0{background:#EEE;color:#777}.st.s1{background:#F5EBD9;color:var(--warn)}.st.s2{background:#E4EAE2;color:var(--good)}
+.ratio{display:flex;height:14px;border-radius:8px;overflow:hidden;margin:8px 0;border:1px solid var(--line)}
+.ratio div{transition:.3s}
+.banklist{columns:2;column-gap:14px}
+@media(max-width:760px){.banklist{columns:1}}
+.bank-item{break-inside:avoid;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:9px;font-size:13px}
+.bank-item b{display:block;font-size:12.5px;margin-bottom:2px}
+.bank-item .add{float:left;font-size:11px;color:var(--good);cursor:pointer;font-weight:600}
+/* funnel */
+.funnel{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;margin:14px 0}
+.fstep{flex:1;min-width:120px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px;text-align:center}
+.fstep .n{font-size:24px;font-family:'Frank Ruhl Libre',serif}
+.fstep .l{font-size:11.5px;color:var(--ink2)}
+.fstep .conv{font-size:11px;color:var(--accent);font-weight:600;margin-top:3px}
+.gate{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;font-size:13.5px;margin:6px 0}
+.gate.go{background:#E4EAE2;color:var(--good)}
+.gate.stop{background:#F2E0DD;color:var(--bad)}
+.gate.test{background:#F5EBD9;color:var(--warn)}
+/* review */
+.review-block{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-bottom:14px;box-shadow:var(--shadow)}
+.review-block h3{font-size:16px;color:var(--accent);margin-bottom:8px}
+.cmp{display:flex;gap:18px;flex-wrap:wrap;font-size:13.5px}
+.cmp div b{font-size:17px;font-family:'Frank Ruhl Libre',serif;display:block}
+svg.chart{width:100%;height:120px}
+.brandbox{font-size:14px}
+.brandbox h3{font-size:16px;margin:18px 0 6px;color:var(--accent)}
+.brandbox ul{margin:4px 22px}
+.brandbox li{margin-bottom:4px}
+.tmpl{background:#FAF8F5;border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;margin:6px 0;white-space:pre-line}
+.footerbar{display:flex;gap:10px;justify-content:flex-end;padding:16px 34px;border-top:1px solid var(--line);font-size:12px;color:var(--ink2);align-items:center;flex-wrap:wrap}
+/* media library */
+.dropzone{border:2px dashed var(--accent2);border-radius:14px;padding:28px;text-align:center;color:var(--ink2);font-size:14px;background:#FAF8F5;cursor:pointer;transition:.2s;margin:10px 0}
+.dropzone.drag{background:#EFE6DA;border-color:var(--accent)}
+.mediagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:14px}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.mcard .thumb{width:100%;height:130px;object-fit:cover;display:block;background:#222}
+.mcard .meta{padding:7px 9px;font-size:11px;color:var(--ink2)}
+.mcard .meta b{display:block;font-size:11.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mcard .acts{display:flex;gap:2px;padding:0 6px 7px;flex-wrap:wrap}
+.mcard .acts button{font-size:10.5px;padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:#FAF8F5;cursor:pointer;color:var(--ink2)}
+.mcard .acts button:hover{color:var(--accent);border-color:var(--accent)}
+.storagebar{font-size:11.5px;color:var(--ink2);margin-top:8px}
+/* studio */
+.studio{display:grid;grid-template-columns:1fr 320px;gap:16px}
+@media(max-width:900px){.studio{grid-template-columns:1fr}}
+.stage{position:relative;background:#111;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:300px}
+.stage video{max-width:100%;max-height:62vh;display:block}
+.stage .ovl{position:absolute;left:0;right:0;text-align:center;padding:0 6%;font-weight:700;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.75);pointer-events:none;font-family:'Heebo';line-height:1.35;white-space:pre-line}
+.trim{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.trim .tbtn{background:var(--ink);color:#fff;border:none;border-radius:7px;padding:6px 13px;font-family:'Heebo';font-size:12.5px;cursor:pointer}
+.trim .tbtn:hover{background:var(--accent)}
+.trim .tinfo{font-size:12.5px;color:var(--ink2)}
+.hook{background:#FAF8F5;border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:13px;margin-bottom:6px;cursor:pointer;transition:.15s}
+.hook:hover{border-color:var(--accent);background:#EFE6DA}
+.genout{background:#FAF8F5;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:13.5px;white-space:pre-line;margin-top:8px;min-height:60px}
+progress{width:100%;height:8px;border-radius:4px}
+.num{direction:ltr;unicode-bidi:embed;text-align:right}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 22px;border-radius:24px;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,.25);opacity:0;transition:.3s;pointer-events:none;z-index:99}
+#toast.show{opacity:1}
+.pill-info{font-size:11px;color:var(--ink2)}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>העוזר האישי <span class="en">Elad Amsalem — Tattoo Growth</span></h1>
+    <div class="sub">@eladamsalem1 · הנתונים נשמרים אצלך במחשב בלבד · גרסה 2</div>
+  </div>
+  <div class="sub" id="todayLine"></div>
+</header>
+
+<nav id="nav">
+  <button data-p="today" class="active">היום</button>
+  <button data-p="content">תוכן</button>
+  <button data-p="media">מדיה</button>
+  <button data-p="studio">סטודיו רילס</button>
+  <button data-p="paid">ממומן ומשפך</button>
+  <button data-p="review">סקירה שבועית</button>
+  <button data-p="roadmap">התוכנית</button>
+  <button data-p="reports">דוחות</button>
+  <button data-p="comp">מתחרים</button>
+  <button data-p="brand">מותג וכלים</button>
+  <button data-p="settings">⚙️</button>
+</nav>
+
+<main>
+
+<!-- ===== TODAY ===== -->
+<section class="page active" id="page-today">
+  <div class="onething">
+    <div class="k">הדבר האחד הבא</div>
+    <div class="t" id="oneThing">טוען…</div>
+  </div>
+
+  <h2 class="sec">צ'ק-אין יומי <span class="streak" id="streakBadge" style="display:none"></span></h2>
+  <div class="card">
+    <div class="checkin" id="dailyCheckin"></div>
+    <div style="display:flex;gap:10px;align-items:flex-end;margin-top:12px;flex-wrap:wrap">
+      <div class="fld"><label>פניות DM חדשות היום</label><input type="number" id="dmToday" value="0"></div>
+      <button class="btn" onclick="saveCheckin()">סיימתי להיום ✓</button>
+      <span class="pill-info">60 שניות ביום. זה הכל.</span>
+    </div>
+  </div>
+
+  <div class="grid kpis" id="kpiGrid" style="margin-top:22px"></div>
+
+  <h2 class="sec">התראות</h2>
+  <div id="dashAdvice"></div>
+</section>
+
+<!-- ===== CONTENT ===== -->
+<section class="page" id="page-content">
+  <div class="note">כל פוסט שייך לאחד משלושה עמודים: <span class="tag aw">חשיפה</span> מביא קהל חדש (רילסים) · <span class="tag tr">אמון</span> הופך אותם למאמינים (תהליך, מחלימים, סיפורים) · <span class="tag ac">הנעה</span> הופך אותם ללקוחות (פלאשים, תאריכים). תמהיל בריא: ~50/35/15.</div>
+  <div class="card" style="padding:12px 18px">
+    <b style="font-size:13px">תמהיל 30 הימים האחרונים</b>
+    <div class="ratio" id="pillarRatio"></div>
+    <div style="display:flex;gap:16px;font-size:11.5px;color:var(--ink2)"><span>🔵 חשיפה</span><span>🟢 אמון</span><span>🔴 הנעה</span></div>
+  </div>
+
+  <h2 class="sec">תכנון השבוע</h2>
+  <div class="planner" id="plannerGrid"></div>
+  <form class="row" onsubmit="return addIdea(event)">
+    <div class="fld"><label>רעיון חדש</label><input type="text" id="ideaText" style="width:250px" placeholder="טיים-לאפס קעקוע בוטני…" required></div>
+    <div class="fld"><label>שבץ אל</label><select id="ideaSlot"></select></div>
+    <div class="fld"><label>עמוד</label><select id="ideaPillar"><option value="aw">חשיפה</option><option value="tr">אמון</option><option value="ac">הנעה</option></select></div>
+    <button class="btn">הוסף</button>
+  </form>
+
+  <h2 class="sec">מעקב פוסטים שפורסמו</h2>
+  <div class="note">יום-יומיים אחרי פרסום: פתח Insights של הפוסט והזן. <b>שמירות ושיתופים = המדדים שקובעים.</b> (בעתיד: משיכה אוטומטית דרך Meta API)</div>
+  <form class="row" onsubmit="return addPost(event)">
+    <div class="fld"><label>תאריך</label><input type="date" id="pDate"></div>
+    <div class="fld"><label>סוג</label><select id="pType"><option value="reel">רילס</option><option value="carousel">קרוסלה</option><option value="photo">תמונה</option></select></div>
+    <div class="fld"><label>עמוד</label><select id="pPillar"><option value="aw">חשיפה</option><option value="tr">אמון</option><option value="ac">הנעה</option></select></div>
+    <div class="fld"><label>נושא</label><input type="text" id="pTopic" style="width:150px"></div>
+    <div class="fld"><label>בוסט?</label><select id="pBoost"><option value="no">אורגני</option><option value="yes">עם בוסט</option></select></div>
+    <div class="fld"><label>צפיות/הגעה</label><input type="number" id="pViews" required></div>
+    <div class="fld"><label>לייקים</label><input type="number" id="pLikes" value="0"></div>
+    <div class="fld"><label>תגובות</label><input type="number" id="pComments" value="0"></div>
+    <div class="fld"><label>שמירות</label><input type="number" id="pSaves" value="0"></div>
+    <div class="fld"><label>שיתופים</label><input type="number" id="pShares" value="0"></div>
+    <div class="fld"><label>DM</label><input type="number" id="pDms" value="0"></div>
+    <button class="btn">שמור</button>
+  </form>
+  <div class="card" style="padding:6px 10px;overflow-x:auto"><table id="postsTable"></table></div>
+
+  <h2 class="sec">בנק רעיונות — לפי עמודי המותג שלך</h2>
+  <div class="banklist" id="ideaBank"></div>
+</section>
+
+<!-- ===== MEDIA LIBRARY ===== -->
+<section class="page" id="page-media">
+  <div class="note">📦 ספריית המדיה שלך — תמונות וסרטונים נשמרים <b>במחשב שלך בלבד</b> (בתוך הדפדפן, ללא ענן). גרור לכאן צילומים מהטלפון/מחשב, תייג, וצרף לתכנון התוכן. סרטונים אפשר לשלוח לסטודיו לעריכה.</div>
+  <div class="dropzone" id="dropzone" onclick="document.getElementById('mediaFile').click()">
+    ⬇️ גרור לכאן תמונות או סרטונים — או לחץ לבחירה<br><span style="font-size:12px">(JPG · PNG · MP4 · MOV)</span>
+  </div>
+  <input type="file" id="mediaFile" accept="image/*,video/*" multiple style="display:none" onchange="importMedia(this.files)">
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <div class="fld"><label>סינון לפי תיוג</label><select id="mediaFilter" onchange="renderMedia()">
+      <option value="">הכל</option><option value="process">תהליך</option><option value="work">עבודה טרייה</option>
+      <option value="healed">מחלים</option><option value="art">סקיצות</option><option value="studio">יצא מהסטודיו</option><option value="other">אחר</option>
+    </select></div>
+    <span class="storagebar" id="storageInfo"></span>
+  </div>
+  <div class="mediagrid" id="mediaGrid"></div>
+</section>
+
+<!-- ===== REELS STUDIO ===== -->
+<section class="page" id="page-studio">
+  <div class="note">🎬 הסטודיו: חיתוך מהיר + טקסט הוק על המסך — הפורמט שמוכח כעובד אצלך. לעריכות מורכבות (מוזיקה, מעברים) — CapCut או העורך של אינסטגרם; כאן מכינים את הגרסה המהירה ואת ההוק.</div>
+  <div class="studio">
+    <div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px">
+        <div class="fld"><label>בחר סרטון מהספרייה</label><select id="studioPick" onchange="studioLoad()"></select></div>
+        <button class="btn ghost" onclick="document.getElementById('studioFile').click()">או טען קובץ</button>
+        <input type="file" id="studioFile" accept="video/*" style="display:none" onchange="studioLoadFile(this.files[0])">
+      </div>
+      <div class="stage">
+        <video id="stVideo" controls playsinline></video>
+        <div class="ovl" id="stOvl" style="display:none"></div>
+      </div>
+      <div class="trim">
+        <button class="tbtn" onclick="setIn()">📍 התחלה כאן</button>
+        <button class="tbtn" onclick="setOut()">🏁 סוף כאן</button>
+        <button class="tbtn" onclick="previewTrim()">▶ נגן קטע</button>
+        <span class="tinfo" id="trimInfo">טען סרטון כדי להתחיל</span>
+      </div>
+      <div class="trim">
+        <button class="btn" id="exportBtn" onclick="exportClip()" disabled>⬇ ייצא קטע (וידאו + טקסט)</button>
+        <span class="tinfo" id="exportInfo"></span>
+      </div>
+      <progress id="exportProg" value="0" max="100" style="display:none"></progress>
+    </div>
+    <div>
+      <h2 class="sec" style="margin-top:0">טקסט על המסך</h2>
+      <div class="fld"><label>ההוק (אפשר 2 שורות)</label><textarea id="ovlText" rows="2" style="width:100%" placeholder="ככה נולד קעקוע שאין לאף אחד אחר" oninput="updateOvl()"></textarea></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <div class="fld"><label>מיקום</label><select id="ovlPos" onchange="updateOvl()"><option value="top">למעלה</option><option value="center">מרכז</option><option value="bottom" selected>למטה</option></select></div>
+        <div class="fld"><label>גודל</label><select id="ovlSize" onchange="updateOvl()"><option value="s">קטן</option><option value="m" selected>בינוני</option><option value="l">גדול</option></select></div>
+      </div>
+      <h2 class="sec">בנק הוקים — לחץ לשימוש</h2>
+      <div id="hookBank"></div>
+    </div>
+  </div>
+
+  <h2 class="sec">מחולל כיתובים (SEO + מעורבות)</h2>
+  <form class="row" onsubmit="return genCaption(event)">
+    <div class="fld"><label>מה בעבודה</label><input type="text" id="gWhat" placeholder="ענף בוטני בקו חופשי" style="width:170px"></div>
+    <div class="fld"><label>איבר בגוף</label><input type="text" id="gWhere" placeholder="לאורך הכתף" style="width:120px"></div>
+    <div class="fld"><label>משפט סיפור/החלטה</label><input type="text" id="gStory" placeholder="עקבנו אחרי תנועת השכמה" style="width:230px"></div>
+    <div class="fld"><label>שאלה לקהל</label><select id="gAsk"><option>איזה מיקום הייתם בוחרים לעבודה כזאת?</option><option>שמרו לרפרנס לפגישת הייעוץ ←</option><option>מי מזדהה? ספרו לי בתגובות</option><option>1 או 2? כתבו לי 👇</option></select></div>
+    <button class="btn">צור כיתוב</button>
+  </form>
+  <div class="genout" id="capOut">הכיתוב יופיע כאן — ואז "העתק" ולהדביק באינסטגרם.</div>
+  <button class="btn ghost" style="margin-top:6px" onclick="copyCaption()">📋 העתק</button>
+
+  <h2 class="sec">צ'ק לפני פרסום</h2>
+  <div class="card checklist" id="pubCheck"></div>
+</section>
+
+<!-- ===== PAID & FUNNEL ===== -->
+<section class="page" id="page-paid">
+  <div class="note">🎯 הפלייבוק: שבועיים ראשונים ₪20–40/יום על רילס שהוכיח את עצמו אורגנית, יעד <b>הודעות</b>, קהל ברדיוס נסיעה לסטודיו. קריאייטיב לפי פרסונה (קעקוע על גבר ↔ קהל גברים = פי 3 המרות). כל שבוע: לבדוק את השערים למטה.</div>
+
+  <h2 class="sec">המשפך שלך (30 יום אחרונים)</h2>
+  <div class="funnel" id="funnelView"></div>
+  <div class="note" style="font-size:12px">💡 תחנת ההפסד של רוב המקעקעים היא <b>DM → ייעוץ</b>. תשובה תוך שעה + טופס ייעוץ קצר + מקדמה = הברזות כמעט אפס.</div>
+
+  <h2 class="sec">קמפיינים</h2>
+  <form class="row" onsubmit="return addCampaign(event)">
+    <div class="fld"><label>תאריך</label><input type="date" id="cDate"></div>
+    <div class="fld"><label>שם</label><input type="text" id="cName" style="width:150px" required></div>
+    <div class="fld"><label>סוג</label><select id="cType"><option value="boost">בוסט</option><option value="ads">Ads Manager</option></select></div>
+    <div class="fld"><label>יעד</label><select id="cObjective"><option value="messages">הודעות</option><option value="profile">פרופיל</option><option value="views">צפיות</option><option value="leads">לידים</option></select></div>
+    <div class="fld"><label>תקציב ₪</label><input type="number" id="cBudget" required></div>
+    <div class="fld"><label>הגעה</label><input type="number" id="cReach" value="0"></div>
+    <div class="fld"><label>הודעות</label><input type="number" id="cMsgs" value="0"></div>
+    <div class="fld"><label>ייעוצים</label><input type="number" id="cConsults" value="0"></div>
+    <div class="fld"><label>תורים</label><input type="number" id="cBookings" value="0"></div>
+    <div class="fld"><label>שווי ₪</label><input type="number" id="cValue" value="0"></div>
+    <button class="btn">שמור</button>
+  </form>
+  <div class="card" style="padding:6px 10px;overflow-x:auto"><table id="paidTable"></table></div>
+
+  <h2 class="sec">שערי החלטה</h2>
+  <div id="gates"></div>
+</section>
+
+<!-- ===== WEEKLY REVIEW ===== -->
+<section class="page" id="page-review">
+  <div class="note">📅 הטקס: כל יום ראשון, 10 דקות. המערכת מכינה את הסיכום — אתה רק קורא ומחליט.</div>
+  <div id="reviewContent"></div>
+
+  <h2 class="sec">עוקבים לאורך זמן</h2>
+  <div class="card">
+    <form class="row" onsubmit="return addFollower(event)">
+      <div class="fld"><label>תאריך</label><input type="date" id="fDate"></div>
+      <div class="fld"><label>עוקבים</label><input type="number" id="fCount" placeholder="4250" required></div>
+      <button class="btn">עדכן</button>
+      <span class="pill-info">פעם בשבוע, מהפרופיל</span>
+    </form>
+    <svg class="chart" id="folChart" viewBox="0 0 600 120" preserveAspectRatio="none"></svg>
+    <div style="display:flex;gap:14px;font-size:12px;color:var(--ink2);margin-top:6px">
+      <span>🎯 אבני דרך: 5,000 → 7,500 → <b>10,000 (נפתח ערוץ שידור!)</b></span>
+    </div>
+  </div>
+
+  <h2 class="sec">המלצות היועץ — תמונה מלאה</h2>
+  <div id="advisorFull"></div>
+</section>
+
+<!-- ===== ROADMAP ===== -->
+<section class="page" id="page-roadmap">
+  <div class="note">🗺️ התוכנית המלאה ל-6 חודשים נמצאת ב-<b>master-plan.md</b> בתיקייה. כאן — השלב הנוכחי והצ'קליסטים שלו. סימון נשמר אוטומטית.</div>
+
+  <h2 class="sec">היעדים — לאן הולכים</h2>
+  <div class="card" style="padding:8px 12px;overflow-x:auto">
+    <table>
+      <tr><th>מדד</th><th>היום (12.6.26)</th><th>חודש 3</th><th>חודש 6</th></tr>
+      <tr><td>עוקבים</td><td class="num">4,245</td><td class="num">5,200</td><td class="num">6,500</td></tr>
+      <tr><td>מעורבות אורגנית</td><td class="num">~0.4%</td><td class="num">2%+</td><td class="num">3–4%</td></tr>
+      <tr><td>רילסים בשבוע</td><td class="num">~0</td><td class="num">2</td><td class="num">2</td></tr>
+      <tr><td>פניות DM בשבוע</td><td>לא נמדד</td><td class="num">5–8</td><td class="num">10–15</td></tr>
+      <tr><td>עלות לתור</td><td>לא ידוע</td><td>ידוע</td><td class="num">≤ ₪130</td></tr>
+    </table>
+  </div>
+
+  <h2 class="sec">שלב 0 — הקמה · שבוע 1</h2>
+  <div class="card checklist" id="phase0List"></div>
+
+  <h2 class="sec">שלב 1 — המנוע האורגני · שבועות 2–5</h2>
+  <div class="card checklist" id="phase1List"></div>
+  <div class="note" style="font-size:12px">שער יציאה: 4 שבועות קצב מלא + מעורבות מעל 1.5%. <b>בלי בוסטים חדשים בשלב הזה.</b></div>
+
+  <h2 class="sec">שלב 2 — ממומן נמדד · חודשיים</h2>
+  <div class="card checklist" id="phase2List"></div>
+  <div class="note" style="font-size:12px">שער יציאה: עלות-לתור ידועה מ-3 ריצות. אם ≤ ₪130 → מגדילים ל-₪600–900/חודש.</div>
+
+  <h2 class="sec">שלב 3 — הרחבה · חודשים 4–6</h2>
+  <div class="card checklist" id="phase3List"></div>
+</section>
+
+<!-- ===== MONTHLY REPORTS ===== -->
+<section class="page" id="page-reports">
+  <div class="note">📑 הדוח החודשי מאגד את כל הנתונים שהוזנו לתמונה אחת עם מסקנות. בסוף כל חודש: לבחור את החודש → לקרוא → "הדפס/שמור PDF" לארכיון.</div>
+  <form class="row" onsubmit="return false">
+    <div class="fld"><label>חודש</label><select id="repMonth" onchange="renderReport()"></select></div>
+    <button class="btn ghost" onclick="printReport()">🖨 הדפס / שמור PDF</button>
+  </form>
+  <div id="reportArea"></div>
+</section>
+
+<!-- ===== SETTINGS ===== -->
+<section class="page" id="page-settings">
+  <div class="note">⚙️ כאן עורכים את הפלטפורמה לפי הצורך — שאלות הצ'ק-אין, ההוקים, ההאשטגים והספים. שינויים נשמרים מיד. לשינויים עמוקים יותר (לשוניות, חישובים, עיצוב) — פותחים את Claude Code ומבקשים.</div>
+  <div class="card">
+    <div class="fld"><label>שאלות הצ'ק-אין היומי (שורה לכל שאלה)</label>
+      <textarea id="setQs" rows="4" style="width:100%"></textarea></div>
+    <div class="fld" style="margin-top:10px"><label>בנק ההוקים לסטודיו (שורה לכל הוק)</label>
+      <textarea id="setHooks" rows="8" style="width:100%"></textarea></div>
+    <div class="fld" style="margin-top:10px"><label>האשטגים קבועים למחולל הכיתובים</label>
+      <input type="text" id="setTags" style="width:100%"></div>
+    <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
+      <div class="fld"><label>סף עלות-לתור בריאה (₪)</label><input type="number" id="setCpb"></div>
+      <div class="fld"><label>יעד פוסטים בשבוע</label><input type="number" id="setWeekly"></div>
+    </div>
+    <button class="btn" style="margin-top:14px" onclick="saveSettings()">שמור הגדרות</button>
+    <button class="btn ghost" style="margin-top:14px" onclick="resetSettings()">אפס לברירת מחדל</button>
+  </div>
+</section>
+
+<!-- ===== COMPETITORS ===== -->
+<section class="page" id="page-comp">
+  <div class="note">👀 מעקב שיטתי פעם בשבוע: מה הם פרסמו, מה ייצר תגובות, איזה פורמטים. לא להעתיק — ללמוד מה הקהל הישראלי מגיב אליו.</div>
+  <form class="row" onsubmit="return addComp(event)">
+    <div class="fld"><label>@handle</label><input type="text" id="compHandle" style="width:160px" required></div>
+    <div class="fld"><label>סגנון/הערה</label><input type="text" id="compNote" style="width:220px"></div>
+    <button class="btn">הוסף</button>
+  </form>
+  <div class="card" style="padding:6px 10px"><table id="compTable"></table></div>
+</section>
+
+<!-- ===== BRAND & TOOLS ===== -->
+<section class="page" id="page-brand">
+  <div class="card brandbox">
+    <h2 style="font-size:20px">המותג: אלעד אמסלם — קעקועים בקו חופשי</h2>
+    <p style="color:var(--ink2);margin-top:4px">מקעקע-אמן שעובד ביד חופשית, ישר על הגוף: קווים שזורמים עם התנועה, אלמנטים בוטניים, יצירה משותפת עם הלקוח. סטודיו פרטי בחוף הכרמל = חוויה אינטימית, לא בית חרושת. <b>ההצעה החתימתית:</b> עיצוב בוטני בקו חופשי בהתאמה אישית מלאה — קעקוע שלא קיים על אף אחד אחר.</p>
+
+    <h3>הביו המומלץ</h3>
+    <ul>
+      <li>מקעקע · יד חופשית | חוף הכרמל</li>
+      <li>בוטני · בזרימה של הגוף — סטודיו פרטי</li>
+      <li>תנועה ויצירה משותפת ✳ אלמנטים של טבע</li>
+      <li>קישור ראשי: טופס ייעוץ קצר (עד 5 קישורים: תור / אתר / שאלון)</li>
+      <li>היילייטס: מחלימים · תהליך · הסטודיו · שאלות · פלאשים</li>
+    </ul>
+
+    <h3>תסריטי DM (תחנת ההפסד הגדולה!)</h3>
+    <div class="tmpl">📥 תשובה ראשונה (תוך שעה!):
+"היי [שם], תודה שפנית! 🌿 כדי שאבין בדיוק מה מתאים לך — מלא/י את טופס הייעוץ הקצר כאן: [קישור]. לוקח 2 דקות ואני חוזר עם כיוון ומחיר."</div>
+    <div class="tmpl">💰 הסבר מקדמה:
+"כדי לשריין את התאריך אני לוקח מקדמה של ₪X שמתקזזת מהמחיר. היא כוללת את עבודת הסקיצה האישית שלך — ככה שנינו מחויבים."</div>
+    <div class="tmpl">🛡️ התנגדות מחיר:
+"לגמרי מבין. העבודה שלי היא עיצוב אחד-אחד שלא קיים על אף אחד אחר, בסטודיו פרטי, מאמן שמציג בבית האומנים. אם התקציב מוגבל — אפשר להתחיל מעבודה קטנה יותר באותה שפה."</div>
+
+    <h3>תבניות כיתוב (SEO)</h3>
+    <div class="tmpl">[סגנון] [איבר] — משפט על ההחלטה האומנותית.
+סטודיו פרטי, חוף הכרמל · ייעוץ בקישור בביו
+שאלה לקהל? 👇
+#קעקועבוטני #קעקועים_בצפון #tattooisrael #botanicaltattoo</div>
+    <div class="tmpl">החלים אחרי X חודשים 🌿 ככה זה מחזיק.
+שמרו לרפרנס לפגישת הייעוץ →</div>
+    <div class="tmpl">תגיבו "פרח" 🌸 ואשלח לכם את הפלאשים הפנויים לחודש הקרוב בהודעה (אוטומציית תגובה→DM)</div>
+
+    <h3>צ'קליסט לפני פרסום</h3>
+    <ul>
+      <li>☐ לאיזה עמוד שייך? חשיפה / אמון / הנעה</li>
+      <li>☐ מילות חיפוש בכיתוב (סגנון + מיקום)</li>
+      <li>☐ שאלה / "שמרו" / סיבה להגיב</li>
+      <li>☐ רילס חשיפה: עד ~10 שנ׳, טקסט על המסך, בלי ווטרמארק · רילס סיפור: 60–180 שנ׳ אם מחזיק</li>
+      <li>☐ 3–5 האשטגים ממוקדים</li>
+      <li>☐ Trial Reel? לבדוק וו חדש על קהל קר לפני בוסט</li>
+    </ul>
+
+    <h3>חיבור אוטומטי לאינסטגרם (השלב הבא)</h3>
+    <ul>
+      <li>1. לוודא שהחשבון הוא Creator/Business ומקושר לעמוד פייסבוק</li>
+      <li>2. ביחד עם קלוד: יצירת אפליקציית Meta Developer + טוקן</li>
+      <li>3. מאותו רגע — כל המספרים נמשכים לבד, אתה מזין רק תורים ושווי</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<div id="toast"></div>
+<div class="footerbar">
+  <span id="dataInfo"></span>
+  <button class="btn ghost" onclick="exportData()">גיבוי</button>
+  <button class="btn ghost" onclick="document.getElementById('importFile').click()">שחזור</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+</div>
+
+<script>
+/* ============ data ============ */
+const KEY='eag-tattoo-growth-v1';
+const SLOTS=[
+  {id:'reel1',name:'רילס 1 · חשיפה',hint:'תהליך עד 10 שנ׳ / Trial Reel',pillar:'aw'},
+  {id:'reel2',name:'רילס 2 · חשיפה/אמון',hint:'מאחורי הקלעים / סיפור 60–180 שנ׳',pillar:'aw'},
+  {id:'carousel',name:'קרוסלה · אמון',hint:'סטנסיל→דיו→מחלים / חינוכי',pillar:'tr'},
+  {id:'photo',name:'תמונה · אמון',hint:'עבודה מחלימה / חתימתית',pillar:'tr'},
+  {id:'story',name:'סטוריז · הנעה',hint:'שאלות · סקרים · תאריך פנוי',pillar:'ac'}
+];
+const BANK=[
+ ['aw','טיים-לאפס 10 שנ׳: סקיצה → סטנסיל → דיו, אודיו טרנדי, טקסט על המסך'],
+ ['aw','Trial Reel: וו חדש לקהל קר — "ככה נולד קעקוע שאין לאף אחד אחר"'],
+ ['aw','"ההחלטה" — למה הפרח מתעקל ככה: החלטה אומנותית אחת ב-15 שניות'],
+ ['aw','רגע התגובה: לקוח רואה את הקעקוע בפעם הראשונה במראה'],
+ ['aw','בוטניקה אמיתית: הצמח מחוף הכרמל לצד הקעקוע שלו'],
+ ['tr','עבודה מחלימה אחרי 3–6 חודשים — כמעט אף מקעקע לא מראה את זה'],
+ ['tr','קרוסלה: סקיצה → טרי → מחלים, עד 20 שקפים'],
+ ['tr','יום בסטודיו: מהקפה של הבוקר עד הסשן — 30 שניות'],
+ ['tr','איך אני בונה סקיצה אישית: מהשיחה איתך ועד הקו הראשון'],
+ ['tr','סיפור לקוח: מה הביא אותו לקעקוע, מה המשמעות (באישור)'],
+ ['tr','מיתוסים על החלמה — 5 טעויות שכולם עושים'],
+ ['tr','איך מתכוננים לפגישת ייעוץ — תוכן ששומרים'],
+ ['tr','כמה עולה קעקוע ולמה — שקיפות תמחור של עבודה אישית'],
+ ['tr','רילס סיפור-עבודה מלא 60–180 שנ׳: מהשיחה הראשונה עד המחלים'],
+ ['ac','פלאשים פנויים לחודש — "תגיבו פרח ואשלח DM" (אוטומציה)'],
+ ['ac','תאריך פנוי השבוע — סטורי עם מדבקת קישור'],
+ ['ac','"איזה משניהם? 1 או 2" — שתי סקיצות פלאש, הקהל בוחר'],
+ ['ac','סקיצות שמחכות לאדם הנכון — מייצר פניות DM'],
+ ['aw','רילס מתמונות מחלימות שלקוחות שלחו (UGC, בקרדיט)'],
+ ['tr','סיבוב בסטודיו הפרטי בחוף הכרמל — למה זה שונה מסטודיו עירוני']
+];
+let CHECKIN_QS=['עניתי על כל ה-DM והתגובות','פרסמתי / קידמתי תוכן היום','20 דק׳ אינטראקציה בנישה'];
+const DEFAULT_SETTINGS={checkinQs:null,hooks:null,hashtags:'#קעקועבוטני #קעקועים_בצפון #tattooisrael #botanicaltattoo #freehandtattoo',cpb:130,weeklyTarget:4};
+function S(){return Object.assign({},DEFAULT_SETTINGS,D.settings||{})}
+const PHASES={
+ phase0:['צ\'ק-אין יומי ראשון (ומכאן — כל יום)','הזנת הבוסטים מהאודיט + 5 פוסטים אחרונים','קישור בביו → טופס ייעוץ קצר (האתר → קישור שני)','עדכון הביו לפי לשונית "מותג"','תבנית תשובת DM ראשונה שמורה באינסטגרם'],
+ phase1:['יום צילום: באנק 4–6 סרטוני תהליך','קצב מלא שבוע 1: 2 רילסים + קרוסלה + תמונה','רילס "ככה נולדת סקיצה אישית"','Trial Reel ראשון — וו לקהל קר','קצב מלא 4 שבועות רצוף'],
+ phase2:['בוסט ראשון: יעד הודעות, ₪25–35/יום, 5–7 ימים, קהל מקומי','"איך הגעת אליי?" לכל פנייה → נרשם בפלטפורמה','ריצה 2: קריאייטיב לפי פרסונה','3 ריצות מדודות → החלטת תקציב','המודעה הישנה בפנסיה — לא "לקדם שוב"'],
+ phase3:['מעבר ל-Ads Manager + רימרקטינג לצופי רילסים (עם קלוד)','אוטומציית תגובה→DM על רילס מקודם','UGC: תיוג + תמונת ריפוי מכל לקוח','חיבור Meta Graph API לנתונים אוטומטיים','6,500 עוקבים · ~₪800/חודש · עלות-לתור ידועה']};
+const DEFAULT_COMPS=[
+ {handle:'zombie_rabbit',note:'מיקי פיינגול — סטודיו פרטי בתיאום, אסתטיקה כהה'},
+ {handle:'ktanatattoo',note:'עדי מרצדס — סגנון מזוהה, הומור'},
+ {handle:'general.katya',note:'איור לא שגרתי, קולקטיב'},
+ {handle:'baraksab_tattoo',note:'גיאומטרי, חתימה ויזואלית חזקה'},
+ {handle:'michael_kipod',note:'סטודיו מבוסס, קהילה נאמנה'},
+ {handle:'noam_tattoo',note:'ריאליסטי-פסיכדלי, קהל גדול'}
+];
+let D=load();
+function load(){
+  let x=null;try{x=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+  if(!x)x={};
+  x.followers=x.followers||[{date:'2026-06-12',count:4245}];x.posts=x.posts||[];x.campaigns=x.campaigns||[];
+  x.plan=x.plan||{};x.checkins=x.checkins||{};x.comps=x.comps||DEFAULT_COMPS.map(c=>({...c,lastChecked:''}));
+  x.roadmap=x.roadmap||{};x.settings=x.settings||{};
+  x.posts.forEach(p=>{if(!p.pillar)p.pillar=p.type==='reel'?'aw':'tr'});
+  x.campaigns.forEach(c=>{if(c.consults==null)c.consults=0;if(c.value==null)c.value=0});
+  return x;
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(D));info()}
+function info(){document.getElementById('dataInfo').textContent='נשמר מקומית · '+(D.posts.length+D.campaigns.length)+' רשומות'}
+function today(){return new Date().toISOString().slice(0,10)}
+let toastT=null;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)}
+function fmt(n){return (n==null||isNaN(n))?'—':Number(n).toLocaleString('he-IL')}
+function pct(n){return (n==null||isNaN(n)||!isFinite(n))?'—':(n*100).toFixed(1)+'%'}
+function daysAgo(d){return Math.floor((Date.now()-new Date(d).getTime())/864e5)}
+
+/* ============ nav ============ */
+document.getElementById('nav').addEventListener('click',e=>{
+  if(e.target.dataset.p){
+    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b===e.target));
+    document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+e.target.dataset.p));
+    render();
+  }
+});
+
+/* ============ metrics ============ */
+function postER(p){const r=p.views||0;if(!r)return null;return (p.likes+p.comments+p.saves+p.shares)/r}
+function avgER(f){const ps=D.posts.filter(f||(()=>true)).map(postER).filter(x=>x!=null);return ps.length?ps.reduce((a,b)=>a+b,0)/ps.length:null}
+function lastDays(arr,days,field){const cut=Date.now()-days*864e5;return arr.filter(x=>new Date(x[field||'date']).getTime()>=cut)}
+function postFlags(p){
+  const er=postER(p);const f=[];
+  if(er!=null){if(er>=0.04)f.push(['good','מצוין']);else if(er>=0.02)f.push(['warn','סביר']);else f.push(['bad','נמוך'])}
+  if(p.views>0&&(p.saves+p.shares)/p.views>=0.01)f.push(['good','ניתן לשיתוף ✓']);
+  if(p.boost==='yes'&&er!=null&&er<0.01)f.push(['bad','בוסט קר']);
+  if(p.dms>0)f.push(['good',p.dms+' DM']);
+  return f;
+}
+
+/* ============ daily check-in & streak ============ */
+function renderCheckin(){
+  const t=today();const c=D.checkins[t]||{qs:[false,false,false],dms:0,done:false};
+  const el=document.getElementById('dailyCheckin');el.innerHTML='';
+  CHECKIN_QS.forEach((q,i)=>{
+    el.insertAdjacentHTML('beforeend',`<div class="q ${c.qs[i]?'on':''}" onclick="toggleQ(${i})">${c.qs[i]?'✓':'○'} ${q}</div>`);
+  });
+  document.getElementById('dmToday').value=c.dms||0;
+  const days=Object.keys(D.checkins).filter(d=>D.checkins[d].done).sort();
+  let streak=0;let d=new Date();
+  for(;;){const k=d.toISOString().slice(0,10);
+    if(D.checkins[k]&&D.checkins[k].done)streak++;
+    else if(k!==today())break;
+    d.setDate(d.getDate()-1);if(streak>365)break;}
+  const b=document.getElementById('streakBadge');
+  if(streak>1){b.style.display='inline-flex';b.textContent='🔥 רצף '+streak+' ימים'}else b.style.display='none';
+}
+function toggleQ(i){const t=today();const c=D.checkins[t]=D.checkins[t]||{qs:[false,false,false],dms:0,done:false};c.qs[i]=!c.qs[i];save();renderCheckin()}
+function saveCheckin(){const t=today();const c=D.checkins[t]=D.checkins[t]||{qs:[false,false,false],dms:0,done:false};
+  c.dms=+document.getElementById('dmToday').value||0;c.done=true;save();render()}
+
+/* ============ one thing ============ */
+function oneThing(){
+  const A=advise();
+  const top=A.find(a=>a.lvl==='bad')||A.find(a=>a.lvl==='warn');
+  if(top)return top.action||top.title;
+  const wk=lastDays(D.posts,7).length;
+  if(wk<3)return'לפרסם היום רילס תהליך קצר (עד 10 שניות) עם שאלה בסוף.';
+  return'להמשיך בקצב. בדוק את המתחרים — מה עבד להם השבוע?';
+}
+
+/* ============ KPIs ============ */
+function renderKpis(){
+  const g=document.getElementById('kpiGrid');g.innerHTML='';
+  const fol=[...D.followers].sort((a,b)=>a.date<b.date?-1:1);
+  const last=fol[fol.length-1],prev=fol[fol.length-2];
+  const erOrg=avgER(p=>p.boost==='no');
+  const c30=lastDays(D.campaigns,30);
+  const spend=c30.reduce((a,c)=>a+(c.budget||0),0);
+  const bookings=c30.reduce((a,c)=>a+(c.bookings||0),0);
+  const value=c30.reduce((a,c)=>a+(c.value||0),0);
+  const dm7=Object.entries(D.checkins).filter(([d])=>daysAgo(d)<7).reduce((a,[,c])=>a+(c.dms||0),0);
+  const cards=[
+    ['עוקבים',last?fmt(last.count):'—',last&&prev?(last.count>prev.count?`<span class="up">▲ +${last.count-prev.count}</span>`:`<span class="down">▼ ${last.count-prev.count}</span>`):''],
+    ['מעורבות אורגנית',erOrg!=null?pct(erOrg):'—','יעד: 2–5%'],
+    ['DM השבוע',fmt(dm7),''],
+    ['תורים (30 יום)',fmt(bookings),''],
+    ['עלות לתור',bookings>0?'₪'+(spend/bookings).toFixed(0):'—','בריא: ₪55–130'],
+    ['החזר על ממומן',spend>0?(value/spend).toFixed(1)+'x':'—','שווי תורים ÷ הוצאה']
+  ];
+  cards.forEach(c=>g.insertAdjacentHTML('beforeend',`<div class="card kpi"><div class="lbl">${c[0]}</div><div class="val num">${c[1]}</div><div class="delta">${c[2]||''}</div></div>`));
+}
+
+/* ============ planner & pillars ============ */
+function renderPlanner(){
+  const g=document.getElementById('plannerGrid');g.innerHTML='';
+  const sel=document.getElementById('ideaSlot');sel.innerHTML=SLOTS.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  SLOTS.forEach(s=>{
+    const items=(D.plan[s.id]||[]);
+    g.insertAdjacentHTML('beforeend',`<div class="slot"><h4>${s.name}</h4><div class="hint">${s.hint}</div>
+      ${items.map((it,i)=>`<div class="idea"><span><span class="tag ${it.pillar||s.pillar}" style="font-size:9px;padding:1px 5px">${{aw:'חשיפה',tr:'אמון',ac:'הנעה'}[it.pillar||s.pillar]}</span> ${it.text}</span><span style="display:flex;gap:4px;align-items:center">
+      <span class="st s${it.st}" onclick="cycleSt('${s.id}',${i})">${['רעיון','צולם','פורסם'][it.st]}</span>
+      <button class="mini" onclick="delIdea('${s.id}',${i})">✕</button></span></div>`).join('')||'<div style="font-size:11.5px;color:#aaa">ריק — מהבנק למטה</div>'}
+    </div>`);
+  });
+  const bank=document.getElementById('ideaBank');bank.innerHTML='';
+  BANK.forEach((b,i)=>{
+    bank.insertAdjacentHTML('beforeend',`<div class="bank-item"><span class="add" onclick="bankAdd(${i})">+ שבץ</span><b><span class="tag ${b[0]}">${{aw:'חשיפה',tr:'אמון',ac:'הנעה'}[b[0]]}</span></b>${b[1]}</div>`);
+  });
+  const ps=lastDays(D.posts,30);
+  const counts={aw:0,tr:0,ac:0};ps.forEach(p=>counts[p.pillar||'tr']++);
+  const tot=ps.length||1;
+  document.getElementById('pillarRatio').innerHTML=
+    `<div style="width:${counts.aw/tot*100}%;background:var(--aw)"></div>
+     <div style="width:${counts.tr/tot*100}%;background:var(--tr)"></div>
+     <div style="width:${counts.ac/tot*100}%;background:var(--ac)"></div>
+     <div style="flex:1;background:#EEE"></div>`;
+}
+function bankAdd(i){const b=BANK[i];
+  const slot=b[0]==='ac'?'story':b[1].includes('קרוסלה')?'carousel':(b[1].includes('מחלימה')||b[1].includes('ציור'))?'photo':b[1].includes('60–180')?'reel2':'reel1';
+  (D.plan[slot]=D.plan[slot]||[]).push({text:b[1].split('—')[0].split(':')[0].trim(),st:0,pillar:b[0]});save();renderPlanner()}
+function addIdea(e){e.preventDefault();const t=document.getElementById('ideaText').value.trim();
+  if(t){(D.plan[document.getElementById('ideaSlot').value]=D.plan[document.getElementById('ideaSlot').value]||[]).push({text:t,st:0,pillar:document.getElementById('ideaPillar').value});save();renderPlanner();document.getElementById('ideaText').value=''}return false}
+function cycleSt(s,i){D.plan[s][i].st=(D.plan[s][i].st+1)%3;save();renderPlanner()}
+function delIdea(s,i){D.plan[s].splice(i,1);save();renderPlanner()}
+
+/* ============ posts ============ */
+function addPost(e){e.preventDefault();
+  D.posts.push({date:document.getElementById('pDate').value||today(),type:document.getElementById('pType').value,
+    pillar:document.getElementById('pPillar').value,topic:document.getElementById('pTopic').value,
+    boost:document.getElementById('pBoost').value,views:+document.getElementById('pViews').value,
+    likes:+document.getElementById('pLikes').value,comments:+document.getElementById('pComments').value,
+    saves:+document.getElementById('pSaves').value,shares:+document.getElementById('pShares').value,
+    dms:+document.getElementById('pDms').value});
+  save();render();
+  ['pTopic','pViews'].forEach(id=>document.getElementById(id).value='');
+  ['pLikes','pComments','pSaves','pShares','pDms'].forEach(id=>document.getElementById(id).value='0');
+  return false}
+function renderPosts(){
+  const t=document.getElementById('postsTable');
+  const ps=[...D.posts].sort((a,b)=>a.date<b.date?1:-1);
+  if(!ps.length){t.innerHTML='<tr><td><div class="empty">הזן את 5–10 הפוסטים האחרונים שלך מה-Insights — ככה היועץ מתחיל לעבוד</div></td></tr>';return}
+  t.innerHTML=`<tr><th>תאריך</th><th>סוג</th><th>עמוד</th><th>נושא</th><th>מקור</th><th>צפיות</th><th>שמירות</th><th>שיתופים</th><th>לייקים</th><th>תגובות</th><th>DM</th><th>מעורבות</th><th>אבחון</th><th></th></tr>`+
+  ps.map(p=>{const idx=D.posts.indexOf(p);
+    return `<tr><td class="num">${p.date}</td><td><span class="tag ${p.type}">${{reel:'רילס',carousel:'קרוסלה',photo:'תמונה'}[p.type]}</span></td>
+    <td><span class="tag ${p.pillar}">${{aw:'חשיפה',tr:'אמון',ac:'הנעה'}[p.pillar]}</span></td>
+    <td>${p.topic||'—'}</td><td>${p.boost==='yes'?'<span class="tag boost">בוסט</span>':'אורגני'}</td>
+    <td class="num">${fmt(p.views)}</td><td class="num"><b>${fmt(p.saves)}</b></td><td class="num"><b>${fmt(p.shares)}</b></td>
+    <td class="num">${fmt(p.likes)}</td><td class="num">${fmt(p.comments)}</td><td class="num">${fmt(p.dms)}</td>
+    <td class="num">${pct(postER(p))}</td><td>${postFlags(p).map(f=>`<span class="flag ${f[0]}">${f[1]}</span>`).join(' ')}</td>
+    <td><button class="mini" onclick="delPost(${idx})">✕</button></td></tr>`}).join('');
+}
+function delPost(i){D.posts.splice(i,1);save();render()}
+
+/* ============ paid + funnel ============ */
+function addCampaign(e){e.preventDefault();
+  D.campaigns.push({date:document.getElementById('cDate').value||today(),name:document.getElementById('cName').value,
+    type:document.getElementById('cType').value,objective:document.getElementById('cObjective').value,
+    budget:+document.getElementById('cBudget').value,reach:+document.getElementById('cReach').value,
+    msgs:+document.getElementById('cMsgs').value,consults:+document.getElementById('cConsults').value,
+    bookings:+document.getElementById('cBookings').value,value:+document.getElementById('cValue').value});
+  save();render();
+  ['cName','cBudget','cReach','cMsgs','cConsults','cBookings','cValue'].forEach(id=>document.getElementById(id).value='');
+  return false}
+function renderPaid(){
+  const t=document.getElementById('paidTable');
+  const cs=[...D.campaigns].sort((a,b)=>a.date<b.date?1:-1);
+  if(!cs.length){t.innerHTML='<tr><td><div class="empty">הזן את הבוסטים האחרונים — גם בדיעבד, ממרכז המודעות</div></td></tr>'}
+  else t.innerHTML=`<tr><th>תאריך</th><th>שם</th><th>סוג</th><th>יעד</th><th>תקציב</th><th>הודעות</th><th>ייעוצים</th><th>תורים</th><th>שווי</th><th>עלות/תור</th><th>החזר</th><th></th></tr>`+
+  cs.map(c=>{const idx=D.campaigns.indexOf(c);
+    const cpb=c.bookings>0?(c.budget/c.bookings):null;const roi=c.budget>0&&c.value>0?(c.value/c.budget):null;
+    return `<tr><td class="num">${c.date}</td><td>${c.name}</td>
+    <td><span class="tag ${c.type==='boost'?'boost':'ads'}">${c.type==='boost'?'בוסט':'Ads'}</span></td>
+    <td>${{messages:'הודעות',profile:'פרופיל',views:'צפיות',leads:'לידים'}[c.objective]}</td>
+    <td class="num">₪${fmt(c.budget)}</td><td class="num">${fmt(c.msgs)}</td><td class="num">${fmt(c.consults)}</td>
+    <td class="num"><b>${fmt(c.bookings)}</b></td><td class="num">₪${fmt(c.value)}</td>
+    <td class="num">${cpb!=null?'₪'+cpb.toFixed(0):'—'}</td><td class="num">${roi!=null?roi.toFixed(1)+'x':'—'}</td>
+    <td><button class="mini" onclick="delCampaign(${idx})">✕</button></td></tr>`}).join('');
+  /* funnel */
+  const c30=lastDays(D.campaigns,30);
+  const dm30=Object.entries(D.checkins).filter(([d])=>daysAgo(d)<30).reduce((a,[,c])=>a+(c.dms||0),0)
+    +c30.reduce((a,c)=>a+(c.msgs||0),0)+lastDays(D.posts,30).reduce((a,p)=>a+(p.dms||0),0);
+  const consults=c30.reduce((a,c)=>a+(c.consults||0),0);
+  const bookings=c30.reduce((a,c)=>a+(c.bookings||0),0);
+  const value=c30.reduce((a,c)=>a+(c.value||0),0);
+  const conv=(a,b)=>a>0?Math.round(b/a*100)+'%':'—';
+  document.getElementById('funnelView').innerHTML=`
+    <div class="fstep"><div class="n num">${fmt(dm30)}</div><div class="l">פניות DM</div></div>
+    <div class="fstep"><div class="n num">${fmt(consults)}</div><div class="l">ייעוצים</div><div class="conv">המרה: ${conv(dm30,consults)}</div></div>
+    <div class="fstep"><div class="n num">${fmt(bookings)}</div><div class="l">תורים</div><div class="conv">המרה: ${conv(consults,bookings)} · יעד 60–75%</div></div>
+    <div class="fstep"><div class="n num">₪${fmt(value)}</div><div class="l">שווי</div></div>`;
+  /* gates */
+  const g=document.getElementById('gates');g.innerHTML='';
+  const active=lastDays(D.campaigns,14);
+  if(!active.length){g.innerHTML='<div class="empty">אין קמפיינים מ-14 הימים האחרונים</div>'}
+  active.forEach(c=>{
+    const cpb=c.bookings>0?c.budget/c.bookings:null;
+    let cls='test',msg='🧪 עוד אין מספיק נתונים — תן לו לרוץ עד ~₪150 או 3–4 ימים';
+    if(cpb!=null&&cpb<=S().cpb){cls='go';msg=`✅ עלות לתור ₪${cpb.toFixed(0)} — בתחום הבריא. הגדל תקציב ב-10–20%`}
+    else if(cpb!=null){cls='stop';msg=`⛔ עלות לתור ₪${cpb.toFixed(0)} — מעל הסף. עצור או החלף קריאייטיב/קהל`}
+    else if(c.budget>=150&&c.msgs===0){cls='stop';msg='⛔ ₪'+c.budget+' בלי אף הודעה — עצור עכשיו'}
+    else if(c.msgs>0&&c.bookings===0&&c.budget>=200){cls='test';msg='⚠️ יש הודעות אבל אין תורים — הבעיה במשפך ה-DM, לא במודעה. בדוק תסריטי DM'}
+    g.insertAdjacentHTML('beforeend',`<div class="gate ${cls}"><b>${c.name}</b><span>${msg}</span></div>`);
+  });
+}
+function delCampaign(i){D.campaigns.splice(i,1);save();render()}
+
+/* ============ roadmap ============ */
+function renderRoadmap(){
+  Object.keys(PHASES).forEach(ph=>{
+    const el=document.getElementById(ph+'List');if(!el)return;
+    el.innerHTML=PHASES[ph].map((item,i)=>{
+      const k=ph+'_'+i;
+      return `<label><input type="checkbox" ${D.roadmap[k]?'checked':''} onchange="D.roadmap['${k}']=this.checked;save();renderRoadmap()"> ${item}</label>`;
+    }).join('');
+  });
+}
+
+/* ============ competitors ============ */
+function addComp(e){e.preventDefault();
+  D.comps.push({handle:document.getElementById('compHandle').value.replace('@',''),note:document.getElementById('compNote').value,lastChecked:''});
+  save();renderComps();document.getElementById('compHandle').value='';document.getElementById('compNote').value='';return false}
+function renderComps(){
+  const t=document.getElementById('compTable');
+  t.innerHTML=`<tr><th>חשבון</th><th>הערות</th><th>נבדק לאחרונה</th><th></th><th></th></tr>`+
+  D.comps.map((c,i)=>`<tr><td><a href="https://www.instagram.com/${c.handle}/" target="_blank" style="color:var(--accent);font-weight:600">@${c.handle}</a></td>
+  <td>${c.note||''}</td><td class="num">${c.lastChecked||'—'} ${c.lastChecked&&daysAgo(c.lastChecked)>7?'<span class="flag warn">עבר שבוע</span>':''}</td>
+  <td><button class="mini" style="color:var(--good)" onclick="D.comps[${i}].lastChecked=today();save();renderComps()">✓ בדקתי</button></td>
+  <td><button class="mini" onclick="D.comps.splice(${i},1);save();renderComps()">✕</button></td></tr>`).join('');
+}
+
+/* ============ followers ============ */
+function addFollower(e){e.preventDefault();
+  const d=document.getElementById('fDate').value||today();
+  D.followers=D.followers.filter(f=>f.date!==d);D.followers.push({date:d,count:+document.getElementById('fCount').value});
+  save();render();document.getElementById('fCount').value='';return false}
+function renderChart(){
+  const svg=document.getElementById('folChart');
+  const fol=[...D.followers].sort((a,b)=>a.date<b.date?-1:1);
+  if(fol.length<2){svg.innerHTML='<text x="300" y="65" text-anchor="middle" fill="#999" font-size="13">עדכן עוקבים לפחות פעמיים לגרף</text>';return}
+  const vals=fol.map(f=>f.count),min=Math.min(...vals),max=Math.max(...vals),pad=(max-min)*0.15||10;
+  const x=i=>20+(560*i/(fol.length-1)),y=v=>105-(95*(v-(min-pad))/((max+pad)-(min-pad)));
+  svg.innerHTML=`<path d="M${fol.map((f,i)=>x(i)+','+y(f.count)).join(' L')}" fill="none" stroke="#7A5C3E" stroke-width="2.5"/>`+
+    fol.map((f,i)=>`<circle cx="${x(i)}" cy="${y(f.count)}" r="3.5" fill="#7A5C3E"/><text x="${x(i)}" y="${y(f.count)-9}" text-anchor="middle" font-size="10" fill="#55524C">${f.count.toLocaleString()}</text>`).join('');
+}
+
+/* ============ weekly review ============ */
+function renderReview(){
+  const el=document.getElementById('reviewContent');
+  const w1=lastDays(D.posts,7),w2=lastDays(D.posts,14).filter(p=>daysAgo(p.date)>=7);
+  const er1=avgER(p=>daysAgo(p.date)<7&&p.boost==='no'),er2=avgER(p=>daysAgo(p.date)>=7&&daysAgo(p.date)<14&&p.boost==='no');
+  const dm1=Object.entries(D.checkins).filter(([d])=>daysAgo(d)<7).reduce((a,[,c])=>a+(c.dms||0),0);
+  const dm2=Object.entries(D.checkins).filter(([d])=>daysAgo(d)>=7&&daysAgo(d)<14).reduce((a,[,c])=>a+(c.dms||0),0);
+  const ci=Object.entries(D.checkins).filter(([d])=>daysAgo(d)<7&&D.checkins[d].done).length;
+  const best=w1.filter(p=>postER(p)!=null).sort((a,b)=>postER(b)-postER(a))[0];
+  const arrow=(a,b)=>a==null||b==null?'':a>b?' <span class="up">▲</span>':a<b?' <span class="down">▼</span>':'';
+  el.innerHTML=`<div class="review-block">
+    <h3>השבוע מול שעבר</h3>
+    <div class="cmp">
+      <div><b class="num">${w1.length}${arrow(w1.length,w2.length)}</b>פוסטים (יעד 3–5)</div>
+      <div><b class="num">${er1!=null?pct(er1):'—'}${arrow(er1,er2)}</b>מעורבות אורגנית</div>
+      <div><b class="num">${dm1}${arrow(dm1,dm2)}</b>פניות DM</div>
+      <div><b class="num">${ci}/7</b>צ'ק-אינים</div>
+    </div></div>
+  <div class="review-block"><h3>מה עבד הכי טוב</h3>
+    ${best?`<p>"${best.topic||best.type}" — מעורבות ${pct(postER(best))}, ${best.saves} שמירות, ${best.shares} שיתופים. <b>לשכפל את הנוסחה — ואם זה רילס, מועמד לבוסט.</b></p>`:'<p style="color:var(--ink2)">אין נתוני פוסטים מהשבוע.</p>'}
+  </div>
+  <div class="review-block"><h3>שלוש שאלות לעצמך (2 דקות)</h3>
+    <p style="color:var(--ink2)">1. איזה פוסט הרגיש הכי "אני"? · 2. איפה איבדתי פניות השבוע? · 3. מה הדבר האחד שאעשה אחרת?</p>
+  </div>`;
+}
+
+/* ============ advisor ============ */
+function advise(){
+  const A=[];const push=(lvl,title,body,why,action)=>A.push({lvl,title,body,why,action});
+  const org=D.posts.filter(p=>p.boost==='no');
+  const erOrg=avgER(p=>p.boost==='no'),erBst=avgER(p=>p.boost==='yes');
+  push('good','ממצא האודיט (12.6.26): הקהל מתחבר למקעקע, לא לקטלוג','תוכן שיש בו אותך — הסטודיו, התהליך, הסיפור מאחורי הקעקוע — קיבל פי 2.5–7 מעורבות מתקריבי קעקועים שקטים. תכנן את התוכן בהתאם.','נתונים אמיתיים מהחשבון שלך — ראה instagram-audit.md');
+  if(!D.posts.length&&!D.campaigns.length){
+    push('warn','התחל בהזנת נתונים','הזן 5–10 פוסטים אחרונים (Insights) ואת הבוסטים מהאודיט (הנתונים מתועדים ב-instagram-audit.md). בלי זה אני עיוור.','הכל נבנה על הנתונים שלך.','להזין את הבוסטים האחרונים מתוך instagram-audit.md (לשונית ממומן)');
+    return A;}
+  if(erBst!=null&&erOrg!=null&&erBst<erOrg*0.5)
+    push('bad','הבוסטים מושכים קהל קר',`מעורבות מבוסטת ${pct(erBst)} מול ${pct(erOrg)} אורגנית. בוסט רק לפוסטים שהוכיחו את עצמם, יעד הודעות בלבד.`,'קהל קר לא מתחבר; יעד צפיות קונה מספרים, לא לקוחות.','להחליף את יעד הבוסט הפעיל ל"הודעות"');
+  const vc=D.campaigns.filter(c=>c.objective==='views'||c.objective==='profile');
+  if(vc.length)push('warn','קמפיינים על יעדים שטחיים',`${vc.length} קמפיינים על צפיות/פרופיל. החלף ל"הודעות".`,'שם נמצאות ההזמנות.','לשנות יעד קמפיין להודעות');
+  const c30=lastDays(D.campaigns,30);
+  const msgs=c30.reduce((a,c)=>a+c.msgs,0),consults=c30.reduce((a,c)=>a+c.consults,0),bookings=c30.reduce((a,c)=>a+c.bookings,0);
+  if(msgs>=5&&consults/msgs<0.3)
+    push('bad','המשפך דולף בין DM לייעוץ',`${msgs} הודעות → רק ${consults} ייעוצים. תשובה תוך שעה + טופס ייעוץ קצר.`,'תחנה 2 היא איפה שהכסף הולך לאיבוד.','לקבוע תבנית תשובה ראשונה + טופס (יש בלשונית מותג)');
+  if(consults>=3&&bookings/consults<0.5)
+    push('warn','ייעוצים לא נסגרים לתורים',`${consults} ייעוצים → ${bookings} תורים (יעד 60–75%). הכנס מקדמה שכוללת סקיצה.`,'מקדמה מסננת רצינות ומורידה הברזות לאפס.','להגדיר מקדמה קבועה שמתקזזת מהמחיר');
+  if(erOrg!=null&&erOrg<0.02&&org.length>=3)
+    push('warn','מעורבות אורגנית מתחת לטווח הבריא',`ממוצע ${pct(erOrg)} (בריא: 2–5%). כל פוסט מסתיים בשאלה אחת או "שמרו".`,'פוסט שלא מבקש — לא מקבל.','להוסיף שאלה קונקרטית לפוסט הבא');
+  const ps30=lastDays(D.posts,30);const counts={aw:0,tr:0,ac:0};ps30.forEach(p=>counts[p.pillar||'tr']++);
+  if(ps30.length>=4){
+    if(!counts.tr)push('warn','אפס פוסטים של אמון החודש','תהליך, מחלימים, סיפורי לקוח — זה מה שהופך צופים למאמינים.','קהל קר מהבוסט צריך סיבה להישאר.','לפרסם השבוע עבודה מחלימה');
+    if(!counts.ac)push('warn','אפס פוסטים של הנעה החודש','בלי "פלאשים פנויים" ו"תאריך פנוי" — אין לקהל דרך פשוטה להפוך ללקוח.','הנעה היא 15% מהתמהיל.','סטורי "תאריך פנוי השבוע" עם קישור');
+  }
+  const week=lastDays(D.posts,7).length,two=lastDays(D.posts,14).length;
+  if(two>0&&two<4)push('warn','קצב פרסום נמוך',`${two} פוסטים ב-14 יום (יעד 3–5 בשבוע).`,'עקביות = סיגנל דירוג.','לשבץ 3 פריטים מבנק הרעיונות לשבוע הקרוב');
+  else if(week>=3)push('good','קצב מצוין',`${week} פוסטים השבוע.`,'');
+  const cand=org.filter(p=>p.type==='reel'&&postER(p)!=null&&postER(p)>=0.03&&(p.saves+p.shares)>0).sort((a,b)=>postER(b)-postER(a))[0];
+  if(cand)push('good','מועמד לבוסט הבא',`"${cand.topic||'רילס'}" (${cand.date}) — ${pct(postER(cand))}, ${cand.saves} שמירות. בוסט עם יעד הודעות, ₪20–40/יום, קהל מקומי.`,'בוסט מגביר את מה שעובד.');
+  if(D.followers.length<2)push('warn','אין קו בסיס עוקבים','עדכן את מספר העוקבים (לשונית סקירה), פעם בשבוע.','בלי בסיס אין מדידת צמיחה.','לעדכן עוקבים עכשיו — 10 שניות');
+  return A;
+}
+function renderAdvice(){
+  const A=advise();
+  const html=a=>`<div class="advice ${a.lvl}"><h3>${a.title}</h3><p>${a.body}</p>${a.why?`<div class="why">למה: ${a.why}</div>`:''}</div>`;
+  document.getElementById('advisorFull').innerHTML=A.map(html).join('')||'<div class="empty">אין המלצות</div>';
+  const top=A.filter(a=>a.lvl!=='good').slice(0,3);
+  document.getElementById('dashAdvice').innerHTML=top.length?top.map(html).join(''):'<div class="empty">אין התראות — כל הכבוד 🤘</div>';
+  document.getElementById('oneThing').textContent=oneThing();
+}
+
+/* ============ media library (IndexedDB) ============ */
+let mdb=null;
+function openDB(){return new Promise((res,rej)=>{
+  const r=indexedDB.open('eag-media',1);
+  r.onupgradeneeded=()=>{r.result.createObjectStore('media',{keyPath:'id',autoIncrement:true})};
+  r.onsuccess=()=>{mdb=r.result;res(mdb)};r.onerror=()=>rej(r.error);
+})}
+function dbAll(){return new Promise((res,rej)=>{const t=mdb.transaction('media').objectStore('media').getAll();t.onsuccess=()=>res(t.result);t.onerror=()=>rej(t.error)})}
+function dbPut(rec){return new Promise((res,rej)=>{const t=mdb.transaction('media','readwrite').objectStore('media').put(rec);t.onsuccess=()=>res(t.result);t.onerror=()=>rej(t.error)})}
+function dbDel(id){return new Promise((res,rej)=>{const t=mdb.transaction('media','readwrite').objectStore('media').delete(id);t.onsuccess=()=>res();t.onerror=()=>rej(t.error)})}
+async function importMedia(files){
+  if(!mdb)await openDB();
+  for(const f of files){
+    const kind=f.type.startsWith('video')?'video':'image';
+    await dbPut({name:f.name,type:f.type,kind,tag:kind==='video'?'process':'work',blob:f,created:Date.now()});
+  }
+  renderMedia();renderStudioPick();
+}
+const dz=document.getElementById('dropzone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');importMedia(e.dataTransfer.files)});
+const TAGS={process:'תהליך',work:'עבודה טרייה',healed:'מחלים',art:'סקיצות',studio:'יצא מהסטודיו',other:'אחר'};
+async function renderMedia(){
+  if(!mdb)await openDB();
+  const items=(await dbAll()).sort((a,b)=>b.created-a.created);
+  const filt=document.getElementById('mediaFilter').value;
+  const g=document.getElementById('mediaGrid');g.innerHTML='';
+  const show=items.filter(m=>!filt||m.tag===filt);
+  if(!show.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">אין מדיה'+(filt?' בתיוג הזה':' עדיין — גרור לכאן את הצילומים שלך')+'</div>'}
+  show.forEach(m=>{
+    const url=URL.createObjectURL(m.blob);
+    const thumb=m.kind==='video'?`<video class="thumb" src="${url}" muted></video>`:`<img class="thumb" src="${url}">`;
+    const tagOpts=Object.entries(TAGS).map(([k,v])=>`<option value="${k}" ${m.tag===k?'selected':''}>${v}</option>`).join('');
+    g.insertAdjacentHTML('beforeend',`<div class="mcard">${thumb}
+      <div class="meta"><b>${m.name}</b>${m.kind==='video'?'🎬 וידאו':'🖼 תמונה'} · ${new Date(m.created).toLocaleDateString('he-IL')}</div>
+      <div class="acts">
+        <select style="font-size:10.5px;padding:2px" onchange="retag(${m.id},this.value)">${tagOpts}</select>
+        ${m.kind==='video'?`<button onclick="toStudio(${m.id})">🎬 לסטודיו</button>`:''}
+        <button onclick="dlMedia(${m.id})">⬇</button>
+        <button onclick="rmMedia(${m.id})">✕</button>
+      </div></div>`);
+  });
+  if(navigator.storage&&navigator.storage.estimate){
+    const e=await navigator.storage.estimate();
+    document.getElementById('storageInfo').textContent=`${show.length} פריטים מוצגים · בשימוש ${(e.usage/1048576).toFixed(0)}MB מתוך ~${(e.quota/1073741824).toFixed(0)}GB זמינים`;
+  }
+}
+async function retag(id,tag){const items=await dbAll();const m=items.find(x=>x.id===id);if(m){m.tag=tag;await dbPut(m)}renderMedia()}
+async function rmMedia(id){if(!confirm('למחוק את הפריט מהספרייה?'))return;await dbDel(id);renderMedia();renderStudioPick()}
+async function dlMedia(id){const items=await dbAll();const m=items.find(x=>x.id===id);if(!m)return;
+  const a=document.createElement('a');a.href=URL.createObjectURL(m.blob);a.download=m.name;a.click()}
+async function toStudio(id){
+  document.querySelector('nav button[data-p=studio]').click();
+  await renderStudioPick();
+  document.getElementById('studioPick').value=id;studioLoad();
+}
+
+/* ============ reels studio ============ */
+let stIn=0,stOut=0,stBlobURL=null;
+let HOOKS=[
+ 'ככה נולד קעקוע שאין לאף אחד אחר','מהסקיצה ועד העור — 10 שניות','אל תעשו קעקוע לפני שראיתם את זה',
+ 'ככה נראה קו חופשי שזורם עם הגוף','3 חודשים אחרי — ככה זה מחלים','סקיצה שצוירה ישר על הגוף — בלי שבלונה',
+ 'הסוד של קעקוע שמחזיק שנים','למה אני מצייר ישר על הגוף (בלי שבלונה)','סטודיו פרטי בחוף הכרמל — ככה זה מרגיש','הטעות שכולם עושים בקעקוע ראשון',
+ 'הלקוחה ביקשה משהו אחד. תראו מה יצא','קו אחד שזורם עם הגוף — בלי לעצור','שמרו את זה לפגישת הייעוץ שלכם'];
+function renderHooks(){
+  document.getElementById('hookBank').innerHTML=HOOKS.map(h=>`<div class="hook" onclick="document.getElementById('ovlText').value='${h}';updateOvl()">${h}</div>`).join('');
+}
+async function renderStudioPick(){
+  if(!mdb)await openDB();
+  const items=(await dbAll()).filter(m=>m.kind==='video').sort((a,b)=>b.created-a.created);
+  const s=document.getElementById('studioPick');
+  s.innerHTML='<option value="">— בחר —</option>'+items.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+}
+async function studioLoad(){
+  const id=+document.getElementById('studioPick').value;if(!id)return;
+  const items=await dbAll();const m=items.find(x=>x.id===id);if(!m)return;
+  loadVideoBlob(m.blob);
+}
+function studioLoadFile(f){if(f)loadVideoBlob(f)}
+function loadVideoBlob(blob){
+  const v=document.getElementById('stVideo');
+  if(stBlobURL)URL.revokeObjectURL(stBlobURL);
+  stBlobURL=URL.createObjectURL(blob);v.src=stBlobURL;
+  v.onloadedmetadata=()=>{stIn=0;stOut=v.duration;trimInfo();document.getElementById('exportBtn').disabled=false};
+}
+function fmtT(s){return s.toFixed(1)+'שנ׳'}
+function trimInfo(){document.getElementById('trimInfo').textContent=`קטע: ${fmtT(stIn)} → ${fmtT(stOut)} (אורך ${fmtT(Math.max(0,stOut-stIn))})`}
+function setIn(){const v=document.getElementById('stVideo');stIn=v.currentTime;if(stOut<=stIn)stOut=v.duration;trimInfo()}
+function setOut(){const v=document.getElementById('stVideo');stOut=v.currentTime;if(stOut<=stIn)stIn=0;trimInfo()}
+function previewTrim(){const v=document.getElementById('stVideo');v.currentTime=stIn;v.play();
+  const chk=()=>{if(v.currentTime>=stOut){v.pause()}else if(!v.paused)requestAnimationFrame(chk)};chk()}
+function updateOvl(){
+  const t=document.getElementById('ovlText').value;
+  const o=document.getElementById('stOvl');
+  o.style.display=t?'block':'none';o.textContent=t;
+  const pos=document.getElementById('ovlPos').value;
+  o.style.top=pos==='top'?'8%':pos==='center'?'42%':'auto';
+  o.style.bottom=pos==='bottom'?'12%':'auto';
+  o.style.fontSize={s:'4cqw',m:'5.5cqw',l:'7cqw'}[document.getElementById('ovlSize').value]||'24px';
+  const stage=document.querySelector('.stage');stage.style.containerType='inline-size';
+}
+async function exportClip(){
+  const v=document.getElementById('stVideo');if(!v.src)return;
+  const btn=document.getElementById('exportBtn');btn.disabled=true;
+  const info=document.getElementById('exportInfo');info.textContent='מייצא… אל תסגור את הדף';
+  const prog=document.getElementById('exportProg');prog.style.display='block';prog.value=0;
+  try{
+    const W=v.videoWidth,H=v.videoHeight;
+    const c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');
+    const text=document.getElementById('ovlText').value;
+    const pos=document.getElementById('ovlPos').value;
+    const sizeMap={s:.045,m:.06,l:.078};
+    const fpx=Math.round(W*sizeMap[document.getElementById('ovlSize').value]);
+    const stream=c.captureStream(30);
+    let vs=null;try{vs=v.captureStream?v.captureStream():(v.mozCaptureStream?v.mozCaptureStream():null)}catch(e){}
+    if(vs&&vs.getAudioTracks().length)stream.addTrack(vs.getAudioTracks()[0]);
+    const mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')?'video/webm;codecs=vp9,opus':'video/webm';
+    const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8_000_000});
+    const chunks=[];rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+    const done=new Promise(res=>{rec.onstop=res});
+    v.muted=false;v.currentTime=stIn;
+    await new Promise(res=>{v.onseeked=res});
+    rec.start(250);v.play();
+    await new Promise(res=>{
+      const draw=()=>{
+        ctx.drawImage(v,0,0,W,H);
+        if(text){
+          ctx.font=`700 ${fpx}px Heebo, Arial`;ctx.textAlign='center';ctx.direction='rtl';
+          ctx.shadowColor='rgba(0,0,0,.75)';ctx.shadowBlur=fpx*.45;
+          ctx.fillStyle='#fff';
+          const y=pos==='top'?H*.12:pos==='center'?H*.48:H*.88;
+          const lines=text.split('\n');
+          lines.forEach((ln,i)=>ctx.fillText(ln,W/2,y+i*fpx*1.25));
+          ctx.shadowBlur=0;
+        }
+        prog.value=Math.min(100,((v.currentTime-stIn)/(stOut-stIn))*100);
+        if(v.currentTime>=stOut||v.ended){v.pause();rec.stop();res()}
+        else requestAnimationFrame(draw);
+      };draw();
+    });
+    await done;
+    const blob=new Blob(chunks,{type:'video/webm'});
+    const name='reel-'+today()+'-'+Math.round(stOut-stIn)+'s.webm';
+    await dbPut({name,type:'video/webm',kind:'video',tag:'studio',blob,created:Date.now()});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();
+    info.textContent='✓ יוצא! נשמר גם בספריית המדיה (תיוג: יצא מהסטודיו). שלח לטלפון והעלה.';
+    renderMedia();renderStudioPick();
+  }catch(err){info.textContent='שגיאה בייצוא: '+err.message}
+  prog.style.display='none';btn.disabled=false;
+}
+
+/* ============ caption generator & publish check ============ */
+function genCaption(e){e.preventDefault();
+  const what=document.getElementById('gWhat').value.trim()||'עבודה בקו חופשי';
+  const where=document.getElementById('gWhere').value.trim();
+  const story=document.getElementById('gStory').value.trim();
+  const ask=document.getElementById('gAsk').value;
+  const cap=`${what}${where?' · '+where:''}\n${story?story+'.\n':''}סטודיו פרטי, חוף הכרמל · ייעוץ בקישור בביו\n\n${ask}\n\n${S().hashtags}`;
+  document.getElementById('capOut').textContent=cap;return false}
+function copyCaption(){navigator.clipboard.writeText(document.getElementById('capOut').textContent).then(()=>toast('הועתק ✓'))}
+const PUBCHECK=['שייך לעמוד ברור: חשיפה / אמון / הנעה','יש מילות חיפוש בכיתוב (סגנון + מיקום)','יש שאלה / "שמרו" בסוף','רילס: טקסט הוק על המסך · בלי ווטרמארק','3–5 האשטגים בלבד','צילום נקי, אור טוב'];
+function renderPubCheck(){document.getElementById('pubCheck').innerHTML=PUBCHECK.map(c=>`<label><input type="checkbox"> ${c}</label>`).join('')}
+
+/* ============ settings ============ */
+function applySettings(){
+  const s=S();
+  if(s.checkinQs&&s.checkinQs.length)CHECKIN_QS=s.checkinQs;
+  if(s.hooks&&s.hooks.length){HOOKS=s.hooks;renderHooks()}
+}
+function loadSettingsUI(){
+  const s=S();
+  document.getElementById('setQs').value=(s.checkinQs||CHECKIN_QS).join('\n');
+  document.getElementById('setHooks').value=(s.hooks||HOOKS).join('\n');
+  document.getElementById('setTags').value=s.hashtags;
+  document.getElementById('setCpb').value=s.cpb;
+  document.getElementById('setWeekly').value=s.weeklyTarget;
+}
+function saveSettings(){
+  const lines=id=>document.getElementById(id).value.split('\n').map(x=>x.trim()).filter(Boolean);
+  D.settings={checkinQs:lines('setQs'),hooks:lines('setHooks'),
+    hashtags:document.getElementById('setTags').value.trim(),
+    cpb:+document.getElementById('setCpb').value||130,
+    weeklyTarget:+document.getElementById('setWeekly').value||4};
+  save();applySettings();render();toast('נשמר ✓');
+}
+function resetSettings(){if(confirm('לאפס את כל ההגדרות לברירת המחדל?')){D.settings={};save();location.reload()}}
+
+/* ============ monthly reports ============ */
+function monthsWithData(){
+  const set=new Set();
+  D.posts.forEach(p=>set.add(p.date.slice(0,7)));
+  D.campaigns.forEach(c=>set.add(c.date.slice(0,7)));
+  Object.keys(D.checkins).forEach(d=>set.add(d.slice(0,7)));
+  D.followers.forEach(f=>set.add(f.date.slice(0,7)));
+  return [...set].sort().reverse();
+}
+function monthAgg(ym){
+  const inM=d=>d&&d.slice(0,7)===ym;
+  const ps=D.posts.filter(p=>inM(p.date));
+  const cs=D.campaigns.filter(c=>inM(c.date));
+  const orgPs=ps.filter(p=>p.boost==='no');
+  const ers=orgPs.map(postER).filter(x=>x!=null);
+  const sum=(arr,f)=>arr.reduce((a,x)=>a+(f(x)||0),0);
+  const fol=[...D.followers].sort((a,b)=>a.date<b.date?-1:1);
+  const folStart=fol.filter(f=>f.date.slice(0,7)<=ym).slice(-1)[0];
+  const prevFol=fol.filter(f=>f.date.slice(0,7)<ym).slice(-1)[0];
+  const folInM=fol.filter(f=>inM(f.date)).slice(-1)[0];
+  return {
+    ym, posts:ps.length, reels:ps.filter(p=>p.type==='reel').length,
+    pillars:{aw:ps.filter(p=>p.pillar==='aw').length,tr:ps.filter(p=>p.pillar==='tr').length,ac:ps.filter(p=>p.pillar==='ac').length},
+    views:sum(ps,p=>p.views), saves:sum(ps,p=>p.saves), shares:sum(ps,p=>p.shares),
+    comments:sum(ps,p=>p.comments), postDms:sum(ps,p=>p.dms),
+    er:ers.length?ers.reduce((a,b)=>a+b,0)/ers.length:null,
+    spend:sum(cs,c=>c.budget), msgs:sum(cs,c=>c.msgs), consults:sum(cs,c=>c.consults),
+    bookings:sum(cs,c=>c.bookings), value:sum(cs,c=>c.value),
+    checkDms:Object.entries(D.checkins).filter(([d])=>inM(d)).reduce((a,[,c])=>a+(c.dms||0),0),
+    checkins:Object.entries(D.checkins).filter(([d,c])=>inM(d)&&c.done).length,
+    folEnd:folInM?folInM.count:(folStart?folStart.count:null),
+    folPrev:prevFol?prevFol.count:null,
+    bestPost:ps.filter(p=>postER(p)!=null).sort((a,b)=>postER(b)-postER(a))[0]||null
+  };
+}
+function prevYM(ym){const[y,m]=ym.split('-').map(Number);const d=new Date(y,m-2,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function monthConclusions(a,b){
+  const C=[];const s=S();
+  const target=s.weeklyTarget*4.3;
+  if(a.posts===0)C.push(['bad','לא תועדו פוסטים החודש — אם פרסמת, הנתונים חסרים; אם לא — זו הבעיה מספר 1.']);
+  else if(a.posts<target*0.6)C.push(['warn',`קצב: ${a.posts} פוסטים מול יעד ~${Math.round(target)}. עקביות היא סיגנל דירוג — תכנן יום צילום אחד שממלא באנק לשבועיים.`]);
+  else C.push(['good',`קצב פרסום טוב: ${a.posts} פוסטים (יעד ~${Math.round(target)}).`]);
+  if(a.er!=null){
+    if(b&&b.er!=null){const d=a.er-b.er;
+      C.push([d>=0?'good':'warn',`מעורבות אורגנית: ${pct(a.er)} (${d>=0?'▲ עלייה':'▼ ירידה'} מ-${pct(b.er)} בחודש הקודם).`]);}
+    else C.push([a.er>=0.02?'good':'warn',`מעורבות אורגנית: ${pct(a.er)} (טווח בריא: 2–5%).`]);
+  }
+  if(a.views>0&&(a.saves+a.shares)/a.views<0.005&&a.posts>2)C.push(['warn','מעט שמירות ושיתופים — המדד החשוב ביותר. הוסף תוכן "שימושי": מחירון-שקוף, הכנה לייעוץ, פלאשים לשמירה.']);
+  if(a.posts>3&&!a.pillars.tr)C.push(['warn','אפס פוסטי אמון (תהליך/מחלים/סיפור) — זה מה שממיר צופים ללקוחות.']);
+  if(a.posts>3&&!a.pillars.ac)C.push(['warn','אפס פוסטי הנעה — תן לקהל דרך פשוטה להפוך ללקוח (תאריך פנוי, פלאשים).']);
+  if(a.spend>0){
+    if(a.bookings>0){const cpb=a.spend/a.bookings;
+      C.push([cpb<=s.cpb?'good':'bad',`ממומן: ₪${fmt(a.spend)} → ${a.bookings} תורים = ₪${cpb.toFixed(0)} לתור (סף: ₪${s.cpb}). ${cpb<=s.cpb?'משתלם — שקול הגדלה של 10–20%.':'יקר — החלף קריאייטיב/קהל או עצור.'}`]);
+      if(a.value>0)C.push(['good',`החזר על השקעה: ₪${fmt(a.value)} הכנסה מול ₪${fmt(a.spend)} הוצאה = פי ${(a.value/a.spend).toFixed(1)}.`]);}
+    else if(a.msgs>0)C.push(['warn',`₪${fmt(a.spend)} הביאו ${a.msgs} פניות אבל 0 תורים מתועדים — או שהמשפך דולף, או שחסר תיעוד. בדוק את תסריטי ה-DM.`]);
+    else C.push(['bad',`₪${fmt(a.spend)} בממומן בלי אף פנייה מתועדת — עצור את הקמפיין הזה.`]);
+  }
+  const dmTotal=a.msgs+a.postDms+a.checkDms;
+  if(dmTotal>0&&a.bookings===0&&a.spend===0)C.push(['warn',`${dmTotal} פניות החודש ללא תיעוד תורים — עדכן כמה נסגרו כדי שנדע את יחס ההמרה.`]);
+  if(a.folEnd&&a.folPrev){const d=a.folEnd-a.folPrev;
+    C.push([d>0?'good':'warn',`עוקבים: ${fmt(a.folEnd)} (${d>=0?'+':''}${d} מהמדידה הקודמת).`]);}
+  if(a.bestPost)C.push(['good',`הפוסט המנצח: "${a.bestPost.topic||a.bestPost.type}" — ${pct(postER(a.bestPost))} מעורבות, ${a.bestPost.saves} שמירות. שכפל את הנוסחה בחודש הבא.`]);
+  /* the one focus */
+  const focus=C.find(c=>c[0]==='bad')||C.find(c=>c[0]==='warn');
+  if(focus)C.push(['focus','🎯 המיקוד לחודש הבא: '+focus[1].split('—')[0].split('.')[0]+'.']);
+  return C;
+}
+function renderReport(){
+  const sel=document.getElementById('repMonth');
+  if(!sel.options.length){
+    const ms=monthsWithData();
+    sel.innerHTML=ms.map(m=>`<option value="${m}">${new Date(m+'-01').toLocaleDateString('he-IL',{month:'long',year:'numeric'})}</option>`).join('')||'<option value="">אין נתונים עדיין</option>';
+  }
+  const ym=sel.value;const area=document.getElementById('reportArea');
+  if(!ym){area.innerHTML='<div class="empty">עדיין אין נתונים לדוח — הזן פוסטים, קמפיינים וצ\'ק-אינים</div>';return}
+  const a=monthAgg(ym),b=monthAgg(prevYM(ym));
+  const name=new Date(ym+'-01').toLocaleDateString('he-IL',{month:'long',year:'numeric'});
+  const cmp=(x,y)=>y==null||x==null?'':x>y?' <span class="up">▲</span>':x<y?' <span class="down">▼</span>':'';
+  area.innerHTML=`<div id="printableReport">
+  <div class="review-block"><h3>דוח חודשי · ${name}</h3>
+    <div class="cmp" style="margin-top:8px">
+      <div><b class="num">${a.posts}${cmp(a.posts,b.posts)}</b>פוסטים</div>
+      <div><b class="num">${a.reels}</b>רילסים</div>
+      <div><b class="num">${a.er!=null?pct(a.er):'—'}${cmp(a.er,b.er)}</b>מעורבות אורגנית</div>
+      <div><b class="num">${fmt(a.views)}</b>צפיות</div>
+      <div><b class="num">${fmt(a.saves+a.shares)}</b>שמירות+שיתופים</div>
+      <div><b class="num">${fmt(a.msgs+a.postDms+a.checkDms)}</b>פניות</div>
+      <div><b class="num">${fmt(a.bookings)}</b>תורים</div>
+      <div><b class="num">₪${fmt(a.spend)}</b>הוצאה</div>
+      <div><b class="num">₪${fmt(a.value)}</b>הכנסה מתועדת</div>
+      <div><b class="num">${a.checkins}</b>צ'ק-אינים</div>
+    </div>
+    <div style="margin-top:10px;font-size:12.5px;color:var(--ink2)">תמהיל: 🔵 חשיפה ${a.pillars.aw} · 🟢 אמון ${a.pillars.tr} · 🔴 הנעה ${a.pillars.ac}</div>
+  </div>
+  <div class="review-block"><h3>מסקנות</h3>
+    ${monthConclusions(a,b).map(c=>c[0]==='focus'
+      ?`<div class="onething" style="margin:10px 0 0;padding:14px 18px"><div class="t" style="font-size:15px">${c[1]}</div></div>`
+      :`<div class="advice ${c[0]}" style="box-shadow:none;margin-bottom:8px"><p style="color:var(--ink)">${c[1]}</p></div>`).join('')}
+  </div></div>`;
+}
+function printReport(){
+  const el=document.getElementById('printableReport');if(!el)return;
+  const w=window.open('','_blank');
+  w.document.write(`<html dir="rtl" lang="he"><head><meta charset="utf-8"><title>דוח חודשי — אלעד אמסלם</title>
+  <style>body{font-family:Arial,'Heebo',sans-serif;padding:30px;color:#1C1B19;max-width:750px;margin:auto}
+  .review-block{border:1px solid #ddd;border-radius:10px;padding:18px 22px;margin-bottom:14px}
+  h3{margin:0 0 10px}.cmp{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}.cmp div b{font-size:17px;display:block}
+  .advice{border-right:3px solid #7A5C3E;padding:8px 12px;margin-bottom:8px;background:#FAF8F5;border-radius:6px;font-size:13.5px}
+  .advice.good{border-color:#3E6B4F}.advice.warn{border-color:#A8762B}.advice.bad{border-color:#9B3B30}
+  .onething{background:#1C1B19;color:#F2F0ED;border-radius:10px;padding:14px 18px;margin-top:10px}
+  .up{color:#3E6B4F}.down{color:#9B3B30}p{margin:0}</style></head><body>
+  <div style="font-size:11px;color:#888;margin-bottom:8px">Elad Amsalem · Tattoo Growth · הופק ${new Date().toLocaleDateString('he-IL')}</div>
+  ${el.innerHTML}</body></html>`);
+  w.document.close();setTimeout(()=>w.print(),400);
+}
+
+/* ============ export/import ============ */
+function exportData(){const blob=new Blob([JSON.stringify(D,null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='elad-growth-backup-'+today()+'.json';a.click()}
+function importData(e){const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=()=>{try{D=JSON.parse(r.result);D=Object.assign(load(),D);save();render();toast('שוחזר ✓')}catch(x){toast('קובץ לא תקין')}};r.readAsText(f)}
+
+/* ============ render ============ */
+function render(){renderCheckin();renderKpis();renderPlanner();renderPosts();renderPaid();renderComps();renderChart();renderReview();renderRoadmap();renderReport();renderAdvice();info()}
+document.getElementById('todayLine').textContent=new Date().toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+['fDate','pDate','cDate'].forEach(id=>document.getElementById(id).value=today());
+applySettings();
+render();
+renderHooks();renderPubCheck();loadSettingsUI();
+openDB().then(()=>{renderMedia();renderStudioPick();if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()});
+</script>
+</body>
+</html>
