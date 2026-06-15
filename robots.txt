@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /app/
+Disallow: /designs/
+
+Sitemap: https://eladamsalem.com/sitemap.xml
