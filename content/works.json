@@ -1,5 +1,38 @@
 [
   {
+    "title": "Sunflower",
+    "year": "2026",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "forSale": false,
+    "image": "/media/works/img-0965-1782983816627.jpg",
+    "description": "oil on canvas\n65x60cm"
+  },
+  {
+    "title": "Flower",
+    "year": "2026",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "forSale": false,
+    "image": "/media/works/fimg-0944-1782983795870.jpg",
+    "description": "oil on canvas\n30x30cm"
+  },
+  {
+    "title": "Celebration",
+    "year": "2026",
+    "tech": "Oil on canvas",
+    "size": "",
+    "price": 0,
+    "available": true,
+    "forSale": true,
+    "image": "/media/works/img-0628-1782983747146.jpg",
+    "description": "oil and ceramics on canvas\n150x100cm"
+  },
+  {
     "title": "Carpet 2",
     "year": "2019",
     "tech": "Oil on canvas",
