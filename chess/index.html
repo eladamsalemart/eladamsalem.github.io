@@ -210,6 +210,64 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .footer-note{text-align:center;color:var(--muted);font-size:12.5px;margin-top:6px}
 .footer-note b{color:var(--green-2)}
 
+/* ===== v2 components ===== */
+.main.noboard{grid-template-columns:minmax(0,760px);justify-content:center}
+.sq.hl.good{box-shadow:inset 0 0 0 5px var(--good);background-image:radial-gradient(circle,rgba(47,143,86,.35),transparent 75%)}
+.sq.hl.bad{box-shadow:inset 0 0 0 5px var(--bad);background-image:radial-gradient(circle,rgba(193,84,63,.35),transparent 75%)}
+
+/* progress rows */
+.prow{display:flex;align-items:center;gap:12px;margin-top:11px;font-size:14px;font-weight:600}
+.prow span{width:64px;flex:none;color:var(--muted)}
+.prow em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;width:44px;text-align:left}
+.pbar{flex:1;height:9px;background:var(--surface-2);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.pbar>div{height:100%;background:linear-gradient(90deg,var(--green),var(--green-2));border-radius:20px;transition:width .4s}
+
+.nudge{margin-top:10px;font-size:13px;font-weight:700;color:var(--gold);background:rgba(193,144,44,.12);border:1px solid rgba(193,144,44,.3);padding:8px 12px;border-radius:10px;text-align:center}
+
+.plabel{font-size:12.5px;font-weight:800;color:var(--gold);letter-spacing:.3px;margin:12px 0 7px}
+.task{display:flex;align-items:center;gap:11px;width:100%;text-align:right;padding:10px 12px;border-radius:11px;background:var(--surface-2);border:1px solid var(--line);font-size:14.5px;font-weight:600;margin-bottom:7px;transition:all .12s}
+.task:hover{border-color:var(--green-2)}
+.task .tbox{width:22px;height:22px;flex:none;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;font-size:14px;color:#fff}
+.task.on{background:rgba(47,143,86,.1);border-color:var(--good)}
+.task.on .tbox{background:var(--good);border-color:var(--good)}
+
+/* course */
+.course-list{display:flex;flex-direction:column;gap:8px;margin-top:6px;max-height:420px;overflow-y:auto;padding-left:4px}
+.carea{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.4px;margin:10px 0 2px;text-transform:none}
+.lesson{display:flex;align-items:flex-start;gap:11px;padding:12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);cursor:pointer;transition:all .12s;text-align:right}
+.lesson:hover{border-color:var(--green-2);transform:translateY(-1px)}
+.lesson.done{background:rgba(47,143,86,.07);border-color:rgba(47,143,86,.35)}
+.lesson .ln{width:28px;height:28px;flex:none;border-radius:8px;background:var(--green);color:var(--gold-soft);font-weight:800;font-size:14px;display:grid;place-items:center}
+.lesson.done .ln{background:var(--good);color:#fff}
+.lesson .lt{flex:1;min-width:0}
+.lesson .lt b{font-size:14.5px;font-weight:700;display:block}
+.lesson .lt small{font-size:12.5px;color:var(--muted);display:block;margin:2px 0 4px;line-height:1.45}
+.lesson .ltask{font-size:12px;color:var(--green-2);font-weight:600}
+.lchk{width:30px;height:30px;flex:none;border-radius:8px;border:2px solid var(--line);background:var(--surface);color:#fff;font-size:15px;font-weight:800}
+.lchk.on{background:var(--good);border-color:var(--good)}
+
+/* opening study */
+.eco{font-size:12px;font-weight:700;color:var(--gold-deep,var(--gold));background:rgba(193,144,44,.14);padding:2px 9px;border-radius:20px;vertical-align:middle}
+.study{margin-top:10px;display:flex;flex-direction:column;gap:9px}
+.srow{font-size:14.5px;line-height:1.55;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.srow b{color:var(--green-2);font-weight:800}
+.linkbtn{margin-top:10px;color:var(--green-2);font-weight:700;font-size:13.5px;background:none;text-decoration:underline}
+
+/* choices */
+.choices{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+.choice{padding:13px;border-radius:11px;background:var(--surface-2);border:1px solid var(--line);font-weight:700;font-size:15px;transition:all .12s}
+.choice:hover{border-color:var(--green);background:var(--green);color:#fff}
+
+/* thinking */
+.qitem{display:flex;gap:13px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.qitem:first-of-type{border-top:none}
+.qitem .qn{width:34px;height:34px;flex:none;border-radius:9px;background:var(--gold);color:#2a1f05;font-weight:900;font-size:17px;display:grid;place-items:center}
+.qitem b{font-size:15.5px;display:block}
+.qitem small{font-size:13.5px;color:var(--muted);display:block;margin-top:2px;line-height:1.5}
+.tip{font-size:14px;line-height:1.55;padding:11px 0;border-top:1px solid var(--line)}
+.tip:first-of-type{border-top:none}
+.tip b{color:var(--green-2)}
+
 </style>
 </head>
 <body>
@@ -219,26 +277,21 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
       <div class="logo">♞</div>
       <div>
         <h1>מאמן השחמט · 900 → 1400</h1>
-        <p>תרגול חי: פתיחות, רעיונות וסיומים</p>
+        <p>תרגול חי: פתיחות, רעיונות, סיומים ומעקב</p>
       </div>
     </div>
     <div class="spacer"></div>
     <div class="progress-chip">
       <div class="xp" id="xp">0</div>
-      <div id="hstat"><b>0 XP</b><small>דיוק 0%</small></div>
+      <div id="hstat"><b>0 XP</b><small>🔥 0 · דיוק 0%</small></div>
     </div>
     <button class="icon-btn" id="themeBtn" title="מצב תצוגה" aria-label="החלף מצב תצוגה">☾</button>
   </header>
 
-  <nav class="tabs" role="tablist">
-    <button class="tab active" data-m="openings"><span class="ti">♙</span>פתיחות</button>
-    <button class="tab" data-m="puzzles"><span class="ti">♞</span>מוטיבים</button>
-    <button class="tab" data-m="endgames"><span class="ti">♜</span>סיומים</button>
-    <button class="tab" data-m="play"><span class="ti">♛</span>משחק חי</button>
-  </nav>
+  <nav class="tabs" id="tabs" role="tablist"></nav>
 
-  <div class="main">
-    <div class="board-col">
+  <div class="main" id="main">
+    <div class="board-col" id="boardarea">
       <div class="board-wrap">
         <div class="board-frame" dir="ltr">
           <div class="board" id="board"></div>
@@ -248,7 +301,7 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
           <button class="ctrl" id="c-hint">💡 רמז</button>
           <button class="ctrl" id="c-flip">⇅ הפוך לוח</button>
           <button class="ctrl" id="c-reset">↺ אתחל</button>
-          <button class="ctrl primary hidden" id="c-next">התרגיל הבא ›</button>
+          <button class="ctrl primary hidden" id="c-next">הבא ›</button>
         </div>
       </div>
       <div class="card" style="margin-top:16px">
@@ -260,7 +313,7 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
     <div class="panel" id="panel"></div>
   </div>
 
-  <div class="footer-note">נבנה מתוך המצגת <b>“מ־900 ל־1400”</b> · לוח מלא עם מהלכים חוקיים, מאמן פתיחות ותרגול מול המחשב</div>
+  <div class="footer-note">נבנה מתוך המצגת <b>“מ־900 ל־1400”</b> · כל הנקודות: פתיחות, מבנים, מוטיבים, סיומים, חשיבה, קורס ומעקב</div>
 </div>
 
 <script>
@@ -569,35 +622,62 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 })(typeof window!=='undefined'?window:globalThis);
 
 ;
-/* Training content — validated against engine.js */
+/* ================= Training content (validated against engine.js) ================= */
+
+/* ---------- OPENINGS (study + practice, both colors) ---------- */
 const OPENINGS = [
- { id:'italian', name:'המשחק האיטלקי', side:'w', eco:'Italian',
+ { id:'italian', name:'המשחק האיטלקי', side:'w', vs:'1.e4 e5', eco:'Italian Game',
    line:['e4','e5','Nf3','Nc6','Bc4','Bc5','c3','Nf6','d3','d6','O-O','O-O'],
-   summary:'פיתוח מהיר, שליטה במרכז ולחץ על f7 — הפתיחה הכי חינוכית.',
-   ideas:{1:'שולט במרכז ופותח דרך לרץ ולמלכה.',3:'מפתח אביר, תוקף את e5 ומכין הצרחה.',5:'הרץ מכוון ל־f7 — הנקודה החלשה של השחור.',7:'c3 מכין d4 ובניית מרכז רגלים חזק.',9:'d3 מחזק את e4 ופותח את הרץ מ־c1.',11:'הצרחה — המלך לבטחון והצריח נכנס למשחק.'} },
- { id:'london', name:'מערכת לונדון', side:'w', eco:'London',
+   summary:'פיתוח מהיר, שליטה במרכז ולחץ על f7 — הפתיחה הכי חינוכית ללבן.',
+   structure:'מרכז קלאסי (e4/d4 מול e5/d6)',
+   plan:'לבנות מרכז עם c3+d4, לפתח בטבעיות ולכוון את הרץ ל־f7. אחרי הצרחה — לחפש התקדמות במרכז או התקפה על אגף המלך.',
+   whatToWatch:'היזהר מ־...Ng4 ומהקרבות על f2; אל תמהר עם d4 לפני שסיימת פיתוח.',
+   ideas:{1:'שולט במרכז ופותח דרך למלכה ולרץ.',3:'מפתח אביר, תוקף את e5 ומכין הצרחה.',5:'הרץ מכוון ל־f7 — הנקודה החלשה של השחור.',7:'c3 מכין d4 ובניית מרכז רגלים חזק.',9:'d3 מחזק את e4 ופותח את הרץ מ־c1.',11:'הצרחה — המלך לבטחון והצריח נכנס למשחק.'} },
+ { id:'london', name:'מערכת לונדון', side:'w', vs:'נגד הכל', eco:'London System',
    line:['d4','d5','Bf4','Nf6','e3','e6','Nf3','Bd6','Bg3','O-O','Bd3','c5'],
    summary:'אותו מבנה יציב כמעט נגד הכל — פיתוח הרמוני ותוכנית ברורה.',
-   ideas:{1:'תופס מרכז ומכין את הרץ ל־f4.',3:'הרץ יוצא לפני הרגלי ל־e3 — עיקרון הלונדון.',5:'e3 פותח את הרץ מ־f1 ומחזק את המרכז.',7:'מפתח אביר ושומר על המבנה היציב.',9:'שומר על הרץ הפעיל בערוגה הבטוחה g3.',11:'הרץ ל־d3 מכוון לאלכסון ההתקפה h7.'} },
- { id:'qg', name:'גמביט המלכה', side:'w', eco:'Queens Gambit',
+   structure:'שלשלת פירמידה (d4/e3/c3) עם רץ ב־f4',
+   plan:'להוציא את הרץ ל־f4 לפני e3, לפתח Nf3/Bd3/Nbd2, להצריח, ואז לשקול Ne5 או פריצת c-רגלי/מתקפת אגף מלך.',
+   whatToWatch:'אל תיתן לשחור להחליף את הרץ הטוב שלך; שמור עליו ב־g3 מול ...Nh5.',
+   ideas:{1:'תופס מרכז ומכין את הרץ ל־f4.',3:'הרץ יוצא לפני הרגלי ל־e3 — עיקרון הלונדון.',5:'e3 פותח את הרץ מ־f1 ומחזק מרכז.',7:'מפתח אביר ושומר על מבנה יציב.',9:'שומר על הרץ הפעיל בערוגה g3.',11:'הרץ ל־d3 מכוון לאלכסון ההתקפה h7.'} },
+ { id:'qg', name:'גמביט המלכה', side:'w', vs:'1.d4 d5', eco:"Queen's Gambit",
    line:['d4','d5','c4','e6','Nc3','Nf6','Bg5','Be7','e3','O-O','Nf3','h6'],
    summary:'משחק עמדתי: מתח מרכזי, לחץ ארוך־טווח והתקפת מיעוט.',
-   ideas:{1:'תופס מרכז.',3:'c4 מאתגר את המרכז השחור ומייצר לחץ.',5:'מפתח אביר ומחזק את הלחץ על d5.',7:'הרץ מסמרר את האביר ולוחץ על e7.',9:'e3 פותח פיתוח שקט ויציב.',11:'מפתח את האביר האחרון ומכין הצרחה.'} },
- { id:'carokann', name:'הגנת קארו־קאן', side:'b', eco:'Caro-Kann',
+   structure:'מבנה קרלסבד (אחרי cxd5 exd5)',
+   plan:'ללחוץ על d5, לפתח בלחץ (Bg5, Nc3, Nf3), ובהמשך התקפת מיעוט עם b4-b5 כדי ליצור רגלי חלש ב־c6.',
+   whatToWatch:'אחרי ...dxc4 אל תרדוף אחרי הרגלי — סיים פיתוח ותשתלט על המרכז.',
+   ideas:{1:'תופס מרכז.',3:'c4 מאתגר את המרכז ומייצר לחץ.',5:'מפתח אביר ומחזק לחץ על d5.',7:'הרץ מסמרר את האביר ולוחץ על e7.',9:'e3 פותח פיתוח שקט ויציב.',11:'מפתח את האביר האחרון ומכין הצרחה.'} },
+ { id:'carokann', name:'הגנת קארו־קאן', side:'b', vs:'נגד 1.e4', eco:'Caro-Kann',
    line:['e4','c6','d4','d5','Nc3','dxe4','Nxe4','Bf5','Ng3','Bg6','h4','h6'],
    summary:'מבנה רגלים בריא, סבלנות וסיומים טובים — נגד 1.e4.',
-   ideas:{2:'c6 מכין ...d5 בלי לחסום את הרץ הבהיר.',4:'d5 מאתגר את המרכז מיד.',6:'לוקח ב־e4 ופותח את העמדה בנוחות.',8:'מפתח את הרץ הבהיר החוצה — לפני ...e6.',10:'הרץ נסוג ל־g6 ושומר על השליטה.',12:'h6 נותן לרץ מפלט בטוח מ־h4-h5.'} },
- { id:'scandi', name:'ההגנה הסקנדינבית', side:'b', eco:'Scandinavian',
+   structure:'מבנה קארו (רגלי c6+e6 מוצק)',
+   plan:'לפתח את הרץ הבהיר החוצה ל־f5 לפני ...e6, לסיים פיתוח בנוחות, ולשאוף לסיום טוב עם מבנה בריא.',
+   whatToWatch:'שים לב ל־h4-h5 שכולא את הרץ ב־g6 — הכן ...h6 בזמן.',
+   ideas:{2:'c6 מכין ...d5 בלי לחסום את הרץ הבהיר.',4:'d5 מאתגר את המרכז מיד.',6:'לוקח ב־e4 ופותח את העמדה בנוחות.',8:'מפתח את הרץ הבהיר החוצה — לפני ...e6.',10:'הרץ נסוג ל־g6 ושומר שליטה.',12:'h6 נותן לרץ מפלט בטוח מ־h4-h5.'} },
+ { id:'scandi', name:'ההגנה הסקנדינבית', side:'b', vs:'נגד 1.e4', eco:'Scandinavian',
    line:['e4','d5','exd5','Qxd5','Nc3','Qa5','d4','Nf6','Nf3','c6','Bc4','Bf5'],
    summary:'פשוטה וישירה — מוציאה את המלכה ותוכניות ברורות.',
-   ideas:{2:'d5 מאתגר מיד את המרכז.',4:'המלכה לוקחת ומרכזית — נערכת לנסיגה.',6:'Qa5 בורחת עם טמפו ולוחצת על c3.',8:'מפתח אביר ושולט ב־e4 ו־d5.',10:'c6 נותן מפלט למלכה ומחזק את d5.',12:'הרץ הבהיר יוצא לפני ...e6 — מהלך המפתח.'} },
- { id:'slav', name:'הגנת סלאב', side:'b', eco:'Slav',
+   structure:'מלכה ב־a5, רגלי c6 מוצק',
+   plan:'להחזיר את המלכה ל־a5 עם טמפו, לבנות מבנה c6/e6, לפתח את הרץ הבהיר ל־f5 ולהצריח.',
+   whatToWatch:'היזהר מ־Nb5/Bd2 שמאיימים על המלכה — שמור לה משבצות מפלט.',
+   ideas:{2:'d5 מאתגר את המרכז מיד.',4:'המלכה לוקחת ומרכזית — נערכת לנסיגה.',6:'Qa5 בורחת עם טמפו ולוחצת על c3.',8:'מפתח אביר ושולט ב־e4 ו־d5.',10:'c6 נותן מפלט למלכה ומחזק את d5.',12:'הרץ הבהיר יוצא — מהלך המפתח לפני ...e6.'} },
+ { id:'qgd', name:'גמביט המלכה מסורב', side:'b', vs:'נגד 1.d4', eco:'QGD',
+   line:['d4','d5','c4','e6','Nf3','Nf6','Nc3','Be7','Bg5','O-O','e3','Nbd7'],
+   summary:'קלאסי ואיתן — המבנה הכי מוצק נגד 1.d4.',
+   structure:'שלשלת d5/e6 מוצקה',
+   plan:'לתמוך ב־d5 עם ...e6, לפתח בטבעיות (...Be7, ...O-O, ...Nbd7), ואז לשחרר עם ...dxc4 ו־...c5 או ...e5.',
+   whatToWatch:'אל תישאר פסיבי — חפש את הרגע הנכון לפריצת ...c5 או ...e5.',
+   ideas:{2:'d5 תופס מרכז.',4:'e6 תומך ב־d5 ופותח את הרץ הכהה.',6:'מפתח אביר ולוחץ על המרכז.',8:'הרץ ל־e7 מתכונן להצרחה ומשחרר את הסימרור.',10:'הצרחה — המלך לבטחון.',12:'מפתח את האביר בדרך ל־...c5 או ...e5.'} },
+ { id:'slav', name:'הגנת סלאב', side:'b', vs:'נגד 1.d4', eco:'Slav',
    line:['d4','d5','c4','c6','Nf3','Nf6','Nc3','dxc4','a4','Bf5','e3','e6'],
    summary:'מוצקה, שומרת על הרץ הבהיר פעיל — נגד 1.d4.',
-   ideas:{2:'d5 תופס מרכז.',4:'c6 תומך ב־d5 בלי לחסום את הרץ הבהיר.',6:'מפתח אביר ולוחץ על המרכז.',8:'לוקח ב־c4 — אפשר להחזיק את הרגלי בעזרת ...b5.',10:'הרץ הבהיר יוצא החוצה — יתרון הסלאב.',12:'e6 פותח את הרץ הכהה ומסיים פיתוח.'} },
+   structure:'רגלי c6 תומך, רץ בהיר מחוץ לשלשלת',
+   plan:'לתמוך ב־d5 עם ...c6 (בלי לכלוא את הרץ הבהיר), לפתח את הרץ ל־f5 לפני ...e6, ולסיים פיתוח מוצק.',
+   whatToWatch:'אחרי ...dxc4 אל תיאחז ברגלי בכוח — פתח את הרץ ל־f5 קודם.',
+   ideas:{2:'d5 תופס מרכז.',4:'c6 תומך ב־d5 בלי לחסום את הרץ הבהיר.',6:'מפתח אביר ולוחץ על המרכז.',8:'לוקח ב־c4 — היתרון: הרץ הבהיר עוד יוצא החוצה.',10:'הרץ הבהיר ל־f5 — יתרון הסלאב על ה־QGD.',12:'e6 פותח את הרץ הכהה ומסיים פיתוח.'} },
 ];
 
-/* Strategic-idea drills — play the thematic move. solutions = accepted SAN */
+/* ---------- MOTIFS / PUZZLES (find the move) ---------- */
 const PUZZLES = [
  // Tactics
  { group:'טקטיקה', theme:'מזלג אביר', fen:'r3k3/8/8/3N4/8/8/8/4K3 w - - 0 1',
@@ -606,33 +686,154 @@ const PUZZLES = [
    solutions:['Ra8#'], idea:'חולשת השורה האחורית: הרגלים חוסמים את מלטו של המלך, ו־Ra8 זה מט.' },
  { group:'טקטיקה', theme:'סיכה מנצחת', fen:'4k3/8/8/8/1b6/8/3Q4/4K3 w - - 0 1',
    solutions:['Qxb4'], idea:'הרץ ב־b4 אינו מוגן — Qxb4 פשוט זוכה בכלי.' },
- { group:'טקטיקה', theme:'מזלג רגלי', fen:'r1bqkbnr/pppp1ppp/2n5/1B2p3/3PP3/8/PPP2PPP/RNBQK1NR b KQkq d3 0 3',
-   solutions:['exd4'], idea:'פותחים את המרכז: exd4 לוקח רגלי חופשי ומשחרר את העמדה.' },
- // Strategic ideas from the deck
+ { group:'טקטיקה', theme:'פתיחת מרכז', fen:'r1bqkbnr/pppp1ppp/2n5/1B2p3/3PP3/8/PPP2PPP/RNBQK1NR b KQkq d3 0 3',
+   solutions:['exd4'], idea:'exd4 לוקח רגלי חופשי במרכז ומשחרר את העמדה לטובת השחור.' },
+ // Strategic ideas (5 from the deck) — play the thematic move
  { group:'רעיונות אסטרטגיים', theme:'מוצב לאביר (Outpost)', fen:'r2q1rk1/pp1b1ppp/2np1n2/4p3/2P1P3/2N2N2/PP3PPP/R1BQ1RK1 w - - 0 1',
-   solutions:['Nd5'], idea:'מוצב: Nd5 נועץ אביר בלב העמדה; גם אם ...Nxd5 — exd5 נותן ללבן רגלי מרכזי חזק ומרחב.' },
+   solutions:['Nd5'], idea:'מוצב: Nd5 נועץ אביר בלב העמדה. גם אם ...Nxd5 — exd5 נותן ללבן רגלי מרכזי חזק ומרחב.' },
+ { group:'רעיונות אסטרטגיים', theme:'התקפת מיעוט (Minority Attack)', fen:'r1bq1rk1/pp3ppp/2p1pn2/3p4/3P4/2PBPN2/PP3PPP/R1BQ1RK1 w - - 0 1',
+   solutions:['b4'], idea:'התקפת מיעוט: b4 ואז b5xc6 — שני רגלים תוקפים שלושה כדי ליצור רגלי חלש ב־c6.' },
  { group:'רעיונות אסטרטגיים', theme:'פריצת רגלים (Pawn Break)', fen:'r1bq1rk1/pp3ppp/2nbpn2/2pp4/3P4/2PBPN2/PP1N1PPP/R1BQ1RK1 b - - 0 1',
    solutions:['cxd4','e5'], idea:'פריצה: ...cxd4 או ...e5 מאתגרים את המרכז ופותחים טורים — בלי פריצה העמדה קופאת.' },
+ { group:'רעיונות אסטרטגיים', theme:'מניעה (Prophylaxis)', fen:'r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 1',
+   solutions:['h3'], idea:'מניעה: h3 מונע מראש את ...Ng4 ו־...Bg4 — מהלך שקט שהורג את הרעיון של היריב לפני שתתקדם.' },
  { group:'רעיונות אסטרטגיים', theme:'שיפור הכלי הגרוע', fen:'r1bq1rk1/ppp1bppp/2n2n2/3p4/3P4/3BPN2/PPP2PPP/RNBQ1RK1 w - - 0 1',
    solutions:['Nbd2'], idea:'האביר ב־b1 הוא הכלי הגרוע — Nbd2 מפעיל אותו בדרך ל־f1-g3, אל לב המשחק.' },
- { group:'רעיונות אסטרטגיים', theme:'מלך אקטיבי בסיום', fen:'8/8/4k3/8/8/4K3/8/8 w - - 0 1',
-   solutions:['Kd4','Ke4','Kf4'], idea:'בסיום המלך הוא כלי לוחם — צעד קדימה ומרכֵּז אותו לקראת הקרב.' },
 ];
 
-/* Play-vs-engine drills: convert / deliver mate */
+/* ---------- PAWN STRUCTURE lessons (the 5 questions) ---------- */
+const STRUCTURES = [
+ { id:'weakpawn', title:'הרגלי החלש', kind:'identify', orient:'w',
+   fen:'r1bq1rk1/pp3ppp/2n2n2/3p4/3P4/2P2N2/P4PPP/R1BQ1RK1 w - - 0 1',
+   prompt:'לחץ על הרגלי המבודד והחלש של השחור.', answer:['d5'], hl:[{sq:'d5',c:'bad'}],
+   explain:'רגלי d5 מבודד — אין לו רגלי שכן שיגן עליו. הוא מטרה קבועה: תרכז עליו כלים ותלחץ.' },
+ { id:'openfile', title:'הטור הפתוח', kind:'identify', orient:'w',
+   fen:'r2q1rk1/pp3ppp/2n1pn2/3p4/3P4/4PN2/PP3PPP/R2Q1RK1 w - - 0 1',
+   prompt:'לחץ על משבצת כלשהי בטור הפתוח (טור בלי רגלים כלל).', answer:['c1','c2','c3','c4','c5','c6','c7','c8'],
+   hl:[{sq:'c1',c:'good'},{sq:'c8',c:'good'}],
+   explain:'טור c פתוח לגמרי. לשם שייכים הצריחים — הם שולטים בטור, פולשים לשורה השביעית ולוחצים.' },
+ { id:'outpost', title:'הריבוע החזק (מוצב)', kind:'identify', orient:'w',
+   fen:'r1bqk2r/pp3ppp/2np1n2/4p3/4P3/2N2N2/PPP2PPP/R1BQ1RK1 w kq - 0 1',
+   prompt:'לחץ על ריבוע המוצב לאביר הלבן — חור שאף רגלי שחור לא יכול לכסות.', answer:['d5'], hl:[{sq:'d5',c:'good'}],
+   explain:'הרגלים d6 ו־e5 לא מכסים את d5, ואין רגלי c/e שיגרש. אביר על d5 מבוצר וחזק כמו צריח.' },
+ { id:'colorcomplex', title:'ערוגות חלשות', kind:'choice', orient:'w',
+   fen:'r2q1rk1/pp2nppp/2p1p3/3p4/3P4/2NBP3/PP3PPP/R2Q1RK1 w - - 0 1',
+   prompt:'לשחור אין רץ כהה, ורגליו על ריבועים בהירים. איזה צבע ערוגות נשאר חלש אצלו?',
+   choices:['הערוגות הכהות','הערוגות הבהירות'], answer:0, hl:[{sq:'e5',c:'good'},{sq:'c5',c:'good'},{sq:'d6',c:'good'}],
+   explain:'בלי רץ כהה, אף כלי לא שומר על הערוגות הכהות (c5, d6, e5...). כלי לבן שיתמקם שם — בלתי ניתן לגירוש.' },
+ { id:'space', title:'יתרון מרחב', kind:'choice', orient:'w',
+   fen:'r1bqk2r/pp2bppp/2n1pn2/3p4/2PP4/P1N1PN2/1P3PPP/R1BQKB1R w KQkq - 0 1',
+   prompt:'רגלי הלבן על c4/d4 תופסים יותר מרחב. למי קל יותר לתמרן את הכלים?',
+   choices:['ללבן','לשחור'], answer:0, hl:[{sq:'c4',c:'good'},{sq:'d4',c:'good'}],
+   explain:'יותר מרחב = יותר משבצות פנויות לכלים שלך = תמרון קל יותר. שחק עם המרחב, אל תמהר לפתוח.' },
+];
+
+/* ---------- ENDGAMES (play vs computer / convert) ---------- */
 const ENDGAMES = [
- { id:'rookmate', name:'מט מלך וצריח', fen:'4k3/8/8/8/8/8/8/R3K3 w - - 0 1', side:'w',
-   goal:'תן מט למלך היריב (יש לך צריח ומלך).',
-   tip:'דוחקים את המלך היריב לקצה בעזרת הצריח, מביאים את המלך שלך מולו — ומטים.' },
- { id:'queenmate', name:'מט מלך ומלכה', fen:'4k3/8/8/8/8/8/8/3QK3 w - - 0 1', side:'w',
-   goal:'תן מט עם מלכה ומלך.', tip:'שמור על מרחק פרש מהמלך היריב, דחוף אותו לקצה, ואז קרב את מלכך ומט.' },
- { id:'opposition', name:'אופוזיציה: הכתרת רגלי', fen:'8/8/8/3k4/8/3K4/3P4/8 w - - 0 1', side:'w',
-   goal:'הכתר את הרגלי (הפוך אותו למלכה).', tip:'תפוס אופוזיציה — דחוף את המלך שלך קדימה לפני הרגלי כדי לשלוט בריבועי המפתח.' },
- { id:'rookpawn', name:'צריח מאחורי רגלי חופשי', fen:'8/8/8/8/3P4/8/r7/3RK1k1 w - - 0 1', side:'w',
+ { id:'rookmate', name:'מט מלך וצריח', level:'בסיסי', fen:'4k3/8/8/8/8/8/8/R3K3 w - - 0 1', side:'w',
+   goal:'תן מט למלך היריב.', tip:'דוחקים את המלך היריב לקצה בעזרת הצריח, מביאים את המלך שלך אל מול המלך היריב — ומטים בשורה/טור הקצה.' },
+ { id:'queenmate', name:'מט מלך ומלכה', level:'בסיסי', fen:'4k3/8/8/8/8/8/8/3QK3 w - - 0 1', side:'w',
+   goal:'תן מט עם מלכה ומלך.', tip:'שמור מרחק "פרש" מהמלך היריב כדי לא לתת פט, דחוף אותו לקצה, קרב את מלכך — ומט.' },
+ { id:'opposition', name:'אופוזיציה: הכתרת רגלי', level:'מפתח', fen:'8/8/8/3k4/8/3K4/3P4/8 w - - 0 1', side:'w',
+   goal:'הכתר את הרגלי (הפוך אותו למלכה).', tip:'תפוס אופוזיציה — דחוף את המלך שלך קדימה לפני הרגלי כדי לשלוט בריבועי המפתח, ורק אז קדם.' },
+ { id:'lucena', name:'לוצ׳נה: הכתרה בסיום צריחים', level:'מפתח', fen:'8/3P4/3K1k2/8/8/8/7r/3R4 w - - 0 1', side:'w',
+   goal:'הכתר את הרגלי שב־d7.', tip:'"בניית גשר": הצב את הצריח בשורה הרביעית (Rd4), הבא את המלך, ואז הצריח חוסם את השחים כשהרגלי מוכתר.' },
+ { id:'rookpawn', name:'צריח מאחורי רגלי חופשי', level:'טכניקה', fen:'8/8/8/8/3P4/8/r7/3RK1k1 w - - 0 1', side:'w',
    goal:'קדם את הרגלי החופשי בעזרת הצריח והכתר.', tip:'כלל טאראש: הצריח מאחורי הרגלי החופשי — הוא תומך בקידום ומגביל את הצריח היריב.' },
 ];
 
-if(typeof module!=='undefined') module.exports={OPENINGS,PUZZLES,ENDGAMES};
+const ENDGAME_TIPS = [
+ { name:'אופוזיציה', txt:'כשהמלכים מולים ברווח ריבוע אחד — מי שאינו בתור "מחזיק אופוזיציה" וזוכה במרחב. מפתח לכל סיומי מלך ורגלי.' },
+ { name:'לוצ׳נה (Lucena)', txt:'הניצחון הבסיסי בסיום צריחים כשאתה רגלי עודף על השורה השביעית: "בניית גשר" עם הצריח מחסום את שחי היריב ומאפשר הכתרה.' },
+ { name:'פילידור (Philidor)', txt:'התיקו הבסיסי כמתגונן בסיום צריחים: החזק את הצריח בשורה השלישית (מהצד שלך) עד שהרגלי היריב מגיע לשם — ואז רד מאחור ותן שחים. מציל חצאי נקודה.' },
+ { name:'מלך אקטיבי', txt:'בסיום המלך הוא כלי לוחם. מרכֵּז אותו מוקדם — מלך פעיל לרוב מכריע את התוצאה.' },
+ { name:'צריח מאחורי רגלי חופשי', txt:'כלל טאראש: צריחים שייכים מאחורי הרגלי החופשי — שלך כדי לתמוך בקידום, של היריב כדי לבלום אותו.' },
+];
+
+/* ---------- THINKING METHOD (4 questions) ---------- */
+const THINKING = {
+ title:'ארבע השאלות לפני כל מסע',
+ questions:[
+  { q:'מה האיום של היריב?', d:'לפני הכל — מה הוא מאיים לעשות? (שח, לקיחה, איום כפול). אם לא תזהה, תיפול.' },
+  { q:'מה המסע הכי אקטיבי שלי?', d:'מצא כמה מסעים־מועמדים, והעדף אקטיביות על פסיביות.' },
+  { q:'האם יש טקטיקה?', d:'עבור על שחים, לקיחות ואיומים — בשני הצדדים — לפני שאתה מחליט.' },
+  { q:'האם אני משפר כלי?', d:'אם אין טקטיקה ואין איום — שפר את הכלי הגרוע ביותר שלך.' },
+ ],
+ blunderCheck:'ולפני שאתה מזיז — בדיקת "בלאנדר" של שנייה: המסע שלי תולה משהו?'
+};
+
+/* ---------- MASTER GAME (analyze / guess the move) ---------- */
+const GAMES = [
+ { id:'opera', title:'"משחק האופרה" — מורפי, 1858', level:'קלאסי חינוכי',
+   intro:'משחק קצר ומושלם על פיתוח, פתיחת קווים ושיתוף כל הכלים בהתקפה. נסה לנחש את מהלכי הלבן המסומנים.',
+   line:['e4','e5','Nf3','d6','d4','Bg4','dxe5','Bxf3','Qxf3','dxe5','Bc4','Nf6','Qb3','Qe7','Nc3','c6','Bg5','b5','Nxb5','cxb5','Bxb5+','Nbd7','O-O-O','Rd8','Rxd7','Rxd7','Rd1','Qe6','Bxd7+','Nxd7','Qb8+','Nxb8','Rd8#'],
+   guessPlies:[22,24,30,32], // 0-based white plies to quiz: Rxd7, Rd1, Qb8+, Rd8#
+   notes:{
+     4:'לבן פותח מרכז ומזמין את היריב לצרות.',
+     8:'הרץ ב־f3 נלקח — לבן מפתח את המלכה בטמפו.',
+     12:'Bc4 מכוון ל־f7 ומאיים.',
+     22:'Rxd7! מקריב איכות כדי למשוך את המגן היחיד ולפתוח קווים.',
+     24:'Rd1 — הכלי האחרון נכנס. כל כלי לבן משתתף בהתקפה.',
+     30:'Qb8+!! הקרבת מלכה שמובילה למט כפוי.',
+     32:'Rd8# — מט. פיתוח מהיר + כל הכלים בהתקפה = ניצחון.'
+   } },
+];
+
+/* ---------- TRAINING PLAN ---------- */
+const PLAN = {
+ daily:[
+  {id:'d_puzzles',txt:'15 דקות פאזלים (טקטיקה)'},
+  {id:'d_games',txt:'2 משחקים של 15+10'},
+  {id:'d_analyze',txt:'ניתוח עצמי לפני המנוע'},
+ ],
+ weekly:[
+  {id:'w_open',txt:'פתיחה אחת בלבן, שתיים בשחור — לעומק'},
+  {id:'w_topic',txt:'נושא אסטרטגי אחד לעומק (מוטיב/מבנה/סיום)'},
+  {id:'w_master',txt:'ניתוח משחק אחד של שחקן חזק'},
+ ]
+};
+
+/* ---------- 30-LESSON COURSE (curriculum tying it all together) ---------- */
+const COURSE = [
+ // Openings
+ {n:1,area:'פתיחות',title:'למה פתיחות מלמדות רעיונות',idea:'המטרה של פתיחה היא עמדה שאתה מבין — לא שינון. בחר מעט פתיחות לעומק.',task:'למד את "המשחק האיטלקי" בלשונית פתיחות.',ref:{mode:'openings',id:'italian'}},
+ {n:2,area:'פתיחות',title:'פתיחה יציבה עם הלבן',idea:'מבנה קבוע שמייצר עמדות מוכרות שוב ושוב מפנה זמן לרעיונות.',task:'למד ותרגל את "מערכת לונדון".',ref:{mode:'openings',id:'london'}},
+ {n:3,area:'פתיחות',title:'משחק עמדתי עם הלבן',idea:'לחץ מרכזי ארוך־טווח והתקפת מיעוט הם הבסיס לשחמט בוגר.',task:'למד את "גמביט המלכה".',ref:{mode:'openings',id:'qg'}},
+ {n:4,area:'פתיחות',title:'תשובה מוצקה ל־1.e4',idea:'מבנה בריא וסבלנות מנצחים כאוס — קארו־קאן וסקנדינבית.',task:'למד את "הגנת קארו־קאן".',ref:{mode:'openings',id:'carokann'}},
+ {n:5,area:'פתיחות',title:'תשובה מוצקה ל־1.d4',idea:'בסס רפרטואר: פתיחה אחת בלבן, שתיים בשחור.',task:'למד את "הגנת סלאב" או "QGD".',ref:{mode:'openings',id:'slav'}},
+ // Middlegame / pawn structures
+ {n:6,area:'משחק אמצע',title:'לחשוב במבני רגלים',idea:'הרגלים הם שלד העמדה — הם קובעים איפה הכלים שייכים ומה חלש.',task:'עבור על שיעורי "מבנים".',ref:{mode:'structures'}},
+ {n:7,area:'משחק אמצע',title:'הרגלי החלש',idea:'רגלי מבודד/כפול/מפגר הוא מטרה קבועה — רכז עליו כלים.',task:'פתור את "הרגלי החלש".',ref:{mode:'structures',id:'weakpawn'}},
+ {n:8,area:'משחק אמצע',title:'הטור הפתוח',idea:'צריחים שייכים לטורים פתוחים — משם הם פולשים.',task:'פתור את "הטור הפתוח".',ref:{mode:'structures',id:'openfile'}},
+ {n:9,area:'משחק אמצע',title:'הריבוע החזק',idea:'חור שאף רגלי לא מכסה = מוצב לאביר.',task:'פתור את "הריבוע החזק".',ref:{mode:'structures',id:'outpost'}},
+ {n:10,area:'משחק אמצע',title:'ערוגות חלשות',idea:'חוסר רץ יוצר חולשה קבועה בערוגות בצבעו.',task:'פתור את "ערוגות חלשות".',ref:{mode:'structures',id:'colorcomplex'}},
+ {n:11,area:'משחק אמצע',title:'יתרון מרחב',idea:'יותר שטח = יותר חופש תמרון. אל תמהר לפתוח.',task:'פתור את "יתרון מרחב".',ref:{mode:'structures',id:'space'}},
+ {n:12,area:'משחק אמצע',title:'שיטת ארבע השאלות',idea:'איום? מסע אקטיבי? טקטיקה? שיפור כלי? — לפני כל מסע.',task:'עבור על לשונית "חשיבה".',ref:{mode:'thinking'}},
+ // Attack
+ {n:13,area:'התקפה',title:'מזלג אביר',idea:'האביר מתקיף שני יעדים בבת אחת — הטקטיקה השכיחה ביותר.',task:'פתור "מזלג אביר".',ref:{mode:'puzzles',theme:'מזלג אביר'}},
+ {n:14,area:'התקפה',title:'חולשת השורה האחורית',idea:'מלך כלוא מאחורי רגליו — הזדמנות למט צריח/מלכה.',task:'פתור "מט בשורה האחורית".',ref:{mode:'puzzles',theme:'מט בשורה האחורית'}},
+ {n:15,area:'התקפה',title:'הסיכה',idea:'כלי מרותק אינו יכול לזוז — נצל אותו וזכה בחומר.',task:'פתור "סיכה מנצחת".',ref:{mode:'puzzles',theme:'סיכה מנצחת'}},
+ {n:16,area:'התקפה',title:'פתיחת קווים למלך',idea:'התקפה על המלך דורשת קווים פתוחים וכלים רבים — כמו במשחק האופרה.',task:'נתח את "משחק האופרה".',ref:{mode:'games',id:'opera'}},
+ {n:17,area:'התקפה',title:'כל הכלים משתתפים',idea:'התקפה מנצחת = יותר תוקפים מאשר מגנים.',task:'שחק משחק חי וכוון להתקפה מתואמת.',ref:{mode:'play'}},
+ // Positional
+ {n:18,area:'משחק עמדתי',title:'מוצב לאביר',idea:'אביר מבוצר על חור מרכזי שווה כמעט צריח.',task:'פתור "מוצב לאביר".',ref:{mode:'puzzles',theme:'מוצב לאביר (Outpost)'}},
+ {n:19,area:'משחק עמדתי',title:'התקפת מיעוט',idea:'פחות רגלים תוקפים יותר — כדי ליצור חולשה קבועה.',task:'פתור "התקפת מיעוט".',ref:{mode:'puzzles',theme:'התקפת מיעוט (Minority Attack)'}},
+ {n:20,area:'משחק עמדתי',title:'מניעה (פרופילקסיס)',idea:'שאל "מה היריב רוצה?" ומנע את זה לפני שתתקדם.',task:'פתור "מניעה".',ref:{mode:'puzzles',theme:'מניעה (Prophylaxis)'}},
+ {n:21,area:'משחק עמדתי',title:'שיפור הכלי הגרוע',idea:'בכל עמדה — זהה את הכלי הפסיבי ביותר ותן לו עבודה.',task:'פתור "שיפור הכלי הגרוע".',ref:{mode:'puzzles',theme:'שיפור הכלי הגרוע'}},
+ {n:22,area:'משחק עמדתי',title:'למד משחקי שחקנים חזקים',idea:'החלטות של 1800–2200 "אנושיות" — אפשר להבין ולחקות.',task:'נתח שוב את משחק האמן ונסה לנחש מהלכים.',ref:{mode:'games',id:'opera'}},
+ // Sacrifices / breaks
+ {n:23,area:'הקרבות',title:'פריצת רגלים',idea:'קידום שמאתגר את שרשרת היריב פותח את העמדה — בלי פריצה קופאים.',task:'פתור "פריצת רגלים".',ref:{mode:'puzzles',theme:'פריצת רגלים (Pawn Break)'}},
+ {n:24,area:'הקרבות',title:'הקרבת איכות',idea:'צריח תמורת כלי קל יכול להשתלם אם הוא פותח התקפה מכרעת.',task:'ראה את Rxd7 במשחק האופרה.',ref:{mode:'games',id:'opera'}},
+ {n:25,area:'הקרבות',title:'הקרבת מלכה למט',idea:'לפעמים מקריבים את הכלי הכי חזק כדי לכפות מט.',task:'ראה את Qb8+ במשחק האופרה.',ref:{mode:'games',id:'opera'}},
+ // Endgames
+ {n:26,area:'סיומים',title:'מלך אקטיבי ואופוזיציה',idea:'בסיום המלך הוא כלי לוחם — אופוזיציה מכריעה מי מתקדם.',task:'תרגל "אופוזיציה: הכתרת רגלי".',ref:{mode:'endgames',id:'opposition'}},
+ {n:27,area:'סיומים',title:'טכניקת מט בסיסית',idea:'מלך+צריח ומלך+מלכה — חובה לדעת אוטומטית.',task:'תרגל "מט מלך וצריח".',ref:{mode:'endgames',id:'rookmate'}},
+ {n:28,area:'סיומים',title:'סיום צריחים: לוצ׳נה',idea:'הכתרה עם רגלי עודף בעזרת "בניית גשר".',task:'תרגל "לוצ׳נה".',ref:{mode:'endgames',id:'lucena'}},
+ {n:29,area:'סיומים',title:'צריח מאחורי רגלי חופשי',idea:'כלל טאראש — הצריח תומך בקידום ומגביל את היריב.',task:'תרגל "צריח מאחורי רגלי חופשי".',ref:{mode:'endgames',id:'rookpawn'}},
+ {n:30,area:'סיומים',title:'בונים שגרה',idea:'15 דק׳ פאזלים, 2 משחקי 15+10, ניתוח עצמי, ונושא שבועי — עקביות מנצחת.',task:'קבע שגרה בלשונית הבית ותעקוב אחרי ההתקדמות.',ref:{mode:'home'}},
+];
+
+if(typeof module!=='undefined') module.exports={OPENINGS,PUZZLES,STRUCTURES,ENDGAMES,ENDGAME_TIPS,THINKING,GAMES,PLAN,COURSE};
 
 ;
 (function(){
@@ -640,486 +841,518 @@ const C=window.Chess, AI=window.ChessAI;
 const GLYPH={p:'♟',n:'♞',b:'♝',r:'♜',q:'♛',k:'♚'};
 const $=s=>document.querySelector(s);
 const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const today=()=>new Date().toISOString().slice(0,10);
+const weekId=()=>{const d=new Date();const o=new Date(d.getFullYear(),0,1);return d.getFullYear()+'-'+Math.floor((((d-o)/86400000)+o.getDay()+1)/7);};
 
 /* ---------------- progress ---------------- */
-const PKEY='chessTrainer.progress.v1';
-function loadProg(){ try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return{};} }
-function saveProg(){ try{localStorage.setItem(PKEY,JSON.stringify(P));}catch(e){} }
+const PKEY='chessTrainer.progress.v2';
+function loadProg(){try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return{};}}
+function saveProg(){try{localStorage.setItem(PKEY,JSON.stringify(P));}catch(e){}}
 let P=loadProg();
-P.openings=P.openings||{}; P.puzzles=P.puzzles||{}; P.endgames=P.endgames||{};
-P.games=P.games||0; P.xp=P.xp||0; P.correct=P.correct||0; P.attempts=P.attempts||0;
-function addXP(n){ P.xp+=n; saveProg(); renderHeader(); }
+P.openings=P.openings||{};P.structures=P.structures||{};P.puzzles=P.puzzles||{};
+P.endgames=P.endgames||{};P.games=P.games||{};P.course=P.course||{};
+P.xp=P.xp||0;P.streak=P.streak||0;P.lastActive=P.lastActive||'';P.playGames=P.playGames||0;
+P.correct=P.correct||0;P.attempts=P.attempts||0;
+P.plan=P.plan||{date:'',checked:{}};P.planW=P.planW||{week:'',checked:{}};
+P.quiz=P.quiz||{lastDate:'',best:0,last:0,taken:0};
+function markActive(){const t=today();if(P.lastActive!==t){const y=new Date(Date.now()-86400000).toISOString().slice(0,10);P.streak=(P.lastActive===y)?P.streak+1:1;P.lastActive=t;}}
+function addXP(n){P.xp+=n;markActive();saveProg();renderHeader();}
 
 /* ---------------- state ---------------- */
-const S={
-  mode:'openings', st:null, orientation:'w', sel:-1, targets:[], last:null,
-  history:[], locked:false,
-  op:null, opPly:0, opMistake:false,
-  pz:null, pzSolved:false,
-  eg:null, egDepth:2,
-  playSide:'w', playDepth:2, gameOver:false, pendingPromo:null
-};
+const S={mode:'home',st:null,orientation:'w',sel:-1,targets:[],last:null,hl:[],history:[],locked:false,
+  interact:'none', _coach:null,
+  op:null,opView:null,opPly:0,opMistake:false,opColorFilter:'all',
+  ideaTab:'structures', struct:null, structDone:false,
+  pz:null,pzSolved:false, pzQueue:null,
+  eg:null,egDepth:2,
+  thinkView:'method', game:null,gamePly:0,gameGuessing:false,
+  playSide:'w',playDepth:2,gameOver:false,
+  quiz:null };
 
-/* ---------------- board rendering ---------------- */
-function boardCells(){ // returns array of 64 square indices in visual order
-  const arr=[]; for(let i=0;i<64;i++) arr.push(i);
-  if(S.orientation==='b') arr.reverse();
-  return arr;
-}
-function kingInCheckSq(){ if(!C.inCheck(S.st)) return -1; return C.kingSquare(S.st.board,S.st.turn); }
+/* ---------------- board ---------------- */
+function cells(){const a=[];for(let i=0;i<64;i++)a.push(i);if(S.orientation==='b')a.reverse();return a;}
+function checkSq(){if(!S.st||!C.inCheck(S.st))return -1;return C.kingSquare(S.st.board,S.st.turn);}
+function hlFor(idx){const n=C.sqName(idx);const h=S.hl.find(x=>x.sq===n);return h?h.c:null;}
 function renderBoard(){
-  const board=$('#board'); board.innerHTML='';
-  const chkSq=kingInCheckSq();
-  const cells=boardCells();
-  cells.forEach((idx)=>{
-    const f=idx%8, r=(idx/8)|0;
-    const dark=(f+r)%2===1;
-    const sq=el('div','sq '+(dark?'dark':'light'));
-    sq.dataset.i=idx;
-    if(idx===S.sel) sq.classList.add('sel');
-    if(S.last&&(idx===S.last.from||idx===S.last.to)) sq.classList.add('last');
-    if(idx===chkSq) sq.classList.add('check');
-    // move dots
-    if(S.targets.includes(idx)){ if(S.st.board[idx]) sq.classList.add('cap'); sq.appendChild(el('div','dot')); }
-    // coords on edges (visual)
-    const visRow=Math.floor(cells.indexOf(idx)/8), visCol=cells.indexOf(idx)%8;
-    if(visRow===7){ const c=el('div','coord file'); c.textContent='abcdefgh'[f]; c.style.color=dark?'rgba(246,239,220,.9)':'rgba(60,80,64,.75)'; sq.appendChild(c); }
-    if(visCol===0){ const c=el('div','coord rank'); c.textContent=(8-r); c.style.color=dark?'rgba(246,239,220,.9)':'rgba(60,80,64,.75)'; sq.appendChild(c); }
+  const b=$('#board');if(!b)return;b.innerHTML='';
+  const chk=checkSq();const cs=cells();
+  cs.forEach((idx)=>{
+    const f=idx%8,r=(idx/8)|0,dark=(f+r)%2===1;
+    const sq=el('div','sq '+(dark?'dark':'light'));sq.dataset.i=idx;
+    if(idx===S.sel)sq.classList.add('sel');
+    if(S.last&&(idx===S.last.from||idx===S.last.to))sq.classList.add('last');
+    if(idx===chk)sq.classList.add('check');
+    const h=hlFor(idx);if(h)sq.classList.add('hl',h);
+    if(S.targets.includes(idx)){if(S.st.board[idx])sq.classList.add('cap');sq.appendChild(el('div','dot'));}
+    const vi=cs.indexOf(idx),vr=(vi/8)|0,vc=vi%8;
+    if(vr===7){const c=el('div','coord file');c.textContent='abcdefgh'[f];c.style.color=dark?'rgba(246,239,220,.9)':'rgba(60,80,64,.72)';sq.appendChild(c);}
+    if(vc===0){const c=el('div','coord rank');c.textContent=(8-r);c.style.color=dark?'rgba(246,239,220,.9)':'rgba(60,80,64,.72)';sq.appendChild(c);}
     const p=S.st.board[idx];
-    if(p){ const pc=el('div','piece '+(p===p.toUpperCase()?'w':'b')); pc.textContent=GLYPH[p.toLowerCase()]; sq.appendChild(pc); }
-    board.appendChild(sq);
+    if(p){const pc=el('div','piece '+(p===p.toUpperCase()?'w':'b'));pc.textContent=GLYPH[p.toLowerCase()];sq.appendChild(pc);}
+    b.appendChild(sq);
   });
 }
 
 /* ---------------- interaction ---------------- */
 function onCellClick(e){
-  if(S.locked||S.gameOver) return;
-  const cell=e.target.closest('.sq'); if(!cell) return;
-  const idx=+cell.dataset.i;
-  const turn=S.st.turn;
-  // whose move can the human make?
-  if(!humanToMove()) return;
-  const p=S.st.board[idx];
-  if(S.sel===-1){
-    if(p && C.colorOf(p)===turn){ selectSquare(idx); }
-  } else {
-    if(idx===S.sel){ clearSel(); return; }
-    if(p && C.colorOf(p)===turn){ selectSquare(idx); return; }
-    if(S.targets.includes(idx)){ attemptMove(S.sel,idx); }
-    else { clearSel(); }
+  const cell=e.target.closest('.sq');if(!cell)return;const idx=+cell.dataset.i;
+  if(S.interact==='identify'){return handleIdentify(idx);}
+  if(S.locked||S.gameOver)return;
+  if(!moveInteract()||!humanToMove())return;
+  const turn=S.st.turn,p=S.st.board[idx];
+  if(S.sel===-1){if(p&&C.colorOf(p)===turn)selectSquare(idx);}
+  else{
+    if(idx===S.sel){clearSel();return;}
+    if(p&&C.colorOf(p)===turn){selectSquare(idx);return;}
+    if(S.targets.includes(idx))attemptMove(S.sel,idx);else clearSel();
   }
 }
+function moveInteract(){return ['openingMove','puzzleMove','freeMove','gameGuess','quizMove'].includes(S.interact);}
 function humanToMove(){
-  if(S.mode==='openings') return S.op && S.st.turn===S.op.side && S.opPly<S.op.line.length;
-  if(S.mode==='puzzles') return S.pz && !S.pzSolved;
-  if(S.mode==='endgames') return S.eg && S.st.turn===S.eg.side && !S.gameOver;
-  if(S.mode==='play') return S.st.turn===S.playSide && !S.gameOver;
+  if(S.interact==='openingMove')return S.op&&S.st.turn===S.op.side&&S.opPly<S.op.line.length;
+  if(S.interact==='puzzleMove')return S.pz&&!S.pzSolved;
+  if(S.interact==='quizMove')return S.quiz&&!S.quiz.answered;
+  if(S.interact==='freeMove'){const side=S.mode==='play'?S.playSide:S.eg.side;return S.st.turn===side&&!S.gameOver;}
+  if(S.interact==='gameGuess')return S.gameGuessing;
   return false;
 }
-function selectSquare(idx){
-  S.sel=idx;
-  S.targets=C.legalMoves(S.st).filter(m=>m.from===idx).map(m=>m.to);
-  renderBoard();
-}
-function clearSel(){ S.sel=-1; S.targets=[]; renderBoard(); }
-
+function selectSquare(idx){S.sel=idx;S.targets=C.legalMoves(S.st).filter(m=>m.from===idx).map(m=>m.to);renderBoard();}
+function clearSel(){S.sel=-1;S.targets=[];renderBoard();}
 function attemptMove(from,to){
-  const moves=C.legalMoves(S.st).filter(m=>m.from===from&&m.to===to);
-  if(!moves.length){ clearSel(); return; }
-  // promotion?
-  if(moves.length>1 && moves[0].promo){ showPromo(from,to,moves); return; }
-  finishAttempt(moves[0]);
+  const ms=C.legalMoves(S.st).filter(m=>m.from===from&&m.to===to);
+  if(!ms.length){clearSel();return;}
+  if(ms.length>1&&ms[0].promo){return showPromo(from,to,ms);}
+  finishAttempt(ms[0]);
 }
 function finishAttempt(move){
   clearSel();
-  if(S.mode==='openings') return handleOpeningMove(move);
-  if(S.mode==='puzzles') return handlePuzzleMove(move);
-  // endgames / play: commit any legal move
-  commit(move);
-  afterHumanCommit();
+  if(S.interact==='openingMove')return handleOpeningMove(move);
+  if(S.interact==='puzzleMove')return handlePuzzleMove(move);
+  if(S.interact==='quizMove')return handleQuizMove(move);
+  if(S.interact==='gameGuess')return handleGameGuess(move);
+  commit(move);afterFree();
 }
-
-/* ---------------- move commit ---------------- */
 function commit(move){
   const san=C.moveToSAN(S.st,move);
-  S.history.push({fen:C.toFEN(S.st), san, from:move.from, to:move.to});
-  S.st=C.applyMove(S.st,move);
-  S.last={from:move.from,to:move.to};
-  renderBoard(); renderMoveList();
+  S.history.push({fen:C.toFEN(S.st),san,from:move.from,to:move.to});
+  S.st=C.applyMove(S.st,move);S.last={from:move.from,to:move.to};
+  renderBoard();renderMoveList();
 }
-function afterHumanCommit(){
-  if(endCheck()) return;
-  // AI reply for endgames/play
-  if((S.mode==='play'&&S.st.turn!==S.playSide) || (S.mode==='endgames'&&S.st.turn!==S.eg.side)){
-    aiMove();
-  }
+function afterFree(){
+  if(endCheck())return;
+  if((S.mode==='play'&&S.st.turn!==S.playSide)||(S.mode==='endgames'&&S.st.turn!==S.eg.side))aiMove();
 }
 function aiMove(){
-  S.locked=true; renderPanel();
-  setTimeout(()=>{
-    const depth = S.mode==='endgames'?S.egDepth:S.playDepth;
-    const m=AI.bestMove(S.st,depth);
-    if(m){ commit(m); }
-    S.locked=false;
-    if(!endCheck()) renderPanel();
-  }, 260);
+  S.locked=true;renderPanel();
+  setTimeout(()=>{const d=S.mode==='endgames'?S.egDepth:S.playDepth;const m=AI.bestMove(S.st,d);if(m)commit(m);S.locked=false;if(!endCheck())renderPanel();},260);
 }
 function endCheck(){
-  const moves=C.legalMoves(S.st);
-  if(moves.length>0) return false;
-  S.gameOver=true;
-  if(C.inCheck(S.st)){
-    const loser=S.st.turn;
-    const humanWon = (S.mode==='play'&&loser!==S.playSide) || (S.mode==='endgames'&&loser!==S.eg.side);
-    onGameEnd(humanWon?'win':'loss', 'מט!');
-  } else {
-    onGameEnd('draw','פט — תיקו.');
-  }
+  const mv=C.legalMoves(S.st);if(mv.length>0)return false;S.gameOver=true;
+  if(C.inCheck(S.st)){const loser=S.st.turn;const won=(S.mode==='play'&&loser!==S.playSide)||(S.mode==='endgames'&&loser!==S.eg.side);onGameEnd(won?'win':'loss');}
+  else onGameEnd('draw');
   return true;
 }
-function onGameEnd(result,label){
+function onGameEnd(res){
   renderBoard();
-  if(S.mode==='play'){ P.games++; if(result==='win')addXP(20); saveProg();
-    coach(result==='win'?'good':(result==='loss'?'bad':'info'), result==='win'?'ניצחון!':result==='loss'?'הפסד':'תיקו', label+' '+(result==='win'?'כל הכבוד!':result==='loss'?'המשך להתאמן.':'')); }
-  if(S.mode==='endgames'){
-    if(result==='win'){ if(!P.endgames[S.eg.id]){P.endgames[S.eg.id]=1;addXP(25);} else addXP(5); saveProg();
-      coach('good','הצלחת! ✔','השלמת את התרגיל: '+S.eg.name+'. '+S.eg.tip); }
-    else coach('bad', result==='draw'?'תיקו':'לא הושג', label+' נסה שוב — '+S.eg.tip);
+  if(S.mode==='play'){P.playGames++;if(res==='win')addXP(20);markActive();saveProg();
+    coach(res==='win'?'good':res==='loss'?'bad':'info',res==='win'?'ניצחון! ♛':res==='loss'?'הפסד':'תיקו',res==='win'?'מט! כל הכבוד.':res==='loss'?'מט. המשך להתאמן — נתח מה קרה.':'פט — תיקו.');}
+  else if(S.mode==='endgames'){
+    if(res==='win'){if(!P.endgames[S.eg.id]){P.endgames[S.eg.id]=1;addXP(25);}else addXP(5);markActive();saveProg();coach('good','הצלחת! ✔','השלמת: '+S.eg.name+'. '+S.eg.tip);}
+    else coach('bad',res==='draw'?'תיקו':'לא הושג','נסה שוב — '+S.eg.tip);
   }
   renderPanel();
 }
-
-/* ---------------- promotion ---------------- */
 function showPromo(from,to,moves){
-  S.locked=true;
-  const side=S.st.turn;
-  const modal=el('div','modal'); const box=el('div','box');
-  box.appendChild(el('h3',null,'בחר כלי להכתרה'));
+  S.locked=true;const side=S.st.turn;
+  const modal=el('div','modal'),box=el('div','box');box.appendChild(el('h3',null,'בחר כלי להכתרה'));
   const row=el('div','promo-row');
-  ['Q','R','B','N'].forEach(pr=>{
-    const b=el('button','piece '+(side==='w'?'w':'b')); b.textContent=GLYPH[pr.toLowerCase()];
-    b.onclick=()=>{ document.body.removeChild(modal); S.locked=false; const mv=moves.find(m=>m.promo===pr); finishAttempt(mv); };
-    row.appendChild(b);
-  });
-  box.appendChild(row); modal.appendChild(box); document.body.appendChild(modal);
+  ['Q','R','B','N'].forEach(pr=>{const bt=el('button','piece '+side);bt.textContent=GLYPH[pr.toLowerCase()];bt.onclick=()=>{document.body.removeChild(modal);S.locked=false;finishAttempt(moves.find(m=>m.promo===pr));};row.appendChild(bt);});
+  box.appendChild(row);modal.appendChild(box);document.body.appendChild(modal);
 }
+function shake(){const b=$('#board');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');}
+function coach(kind,tag,txt){S._coach={kind,tag,txt};}
+function coachCard(){const c=S._coach;if(!c)return '';return '<div class="coach '+c.kind+'"><div class="tag">'+(c.kind==='good'?'✔ ':c.kind==='bad'?'✕ ':'♟ ')+c.tag+'</div>'+c.txt+'</div>';}
 
-/* ---------------- OPENINGS mode ---------------- */
-function startOpening(op){
-  S.op=op; S.opPly=0; S.opMistake=false; S.mode='openings';
-  S.st=C.parseFEN(C.START); S.history=[]; S.last=null; S.gameOver=false; S.sel=-1; S.targets=[];
-  S.orientation=op.side;
-  renderBoard(); renderMoveList();
-  // if user is black, engine plays first white book move
-  maybeAutoBookMove();
-  renderPanel();
+/* ================= OPENINGS ================= */
+function openingList(){return OPENINGS.filter(o=>S.opColorFilter==='all'||o.side===S.opColorFilter);}
+function viewOpening(o){S.op=null;S.opView=o;S.st=C.parseFEN(C.START);S.orientation=o.side;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];S.interact='none';renderBoard();renderMoveList();S._coach=null;renderPanel();}
+function startOpening(o){
+  S.op=o;S.opView=o;S.opPly=0;S.opMistake=false;S.interact='openingMove';S.gameOver=false;
+  S.st=C.parseFEN(C.START);S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];S.orientation=o.side;
+  renderBoard();renderMoveList();S._coach=null;maybeBook();renderPanel();
 }
-function maybeAutoBookMove(){
-  if(S.opPly<S.op.line.length && S.st.turn!==S.op.side){
-    const san=S.op.line[S.opPly];
-    const m=C.parseSAN(S.st,san);
-    S.locked=true; renderPanel();
-    setTimeout(()=>{ commit(m); S.opPly++; S.locked=false; renderPanel(); }, 300);
+function maybeBook(){
+  if(S.opPly<S.op.line.length&&S.st.turn!==S.op.side){
+    const m=C.parseSAN(S.st,S.op.line[S.opPly]);S.locked=true;renderPanel();
+    setTimeout(()=>{commit(m);S.opPly++;S.locked=false;renderPanel();},300);
   }
 }
 function handleOpeningMove(move){
-  const expected=C.parseSAN(S.st,S.op.line[S.opPly]);
-  P.attempts++;
-  if(expected && expected.from===move.from && expected.to===move.to && (!expected.promo||expected.promo===move.promo)){
-    P.correct++;
-    commit(move); S.opPly++;
-    const ideaTxt=S.op.ideas[S.opPly] || 'מהלך נכון!';
+  const exp=C.parseSAN(S.st,S.op.line[S.opPly]);P.attempts++;
+  if(exp&&exp.from===move.from&&exp.to===move.to&&(!exp.promo||exp.promo===move.promo)){
+    P.correct++;commit(move);S.opPly++;
     if(S.opPly>=S.op.line.length){
-      // done
-      if(!S.opMistake && !P.openings[S.op.id]){ P.openings[S.op.id]=1; addXP(30); }
-      else { addXP(8); }
-      saveProg();
-      coach('good','סיימת את הקו! ✔','עברת את כל '+(S.op.line.length)+' המהלכים של '+S.op.name+'. '+(S.opMistake?'':'ללא טעויות — מעולה!'));
-    } else {
-      coach('good','נכון! ✔', ideaTxt);
-      maybeAutoBookMove();
-    }
-    saveProg(); renderHeader();
-  } else {
-    P.attempts--; // don't count as attempt of accuracy? keep counting
-    P.attempts++; S.opMistake=true; saveProg();
-    coach('bad','לא המהלך של הקו','זה מהלך חוקי, אבל לא זה שמלמדת הפתיחה. נסה שוב — או לחץ "רמז".');
-    shakeBoard();
-  }
+      if(!S.opMistake&&!P.openings[S.op.id]){P.openings[S.op.id]=1;addXP(30);}else addXP(8);markActive();saveProg();
+      coach('good','סיימת את הקו! ✔','עברת את כל '+S.op.line.length+' המהלכים של '+S.op.name+'. '+(S.opMistake?'':'ללא טעויות — מעולה!'));
+    }else{coach('good','נכון! ✔',S.op.ideas[S.opPly]||'מהלך נכון!');maybeBook();}
+    saveProg();renderHeader();
+  }else{S.opMistake=true;saveProg();coach('bad','לא המהלך של הקו','זה מהלך חוקי, אבל לא זה שמלמדת הפתיחה. נסה שוב, או לחץ "רמז".');shake();}
   renderPanel();
 }
-function revealOpeningMove(){
-  if(!humanToMove()) return;
-  const san=S.op.line[S.opPly];
-  const m=C.parseSAN(S.st,san);
-  S.sel=m.from; S.targets=[m.to]; renderBoard();
-  coach('info','רמז','המהלך הבא בקו הוא '+prettySAN(san)+'. לחץ עליו כדי לבצע.');
-}
+function hintOpening(){if(!humanToMove())return;const m=C.parseSAN(S.st,S.op.line[S.opPly]);S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','המהלך הבא בקו: '+S.op.line[S.opPly]+'. לחץ עליו לביצוע.');renderPanel();}
 
-/* ---------------- PUZZLES mode ---------------- */
-function startPuzzle(pz){
-  S.pz=pz; S.pzSolved=false; S.mode='puzzles';
-  S.st=C.parseFEN(pz.fen); S.history=[]; S.last=null; S.gameOver=false; S.sel=-1; S.targets=[];
-  S.orientation=S.st.turn;
-  renderBoard(); renderMoveList();
-  coach('info', pz.theme, 'התור של '+(S.st.turn==='w'?'הלבן':'השחור')+'. מצא את המהלך שממחיש: '+pz.theme+'.');
+/* ================= IDEAS: structures ================= */
+function startStructure(st){
+  S.struct=st;S.structDone=false;S.interact=st.kind==='identify'?'identify':'none';
+  S.st=C.parseFEN(st.fen);S.orientation=st.orient||'w';S.history=[];S.last=null;S.sel=-1;S.targets=[];
+  S.hl=[];renderBoard();
+  coach('info',st.title,st.prompt);renderPanel();
+}
+function handleIdentify(idx){
+  if(S.structDone)return;const name=C.sqName(idx);
+  if(S.struct.answer.includes(name)){
+    S.structDone=true;S.hl=S.struct.hl||[{sq:name,c:'good'}];renderBoard();
+    if(!P.structures[S.struct.id]){P.structures[S.struct.id]=1;addXP(12);}markActive();saveProg();
+    coach('good','נכון! ✔',S.struct.explain);renderHeader();
+  }else{coach('bad','לא הריבוע הנכון','נסה שוב — או לחץ "רמז" כדי לראות.');shake();}
   renderPanel();
 }
-function acceptedCanon(pz){
-  const s=C.parseFEN(pz.fen);
-  return pz.solutions.map(sol=>{ const m=C.parseSAN(s,sol); return m?C.moveToSAN(s,m).replace(/[+#]/g,''):sol; });
+function answerChoice(i){
+  if(S.structDone)return;
+  if(i===S.struct.answer){S.structDone=true;S.hl=S.struct.hl||[];renderBoard();if(!P.structures[S.struct.id]){P.structures[S.struct.id]=1;addXP(12);}markActive();saveProg();coach('good','נכון! ✔',S.struct.explain);renderHeader();}
+  else{coach('bad','לא מדויק','חשוב שוב על העמדה.');}
+  renderPanel();
 }
+function hintStructure(){if(S.struct.kind==='identify'){S.hl=S.struct.hl||[];S.structDone=true;renderBoard();coach('info','רמז',S.struct.explain);renderPanel();}}
+
+/* ================= IDEAS: puzzles ================= */
+function startPuzzle(p){
+  S.pz=p;S.pzSolved=false;S.interact='puzzleMove';S.gameOver=false;
+  S.st=C.parseFEN(p.fen);S.orientation=S.st.turn;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
+  renderBoard();renderMoveList();
+  coach('info',p.theme,'תור '+(S.st.turn==='w'?'הלבן':'השחור')+'. מצא את המהלך שממחיש: '+p.theme+'.');renderPanel();
+}
+function canon(p){const s=C.parseFEN(p.fen);return p.solutions.map(x=>{const m=C.parseSAN(s,x);return m?C.moveToSAN(s,m).replace(/[+#]/g,''):x;});}
 function handlePuzzleMove(move){
-  P.attempts++;
-  const san=C.moveToSAN(S.st,move).replace(/[+#]/g,'');
-  const ok=acceptedCanon(S.pz).includes(san);
-  if(ok){
-    P.correct++; S.pzSolved=true;
-    commit(move);
-    if(!P.puzzles[S.pz.theme]){ P.puzzles[S.pz.theme]=1; addXP(15); } else addXP(4);
-    saveProg();
-    coach('good','פתרת! ✔', S.pz.idea);
-  } else {
-    saveProg();
-    coach('bad','לא המהלך הנכון', 'זה לא הרעיון כאן. נסה שוב, או לחץ "רמז" כדי לראות את הפתרון.');
-    shakeBoard();
-  }
-  renderHeader(); renderPanel();
+  P.attempts++;const san=C.moveToSAN(S.st,move).replace(/[+#]/g,'');
+  if(canon(S.pz).includes(san)){P.correct++;S.pzSolved=true;commit(move);if(!P.puzzles[S.pz.theme]){P.puzzles[S.pz.theme]=1;addXP(15);}else addXP(4);markActive();saveProg();coach('good','פתרת! ✔',S.pz.idea);}
+  else{saveProg();coach('bad','לא המהלך','זה לא הרעיון כאן. נסה שוב, או לחץ "רמז".');shake();}
+  renderHeader();renderPanel();
 }
-function revealPuzzle(){
-  if(S.pzSolved) return;
-  const s=C.parseFEN(S.pz.fen); const m=C.parseSAN(s,S.pz.solutions[0]);
-  S.sel=m.from; S.targets=[m.to]; renderBoard();
-  coach('info','רמז','הפתרון: '+prettySAN(S.pz.solutions[0])+'. '+S.pz.idea);
-}
-function nextPuzzle(){
-  const list=PUZZLES; const i=list.indexOf(S.pz);
-  startPuzzle(list[(i+1)%list.length]);
+function hintPuzzle(){if(S.pzSolved)return;const s=C.parseFEN(S.pz.fen),m=C.parseSAN(s,S.pz.solutions[0]);S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','הפתרון: '+S.pz.solutions[0]+'. '+S.pz.idea);renderPanel();}
+function nextPuzzle(){const i=PUZZLES.indexOf(S.pz);startPuzzle(PUZZLES[(i+1)%PUZZLES.length]);}
+
+/* ================= ENDGAMES ================= */
+function startEndgame(e){
+  S.eg=e;S.mode='endgames';S.interact='freeMove';S.gameOver=false;
+  S.st=C.parseFEN(e.fen);S.orientation=e.side;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
+  renderBoard();renderMoveList();coach('info',e.name,e.goal+' טיפ: '+e.tip);renderPanel();
 }
 
-/* ---------------- ENDGAMES mode ---------------- */
-function startEndgame(eg){
-  S.eg=eg; S.mode='endgames';
-  S.st=C.parseFEN(eg.fen); S.history=[]; S.last=null; S.gameOver=false; S.sel=-1; S.targets=[];
-  S.orientation=eg.side;
-  renderBoard(); renderMoveList();
-  coach('info', eg.name, eg.goal+' טיפ: '+eg.tip);
+/* ================= THINKING + GAMES ================= */
+function startGame(g){
+  S.game=g;S.gamePly=0;S.gameGuessing=false;S.interact='gameGuess';S.gameOver=false;S.thinkView=g.id;
+  S.st=C.parseFEN(C.START);S.orientation='w';S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
+  renderBoard();renderMoveList();coach('info',g.title,g.intro);advanceGamePrompt();renderPanel();
+}
+function advanceGamePrompt(){
+  if(S.gamePly>=S.game.line.length){coach('good','סוף המשחק ✔','ניתחת את כל המשחק. '+(!P.games[S.game.id]?'':'')); if(!P.games[S.game.id]){P.games[S.game.id]=1;addXP(20);markActive();saveProg();renderHeader();} S.gameGuessing=false;renderPanel();return;}
+  if(S.game.guessPlies.includes(S.gamePly)){S.gameGuessing=true;coach('info','נחש את המהלך','תור הלבן — נסה למצוא את מהלך האלוף. שחק על הלוח.');}
+  else S.gameGuessing=false;
+}
+function gameNext(){
+  if(S.gameGuessing)return;
+  if(S.gamePly>=S.game.line.length)return;
+  const m=C.parseSAN(S.st,S.game.line[S.gamePly]);commit(m);
+  const note=S.game.notes&&S.game.notes[S.gamePly+1];
+  S.gamePly++;
+  if(note)coach('info','הערה',note);else S._coach=null;
+  advanceGamePrompt();renderPanel();
+}
+function handleGameGuess(move){
+  const exp=C.parseSAN(S.st,S.game.line[S.gamePly]);
+  if(exp&&exp.from===move.from&&exp.to===move.to){
+    commit(move);const note=S.game.notes&&S.game.notes[S.gamePly+1];S.gamePly++;S.gameGuessing=false;
+    coach('good','מצאת! ✔',note||'בדיוק המהלך של האלוף.');addXP(6);
+    advanceGamePrompt();
+  }else{coach('bad','לא המהלך שנבחר','נסה שוב, או לחץ "רמז" לראות מה שוחק.');shake();}
   renderPanel();
 }
+function hintGame(){if(!S.gameGuessing)return;const m=C.parseSAN(S.st,S.game.line[S.gamePly]);S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','שוחק: '+S.game.line[S.gamePly]+'.');renderPanel();}
 
-/* ---------------- PLAY mode ---------------- */
+/* ================= PLAY ================= */
 function startPlay(){
-  S.mode='play'; S.gameOver=false;
-  S.st=C.parseFEN(C.START); S.history=[]; S.last=null; S.sel=-1; S.targets=[];
-  S.orientation=S.playSide;
-  renderBoard(); renderMoveList();
-  coach('info','משחק חדש','אתה משחק ב'+(S.playSide==='w'?'לבן':'שחור')+'. בהצלחה!');
-  if(S.st.turn!==S.playSide) aiMove();
+  S.mode='play';S.interact='freeMove';S.gameOver=false;
+  S.st=C.parseFEN(C.START);S.orientation=S.playSide;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
+  renderBoard();renderMoveList();coach('info','משחק חדש','אתה משחק ב'+(S.playSide==='w'?'לבן':'שחור')+'. בהצלחה!');
+  if(S.st.turn!==S.playSide)aiMove();renderPanel();
+}
+
+/* ================= QUIZ ================= */
+function startQuiz(){
+  S.mode='quiz';const pool=PUZZLES.slice();for(let i=pool.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[pool[i],pool[j]]=[pool[j],pool[i]];}
+  S.quiz={list:pool.slice(0,5),i:0,correct:0,answered:false};loadQuizItem();
+}
+function loadQuizItem(){
+  const p=S.quiz.list[S.quiz.i];S.pz=p;S.quiz.answered=false;S.interact='quizMove';S.gameOver=false;
+  S.st=C.parseFEN(p.fen);S.orientation=S.st.turn;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
+  renderBoard();renderMoveList();coach('info','מבחן — שאלה '+(S.quiz.i+1)+'/5',p.theme+'. תור '+(S.st.turn==='w'?'הלבן':'השחור')+'. מצא את המהלך.');renderPanel();
+}
+function handleQuizMove(move){
+  const san=C.moveToSAN(S.st,move).replace(/[+#]/g,'');S.quiz.answered=true;
+  const good=canon(S.pz).includes(san);
+  if(good){S.quiz.correct++;commit(move);coach('good','נכון! ✔',S.pz.idea);}
+  else{const m=C.parseSAN(S.st,S.pz.solutions[0]);coach('bad','טעות','הפתרון היה '+S.pz.solutions[0]+'. '+S.pz.idea);}
   renderPanel();
 }
+function quizNext(){
+  if(S.quiz.i<4){S.quiz.i++;loadQuizItem();}
+  else{const score=S.quiz.correct;P.quiz.last=score;P.quiz.best=Math.max(P.quiz.best||0,score);P.quiz.lastDate=today();P.quiz.taken=(P.quiz.taken||0)+1;addXP(score*5);markActive();saveProg();
+    S.mode='home';coach(score>=4?'good':score>=2?'info':'bad','סיימת את המבחן!','ציון: '+score+'/5. '+(score>=4?'מצוין!':score>=2?'ממשיכים להשתפר.':'שווה לחזור על המוטיבים.'));renderAll();}
+}
 
-/* ---------------- controls ---------------- */
+/* ================= rendering: header / movelist ================= */
+function renderHeader(){const acc=P.attempts?Math.round(100*P.correct/P.attempts):0;$('#xp').textContent=P.xp;$('#hstat').innerHTML='<b>'+P.xp+' XP</b><small>🔥 '+P.streak+' · דיוק '+acc+'%</small>';}
+function renderMoveList(){const box=$('#movelist');if(!box)return;box.innerHTML='';if(!S.history.length){box.appendChild(el('div','empty','אין מהלכים עדיין'));return;}const s=S.history.map(h=>h.san);for(let i=0;i<s.length;i+=2){const row=el('div','mvrow');row.appendChild(el('div','num',(i/2+1)+'.'));row.appendChild(el('div','mv'+(i===s.length-1?' on':''),s[i]||''));row.appendChild(el('div','mv'+(i+1===s.length-1?' on':''),s[i+1]||''));box.appendChild(row);}box.scrollTop=box.scrollHeight;}
+
+/* ================= controls ================= */
 function undo(){
-  if(S.locked) return;
-  if(S.mode==='play'||S.mode==='endgames'){
-    // undo back to human's turn (pop until human to move or empty)
-    const side = S.mode==='play'?S.playSide:S.eg.side;
-    let popped=false;
-    while(S.history.length){ const h=S.history.pop(); S.st=C.parseFEN(h.fen); popped=true; if(S.st.turn===side) break; }
-    if(popped){ S.gameOver=false; S.last=null; S.sel=-1;S.targets=[]; renderBoard(); renderMoveList(); renderPanel(); }
-  } else if(S.mode==='openings'){
-    // step back one full step (user+opponent)
-    if(S.history.length){ const target=Math.max(0,S.history.length-2);
-      const h=S.history[target]; S.st=C.parseFEN(h.fen); S.history=S.history.slice(0,target);
-      S.opPly=target; S.last=null; renderBoard(); renderMoveList(); coach('info','חזרה','חזרת אחורה. המשך מכאן.'); renderPanel(); }
-  }
+  if(S.locked)return;
+  if(S.mode==='play'||S.mode==='endgames'){const side=S.mode==='play'?S.playSide:S.eg.side;let pop=false;while(S.history.length){const h=S.history.pop();S.st=C.parseFEN(h.fen);pop=true;if(S.st.turn===side)break;}if(pop){S.gameOver=false;S.last=null;S.sel=-1;S.targets=[];renderBoard();renderMoveList();renderPanel();}}
+  else if(S.interact==='openingMove'){const t=Math.max(0,S.history.length-2);if(S.history.length){const h=S.history[t];S.st=C.parseFEN(h.fen);S.history=S.history.slice(0,t);S.opPly=t;S.last=null;renderBoard();renderMoveList();coach('info','חזרה','המשך מכאן.');renderPanel();}}
 }
-function flip(){ S.orientation=S.orientation==='w'?'b':'w'; renderBoard(); }
-function hint(){
-  if(S.mode==='openings') revealOpeningMove();
-  else if(S.mode==='puzzles') revealPuzzle();
-  else if(S.mode==='endgames'){ const m=AI.bestMove(S.st,3); if(m){S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','נסה '+prettySAN(C.moveToSAN(S.st,m))+'.');} }
-}
-function resetCurrent(){
-  if(S.mode==='openings'&&S.op) startOpening(S.op);
-  else if(S.mode==='puzzles'&&S.pz) startPuzzle(S.pz);
-  else if(S.mode==='endgames'&&S.eg) startEndgame(S.eg);
-  else if(S.mode==='play') startPlay();
-}
-function shakeBoard(){ const b=$('#board'); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); }
+function flip(){S.orientation=S.orientation==='w'?'b':'w';renderBoard();}
+function hint(){if(S.interact==='openingMove')hintOpening();else if(S.interact==='puzzleMove')hintPuzzle();else if(S.mode==='ideas'&&S.struct)hintStructure();else if(S.interact==='gameGuess')hintGame();else if(S.interact==='freeMove'&&S.mode==='endgames'){const m=AI.bestMove(S.st,3);if(m){S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','נסה '+C.moveToSAN(S.st,m)+'.');renderPanel();}}}
+function resetCur(){if(S.interact==='openingMove')startOpening(S.op);else if(S.mode==='ideas'&&S.struct)startStructure(S.struct);else if(S.interact==='puzzleMove')startPuzzle(S.pz);else if(S.mode==='endgames')startEndgame(S.eg);else if(S.mode==='play')startPlay();else if(S.thinkView&&S.game&&S.mode==='thinking')startGame(S.game);}
 
-/* ---------------- helpers ---------------- */
-function prettySAN(s){ return s; }
-function coach(kind,tag,txt){ S._coach={kind,tag,txt}; }
+function renderControls(){
+  const undoB=$('#c-undo'),hintB=$('#c-hint'),nextB=$('#c-next'),flipB=$('#c-flip'),resetB=$('#c-reset');
+  const showBoard=S.mode!=='home';
+  $('#boardarea').classList.toggle('hidden',!showBoard);
+  $('#main').classList.toggle('noboard',!showBoard);
+  if(!showBoard)return;
+  const showUndo=(S.mode==='play'||S.mode==='endgames'||S.interact==='openingMove');
+  undoB.classList.toggle('hidden',!showUndo);undoB.disabled=S.history.length===0;
+  const showHint=(S.interact==='openingMove'||S.interact==='puzzleMove'||S.interact==='gameGuess'||(S.mode==='ideas'&&S.struct&&S.struct.kind==='identify')||(S.mode==='endgames'));
+  hintB.classList.toggle('hidden',!showHint);
+  // next button: puzzles, game step, quiz
+  let nextTxt='',nextFn=null;
+  if(S.interact==='puzzleMove'){nextTxt='תרגיל הבא ›';nextFn=nextPuzzle;}
+  else if(S.mode==='thinking'&&S.game){nextTxt=S.gamePly>=S.game.line.length?'':'המשך ›';nextFn=gameNext;}
+  else if(S.mode==='quiz'){nextTxt=S.quiz&&S.quiz.answered?(S.quiz.i<4?'שאלה הבאה ›':'סיים מבחן ›'):'';nextFn=quizNext;}
+  nextB.classList.toggle('hidden',!nextTxt);nextB.textContent=nextTxt;nextB.onclick=nextFn||(()=>{});
+  if(S.mode==='thinking'&&S.game&&S.gameGuessing)nextB.classList.add('hidden');
+  resetB.classList.toggle('hidden',S.mode==='thinking'&&!S.game);
+}
 
-/* ---------------- rendering: header / movelist / panel ---------------- */
-function renderHeader(){
-  const acc = P.attempts? Math.round(100*P.correct/P.attempts):0;
-  $('#xp').textContent = P.xp;
-  $('#hstat').innerHTML = '<b>'+P.xp+' XP</b><small>דיוק '+acc+'% · '+P.games+' משחקים</small>';
-}
-function renderMoveList(){
-  const box=$('#movelist'); if(!box) return; box.innerHTML='';
-  if(!S.history.length){ box.appendChild(el('div','empty','אין מהלכים עדיין')); return; }
-  const sans=S.history.map(h=>h.san);
-  for(let i=0;i<sans.length;i+=2){
-    const row=el('div','mvrow');
-    row.appendChild(el('div','num',(i/2+1)+'.'));
-    row.appendChild(el('div','mv'+(i===sans.length-1?' on':''),sans[i]||''));
-    row.appendChild(el('div','mv'+(i+1===sans.length-1?' on':''),sans[i+1]||''));
-    box.appendChild(row);
-  }
-  box.scrollTop=box.scrollHeight;
-}
-function coachCard(){
-  const c=S._coach; if(!c) return '';
-  return '<div class="coach '+c.kind+'"><div class="tag">'+tagIcon(c.kind)+c.tag+'</div>'+c.txt+'</div>';
-}
-function tagIcon(k){ return k==='good'?'✔ ':k==='bad'?'✕ ':'♟ '; }
+/* ================= panels ================= */
+function wrap(){return el('div','panel');}
+function pill(side){return '<span class="pill '+side+'">'+(side==='w'?'אתה הלבן ♔':'אתה השחור ♚')+'</span>';}
+function bar(done,total){const pct=total?Math.round(100*done/total):0;return '<div class="pbar"><div style="width:'+pct+'%"></div></div>';}
 
-function renderPanel(){
-  const P0=$('#panel'); P0.innerHTML='';
-  if(S.mode==='openings') P0.appendChild(panelOpenings());
-  else if(S.mode==='puzzles') P0.appendChild(panelPuzzles());
-  else if(S.mode==='endgames') P0.appendChild(panelEndgames());
-  else P0.appendChild(panelPlay());
-  // shared move list + controls card appended to board side handled separately
+function renderPanel(){const p=$('#panel');p.innerHTML='';
+  if(S.mode==='home')p.appendChild(panelHome());
+  else if(S.mode==='openings')p.appendChild(panelOpenings());
+  else if(S.mode==='ideas')p.appendChild(panelIdeas());
+  else if(S.mode==='endgames')p.appendChild(panelEndgames());
+  else if(S.mode==='thinking')p.appendChild(panelThinking());
+  else if(S.mode==='play')p.appendChild(panelPlay());
+  else if(S.mode==='quiz')p.appendChild(panelQuiz());
   renderControls();
 }
-function renderControls(){
-  const undoBtn=$('#c-undo'), hintBtn=$('#c-hint'), nextBtn=$('#c-next');
-  const showUndo = (S.mode==='play'||S.mode==='endgames'||S.mode==='openings');
-  undoBtn.classList.toggle('hidden', !showUndo);
-  undoBtn.disabled = S.history.length===0;
-  const showHint = (S.mode!=='play');
-  hintBtn.classList.toggle('hidden', !showHint);
-  nextBtn.classList.toggle('hidden', S.mode!=='puzzles');
+
+/* ---- HOME ---- */
+function panelHome(){
+  const w=wrap();
+  // progress summary
+  const totals={openings:OPENINGS.length,structures:STRUCTURES.length,puzzles:PUZZLES.length,endgames:ENDGAMES.length,course:COURSE.length};
+  const done={openings:Object.keys(P.openings).length,structures:Object.keys(P.structures).length,puzzles:Object.keys(P.puzzles).length,endgames:Object.keys(P.endgames).length,course:Object.keys(P.course).length};
+  const c1=el('div','card');
+  c1.innerHTML='<h2><span class="k">התקדמות</span> הסיכום שלך</h2>'+
+    '<div class="statrow"><div class="stat"><b>'+P.xp+'</b><small>XP</small></div><div class="stat"><b>🔥 '+P.streak+'</b><small>רצף ימים</small></div><div class="stat"><b>'+(P.attempts?Math.round(100*P.correct/P.attempts):0)+'%</b><small>דיוק</small></div></div>'+
+    '<div class="prow"><span>פתיחות</span>'+bar(done.openings,totals.openings)+'<em>'+done.openings+'/'+totals.openings+'</em></div>'+
+    '<div class="prow"><span>מבנים</span>'+bar(done.structures,totals.structures)+'<em>'+done.structures+'/'+totals.structures+'</em></div>'+
+    '<div class="prow"><span>מוטיבים</span>'+bar(done.puzzles,totals.puzzles)+'<em>'+done.puzzles+'/'+totals.puzzles+'</em></div>'+
+    '<div class="prow"><span>סיומים</span>'+bar(done.endgames,totals.endgames)+'<em>'+done.endgames+'/'+totals.endgames+'</em></div>'+
+    '<div class="prow"><span>קורס</span>'+bar(done.course,totals.course)+'<em>'+done.course+'/'+totals.course+'</em></div>';
+  if(S._coach)c1.insertAdjacentHTML('beforeend',coachCard());
+  w.appendChild(c1);
+  // quiz
+  const q=el('div','card');const took=P.quiz.lastDate===today();
+  q.innerHTML='<h2><span class="k">מבחן</span> בדיקה עצמית</h2><div class="sub">חמש שאלות אקראיות שבודקות את המוטיבים שלמדת.'+(P.quiz.best?' שיא: '+P.quiz.best+'/5.':'')+'</div>';
+  const qb=el('button','ctrl primary');qb.style.width='100%';qb.textContent=took?'עשית היום ('+P.quiz.last+'/5) — למבחן נוסף':'התחל מבחן יומי';qb.onclick=startQuiz;q.appendChild(qb);
+  if(!took)q.insertAdjacentHTML('beforeend','<div class="nudge">🔔 עדיין לא נבחנת היום</div>');
+  w.appendChild(q);
+  // plan
+  if(P.plan.date!==today()){P.plan.date=today();P.plan.checked={};saveProg();}
+  if(P.planW.week!==weekId()){P.planW.week=weekId();P.planW.checked={};saveProg();}
+  const pl=el('div','card');pl.innerHTML='<h2><span class="k">תוכנית</span> משימות</h2>';
+  const dl=el('div',null,'<div class="plabel">היום</div>');PLAN.daily.forEach(t=>dl.appendChild(taskRow(t,'plan')));pl.appendChild(dl);
+  const wl=el('div',null,'<div class="plabel">השבוע</div>');PLAN.weekly.forEach(t=>wl.appendChild(taskRow(t,'planW')));pl.appendChild(wl);
+  w.appendChild(pl);
+  // course
+  const cc=el('div','card');cc.innerHTML='<h2><span class="k">קורס</span> 30 שיעורים דרך רעיונות</h2><div class="sub">כל שיעור = רעיון + תרגול. לחץ כדי לעבור לתרגול, וסמן כשסיימת.</div>';
+  const list=el('div','course-list');let curArea='';
+  COURSE.forEach(L=>{if(L.area!==curArea){curArea=L.area;list.appendChild(el('div','carea',L.area));}
+    const row=el('div','lesson'+(P.course[L.n]?' done':''));
+    row.innerHTML='<div class="ln">'+L.n+'</div><div class="lt"><b>'+L.title+'</b><small>'+L.idea+'</small><span class="ltask">🎯 '+L.task+'</span></div>';
+    const chk=el('button','lchk'+(P.course[L.n]?' on':''),P.course[L.n]?'✓':'');chk.title='סמן כבוצע';chk.onclick=(ev)=>{ev.stopPropagation();if(P.course[L.n])delete P.course[L.n];else{P.course[L.n]=1;addXP(5);}markActive();saveProg();renderAll();};
+    row.appendChild(chk);
+    row.onclick=()=>gotoRef(L.ref);
+    list.appendChild(row);
+  });
+  cc.appendChild(list);w.appendChild(cc);
+  return w;
+}
+function taskRow(t,key){const on=P[key].checked[t.id];const r=el('button','task'+(on?' on':''));r.innerHTML='<span class="tbox">'+(on?'✓':'')+'</span>'+t.txt;r.onclick=()=>{if(P[key].checked[t.id])delete P[key].checked[t.id];else{P[key].checked[t.id]=1;addXP(3);}markActive();saveProg();renderPanel();};return r;}
+function gotoRef(ref){
+  if(!ref)return;
+  if(ref.mode==='openings'){setTab('openings');const o=OPENINGS.find(x=>x.id===ref.id);if(o){S.opColorFilter='all';viewOpening(o);}return;}
+  if(ref.mode==='structures'){setTab('ideas');S.ideaTab='structures';if(ref.id){const st=STRUCTURES.find(x=>x.id===ref.id);if(st)startStructure(st);else renderPanel();}else renderPanel();return;}
+  if(ref.mode==='puzzles'){setTab('ideas');S.ideaTab='puzzles';const p=PUZZLES.find(x=>x.theme===ref.theme);if(p)startPuzzle(p);else renderPanel();return;}
+  if(ref.mode==='endgames'){setTab('endgames');const e=ENDGAMES.find(x=>x.id===ref.id);if(e)startEndgame(e);return;}
+  if(ref.mode==='thinking'){setTab('thinking');S.thinkView='method';renderPanel();return;}
+  if(ref.mode==='games'){setTab('thinking');const g=GAMES.find(x=>x.id===ref.id);if(g)startGame(g);return;}
+  if(ref.mode==='play'){setTab('play');return;}
+  if(ref.mode==='home'){setTab('home');return;}
 }
 
-/* panel builders */
-function wrap(){ const d=el('div','panel'); return d; }
-function openingPickerCard(){
-  const card=el('div','card');
-  card.appendChild(el('h2',null,'<span class="k">פתיחות</span> בחר פתיחה לתרגול'));
-  card.appendChild(el('div','sub','שחק את הצד שלך; היריב עונה בספר. המטרה — להבין את הרעיון בכל מהלך.'));
-  const list=el('div','select-list');
-  OPENINGS.forEach(o=>{
-    const b=el('button','opt'+(S.op&&S.op.id===o.id?' active':''));
-    const done=P.openings[o.id];
-    b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(o.side==='w'?'♔':'♚')+'</div>'+
-      '<div class="txt"><b>'+o.name+'</b><small>'+o.summary+'</small></div>'+
-      '<div class="chev">'+(done?'✔':'‹')+'</div>';
-    b.onclick=()=>{ startOpening(o); };
-    list.appendChild(b);
-  });
-  card.appendChild(list);
-  return card;
-}
+/* ---- OPENINGS ---- */
 function panelOpenings(){
-  const w=wrap();
-  w.appendChild(openingPickerCard());
-  if(S.op){
-    const c=el('div','card');
-    const prog=Math.min(S.opPly,S.op.line.length);
-    c.innerHTML='<h2><span class="pill '+S.op.side+'">'+(S.op.side==='w'?'אתה הלבן':'אתה השחור')+'</span> '+S.op.name+'</h2>'+
-      '<div class="sub">מהלך '+Math.ceil((prog+1)/2)+' · '+prog+'/'+S.op.line.length+' חצאי־מהלכים</div>'+
-      coachCard();
+  const w=wrap();const card=el('div','card');
+  card.appendChild(el('h2',null,'<span class="k">פתיחות</span> בחר פתיחה ללימוד'));
+  const seg=el('div','seg');[['all','הכל'],['w','עם הלבן ♔'],['b','עם השחור ♚']].forEach(([v,l])=>{const b=el('button',S.opColorFilter===v?'on':'');b.innerHTML=l;b.onclick=()=>{S.opColorFilter=v;renderPanel();};seg.appendChild(b);});
+  card.appendChild(seg);
+  const list=el('div','select-list');list.style.marginTop='10px';
+  openingList().forEach(o=>{const b=el('button','opt'+(S.opView&&S.opView.id===o.id?' active':''));const done=P.openings[o.id];
+    b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(o.side==='w'?'♔':'♚')+'</div><div class="txt"><b>'+o.name+'</b><small>'+o.vs+' · '+o.summary+'</small></div><div class="chev">'+(done?'✔':'‹')+'</div>';
+    b.onclick=()=>viewOpening(o);list.appendChild(b);});
+  card.appendChild(list);w.appendChild(card);
+  if(S.opView){const o=S.opView;const c=el('div','card');
+    if(S.op){ // practicing
+      const prog=Math.min(S.opPly,o.line.length);
+      c.innerHTML='<h2>'+pill(o.side)+' '+o.name+'</h2><div class="sub">מהלך '+Math.ceil((prog+1)/2)+' · '+prog+'/'+o.line.length+' חצאי־מהלכים</div>'+coachCard();
+      const back=el('button','linkbtn','‹ חזרה לפרטי הפתיחה');back.onclick=()=>viewOpening(o);c.appendChild(back);
+    }else{ // study
+      c.innerHTML='<h2>'+o.name+' <span class="eco">'+o.eco+'</span></h2><div class="sub">'+o.vs+'</div>'+
+        '<div class="study"><div class="srow"><b>הרעיון:</b> '+o.summary+'</div>'+
+        '<div class="srow"><b>מבנה:</b> '+o.structure+'</div>'+
+        '<div class="srow"><b>התוכנית שלך:</b> '+o.plan+'</div>'+
+        '<div class="srow"><b>שים לב:</b> '+o.whatToWatch+'</div></div>';
+      const start=el('button','ctrl primary','▶ התחל לתרגל את הקו');start.style.width='100%';start.style.marginTop='12px';start.onclick=()=>startOpening(o);c.appendChild(start);
+    }
     w.appendChild(c);
-  } else {
-    const c=el('div','card'); c.innerHTML=coachCard()||'<div class="coach info"><div class="tag">♟ התחל</div>בחר פתיחה מהרשימה כדי להתחיל לתרגל.</div>'; w.appendChild(c);
   }
   return w;
 }
-function panelPuzzles(){
-  const w=wrap();
-  const card=el('div','card');
-  card.appendChild(el('h2',null,'<span class="k">מוטיבים</span> תרגילי רעיונות'));
-  card.appendChild(el('div','sub','מצא את המהלך שממחיש את הרעיון. פתרון נכון פותח את ההסבר.'));
-  const groups={};
-  PUZZLES.forEach(p=>{ (groups[p.group]=groups[p.group]||[]).push(p); });
-  Object.keys(groups).forEach(g=>{
-    card.appendChild(el('div','sub','<b style="color:var(--green-2)">'+g+'</b>'));
-    const list=el('div','select-list');
-    groups[g].forEach(p=>{
-      const b=el('button','opt'+(S.pz&&S.pz.theme===p.theme?' active':''));
-      const done=P.puzzles[p.theme];
-      b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'?')+'</div><div class="txt"><b>'+p.theme+'</b></div><div class="chev">‹</div>';
-      b.onclick=()=>startPuzzle(p);
-      list.appendChild(b);
-    });
-    card.appendChild(list);
-  });
-  w.appendChild(card);
-  if(S.pz){ const c=el('div','card'); c.innerHTML='<h2>'+S.pz.theme+'</h2>'+coachCard(); w.appendChild(c); }
+
+/* ---- IDEAS (structures + puzzles) ---- */
+function panelIdeas(){
+  const w=wrap();const card=el('div','card');
+  card.appendChild(el('h2',null,'<span class="k">רעיונות</span> מבנים ומוטיבים'));
+  const seg=el('div','seg');[['structures','מבני רגלים'],['puzzles','מוטיבים']].forEach(([v,l])=>{const b=el('button',S.ideaTab===v?'on':'');b.textContent=l;b.onclick=()=>{S.ideaTab=v;S.struct=null;S.pz=null;renderPanel();if(v==='structures')startStructure(STRUCTURES[0]);else startPuzzle(PUZZLES[0]);};seg.appendChild(b);});
+  card.appendChild(seg);
+  if(S.ideaTab==='structures'){
+    const list=el('div','select-list');list.style.marginTop='10px';
+    STRUCTURES.forEach(st=>{const b=el('button','opt'+(S.struct&&S.struct.id===st.id?' active':''));const done=P.structures[st.id];
+      b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'♟')+'</div><div class="txt"><b>'+st.title+'</b></div><div class="chev">‹</div>';
+      b.onclick=()=>startStructure(st);list.appendChild(b);});
+    card.appendChild(list);w.appendChild(card);
+    if(S.struct){const c=el('div','card');c.innerHTML='<h2>'+S.struct.title+'</h2>'+coachCard();
+      if(S.struct.kind==='choice'&&!S.structDone){const row=el('div','choices');S.struct.choices.forEach((ch,i)=>{const b=el('button','choice');b.textContent=ch;b.onclick=()=>answerChoice(i);row.appendChild(b);});c.appendChild(row);}
+      w.appendChild(c);}
+  }else{
+    const groups={};PUZZLES.forEach(p=>{(groups[p.group]=groups[p.group]||[]).push(p);});
+    Object.keys(groups).forEach(g=>{card.appendChild(el('div','sub','<b style="color:var(--green-2)">'+g+'</b>'));const list=el('div','select-list');
+      groups[g].forEach(p=>{const b=el('button','opt'+(S.pz&&S.pz.theme===p.theme?' active':''));const done=P.puzzles[p.theme];
+        b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'?')+'</div><div class="txt"><b>'+p.theme+'</b></div><div class="chev">‹</div>';
+        b.onclick=()=>startPuzzle(p);list.appendChild(b);});card.appendChild(list);});
+    w.appendChild(card);
+    if(S.pz){const c=el('div','card');c.innerHTML='<h2>'+S.pz.theme+'</h2>'+coachCard();w.appendChild(c);}
+  }
   return w;
 }
+
+/* ---- ENDGAMES ---- */
 function panelEndgames(){
-  const w=wrap();
-  const card=el('div','card');
+  const w=wrap();const card=el('div','card');
   card.appendChild(el('h2',null,'<span class="k">סיומים</span> תרגול מול המחשב'));
-  card.appendChild(el('div','sub','שחק את העמדה עד להשגת המטרה. המחשב מתגונן.'));
+  card.appendChild(el('div','sub','שחק עד להשגת המטרה. המחשב מתגונן.'));
   const list=el('div','select-list');
-  ENDGAMES.forEach(e=>{
-    const b=el('button','opt'+(S.eg&&S.eg.id===e.id?' active':''));
-    const done=P.endgames[e.id];
-    b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'♜')+'</div><div class="txt"><b>'+e.name+'</b><small>'+e.goal+'</small></div><div class="chev">‹</div>';
-    b.onclick=()=>startEndgame(e);
-    list.appendChild(b);
-  });
-  card.appendChild(list);
-  w.appendChild(card);
-  if(S.eg){ const c=el('div','card'); c.innerHTML='<h2>'+S.eg.name+'</h2>'+coachCard(); w.appendChild(c); }
+  ENDGAMES.forEach(e=>{const b=el('button','opt'+(S.eg&&S.eg.id===e.id?' active':''));const done=P.endgames[e.id];
+    b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'♜')+'</div><div class="txt"><b>'+e.name+'</b><small>'+e.level+' · '+e.goal+'</small></div><div class="chev">‹</div>';
+    b.onclick=()=>startEndgame(e);list.appendChild(b);});
+  card.appendChild(list);w.appendChild(card);
+  if(S.eg){const c=el('div','card');c.innerHTML='<h2>'+S.eg.name+'</h2>'+coachCard();w.appendChild(c);}
+  const tips=el('div','card');tips.innerHTML='<h2>טכניקות להכיר</h2>';ENDGAME_TIPS.forEach(t=>tips.insertAdjacentHTML('beforeend','<div class="tip"><b>'+t.name+':</b> '+t.txt+'</div>'));w.appendChild(tips);
   return w;
 }
+
+/* ---- THINKING + GAMES ---- */
+function panelThinking(){
+  const w=wrap();const card=el('div','card');
+  card.appendChild(el('h2',null,'<span class="k">חשיבה</span> שיטה וניתוח משחק'));
+  const seg=el('div','seg');[['method','ארבע השאלות'],['game','ניתוח משחק']].forEach(([v,l])=>{const on=(v==='method'&&S.thinkView==='method')||(v==='game'&&S.thinkView!=='method');const b=el('button',on?'on':'');b.textContent=l;b.onclick=()=>{if(v==='method'){S.thinkView='method';S.game=null;S.st=C.parseFEN(C.START);S.interact='none';S.hl=[];renderBoard();renderMoveList();renderPanel();}else startGame(GAMES[0]);};seg.appendChild(b);});
+  card.appendChild(seg);w.appendChild(card);
+  if(S.thinkView==='method'){
+    const c=el('div','card');c.innerHTML='<h2>'+THINKING.title+'</h2>';
+    THINKING.questions.forEach((q,i)=>c.insertAdjacentHTML('beforeend','<div class="qitem"><div class="qn">'+(i+1)+'</div><div><b>'+q.q+'</b><small>'+q.d+'</small></div></div>'));
+    c.insertAdjacentHTML('beforeend','<div class="coach info"><div class="tag">♟ זכור</div>'+THINKING.blunderCheck+'</div>');
+    w.appendChild(c);
+  }else if(S.game){
+    const c=el('div','card');const prog=Math.min(S.gamePly,S.game.line.length);
+    c.innerHTML='<h2>'+S.game.title+'</h2><div class="sub">'+S.game.level+' · מהלך '+Math.ceil((prog+1)/2)+'/'+Math.ceil(S.game.line.length/2)+'</div>'+coachCard();
+    w.appendChild(c);
+  }
+  return w;
+}
+
+/* ---- PLAY ---- */
 function panelPlay(){
-  const w=wrap();
-  const card=el('div','card');
+  const w=wrap();const card=el('div','card');
   card.appendChild(el('h2',null,'<span class="k">משחק חי</span> שחק מול המחשב'));
   card.appendChild(el('div','sub','משחק מלא לתרגול "חי". בחר צבע ורמת קושי.'));
-  // color
-  const colWrap=el('div',null,'<div class="sub" style="margin-bottom:6px">צבע</div>');
-  const seg1=el('div','seg');
-  [['w','לבן ♔'],['b','שחור ♚']].forEach(([v,l])=>{ const b=el('button',S.playSide===v?'on':''); b.innerHTML=l; b.onclick=()=>{S.playSide=v;startPlay();}; seg1.appendChild(b); });
-  colWrap.appendChild(seg1); card.appendChild(colWrap);
-  // level
-  const lvlWrap=el('div',null,'<div class="sub" style="margin:12px 0 6px">רמת קושי</div>');
-  const seg2=el('div','seg');
-  [[1,'קל'],[2,'בינוני'],[3,'מאתגר']].forEach(([v,l])=>{ const b=el('button',S.playDepth===v?'on':''); b.textContent=l; b.onclick=()=>{S.playDepth=v; const bs=seg2.querySelectorAll('button'); bs.forEach(x=>x.classList.remove('on')); b.classList.add('on');}; seg2.appendChild(b); });
-  lvlWrap.appendChild(seg2); card.appendChild(lvlWrap);
-  const newBtn=el('button','ctrl primary','משחק חדש'); newBtn.style.marginTop='14px'; newBtn.style.width='100%'; newBtn.onclick=()=>startPlay();
-  card.appendChild(newBtn);
+  const cw=el('div',null,'<div class="sub" style="margin-bottom:6px">צבע</div>');const s1=el('div','seg');
+  [['w','לבן ♔'],['b','שחור ♚']].forEach(([v,l])=>{const b=el('button',S.playSide===v?'on':'');b.innerHTML=l;b.onclick=()=>{S.playSide=v;startPlay();};s1.appendChild(b);});cw.appendChild(s1);card.appendChild(cw);
+  const lw=el('div',null,'<div class="sub" style="margin:12px 0 6px">רמת קושי</div>');const s2=el('div','seg');
+  [[1,'קל'],[2,'בינוני'],[3,'מאתגר']].forEach(([v,l])=>{const b=el('button',S.playDepth===v?'on':'');b.textContent=l;b.onclick=()=>{S.playDepth=v;s2.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');};s2.appendChild(b);});lw.appendChild(s2);card.appendChild(lw);
+  const nb=el('button','ctrl primary','משחק חדש');nb.style.marginTop='14px';nb.style.width='100%';nb.onclick=startPlay;card.appendChild(nb);
   w.appendChild(card);
-  if(S._coach){ const c=el('div','card'); c.innerHTML='<h2>מצב המשחק</h2>'+coachCard(); w.appendChild(c); }
+  if(S._coach){const c=el('div','card');c.innerHTML='<h2>מצב המשחק</h2>'+coachCard();w.appendChild(c);}
   return w;
 }
 
-/* ---------------- tabs ---------------- */
-function setMode(m){
-  S.mode=m; S._coach=null; S.sel=-1; S.targets=[]; S.gameOver=false;
+/* ---- QUIZ ---- */
+function panelQuiz(){
+  const w=wrap();const c=el('div','card');
+  c.innerHTML='<h2><span class="k">מבחן</span> שאלה '+(S.quiz.i+1)+' מתוך 5</h2><div class="sub">נכונות עד כה: '+S.quiz.correct+'/'+S.quiz.i+'</div>'+coachCard();
+  w.appendChild(c);return w;
+}
+
+/* ================= tabs / init ================= */
+const TABS=[['home','🏠','בית'],['openings','♙','פתיחות'],['ideas','♟','רעיונות'],['endgames','♜','סיומים'],['thinking','🧠','חשיבה'],['play','♛','משחק']];
+function setTab(m){
+  S.mode=m;S._coach=null;S.sel=-1;S.targets=[];S.gameOver=false;S.hl=[];S.interact='none';
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.m===m));
-  if(m==='openings'){ if(S.op) startOpening(S.op); else { S.st=C.parseFEN(C.START); S.history=[]; S.last=null; renderBoard(); renderMoveList(); renderPanel(); } }
-  else if(m==='puzzles'){ if(S.pz) startPuzzle(S.pz); else startPuzzle(PUZZLES[0]); }
-  else if(m==='endgames'){ if(S.eg) startEndgame(S.eg); else startEndgame(ENDGAMES[0]); }
-  else if(m==='play'){ startPlay(); }
+  if(m==='home'){S.st=C.parseFEN(C.START);renderBoard&&renderBoard();renderPanel();}
+  else if(m==='openings'){if(S.opView)viewOpening(S.opView);else{S.st=C.parseFEN(C.START);S.orientation='w';renderBoard();renderMoveList();renderPanel();}}
+  else if(m==='ideas'){if(S.ideaTab==='structures'){if(S.struct)startStructure(S.struct);else startStructure(STRUCTURES[0]);}else{if(S.pz)startPuzzle(S.pz);else startPuzzle(PUZZLES[0]);}}
+  else if(m==='endgames'){if(S.eg)startEndgame(S.eg);else startEndgame(ENDGAMES[0]);}
+  else if(m==='thinking'){if(S.thinkView==='method'){S.st=C.parseFEN(C.START);S.game=null;renderBoard();renderMoveList();renderPanel();}else if(S.game)startGame(S.game);else{S.thinkView='method';S.st=C.parseFEN(C.START);renderBoard();renderPanel();}}
+  else if(m==='play')startPlay();
 }
-
-/* ---------------- init ---------------- */
+function renderAll(){renderHeader();renderBoard();renderMoveList();renderPanel();}
 function init(){
+  const bar=$('#tabs');TABS.forEach(([m,ic,l])=>{const b=el('button','tab'+(m==='home'?' active':''));b.dataset.m=m;b.innerHTML='<span class="ti">'+ic+'</span>'+l;b.onclick=()=>setTab(m);bar.appendChild(b);});
   $('#board').addEventListener('click',onCellClick);
-  document.querySelectorAll('.tab').forEach(t=>{ t.onclick=()=>setMode(t.dataset.m); });
-  $('#c-undo').onclick=undo; $('#c-hint').onclick=hint; $('#c-flip').onclick=flip; $('#c-reset').onclick=resetCurrent; $('#c-next').onclick=nextPuzzle;
-  $('#themeBtn').onclick=toggleTheme;
-  initTheme();
-  S.st=C.parseFEN(C.START);
-  renderHeader();
-  setMode('openings');
-  startOpening(OPENINGS[0]);
+  $('#c-undo').onclick=undo;$('#c-hint').onclick=hint;$('#c-flip').onclick=flip;$('#c-reset').onclick=resetCur;
+  $('#themeBtn').onclick=toggleTheme;initTheme();
+  S.st=C.parseFEN(C.START);renderHeader();setTab('home');
 }
-function initTheme(){ const t=localStorage.getItem('chessTrainer.theme'); if(t) document.documentElement.setAttribute('data-theme',t); updateThemeBtn(); }
-function toggleTheme(){ const cur=document.documentElement.getAttribute('data-theme'); const isDark = cur? cur==='dark' : window.matchMedia('(prefers-color-scheme:dark)').matches; const next=isDark?'light':'dark'; document.documentElement.setAttribute('data-theme',next); try{localStorage.setItem('chessTrainer.theme',next);}catch(e){} updateThemeBtn(); }
-function updateThemeBtn(){ const cur=document.documentElement.getAttribute('data-theme'); const isDark = cur? cur==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches; $('#themeBtn').textContent=isDark?'☀':'☾'; }
-
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+function initTheme(){const t=localStorage.getItem('chessTrainer.theme');if(t)document.documentElement.setAttribute('data-theme',t);updateThemeBtn();}
+function toggleTheme(){const cur=document.documentElement.getAttribute('data-theme');const dark=cur?cur==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches;const nx=dark?'light':'dark';document.documentElement.setAttribute('data-theme',nx);try{localStorage.setItem('chessTrainer.theme',nx);}catch(e){}updateThemeBtn();}
+function updateThemeBtn(){const cur=document.documentElement.getAttribute('data-theme');const dark=cur?cur==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches;$('#themeBtn').textContent=dark?'☀':'☾';}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
 </script>
