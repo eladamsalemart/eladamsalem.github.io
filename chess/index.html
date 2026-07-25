@@ -287,6 +287,19 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .ctx-choices .choice{flex:1;min-width:130px}
 .ctxbar .coach{margin:0}
 
+/* ===== opening situations / levels ===== */
+.lvl{font-size:11.5px;font-weight:800;color:var(--green-2);background:rgba(47,107,73,.14);
+  padding:2px 9px;border-radius:20px;white-space:nowrap}
+.sit-label{font-size:12.5px;font-weight:800;color:var(--gold);margin-top:2px}
+.sit-list{display:flex;flex-direction:column;gap:8px}
+.sit{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:11px;
+  background:var(--surface-2);border:1px solid var(--line);text-align:right;transition:all .12s;width:100%}
+.sit:hover{border-color:var(--green);transform:translateY(-1px);background:var(--surface)}
+.sit-lvl{flex:none;font-size:11px;font-weight:800;color:#2a1f05;background:var(--gold-soft);
+  padding:3px 9px;border-radius:20px;min-width:52px;text-align:center}
+.sit-name{flex:1;font-size:14px;font-weight:700;min-width:0}
+.sit-chk{flex:none;color:var(--green-2);font-weight:800;font-size:15px}
+
 </style>
 </head>
 <body>
@@ -644,62 +657,145 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 ;
 /* ================= Training content (validated against engine.js) ================= */
 
-/* ---------- OPENINGS (study + practice, both colors) ---------- */
+/* ---------- OPENINGS: each has several situations/levels ---------- */
 const OPENINGS = [
  { id:'italian', name:'המשחק האיטלקי', side:'w', vs:'1.e4 e5', eco:'Italian Game',
-   line:['e4','e5','Nf3','Nc6','Bc4','Bc5','c3','Nf6','d3','d6','O-O','O-O'],
    summary:'פיתוח מהיר, שליטה במרכז ולחץ על f7 — הפתיחה הכי חינוכית ללבן.',
    structure:'מרכז קלאסי (e4/d4 מול e5/d6)',
-   plan:'לבנות מרכז עם c3+d4, לפתח בטבעיות ולכוון את הרץ ל־f7. אחרי הצרחה — לחפש התקדמות במרכז או התקפה על אגף המלך.',
+   plan:'לבנות מרכז עם c3+d4, לפתח בטבעיות ולכוון את הרץ ל־f7. אחרי הצרחה — התקדמות במרכז או התקפה על אגף המלך.',
    whatToWatch:'היזהר מ־...Ng4 ומהקרבות על f2; אל תמהר עם d4 לפני שסיימת פיתוח.',
-   ideas:{1:'שולט במרכז ופותח דרך למלכה ולרץ.',3:'מפתח אביר, תוקף את e5 ומכין הצרחה.',5:'הרץ מכוון ל־f7 — הנקודה החלשה של השחור.',7:'c3 מכין d4 ובניית מרכז רגלים חזק.',9:'d3 מחזק את e4 ופותח את הרץ מ־c1.',11:'הצרחה — המלך לבטחון והצריח נכנס למשחק.'} },
+   lines:[
+    {id:'main',name:'הקו הקלאסי (Giuoco Pianissimo)',level:'מתחיל',
+     line:['e4','e5','Nf3','Nc6','Bc4','Bc5','c3','Nf6','d3','d6','O-O','O-O'],
+     note:'שני הצדדים מפתחים בשקט. למד את הסידור הבסיסי: Bc4, c3, d3, הצרחה.',
+     ideas:{1:'שולט במרכז ופותח דרך למלכה ולרץ.',3:'מפתח אביר, תוקף את e5 ומכין הצרחה.',5:'הרץ מכוון ל־f7 — הנקודה החלשה.',7:'c3 מכין d4 ובניית מרכז.',9:'d3 מחזק את e4 ופותח את הרץ מ־c1.',11:'הצרחה — המלך לבטחון והצריח למשחק.'}},
+    {id:'be7',name:'היריב מגיב בשקט (…Be7)',level:'בינוני',
+     line:['e4','e5','Nf3','Nc6','Bc4','Be7','d3','Nf6','O-O','O-O','c3','d6'],
+     note:'השחור בוחר סידור צנוע עם ...Be7. יש לך יותר מרחב — התכונן ל־Nbd2-f1-g3 ולתקוף.',
+     ideas:{5:'הרץ ל־c4 שומר על הלחץ גם מול ...Be7.',9:'הצרחה מוקדמת ובטוחה.',11:'c3 מכין d4 ומרכז חזק.'}},
+    {id:'twokn',name:'שני האבירים — הקו החד (Ng5)',level:'מתקדם',
+     line:['e4','e5','Nf3','Nc6','Bc4','Nf6','Ng5','d5','exd5','Na5','Bb5+','c6'],
+     note:'כשהשחור משחק ...Nf6 מוקדם, Ng5 תוקף את f7. קו חד — Na5 תוקף את הרץ, Bb5+ מחזיק יתרון.',
+     ideas:{5:'הרץ ל־c4 מכוון ל־f7.',7:'Ng5! מאיים על f7 בשיתוף הרץ.',9:'exd5 לוקח במרכז — עכשיו ...Na5.',11:'Bb5+! מונע ...Qxd5 ושומר על היתרון.'}},
+   ]},
  { id:'london', name:'מערכת לונדון', side:'w', vs:'נגד הכל', eco:'London System',
-   line:['d4','d5','Bf4','Nf6','e3','e6','Nf3','Bd6','Bg3','O-O','Bd3','c5'],
    summary:'אותו מבנה יציב כמעט נגד הכל — פיתוח הרמוני ותוכנית ברורה.',
    structure:'שלשלת פירמידה (d4/e3/c3) עם רץ ב־f4',
-   plan:'להוציא את הרץ ל־f4 לפני e3, לפתח Nf3/Bd3/Nbd2, להצריח, ואז לשקול Ne5 או פריצת c-רגלי/מתקפת אגף מלך.',
-   whatToWatch:'אל תיתן לשחור להחליף את הרץ הטוב שלך; שמור עליו ב־g3 מול ...Nh5.',
-   ideas:{1:'תופס מרכז ומכין את הרץ ל־f4.',3:'הרץ יוצא לפני הרגלי ל־e3 — עיקרון הלונדון.',5:'e3 פותח את הרץ מ־f1 ומחזק מרכז.',7:'מפתח אביר ושומר על מבנה יציב.',9:'שומר על הרץ הפעיל בערוגה g3.',11:'הרץ ל־d3 מכוון לאלכסון ההתקפה h7.'} },
+   plan:'להוציא את הרץ ל־f4 לפני e3, לפתח Nf3/Bd3/Nbd2, להצריח, ואז Ne5 או פריצת מרכז/מתקפת אגף מלך.',
+   whatToWatch:'אל תיתן לשחור להחליף את הרץ הטוב; שמור עליו ב־g3 מול ...Nh5.',
+   lines:[
+    {id:'main',name:'הסידור הקלאסי',level:'מתחיל',
+     line:['d4','d5','Bf4','Nf6','e3','e6','Nf3','Bd6','Bg3','O-O','Bd3','c5'],
+     note:'הסידור הבסיסי שעובד כמעט נגד כל דבר: Bf4, e3, Nf3, Bd3.',
+     ideas:{1:'תופס מרכז ומכין את הרץ ל־f4.',3:'הרץ יוצא לפני הרגלי ל־e3 — עיקרון הלונדון.',5:'e3 פותח את הרץ מ־f1.',7:'מפתח אביר ושומר על המבנה.',9:'שומר על הרץ הפעיל ב־g3.',11:'הרץ ל־d3 מכוון לאלכסון ההתקפה h7.'}},
+    {id:'c5',name:'היריב תוקף מוקדם (…c5)',level:'בינוני',
+     line:['d4','d5','Bf4','c5','e3','Nc6','c3','Nf6','Nd2','e6','Ngf3','Bd6'],
+     note:'השחור מנסה ...c5 מוקדם ללחוץ על d4. c3 מחזיק את המרכז, Nbd2 תומך.',
+     ideas:{5:'e3 מגן ומחזיק את המבנה.',7:'c3 תומך ב־d4 מול הלחץ.',9:'Nd2 מפתח בלי לחסום את הרץ ב־f4.',11:'Ngf3 מסיים פיתוח בהרמוניה.'}},
+    {id:'kid',name:'היריב מפנצ׳טו (מבנה הודי)',level:'מתקדם',
+     line:['d4','Nf6','Bf4','g6','e3','Bg7','Nf3','O-O','Be2','d6','O-O','Nc6'],
+     note:'מול פיתוח פיאנקטו (...g6, ...Bg7). שמור על המבנה, ובהמשך שקול h3+התקדמות מרכז.',
+     ideas:{3:'הרץ ל־f4 עדיין — הסידור עובד גם כאן.',5:'e3 יציב.',7:'Nf3 מפתח.',9:'Be2 והצרחה — עמדה נוחה.'}},
+   ]},
  { id:'qg', name:'גמביט המלכה', side:'w', vs:'1.d4 d5', eco:"Queen's Gambit",
-   line:['d4','d5','c4','e6','Nc3','Nf6','Bg5','Be7','e3','O-O','Nf3','h6'],
    summary:'משחק עמדתי: מתח מרכזי, לחץ ארוך־טווח והתקפת מיעוט.',
    structure:'מבנה קרלסבד (אחרי cxd5 exd5)',
-   plan:'ללחוץ על d5, לפתח בלחץ (Bg5, Nc3, Nf3), ובהמשך התקפת מיעוט עם b4-b5 כדי ליצור רגלי חלש ב־c6.',
+   plan:'ללחוץ על d5, לפתח בלחץ (Bg5, Nc3, Nf3), ובהמשך התקפת מיעוט עם b4-b5 ליצירת רגלי חלש ב־c6.',
    whatToWatch:'אחרי ...dxc4 אל תרדוף אחרי הרגלי — סיים פיתוח ותשתלט על המרכז.',
-   ideas:{1:'תופס מרכז.',3:'c4 מאתגר את המרכז ומייצר לחץ.',5:'מפתח אביר ומחזק לחץ על d5.',7:'הרץ מסמרר את האביר ולוחץ על e7.',9:'e3 פותח פיתוח שקט ויציב.',11:'מפתח את האביר האחרון ומכין הצרחה.'} },
+   lines:[
+    {id:'main',name:'QGD — הקו הראשי',level:'מתחיל',
+     line:['d4','d5','c4','e6','Nc3','Nf6','Bg5','Be7','e3','O-O','Nf3','h6'],
+     note:'השחור מסרב לגמביט. אתה מקבל לחץ נוח על d5 ופיתוח טבעי.',
+     ideas:{1:'תופס מרכז.',3:'c4 מאתגר את המרכז ומייצר לחץ.',5:'מפתח אביר ולוחץ על d5.',7:'הרץ מסמרר את האביר ולוחץ על e7.',9:'e3 פותח פיתוח שקט.',11:'מפתח את האביר האחרון ומכין הצרחה.'}},
+    {id:'qga',name:'היריב לוקח (QGA)',level:'בינוני',
+     line:['d4','d5','c4','dxc4','Nf3','Nf6','e3','e6','Bxc4','c5','O-O','a6'],
+     note:'כשהשחור לוקח ...dxc4, אל תמהר להחזיר — פתח (Nf3, e3), קח ב־c4 בנוחות ותשלוט במרכז.',
+     ideas:{5:'Nf3 מפתח ושולט ב־e5/d4.',7:'e3 מכין להחזיר את הרגלי.',9:'Bxc4 מחזיר בנוחות — רץ פעיל.',11:'הצרחה — עמדה נוחה עם מרכז.'}},
+    {id:'slavw',name:'היריב במבנה סלאב (…c6)',level:'מתקדם',
+     line:['d4','d5','c4','c6','Nf3','Nf6','Nc3','e6','e3','Nbd7','Bd3','dxc4'],
+     note:'מבנה חצי־סלאב מצד הלבן. פתח בהרמוניה; אחרי ...dxc4 החזר עם Bxc4 והמשך e4.',
+     ideas:{5:'Nf3 מפתח.',7:'Nc3 מגביר לחץ על d5.',9:'e3 יציב.',11:'Bd3 מפתח — מוכן ל־e4 בהמשך.'}},
+   ]},
  { id:'carokann', name:'הגנת קארו־קאן', side:'b', vs:'נגד 1.e4', eco:'Caro-Kann',
-   line:['e4','c6','d4','d5','Nc3','dxe4','Nxe4','Bf5','Ng3','Bg6','h4','h6'],
    summary:'מבנה רגלים בריא, סבלנות וסיומים טובים — נגד 1.e4.',
-   structure:'מבנה קארו (רגלי c6+e6 מוצק)',
-   plan:'לפתח את הרץ הבהיר החוצה ל־f5 לפני ...e6, לסיים פיתוח בנוחות, ולשאוף לסיום טוב עם מבנה בריא.',
+   structure:'רגלי c6+e6 מוצק',
+   plan:'לפתח את הרץ הבהיר החוצה לפני ...e6, לסיים פיתוח בנוחות, ולשאוף לסיום טוב עם מבנה בריא.',
    whatToWatch:'שים לב ל־h4-h5 שכולא את הרץ ב־g6 — הכן ...h6 בזמן.',
-   ideas:{2:'c6 מכין ...d5 בלי לחסום את הרץ הבהיר.',4:'d5 מאתגר את המרכז מיד.',6:'לוקח ב־e4 ופותח את העמדה בנוחות.',8:'מפתח את הרץ הבהיר החוצה — לפני ...e6.',10:'הרץ נסוג ל־g6 ושומר שליטה.',12:'h6 נותן לרץ מפלט בטוח מ־h4-h5.'} },
+   lines:[
+    {id:'main',name:'הוריאציה הקלאסית',level:'מתחיל',
+     line:['e4','c6','d4','d5','Nc3','dxe4','Nxe4','Bf5','Ng3','Bg6','h4','h6'],
+     note:'הקו החינוכי: מוציאים את הרץ הבהיר ל־f5 לפני ...e6, ומקבלים עמדה בריאה.',
+     ideas:{2:'c6 מכין ...d5 בלי לחסום את הרץ.',4:'d5 מאתגר את המרכז.',6:'לוקח ב־e4 ופותח בנוחות.',8:'מפתח את הרץ הבהיר החוצה — לפני ...e6.',10:'הרץ ל־g6 ושומר שליטה.',12:'h6 נותן לרץ מפלט מ־h5.'}},
+    {id:'advance',name:'היריב דוחף (Advance, e5)',level:'בינוני',
+     line:['e4','c6','d4','d5','e5','Bf5','Nf3','e6','Be2','c5','O-O','Nc6'],
+     note:'כשהלבן דוחף e5 — קודם כל ...Bf5 (הרץ החוצה!) ואז ...e6, ותקוף את המרכז עם ...c5.',
+     ideas:{6:'...Bf5 — מוציאים את הרץ לפני שנחסם!',8:'...e6 מחזק את d5.',10:'...c5 תוקף את בסיס השרשרת d4.',12:'...Nc6 מגביר לחץ על d4.'}},
+    {id:'exch',name:'היריב מחליף (Exchange)',level:'מתקדם',
+     line:['e4','c6','d4','d5','exd5','cxd5','Bd3','Nc6','c3','Nf6','Bf4','Bg4'],
+     note:'מבנה סימטרי אחרי exd5 cxd5. פתח בטבעיות; ...Bg4 מסמרר וממנף את הפיתוח.',
+     ideas:{6:'...cxd5 — מבנה בריא וסימטרי.',8:'...Nc6 מפתח ולוחץ על d4.',10:'...Nf6 מפתח.',12:'...Bg4 מסמרר את האביר ומשלים פיתוח.'}},
+   ]},
  { id:'scandi', name:'ההגנה הסקנדינבית', side:'b', vs:'נגד 1.e4', eco:'Scandinavian',
-   line:['e4','d5','exd5','Qxd5','Nc3','Qa5','d4','Nf6','Nf3','c6','Bc4','Bf5'],
    summary:'פשוטה וישירה — מוציאה את המלכה ותוכניות ברורות.',
-   structure:'מלכה ב־a5, רגלי c6 מוצק',
-   plan:'להחזיר את המלכה ל־a5 עם טמפו, לבנות מבנה c6/e6, לפתח את הרץ הבהיר ל־f5 ולהצריח.',
+   structure:'מלכה פעילה, רגלי c6 מוצק',
+   plan:'להחזיר את המלכה עם טמפו, לבנות מבנה c6/e6, לפתח את הרץ הבהיר ל־f5 ולהצריח.',
    whatToWatch:'היזהר מ־Nb5/Bd2 שמאיימים על המלכה — שמור לה משבצות מפלט.',
-   ideas:{2:'d5 מאתגר את המרכז מיד.',4:'המלכה לוקחת ומרכזית — נערכת לנסיגה.',6:'Qa5 בורחת עם טמפו ולוחצת על c3.',8:'מפתח אביר ושולט ב־e4 ו־d5.',10:'c6 נותן מפלט למלכה ומחזק את d5.',12:'הרץ הבהיר יוצא — מהלך המפתח לפני ...e6.'} },
+   lines:[
+    {id:'qa5',name:'Qa5 — הקו הראשי',level:'מתחיל',
+     line:['e4','d5','exd5','Qxd5','Nc3','Qa5','d4','Nf6','Nf3','c6','Bc4','Bf5'],
+     note:'המלכה ל־a5 עם טמפו, מבנה c6 מוצק, ורץ בהיר פעיל ל־f5.',
+     ideas:{2:'d5 מאתגר מיד.',4:'המלכה לוקחת ומרכזית.',6:'Qa5 בורחת עם טמפו ולוחצת על c3.',8:'מפתח אביר.',10:'c6 נותן מפלט למלכה ומחזק את d5.',12:'הרץ הבהיר יוצא — לפני ...e6.'}},
+    {id:'qd6',name:'Qd6 — הקו המודרני',level:'בינוני',
+     line:['e4','d5','exd5','Qxd5','Nc3','Qd6','d4','Nf6','Nf3','a6','g3','b5'],
+     note:'המלכה ל־d6 גמישה יותר וקשה לתקוף. ...a6 ו...b5 תופסים מרחב באגף המלכה.',
+     ideas:{6:'Qd6 — המלכה בטוחה וגמישה.',8:'...Nf6 מפתח.',10:'...a6 מכין ...b5.',12:'...b5 תופס מרחב באגף המלכה.'}},
+    {id:'nf6',name:'הגמביט (…Nf6 במקום לקחת)',level:'מתקדם',
+     line:['e4','d5','exd5','Nf6','d4','Nxd5','Nf3','g6','Be2','Bg7','O-O','O-O'],
+     note:'במקום ...Qxd5 — ...Nf6 מחזיר את הרגלי בפיתוח מהיר עם פיאנקטו.',
+     ideas:{4:'...Nf6 — לא ממהרים עם המלכה.',6:'...Nxd5 מחזיר את הרגלי בטמפו.',8:'...g6 מכין פיאנקטו.',10:'...Bg7 לוחץ על d4 והמרכז.'}},
+   ]},
  { id:'qgd', name:'גמביט המלכה מסורב', side:'b', vs:'נגד 1.d4', eco:'QGD',
-   line:['d4','d5','c4','e6','Nf3','Nf6','Nc3','Be7','Bg5','O-O','e3','Nbd7'],
    summary:'קלאסי ואיתן — המבנה הכי מוצק נגד 1.d4.',
    structure:'שלשלת d5/e6 מוצקה',
-   plan:'לתמוך ב־d5 עם ...e6, לפתח בטבעיות (...Be7, ...O-O, ...Nbd7), ואז לשחרר עם ...dxc4 ו־...c5 או ...e5.',
-   whatToWatch:'אל תישאר פסיבי — חפש את הרגע הנכון לפריצת ...c5 או ...e5.',
-   ideas:{2:'d5 תופס מרכז.',4:'e6 תומך ב־d5 ופותח את הרץ הכהה.',6:'מפתח אביר ולוחץ על המרכז.',8:'הרץ ל־e7 מתכונן להצרחה ומשחרר את הסימרור.',10:'הצרחה — המלך לבטחון.',12:'מפתח את האביר בדרך ל־...c5 או ...e5.'} },
+   plan:'לתמוך ב־d5 עם ...e6, לפתח בטבעיות, ואז לשחרר עם ...dxc4 ו...c5 או ...e5.',
+   whatToWatch:'אל תישאר פסיבי — חפש את הרגע לפריצת ...c5 או ...e5.',
+   lines:[
+    {id:'main',name:'הקו הראשי',level:'מתחיל',
+     line:['d4','d5','c4','e6','Nf3','Nf6','Nc3','Be7','Bg5','O-O','e3','Nbd7'],
+     note:'הסידור המוצק: ...e6, ...Nf6, ...Be7, הצרחה, ...Nbd7.',
+     ideas:{2:'d5 תופס מרכז.',4:'e6 תומך ב־d5 ופותח את הרץ הכהה.',6:'מפתח אביר.',8:'הרץ ל־e7 מתכונן להצרחה.',10:'הצרחה — המלך לבטחון.',12:'מפתח את האביר בדרך ל־...c5/e5.'}},
+    {id:'exch',name:'היריב מחליף (Exchange)',level:'בינוני',
+     line:['d4','d5','c4','e6','cxd5','exd5','Nc3','Nf6','Bg5','Be7','e3','O-O'],
+     note:'אחרי cxd5 exd5 מקבלים מבנה קרלסבד. שחק ל־...c6, ...Bf5/Re8 והגן מפני התקפת מיעוט.',
+     ideas:{6:'...exd5 — מבנה קרלסבד סימטרי.',8:'...Nf6 מפתח.',10:'...Be7 מתכונן להצרחה.',12:'הצרחה — עמדה מוצקה.'}},
+    {id:'tartak',name:'טרטקובר (…b6)',level:'מתקדם',
+     line:['d4','d5','c4','e6','Nf3','Nf6','Nc3','Be7','Bg5','h6','Bh4','b6'],
+     note:'...h6 ואז ...b6 עם ...Bb7 — משחררים את הרץ הבהיר לאלכסון הארוך. פתרון פעיל ל־QGD.',
+     ideas:{8:'...Be7 מתכונן להצרחה.',10:'...h6 שואל את הרץ.',12:'...b6 מכין ...Bb7 על האלכסון הארוך.'}},
+   ]},
  { id:'slav', name:'הגנת סלאב', side:'b', vs:'נגד 1.d4', eco:'Slav',
-   line:['d4','d5','c4','c6','Nf3','Nf6','Nc3','dxc4','a4','Bf5','e3','e6'],
    summary:'מוצקה, שומרת על הרץ הבהיר פעיל — נגד 1.d4.',
    structure:'רגלי c6 תומך, רץ בהיר מחוץ לשלשלת',
-   plan:'לתמוך ב־d5 עם ...c6 (בלי לכלוא את הרץ הבהיר), לפתח את הרץ ל־f5 לפני ...e6, ולסיים פיתוח מוצק.',
+   plan:'לתמוך ב־d5 עם ...c6 (בלי לכלוא את הרץ), לפתח את הרץ ל־f5 לפני ...e6, ולסיים פיתוח מוצק.',
    whatToWatch:'אחרי ...dxc4 אל תיאחז ברגלי בכוח — פתח את הרץ ל־f5 קודם.',
-   ideas:{2:'d5 תופס מרכז.',4:'c6 תומך ב־d5 בלי לחסום את הרץ הבהיר.',6:'מפתח אביר ולוחץ על המרכז.',8:'לוקח ב־c4 — היתרון: הרץ הבהיר עוד יוצא החוצה.',10:'הרץ הבהיר ל־f5 — יתרון הסלאב על ה־QGD.',12:'e6 פותח את הרץ הכהה ומסיים פיתוח.'} },
+   lines:[
+    {id:'main',name:'הקו הראשי (…dxc4, …Bf5)',level:'מתחיל',
+     line:['d4','d5','c4','c6','Nf3','Nf6','Nc3','dxc4','a4','Bf5','e3','e6'],
+     note:'לוקחים ...dxc4 ומוציאים מיד את הרץ ל־f5 — יתרון הסלאב.',
+     ideas:{2:'d5 תופס מרכז.',4:'c6 תומך ב־d5 בלי לחסום את הרץ.',6:'מפתח אביר.',8:'...dxc4 — אפשר להחזיק בעזרת ...b5.',10:'הרץ הבהיר ל־f5 — לפני ...e6.',12:'e6 פותח את הרץ הכהה.'}},
+    {id:'quiet',name:'הקו השקט (…Bf5 בלי לקחת)',level:'בינוני',
+     line:['d4','d5','c4','c6','Nf3','Nf6','e3','Bf5','Nc3','e6','Nh4','Bg6'],
+     note:'לא לוקחים ב־c4; מוציאים ...Bf5, ואם Nh4 שואל את הרץ — ...Bg6 ומחליפים בנוחות.',
+     ideas:{8:'...Bf5 — הרץ הבהיר החוצה מיד.',10:'...e6 מחזק את d5.',12:'...Bg6 — הרץ בטוח, מוכן להחלפה.'}},
+    {id:'exch',name:'היריב מחליף (Exchange Slav)',level:'מתקדם',
+     line:['d4','d5','c4','c6','cxd5','cxd5','Nc3','Nf6','Nf3','Nc6','Bf4','Bf5'],
+     note:'מבנה סימטרי אחרי cxd5 cxd5. פתח נכון (...Nc6, ...Bf5) ושחק לשליטה בטור c.',
+     ideas:{6:'...cxd5 — מבנה סימטרי, שווה.',8:'...Nf6 מפתח.',10:'...Nc6 מפתח ולוחץ.',12:'...Bf5 — הרץ הבהיר החוצה, פיתוח מושלם.'}},
+   ]},
 ];
 
 /* ---------- MOTIFS / PUZZLES (find the move) ---------- */
 const PUZZLES = [
- // Tactics
  { group:'טקטיקה', theme:'מזלג אביר', fen:'r3k3/8/8/3N4/8/8/8/4K3 w - - 0 1',
    solutions:['Nc7+'], idea:'מזלג אביר: Nc7+ מתקיף בו־זמנית את המלך ואת הצריח ב־a8 — ותזכה בצריח.' },
  { group:'טקטיקה', theme:'מט בשורה האחורית', fen:'6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1',
@@ -708,7 +804,6 @@ const PUZZLES = [
    solutions:['Qxb4'], idea:'הרץ ב־b4 אינו מוגן — Qxb4 פשוט זוכה בכלי.' },
  { group:'טקטיקה', theme:'פתיחת מרכז', fen:'r1bqkbnr/pppp1ppp/2n5/1B2p3/3PP3/8/PPP2PPP/RNBQK1NR b KQkq d3 0 3',
    solutions:['exd4'], idea:'exd4 לוקח רגלי חופשי במרכז ומשחרר את העמדה לטובת השחור.' },
- // Strategic ideas (5 from the deck) — play the thematic move
  { group:'רעיונות אסטרטגיים', theme:'מוצב לאביר (Outpost)', fen:'r2q1rk1/pp1b1ppp/2np1n2/4p3/2P1P3/2N2N2/PP3PPP/R1BQ1RK1 w - - 0 1',
    solutions:['Nd5'], idea:'מוצב: Nd5 נועץ אביר בלב העמדה. גם אם ...Nxd5 — exd5 נותן ללבן רגלי מרכזי חזק ומרחב.' },
  { group:'רעיונות אסטרטגיים', theme:'התקפת מיעוט (Minority Attack)', fen:'r1bq1rk1/pp3ppp/2p1pn2/3p4/3P4/2PBPN2/PP3PPP/R1BQ1RK1 w - - 0 1',
@@ -716,7 +811,7 @@ const PUZZLES = [
  { group:'רעיונות אסטרטגיים', theme:'פריצת רגלים (Pawn Break)', fen:'r1bq1rk1/pp3ppp/2nbpn2/2pp4/3P4/2PBPN2/PP1N1PPP/R1BQ1RK1 b - - 0 1',
    solutions:['cxd4','e5'], idea:'פריצה: ...cxd4 או ...e5 מאתגרים את המרכז ופותחים טורים — בלי פריצה העמדה קופאת.' },
  { group:'רעיונות אסטרטגיים', theme:'מניעה (Prophylaxis)', fen:'r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 1',
-   solutions:['h3'], idea:'מניעה: h3 מונע מראש את ...Ng4 ו־...Bg4 — מהלך שקט שהורג את הרעיון של היריב לפני שתתקדם.' },
+   solutions:['h3'], idea:'מניעה: h3 מונע מראש את ...Ng4 ו...Bg4 — מהלך שקט שהורג את הרעיון של היריב לפני שתתקדם.' },
  { group:'רעיונות אסטרטגיים', theme:'שיפור הכלי הגרוע', fen:'r1bq1rk1/ppp1bppp/2n2n2/3p4/3P4/3BPN2/PPP2PPP/RNBQ1RK1 w - - 0 1',
    solutions:['Nbd2'], idea:'האביר ב־b1 הוא הכלי הגרוע — Nbd2 מפעיל אותו בדרך ל־f1-g3, אל לב המשחק.' },
 ];
@@ -751,7 +846,7 @@ const STRUCTURES = [
 /* ---------- ENDGAMES (play vs computer / convert) ---------- */
 const ENDGAMES = [
  { id:'rookmate', name:'מט מלך וצריח', level:'בסיסי', fen:'4k3/8/8/8/8/8/8/R3K3 w - - 0 1', side:'w',
-   goal:'תן מט למלך היריב.', tip:'דוחקים את המלך היריב לקצה בעזרת הצריח, מביאים את המלך שלך אל מול המלך היריב — ומטים בשורה/טור הקצה.' },
+   goal:'תן מט למלך היריב.', tip:'דוחקים את המלך היריב לקצה בעזרת הצריח, מביאים את המלך שלך אל מולו — ומטים בשורת/טור הקצה.' },
  { id:'queenmate', name:'מט מלך ומלכה', level:'בסיסי', fen:'4k3/8/8/8/8/8/8/3QK3 w - - 0 1', side:'w',
    goal:'תן מט עם מלכה ומלך.', tip:'שמור מרחק "פרש" מהמלך היריב כדי לא לתת פט, דחוף אותו לקצה, קרב את מלכך — ומט.' },
  { id:'opposition', name:'אופוזיציה: הכתרת רגלי', level:'מפתח', fen:'8/8/8/3k4/8/3K4/3P4/8 w - - 0 1', side:'w',
@@ -764,7 +859,7 @@ const ENDGAMES = [
 
 const ENDGAME_TIPS = [
  { name:'אופוזיציה', txt:'כשהמלכים מולים ברווח ריבוע אחד — מי שאינו בתור "מחזיק אופוזיציה" וזוכה במרחב. מפתח לכל סיומי מלך ורגלי.' },
- { name:'לוצ׳נה (Lucena)', txt:'הניצחון הבסיסי בסיום צריחים כשאתה רגלי עודף על השורה השביעית: "בניית גשר" עם הצריח מחסום את שחי היריב ומאפשר הכתרה.' },
+ { name:'לוצ׳נה (Lucena)', txt:'הניצחון הבסיסי בסיום צריחים כשאתה רגלי עודף על השורה השביעית: "בניית גשר" עם הצריח חוסם את שחי היריב ומאפשר הכתרה.' },
  { name:'פילידור (Philidor)', txt:'התיקו הבסיסי כמתגונן בסיום צריחים: החזק את הצריח בשורה השלישית (מהצד שלך) עד שהרגלי היריב מגיע לשם — ואז רד מאחור ותן שחים. מציל חצאי נקודה.' },
  { name:'מלך אקטיבי', txt:'בסיום המלך הוא כלי לוחם. מרכֵּז אותו מוקדם — מלך פעיל לרוב מכריע את התוצאה.' },
  { name:'צריח מאחורי רגלי חופשי', txt:'כלל טאראש: צריחים שייכים מאחורי הרגלי החופשי — שלך כדי לתמוך בקידום, של היריב כדי לבלום אותו.' },
@@ -787,7 +882,7 @@ const GAMES = [
  { id:'opera', title:'"משחק האופרה" — מורפי, 1858', level:'קלאסי חינוכי',
    intro:'משחק קצר ומושלם על פיתוח, פתיחת קווים ושיתוף כל הכלים בהתקפה. נסה לנחש את מהלכי הלבן המסומנים.',
    line:['e4','e5','Nf3','d6','d4','Bg4','dxe5','Bxf3','Qxf3','dxe5','Bc4','Nf6','Qb3','Qe7','Nc3','c6','Bg5','b5','Nxb5','cxb5','Bxb5+','Nbd7','O-O-O','Rd8','Rxd7','Rxd7','Rd1','Qe6','Bxd7+','Nxd7','Qb8+','Nxb8','Rd8#'],
-   guessPlies:[22,24,30,32], // 0-based white plies to quiz: Rxd7, Rd1, Qb8+, Rd8#
+   guessPlies:[22,24,30,32],
    notes:{
      4:'לבן פותח מרכז ומזמין את היריב לצרות.',
      8:'הרץ ב־f3 נלקח — לבן מפתח את המלכה בטמפו.',
@@ -813,15 +908,13 @@ const PLAN = {
  ]
 };
 
-/* ---------- 30-LESSON COURSE (curriculum tying it all together) ---------- */
+/* ---------- 30-LESSON COURSE ---------- */
 const COURSE = [
- // Openings
  {n:1,area:'פתיחות',title:'למה פתיחות מלמדות רעיונות',idea:'המטרה של פתיחה היא עמדה שאתה מבין — לא שינון. בחר מעט פתיחות לעומק.',task:'למד את "המשחק האיטלקי" בלשונית פתיחות.',ref:{mode:'openings',id:'italian'}},
  {n:2,area:'פתיחות',title:'פתיחה יציבה עם הלבן',idea:'מבנה קבוע שמייצר עמדות מוכרות שוב ושוב מפנה זמן לרעיונות.',task:'למד ותרגל את "מערכת לונדון".',ref:{mode:'openings',id:'london'}},
  {n:3,area:'פתיחות',title:'משחק עמדתי עם הלבן',idea:'לחץ מרכזי ארוך־טווח והתקפת מיעוט הם הבסיס לשחמט בוגר.',task:'למד את "גמביט המלכה".',ref:{mode:'openings',id:'qg'}},
  {n:4,area:'פתיחות',title:'תשובה מוצקה ל־1.e4',idea:'מבנה בריא וסבלנות מנצחים כאוס — קארו־קאן וסקנדינבית.',task:'למד את "הגנת קארו־קאן".',ref:{mode:'openings',id:'carokann'}},
  {n:5,area:'פתיחות',title:'תשובה מוצקה ל־1.d4',idea:'בסס רפרטואר: פתיחה אחת בלבן, שתיים בשחור.',task:'למד את "הגנת סלאב" או "QGD".',ref:{mode:'openings',id:'slav'}},
- // Middlegame / pawn structures
  {n:6,area:'משחק אמצע',title:'לחשוב במבני רגלים',idea:'הרגלים הם שלד העמדה — הם קובעים איפה הכלים שייכים ומה חלש.',task:'עבור על שיעורי "מבנים".',ref:{mode:'structures'}},
  {n:7,area:'משחק אמצע',title:'הרגלי החלש',idea:'רגלי מבודד/כפול/מפגר הוא מטרה קבועה — רכז עליו כלים.',task:'פתור את "הרגלי החלש".',ref:{mode:'structures',id:'weakpawn'}},
  {n:8,area:'משחק אמצע',title:'הטור הפתוח',idea:'צריחים שייכים לטורים פתוחים — משם הם פולשים.',task:'פתור את "הטור הפתוח".',ref:{mode:'structures',id:'openfile'}},
@@ -829,23 +922,19 @@ const COURSE = [
  {n:10,area:'משחק אמצע',title:'ערוגות חלשות',idea:'חוסר רץ יוצר חולשה קבועה בערוגות בצבעו.',task:'פתור את "ערוגות חלשות".',ref:{mode:'structures',id:'colorcomplex'}},
  {n:11,area:'משחק אמצע',title:'יתרון מרחב',idea:'יותר שטח = יותר חופש תמרון. אל תמהר לפתוח.',task:'פתור את "יתרון מרחב".',ref:{mode:'structures',id:'space'}},
  {n:12,area:'משחק אמצע',title:'שיטת ארבע השאלות',idea:'איום? מסע אקטיבי? טקטיקה? שיפור כלי? — לפני כל מסע.',task:'עבור על לשונית "חשיבה".',ref:{mode:'thinking'}},
- // Attack
  {n:13,area:'התקפה',title:'מזלג אביר',idea:'האביר מתקיף שני יעדים בבת אחת — הטקטיקה השכיחה ביותר.',task:'פתור "מזלג אביר".',ref:{mode:'puzzles',theme:'מזלג אביר'}},
  {n:14,area:'התקפה',title:'חולשת השורה האחורית',idea:'מלך כלוא מאחורי רגליו — הזדמנות למט צריח/מלכה.',task:'פתור "מט בשורה האחורית".',ref:{mode:'puzzles',theme:'מט בשורה האחורית'}},
  {n:15,area:'התקפה',title:'הסיכה',idea:'כלי מרותק אינו יכול לזוז — נצל אותו וזכה בחומר.',task:'פתור "סיכה מנצחת".',ref:{mode:'puzzles',theme:'סיכה מנצחת'}},
  {n:16,area:'התקפה',title:'פתיחת קווים למלך',idea:'התקפה על המלך דורשת קווים פתוחים וכלים רבים — כמו במשחק האופרה.',task:'נתח את "משחק האופרה".',ref:{mode:'games',id:'opera'}},
  {n:17,area:'התקפה',title:'כל הכלים משתתפים',idea:'התקפה מנצחת = יותר תוקפים מאשר מגנים.',task:'שחק משחק חי וכוון להתקפה מתואמת.',ref:{mode:'play'}},
- // Positional
  {n:18,area:'משחק עמדתי',title:'מוצב לאביר',idea:'אביר מבוצר על חור מרכזי שווה כמעט צריח.',task:'פתור "מוצב לאביר".',ref:{mode:'puzzles',theme:'מוצב לאביר (Outpost)'}},
  {n:19,area:'משחק עמדתי',title:'התקפת מיעוט',idea:'פחות רגלים תוקפים יותר — כדי ליצור חולשה קבועה.',task:'פתור "התקפת מיעוט".',ref:{mode:'puzzles',theme:'התקפת מיעוט (Minority Attack)'}},
  {n:20,area:'משחק עמדתי',title:'מניעה (פרופילקסיס)',idea:'שאל "מה היריב רוצה?" ומנע את זה לפני שתתקדם.',task:'פתור "מניעה".',ref:{mode:'puzzles',theme:'מניעה (Prophylaxis)'}},
  {n:21,area:'משחק עמדתי',title:'שיפור הכלי הגרוע',idea:'בכל עמדה — זהה את הכלי הפסיבי ביותר ותן לו עבודה.',task:'פתור "שיפור הכלי הגרוע".',ref:{mode:'puzzles',theme:'שיפור הכלי הגרוע'}},
  {n:22,area:'משחק עמדתי',title:'למד משחקי שחקנים חזקים',idea:'החלטות של 1800–2200 "אנושיות" — אפשר להבין ולחקות.',task:'נתח שוב את משחק האמן ונסה לנחש מהלכים.',ref:{mode:'games',id:'opera'}},
- // Sacrifices / breaks
  {n:23,area:'הקרבות',title:'פריצת רגלים',idea:'קידום שמאתגר את שרשרת היריב פותח את העמדה — בלי פריצה קופאים.',task:'פתור "פריצת רגלים".',ref:{mode:'puzzles',theme:'פריצת רגלים (Pawn Break)'}},
  {n:24,area:'הקרבות',title:'הקרבת איכות',idea:'צריח תמורת כלי קל יכול להשתלם אם הוא פותח התקפה מכרעת.',task:'ראה את Rxd7 במשחק האופרה.',ref:{mode:'games',id:'opera'}},
  {n:25,area:'הקרבות',title:'הקרבת מלכה למט',idea:'לפעמים מקריבים את הכלי הכי חזק כדי לכפות מט.',task:'ראה את Qb8+ במשחק האופרה.',ref:{mode:'games',id:'opera'}},
- // Endgames
  {n:26,area:'סיומים',title:'מלך אקטיבי ואופוזיציה',idea:'בסיום המלך הוא כלי לוחם — אופוזיציה מכריעה מי מתקדם.',task:'תרגל "אופוזיציה: הכתרת רגלי".',ref:{mode:'endgames',id:'opposition'}},
  {n:27,area:'סיומים',title:'טכניקת מט בסיסית',idea:'מלך+צריח ומלך+מלכה — חובה לדעת אוטומטית.',task:'תרגל "מט מלך וצריח".',ref:{mode:'endgames',id:'rookmate'}},
  {n:28,area:'סיומים',title:'סיום צריחים: לוצ׳נה',idea:'הכתרה עם רגלי עודף בעזרת "בניית גשר".',task:'תרגל "לוצ׳נה".',ref:{mode:'endgames',id:'lucena'}},
@@ -869,7 +958,7 @@ const PKEY='chessTrainer.progress.v2';
 function loadProg(){try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return{};}}
 function saveProg(){try{localStorage.setItem(PKEY,JSON.stringify(P));}catch(e){}}
 let P=loadProg();
-P.openings=P.openings||{};P.structures=P.structures||{};P.puzzles=P.puzzles||{};
+P.openings=P.openings||{};P.olines=P.olines||{};P.structures=P.structures||{};P.puzzles=P.puzzles||{};
 P.endgames=P.endgames||{};P.games=P.games||{};P.course=P.course||{};
 P.xp=P.xp||0;P.streak=P.streak||0;P.lastActive=P.lastActive||'';P.playGames=P.playGames||0;
 P.correct=P.correct||0;P.attempts=P.attempts||0;
@@ -881,7 +970,7 @@ function addXP(n){P.xp+=n;markActive();saveProg();renderHeader();}
 /* ---------------- state ---------------- */
 const S={mode:'home',st:null,orientation:'w',sel:-1,targets:[],last:null,hl:[],history:[],locked:false,
   interact:'none', _coach:null,
-  op:null,opView:null,opPly:0,opMistake:false,opColorFilter:'all',
+  op:null,opView:null,opLine:null,opPly:0,opMistake:false,opColorFilter:'all',
   ideaTab:'structures', struct:null, structDone:false,
   pz:null,pzSolved:false, pzQueue:null,
   eg:null,egDepth:2,
@@ -929,7 +1018,7 @@ function onCellClick(e){
 }
 function moveInteract(){return ['openingMove','puzzleMove','freeMove','gameGuess','quizMove'].includes(S.interact);}
 function humanToMove(){
-  if(S.interact==='openingMove')return S.op&&S.st.turn===S.op.side&&S.opPly<S.op.line.length;
+  if(S.interact==='openingMove')return S.opLine&&S.st.turn===S.op.side&&S.opPly<S.opLine.line.length;
   if(S.interact==='puzzleMove')return S.pz&&!S.pzSolved;
   if(S.interact==='quizMove')return S.quiz&&!S.quiz.answered;
   if(S.interact==='freeMove'){const side=S.mode==='play'?S.playSide:S.eg.side;return S.st.turn===side&&!S.gameOver;}
@@ -995,31 +1084,35 @@ function coachCard(){const c=S._coach;if(!c)return '';return '<div class="coach 
 
 /* ================= OPENINGS ================= */
 function openingList(){return OPENINGS.filter(o=>S.opColorFilter==='all'||o.side===S.opColorFilter);}
-function viewOpening(o){S.op=null;S.opView=o;S.st=C.parseFEN(C.START);S.orientation=o.side;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];S.interact='none';renderBoard();renderMoveList();S._coach=null;renderPanel();}
-function startOpening(o){
-  S.op=o;S.opView=o;S.opPly=0;S.opMistake=false;S.interact='openingMove';S.gameOver=false;
+function viewOpening(o){S.op=null;S.opView=o;S.opLine=null;S.st=C.parseFEN(C.START);S.orientation=o.side;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];S.interact='none';renderBoard();renderMoveList();S._coach=null;renderPanel();}
+function startOpening(o,ln){
+  ln=ln||o.lines[0];
+  S.op=o;S.opView=o;S.opLine=ln;S.opPly=0;S.opMistake=false;S.interact='openingMove';S.gameOver=false;
   S.st=C.parseFEN(C.START);S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];S.orientation=o.side;
-  renderBoard();renderMoveList();S._coach=null;maybeBook();renderPanel();
+  renderBoard();renderMoveList();coach('info',ln.name,ln.note);maybeBook();renderPanel();
 }
 function maybeBook(){
-  if(S.opPly<S.op.line.length&&S.st.turn!==S.op.side){
-    const m=C.parseSAN(S.st,S.op.line[S.opPly]);S.locked=true;renderPanel();
+  const L=S.opLine.line;
+  if(S.opPly<L.length&&S.st.turn!==S.op.side){
+    const m=C.parseSAN(S.st,L[S.opPly]);S.locked=true;renderPanel();
     setTimeout(()=>{commit(m);S.opPly++;S.locked=false;renderPanel();},300);
   }
 }
 function handleOpeningMove(move){
-  const exp=C.parseSAN(S.st,S.op.line[S.opPly]);P.attempts++;
+  const L=S.opLine.line,exp=C.parseSAN(S.st,L[S.opPly]);P.attempts++;
   if(exp&&exp.from===move.from&&exp.to===move.to&&(!exp.promo||exp.promo===move.promo)){
     P.correct++;commit(move);S.opPly++;
-    if(S.opPly>=S.op.line.length){
-      if(!S.opMistake&&!P.openings[S.op.id]){P.openings[S.op.id]=1;addXP(30);}else addXP(8);markActive();saveProg();
-      coach('good','סיימת את הקו! ✔','עברת את כל '+S.op.line.length+' המהלכים של '+S.op.name+'. '+(S.opMistake?'':'ללא טעויות — מעולה!'));
-    }else{coach('good','נכון! ✔',S.op.ideas[S.opPly]||'מהלך נכון!');maybeBook();}
+    if(S.opPly>=L.length){
+      const key=S.op.id+'/'+S.opLine.id;
+      if(!P.olines[key]){P.olines[key]=1; if(!P.openings[S.op.id]){P.openings[S.op.id]=1;addXP(30);}else addXP(15);}else addXP(6);
+      markActive();saveProg();
+      coach('good','סיימת את הקו! ✔','עברת את "'+S.opLine.name+'". '+(S.opMistake?'תרגל שוב לשליטה מלאה.':'ללא טעויות — מעולה!'));
+    }else{coach('good','נכון! ✔',S.opLine.ideas[S.opPly]||'מהלך נכון — המשך לפי הרעיון של הקו.');maybeBook();}
     saveProg();renderHeader();
-  }else{S.opMistake=true;saveProg();coach('bad','לא המהלך של הקו','זה מהלך חוקי, אבל לא זה שמלמדת הפתיחה. נסה שוב, או לחץ "רמז".');shake();}
+  }else{S.opMistake=true;saveProg();coach('bad','לא המהלך של הקו','זה מהלך חוקי, אבל לא זה שמלמד הקו. נסה שוב, או לחץ "רמז".');shake();}
   renderPanel();
 }
-function hintOpening(){if(!humanToMove())return;const m=C.parseSAN(S.st,S.op.line[S.opPly]);S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','המהלך הבא בקו: '+S.op.line[S.opPly]+'. לחץ עליו לביצוע.');renderPanel();}
+function hintOpening(){if(!humanToMove())return;const L=S.opLine.line,m=C.parseSAN(S.st,L[S.opPly]);S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','המהלך הבא בקו: '+L[S.opPly]+'. לחץ עליו לביצוע.');renderPanel();}
 
 /* ================= IDEAS: structures ================= */
 function startStructure(st){
@@ -1143,7 +1236,7 @@ function undo(){
 }
 function flip(){S.orientation=S.orientation==='w'?'b':'w';renderBoard();}
 function hint(){if(S.interact==='openingMove')hintOpening();else if(S.interact==='puzzleMove')hintPuzzle();else if(S.mode==='ideas'&&S.struct)hintStructure();else if(S.interact==='gameGuess')hintGame();else if(S.interact==='freeMove'&&S.mode==='endgames'){const m=AI.bestMove(S.st,3);if(m){S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','נסה '+C.moveToSAN(S.st,m)+'.');renderPanel();}}}
-function resetCur(){if(S.interact==='openingMove')startOpening(S.op);else if(S.mode==='ideas'&&S.struct)startStructure(S.struct);else if(S.interact==='puzzleMove')startPuzzle(S.pz);else if(S.mode==='endgames')startEndgame(S.eg);else if(S.mode==='play')startPlay();else if(S.thinkView&&S.game&&S.mode==='thinking')startGame(S.game);}
+function resetCur(){if(S.interact==='openingMove')startOpening(S.op,S.opLine);else if(S.mode==='ideas'&&S.struct)startStructure(S.struct);else if(S.interact==='puzzleMove')startPuzzle(S.pz);else if(S.mode==='endgames')startEndgame(S.eg);else if(S.mode==='play')startPlay();else if(S.thinkView&&S.game&&S.mode==='thinking')startGame(S.game);}
 
 function renderControls(){
   const undoB=$('#c-undo'),hintB=$('#c-hint'),nextB=$('#c-next'),flipB=$('#c-flip'),resetB=$('#c-reset');
@@ -1177,13 +1270,16 @@ function renderCtx(){
   let h='';
   const head=(title,extra)=>'<div class="ctx-head"><div class="ctx-title">'+title+'</div>'+(extra||'')+'</div>';
   if(S.mode==='openings'){
-    if(S.op){const prog=Math.min(S.opPly,S.op.line.length);
-      h=head(S.op.name,pill(S.op.side)+'<span class="ctx-prog">'+prog+'/'+S.op.line.length+'</span>')+coachCard()+
-        '<button class="ctx-link" id="ctxBack">‹ פרטי הפתיחה</button>';
+    if(S.op&&S.opLine){const prog=Math.min(S.opPly,S.opLine.line.length);
+      h=head(S.op.name+' · '+S.opLine.name,pill(S.op.side)+'<span class="lvl">'+S.opLine.level+'</span><span class="ctx-prog">'+prog+'/'+S.opLine.line.length+'</span>')+coachCard()+
+        '<button class="ctx-link" id="ctxBack">‹ פרטי הפתיחה והמצבים</button>';
     }else if(S.opView){const o=S.opView;
+      let btns='<div class="sit-label">בחר מצב / רמה לתרגול:</div><div class="sit-list">';
+      o.lines.forEach((ln,i)=>{const done=P.olines[o.id+'/'+ln.id];
+        btns+='<button class="sit" data-li="'+i+'"><span class="sit-lvl">'+ln.level+'</span><span class="sit-name">'+ln.name+'</span><span class="sit-chk">'+(done?'✔':'▶')+'</span></button>';});
+      btns+='</div>';
       h=head(o.name+' <span class="eco">'+o.eco+'</span>','<span class="ctx-vs">'+o.vs+'</span>')+
-        '<div class="ctx-study"><div><b>הרעיון:</b> '+o.summary+'</div><div><b>מבנה:</b> '+o.structure+'</div><div><b>התוכנית שלך:</b> '+o.plan+'</div><div><b>שים לב:</b> '+o.whatToWatch+'</div></div>'+
-        '<button class="ctx-start" id="ctxStart">▶ התחל לתרגל את הקו</button>';
+        '<div class="ctx-study"><div><b>הרעיון:</b> '+o.summary+'</div><div><b>מבנה:</b> '+o.structure+'</div><div><b>התוכנית שלך:</b> '+o.plan+'</div><div><b>שים לב:</b> '+o.whatToWatch+'</div></div>'+btns;
     }else{h='<div class="ctx-hint">בחר פתיחה מהרשימה כדי ללמוד ולתרגל 👇</div>';}
   }else if(S.mode==='ideas'){
     if(S.ideaTab==='structures'&&S.struct){h=head(S.struct.title)+coachCard();
@@ -1194,7 +1290,7 @@ function renderCtx(){
   else if(S.mode==='play'){h=head('משחק מול המחשב',pill(S.playSide))+coachCard();}
   else if(S.mode==='quiz'&&S.quiz){h=head('מבחן — שאלה '+(S.quiz.i+1)+' מתוך 5','<span class="ctx-prog">✔ '+S.quiz.correct+'</span>')+coachCard();}
   bar.innerHTML=h;
-  const st=$('#ctxStart');if(st)st.onclick=()=>startOpening(S.opView);
+  bar.querySelectorAll('.sit').forEach(b=>b.onclick=()=>startOpening(S.opView,S.opView.lines[+b.dataset.li]));
   const bk=$('#ctxBack');if(bk)bk.onclick=()=>viewOpening(S.op);
   bar.querySelectorAll('.ctx-choices .choice').forEach(b=>b.onclick=()=>answerChoice(+b.dataset.ci));
 }
@@ -1272,8 +1368,9 @@ function panelOpenings(){
   const seg=el('div','seg');[['all','הכל'],['w','עם הלבן ♔'],['b','עם השחור ♚']].forEach(([v,l])=>{const b=el('button',S.opColorFilter===v?'on':'');b.innerHTML=l;b.onclick=()=>{S.opColorFilter=v;renderPanel();};seg.appendChild(b);});
   card.appendChild(seg);
   const list=el('div','select-list');list.style.marginTop='10px';
-  openingList().forEach(o=>{const b=el('button','opt'+(S.opView&&S.opView.id===o.id?' active':''));const done=P.openings[o.id];
-    b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(o.side==='w'?'♔':'♚')+'</div><div class="txt"><b>'+o.name+'</b><small>'+o.vs+' · '+o.summary+'</small></div><div class="chev">'+(done?'✔':'‹')+'</div>';
+  openingList().forEach(o=>{const b=el('button','opt'+(S.opView&&S.opView.id===o.id?' active':''));
+    const dl=o.lines.filter(ln=>P.olines[o.id+'/'+ln.id]).length;
+    b.innerHTML='<div class="badge'+(dl?' done':'')+'">'+(o.side==='w'?'♔':'♚')+'</div><div class="txt"><b>'+o.name+'</b><small>'+o.vs+' · '+o.lines.length+' מצבים'+(dl?' · '+dl+' הושלמו':'')+'</small></div><div class="chev">'+(dl?'✔':'‹')+'</div>';
     b.onclick=()=>viewOpening(o);list.appendChild(b);});
   card.appendChild(list);w.appendChild(card);
   return w;
