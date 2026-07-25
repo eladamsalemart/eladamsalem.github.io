@@ -268,6 +268,25 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .tip:first-of-type{border-top:none}
 .tip b{color:var(--green-2)}
 
+/* ===== context bar above board ===== */
+.ctxbar{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 16px;box-shadow:var(--shadow-sm);margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.ctx-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.ctx-title{font-family:var(--font);font-size:18px;font-weight:800;line-height:1.15;flex:1;min-width:0}
+.ctx-vs{font-size:12.5px;color:var(--muted);font-weight:600}
+.ctx-prog{font-size:13px;font-weight:800;color:var(--gold);background:rgba(193,144,44,.14);
+  padding:3px 11px;border-radius:20px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ctx-study{display:flex;flex-direction:column;gap:5px;font-size:13.5px;line-height:1.5;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.ctx-study b{color:var(--green-2);font-weight:800}
+.ctx-start{width:100%;background:var(--gold);color:#2a1f05;font-weight:800;padding:12px;border-radius:11px;font-size:15px;transition:filter .12s}
+.ctx-start:hover{filter:brightness(1.06)}
+.ctx-link{align-self:flex-start;color:var(--green-2);font-weight:700;font-size:13px;text-decoration:underline}
+.ctx-hint{font-size:14px;color:var(--muted);font-weight:600;text-align:center;padding:4px}
+.ctx-choices{display:flex;gap:8px;flex-wrap:wrap}
+.ctx-choices .choice{flex:1;min-width:130px}
+.ctxbar .coach{margin:0}
+
 </style>
 </head>
 <body>
@@ -292,6 +311,7 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 
   <div class="main" id="main">
     <div class="board-col" id="boardarea">
+      <div class="ctxbar" id="ctxbar"></div>
       <div class="board-wrap">
         <div class="board-frame" dir="ltr">
           <div class="board" id="board"></div>
@@ -1150,7 +1170,35 @@ function wrap(){return el('div','panel');}
 function pill(side){return '<span class="pill '+side+'">'+(side==='w'?'אתה הלבן ♔':'אתה השחור ♚')+'</span>';}
 function bar(done,total){const pct=total?Math.round(100*done/total):0;return '<div class="pbar"><div style="width:'+pct+'%"></div></div>';}
 
-function renderPanel(){const p=$('#panel');p.innerHTML='';
+function renderCtx(){
+  const bar=$('#ctxbar');if(!bar)return;
+  const hide=(S.mode==='home')||(S.mode==='thinking'&&(!S.game||S.thinkView==='method'));
+  bar.classList.toggle('hidden',hide);if(hide){bar.innerHTML='';return;}
+  let h='';
+  const head=(title,extra)=>'<div class="ctx-head"><div class="ctx-title">'+title+'</div>'+(extra||'')+'</div>';
+  if(S.mode==='openings'){
+    if(S.op){const prog=Math.min(S.opPly,S.op.line.length);
+      h=head(S.op.name,pill(S.op.side)+'<span class="ctx-prog">'+prog+'/'+S.op.line.length+'</span>')+coachCard()+
+        '<button class="ctx-link" id="ctxBack">‹ פרטי הפתיחה</button>';
+    }else if(S.opView){const o=S.opView;
+      h=head(o.name+' <span class="eco">'+o.eco+'</span>','<span class="ctx-vs">'+o.vs+'</span>')+
+        '<div class="ctx-study"><div><b>הרעיון:</b> '+o.summary+'</div><div><b>מבנה:</b> '+o.structure+'</div><div><b>התוכנית שלך:</b> '+o.plan+'</div><div><b>שים לב:</b> '+o.whatToWatch+'</div></div>'+
+        '<button class="ctx-start" id="ctxStart">▶ התחל לתרגל את הקו</button>';
+    }else{h='<div class="ctx-hint">בחר פתיחה מהרשימה כדי ללמוד ולתרגל 👇</div>';}
+  }else if(S.mode==='ideas'){
+    if(S.ideaTab==='structures'&&S.struct){h=head(S.struct.title)+coachCard();
+      if(S.struct.kind==='choice'&&!S.structDone){h+='<div class="ctx-choices">';S.struct.choices.forEach((ch,i)=>h+='<button class="choice" data-ci="'+i+'">'+ch+'</button>');h+='</div>';}
+    }else if(S.pz){h=head(S.pz.theme,'<span class="pill '+(S.pz.group==='טקטיקה'?'w':'b')+'">'+S.pz.group+'</span>')+coachCard();}
+  }else if(S.mode==='endgames'&&S.eg){h=head(S.eg.name,'<span class="ctx-prog">'+S.eg.level+'</span>')+coachCard();}
+  else if(S.mode==='thinking'&&S.game){const prog=Math.min(S.gamePly,S.game.line.length);h=head(S.game.title,'<span class="ctx-prog">מהלך '+Math.ceil((prog+1)/2)+'</span>')+coachCard();}
+  else if(S.mode==='play'){h=head('משחק מול המחשב',pill(S.playSide))+coachCard();}
+  else if(S.mode==='quiz'&&S.quiz){h=head('מבחן — שאלה '+(S.quiz.i+1)+' מתוך 5','<span class="ctx-prog">✔ '+S.quiz.correct+'</span>')+coachCard();}
+  bar.innerHTML=h;
+  const st=$('#ctxStart');if(st)st.onclick=()=>startOpening(S.opView);
+  const bk=$('#ctxBack');if(bk)bk.onclick=()=>viewOpening(S.op);
+  bar.querySelectorAll('.ctx-choices .choice').forEach(b=>b.onclick=()=>answerChoice(+b.dataset.ci));
+}
+function renderPanel(){renderCtx();const p=$('#panel');p.innerHTML='';
   if(S.mode==='home')p.appendChild(panelHome());
   else if(S.mode==='openings')p.appendChild(panelOpenings());
   else if(S.mode==='ideas')p.appendChild(panelIdeas());
@@ -1228,21 +1276,6 @@ function panelOpenings(){
     b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(o.side==='w'?'♔':'♚')+'</div><div class="txt"><b>'+o.name+'</b><small>'+o.vs+' · '+o.summary+'</small></div><div class="chev">'+(done?'✔':'‹')+'</div>';
     b.onclick=()=>viewOpening(o);list.appendChild(b);});
   card.appendChild(list);w.appendChild(card);
-  if(S.opView){const o=S.opView;const c=el('div','card');
-    if(S.op){ // practicing
-      const prog=Math.min(S.opPly,o.line.length);
-      c.innerHTML='<h2>'+pill(o.side)+' '+o.name+'</h2><div class="sub">מהלך '+Math.ceil((prog+1)/2)+' · '+prog+'/'+o.line.length+' חצאי־מהלכים</div>'+coachCard();
-      const back=el('button','linkbtn','‹ חזרה לפרטי הפתיחה');back.onclick=()=>viewOpening(o);c.appendChild(back);
-    }else{ // study
-      c.innerHTML='<h2>'+o.name+' <span class="eco">'+o.eco+'</span></h2><div class="sub">'+o.vs+'</div>'+
-        '<div class="study"><div class="srow"><b>הרעיון:</b> '+o.summary+'</div>'+
-        '<div class="srow"><b>מבנה:</b> '+o.structure+'</div>'+
-        '<div class="srow"><b>התוכנית שלך:</b> '+o.plan+'</div>'+
-        '<div class="srow"><b>שים לב:</b> '+o.whatToWatch+'</div></div>';
-      const start=el('button','ctrl primary','▶ התחל לתרגל את הקו');start.style.width='100%';start.style.marginTop='12px';start.onclick=()=>startOpening(o);c.appendChild(start);
-    }
-    w.appendChild(c);
-  }
   return w;
 }
 
@@ -1258,9 +1291,6 @@ function panelIdeas(){
       b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'♟')+'</div><div class="txt"><b>'+st.title+'</b></div><div class="chev">‹</div>';
       b.onclick=()=>startStructure(st);list.appendChild(b);});
     card.appendChild(list);w.appendChild(card);
-    if(S.struct){const c=el('div','card');c.innerHTML='<h2>'+S.struct.title+'</h2>'+coachCard();
-      if(S.struct.kind==='choice'&&!S.structDone){const row=el('div','choices');S.struct.choices.forEach((ch,i)=>{const b=el('button','choice');b.textContent=ch;b.onclick=()=>answerChoice(i);row.appendChild(b);});c.appendChild(row);}
-      w.appendChild(c);}
   }else{
     const groups={};PUZZLES.forEach(p=>{(groups[p.group]=groups[p.group]||[]).push(p);});
     Object.keys(groups).forEach(g=>{card.appendChild(el('div','sub','<b style="color:var(--green-2)">'+g+'</b>'));const list=el('div','select-list');
@@ -1268,7 +1298,6 @@ function panelIdeas(){
         b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'?')+'</div><div class="txt"><b>'+p.theme+'</b></div><div class="chev">‹</div>';
         b.onclick=()=>startPuzzle(p);list.appendChild(b);});card.appendChild(list);});
     w.appendChild(card);
-    if(S.pz){const c=el('div','card');c.innerHTML='<h2>'+S.pz.theme+'</h2>'+coachCard();w.appendChild(c);}
   }
   return w;
 }
@@ -1283,7 +1312,6 @@ function panelEndgames(){
     b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'♜')+'</div><div class="txt"><b>'+e.name+'</b><small>'+e.level+' · '+e.goal+'</small></div><div class="chev">‹</div>';
     b.onclick=()=>startEndgame(e);list.appendChild(b);});
   card.appendChild(list);w.appendChild(card);
-  if(S.eg){const c=el('div','card');c.innerHTML='<h2>'+S.eg.name+'</h2>'+coachCard();w.appendChild(c);}
   const tips=el('div','card');tips.innerHTML='<h2>טכניקות להכיר</h2>';ENDGAME_TIPS.forEach(t=>tips.insertAdjacentHTML('beforeend','<div class="tip"><b>'+t.name+':</b> '+t.txt+'</div>'));w.appendChild(tips);
   return w;
 }
@@ -1300,8 +1328,8 @@ function panelThinking(){
     c.insertAdjacentHTML('beforeend','<div class="coach info"><div class="tag">♟ זכור</div>'+THINKING.blunderCheck+'</div>');
     w.appendChild(c);
   }else if(S.game){
-    const c=el('div','card');const prog=Math.min(S.gamePly,S.game.line.length);
-    c.innerHTML='<h2>'+S.game.title+'</h2><div class="sub">'+S.game.level+' · מהלך '+Math.ceil((prog+1)/2)+'/'+Math.ceil(S.game.line.length/2)+'</div>'+coachCard();
+    const c=el('div','card');
+    c.innerHTML='<h2>איך זה עובד</h2><div class="sub">לחץ <b>"המשך ›"</b> כדי לצעוד במשחק ולקרוא הערות. במהלכים מסומנים — נסה לנחש בעצמך על הלוח, ותקבל משוב מעל הלוח.</div>';
     w.appendChild(c);
   }
   return w;
@@ -1318,14 +1346,13 @@ function panelPlay(){
   [[1,'קל'],[2,'בינוני'],[3,'מאתגר']].forEach(([v,l])=>{const b=el('button',S.playDepth===v?'on':'');b.textContent=l;b.onclick=()=>{S.playDepth=v;s2.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');};s2.appendChild(b);});lw.appendChild(s2);card.appendChild(lw);
   const nb=el('button','ctrl primary','משחק חדש');nb.style.marginTop='14px';nb.style.width='100%';nb.onclick=startPlay;card.appendChild(nb);
   w.appendChild(card);
-  if(S._coach){const c=el('div','card');c.innerHTML='<h2>מצב המשחק</h2>'+coachCard();w.appendChild(c);}
   return w;
 }
 
 /* ---- QUIZ ---- */
 function panelQuiz(){
   const w=wrap();const c=el('div','card');
-  c.innerHTML='<h2><span class="k">מבחן</span> שאלה '+(S.quiz.i+1)+' מתוך 5</h2><div class="sub">נכונות עד כה: '+S.quiz.correct+'/'+S.quiz.i+'</div>'+coachCard();
+  c.innerHTML='<h2><span class="k">מבחן יומי</span> חמש שאלות</h2><div class="sub">המידע והמשוב מופיעים מעל הלוח. ענה על הלוח, ואז "הבא ›".</div>';
   w.appendChild(c);return w;
 }
 
