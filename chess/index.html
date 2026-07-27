@@ -302,6 +302,14 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .ctx-study.leads{background:rgba(47,143,86,.1);border-color:rgba(47,143,86,.35)}
 .ctx-study.leads b{color:var(--good)}
 
+/* ===== advanced strategy + thinking ===== */
+.ctx-prompt{font-size:14.5px;font-weight:700;color:var(--ink);background:rgba(193,144,44,.1);
+  border:1px solid rgba(193,144,44,.32);border-radius:10px;padding:9px 12px}
+.ctx-study div b{color:var(--green-2)}
+.qitem .qn{background:var(--green);color:var(--gold-soft)}
+.qitem .qn.gold{background:var(--gold);color:#2a1f05}
+.opt .txt small{font-weight:500}
+
 </style>
 </head>
 <body>
@@ -845,6 +853,68 @@ const STRUCTURES = [
    explain:'יותר מרחב = יותר משבצות פנויות לכלים שלך = תמרון קל יותר. שחק עם המרחב, אל תמהר לפתוח.' },
 ];
 
+/* ---------- ADVANCED STRATEGY (deep concepts) ---------- */
+const ADV_INTRO = 'כדי לעלות מדרגה, החלף את השאלה "איזה מהלך?" בשאלה "מה **התוכנית**?". תוכנית נובעת מחוסר־איזון קבוע בעמדה: מבנה רגלים, מרחב, ריבוע חלש, זוג רצים או יתרון פיתוח. כל שיעור כאן מלמד חוסר־איזון אחד ואיך להפוך אותו לתוכנית — עם עמדה לתרגול.';
+const ADVANCED = [
+ { id:'which-side', title:'באיזה צד לתקוף?', level:'תוכנית', kind:'choice', orient:'w',
+   fen:'r1bq1rk1/pppn1pbp/3p1np1/3Pp3/2P1P3/2N2N2/PP2BPPP/R1BQ1RK1 w - - 0 1',
+   concept:'הכלל החשוב ביותר בבחירת תוכנית: <b>שחק בצד שאליו מצביעה שרשרת הרגלים שלך, ותקוף את בסיס שרשרת היריב.</b> במבנה סגור, כל צד תוקף באגף שבו יש לו יותר מרחב ורגלים לפריצה. מבנה הרגלים סטטי — הוא לא משתנה כל מהלך — ולכן אפשר לבנות עליו תוכנית ארוכת־טווח.',
+   prompt:'המרכז סגור (d5/e4 מול e5/d6). לשחור — לאיזה אגף כדאי לתקוף?',
+   choices:['אגף המלך — עם הפריצה …f5','אגף המלכה'], answer:0,
+   hl:[{sq:'e5',c:'good'},{sq:'f7',c:'good'},{sq:'g6',c:'good'}],
+   explain:'שרשרת הרגלים של השחור (d6–e5) מצביעה לאגף המלך, שם יש לו מרחב. הפריצה …f5 פותחת קווים לעבר מלך הלבן. הלבן, במקביל, יתקוף באגף המלכה עם c5.',
+   takeaway:'שרשרת הרגלים היא חץ — הוא מצביע לאן לתקוף.' },
+ { id:'base', title:'תקיפת בסיס השרשרת', level:'פריצה', kind:'move', orient:'b',
+   fen:'r1bqkb1r/ppp2ppp/4pn2/3pP3/3P4/5N2/PPP2PPP/RNBQKB1R b KQkq - 0 1',
+   concept:'<b>תקוף את בסיס השרשרת.</b> בשרשרת רגלים, הרגלי האחורי ביותר (הבסיס) הוא הכי קשה להגנה — הוא לא מוגן על ידי רגלי אחר. פרוץ אותו עם רגלי משלך כדי לפרק את כל השרשרת. כאן שרשרת הלבן היא e5–d4, והבסיס הוא d4.',
+   prompt:'שרשרת הלבן: e5–d4. מצא את הפריצה ששוברת את הבסיס d4.',
+   solutions:['c5'], hl:[{sq:'d4',c:'bad'}],
+   explain:'…c5! תוקף את d4 — בסיס השרשרת. אם dxc5 השחור משתלט על המרכז, ואם השרשרת נשמרת השחור פותח את טור c ולוחץ. תמיד תוקפים שרשרת מהבסיס.',
+   takeaway:'בסיס השרשרת = המטרה. פרוץ אותו ברגלי.' },
+ { id:'storm', title:'מרוץ בהצרחות מנוגדות', level:'התקפה', kind:'move', orient:'w',
+   fen:'r1bq1rk1/pp2ppbp/2np1np1/8/3NP3/2N1BP2/PPPQ2PP/2KR1B1R w - - 0 1',
+   concept:'<b>בהצרחות מנוגדות — זה מרוץ.</b> כשהמלכים בצדדים מנוגדים, כל צד דוחף את רגלי האגף שלו לעבר מלך היריב כדי לפתוח קווים. כאן מהירות חשובה יותר מחומר — אפשר ואף כדאי להקריב רגלים כדי לפתוח את העמדה. מי שמגיע ראשון — מנצח.',
+   prompt:'הצרחות מנוגדות (לבן ארוכה, שחור קצרה). התחל את סופת הרגלים לעבר מלך השחור.',
+   solutions:['g4','h4'], hl:[{sq:'g7',c:'bad'},{sq:'h7',c:'bad'}],
+   explain:'g4! (או h4) פותח את סופת הרגלים g4-g5, h4-h5 כדי לפרק את מחסה מלך השחור. בהצרחות מנוגדות דוחפים בלי לחשוש — הרגלים הם חומר נפץ, לא כלים להגנה.',
+   takeaway:'הצרחה מנוגדת = דחוף רגלים, אל תספור אותם.' },
+ { id:'count', title:'ספירת תוקפים מול מגנים', level:'התקפה', kind:'choice', orient:'w',
+   fen:'r1bq1rk1/ppp2ppp/2n2n2/2bpp3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 1',
+   concept:'<b>לפני שמקריבים על המלך — ספור.</b> הקרבה על המלך עובדת רק אם יש לך <b>יותר תוקפים ממגנים</b> באזור, ואם המרוץ מהיר מספיק. הקרבה = החלפת חומר תמורת זמן ופתיחת קווים. ספור כמה כלים שלך יכולים להצטרף להתקפה מול כמה מגנים — ורק אז חשב את הקו.',
+   prompt:'מה התנאי שהופך הקרבה על המלך לנכונה?',
+   choices:['יותר תוקפים ממגנים, וקווים פתוחים למלך','פשוט להקריב ולקוות'], answer:0,
+   explain:'הקרבה נכונה כשיש עודף תוקפים באזור המלך וקווים פתוחים (או שנפתחים בכוח). אם המגנים רבים מהתוקפים — ההקרבה תיכשל. תמיד ספור לפני שאתה מחשב.',
+   takeaway:'לפני הקרבה: ספור תוקפים מול מגנים.' },
+ { id:'blockade', title:'חסימה עם אביר', level:'עמדתי', kind:'move', orient:'w',
+   fen:'r2q1rk1/pp3ppp/4pn2/3p4/8/4PN2/PP3PPP/R2Q1RK1 w - - 0 1',
+   concept:'<b>חסום עם אביר.</b> רגלי חופשי או מבודד מסוכן רק כשהוא זז. הצב אביר בדיוק בריבוע שלפניו — האביר חוסם אותו, לא ניתן לגירוש ברגלי, ועדיין שולט בריבועים סביבו. זה הכלי המושלם לחסימה (רעיון של נימצוביץ׳).',
+   prompt:'לשחור רגלי מבודד ב־d5. חסום אותו עם אביר בריבוע שלפניו.',
+   solutions:['Nd4'], hl:[{sq:'d5',c:'bad'},{sq:'d4',c:'good'}],
+   explain:'Nd4! האביר חוסם את d5, שולט במרכז, ולא ניתן לגירוש (אין רגלי שחור שיכול לתקוף אותו). הרגלי המבודד הופך מחולשה דינמית לחולשה סטטית שתיפול בסוף.',
+   takeaway:'אביר לפני רגלי חופשי = מנעול מושלם.' },
+ { id:'seventh', title:'פלישה לשורה השביעית', level:'עמדתי', kind:'move', orient:'w',
+   fen:'r4rk1/pp3ppp/2p5/8/8/2P5/PP3PPP/2RR2K1 w - - 0 1',
+   concept:'<b>צריח בשורה השביעית.</b> צריח שפולש לשורה השביעית של היריב הוא "חזיר" — הוא זולל רגלים וכולא את המלך בשורה האחורית. השתמש בטור פתוח כדי להגיע לשם. שני צריחים בשורה השביעית לרוב מכריעים את המשחק.',
+   prompt:'טור d פתוח. פלוש עם הצריח לשורה השביעית.',
+   solutions:['Rd7'], hl:[{sq:'d7',c:'good'}],
+   explain:'Rd7! הצריח פולש לשורה השביעית, מאיים על הרגלים b7/f7 וכולא את מלך השחור. אחריו אפשר להכפיל בטור עם Rcd1-d7 — לחץ מכריע.',
+   takeaway:'טור פתוח → שורה שביעית → לחץ מכריע.' },
+ { id:'prophylaxis-adv', title:'חשיבה מונעת (פרופילקסיס)', level:'תוכנית', kind:'move', orient:'w',
+   fen:'r1bq1rk1/1p2bppp/p1n1pn2/2pp4/3P4/2NBPN2/PPP1QPPP/R1B2RK1 w - - 0 1',
+   concept:'<b>חשיבה מונעת.</b> לפני שאתה מקדם את התוכנית שלך, שאל: "מה <b>היריב</b> רוצה לעשות?" — ומנע את זה. קרפוב ונימצוביץ׳ בנו קריירה שלמה על מהלך שקט אחד שהורג את הרעיון של היריב. כאן השחור מכין …b5 לתפיסת מרחב באגף המלכה.',
+   prompt:'השחור מכין …b5 (התפשטות באגף המלכה). מצא את המהלך שמונע זאת מראש.',
+   solutions:['a4'], hl:[{sq:'b5',c:'bad'}],
+   explain:'a4! עוצר את …b5 עוד לפני שקרה. מהלך שקט שמנטרל את כל התוכנית של היריב באגף המלכה, ומשאיר אותך להתקדם עם שלך. זו חשיבה של שחקן חזק.',
+   takeaway:'שאל "מה היריב רוצה?" — ואז מנע.' },
+ { id:'two-weak', title:'עקרון שתי החולשות', level:'תוכנית', kind:'choice', orient:'w',
+   fen:'r5k1/5ppp/p1p5/1p6/8/P1P2P2/1P4PP/3R2K1 w - - 0 1',
+   concept:'<b>עקרון שתי החולשות.</b> לרוב אי אפשר לנצח עם יתרון באגף אחד בלבד — ההגנה מחזיקה. הטריק: פתח <b>חזית שנייה</b> באגף השני. ההגנה לא יכולה לכסות שני אגפים בו־זמנית, והכלים שלה נמתחים עד שנשברים. עיקרון מנצח במיוחד בסיומים ובמשחק עמדתי.',
+   prompt:'יש לך לחץ קל באגף אחד אבל ההגנה מחזיקה. מהי הדרך הנכונה?',
+   choices:['לפתוח חזית שנייה באגף השני — למתוח את ההגנה','להמשיך לתקוף בכוח באותו מקום'], answer:0,
+   explain:'פתיחת חזית שנייה מותחת את הגנת היריב. כלי אחד לא יכול להגן על שני אגפים; ברגע שההגנה נמתחת בין שתי חולשות — משהו נופל. זה ההבדל בין "לחץ" ל"ניצחון".',
+   takeaway:'חולשה אחת לא מספיקה — צור שנייה.' },
+];
+
 /* ---------- ENDGAMES (play vs computer / convert) ---------- */
 const ENDGAMES = [
  { id:'rookmate', name:'מט מלך וצריח', level:'בסיסי', fen:'4k3/8/8/8/8/8/8/R3K3 w - - 0 1', side:'w',
@@ -867,32 +937,61 @@ const ENDGAME_TIPS = [
  { name:'צריח מאחורי רגלי חופשי', txt:'כלל טאראש: צריחים שייכים מאחורי הרגלי החופשי — שלך כדי לתמוך בקידום, של היריב כדי לבלום אותו.' },
 ];
 
-/* ---------- THINKING METHOD (4 questions) ---------- */
+/* ---------- THINKING METHOD (process + questions) ---------- */
 const THINKING = {
- title:'ארבע השאלות לפני כל מסע',
- questions:[
-  { q:'מה האיום של היריב?', d:'לפני הכל — מה הוא מאיים לעשות? (שח, לקיחה, איום כפול). אם לא תזהה, תיפול.' },
-  { q:'מה המסע הכי אקטיבי שלי?', d:'מצא כמה מסעים־מועמדים, והעדף אקטיביות על פסיביות.' },
-  { q:'האם יש טקטיקה?', d:'עבור על שחים, לקיחות ואיומים — בשני הצדדים — לפני שאתה מחליט.' },
-  { q:'האם אני משפר כלי?', d:'אם אין טקטיקה ואין איום — שפר את הכלי הגרוע ביותר שלך.' },
+ title:'איך לחשוב בשחמט — התהליך המלא',
+ intro:'שחקנים חזקים לא "רואים הכול" מיד — יש להם תהליך מסודר שהם מריצים בכל תור. במקום לשחק את המהלך הראשון שנראה טוב, עבור על החמישה שלבים. זה בדיוק מה שמפריד בין דרגה 900 לדרגה 1600.',
+ process:[
+  { t:'1. סריקת איומים', d:'מה היריב מאיים? מה הוא היה משחק אילו היה התור שלו? זהה את האיום לפני שאתה חושב על עצמך — רוב הטעויות ב-900 הן פספוס של איום פשוט.' },
+  { t:'2. מהלכים־מועמדים', d:'אל תתאהב במהלך הראשון. מצא 2–3 מהלכים רציניים ("מועמדים") והשווה ביניהם. שחקן חזק תמיד בוחר מתוך כמה אפשרויות.' },
+  { t:'3. חשב קווים כופים', d:'לכל מועמד — עבור על שחים, לקיחות ואיומים (בשני הצדדים) וחשב את הקווים הכופים עד הסוף. תעמיק דווקא כשהעמדה כופה.' },
+  { t:'4. הערך את העמדה', d:'דמיין את העמדה בסוף הקו: מי עומד טוב יותר? שקלל חומר, בטיחות מלך, פעילות כלים ומבנה רגלים.' },
+  { t:'5. בדיקת בלאנדר', d:'לפני שאתה מזיז — 3 שניות: המהלך שלי תולה משהו? יש ליריב שח או לקיחה חזקים בתגובה? זו הדרך הכי זולה להפסיק לתלות כלים.' },
  ],
- blunderCheck:'ולפני שאתה מזיז — בדיקת "בלאנדר" של שנייה: המסע שלי תולה משהו?'
+ questions:[
+  { q:'מה האיום של היריב?', d:'לפני הכול — מה הוא מאיים לעשות? (שח, לקיחה, איום כפול). אם לא תזהה, תיפול. שאל: "אם היריב היה משחק עכשיו, מה היה המהלך הכי מסוכן שלו?"' },
+  { q:'מה המסע הכי אקטיבי שלי?', d:'מצא כמה מהלכים־מועמדים והעדף אקטיביות על פסיביות. כלי פעיל שווה יותר מכלי "בטוח" ופסיבי.' },
+  { q:'האם יש טקטיקה?', d:'עבור שיטתית על שחים, לקיחות ואיומים (CCT) — בשני הצדדים — לפני שאתה מחליט. רוב הנקודות בדרגה שלך מגיעות מטקטיקה.' },
+  { q:'האם אני משפר כלי?', d:'אם אין טקטיקה ואין איום — שפר את הכלי הגרוע ביותר שלך. בכל עמדה שקטה זו השאלה שמכריעה.' },
+ ],
+ blunderCheck:'בדיקת בלאנדר ≠ חישוב. חישוב משווה מועמדים לעומק; בדיקת בלאנדר היא מסנן ביטחון מהיר של 3 שניות נגד עונש מיידי — בדוק כלים תלויים וכל השחים/לקיחות של היריב. עשה אותה תמיד, אחרי שהחלטת ולפני שאתה מזיז.'
 };
 
-/* ---------- MASTER GAME (analyze / guess the move) ---------- */
+/* ---------- MASTER GAMES (analyze / guess the move) ---------- */
 const GAMES = [
- { id:'opera', title:'"משחק האופרה" — מורפי, 1858', level:'קלאסי חינוכי',
-   intro:'משחק קצר ומושלם על פיתוח, פתיחת קווים ושיתוף כל הכלים בהתקפה. נסה לנחש את מהלכי הלבן המסומנים.',
+ { id:'opera', title:'"משחק האופרה" — מורפי, 1858', level:'התקפה · פיתוח', theme:'פיתוח מהיר ושיתוף כל הכלים בהתקפה',
+   intro:'המשחק המושלם על פיתוח ופתיחת קווים. לפני כל מהלך מסומן שאל: "מה המהלך הכי אקטיבי?" ו"האם יש טקטיקה?" — ונחש את מהלך הלבן.',
    line:['e4','e5','Nf3','d6','d4','Bg4','dxe5','Bxf3','Qxf3','dxe5','Bc4','Nf6','Qb3','Qe7','Nc3','c6','Bg5','b5','Nxb5','cxb5','Bxb5+','Nbd7','O-O-O','Rd8','Rxd7','Rxd7','Rd1','Qe6','Bxd7+','Nxd7','Qb8+','Nxb8','Rd8#'],
    guessPlies:[22,24,30,32],
    notes:{
      4:'לבן פותח מרכז ומזמין את היריב לצרות.',
      8:'הרץ ב־f3 נלקח — לבן מפתח את המלכה בטמפו.',
      12:'Bc4 מכוון ל־f7 ומאיים.',
-     22:'Rxd7! מקריב איכות כדי למשוך את המגן היחיד ולפתוח קווים.',
-     24:'Rd1 — הכלי האחרון נכנס. כל כלי לבן משתתף בהתקפה.',
-     30:'Qb8+!! הקרבת מלכה שמובילה למט כפוי.',
-     32:'Rd8# — מט. פיתוח מהיר + כל הכלים בהתקפה = ניצחון.'
+     18:'שים לב: כל כלי לבן מפותח ופעיל, ואצל השחור רק המלכה זזה. יתרון הפיתוח הוא שמאפשר את ההתקפה.',
+     22:'Rxd7! (שאלה: "האם יש טקטיקה?") מקריב איכות כדי למשוך את המגן היחיד ולפתוח קווים.',
+     24:'Rd1 — הכלי האחרון נכנס. עכשיו *כל* כלי לבן משתתף בהתקפה.',
+     30:'Qb8+!! הקרבת מלכה — חשב את הקו הכופה עד הסוף לפני שמקריבים.',
+     32:'Rd8# — מט. פיתוח מהיר + כל הכלים בהתקפה = ניצחון, גם תמורת המלכה.'
+   } },
+ { id:'legal', title:'מט לגאל — מלכודת קלאסית, 1750', level:'טקטיקה · זהירות', theme:'אל תחמוד חומר על חשבון בטיחות',
+   intro:'שיעור על השאלה "האם יש טקטיקה?" ועל זהירות: לפני שלוקחים חומר, בדוק מה קורה אחר כך. נחש את מהלכי הלבן המסומנים.',
+   line:['e4','e5','Nf3','d6','Bc4','Bg4','Nc3','g6','Nxe5','Bxd1','Bxf7+','Ke7','Nd5#'],
+   guessPlies:[8,10,12],
+   notes:{
+     8:'Nxe5!? נראה כמו טעות — המלכה ב־d1 תלויה! אבל זו הקרבה מחושבת: אם …dxe5?? אז Bxf7+ ומזלג. ואם לוקחים את המלכה…',
+     9:'…Bxd1?? השחור חומד את המלכה — וזו הטעות המכרעת (הנכון היה …dxe5).',
+     10:'Bxf7+! ממשיכים בכוח — שלושה כלים לבנים נופלים על המלך.',
+     12:'Nd5# — מט לגאל! הלקח: בדיקת בלאנדר לפני שחומדים חומר.'
+   } },
+ { id:'reti', title:'רטי – טרטקובר, 1910', level:'חישוב · הקרבה', theme:'חישוב קו כופה עד הסוף',
+   intro:'הדגמה מושלמת לשלב "חשב קווים כופים": כשמוצאים שח/לקיחה — חשבו עד הסוף לפני שמקריבים. נחש את המהלכים המסומנים.',
+   line:['e4','c6','d4','d5','Nc3','dxe4','Nxe4','Nf6','Qd3','e5','dxe5','Qa5+','Bd2','Qxe5','O-O-O','Nxe4','Qd8+','Kxd8','Bg5+','Ke8','Rd8#'],
+   guessPlies:[16,18,20],
+   notes:{
+     14:'השחור לקח רגלי ב־e4 ונראה בסדר — אבל המלך שלו תקוע במרכז וכל כלי הלבן מכוון אליו.',
+     16:'Qd8+!! הקרבת מלכה. "האם יש טקטיקה?" → מצא את השח → חשב את הקו הכופה עד המט.',
+     18:'Bg5+ — שח מגלה: הרץ פותח, והצריח ב־d1 נכנס לפעולה.',
+     20:'Rd8# — מט. הקו הכופה שווה מלכה שלמה. ככה מחשבים.'
    } },
 ];
 
@@ -969,7 +1068,7 @@ const OPENING_CONT = {
  'slav/exch':{leadsTo:'מבנה סימטרי ושווה. המאבק על טור c והמוצב ב־e5/e4 — שחק לדיוק.',cont:['e3','e6','Bd3','Bxd3','Qxd3','Bd6']},
 };
 
-if(typeof module!=='undefined') module.exports={OPENINGS,PUZZLES,STRUCTURES,ENDGAMES,ENDGAME_TIPS,THINKING,GAMES,PLAN,COURSE,OPENING_CONT};
+if(typeof module!=='undefined') module.exports={OPENINGS,PUZZLES,STRUCTURES,ADVANCED,ADV_INTRO,ENDGAMES,ENDGAME_TIPS,THINKING,GAMES,PLAN,COURSE,OPENING_CONT};
 
 ;
 (function(){
@@ -985,7 +1084,7 @@ const PKEY='chessTrainer.progress.v2';
 function loadProg(){try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return{};}}
 function saveProg(){try{localStorage.setItem(PKEY,JSON.stringify(P));}catch(e){}}
 let P=loadProg();
-P.openings=P.openings||{};P.olines=P.olines||{};P.structures=P.structures||{};P.puzzles=P.puzzles||{};
+P.openings=P.openings||{};P.olines=P.olines||{};P.structures=P.structures||{};P.advanced=P.advanced||{};P.puzzles=P.puzzles||{};
 P.endgames=P.endgames||{};P.games=P.games||{};P.course=P.course||{};
 P.xp=P.xp||0;P.streak=P.streak||0;P.lastActive=P.lastActive||'';P.playGames=P.playGames||0;
 P.correct=P.correct||0;P.attempts=P.attempts||0;
@@ -998,7 +1097,7 @@ function addXP(n){P.xp+=n;markActive();saveProg();renderHeader();}
 const S={mode:'home',st:null,orientation:'w',sel:-1,targets:[],last:null,hl:[],history:[],locked:false,
   interact:'none', _coach:null,
   op:null,opView:null,opLine:null,opPly:0,opMistake:false,opColorFilter:'all',opDone:false,opCont:null,opContPly:0,
-  ideaTab:'structures', struct:null, structDone:false,
+  ideaTab:'structures', struct:null, structDone:false, adv:null, advDone:false,
   pz:null,pzSolved:false, pzQueue:null,
   eg:null,egDepth:2,
   thinkView:'method', game:null,gamePly:0,gameGuessing:false,
@@ -1043,11 +1142,12 @@ function onCellClick(e){
     if(S.targets.includes(idx))attemptMove(S.sel,idx);else clearSel();
   }
 }
-function moveInteract(){return ['openingMove','puzzleMove','freeMove','gameGuess','quizMove'].includes(S.interact);}
+function moveInteract(){return ['openingMove','puzzleMove','freeMove','gameGuess','quizMove','advMove'].includes(S.interact);}
 function humanToMove(){
   if(S.interact==='openingMove')return S.opLine&&S.st.turn===S.op.side&&S.opPly<S.opLine.line.length&&!S.opDone;
   if(S.interact==='puzzleMove')return S.pz&&!S.pzSolved;
   if(S.interact==='quizMove')return S.quiz&&!S.quiz.answered;
+  if(S.interact==='advMove')return S.adv&&!S.advDone;
   if(S.interact==='freeMove'){const side=S.mode==='play'?S.playSide:S.eg.side;return S.st.turn===side&&!S.gameOver;}
   if(S.interact==='gameGuess')return S.gameGuessing;
   return false;
@@ -1065,6 +1165,7 @@ function finishAttempt(move){
   if(S.interact==='openingMove')return handleOpeningMove(move);
   if(S.interact==='puzzleMove')return handlePuzzleMove(move);
   if(S.interact==='quizMove')return handleQuizMove(move);
+  if(S.interact==='advMove')return handleAdvMove(move);
   if(S.interact==='gameGuess')return handleGameGuess(move);
   commit(move);afterFree();
 }
@@ -1178,6 +1279,38 @@ function answerChoice(i){
 }
 function hintStructure(){if(S.struct.kind==='identify'){S.hl=S.struct.hl||[];S.structDone=true;renderBoard();coach('info','רמז',S.struct.explain);renderPanel();}}
 
+/* ================= IDEAS: advanced strategy ================= */
+function startAdvanced(a){
+  S.adv=a;S.advDone=false;S.mode='ideas';S.ideaTab='advanced';
+  S.interact=a.kind==='move'?'advMove':'none';
+  S.st=C.parseFEN(a.fen);S.orientation=a.orient||'w';S.history=[];S.last=null;S.sel=-1;S.targets=[];S.hl=[];
+  renderBoard();renderMoveList();
+  S._coach=null;renderPanel();
+}
+function advSolved(a){
+  S.advDone=true;S.hl=a.hl||[];renderBoard();
+  if(!P.advanced[a.id]){P.advanced[a.id]=1;addXP(18);}else addXP(5);markActive();saveProg();
+  coach('good','נכון! ✔',a.explain+' <b>לזכור:</b> '+a.takeaway);renderHeader();renderPanel();
+}
+function handleAdvMove(move){
+  const a=S.adv;P.attempts++;const san=C.moveToSAN(S.st,move).replace(/[+#]/g,'');
+  const canon=a.solutions.map(x=>{const s=C.parseFEN(a.fen);const m=C.parseSAN(s,x);return m?C.moveToSAN(s,m).replace(/[+#]/g,''):x;});
+  if(canon.includes(san)){P.correct++;commit(move);advSolved(a);}
+  else{saveProg();coach('bad','לא המהלך','זה לא הרעיון כאן. חשוב שוב על העיקרון, או לחץ "רמז".');shake();}
+  renderHeader();renderPanel();
+}
+function answerAdvChoice(i){
+  if(S.advDone)return;const a=S.adv;
+  if(i===a.answer){advSolved(a);}
+  else{coach('bad','לא מדויק','חשוב שוב על העיקרון שלמעלה.');renderPanel();}
+}
+function hintAdvanced(){
+  const a=S.adv;if(S.advDone)return;
+  if(a.kind==='move'){const m=C.parseSAN(S.st,a.solutions[0]);if(m){S.sel=m.from;S.targets=[m.to];renderBoard();}coach('info','רמז','נסה '+a.solutions[0]+'. '+a.takeaway);}
+  else{S.hl=a.hl||[];renderBoard();coach('info','רמז',a.explain);}
+  renderPanel();
+}
+
 /* ================= IDEAS: puzzles ================= */
 function startPuzzle(p){
   S.pz=p;S.pzSolved=false;S.interact='puzzleMove';S.gameOver=false;
@@ -1275,8 +1408,8 @@ function undo(){
   else if(S.interact==='openingMove'){const t=Math.max(0,S.history.length-2);if(S.history.length){const h=S.history[t];S.st=C.parseFEN(h.fen);S.history=S.history.slice(0,t);S.opPly=Math.min(t,S.opLine.line.length);S.opDone=t>=S.opLine.line.length;S.opContPly=Math.max(0,t-S.opLine.line.length);S.last=null;renderBoard();renderMoveList();coach('info','חזרה','המשך מכאן.');renderPanel();}}
 }
 function flip(){S.orientation=S.orientation==='w'?'b':'w';renderBoard();}
-function hint(){if(S.interact==='openingMove')hintOpening();else if(S.interact==='puzzleMove')hintPuzzle();else if(S.mode==='ideas'&&S.struct)hintStructure();else if(S.interact==='gameGuess')hintGame();else if(S.interact==='freeMove'&&S.mode==='endgames'){const m=AI.bestMove(S.st,3);if(m){S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','נסה '+C.moveToSAN(S.st,m)+'.');renderPanel();}}}
-function resetCur(){if(S.interact==='openingMove')startOpening(S.op,S.opLine);else if(S.mode==='ideas'&&S.struct)startStructure(S.struct);else if(S.interact==='puzzleMove')startPuzzle(S.pz);else if(S.mode==='endgames')startEndgame(S.eg);else if(S.mode==='play')startPlay();else if(S.thinkView&&S.game&&S.mode==='thinking')startGame(S.game);}
+function hint(){if(S.interact==='openingMove')hintOpening();else if(S.interact==='puzzleMove')hintPuzzle();else if(S.mode==='ideas'&&S.ideaTab==='advanced'&&S.adv)hintAdvanced();else if(S.mode==='ideas'&&S.struct)hintStructure();else if(S.interact==='gameGuess')hintGame();else if(S.interact==='freeMove'&&S.mode==='endgames'){const m=AI.bestMove(S.st,3);if(m){S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','נסה '+C.moveToSAN(S.st,m)+'.');renderPanel();}}}
+function resetCur(){if(S.interact==='openingMove')startOpening(S.op,S.opLine);else if(S.mode==='ideas'&&S.ideaTab==='advanced'&&S.adv)startAdvanced(S.adv);else if(S.mode==='ideas'&&S.struct)startStructure(S.struct);else if(S.interact==='puzzleMove')startPuzzle(S.pz);else if(S.mode==='endgames')startEndgame(S.eg);else if(S.mode==='play')startPlay();else if(S.thinkView&&S.game&&S.mode==='thinking')startGame(S.game);}
 
 function renderControls(){
   const undoB=$('#c-undo'),hintB=$('#c-hint'),nextB=$('#c-next'),flipB=$('#c-flip'),resetB=$('#c-reset');
@@ -1286,7 +1419,7 @@ function renderControls(){
   if(!showBoard)return;
   const showUndo=(S.mode==='play'||S.mode==='endgames'||S.interact==='openingMove');
   undoB.classList.toggle('hidden',!showUndo);undoB.disabled=S.history.length===0;
-  const showHint=(S.interact==='openingMove'||S.interact==='puzzleMove'||S.interact==='gameGuess'||(S.mode==='ideas'&&S.struct&&S.struct.kind==='identify')||(S.mode==='endgames'));
+  const showHint=(S.interact==='openingMove'||S.interact==='puzzleMove'||S.interact==='gameGuess'||S.interact==='advMove'||(S.mode==='ideas'&&S.ideaTab==='advanced'&&S.adv&&S.adv.kind==='choice'&&!S.advDone)||(S.mode==='ideas'&&S.struct&&S.struct.kind==='identify')||(S.mode==='endgames'));
   hintB.classList.toggle('hidden',!showHint);
   // next button: puzzles, game step, quiz
   let nextTxt='',nextFn=null;
@@ -1324,7 +1457,13 @@ function renderCtx(){
         '<div class="ctx-study"><div><b>הרעיון:</b> '+o.summary+'</div><div><b>מבנה:</b> '+o.structure+'</div><div><b>התוכנית שלך:</b> '+o.plan+'</div><div><b>שים לב:</b> '+o.whatToWatch+'</div></div>'+btns;
     }else{h='<div class="ctx-hint">בחר פתיחה מהרשימה כדי ללמוד ולתרגל 👇</div>';}
   }else if(S.mode==='ideas'){
-    if(S.ideaTab==='structures'&&S.struct){h=head(S.struct.title)+coachCard();
+    if(S.ideaTab==='advanced'&&S.adv){const a=S.adv;
+      h=head(a.title,'<span class="lvl">'+a.level+'</span>')+
+        '<div class="ctx-study"><div>'+a.concept+'</div></div>'+
+        '<div class="ctx-prompt">🎯 '+a.prompt+'</div>'+coachCard();
+      if(a.kind==='choice'&&!S.advDone){h+='<div class="ctx-choices">';a.choices.forEach((ch,i)=>h+='<button class="choice" data-ai="'+i+'">'+ch+'</button>');h+='</div>';}
+    }
+    else if(S.ideaTab==='structures'&&S.struct){h=head(S.struct.title)+coachCard();
       if(S.struct.kind==='choice'&&!S.structDone){h+='<div class="ctx-choices">';S.struct.choices.forEach((ch,i)=>h+='<button class="choice" data-ci="'+i+'">'+ch+'</button>');h+='</div>';}
     }else if(S.pz){h=head(S.pz.theme,'<span class="pill '+(S.pz.group==='טקטיקה'?'w':'b')+'">'+S.pz.group+'</span>')+coachCard();}
   }else if(S.mode==='endgames'&&S.eg){h=head(S.eg.name,'<span class="ctx-prog">'+S.eg.level+'</span>')+coachCard();}
@@ -1334,7 +1473,7 @@ function renderCtx(){
   bar.innerHTML=h;
   bar.querySelectorAll('.sit').forEach(b=>b.onclick=()=>startOpening(S.opView,S.opView.lines[+b.dataset.li]));
   const bk=$('#ctxBack');if(bk)bk.onclick=()=>viewOpening(S.op);
-  bar.querySelectorAll('.ctx-choices .choice').forEach(b=>b.onclick=()=>answerChoice(+b.dataset.ci));
+  bar.querySelectorAll('.ctx-choices .choice').forEach(b=>{if(b.dataset.ai!=null)b.onclick=()=>answerAdvChoice(+b.dataset.ai);else b.onclick=()=>answerChoice(+b.dataset.ci);});
 }
 function renderPanel(){renderCtx();const p=$('#panel');p.innerHTML='';
   if(S.mode==='home')p.appendChild(panelHome());
@@ -1351,13 +1490,14 @@ function renderPanel(){renderCtx();const p=$('#panel');p.innerHTML='';
 function panelHome(){
   const w=wrap();
   // progress summary
-  const totals={openings:OPENINGS.length,structures:STRUCTURES.length,puzzles:PUZZLES.length,endgames:ENDGAMES.length,course:COURSE.length};
-  const done={openings:Object.keys(P.openings).length,structures:Object.keys(P.structures).length,puzzles:Object.keys(P.puzzles).length,endgames:Object.keys(P.endgames).length,course:Object.keys(P.course).length};
+  const totals={openings:OPENINGS.length,structures:STRUCTURES.length,advanced:ADVANCED.length,puzzles:PUZZLES.length,endgames:ENDGAMES.length,course:COURSE.length};
+  const done={openings:Object.keys(P.openings).length,structures:Object.keys(P.structures).length,advanced:Object.keys(P.advanced).length,puzzles:Object.keys(P.puzzles).length,endgames:Object.keys(P.endgames).length,course:Object.keys(P.course).length};
   const c1=el('div','card');
   c1.innerHTML='<h2><span class="k">התקדמות</span> הסיכום שלך</h2>'+
     '<div class="statrow"><div class="stat"><b>'+P.xp+'</b><small>XP</small></div><div class="stat"><b>🔥 '+P.streak+'</b><small>רצף ימים</small></div><div class="stat"><b>'+(P.attempts?Math.round(100*P.correct/P.attempts):0)+'%</b><small>דיוק</small></div></div>'+
     '<div class="prow"><span>פתיחות</span>'+bar(done.openings,totals.openings)+'<em>'+done.openings+'/'+totals.openings+'</em></div>'+
     '<div class="prow"><span>מבנים</span>'+bar(done.structures,totals.structures)+'<em>'+done.structures+'/'+totals.structures+'</em></div>'+
+    '<div class="prow"><span>אסטרטגיה</span>'+bar(done.advanced,totals.advanced)+'<em>'+done.advanced+'/'+totals.advanced+'</em></div>'+
     '<div class="prow"><span>מוטיבים</span>'+bar(done.puzzles,totals.puzzles)+'<em>'+done.puzzles+'/'+totals.puzzles+'</em></div>'+
     '<div class="prow"><span>סיומים</span>'+bar(done.endgames,totals.endgames)+'<em>'+done.endgames+'/'+totals.endgames+'</em></div>'+
     '<div class="prow"><span>קורס</span>'+bar(done.course,totals.course)+'<em>'+done.course+'/'+totals.course+'</em></div>';
@@ -1421,8 +1561,8 @@ function panelOpenings(){
 /* ---- IDEAS (structures + puzzles) ---- */
 function panelIdeas(){
   const w=wrap();const card=el('div','card');
-  card.appendChild(el('h2',null,'<span class="k">רעיונות</span> מבנים ומוטיבים'));
-  const seg=el('div','seg');[['structures','מבני רגלים'],['puzzles','מוטיבים']].forEach(([v,l])=>{const b=el('button',S.ideaTab===v?'on':'');b.textContent=l;b.onclick=()=>{S.ideaTab=v;S.struct=null;S.pz=null;renderPanel();if(v==='structures')startStructure(STRUCTURES[0]);else startPuzzle(PUZZLES[0]);};seg.appendChild(b);});
+  card.appendChild(el('h2',null,'<span class="k">רעיונות</span> מבנים · מוטיבים · אסטרטגיה'));
+  const seg=el('div','seg');[['structures','מבנים'],['puzzles','מוטיבים'],['advanced','אסטרטגיה']].forEach(([v,l])=>{const b=el('button',S.ideaTab===v?'on':'');b.textContent=l;b.onclick=()=>{S.ideaTab=v;S.struct=null;S.pz=null;S.adv=null;if(v==='structures')startStructure(STRUCTURES[0]);else if(v==='puzzles')startPuzzle(PUZZLES[0]);else startAdvanced(ADVANCED[0]);};seg.appendChild(b);});
   card.appendChild(seg);
   if(S.ideaTab==='structures'){
     const list=el('div','select-list');list.style.marginTop='10px';
@@ -1430,13 +1570,20 @@ function panelIdeas(){
       b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'♟')+'</div><div class="txt"><b>'+st.title+'</b></div><div class="chev">‹</div>';
       b.onclick=()=>startStructure(st);list.appendChild(b);});
     card.appendChild(list);w.appendChild(card);
-  }else{
+  }else if(S.ideaTab==='puzzles'){
     const groups={};PUZZLES.forEach(p=>{(groups[p.group]=groups[p.group]||[]).push(p);});
     Object.keys(groups).forEach(g=>{card.appendChild(el('div','sub','<b style="color:var(--green-2)">'+g+'</b>'));const list=el('div','select-list');
       groups[g].forEach(p=>{const b=el('button','opt'+(S.pz&&S.pz.theme===p.theme?' active':''));const done=P.puzzles[p.theme];
         b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'?')+'</div><div class="txt"><b>'+p.theme+'</b></div><div class="chev">‹</div>';
         b.onclick=()=>startPuzzle(p);list.appendChild(b);});card.appendChild(list);});
     w.appendChild(card);
+  }else{
+    card.appendChild(el('div','sub',ADV_INTRO));
+    const list=el('div','select-list');
+    ADVANCED.forEach(a=>{const b=el('button','opt'+(S.adv&&S.adv.id===a.id?' active':''));const done=P.advanced[a.id];
+      b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'★')+'</div><div class="txt"><b>'+a.title+'</b><small>'+a.level+'</small></div><div class="chev">‹</div>';
+      b.onclick=()=>startAdvanced(a);list.appendChild(b);});
+    card.appendChild(list);w.appendChild(card);
   }
   return w;
 }
@@ -1458,18 +1605,25 @@ function panelEndgames(){
 /* ---- THINKING + GAMES ---- */
 function panelThinking(){
   const w=wrap();const card=el('div','card');
-  card.appendChild(el('h2',null,'<span class="k">חשיבה</span> שיטה וניתוח משחק'));
-  const seg=el('div','seg');[['method','ארבע השאלות'],['game','ניתוח משחק']].forEach(([v,l])=>{const on=(v==='method'&&S.thinkView==='method')||(v==='game'&&S.thinkView!=='method');const b=el('button',on?'on':'');b.textContent=l;b.onclick=()=>{if(v==='method'){S.thinkView='method';S.game=null;S.st=C.parseFEN(C.START);S.interact='none';S.hl=[];renderBoard();renderMoveList();renderPanel();}else startGame(GAMES[0]);};seg.appendChild(b);});
+  card.appendChild(el('h2',null,'<span class="k">חשיבה</span> שיטה וניתוח משחקים'));
+  const seg=el('div','seg');[['method','שיטת החשיבה'],['games','ניתוח משחקים']].forEach(([v,l])=>{const on=(v==='method'&&S.thinkView==='method')||(v==='games'&&S.thinkView!=='method');const b=el('button',on?'on':'');b.textContent=l;b.onclick=()=>{S.game=null;S.interact='none';S.hl=[];S.st=C.parseFEN(C.START);S.thinkView=(v==='method'?'method':'games');renderBoard();renderMoveList();renderPanel();};seg.appendChild(b);});
   card.appendChild(seg);w.appendChild(card);
   if(S.thinkView==='method'){
-    const c=el('div','card');c.innerHTML='<h2>'+THINKING.title+'</h2>';
-    THINKING.questions.forEach((q,i)=>c.insertAdjacentHTML('beforeend','<div class="qitem"><div class="qn">'+(i+1)+'</div><div><b>'+q.q+'</b><small>'+q.d+'</small></div></div>'));
-    c.insertAdjacentHTML('beforeend','<div class="coach info"><div class="tag">♟ זכור</div>'+THINKING.blunderCheck+'</div>');
+    const c=el('div','card');c.innerHTML='<h2>'+THINKING.title+'</h2><div class="sub">'+THINKING.intro+'</div>';
+    THINKING.process.forEach(p=>c.insertAdjacentHTML('beforeend','<div class="qitem"><div class="qn">'+p.t.split('.')[0]+'</div><div><b>'+p.t.replace(/^\d+\.\s*/,'')+'</b><small>'+p.d+'</small></div></div>'));
     w.appendChild(c);
-  }else if(S.game){
-    const c=el('div','card');
-    c.innerHTML='<h2>איך זה עובד</h2><div class="sub">לחץ <b>"המשך ›"</b> כדי לצעוד במשחק ולקרוא הערות. במהלכים מסומנים — נסה לנחש בעצמך על הלוח, ותקבל משוב מעל הלוח.</div>';
-    w.appendChild(c);
+    const c2=el('div','card');c2.innerHTML='<h2>ארבע השאלות לפני כל מסע</h2>';
+    THINKING.questions.forEach((q,i)=>c2.insertAdjacentHTML('beforeend','<div class="qitem"><div class="qn gold">'+(i+1)+'</div><div><b>'+q.q+'</b><small>'+q.d+'</small></div></div>'));
+    c2.insertAdjacentHTML('beforeend','<div class="coach info"><div class="tag">♟ בדיקת בלאנדר</div>'+THINKING.blunderCheck+'</div>');
+    w.appendChild(c2);
+  }else{
+    const gc=el('div','card');gc.innerHTML='<h2>משחקי אמן לניתוח</h2><div class="sub">בחר משחק, צעד בו עם "המשך", ובמהלכים המסומנים נסה לנחש. כל משחק קשור לשלב בשיטת החשיבה.</div>';
+    const list=el('div','select-list');
+    GAMES.forEach(g=>{const b=el('button','opt'+(S.game&&S.game.id===g.id?' active':''));const done=P.games[g.id];
+      b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'♞')+'</div><div class="txt"><b>'+g.title+'</b><small>'+g.level+' · '+g.theme+'</small></div><div class="chev">‹</div>';
+      b.onclick=()=>startGame(g);list.appendChild(b);});
+    gc.appendChild(list);w.appendChild(gc);
+    if(S.game){const c=el('div','card');c.innerHTML='<h2>איך זה עובד</h2><div class="sub">לחץ <b>"המשך ›"</b> כדי לצעוד ולקרוא הערות. במהלכים מסומנים — נחש על הלוח, והמשוב יופיע מעל הלוח.</div>';w.appendChild(c);}
   }
   return w;
 }
@@ -1502,9 +1656,9 @@ function setTab(m){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.m===m));
   if(m==='home'){S.st=C.parseFEN(C.START);renderBoard&&renderBoard();renderPanel();}
   else if(m==='openings'){if(S.opView)viewOpening(S.opView);else{S.st=C.parseFEN(C.START);S.orientation='w';renderBoard();renderMoveList();renderPanel();}}
-  else if(m==='ideas'){if(S.ideaTab==='structures'){if(S.struct)startStructure(S.struct);else startStructure(STRUCTURES[0]);}else{if(S.pz)startPuzzle(S.pz);else startPuzzle(PUZZLES[0]);}}
+  else if(m==='ideas'){if(S.ideaTab==='advanced'){if(S.adv)startAdvanced(S.adv);else startAdvanced(ADVANCED[0]);}else if(S.ideaTab==='puzzles'){if(S.pz)startPuzzle(S.pz);else startPuzzle(PUZZLES[0]);}else{if(S.struct)startStructure(S.struct);else startStructure(STRUCTURES[0]);}}
   else if(m==='endgames'){if(S.eg)startEndgame(S.eg);else startEndgame(ENDGAMES[0]);}
-  else if(m==='thinking'){if(S.thinkView==='method'){S.st=C.parseFEN(C.START);S.game=null;renderBoard();renderMoveList();renderPanel();}else if(S.game)startGame(S.game);else{S.thinkView='method';S.st=C.parseFEN(C.START);renderBoard();renderPanel();}}
+  else if(m==='thinking'){S.st=C.parseFEN(C.START);S.hl=[];S.interact='none';if(S.game)startGame(S.game);else{if(S.thinkView!=='games')S.thinkView='method';renderBoard();renderMoveList();renderPanel();}}
   else if(m==='play')startPlay();
 }
 function renderAll(){renderHeader();renderBoard();renderMoveList();renderPanel();}
