@@ -7,7 +7,7 @@
 (`parseSAN` חוקי לכל פתרון/קו; לעמדות ודא מלך אחד לכל צד ו-`inCheck`=false בהתחלה; למטים `legalMoves(s).length===0 && inCheck(s)`).
 אחרי עריכה: `node chess/src/build.js` → בדיקת שגיאות JS ב-chromium headless על `chess/index.html` → push של `chess/` בלבד ל-main (בלי לגעת בפורטפוליו).
 
-- [ ] 1. טקטיקה: הוסף 2 תרגילי מזלג נוספים (PUZZLES ב-content.js) + חבר ל-STAGES שלב 2.
+- [x] 1. טקטיקה: הוסף 2 תרגילי מזלג נוספים (PUZZLES ב-content.js) + חבר ל-STAGES שלב 2.
 - [ ] 2. טקטיקה: הוסף 3 תרגילי סיכה/שיפוד/התקפה־מגלה נוספים + חבר ל-STAGES שלב 2.
 - [ ] 3. טקטיקה: הוסף הסרת־מגן/הסחה, כלי לכוד, ושח־כפול או מט־בשניים + חבר ל-STAGES שלב 2.
 - [ ] 4. משחקים: הוסף 2 מיניאטורות מט מוסברות (GAMES) — ודא שמסתיימות במט; guessPlies+notes; חבר ל-STAGES שלב 5.
