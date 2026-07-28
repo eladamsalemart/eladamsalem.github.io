@@ -917,6 +917,18 @@ const PUZZLES = [
    solutions:['h3'], idea:'מניעה: h3 מונע מראש את ...Ng4 ו...Bg4 — מהלך שקט שהורג את הרעיון של היריב לפני שתתקדם.' },
  { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'שיפור הכלי הגרוע', fen:'r1bq1rk1/ppp1bppp/2n2n2/3p4/3P4/3BPN2/PPP2PPP/RNBQ1RK1 w - - 0 1',
    solutions:['Nbd2'], idea:'האביר ב־b1 הוא הכלי הגרוע — Nbd2 מפעיל אותו בדרך ל־f1-g3, אל לב המשחק.' },
+ { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'תפיסת הטור הפתוח', fen:'r2q1rk1/pp3ppp/4pn2/3p4/3P4/4PN2/PP3PPP/R2Q1RK1 w - - 0 1',
+   solutions:['Rc1'], idea:'טור c פתוח לגמרי — Rc1! תופס אותו. מי שמשתלט על הטור הפתוח ראשון שולט בו: פולש לשורה השביעית ולוחץ.',
+   demo:{intro:'צפה איך תפיסת הטור הפתוח מובילה ללחץ.', line:['Rc1','Rc8','Ne5'], notes:{0:'Rc1 — משתלטים על הטור הפתוח לפני היריב.',2:'Ne5 — מרכזים כלי חזק; הצריח בטור c מוכן לפלוש ל־c7.'}, leadsTo:'שליטה בטור הפתוח → פלישה לשורה השביעית ולחץ מתמשך.'} },
+ { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'חדירה לשורה השביעית', fen:'r5k1/pp3ppp/2p5/8/8/2P5/PP3PPP/3R2K1 w - - 0 1',
+   solutions:['Rd7'], idea:'Rd7! הצריח פולש לשורה השביעית — "חזיר" שזולל רגלים וכולא את המלך. כלל: טור פתוח מוביל לשורה השביעית.',
+   demo:{intro:'צפה איך צריח בשורה השביעית אוכל רגלים.', line:['Rd7','Re8','Rxb7'], notes:{0:'Rd7 — פלישה לשורה השביעית.',2:'Rxb7 — הצריח כבר אוסף רגלים; מלך השחור כלוא בשורה האחורית.'}, leadsTo:'צריח בשורה השביעית זולל רגלים וכובל את היריב — יתרון מכריע.'} },
+ { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'פריצה מרכזית (…c5)', fen:'r1bq1rk1/pp1n1ppp/2p1pn2/3p4/2PP4/2N1PN2/PP3PPP/R1BQ1RK1 b - - 0 1',
+   solutions:['c5'], idea:'…c5! פורצים במרכז ומאתגרים את d4. בלי פריצה העמדה קופאת — פריצת רגלים פותחת קווים לכלים שלך.',
+   demo:{intro:'צפה איך פריצת …c5 פותחת את העמדה.', line:['c5','cxd5','exd5'], notes:{0:'…c5 מאתגר מיד את מרכז הלבן.',2:'…exd5 — הטורים נפתחים והרצים והצריחים מקבלים אוויר.'}, leadsTo:'פריצת …c5 פתחה קווים ונתנה לכלים השחורים משחק פעיל.'} },
+ { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'לחץ על רגלי מבודד', fen:'r2q1rk1/pp3ppp/4pn2/3p4/8/4PN2/PP2QPPP/R3R1K1 w - - 0 1',
+   solutions:['Nd4'], idea:'Nd4! חוסם ותוקף את הרגלי המבודד d5. חסום רגלי מבודד בכלי לפניו, ואז רכז כלים לתקוף אותו — הוא חולשה קבועה.',
+   demo:{intro:'צפה איך חוסמים ותוקפים רגלי מבודד.', line:['Nd4','Rc8','Rad1'], notes:{0:'Nd4 — האביר חוסם את d5 מלפנים; לא ניתן לגירוש ברגלי.',2:'Rad1 — מרכזים צריח ומגבירים לחץ על הרגלי המבודד.'}, leadsTo:'הרגלי המבודד חסום ומותקף — חולשה קבועה שתיפול בסיום.'} },
 ];
 
 /* ---------- PAWN STRUCTURE lessons (the 5 questions) ---------- */
@@ -1375,6 +1387,8 @@ const STAGES = [
     {t:'הרגלי החלש', ref:{mode:'structures',id:'weakpawn'}},
     {t:'הטור הפתוח', ref:{mode:'structures',id:'openfile'}},
     {t:'הריבוע החזק (מוצב)', ref:{mode:'structures',id:'outpost'}},
+    {t:'תרגול: תפיסת הטור הפתוח', ref:{mode:'puzzles',theme:'תפיסת הטור הפתוח'}},
+    {t:'תרגול: לחץ על רגלי מבודד', ref:{mode:'puzzles',theme:'לחץ על רגלי מבודד'}},
     {t:'באיזה צד לתקוף', ref:{mode:'advanced',id:'which-side'}},
     {t:'תקיפת בסיס השרשרת', ref:{mode:'advanced',id:'base'}},
     {t:'חשיבה מונעת', ref:{mode:'advanced',id:'prophylaxis-adv'}},
@@ -1707,7 +1721,7 @@ function advDemoNext(){const a=S.adv;if(!a||!a.demo)return;const line=a.demo.lin
 
 /* ================= IDEAS: puzzles ================= */
 function startPuzzle(p){
-  S.pz=p;S.pzSolved=false;S.interact='puzzleMove';S.gameOver=false;
+  S.pz=p;S.pzSolved=false;S.pzDemoing=false;S.pzDemoPly=0;S.interact='puzzleMove';S.gameOver=false;
   S.st=C.parseFEN(p.fen);S.orientation=S.st.turn;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
   renderBoard();renderMoveList();
   coach('info',p.theme,'תור '+(S.st.turn==='w'?'הלבן':'השחור')+'. מצא את המהלך שממחיש: '+p.theme+'.');renderPanel();
@@ -1721,6 +1735,17 @@ function handlePuzzleMove(move){
 }
 function hintPuzzle(){if(S.pzSolved)return;const s=C.parseFEN(S.pz.fen),m=C.parseSAN(s,S.pz.solutions[0]);S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','הפתרון: '+S.pz.solutions[0]+'. '+S.pz.idea);renderPanel();}
 function nextPuzzle(){const i=PUZZLES.indexOf(S.pz);startPuzzle(PUZZLES[(i+1)%PUZZLES.length]);}
+function pzDemoStart(){const p=S.pz;if(!p||!p.demo)return;
+  S.pzDemoing=true;S.pzDemoPly=0;S.interact='none';
+  S.st=C.parseFEN(p.fen);S.orientation=S.st.turn;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
+  renderBoard();renderMoveList();coach('info','הדגמה — '+p.theme,p.demo.intro);renderPanel();}
+function pzDemoNext(){const p=S.pz;if(!p||!p.demo)return;const line=p.demo.line;
+  if(S.pzDemoPly>=line.length)return;
+  const m=C.parseSAN(S.st,line[S.pzDemoPly]);if(!m)return;commit(m);
+  const note=p.demo.notes&&p.demo.notes[S.pzDemoPly];S.pzDemoPly++;
+  if(S.pzDemoPly>=line.length)coach('good','לאן זה מוביל ✔',(note?note+' ':'')+p.demo.leadsTo);
+  else coach('info','הדגמה',note||'ממשיכים לפי הרעיון…');
+  renderPanel();}
 
 /* ================= ENDGAMES ================= */
 function startEndgame(e){
@@ -1822,6 +1847,7 @@ function renderControls(){
   // next button: puzzles, game step, quiz
   let nextTxt='',nextFn=null;
   if(S.mode==='openings'&&S.opDone&&S.opCont&&S.opContPly<S.opCont.cont.length){nextTxt='המשך אופייני ›';nextFn=contNext;}
+  else if(S.mode==='ideas'&&S.ideaTab==='puzzles'&&S.pz&&S.pzDemoing){nextTxt=S.pzDemoPly<S.pz.demo.line.length?'המשך ›':'תרגיל הבא ›';nextFn=S.pzDemoPly<S.pz.demo.line.length?pzDemoNext:nextPuzzle;}
   else if(S.interact==='puzzleMove'){nextTxt='תרגיל הבא ›';nextFn=nextPuzzle;}
   else if(S.mode==='thinking'&&S.game){nextTxt=S.gamePly>=S.game.line.length?'':'המשך ›';nextFn=gameNext;}
   else if(S.mode==='ideas'&&S.ideaTab==='advanced'&&S.adv&&S.adv.demo){
@@ -1870,7 +1896,9 @@ function renderCtx(){
         (deep?'<div class="deep">'+deep.map(s=>'<div class="deep-sec"><b>'+s.h+'</b><span>'+s.t+'</span></div>').join('')+'</div>':'')+
         '<div class="ctx-prompt">🎯 '+st.prompt+'</div>'+coachCard();
       if(st.kind==='choice'&&!S.structDone){h+='<div class="ctx-choices">';st.choices.forEach((ch,i)=>h+='<button class="choice" data-ci="'+i+'">'+ch+'</button>');h+='</div>';}
-    }else if(S.pz){h=head(S.pz.theme,(S.pz.lvl?'<span class="lvl">'+S.pz.lvl+'</span>':'')+'<span class="pill '+(S.pz.group==='טקטיקה'?'w':'b')+'">'+S.pz.group+'</span>')+coachCard();}
+    }else if(S.pz){h=head(S.pz.theme,(S.pz.lvl?'<span class="lvl">'+S.pz.lvl+'</span>':'')+'<span class="pill '+(S.pz.group==='טקטיקה'?'w':'b')+'">'+S.pz.group+'</span>')+coachCard();
+      if(S.pzSolved){h+='<div class="ctx-actions">'+(S.pz.demo&&!S.pzDemoing?'<button class="ctx-link" id="pzDemo">▶ הדגם את ההמשך</button>':'')+'<button class="ctx-link" id="pzPlay">♟ שחק מכאן מול המחשב</button></div>';}
+    }
   }else if(S.mode==='endgames'&&S.eg){h=head(S.eg.name,'<span class="ctx-prog">'+S.eg.level+'</span>')+coachCard();}
   else if(S.mode==='thinking'&&S.game){const prog=Math.min(S.gamePly,S.game.line.length);h=head(S.game.title,'<span class="ctx-prog">מהלך '+Math.ceil((prog+1)/2)+'</span>')+coachCard();}
   else if(S.mode==='play'){h=head('משחק מול המחשב',pill(S.playSide))+coachCard();}
@@ -1881,6 +1909,8 @@ function renderCtx(){
   bar.querySelectorAll('.ctx-choices .choice').forEach(b=>{if(b.dataset.ai!=null)b.onclick=()=>answerAdvChoice(+b.dataset.ai);else b.onclick=()=>answerChoice(+b.dataset.ci);});
   const adB=$('#advDemo');if(adB)adB.onclick=advDemoStart;
   const apB=$('#advPlay');if(apB)apB.onclick=()=>startPlay(S.adv.fen);
+  const pdB=$('#pzDemo');if(pdB)pdB.onclick=pzDemoStart;
+  const ppB=$('#pzPlay');if(ppB)ppB.onclick=()=>startPlay(S.pz.fen);
 }
 function renderPanel(){renderCtx();const p=$('#panel');p.innerHTML='';
   if(S.mode==='home')p.appendChild(panelHome());

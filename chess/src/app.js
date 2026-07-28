@@ -260,7 +260,7 @@ function advDemoNext(){const a=S.adv;if(!a||!a.demo)return;const line=a.demo.lin
 
 /* ================= IDEAS: puzzles ================= */
 function startPuzzle(p){
-  S.pz=p;S.pzSolved=false;S.interact='puzzleMove';S.gameOver=false;
+  S.pz=p;S.pzSolved=false;S.pzDemoing=false;S.pzDemoPly=0;S.interact='puzzleMove';S.gameOver=false;
   S.st=C.parseFEN(p.fen);S.orientation=S.st.turn;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
   renderBoard();renderMoveList();
   coach('info',p.theme,'תור '+(S.st.turn==='w'?'הלבן':'השחור')+'. מצא את המהלך שממחיש: '+p.theme+'.');renderPanel();
@@ -274,6 +274,17 @@ function handlePuzzleMove(move){
 }
 function hintPuzzle(){if(S.pzSolved)return;const s=C.parseFEN(S.pz.fen),m=C.parseSAN(s,S.pz.solutions[0]);S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','הפתרון: '+S.pz.solutions[0]+'. '+S.pz.idea);renderPanel();}
 function nextPuzzle(){const i=PUZZLES.indexOf(S.pz);startPuzzle(PUZZLES[(i+1)%PUZZLES.length]);}
+function pzDemoStart(){const p=S.pz;if(!p||!p.demo)return;
+  S.pzDemoing=true;S.pzDemoPly=0;S.interact='none';
+  S.st=C.parseFEN(p.fen);S.orientation=S.st.turn;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
+  renderBoard();renderMoveList();coach('info','הדגמה — '+p.theme,p.demo.intro);renderPanel();}
+function pzDemoNext(){const p=S.pz;if(!p||!p.demo)return;const line=p.demo.line;
+  if(S.pzDemoPly>=line.length)return;
+  const m=C.parseSAN(S.st,line[S.pzDemoPly]);if(!m)return;commit(m);
+  const note=p.demo.notes&&p.demo.notes[S.pzDemoPly];S.pzDemoPly++;
+  if(S.pzDemoPly>=line.length)coach('good','לאן זה מוביל ✔',(note?note+' ':'')+p.demo.leadsTo);
+  else coach('info','הדגמה',note||'ממשיכים לפי הרעיון…');
+  renderPanel();}
 
 /* ================= ENDGAMES ================= */
 function startEndgame(e){
@@ -375,6 +386,7 @@ function renderControls(){
   // next button: puzzles, game step, quiz
   let nextTxt='',nextFn=null;
   if(S.mode==='openings'&&S.opDone&&S.opCont&&S.opContPly<S.opCont.cont.length){nextTxt='המשך אופייני ›';nextFn=contNext;}
+  else if(S.mode==='ideas'&&S.ideaTab==='puzzles'&&S.pz&&S.pzDemoing){nextTxt=S.pzDemoPly<S.pz.demo.line.length?'המשך ›':'תרגיל הבא ›';nextFn=S.pzDemoPly<S.pz.demo.line.length?pzDemoNext:nextPuzzle;}
   else if(S.interact==='puzzleMove'){nextTxt='תרגיל הבא ›';nextFn=nextPuzzle;}
   else if(S.mode==='thinking'&&S.game){nextTxt=S.gamePly>=S.game.line.length?'':'המשך ›';nextFn=gameNext;}
   else if(S.mode==='ideas'&&S.ideaTab==='advanced'&&S.adv&&S.adv.demo){
@@ -423,7 +435,9 @@ function renderCtx(){
         (deep?'<div class="deep">'+deep.map(s=>'<div class="deep-sec"><b>'+s.h+'</b><span>'+s.t+'</span></div>').join('')+'</div>':'')+
         '<div class="ctx-prompt">🎯 '+st.prompt+'</div>'+coachCard();
       if(st.kind==='choice'&&!S.structDone){h+='<div class="ctx-choices">';st.choices.forEach((ch,i)=>h+='<button class="choice" data-ci="'+i+'">'+ch+'</button>');h+='</div>';}
-    }else if(S.pz){h=head(S.pz.theme,(S.pz.lvl?'<span class="lvl">'+S.pz.lvl+'</span>':'')+'<span class="pill '+(S.pz.group==='טקטיקה'?'w':'b')+'">'+S.pz.group+'</span>')+coachCard();}
+    }else if(S.pz){h=head(S.pz.theme,(S.pz.lvl?'<span class="lvl">'+S.pz.lvl+'</span>':'')+'<span class="pill '+(S.pz.group==='טקטיקה'?'w':'b')+'">'+S.pz.group+'</span>')+coachCard();
+      if(S.pzSolved){h+='<div class="ctx-actions">'+(S.pz.demo&&!S.pzDemoing?'<button class="ctx-link" id="pzDemo">▶ הדגם את ההמשך</button>':'')+'<button class="ctx-link" id="pzPlay">♟ שחק מכאן מול המחשב</button></div>';}
+    }
   }else if(S.mode==='endgames'&&S.eg){h=head(S.eg.name,'<span class="ctx-prog">'+S.eg.level+'</span>')+coachCard();}
   else if(S.mode==='thinking'&&S.game){const prog=Math.min(S.gamePly,S.game.line.length);h=head(S.game.title,'<span class="ctx-prog">מהלך '+Math.ceil((prog+1)/2)+'</span>')+coachCard();}
   else if(S.mode==='play'){h=head('משחק מול המחשב',pill(S.playSide))+coachCard();}
@@ -434,6 +448,8 @@ function renderCtx(){
   bar.querySelectorAll('.ctx-choices .choice').forEach(b=>{if(b.dataset.ai!=null)b.onclick=()=>answerAdvChoice(+b.dataset.ai);else b.onclick=()=>answerChoice(+b.dataset.ci);});
   const adB=$('#advDemo');if(adB)adB.onclick=advDemoStart;
   const apB=$('#advPlay');if(apB)apB.onclick=()=>startPlay(S.adv.fen);
+  const pdB=$('#pzDemo');if(pdB)pdB.onclick=pzDemoStart;
+  const ppB=$('#pzPlay');if(ppB)ppB.onclick=()=>startPlay(S.pz.fen);
 }
 function renderPanel(){renderCtx();const p=$('#panel');p.innerHTML='';
   if(S.mode==='home')p.appendChild(panelHome());
