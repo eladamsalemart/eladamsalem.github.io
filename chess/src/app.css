@@ -261,6 +261,8 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .ctx-start{width:100%;background:var(--gold);color:#2a1f05;font-weight:800;padding:12px;border-radius:11px;font-size:15px;transition:filter .12s}
 .ctx-start:hover{filter:brightness(1.06)}
 .ctx-link{align-self:flex-start;color:var(--green-2);font-weight:700;font-size:13px;text-decoration:underline}
+.ctx-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.ctx-actions .ctx-link{align-self:auto;background:rgba(47,143,86,.1);border:1px solid rgba(47,143,86,.35);border-radius:8px;padding:7px 12px;text-decoration:none}
 .ctx-hint{font-size:14px;color:var(--muted);font-weight:600;text-align:center;padding:4px}
 .ctx-choices{display:flex;gap:8px;flex-wrap:wrap}
 .ctx-choices .choice{flex:1;min-width:130px}

@@ -282,6 +282,8 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .ctx-start{width:100%;background:var(--gold);color:#2a1f05;font-weight:800;padding:12px;border-radius:11px;font-size:15px;transition:filter .12s}
 .ctx-start:hover{filter:brightness(1.06)}
 .ctx-link{align-self:flex-start;color:var(--green-2);font-weight:700;font-size:13px;text-decoration:underline}
+.ctx-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.ctx-actions .ctx-link{align-self:auto;background:rgba(47,143,86,.1);border:1px solid rgba(47,143,86,.35);border-radius:8px;padding:7px 12px;text-decoration:none}
 .ctx-hint{font-size:14px;color:var(--muted);font-weight:600;text-align:center;padding:4px}
 .ctx-choices{display:flex;gap:8px;flex-wrap:wrap}
 .ctx-choices .choice{flex:1;min-width:130px}
@@ -957,21 +959,24 @@ const ADVANCED = [
    choices:['אגף המלך — עם הפריצה …f5','אגף המלכה'], answer:0,
    hl:[{sq:'e5',c:'good'},{sq:'f7',c:'good'},{sq:'g6',c:'good'}],
    explain:'שרשרת הרגלים של השחור (d6–e5) מצביעה לאגף המלך, שם יש לו מרחב. הפריצה …f5 פותחת קווים לעבר מלך הלבן. הלבן, במקביל, יתקוף באגף המלכה עם c5.',
-   takeaway:'שרשרת הרגלים היא חץ — הוא מצביע לאן לתקוף.' },
+   takeaway:'שרשרת הרגלים היא חץ — הוא מצביע לאן לתקוף.',
+   demo:{intro:'צפה איך הלבן מבצע את התוכנית באגף המלכה — הצד שאליו מצביעה שרשרת הרגלים שלו.', line:['c5','dxc5','Na4'], notes:{0:'c5 — פורצים באגף המלכה ותוקפים את בסיס d6, בדיוק לאן ששרשרת c4–d5 מצביעה.',2:'Na4 — האביר דוהר ל־c5/b6. הלבן משחק באגף שלו; במקביל השחור היה פורץ …f5 באגף המלך.'}, leadsTo:'ללבן לחץ ומרחב באגף המלכה — הצד שאליו "מצביעה" שרשרת הרגלים שלו.'} },
  { id:'base', title:'תקיפת בסיס השרשרת', level:'פריצה', kind:'move', orient:'b',
    fen:'r1bqkb1r/ppp2ppp/4pn2/3pP3/3P4/5N2/PPP2PPP/RNBQKB1R b KQkq - 0 1',
    concept:'<b>תקוף את בסיס השרשרת.</b> בשרשרת רגלים, הרגלי האחורי ביותר (הבסיס) הוא הכי קשה להגנה — הוא לא מוגן על ידי רגלי אחר. פרוץ אותו עם רגלי משלך כדי לפרק את כל השרשרת. כאן שרשרת הלבן היא e5–d4, והבסיס הוא d4.',
    prompt:'שרשרת הלבן: e5–d4. מצא את הפריצה ששוברת את הבסיס d4.',
    solutions:['c5'], hl:[{sq:'d4',c:'bad'}],
    explain:'…c5! תוקף את d4 — בסיס השרשרת. אם dxc5 השחור משתלט על המרכז, ואם השרשרת נשמרת השחור פותח את טור c ולוחץ. תמיד תוקפים שרשרת מהבסיס.',
-   takeaway:'בסיס השרשרת = המטרה. פרוץ אותו ברגלי.' },
+   takeaway:'בסיס השרשרת = המטרה. פרוץ אותו ברגלי.',
+   demo:{intro:'צפה איך פריצת הבסיס מפרקת את שרשרת הלבן.', line:['c5','dxc5','Bxc5'], notes:{0:'…c5! פורצים ישירות את בסיס השרשרת d4.',2:'…Bxc5 מחזיר את הרגלי עם רץ פעיל וקווים פתוחים — השרשרת פורקה.'}, leadsTo:'בסיס השרשרת (d4) נפרץ וכל שרשרת הרגלים של הלבן קורסת — לשחור משחק חופשי.'} },
  { id:'storm', title:'מרוץ בהצרחות מנוגדות', level:'התקפה', kind:'move', orient:'w',
    fen:'r1bq1rk1/pp2ppbp/2np1np1/8/3NP3/2N1BP2/PPPQ2PP/2KR1B1R w - - 0 1',
    concept:'<b>בהצרחות מנוגדות — זה מרוץ.</b> כשהמלכים בצדדים מנוגדים, כל צד דוחף את רגלי האגף שלו לעבר מלך היריב כדי לפתוח קווים. כאן מהירות חשובה יותר מחומר — אפשר ואף כדאי להקריב רגלים כדי לפתוח את העמדה. מי שמגיע ראשון — מנצח.',
    prompt:'הצרחות מנוגדות (לבן ארוכה, שחור קצרה). התחל את סופת הרגלים לעבר מלך השחור.',
    solutions:['g4','h4'], hl:[{sq:'g7',c:'bad'},{sq:'h7',c:'bad'}],
    explain:'g4! (או h4) פותח את סופת הרגלים g4-g5, h4-h5 כדי לפרק את מחסה מלך השחור. בהצרחות מנוגדות דוחפים בלי לחשוש — הרגלים הם חומר נפץ, לא כלים להגנה.',
-   takeaway:'הצרחה מנוגדת = דחוף רגלים, אל תספור אותם.' },
+   takeaway:'הצרחה מנוגדת = דחוף רגלים, אל תספור אותם.',
+   demo:{intro:'צפה במרוץ הרגלים — כל צד דוחף לעבר המלך הנגדי.', line:['g4','b5','h4'], notes:{0:'g4 — פותחים את סופת הרגלים לעבר מלך השחור.',1:'…b5 — השחור עונה בסופה משלו לעבר מלך הלבן. זה מרוץ.',2:'h4 — ממשיכים לדחוף בלי לחשוש לחומר.'}, leadsTo:'שני הצדדים דוחפים רגלים לעבר המלך הנגדי — מנצח מי שפותח קווים ראשון.'} },
  { id:'count', title:'ספירת תוקפים מול מגנים', level:'התקפה', kind:'choice', orient:'w',
    fen:'r1bq1rk1/ppp2ppp/2n2n2/2bpp3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 1',
    concept:'<b>לפני שמקריבים על המלך — ספור.</b> הקרבה על המלך עובדת רק אם יש לך <b>יותר תוקפים ממגנים</b> באזור, ואם המרוץ מהיר מספיק. הקרבה = החלפת חומר תמורת זמן ופתיחת קווים. ספור כמה כלים שלך יכולים להצטרף להתקפה מול כמה מגנים — ורק אז חשב את הקו.',
@@ -985,28 +990,32 @@ const ADVANCED = [
    prompt:'לשחור רגלי מבודד ב־d5. חסום אותו עם אביר בריבוע שלפניו.',
    solutions:['Nd4'], hl:[{sq:'d5',c:'bad'},{sq:'d4',c:'good'}],
    explain:'Nd4! האביר חוסם את d5, שולט במרכז, ולא ניתן לגירוש (אין רגלי שחור שיכול לתקוף אותו). הרגלי המבודד הופך מחולשה דינמית לחולשה סטטית שתיפול בסוף.',
-   takeaway:'אביר לפני רגלי חופשי = מנעול מושלם.' },
+   takeaway:'אביר לפני רגלי חופשי = מנעול מושלם.',
+   demo:{intro:'צפה איך האביר נועל את הרגלי המבודד וממיר אותו לחולשה קבועה.', line:['Nd4','Rc8','Rc1'], notes:{0:'Nd4 — האביר נועל את d5: לא ניתן לגירוש ברגלי, שולט במרכז, והרגלי כבר לא מסוכן.',2:'Rc1 — משתלטים על הטור הפתוח וממשיכים ללחוץ על החולשה.'}, leadsTo:'הרגלי המבודד הפך מכוח דינמי לחולשה סטטית שנשארת על הלוח — לחץ ארוך־טווח.'} },
  { id:'seventh', title:'פלישה לשורה השביעית', level:'עמדתי', kind:'move', orient:'w',
    fen:'r4rk1/pp3ppp/2p5/8/8/2P5/PP3PPP/2RR2K1 w - - 0 1',
    concept:'<b>צריח בשורה השביעית.</b> צריח שפולש לשורה השביעית של היריב הוא "חזיר" — הוא זולל רגלים וכולא את המלך בשורה האחורית. השתמש בטור פתוח כדי להגיע לשם. שני צריחים בשורה השביעית לרוב מכריעים את המשחק.',
    prompt:'טור d פתוח. פלוש עם הצריח לשורה השביעית.',
    solutions:['Rd7'], hl:[{sq:'d7',c:'good'}],
    explain:'Rd7! הצריח פולש לשורה השביעית, מאיים על הרגלים b7/f7 וכולא את מלך השחור. אחריו אפשר להכפיל בטור עם Rcd1-d7 — לחץ מכריע.',
-   takeaway:'טור פתוח → שורה שביעית → לחץ מכריע.' },
+   takeaway:'טור פתוח → שורה שביעית → לחץ מכריע.',
+   demo:{intro:'צפה איך הצריח פולש לשורה השביעית ומכין הכפלה.', line:['Rd7','a5','Rcd1'], notes:{0:'Rd7 — הצריח פולש לשורה השביעית: "חזיר" שזולל רגלים וכולא את המלך.',2:'Rcd1 — מכינים הכפלה; Rdd7 עם שני צריחים בשביעית לרוב מכריע.'}, leadsTo:'צריח (ובקרוב שניים) בשורה השביעית — לחץ מכריע על הרגלים והמלך.'} },
  { id:'prophylaxis-adv', title:'חשיבה מונעת (פרופילקסיס)', level:'תוכנית', kind:'move', orient:'w',
    fen:'r1bq1rk1/1p2bppp/p1n1pn2/2pp4/3P4/2NBPN2/PPP1QPPP/R1B2RK1 w - - 0 1',
    concept:'<b>חשיבה מונעת.</b> לפני שאתה מקדם את התוכנית שלך, שאל: "מה <b>היריב</b> רוצה לעשות?" — ומנע את זה. קרפוב ונימצוביץ׳ בנו קריירה שלמה על מהלך שקט אחד שהורג את הרעיון של היריב. כאן השחור מכין …b5 לתפיסת מרחב באגף המלכה.',
    prompt:'השחור מכין …b5 (התפשטות באגף המלכה). מצא את המהלך שמונע זאת מראש.',
    solutions:['a4'], hl:[{sq:'b5',c:'bad'}],
    explain:'a4! עוצר את …b5 עוד לפני שקרה. מהלך שקט שמנטרל את כל התוכנית של היריב באגף המלכה, ומשאיר אותך להתקדם עם שלך. זו חשיבה של שחקן חזק.',
-   takeaway:'שאל "מה היריב רוצה?" — ואז מנע.' },
+   takeaway:'שאל "מה היריב רוצה?" — ואז מנע.',
+   demo:{intro:'צפה איך מהלך שקט אחד הורג את כל תוכנית היריב.', line:['a4','Rb8','Rd1'], notes:{0:'a4 — מהלך מונע: עוצר את …b5 עוד לפני שקרה ומשתק את אגף המלכה של השחור.',2:'Rd1 — היריב מנוטרל, והלבן פונה לקדם את התוכנית שלו במרכז.'}, leadsTo:'הרעיון של היריב (…b5) מת מראש, והיוזמה עוברת ללבן.'} },
  { id:'two-weak', title:'עקרון שתי החולשות', level:'תוכנית', kind:'choice', orient:'w',
    fen:'r5k1/5ppp/p1p5/1p6/8/P1P2P2/1P4PP/3R2K1 w - - 0 1',
    concept:'<b>עקרון שתי החולשות.</b> לרוב אי אפשר לנצח עם יתרון באגף אחד בלבד — ההגנה מחזיקה. הטריק: פתח <b>חזית שנייה</b> באגף השני. ההגנה לא יכולה לכסות שני אגפים בו־זמנית, והכלים שלה נמתחים עד שנשברים. עיקרון מנצח במיוחד בסיומים ובמשחק עמדתי.',
    prompt:'יש לך לחץ קל באגף אחד אבל ההגנה מחזיקה. מהי הדרך הנכונה?',
    choices:['לפתוח חזית שנייה באגף השני — למתוח את ההגנה','להמשיך לתקוף בכוח באותו מקום'], answer:0,
    explain:'פתיחת חזית שנייה מותחת את הגנת היריב. כלי אחד לא יכול להגן על שני אגפים; ברגע שההגנה נמתחת בין שתי חולשות — משהו נופל. זה ההבדל בין "לחץ" ל"ניצחון".',
-   takeaway:'חולשה אחת לא מספיקה — צור שנייה.' },
+   takeaway:'חולשה אחת לא מספיקה — צור שנייה.',
+   demo:{intro:'צפה איך פתיחת חזית שנייה מותחת את ההגנה עד שבירה.', line:['Rd7','Rb8','a4'], notes:{0:'Rd7 — פולשים לשורה השביעית ויוצרים לחץ ראשון (חולשה מס׳ 1).',2:'a4 — פותחים חזית שנייה באגף המלכה. ההגנה לא יכולה לכסות שני אגפים בבת אחת.'}, leadsTo:'שתי חולשות בשני אגפים מותחות את הגנת היריב עד שמשהו נופל.'} },
 ];
 
 /* ---------- deep multi-stage explanations for advanced lessons ---------- */
@@ -1539,7 +1548,7 @@ function hintStructure(){if(S.struct.kind==='identify'){S.hl=S.struct.hl||[];S.s
 
 /* ================= IDEAS: advanced strategy ================= */
 function startAdvanced(a){
-  S.adv=a;S.advDone=false;S.mode='ideas';S.ideaTab='advanced';
+  S.adv=a;S.advDone=false;S.advDemoing=false;S.advDemoPly=0;S.mode='ideas';S.ideaTab='advanced';
   S.interact=a.kind==='move'?'advMove':'none';
   S.st=C.parseFEN(a.fen);S.orientation=a.orient||'w';S.history=[];S.last=null;S.sel=-1;S.targets=[];S.hl=[];
   renderBoard();renderMoveList();
@@ -1568,6 +1577,17 @@ function hintAdvanced(){
   else{S.hl=a.hl||[];renderBoard();coach('info','רמז',a.explain);}
   renderPanel();
 }
+function advDemoStart(){const a=S.adv;if(!a||!a.demo)return;
+  S.advDemoing=true;S.advDemoPly=0;S.interact='none';
+  S.st=C.parseFEN(a.fen);S.orientation=a.orient||'w';S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
+  renderBoard();renderMoveList();coach('info','הדגמה — '+a.title,a.demo.intro);renderPanel();}
+function advDemoNext(){const a=S.adv;if(!a||!a.demo)return;const line=a.demo.line;
+  if(S.advDemoPly>=line.length)return;
+  const m=C.parseSAN(S.st,line[S.advDemoPly]);if(!m)return;commit(m);
+  const note=a.demo.notes&&a.demo.notes[S.advDemoPly];S.advDemoPly++;
+  if(S.advDemoPly>=line.length)coach('good','לאן זה מוביל ✔',(note?note+' ':'')+a.demo.leadsTo);
+  else coach('info','הדגמה',note||'ממשיכים לפי העיקרון…');
+  renderPanel();}
 
 /* ================= IDEAS: puzzles ================= */
 function startPuzzle(p){
@@ -1625,10 +1645,14 @@ function handleGameGuess(move){
 function hintGame(){if(!S.gameGuessing)return;const m=C.parseSAN(S.st,S.game.line[S.gamePly]);S.sel=m.from;S.targets=[m.to];renderBoard();coach('info','רמז','שוחק: '+S.game.line[S.gamePly]+'.');renderPanel();}
 
 /* ================= PLAY ================= */
-function startPlay(){
+function startPlay(fen,side){
+  const fromPos=(typeof fen==='string');
   S.mode='play';S.interact='freeMove';S.gameOver=false;
-  S.st=C.parseFEN(C.START);S.orientation=S.playSide;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
-  renderBoard();renderMoveList();coach('info','משחק חדש','אתה משחק ב'+(S.playSide==='w'?'לבן':'שחור')+'. בהצלחה!');
+  if(fromPos){S.st=C.parseFEN(fen);S.playSide=side||S.st.turn;}
+  else{S.st=C.parseFEN(C.START);}
+  S.orientation=S.playSide;S.history=[];S.last=null;S.hl=[];S.sel=-1;S.targets=[];
+  renderBoard();renderMoveList();
+  coach('info',fromPos?'שחק מכאן מול המחשב':'משחק חדש',(fromPos?'בצע את התוכנית בעצמך מול המחשב. ':'')+'אתה משחק ב'+(S.playSide==='w'?'לבן':'שחור')+'.'+(fromPos?'':' בהצלחה!'));
   if(S.st.turn!==S.playSide)aiMove();renderPanel();
 }
 
@@ -1684,6 +1708,10 @@ function renderControls(){
   if(S.mode==='openings'&&S.opDone&&S.opCont&&S.opContPly<S.opCont.cont.length){nextTxt='המשך אופייני ›';nextFn=contNext;}
   else if(S.interact==='puzzleMove'){nextTxt='תרגיל הבא ›';nextFn=nextPuzzle;}
   else if(S.mode==='thinking'&&S.game){nextTxt=S.gamePly>=S.game.line.length?'':'המשך ›';nextFn=gameNext;}
+  else if(S.mode==='ideas'&&S.ideaTab==='advanced'&&S.adv&&S.adv.demo){
+    if(S.advDemoing){if(S.advDemoPly<S.adv.demo.line.length){nextTxt='המשך ›';nextFn=advDemoNext;}}
+    else if(S.advDone){nextTxt='הדגם את ההמשך ›';nextFn=advDemoStart;}
+  }
   else if(S.mode==='quiz'){nextTxt=S.quiz&&S.quiz.answered?(S.quiz.i<4?'שאלה הבאה ›':'סיים מבחן ›'):'';nextFn=quizNext;}
   nextB.classList.toggle('hidden',!nextTxt);nextB.textContent=nextTxt;nextB.onclick=nextFn||(()=>{});
   if(S.mode==='thinking'&&S.game&&S.gameGuessing)nextB.classList.add('hidden');
@@ -1719,6 +1747,7 @@ function renderCtx(){
       const body=deep?'<div class="deep">'+deep.map(s=>'<div class="deep-sec"><b>'+s.h+'</b><span>'+s.t+'</span></div>').join('')+'</div>':'<div class="ctx-study"><div>'+a.concept+'</div></div>';
       h=head(a.title,'<span class="lvl">'+a.level+'</span>')+body+'<div class="ctx-prompt">🎯 '+a.prompt+'</div>'+coachCard();
       if(a.kind==='choice'&&!S.advDone){h+='<div class="ctx-choices">';a.choices.forEach((ch,i)=>h+='<button class="choice" data-ai="'+i+'">'+ch+'</button>');h+='</div>';}
+      if(S.advDone){h+='<div class="ctx-actions">'+(a.demo&&!S.advDemoing?'<button class="ctx-link" id="advDemo">▶ הדגם את ההמשך</button>':'')+'<button class="ctx-link" id="advPlay">♟ שחק מכאן מול המחשב</button></div>';}
     }
     else if(S.ideaTab==='structures'&&S.struct){const st=S.struct;const deep=STRUCT_DEEP[st.id];
       h=head(st.title,'<span class="lvl">מבנה</span>')+
@@ -1734,6 +1763,8 @@ function renderCtx(){
   bar.querySelectorAll('.sit').forEach(b=>b.onclick=()=>startOpening(S.opView,S.opView.lines[+b.dataset.li]));
   const bk=$('#ctxBack');if(bk)bk.onclick=()=>viewOpening(S.op);
   bar.querySelectorAll('.ctx-choices .choice').forEach(b=>{if(b.dataset.ai!=null)b.onclick=()=>answerAdvChoice(+b.dataset.ai);else b.onclick=()=>answerChoice(+b.dataset.ci);});
+  const adB=$('#advDemo');if(adB)adB.onclick=advDemoStart;
+  const apB=$('#advPlay');if(apB)apB.onclick=()=>startPlay(S.adv.fen);
 }
 function renderPanel(){renderCtx();const p=$('#panel');p.innerHTML='';
   if(S.mode==='home')p.appendChild(panelHome());
