@@ -310,6 +310,34 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .qitem .qn.gold{background:var(--gold);color:#2a1f05}
 .opt .txt small{font-weight:500}
 
+/* ===== staged learning path ===== */
+.roadmap{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.stage{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.stage.current{border-color:var(--gold);box-shadow:0 0 0 2px rgba(193,144,44,.16)}
+.stage-head{display:flex;align-items:center;gap:12px;width:100%;text-align:right;padding:13px 14px}
+.stage-head:hover{background:var(--surface)}
+.stage-num{width:38px;height:38px;flex:none;border-radius:10px;color:#fff;font-family:'Heebo';font-weight:900;font-size:18px;display:grid;place-items:center;box-shadow:var(--shadow-sm)}
+.stage-info{flex:1;min-width:0}
+.stage-info b{font-size:16px;font-weight:800;display:block}
+.stage-info small{font-size:12.5px;color:var(--muted);display:block;line-height:1.4;margin-top:2px}
+.stage-side{display:flex;align-items:center;gap:9px;flex:none}
+.stage-prog{font-size:13px;font-weight:800;color:var(--gold);background:rgba(193,144,44,.14);padding:3px 10px;border-radius:20px;font-variant-numeric:tabular-nums}
+.stage-caret{color:var(--muted);font-size:15px;font-weight:800}
+.stage-lessons{display:flex;flex-direction:column;gap:6px;padding:0 12px 12px}
+.plesson{display:flex;align-items:center;gap:10px;width:100%;text-align:right;padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:14px;font-weight:600;transition:all .12s}
+.plesson:hover{border-color:var(--green-2)}
+.plesson.done{background:rgba(47,143,86,.08);border-color:rgba(47,143,86,.3)}
+.plesson .pl-chk{width:22px;height:22px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;border:2px solid var(--line);color:var(--muted)}
+.plesson.done .pl-chk{background:var(--good);border-color:var(--good);color:#fff}
+.plesson .pl-t{flex:1;min-width:0}
+.plesson .pl-go{flex:none;font-size:12px;font-weight:700;color:var(--green-2)}
+
+/* deep multi-stage explanation */
+.deep{display:flex;flex-direction:column;gap:8px}
+.deep-sec{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;border-right:3px solid var(--gold)}
+.deep-sec b{display:block;font-size:12.5px;font-weight:800;color:var(--gold);margin-bottom:2px}
+.deep-sec span{font-size:13.5px;line-height:1.5;color:var(--ink)}
+
 </style>
 </head>
 <body>
@@ -806,23 +834,35 @@ const OPENINGS = [
 
 /* ---------- MOTIFS / PUZZLES (find the move) ---------- */
 const PUZZLES = [
- { group:'טקטיקה', theme:'מזלג אביר', fen:'r3k3/8/8/3N4/8/8/8/4K3 w - - 0 1',
-   solutions:['Nc7+'], idea:'מזלג אביר: Nc7+ מתקיף בו־זמנית את המלך ואת הצריח ב־a8 — ותזכה בצריח.' },
- { group:'טקטיקה', theme:'מט בשורה האחורית', fen:'6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1',
-   solutions:['Ra8#'], idea:'חולשת השורה האחורית: הרגלים חוסמים את מלטו של המלך, ו־Ra8 זה מט.' },
- { group:'טקטיקה', theme:'סיכה מנצחת', fen:'4k3/8/8/8/1b6/8/3Q4/4K3 w - - 0 1',
-   solutions:['Qxb4'], idea:'הרץ ב־b4 אינו מוגן — Qxb4 פשוט זוכה בכלי.' },
- { group:'טקטיקה', theme:'פתיחת מרכז', fen:'r1bqkbnr/pppp1ppp/2n5/1B2p3/3PP3/8/PPP2PPP/RNBQK1NR b KQkq d3 0 3',
+ { group:'טקטיקה', theme:'זיהוי כלי תלוי', lvl:'קל', fen:'4k3/8/8/8/1b6/8/3Q4/4K3 w - - 0 1',
+   solutions:['Qxb4'], idea:'המיומנות הראשונה: לזהות כלי לא מוגן. הרץ ב־b4 "תלוי" (אינו מוגן) — Qxb4 זוכה בו בחינם.' },
+ { group:'טקטיקה', theme:'פתיחת מרכז', lvl:'קל', fen:'r1bqkbnr/pppp1ppp/2n5/1B2p3/3PP3/8/PPP2PPP/RNBQK1NR b KQkq d3 0 3',
    solutions:['exd4'], idea:'exd4 לוקח רגלי חופשי במרכז ומשחרר את העמדה לטובת השחור.' },
- { group:'רעיונות אסטרטגיים', theme:'מוצב לאביר (Outpost)', fen:'r2q1rk1/pp1b1ppp/2np1n2/4p3/2P1P3/2N2N2/PP3PPP/R1BQ1RK1 w - - 0 1',
+ { group:'טקטיקה', theme:'מזלג אביר', lvl:'קל', fen:'r3k3/8/8/3N4/8/8/8/4K3 w - - 0 1',
+   solutions:['Nc7+'], idea:'מזלג: כלי אחד מתקיף שניים. Nc7+ מתקיף את המלך ואת הצריח ב־a8 בו־זמנית — ותזכה בצריח.' },
+ { group:'טקטיקה', theme:'מזלג מלך־מלכה', lvl:'קל', fen:'4k3/8/8/3N4/4q3/8/8/6K1 w - - 0 1',
+   solutions:['Nf6+'], idea:'מזלג מלכותי: Nf6+ נותן שח למלך וגם מתקיף את המלכה — היא תיפול.' },
+ { group:'טקטיקה', theme:'מזלג רגלי', lvl:'קל', fen:'8/8/8/3r1b2/8/8/4P3/4K1k1 w - - 0 1',
+   solutions:['e4'], idea:'גם רגלי יכול למזלג! e4 מתקיף את הצריח ב־d5 ואת הרץ ב־f5 בבת אחת.' },
+ { group:'טקטיקה', theme:'מט בשורה האחורית', lvl:'קל', fen:'6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1',
+   solutions:['Ra8#'], idea:'חולשת השורה האחורית: הרגלים חוסמים את מלט המלך, ו־Ra8 זה מט.' },
+ { group:'טקטיקה', theme:'שיפוד — צריח', lvl:'בינוני', fen:'q5k1/6pp/8/8/8/8/8/1R4K1 w - - 0 1',
+   solutions:['Rb8+'], idea:'שיפוד (הפוך למזלג): Rb8+ נותן שח למלך; כשהוא זז — Rxa8 זוכה במלכה שמאחוריו.' },
+ { group:'טקטיקה', theme:'שיפוד — רץ', lvl:'בינוני', fen:'q7/8/8/3k4/8/8/8/4KB2 w - - 0 1',
+   solutions:['Bg2+'], idea:'שיפוד באלכסון: Bg2+ מסמן את המלך; אחרי שהוא זז מהאלכסון — Bxa8 לוקח את המלכה.' },
+ { group:'טקטיקה', theme:'התקפה מגלה', lvl:'בינוני', fen:'q3k3/8/8/8/4N3/8/6B1/4K3 w - - 0 1',
+   solutions:['Nf6+'], idea:'התקפה מגלה: Nf6+ זז עם שח, ובאותו רגע פותח את הרץ ב־g2 שתוקף את המלכה ב־a8. שני איומים במהלך אחד.' },
+ { group:'טקטיקה', theme:'התקפה כפולה', lvl:'בינוני', fen:'b6k/6pp/4n3/8/8/8/8/3Q2K1 w - - 0 1',
+   solutions:['Qd5'], idea:'התקפה כפולה של המלכה: Qd5 מתקיף בו־זמנית את הרץ ב־a8 ואת האביר ב־e6 — אחד מהם ייפול.' },
+ { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'מוצב לאביר (Outpost)', fen:'r2q1rk1/pp1b1ppp/2np1n2/4p3/2P1P3/2N2N2/PP3PPP/R1BQ1RK1 w - - 0 1',
    solutions:['Nd5'], idea:'מוצב: Nd5 נועץ אביר בלב העמדה. גם אם ...Nxd5 — exd5 נותן ללבן רגלי מרכזי חזק ומרחב.' },
- { group:'רעיונות אסטרטגיים', theme:'התקפת מיעוט (Minority Attack)', fen:'r1bq1rk1/pp3ppp/2p1pn2/3p4/3P4/2PBPN2/PP3PPP/R1BQ1RK1 w - - 0 1',
+ { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'התקפת מיעוט (Minority Attack)', fen:'r1bq1rk1/pp3ppp/2p1pn2/3p4/3P4/2PBPN2/PP3PPP/R1BQ1RK1 w - - 0 1',
    solutions:['b4'], idea:'התקפת מיעוט: b4 ואז b5xc6 — שני רגלים תוקפים שלושה כדי ליצור רגלי חלש ב־c6.' },
- { group:'רעיונות אסטרטגיים', theme:'פריצת רגלים (Pawn Break)', fen:'r1bq1rk1/pp3ppp/2nbpn2/2pp4/3P4/2PBPN2/PP1N1PPP/R1BQ1RK1 b - - 0 1',
+ { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'פריצת רגלים (Pawn Break)', fen:'r1bq1rk1/pp3ppp/2nbpn2/2pp4/3P4/2PBPN2/PP1N1PPP/R1BQ1RK1 b - - 0 1',
    solutions:['cxd4','e5'], idea:'פריצה: ...cxd4 או ...e5 מאתגרים את המרכז ופותחים טורים — בלי פריצה העמדה קופאת.' },
- { group:'רעיונות אסטרטגיים', theme:'מניעה (Prophylaxis)', fen:'r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 1',
+ { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'מניעה (Prophylaxis)', fen:'r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 1',
    solutions:['h3'], idea:'מניעה: h3 מונע מראש את ...Ng4 ו...Bg4 — מהלך שקט שהורג את הרעיון של היריב לפני שתתקדם.' },
- { group:'רעיונות אסטרטגיים', theme:'שיפור הכלי הגרוע', fen:'r1bq1rk1/ppp1bppp/2n2n2/3p4/3P4/3BPN2/PPP2PPP/RNBQ1RK1 w - - 0 1',
+ { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'שיפור הכלי הגרוע', fen:'r1bq1rk1/ppp1bppp/2n2n2/3p4/3P4/3BPN2/PPP2PPP/RNBQ1RK1 w - - 0 1',
    solutions:['Nbd2'], idea:'האביר ב־b1 הוא הכלי הגרוע — Nbd2 מפעיל אותו בדרך ל־f1-g3, אל לב המשחק.' },
 ];
 
@@ -914,6 +954,58 @@ const ADVANCED = [
    explain:'פתיחת חזית שנייה מותחת את הגנת היריב. כלי אחד לא יכול להגן על שני אגפים; ברגע שההגנה נמתחת בין שתי חולשות — משהו נופל. זה ההבדל בין "לחץ" ל"ניצחון".',
    takeaway:'חולשה אחת לא מספיקה — צור שנייה.' },
 ];
+
+/* ---------- deep multi-stage explanations for advanced lessons ---------- */
+const ADV_DEEP = {
+ 'which-side':[
+  {h:'הרעיון',t:'שחק בצד שאליו מצביעה שרשרת הרגלים שלך, ותקוף את בסיס שרשרת היריב. במבנה סגור כל צד תוקף באגף שבו יש לו יותר מרחב ורגלים לפריצה.'},
+  {h:'איך לזהות בעמדה',t:'הסתכל על שרשרת הרגלים שלך — לאיזה כיוון היא "עולה"? זה האגף שלך. הרגלים נותנים לך שם מרחב ותומכים בהתקדמות.'},
+  {h:'איך לנצל',t:'הבא כלים לאגף שלך ובצע את הפריצה (למשל …f5 באגף המלך), כדי לפתוח קווים בדיוק מול מלך היריב.'},
+  {h:'טעות נפוצה',t:'לתקוף באגף הלא נכון — נגד המרחב של היריב. שם התוכנית נתקלת בקיר. תמיד לך לפי "החץ" של הרגלים.'},
+ ],
+ 'base':[
+  {h:'הרעיון',t:'בשרשרת רגלים, הרגלי האחורי ביותר (הבסיס) הוא הכי חלש — אף רגלי לא מגן עליו. פרוץ אותו כדי לפרק את כל השרשרת.'},
+  {h:'איך לזהות בעמדה',t:'מצא את שרשרת הרגלים של היריב, ואת הרגלי בקצה האחורי שלה. זה הבסיס — המטרה שלך.'},
+  {h:'איך לנצל',t:'פרוץ את הבסיס ברגלי משלך (כאן …c5 מול d4). אם היריב לוקח — אתה משתלט על המרכז; אם לא — אתה פותח טור ולוחץ.'},
+  {h:'טעות נפוצה',t:'לתקוף את ראש השרשרת (הרגלי הקדמי) — הוא מוגן היטב. תמיד תוקפים מהבסיס.'},
+ ],
+ 'storm':[
+  {h:'הרעיון',t:'כשהמלכים בצדדים מנוגדים זה מרוץ: כל צד דוחף את רגלי האגף שלו לעבר מלך היריב כדי לפתוח קווים. מהירות חשובה יותר מחומר.'},
+  {h:'איך לזהות בעמדה',t:'הצרחות לצדדים מנוגדים = סימן ברור להתקפת רגלים הדדית. אל תשחק שקט — כל טמפו קובע.'},
+  {h:'איך לנצל',t:'דחוף את רגלי האגף מול מלך היריב (g4-g5, h4-h5). הקרב רגלים בשמחה כדי לפתוח קווים לצריחים ולמלכה.'},
+  {h:'טעות נפוצה',t:'לשחק להגנה או לאסוף חומר במקום לרוץ. במרוץ, מי שמאט — מפסיד.'},
+ ],
+ 'count':[
+  {h:'הרעיון',t:'הקרבה על המלך עובדת רק אם יש לך יותר תוקפים ממגנים באזור, והמרוץ מהיר מספיק. הקרבה = חומר תמורת זמן וקווים פתוחים.'},
+  {h:'איך לזהות בעמדה',t:'ספור כמה כלים שלך יכולים להצטרף להתקפה על המלך, מול כמה מגנים קרובים. עודף תוקפים = בסיס להתקפה.'},
+  {h:'איך לנצל',t:'קודם משכים כלים לאזור המלך, ורק כשיש עודף תוקפים — מחשבים את קו ההקרבה עד הסוף.'},
+  {h:'טעות נפוצה',t:'להקריב "על תחושה" בלי לספור ובלי לחשב. הקרבה לא מדויקת פשוט מפסידה חומר.'},
+ ],
+ 'blockade':[
+  {h:'הרעיון',t:'רגלי חופשי או מבודד מסוכן רק כשהוא זז. הצב אביר בדיוק בריבוע שלפניו — הוא חוסם אותו ולא ניתן לגירוש ברגלי.'},
+  {h:'איך לזהות בעמדה',t:'זהה רגלי חופשי/מבודד של היריב ואת הריבוע שלפניו. אביר הוא הבלם המושלם — חוסם וגם שולט בריבועים סביב.'},
+  {h:'איך לנצל',t:'קבע אביר על ריבוע החסימה (כאן Nd4 מול d5). אחרי שהרגלי משותק — תקוף אותו בשקט עד שייפול.'},
+  {h:'טעות נפוצה',t:'לחסום עם צריח או מלכה — כלים יקרים שאפשר לגרש. האביר הוא החוסם הזול והיציב ביותר.'},
+ ],
+ 'seventh':[
+  {h:'הרעיון',t:'צריח שפולש לשורה השביעית של היריב הוא "חזיר" — הוא זולל רגלים וכולא את המלך בשורה האחורית.'},
+  {h:'איך לזהות בעמדה',t:'חפש טור פתוח (בלי רגלים) שמוביל לשורה השביעית, ורגלים של היריב שנשארו שם כמטרות.'},
+  {h:'איך לנצל',t:'שלוט בטור הפתוח ופלוש (Rd7). הכפל צריחים לשני צריחים בשביעית — לרוב זה מכריע.'},
+  {h:'טעות נפוצה',t:'להיסחף ולזלול רגלי כשהמלך שלך בסכנה. ודא שהפלישה לא מזניחה הגנה נחוצה.'},
+ ],
+ 'prophylaxis-adv':[
+  {h:'הרעיון',t:'לפני שאתה מקדם את התוכנית שלך, שאל "מה היריב רוצה?" — ומנע את זה. מהלך שקט אחד שהורג את הרעיון של היריב.'},
+  {h:'איך לזהות בעמדה',t:'דמיין שהתור של היריב: מה המהלך הכי טוב שלו? אם יש לו תוכנית מסוכנת (כמו …b5) — זה מה שצריך למנוע.'},
+  {h:'איך לנצל',t:'שחק את המהלך שמנטרל את התוכנית מראש (כאן a4 עוצר …b5). עכשיו אתה חופשי להתקדם עם שלך.'},
+  {h:'טעות נפוצה',t:'להתעלם מהיריב ולרוץ עם התוכנית שלך בלבד. שחקן חזק תמיד גם מונע, לא רק תוקף.'},
+ ],
+ 'two-weak':[
+  {h:'הרעיון',t:'לרוב אי אפשר לנצח עם יתרון באגף אחד בלבד — ההגנה מחזיקה. הטריק: פתח חזית שנייה באגף השני.'},
+  {h:'איך לזהות בעמדה',t:'אם אתה לוחץ במקום אחד וההגנה מחזיקה בדיוק — זה הסימן שצריך חולשה שנייה, לא עוד לחץ באותו מקום.'},
+  {h:'איך לנצל',t:'צור מטרה שנייה באגף הרחוק. ההגנה תתפצל בין שתי החזיתות — ומשהו ייפול.'},
+  {h:'טעות נפוצה',t:'לתקוף שוב ושוב את אותה חולשה. מגן טוב יחזיק חולשה אחת לנצח; רק שתיים שוברות אותו.'},
+ ],
+};
 
 /* ---------- ENDGAMES (play vs computer / convert) ---------- */
 const ENDGAMES = [
@@ -1043,6 +1135,66 @@ const COURSE = [
  {n:30,area:'סיומים',title:'בונים שגרה',idea:'15 דק׳ פאזלים, 2 משחקי 15+10, ניתוח עצמי, ונושא שבועי — עקביות מנצחת.',task:'קבע שגרה בלשונית הבית ותעקוב אחרי ההתקדמות.',ref:{mode:'home'}},
 ];
 
+/* ---------- STAGED LEARNING PATH (research-based order) ---------- */
+const STAGES = [
+ { id:'s1', num:1, title:'בטיחות וחשיבה', icon:'♟', color:'#2f6b49',
+   goal:'להפסיק לתלות כלים ולבנות תהליך חשיבה מסודר. זה הבסיס לכל השאר.',
+   lessons:[
+    {t:'תהליך החשיבה — 5 השלבים', ref:{mode:'thinking'}},
+    {t:'ארבע השאלות לפני כל מסע', ref:{mode:'thinking'}},
+    {t:'זיהוי כלי תלוי (חינם)', ref:{mode:'puzzles',theme:'זיהוי כלי תלוי'}},
+    {t:'פתיחת המרכז', ref:{mode:'puzzles',theme:'פתיחת מרכז'}},
+   ]},
+ { id:'s2', num:2, title:'טקטיקה', icon:'♞', color:'#b9822a',
+   goal:'לזהות ולנצל את המוטיבים הטקטיים — כאן נמצאות רוב הנקודות בדרגה שלך.',
+   lessons:[
+    {t:'מזלג אביר', ref:{mode:'puzzles',theme:'מזלג אביר'}},
+    {t:'מזלג מלך־מלכה', ref:{mode:'puzzles',theme:'מזלג מלך־מלכה'}},
+    {t:'מזלג רגלי', ref:{mode:'puzzles',theme:'מזלג רגלי'}},
+    {t:'שיפוד — צריח', ref:{mode:'puzzles',theme:'שיפוד — צריח'}},
+    {t:'שיפוד — רץ', ref:{mode:'puzzles',theme:'שיפוד — רץ'}},
+    {t:'התקפה מגלה', ref:{mode:'puzzles',theme:'התקפה מגלה'}},
+    {t:'התקפה כפולה', ref:{mode:'puzzles',theme:'התקפה כפולה'}},
+    {t:'מט בשורה האחורית', ref:{mode:'puzzles',theme:'מט בשורה האחורית'}},
+   ]},
+ { id:'s3', num:3, title:'פתיחות', icon:'♙', color:'#2f6b49',
+   goal:'רפרטואר קטן ואיתן: פתיחה אחת בלבן, שתיים בשחור — עם ההבנה מאחוריהן.',
+   lessons:[
+    {t:'רפרטואר עם הלבן', ref:{mode:'openings',id:'italian'}},
+    {t:'תשובה ל־1.e4', ref:{mode:'openings',id:'carokann'}},
+    {t:'תשובה ל־1.d4', ref:{mode:'openings',id:'slav'}},
+   ]},
+ { id:'s4', num:4, title:'אסטרטגיה ומבנים', icon:'♝', color:'#b9822a',
+   goal:'לחשוב בתוכניות במקום במהלכים בודדים — מבני רגלים ורעיונות עמוקים.',
+   lessons:[
+    {t:'הרגלי החלש', ref:{mode:'structures',id:'weakpawn'}},
+    {t:'הטור הפתוח', ref:{mode:'structures',id:'openfile'}},
+    {t:'הריבוע החזק (מוצב)', ref:{mode:'structures',id:'outpost'}},
+    {t:'באיזה צד לתקוף', ref:{mode:'advanced',id:'which-side'}},
+    {t:'תקיפת בסיס השרשרת', ref:{mode:'advanced',id:'base'}},
+    {t:'חשיבה מונעת', ref:{mode:'advanced',id:'prophylaxis-adv'}},
+    {t:'עקרון שתי החולשות', ref:{mode:'advanced',id:'two-weak'}},
+   ]},
+ { id:'s5', num:5, title:'התקפה על המלך', icon:'♛', color:'#c1543f',
+   goal:'לפתוח קווים, לספור תוקפים ולהקריב נכון — מתוך משחקי אלופים.',
+   lessons:[
+    {t:'מרוץ בהצרחות מנוגדות', ref:{mode:'advanced',id:'storm'}},
+    {t:'ספירת תוקפים מול מגנים', ref:{mode:'advanced',id:'count'}},
+    {t:'פלישה לשורה השביעית', ref:{mode:'advanced',id:'seventh'}},
+    {t:'משחק האופרה — פיתוח והתקפה', ref:{mode:'games',id:'opera'}},
+    {t:'רטי–טרטקובר — חישוב הקרבה', ref:{mode:'games',id:'reti'}},
+   ]},
+ { id:'s6', num:6, title:'סיומים', icon:'♜', color:'#2f6b49',
+   goal:'להמיר יתרון לניצחון: אופוזיציה, מטים בסיסיים וטכניקת צריחים.',
+   lessons:[
+    {t:'מלך אקטיבי ואופוזיציה', ref:{mode:'endgames',id:'opposition'}},
+    {t:'מט מלך וצריח', ref:{mode:'endgames',id:'rookmate'}},
+    {t:'מט מלך ומלכה', ref:{mode:'endgames',id:'queenmate'}},
+    {t:'לוצ׳נה — הכתרה', ref:{mode:'endgames',id:'lucena'}},
+    {t:'צריח מאחורי רגלי חופשי', ref:{mode:'endgames',id:'rookpawn'}},
+   ]},
+];
+
 /* ---------- where each line leads (continuation + middlegame plan) ---------- */
 const OPENING_CONT = {
  'italian/main':{leadsTo:'מוביל למשחק אמצע שקט ושווה. הלבן מתמרן Nbd2-f1-g3 ומכין d4 או f4, ומחפש חולשות באגף המלך של השחור.',cont:['Nbd2','a6','a4','Ba7','h3','Be6']},
@@ -1068,7 +1220,7 @@ const OPENING_CONT = {
  'slav/exch':{leadsTo:'מבנה סימטרי ושווה. המאבק על טור c והמוצב ב־e5/e4 — שחק לדיוק.',cont:['e3','e6','Bd3','Bxd3','Qxd3','Bd6']},
 };
 
-if(typeof module!=='undefined') module.exports={OPENINGS,PUZZLES,STRUCTURES,ADVANCED,ADV_INTRO,ENDGAMES,ENDGAME_TIPS,THINKING,GAMES,PLAN,COURSE,OPENING_CONT};
+if(typeof module!=='undefined') module.exports={OPENINGS,PUZZLES,STRUCTURES,ADVANCED,ADV_INTRO,ADV_DEEP,STAGES,ENDGAMES,ENDGAME_TIPS,THINKING,GAMES,PLAN,COURSE,OPENING_CONT};
 
 ;
 (function(){
@@ -1088,7 +1240,16 @@ P.openings=P.openings||{};P.olines=P.olines||{};P.structures=P.structures||{};P.
 P.endgames=P.endgames||{};P.games=P.games||{};P.course=P.course||{};
 P.xp=P.xp||0;P.streak=P.streak||0;P.lastActive=P.lastActive||'';P.playGames=P.playGames||0;
 P.correct=P.correct||0;P.attempts=P.attempts||0;
-P.plan=P.plan||{date:'',checked:{}};P.planW=P.planW||{week:'',checked:{}};
+P.read=P.read||{};P.plan=P.plan||{date:'',checked:{}};P.planW=P.planW||{week:'',checked:{}};
+function lessonDone(ref){if(!ref)return false;
+  if(ref.mode==='thinking')return !!P.read.thinking;
+  if(ref.mode==='puzzles')return !!P.puzzles[ref.theme];
+  if(ref.mode==='structures')return !!P.structures[ref.id];
+  if(ref.mode==='advanced')return !!P.advanced[ref.id];
+  if(ref.mode==='endgames')return !!P.endgames[ref.id];
+  if(ref.mode==='openings')return !!P.openings[ref.id];
+  if(ref.mode==='games')return !!P.games[ref.id];
+  return false;}
 P.quiz=P.quiz||{lastDate:'',best:0,last:0,taken:0};
 function markActive(){const t=today();if(P.lastActive!==t){const y=new Date(Date.now()-86400000).toISOString().slice(0,10);P.streak=(P.lastActive===y)?P.streak+1:1;P.lastActive=t;}}
 function addXP(n){P.xp+=n;markActive();saveProg();renderHeader();}
@@ -1457,15 +1618,14 @@ function renderCtx(){
         '<div class="ctx-study"><div><b>הרעיון:</b> '+o.summary+'</div><div><b>מבנה:</b> '+o.structure+'</div><div><b>התוכנית שלך:</b> '+o.plan+'</div><div><b>שים לב:</b> '+o.whatToWatch+'</div></div>'+btns;
     }else{h='<div class="ctx-hint">בחר פתיחה מהרשימה כדי ללמוד ולתרגל 👇</div>';}
   }else if(S.mode==='ideas'){
-    if(S.ideaTab==='advanced'&&S.adv){const a=S.adv;
-      h=head(a.title,'<span class="lvl">'+a.level+'</span>')+
-        '<div class="ctx-study"><div>'+a.concept+'</div></div>'+
-        '<div class="ctx-prompt">🎯 '+a.prompt+'</div>'+coachCard();
+    if(S.ideaTab==='advanced'&&S.adv){const a=S.adv;const deep=ADV_DEEP[a.id];
+      const body=deep?'<div class="deep">'+deep.map(s=>'<div class="deep-sec"><b>'+s.h+'</b><span>'+s.t+'</span></div>').join('')+'</div>':'<div class="ctx-study"><div>'+a.concept+'</div></div>';
+      h=head(a.title,'<span class="lvl">'+a.level+'</span>')+body+'<div class="ctx-prompt">🎯 '+a.prompt+'</div>'+coachCard();
       if(a.kind==='choice'&&!S.advDone){h+='<div class="ctx-choices">';a.choices.forEach((ch,i)=>h+='<button class="choice" data-ai="'+i+'">'+ch+'</button>');h+='</div>';}
     }
     else if(S.ideaTab==='structures'&&S.struct){h=head(S.struct.title)+coachCard();
       if(S.struct.kind==='choice'&&!S.structDone){h+='<div class="ctx-choices">';S.struct.choices.forEach((ch,i)=>h+='<button class="choice" data-ci="'+i+'">'+ch+'</button>');h+='</div>';}
-    }else if(S.pz){h=head(S.pz.theme,'<span class="pill '+(S.pz.group==='טקטיקה'?'w':'b')+'">'+S.pz.group+'</span>')+coachCard();}
+    }else if(S.pz){h=head(S.pz.theme,(S.pz.lvl?'<span class="lvl">'+S.pz.lvl+'</span>':'')+'<span class="pill '+(S.pz.group==='טקטיקה'?'w':'b')+'">'+S.pz.group+'</span>')+coachCard();}
   }else if(S.mode==='endgames'&&S.eg){h=head(S.eg.name,'<span class="ctx-prog">'+S.eg.level+'</span>')+coachCard();}
   else if(S.mode==='thinking'&&S.game){const prog=Math.min(S.gamePly,S.game.line.length);h=head(S.game.title,'<span class="ctx-prog">מהלך '+Math.ceil((prog+1)/2)+'</span>')+coachCard();}
   else if(S.mode==='play'){h=head('משחק מול המחשב',pill(S.playSide))+coachCard();}
@@ -1492,6 +1652,7 @@ function panelHome(){
   // progress summary
   const totals={openings:OPENINGS.length,structures:STRUCTURES.length,advanced:ADVANCED.length,puzzles:PUZZLES.length,endgames:ENDGAMES.length,course:COURSE.length};
   const done={openings:Object.keys(P.openings).length,structures:Object.keys(P.structures).length,advanced:Object.keys(P.advanced).length,puzzles:Object.keys(P.puzzles).length,endgames:Object.keys(P.endgames).length,course:Object.keys(P.course).length};
+  let pathT=0,pathD=0;STAGES.forEach(s=>s.lessons.forEach(L=>{pathT++;if(lessonDone(L.ref))pathD++;}));
   const c1=el('div','card');
   c1.innerHTML='<h2><span class="k">התקדמות</span> הסיכום שלך</h2>'+
     '<div class="statrow"><div class="stat"><b>'+P.xp+'</b><small>XP</small></div><div class="stat"><b>🔥 '+P.streak+'</b><small>רצף ימים</small></div><div class="stat"><b>'+(P.attempts?Math.round(100*P.correct/P.attempts):0)+'%</b><small>דיוק</small></div></div>'+
@@ -1500,7 +1661,7 @@ function panelHome(){
     '<div class="prow"><span>אסטרטגיה</span>'+bar(done.advanced,totals.advanced)+'<em>'+done.advanced+'/'+totals.advanced+'</em></div>'+
     '<div class="prow"><span>מוטיבים</span>'+bar(done.puzzles,totals.puzzles)+'<em>'+done.puzzles+'/'+totals.puzzles+'</em></div>'+
     '<div class="prow"><span>סיומים</span>'+bar(done.endgames,totals.endgames)+'<em>'+done.endgames+'/'+totals.endgames+'</em></div>'+
-    '<div class="prow"><span>קורס</span>'+bar(done.course,totals.course)+'<em>'+done.course+'/'+totals.course+'</em></div>';
+    '<div class="prow"><span>מסלול</span>'+bar(pathD,pathT)+'<em>'+pathD+'/'+pathT+'</em></div>';
   if(S._coach)c1.insertAdjacentHTML('beforeend',coachCard());
   w.appendChild(c1);
   // quiz
@@ -1516,18 +1677,32 @@ function panelHome(){
   const dl=el('div',null,'<div class="plabel">היום</div>');PLAN.daily.forEach(t=>dl.appendChild(taskRow(t,'plan')));pl.appendChild(dl);
   const wl=el('div',null,'<div class="plabel">השבוע</div>');PLAN.weekly.forEach(t=>wl.appendChild(taskRow(t,'planW')));pl.appendChild(wl);
   w.appendChild(pl);
-  // course
-  const cc=el('div','card');cc.innerHTML='<h2><span class="k">קורס</span> 30 שיעורים דרך רעיונות</h2><div class="sub">כל שיעור = רעיון + תרגול. לחץ כדי לעבור לתרגול, וסמן כשסיימת.</div>';
-  const list=el('div','course-list');let curArea='';
-  COURSE.forEach(L=>{if(L.area!==curArea){curArea=L.area;list.appendChild(el('div','carea',L.area));}
-    const row=el('div','lesson'+(P.course[L.n]?' done':''));
-    row.innerHTML='<div class="ln">'+L.n+'</div><div class="lt"><b>'+L.title+'</b><small>'+L.idea+'</small><span class="ltask">🎯 '+L.task+'</span></div>';
-    const chk=el('button','lchk'+(P.course[L.n]?' on':''),P.course[L.n]?'✓':'');chk.title='סמן כבוצע';chk.onclick=(ev)=>{ev.stopPropagation();if(P.course[L.n])delete P.course[L.n];else{P.course[L.n]=1;addXP(5);}markActive();saveProg();renderAll();};
-    row.appendChild(chk);
-    row.onclick=()=>gotoRef(L.ref);
-    list.appendChild(row);
+  // learning path (staged roadmap)
+  const rc=el('div','card');
+  rc.innerHTML='<h2><span class="k">מסלול</span> מסלול הלימוד המדורג</h2><div class="sub">שישה שלבים שמתפתחים זה על זה, בסדר הנכון ללמידה. לחץ שיעור כדי לעבור לתרגול.</div>';
+  let nextL=null,nextStage=null;
+  for(const st of STAGES){for(const L of st.lessons){if(!lessonDone(L.ref)){nextL=L;nextStage=st;break;}}if(nextL)break;}
+  if(nextL){const cbtn=el('button','ctrl primary');cbtn.style.width='100%';cbtn.style.marginBottom='6px';cbtn.innerHTML='▶ המשך מכאן — '+nextL.t+' · שלב '+nextStage.num;cbtn.onclick=()=>gotoRef(nextL.ref);rc.appendChild(cbtn);}
+  else rc.insertAdjacentHTML('beforeend','<div class="nudge">🏆 סיימת את כל המסלול — כל הכבוד!</div>');
+  if(S.openStage===undefined)S.openStage=nextStage?nextStage.id:'s1';
+  const road=el('div','roadmap');
+  STAGES.forEach(st=>{
+    const done=st.lessons.filter(L=>lessonDone(L.ref)).length,total=st.lessons.length,complete=done===total,open=S.openStage===st.id;
+    const stage=el('div','stage'+(complete?' done':'')+(st===nextStage?' current':''));
+    const head=el('button','stage-head');
+    head.innerHTML='<div class="stage-num" style="background:'+st.color+'">'+(complete?'✔':st.num)+'</div>'+
+      '<div class="stage-info"><b>'+st.title+'</b><small>'+st.goal+'</small></div>'+
+      '<div class="stage-side"><span class="stage-prog">'+done+'/'+total+'</span><span class="stage-caret">'+(open?'▾':'‹')+'</span></div>';
+    head.onclick=()=>{S.openStage=open?null:st.id;renderPanel();};
+    stage.appendChild(head);
+    if(open){const ll=el('div','stage-lessons');
+      st.lessons.forEach(L=>{const d=lessonDone(L.ref);const b=el('button','plesson'+(d?' done':''));
+        b.innerHTML='<span class="pl-chk">'+(d?'✔':'○')+'</span><span class="pl-t">'+L.t+'</span><span class="pl-go">תרגל ›</span>';
+        b.onclick=()=>gotoRef(L.ref);ll.appendChild(b);});
+      stage.appendChild(ll);}
+    road.appendChild(stage);
   });
-  cc.appendChild(list);w.appendChild(cc);
+  rc.appendChild(road);w.appendChild(rc);
   return w;
 }
 function taskRow(t,key){const on=P[key].checked[t.id];const r=el('button','task'+(on?' on':''));r.innerHTML='<span class="tbox">'+(on?'✓':'')+'</span>'+t.txt;r.onclick=()=>{if(P[key].checked[t.id])delete P[key].checked[t.id];else{P[key].checked[t.id]=1;addXP(3);}markActive();saveProg();renderPanel();};return r;}
@@ -1536,6 +1711,7 @@ function gotoRef(ref){
   if(ref.mode==='openings'){setTab('openings');const o=OPENINGS.find(x=>x.id===ref.id);if(o){S.opColorFilter='all';viewOpening(o);}return;}
   if(ref.mode==='structures'){setTab('ideas');S.ideaTab='structures';if(ref.id){const st=STRUCTURES.find(x=>x.id===ref.id);if(st)startStructure(st);else renderPanel();}else renderPanel();return;}
   if(ref.mode==='puzzles'){setTab('ideas');S.ideaTab='puzzles';const p=PUZZLES.find(x=>x.theme===ref.theme);if(p)startPuzzle(p);else renderPanel();return;}
+  if(ref.mode==='advanced'){setTab('ideas');S.ideaTab='advanced';const a=ADVANCED.find(x=>x.id===ref.id);if(a)startAdvanced(a);else renderPanel();return;}
   if(ref.mode==='endgames'){setTab('endgames');const e=ENDGAMES.find(x=>x.id===ref.id);if(e)startEndgame(e);return;}
   if(ref.mode==='thinking'){setTab('thinking');S.thinkView='method';renderPanel();return;}
   if(ref.mode==='games'){setTab('thinking');const g=GAMES.find(x=>x.id===ref.id);if(g)startGame(g);return;}
@@ -1574,7 +1750,7 @@ function panelIdeas(){
     const groups={};PUZZLES.forEach(p=>{(groups[p.group]=groups[p.group]||[]).push(p);});
     Object.keys(groups).forEach(g=>{card.appendChild(el('div','sub','<b style="color:var(--green-2)">'+g+'</b>'));const list=el('div','select-list');
       groups[g].forEach(p=>{const b=el('button','opt'+(S.pz&&S.pz.theme===p.theme?' active':''));const done=P.puzzles[p.theme];
-        b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'?')+'</div><div class="txt"><b>'+p.theme+'</b></div><div class="chev">‹</div>';
+        b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'?')+'</div><div class="txt"><b>'+p.theme+'</b><small>'+(p.lvl||'')+'</small></div><div class="chev">‹</div>';
         b.onclick=()=>startPuzzle(p);list.appendChild(b);});card.appendChild(list);});
     w.appendChild(card);
   }else{
@@ -1609,6 +1785,7 @@ function panelThinking(){
   const seg=el('div','seg');[['method','שיטת החשיבה'],['games','ניתוח משחקים']].forEach(([v,l])=>{const on=(v==='method'&&S.thinkView==='method')||(v==='games'&&S.thinkView!=='method');const b=el('button',on?'on':'');b.textContent=l;b.onclick=()=>{S.game=null;S.interact='none';S.hl=[];S.st=C.parseFEN(C.START);S.thinkView=(v==='method'?'method':'games');renderBoard();renderMoveList();renderPanel();};seg.appendChild(b);});
   card.appendChild(seg);w.appendChild(card);
   if(S.thinkView==='method'){
+    if(!P.read.thinking){P.read.thinking=1;markActive();saveProg();renderHeader();}
     const c=el('div','card');c.innerHTML='<h2>'+THINKING.title+'</h2><div class="sub">'+THINKING.intro+'</div>';
     THINKING.process.forEach(p=>c.insertAdjacentHTML('beforeend','<div class="qitem"><div class="qn">'+p.t.split('.')[0]+'</div><div><b>'+p.t.replace(/^\d+\.\s*/,'')+'</b><small>'+p.d+'</small></div></div>'));
     w.appendChild(c);
