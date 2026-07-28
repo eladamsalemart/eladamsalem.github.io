@@ -338,6 +338,8 @@ header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .deep-sec b{display:block;font-size:12.5px;font-weight:800;color:var(--gold);margin-bottom:2px}
 .deep-sec span{font-size:13.5px;line-height:1.5;color:var(--ink)}
 
+.stepd{font-size:14px;line-height:1.5}
+
 </style>
 </head>
 <body>
@@ -854,6 +856,8 @@ const PUZZLES = [
    solutions:['Nf6+'], idea:'התקפה מגלה: Nf6+ זז עם שח, ובאותו רגע פותח את הרץ ב־g2 שתוקף את המלכה ב־a8. שני איומים במהלך אחד.' },
  { group:'טקטיקה', theme:'התקפה כפולה', lvl:'בינוני', fen:'b6k/6pp/4n3/8/8/8/8/3Q2K1 w - - 0 1',
    solutions:['Qd5'], idea:'התקפה כפולה של המלכה: Qd5 מתקיף בו־זמנית את הרץ ב־a8 ואת האביר ב־e6 — אחד מהם ייפול.' },
+ { group:'טקטיקה', theme:'סיכה (Pin)', lvl:'בינוני', fen:'r3k3/8/8/4q3/3P4/8/8/4R1K1 w - - 0 1',
+   solutions:['dxe5'], idea:'סיכה מוחלטת: המלכה ב־e5 מסומרת למלך ב־e8 ע"י הצריח — היא לא יכולה לזוז. רגלי פשוט — dxe5 — זוכה במלכה!' },
  { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'מוצב לאביר (Outpost)', fen:'r2q1rk1/pp1b1ppp/2np1n2/4p3/2P1P3/2N2N2/PP3PPP/R1BQ1RK1 w - - 0 1',
    solutions:['Nd5'], idea:'מוצב: Nd5 נועץ אביר בלב העמדה. גם אם ...Nxd5 — exd5 נותן ללבן רגלי מרכזי חזק ומרחב.' },
  { group:'רעיונות אסטרטגיים', lvl:'מתקדם', theme:'התקפת מיעוט (Minority Attack)', fen:'r1bq1rk1/pp3ppp/2p1pn2/3p4/3P4/2PBPN2/PP3PPP/R1BQ1RK1 w - - 0 1',
@@ -892,6 +896,40 @@ const STRUCTURES = [
    choices:['ללבן','לשחור'], answer:0, hl:[{sq:'c4',c:'good'},{sq:'d4',c:'good'}],
    explain:'יותר מרחב = יותר משבצות פנויות לכלים שלך = תמרון קל יותר. שחק עם המרחב, אל תמהר לפתוח.' },
 ];
+
+/* ---------- deep multi-stage explanations for structure lessons ---------- */
+const STRUCT_DEEP = {
+ 'weakpawn':[
+  {h:'הרעיון',t:'רגלי מבודד/כפול/מפגר הוא חולשה קבועה — אין רגלי שכן שיגן עליו, אז כלים חייבים להישאר ולשמור עליו, וזה מקבע אותם.'},
+  {h:'איך לזהות בעמדה',t:'חפש רגלי בלי רגלי שכן בטורים הסמוכים. הריבוע שלפניו (שאף רגלי לא מכסה) לרוב חלש גם הוא.'},
+  {h:'איך לנצל',t:'תקוף אותו בכלים (לא ברגלים), הצב כלי על הריבוע החוסם שלפניו, וכפה על היריב להגן — כך תשתק את כליו.'},
+  {h:'טעות נפוצה',t:'להחליף כלים בלי סיבה. ככל שנשארים פחות כלים — החולשה של הרגלי בולטת יותר בסיום. שמור מתח, אל תפשט מוקדם.'},
+ ],
+ 'openfile':[
+  {h:'הרעיון',t:'טור פתוח (בלי רגלים כלל) הוא כביש מהיר לצריחים — משם הם פולשים לשורות האחוריות של היריב.'},
+  {h:'איך לזהות בעמדה',t:'מצא טור שאין בו אף רגלי — לא שלך ולא של היריב. זה הטור לתפוס.'},
+  {h:'איך לנצל',t:'הצב צריח בטור, הכפל צריחים (צריח מאחורי צריח), ופלוש לשורה השביעית/שמינית.'},
+  {h:'טעות נפוצה',t:'לוותר על הטור ליריב. מי שמשתלט על הטור הפתוח ראשון — לרוב מנצח את כל המאבק עליו.'},
+ ],
+ 'outpost':[
+  {h:'הרעיון',t:'חור — ריבוע שאף רגלי יריב לא יכול לכסות — הוא בסיס מושלם לאביר: מבוצר ולא ניתן לגירוש.'},
+  {h:'איך לזהות בעמדה',t:'חפש ריבוע בשטח היריב (שורה 5–6) שאין רגלי יריב שיכול להגיע ולתקוף אותו.'},
+  {h:'איך לנצל',t:'תמרן אביר אל המוצב ובסס אותו שם, רצוי בתמיכת רגלי משלך. אביר על מוצב מרכזי שווה כמעט צריח.'},
+  {h:'טעות נפוצה',t:'להציב שם כלי יקר שאפשר להחליף בקלות. האביר — שקשה להחליף במוצב — הוא הכלי המתאים.'},
+ ],
+ 'colorcomplex':[
+  {h:'הרעיון',t:'חוסר רץ (או רגלים קבועים על צבע אחד) יוצר חולשה קבועה בערוגות בצבע ההוא — אין מי שישמור עליהן.'},
+  {h:'איך לזהות בעמדה',t:'אם ליריב אין רץ מצבע מסוים, כל הריבועים באותו צבע סביב מלכו הם חלשים וקבועים.'},
+  {h:'איך לנצל',t:'השתלט על ערוגות החולשה — הצב שם כלים (במיוחד אביר ומלכה) וכוון דרכן התקפה אל המלך.'},
+  {h:'טעות נפוצה',t:'להחליף את הרץ ה"טוב" שלך — זה ששולט בערוגות החלשות של היריב. שמור עליו, הוא זהב.'},
+ ],
+ 'space':[
+  {h:'הרעיון',t:'יותר מרחב = יותר ריבועים פנויים לכלים שלך = תמרון קל ולחץ מתמשך על היריב הדחוס.'},
+  {h:'איך לזהות בעמדה',t:'ספור עד היכן מגיעים רגליך מול רגלי היריב. הצד שרגליו מתקדמים יותר מחזיק יותר שטח.'},
+  {h:'איך לנצל',t:'תמרן על החלל, החלף כמה שפחות כלים (ליריב הדחוס אין מקום לכלים), ופתח חזית כשהיריב מרותק.'},
+  {h:'טעות נפוצה',t:'לפתוח את העמדה מוקדם. עם יתרון מרחב שומרים עמדה סגורה יחסית כדי לחנוק את היריב.'},
+ ],
+};
 
 /* ---------- ADVANCED STRATEGY (deep concepts) ---------- */
 const ADV_INTRO = 'כדי לעלות מדרגה, החלף את השאלה "איזה מהלך?" בשאלה "מה **התוכנית**?". תוכנית נובעת מחוסר־איזון קבוע בעמדה: מבנה רגלים, מרחב, ריבוע חלש, זוג רצים או יתרון פיתוח. כל שיעור כאן מלמד חוסר־איזון אחד ואיך להפוך אותו לתוכנית — עם עמדה לתרגול.';
@@ -1020,6 +1058,15 @@ const ENDGAMES = [
  { id:'rookpawn', name:'צריח מאחורי רגלי חופשי', level:'טכניקה', fen:'8/8/8/8/3P4/8/r7/3RK1k1 w - - 0 1', side:'w',
    goal:'קדם את הרגלי החופשי בעזרת הצריח והכתר.', tip:'כלל טאראש: הצריח מאחורי הרגלי החופשי — הוא תומך בקידום ומגביל את הצריח היריב.' },
 ];
+
+/* ---------- step-by-step technique for each endgame ---------- */
+const ENDGAME_DEEP = {
+ 'rookmate':['דחוף את המלך היריב לעבר קצה הלוח — הצריח "חוסם" את השורה/הטור שמעבר למלך.','הבא את המלך שלך אל מול המלך היריב, במרחק ריבוע אחד (אופוזיציה).','כשהמלכים מולים והמלך היריב בקצה — תן שח בצריח לאורך הקצה. זהו מט.','אם המלך היריב בורח הצידה — רדוף אחריו עם המלך שלך, ושמור את הצריח במרחק בטוח.'],
+ 'queenmate':['שמור על המלכה במרחק "קפיצת פרש" מהמלך היריב — כך תדחק אותו בלי לתת פט.','דחוף אותו צעד־צעד לעבר קצה הלוח.','כשהוא בקצה — קרב את המלך שלך עד שהוא עומד מול המלך היריב.','תן מט במלכה כשהמלך שלך תומך בה. אזהרה: אל תלכוד את המלך בלי שח — זה פט ותיקו!'],
+ 'opposition':['המלך לפני הרגלי, לא הרגלי לפני המלך — קדם קודם את המלך.','תפוס אופוזיציה: מלכיך מול מלך היריב עם ריבוע ביניהם, כשהוא בתור — הוא ייאלץ לפנות.','השתמש באופוזיציה כדי לכבוש את "ריבועי המפתח" שלפני הרגלי.','רק כשהמלך שלך שולט בריבוע ההכתרה — קדם את הרגלי בבטחה.'],
+ 'lucena':['המלך שלך לפני הרגלי (על שורת ההכתרה), הרגלי בשורה השביעית.','הרחק את הצריח לטור אחר כדי להכין "גשר".','הצב את הצריח בשורה הרביעית — הוא ישמש כמחסום מפני השחים.','צא עם המלך; כשהיריב נותן שח — הצריח חוסם, והרגלי מוכתר.'],
+ 'rookpawn':['הצב את הצריח *מאחורי* הרגלי החופשי (כלל טאראש) — הוא דוחף אותו קדימה.','קדם את הרגלי צעד־צעד; הצריח שלך תומך מאחור, וצריח היריב מוגבל לפניו.','הבא את המלך לתמוך בקידום בשלב הקריטי.','הכתר — או אלץ את היריב לתת את הצריח תמורת הרגלי.'],
+};
 
 const ENDGAME_TIPS = [
  { name:'אופוזיציה', txt:'כשהמלכים מולים ברווח ריבוע אחד — מי שאינו בתור "מחזיק אופוזיציה" וזוכה במרחב. מפתח לכל סיומי מלך ורגלי.' },
@@ -1153,6 +1200,7 @@ const STAGES = [
     {t:'מזלג רגלי', ref:{mode:'puzzles',theme:'מזלג רגלי'}},
     {t:'שיפוד — צריח', ref:{mode:'puzzles',theme:'שיפוד — צריח'}},
     {t:'שיפוד — רץ', ref:{mode:'puzzles',theme:'שיפוד — רץ'}},
+    {t:'סיכה (Pin)', ref:{mode:'puzzles',theme:'סיכה (Pin)'}},
     {t:'התקפה מגלה', ref:{mode:'puzzles',theme:'התקפה מגלה'}},
     {t:'התקפה כפולה', ref:{mode:'puzzles',theme:'התקפה כפולה'}},
     {t:'מט בשורה האחורית', ref:{mode:'puzzles',theme:'מט בשורה האחורית'}},
@@ -1220,7 +1268,7 @@ const OPENING_CONT = {
  'slav/exch':{leadsTo:'מבנה סימטרי ושווה. המאבק על טור c והמוצב ב־e5/e4 — שחק לדיוק.',cont:['e3','e6','Bd3','Bxd3','Qxd3','Bd6']},
 };
 
-if(typeof module!=='undefined') module.exports={OPENINGS,PUZZLES,STRUCTURES,ADVANCED,ADV_INTRO,ADV_DEEP,STAGES,ENDGAMES,ENDGAME_TIPS,THINKING,GAMES,PLAN,COURSE,OPENING_CONT};
+if(typeof module!=='undefined') module.exports={OPENINGS,PUZZLES,STRUCTURES,STRUCT_DEEP,ADVANCED,ADV_INTRO,ADV_DEEP,STAGES,ENDGAMES,ENDGAME_DEEP,ENDGAME_TIPS,THINKING,GAMES,PLAN,COURSE,OPENING_CONT};
 
 ;
 (function(){
@@ -1421,7 +1469,7 @@ function startStructure(st){
   S.struct=st;S.structDone=false;S.interact=st.kind==='identify'?'identify':'none';
   S.st=C.parseFEN(st.fen);S.orientation=st.orient||'w';S.history=[];S.last=null;S.sel=-1;S.targets=[];
   S.hl=[];renderBoard();
-  coach('info',st.title,st.prompt);renderPanel();
+  S._coach=null;renderPanel();
 }
 function handleIdentify(idx){
   if(S.structDone)return;const name=C.sqName(idx);
@@ -1623,8 +1671,11 @@ function renderCtx(){
       h=head(a.title,'<span class="lvl">'+a.level+'</span>')+body+'<div class="ctx-prompt">🎯 '+a.prompt+'</div>'+coachCard();
       if(a.kind==='choice'&&!S.advDone){h+='<div class="ctx-choices">';a.choices.forEach((ch,i)=>h+='<button class="choice" data-ai="'+i+'">'+ch+'</button>');h+='</div>';}
     }
-    else if(S.ideaTab==='structures'&&S.struct){h=head(S.struct.title)+coachCard();
-      if(S.struct.kind==='choice'&&!S.structDone){h+='<div class="ctx-choices">';S.struct.choices.forEach((ch,i)=>h+='<button class="choice" data-ci="'+i+'">'+ch+'</button>');h+='</div>';}
+    else if(S.ideaTab==='structures'&&S.struct){const st=S.struct;const deep=STRUCT_DEEP[st.id];
+      h=head(st.title,'<span class="lvl">מבנה</span>')+
+        (deep?'<div class="deep">'+deep.map(s=>'<div class="deep-sec"><b>'+s.h+'</b><span>'+s.t+'</span></div>').join('')+'</div>':'')+
+        '<div class="ctx-prompt">🎯 '+st.prompt+'</div>'+coachCard();
+      if(st.kind==='choice'&&!S.structDone){h+='<div class="ctx-choices">';st.choices.forEach((ch,i)=>h+='<button class="choice" data-ci="'+i+'">'+ch+'</button>');h+='</div>';}
     }else if(S.pz){h=head(S.pz.theme,(S.pz.lvl?'<span class="lvl">'+S.pz.lvl+'</span>':'')+'<span class="pill '+(S.pz.group==='טקטיקה'?'w':'b')+'">'+S.pz.group+'</span>')+coachCard();}
   }else if(S.mode==='endgames'&&S.eg){h=head(S.eg.name,'<span class="ctx-prog">'+S.eg.level+'</span>')+coachCard();}
   else if(S.mode==='thinking'&&S.game){const prog=Math.min(S.gamePly,S.game.line.length);h=head(S.game.title,'<span class="ctx-prog">מהלך '+Math.ceil((prog+1)/2)+'</span>')+coachCard();}
@@ -1774,6 +1825,8 @@ function panelEndgames(){
     b.innerHTML='<div class="badge'+(done?' done':'')+'">'+(done?'✔':'♜')+'</div><div class="txt"><b>'+e.name+'</b><small>'+e.level+' · '+e.goal+'</small></div><div class="chev">‹</div>';
     b.onclick=()=>startEndgame(e);list.appendChild(b);});
   card.appendChild(list);w.appendChild(card);
+  if(S.eg&&ENDGAME_DEEP[S.eg.id]){const tc=el('div','card');tc.innerHTML='<h2><span class="k">טכניקה</span> '+S.eg.name+' — שלב אחר שלב</h2>';
+    ENDGAME_DEEP[S.eg.id].forEach((s,i)=>tc.insertAdjacentHTML('beforeend','<div class="qitem"><div class="qn">'+(i+1)+'</div><div><span class="stepd">'+s+'</span></div></div>'));w.appendChild(tc);}
   const tips=el('div','card');tips.innerHTML='<h2>טכניקות להכיר</h2>';ENDGAME_TIPS.forEach(t=>tips.insertAdjacentHTML('beforeend','<div class="tip"><b>'+t.name+':</b> '+t.txt+'</div>'));w.appendChild(tips);
   return w;
 }
