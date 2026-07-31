@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מצבים</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="מצבים">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12141D">
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root {
+    --ground: #12141D;
+    --surface: #1B1F2B;
+    --surface-2: #232838;
+    --ink: #E8EAF0;
+    --muted: #9BA3B4;
+    --faint: #6A7285;
+    --line: #2B3141;
+    --brass: #D8A962;
+
+    --night: #7B84D8;
+    --focus: #D8A962;
+    --available: #5FB89C;
+    --quiet: #8C93A3;
+
+    --radius: 18px;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ground: #EEF0F4;
+      --surface: #FFFFFF;
+      --surface-2: #F4F6F9;
+      --ink: #171B24;
+      --muted: #626B7C;
+      --faint: #98A0AF;
+      --line: #DEE2E9;
+      --brass: #8A6120;
+
+      --night: #4A52A8;
+      --focus: #8A6120;
+      --available: #2E7D62;
+      --quiet: #6D7484;
+    }
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Hebrew", "Arial Hebrew",
+                 system-ui, "Segoe UI", sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  .app {
+    min-height: 100%;
+    max-width: 30rem;
+    margin: 0 auto;
+    padding: calc(var(--safe-t) + 1.1rem) 1rem calc(var(--safe-b) + 1.6rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+  /* ---- hero ---- */
+
+  .hero {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.4rem 1.2rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: 3px;
+    background: var(--tint, var(--quiet));
+    transition: background 300ms ease;
+  }
+
+  .hero-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .hero-mode {
+    font-size: 2.1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--tint, var(--ink));
+    transition: color 300ms ease;
+  }
+
+  .hero-time {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+
+  .hero-actions { margin-top: 0.7rem; display: flex; gap: 0.55rem; }
+
+  .ghost {
+    flex: 1;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding: 0.62rem;
+    border-radius: 11px;
+    cursor: pointer;
+  }
+
+  .ghost:active { transform: scale(0.985); }
+
+  /* ---- mode grid ---- */
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+  }
+
+  .mode {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1rem 0.9rem;
+    text-align: start;
+    font: inherit;
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+    transition: border-color 180ms ease, transform 120ms ease;
+  }
+
+  .mode:active { transform: scale(0.98); }
+
+  .mode[aria-pressed="true"] {
+    border-color: var(--tint);
+    box-shadow: inset 0 0 0 1px var(--tint);
+  }
+
+  .mode .glyph { font-size: 1.4rem; line-height: 1; }
+
+  .mode .name { font-weight: 650; font-size: 1.02rem; }
+
+  .mode .hint { font-size: 0.78rem; color: var(--muted); }
+
+  /* ---- panels ---- */
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .panel h2 {
+    margin: 0;
+    font-size: 0.74rem;
+    letter-spacing: 0.13em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .today { display: flex; flex-direction: column; gap: 0.6rem; }
+
+  .stat { display: flex; align-items: center; gap: 0.7rem; }
+
+  .stat .dot {
+    width: 0.55rem; height: 0.55rem; border-radius: 50%;
+    flex: none; background: var(--c);
+  }
+
+  .stat .lbl { flex: 1; font-size: 0.92rem; }
+
+  .stat .val {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .week { display: flex; gap: 0.4rem; align-items: flex-end; height: 4.2rem; }
+
+  .day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.35rem; height: 100%; }
+
+  .day .col {
+    width: 100%;
+    flex: 1;
+    background: var(--surface-2);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column-reverse;
+    overflow: hidden;
+  }
+
+  .day .col i { display: block; width: 100%; background: var(--c); }
+
+  .day .lbl { font-size: 0.66rem; color: var(--faint); }
+
+  .day.is-today .lbl { color: var(--brass); font-weight: 700; }
+
+  .empty { font-size: 0.86rem; color: var(--muted); margin: 0; }
+
+  /* ---- settings ---- */
+
+  details.settings {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  details.settings > summary {
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: var(--muted);
+    list-style: none;
+    font-weight: 600;
+  }
+
+  details.settings > summary::-webkit-details-marker { display: none; }
+
+  .settings-body {
+    padding: 0 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    border-top: 1px solid var(--line);
+    padding-top: 0.9rem;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 0.3rem; }
+
+  .field label { font-size: 0.8rem; color: var(--muted); }
+
+  .field input[type="text"] {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.92rem;
+    padding: 0.55rem 0.7rem;
+  }
+
+  .switch { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+
+  .switch span { font-size: 0.9rem; }
+
+  .switch small { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 0.1rem; }
+
+  input[type="checkbox"].toggle {
+    appearance: none; -webkit-appearance: none;
+    flex: none; width: 3rem; height: 1.8rem;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 99px; position: relative; cursor: pointer;
+    transition: background 180ms ease;
+  }
+
+  input[type="checkbox"].toggle::after {
+    content: ""; position: absolute; inset-block-start: 0.2rem; inset-inline-start: 0.22rem;
+    width: 1.3rem; height: 1.3rem; border-radius: 50%;
+    background: var(--muted);
+    transition: transform 180ms ease, background 180ms ease;
+  }
+
+  input[type="checkbox"].toggle:checked { background: var(--available); border-color: var(--available); }
+  input[type="checkbox"].toggle:checked::after { transform: translateX(-1.18rem); background: #fff; }
+
+  button:focus-visible, summary:focus-visible, input:focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 2px;
+  }
+
+  .danger {
+    background: none; border: 1px solid var(--line); color: var(--muted);
+    font: inherit; font-size: 0.82rem; padding: 0.5rem; border-radius: 10px; cursor: pointer;
+  }
+
+  footer { text-align: center; font-size: 0.76rem; color: var(--faint); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="hero" id="hero">
+    <div class="hero-label">עכשיו</div>
+    <div class="hero-mode" id="heroMode">לא זמין</div>
+    <div class="hero-time" id="heroTime">—</div>
+    <div class="hero-actions">
+      <button class="ghost" id="btnBase" type="button">חזרה לרגיל</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="panel">
+    <h2>היום</h2>
+    <div class="today" id="today"></div>
+  </div>
+
+  <div class="panel">
+    <h2>שבעה ימים אחרונים</h2>
+    <div class="week" id="week"></div>
+  </div>
+
+  <details class="settings">
+    <summary>הגדרות</summary>
+    <div class="settings-body">
+      <div class="switch">
+        <div>
+          <span>הפעל קיצור דרך</span>
+          <small>לחיצה על מצב תריץ את הקיצור שמחליף את מצב הריכוז</small>
+        </div>
+        <input type="checkbox" class="toggle" id="autoRun">
+      </div>
+      <div id="names"></div>
+      <button class="danger" id="wipe" type="button">מחק את כל ההיסטוריה</button>
+    </div>
+  </details>
+
+  <footer>הרישום נשמר במכשיר בלבד</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var MODES = [
+    { id: "night",     name: "לילה",    glyph: "🌙", hint: "שיחות, שעון ומוזיקה", color: "var(--night)" },
+    { id: "focus",     name: "ריכוז",   glyph: "🎯", hint: "הכל שקט",             color: "var(--focus)" },
+    { id: "available", name: "זמין",    glyph: "💬", hint: "התראות פתוחות",       color: "var(--available)" },
+    { id: "quiet",     name: "לא זמין", glyph: "🔕", hint: "ברירת המחדל",         color: "var(--quiet)" }
+  ];
+
+  var BASE = "quiet";
+  var KEY = "limiter-app-v1";
+
+  var state = {
+    current: BASE,
+    since: Date.now(),
+    sessions: [],
+    autoRun: true,
+    names: { night: "לילה", focus: "ריכוז", available: "זמין", quiet: "לא זמין" }
+  };
+
+  function modeById(id) {
+    for (var i = 0; i < MODES.length; i++) if (MODES[i].id === id) return MODES[i];
+    return MODES[3];
+  }
+
+  /* ---------- storage ---------- */
+
+  function load() {
+    var raw;
+    try { raw = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { raw = null; }
+    if (!raw) return;
+    if (typeof raw.current === "string") state.current = raw.current;
+    if (typeof raw.since === "number") state.since = raw.since;
+    if (Array.isArray(raw.sessions)) state.sessions = raw.sessions;
+    if (typeof raw.autoRun === "boolean") state.autoRun = raw.autoRun;
+    if (raw.names) for (var k in state.names) if (raw.names[k]) state.names[k] = raw.names[k];
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  /* ---------- time ---------- */
+
+  function fmtDuration(ms) {
+    var total = Math.max(0, Math.round(ms / 1000));
+    var h = Math.floor(total / 3600);
+    var m = Math.floor((total % 3600) / 60);
+    if (h === 0 && m === 0) return "פחות מדקה";
+    if (h === 0) return m + " דק׳";
+    if (m === 0) return h === 1 ? "שעה" : h + " שעות";
+    return h + ":" + (m < 10 ? "0" : "") + m + " שעות";
+  }
+
+  function startOfDay(d) {
+    var x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x.getTime();
+  }
+
+  /* Splits every session, plus the running one, across day boundaries. */
+  function totalsFor(dayStart) {
+    var dayEnd = dayStart + 86400000;
+    var out = {};
+    MODES.forEach(function (m) { out[m.id] = 0; });
+
+    var all = state.sessions.slice();
+    all.push({ mode: state.current, start: state.since, end: Date.now() });
+
+    all.forEach(function (s) {
+      var a = Math.max(s.start, dayStart);
+      var b = Math.min(s.end, dayEnd);
+      if (b > a && out.hasOwnProperty(s.mode)) out[s.mode] += b - a;
+    });
+    return out;
+  }
+
+  /* ---------- actions ---------- */
+
+  function setMode(id) {
+    if (id !== state.current) {
+      state.sessions.push({ mode: state.current, start: state.since, end: Date.now() });
+      if (state.sessions.length > 800) state.sessions = state.sessions.slice(-800);
+      state.current = id;
+      state.since = Date.now();
+      save();
+      render();
+    }
+    if (state.autoRun) runShortcut(state.names[id]);
+  }
+
+  function runShortcut(name) {
+    if (!name) return;
+    window.location.href = "shortcuts://run-shortcut?name=" + encodeURIComponent(name);
+  }
+
+  /* ---------- render ---------- */
+
+  var grid = document.getElementById("grid");
+  var hero = document.getElementById("hero");
+  var heroMode = document.getElementById("heroMode");
+  var heroTime = document.getElementById("heroTime");
+  var todayEl = document.getElementById("today");
+  var weekEl = document.getElementById("week");
+
+  MODES.forEach(function (m) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "mode";
+    b.dataset.id = m.id;
+    b.style.setProperty("--tint", m.color);
+    b.innerHTML =
+      '<span class="glyph">' + m.glyph + '</span>' +
+      '<span class="name"></span>' +
+      '<span class="hint"></span>';
+    b.querySelector(".name").textContent = m.name;
+    b.querySelector(".hint").textContent = m.hint;
+    b.addEventListener("click", function () { setMode(m.id); });
+    grid.appendChild(b);
+  });
+
+  function renderHero() {
+    var m = modeById(state.current);
+    hero.style.setProperty("--tint", m.color);
+    heroMode.textContent = m.name;
+    heroTime.textContent = "מאז " + new Date(state.since).toLocaleTimeString("he-IL", {
+      hour: "2-digit", minute: "2-digit"
+    }) + " · " + fmtDuration(Date.now() - state.since);
+
+    Array.prototype.forEach.call(grid.children, function (btn) {
+      btn.setAttribute("aria-pressed", btn.dataset.id === state.current ? "true" : "false");
+    });
+  }
+
+  function renderToday() {
+    var totals = totalsFor(startOfDay(Date.now()));
+    todayEl.innerHTML = "";
+    var any = false;
+
+    MODES.forEach(function (m) {
+      if (totals[m.id] < 60000) return;
+      any = true;
+      var row = document.createElement("div");
+      row.className = "stat";
+      row.style.setProperty("--c", m.color);
+      row.innerHTML = '<span class="dot"></span><span class="lbl"></span><span class="val"></span>';
+      row.querySelector(".lbl").textContent = m.name;
+      row.querySelector(".val").textContent = fmtDuration(totals[m.id]);
+      todayEl.appendChild(row);
+    });
+
+    if (!any) {
+      var p = document.createElement("p");
+      p.className = "empty";
+      p.textContent = "עוד לא נצבר מספיק זמן היום.";
+      todayEl.appendChild(p);
+    }
+  }
+
+  function renderWeek() {
+    var labels = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
+    var today = startOfDay(Date.now());
+    weekEl.innerHTML = "";
+
+    for (var i = 6; i >= 0; i--) {
+      var dayStart = today - i * 86400000;
+      var totals = totalsFor(dayStart);
+      var day = document.createElement("div");
+      day.className = "day" + (i === 0 ? " is-today" : "");
+
+      var col = document.createElement("div");
+      col.className = "col";
+
+      MODES.forEach(function (m) {
+        if (m.id === "quiet" || totals[m.id] < 60000) return;
+        var seg = document.createElement("i");
+        seg.style.setProperty("--c", m.color);
+        seg.style.height = Math.min(100, (totals[m.id] / 86400000) * 100 * 3) + "%";
+        col.appendChild(seg);
+      });
+
+      var lbl = document.createElement("div");
+      lbl.className = "lbl";
+      lbl.textContent = labels[new Date(dayStart).getDay()];
+
+      day.appendChild(col);
+      day.appendChild(lbl);
+      weekEl.appendChild(day);
+    }
+  }
+
+  function render() {
+    renderHero();
+    renderToday();
+    renderWeek();
+  }
+
+  /* ---------- settings ---------- */
+
+  var autoRun = document.getElementById("autoRun");
+  autoRun.checked = state.autoRun;
+  autoRun.addEventListener("change", function () {
+    state.autoRun = autoRun.checked;
+    save();
+  });
+
+  var namesEl = document.getElementById("names");
+  MODES.forEach(function (m) {
+    var wrap = document.createElement("div");
+    wrap.className = "field";
+    var id = "name-" + m.id;
+    wrap.innerHTML = '<label for="' + id + '"></label><input type="text" id="' + id + '">';
+    wrap.querySelector("label").textContent = "שם הקיצור עבור " + m.name;
+    var input = wrap.querySelector("input");
+    input.value = state.names[m.id];
+    input.addEventListener("change", function () {
+      state.names[m.id] = input.value.trim();
+      save();
+    });
+    namesEl.appendChild(wrap);
+  });
+
+  document.getElementById("wipe").addEventListener("click", function () {
+    if (!window.confirm("למחוק את כל ההיסטוריה? אי אפשר לשחזר.")) return;
+    state.sessions = [];
+    state.since = Date.now();
+    save();
+    render();
+  });
+
+  document.getElementById("btnBase").addEventListener("click", function () {
+    setMode(BASE);
+  });
+
+  /* ---------- boot ---------- */
+
+  load();
+  render();
+
+  setInterval(renderHero, 30000);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) render();
+  });
+})();
+</script>
+</body>
+</html>
