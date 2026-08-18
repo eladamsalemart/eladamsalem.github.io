@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="description" content="פריסת חיתוך ליריעות דיקט — כמה יריעות צריך, איך לפרוס אותן לפסים ומה לחתוך מכל פס.">
+<link rel="icon" href="/favicon.svg">
+<title>פריסת דיקט</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Heebo:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    color-scheme: light;
+    --ground:   #E7E4DA;
+    --panel:    #F5F3EC;
+    --panel-2:  #EDEADF;
+    --ink:      #22201B;
+    --muted:    #6B675C;
+    --faint:    #918C7F;
+    --rule:     rgba(34, 32, 27, .17);
+    --rule-soft:rgba(34, 32, 27, .09);
+    --accent:   #1C5B6E;
+    --accent-in:#FFFFFF;
+    --sheet:    #F1EDE2;
+    --warn:     #A2512F;
+
+    --c0-f: #E0AE72;  --c0-s: #9C6428;
+    --c1-f: #86AFB8;  --c1-s: #2F6D7C;
+    --c2-f: #B79AC9;  --c2-s: #6E4E85;
+    --c3-f: #A9BD82;  --c3-s: #5C7833;
+    --c4-f: #E0A099;  --c4-s: #A9524A;
+    --c5-f: #97A9D0;  --c5-s: #4C60A0;
+
+    --serif: 'Frank Ruhl Libre', 'Times New Roman', serif;
+    --sans:  'Heebo', system-ui, -apple-system, sans-serif;
+    --mono:  'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground:   #0E1C29;
+      --panel:    #142636;
+      --panel-2:  #10202E;
+      --ink:      #DEEAF2;
+      --muted:    #90A8BA;
+      --faint:    #6C8497;
+      --rule:     rgba(222, 234, 242, .20);
+      --rule-soft:rgba(222, 234, 242, .10);
+      --accent:   #63C8DE;
+      --accent-in:#08161F;
+      --sheet:    #132434;
+      --warn:     #E29A7C;
+
+      --c0-f: #7B5A31;  --c0-s: #E4B375;
+      --c1-f: #2C5966;  --c1-s: #74C3D4;
+      --c2-f: #4B3A5C;  --c2-s: #B79AD0;
+      --c3-f: #47542D;  --c3-s: #A6C377;
+      --c4-f: #62383A;  --c4-s: #E39A93;
+      --c5-f: #363F6B;  --c5-s: #93A6DF;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground:   #0E1C29;
+    --panel:    #142636;
+    --panel-2:  #10202E;
+    --ink:      #DEEAF2;
+    --muted:    #90A8BA;
+    --faint:    #6C8497;
+    --rule:     rgba(222, 234, 242, .20);
+    --rule-soft:rgba(222, 234, 242, .10);
+    --accent:   #63C8DE;
+    --accent-in:#08161F;
+    --sheet:    #132434;
+    --warn:     #E29A7C;
+
+    --c0-f: #7B5A31;  --c0-s: #E4B375;
+    --c1-f: #2C5966;  --c1-s: #74C3D4;
+    --c2-f: #4B3A5C;  --c2-s: #B79AD0;
+    --c3-f: #47542D;  --c3-s: #A6C377;
+    --c4-f: #62383A;  --c4-s: #E39A93;
+    --c5-f: #363F6B;  --c5-s: #93A6DF;
+  }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.6;
+    direction: rtl;
+    text-align: right;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .plate {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 22px 90px;
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead { display: flex; flex-direction: column; gap: 10px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(34px, 6vw, 52px);
+    line-height: 1.08;
+    letter-spacing: -.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .standfirst {
+    max-width: 60ch;
+    color: var(--muted);
+    font-size: 16px;
+    margin: 0;
+  }
+
+  /* ---------- title block: the headline numbers ---------- */
+  .titleblock {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+    border: 1px solid var(--rule);
+    background: var(--panel);
+  }
+  .tb-cell {
+    padding: 18px 20px 16px;
+    border-inline-start: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .tb-cell:first-child { border-inline-start: 0; }
+  .tb-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .tb-value {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 30px;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .tb-value .unit {
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--muted);
+    padding-inline-start: 4px;
+  }
+  .tb-note { font-size: 12.5px; color: var(--muted); }
+  .tb-cell.is-key .tb-value { color: var(--accent); }
+
+  /* ---------- section furniture ---------- */
+  section { display: flex; flex-direction: column; gap: 16px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 24px;
+    margin: 0;
+    letter-spacing: -.005em;
+  }
+  .sec-head .hint { font-size: 13px; color: var(--faint); }
+  .rule { height: 1px; background: var(--rule); }
+
+  /* ---------- the drawing ---------- */
+  .drawings { display: flex; flex-direction: column; gap: 26px; }
+  .drawing {
+    border: 1px solid var(--rule);
+    background: var(--panel);
+    padding: 16px 16px 12px;
+  }
+  .drawing-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px dashed var(--rule);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .drawing-head b { color: var(--ink); font-weight: 500; }
+  .svg-scroll { overflow-x: auto; overflow-y: hidden; direction: ltr; }
+  .sheet-svg { display: block; width: 100%; height: auto; }
+  @media (max-width: 760px) { .sheet-svg { min-width: 660px; } }
+
+  .sheet-outline { fill: var(--sheet); stroke: var(--ink); stroke-width: .55; }
+  .piece { stroke-width: .35; }
+  .piece.c0 { fill: var(--c0-f); stroke: var(--c0-s); }
+  .piece.c1 { fill: var(--c1-f); stroke: var(--c1-s); }
+  .piece.c2 { fill: var(--c2-f); stroke: var(--c2-s); }
+  .piece.c3 { fill: var(--c3-f); stroke: var(--c3-s); }
+  .piece.c4 { fill: var(--c4-f); stroke: var(--c4-s); }
+  .piece.c5 { fill: var(--c5-f); stroke: var(--c5-s); }
+  .waste { fill: url(#hatch); stroke: var(--rule); stroke-width: .25; }
+  .hatch-line { stroke: var(--rule); stroke-width: .5; }
+
+  .plabel {
+    font-family: var(--mono);
+    font-size: 3.1px;
+    font-weight: 500;
+    fill: var(--ink);
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+  }
+  .rowno {
+    font-family: var(--mono);
+    font-size: 2.9px;
+    fill: var(--faint);
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .dim { stroke: var(--accent); stroke-width: .3; }
+  .dimtext {
+    font-family: var(--mono);
+    font-size: 4.2px;
+    font-weight: 500;
+    fill: var(--accent);
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-top: 12px; }
+  .lg { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--muted); }
+  .sw { width: 20px; height: 12px; border: 1px solid; flex: none; }
+  .sw.c0 { background: var(--c0-f); border-color: var(--c0-s); }
+  .sw.c1 { background: var(--c1-f); border-color: var(--c1-s); }
+  .sw.c2 { background: var(--c2-f); border-color: var(--c2-s); }
+  .sw.c3 { background: var(--c3-f); border-color: var(--c3-s); }
+  .sw.c4 { background: var(--c4-f); border-color: var(--c4-s); }
+  .sw.c5 { background: var(--c5-f); border-color: var(--c5-s); }
+  .sw.waste { background: repeating-linear-gradient(45deg, transparent 0 3px, var(--rule) 3px 4px); border-color: var(--rule); }
+  .lg b { color: var(--ink); font-weight: 500; font-family: var(--mono); }
+
+  /* ---------- cut list ---------- */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--rule); background: var(--panel); }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; }
+  th, td {
+    text-align: right;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--rule-soft);
+    font-size: 14.5px;
+  }
+  thead th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.recipe { font-family: var(--mono); font-size: 14px; letter-spacing: .01em; }
+  .chip {
+    display: inline-block;
+    padding: 1px 7px;
+    border: 1px solid;
+    font-family: var(--mono);
+    font-size: 13px;
+    margin-inline-start: 3px;
+  }
+  .chip.c0 { background: var(--c0-f); border-color: var(--c0-s); color: var(--ink); }
+  .chip.c1 { background: var(--c1-f); border-color: var(--c1-s); color: var(--ink); }
+  .chip.c2 { background: var(--c2-f); border-color: var(--c2-s); color: var(--ink); }
+  .chip.c3 { background: var(--c3-f); border-color: var(--c3-s); color: var(--ink); }
+  .chip.c4 { background: var(--c4-f); border-color: var(--c4-s); color: var(--ink); }
+  .chip.c5 { background: var(--c5-f); border-color: var(--c5-s); color: var(--ink); }
+
+  /* ---------- inputs ---------- */
+  .controls {
+    border: 1px solid var(--rule);
+    background: var(--panel-2);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px 18px; }
+  label { display: flex; flex-direction: column; gap: 5px; }
+  .lbl { font-size: 12.5px; color: var(--muted); letter-spacing: .01em; }
+  input[type="number"] {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+    padding: 9px 11px;
+    background: var(--panel);
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: 0;
+    width: 100%;
+    direction: ltr;
+    text-align: right;
+  }
+  input[type="number"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .cutrows { display: flex; flex-direction: column; gap: 10px; }
+  .cutrow { display: grid; grid-template-columns: 22px 1fr 1fr auto; gap: 10px; align-items: end; }
+  .cutrow .tick { width: 18px; height: 18px; border: 1px solid; margin-bottom: 11px; }
+  .cutrow .tick.c0 { background: var(--c0-f); border-color: var(--c0-s); }
+  .cutrow .tick.c1 { background: var(--c1-f); border-color: var(--c1-s); }
+  .cutrow .tick.c2 { background: var(--c2-f); border-color: var(--c2-s); }
+  .cutrow .tick.c3 { background: var(--c3-f); border-color: var(--c3-s); }
+  .cutrow .tick.c4 { background: var(--c4-f); border-color: var(--c4-s); }
+  .cutrow .tick.c5 { background: var(--c5-f); border-color: var(--c5-s); }
+
+  button {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 400;
+    padding: 9px 16px;
+    border: 1px solid var(--rule);
+    background: var(--panel);
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 0;
+    transition: background .16s ease, border-color .16s ease, color .16s ease;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.ghost { padding: 9px 12px; color: var(--faint); }
+  button.ghost:hover { color: var(--warn); border-color: var(--warn); }
+  .btnrow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .seg { display: inline-flex; border: 1px solid var(--rule); }
+  .seg button { border: 0; border-inline-start: 1px solid var(--rule); background: transparent; }
+  .seg button:first-child { border-inline-start: 0; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-in); }
+  .seg button[aria-pressed="true"]:hover { color: var(--accent-in); }
+
+  .notice {
+    border-inline-start: 3px solid var(--warn);
+    background: var(--panel);
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .footnote { font-size: 13px; color: var(--faint); max-width: 62ch; }
+  .footnote b { color: var(--muted); font-weight: 500; }
+
+  @media (max-width: 620px) {
+    .plate { padding: 28px 15px 70px; gap: 28px; }
+    .tb-cell { border-inline-start: 0; border-bottom: 1px solid var(--rule); }
+    .cutrow { grid-template-columns: 18px 1fr 1fr auto; gap: 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  @media print {
+    .controls, .btnrow, .no-print { display: none !important; }
+    body { background: #fff; color: #000; }
+    .plate { padding: 0; max-width: none; }
+  }
+</style>
+</head>
+<body>
+<div class="plate">
+
+  <header class="masthead">
+    <div class="eyebrow">תוכנית חיתוך · סטודיו</div>
+    <h1>פריסת דיקט</h1>
+    <p class="standfirst">
+      כמה יריעות צריך, איך לפרוס אותן לפסים, ומה בדיוק לחתוך מכל פס.
+      המידות למטה הן ההזמנה שלך — אפשר לשנות אותן והשרטוט מתעדכן.
+    </p>
+  </header>
+
+  <div class="titleblock" id="titleblock"></div>
+
+  <div id="notices"></div>
+
+  <section>
+    <div class="sec-head">
+      <h2>פריסה על היריעה</h2>
+      <span class="hint">שרטוט לפי קנה מידה · כל המידות בסנטימטרים · הפסים רצים לאורך היריעה</span>
+    </div>
+    <div class="drawings" id="drawings"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>רשימת חיתוך</h2>
+      <span class="hint">כל שורה היא סוג פס — חותכים אותו כך וחוזרים על עצמו</span>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>פסים</th>
+            <th>מה חותכים מהפס</th>
+            <th>ניצול הפס</th>
+            <th>נשאר בקצה</th>
+          </tr>
+        </thead>
+        <tbody id="cutlist"></tbody>
+      </table>
+    </div>
+    <p class="footnote" id="cutnote"></p>
+  </section>
+
+  <section class="no-print">
+    <div class="sec-head">
+      <h2>נתוני ההזמנה</h2>
+      <span class="hint">שנה מידה וכל השרטוט נבנה מחדש</span>
+    </div>
+
+    <div class="controls">
+      <div class="field-grid">
+        <label>
+          <span class="lbl">אורך היריעה (ס״מ)</span>
+          <input type="number" id="in-L" min="1" step="1" value="220">
+        </label>
+        <label>
+          <span class="lbl">רוחב היריעה (ס״מ)</span>
+          <input type="number" id="in-W" min="1" step="1" value="140">
+        </label>
+        <label>
+          <span class="lbl">רוחב הפס (ס״מ)</span>
+          <input type="number" id="in-strip" min="0.1" step="0.5" value="7">
+        </label>
+        <label>
+          <span class="lbl">עובי המסור (מ״מ)</span>
+          <input type="number" id="in-kerf" min="0" step="0.5" value="3">
+        </label>
+      </div>
+
+      <div>
+        <div class="lbl" style="margin-bottom:10px">מידות החיתוך</div>
+        <div class="cutrows" id="cutrows"></div>
+        <div class="btnrow" style="margin-top:14px">
+          <button type="button" id="add-cut">הוסף מידה</button>
+        </div>
+      </div>
+
+      <div class="btnrow">
+        <div class="seg" role="group" aria-label="שיטת פריסה">
+          <button type="button" id="mode-eff" aria-pressed="true">פריסה חסכונית</button>
+          <button type="button" id="mode-simple" aria-pressed="false">פס = מידה אחת</button>
+        </div>
+        <button type="button" id="print">הדפס לסדנה</button>
+      </div>
+
+      <p class="footnote">
+        <b>פריסה חסכונית</b> ממלאת את שארית כל פס במידה קצרה יותר שנכנסת — פחות פחת, קצת יותר תשומת לב במסור.
+        <b>פס = מידה אחת</b> נותן פסים אחידים: כל פס מחולק למידה אחת בלבד, קל לחתוך בסדרה.
+      </p>
+    </div>
+  </section>
+
+  <p class="footnote">
+    החישוב מוריד את עובי המסור מכל חיתוך, גם בפריסה לפסים לרוחב היריעה וגם בחיתוכים לאורך הפס.
+    שווה להזמין יריעה אחת רזרבית לטעויות ולסיבי קצה.
+  </p>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var state = {
+    L: 220,
+    W: 140,
+    strip: 7,
+    kerf: 0.3,
+    cuts: [ { len: 25, qty: 80 }, { len: 17, qty: 80 } ],
+    mode: "efficient"
+  };
+
+  var EPS = 1e-9;
+
+  function fmt(n) {
+    var r = Math.round(n * 100) / 100;
+    return String(r);
+  }
+
+  /* ---------- the packing ---------- */
+
+  function computePlan(s) {
+    var perSheet = Math.floor((s.W + s.kerf) / (s.strip + s.kerf));
+    var active = [];
+    var tooLong = [];
+    var i;
+
+    for (i = 0; i < s.cuts.length; i++) {
+      var c = s.cuts[i];
+      if (!(c.len > 0) || !(c.qty > 0)) continue;
+      if (c.len > s.L + EPS) { tooLong.push(c.len); continue; }
+      active.push({ idx: i, len: c.len, qty: Math.round(c.qty) });
+    }
+
+    var strips = [];
+
+    if (s.mode === "simple") {
+      active.forEach(function (c) {
+        var per = Math.floor((s.L + s.kerf) / (c.len + s.kerf));
+        if (per < 1) return;
+        var left = c.qty;
+        while (left > 0) {
+          var k = Math.min(per, left);
+          var pieces = [];
+          for (var j = 0; j < k; j++) pieces.push(c.idx);
+          strips.push(pieces);
+          left -= k;
+        }
+      });
+    } else {
+      var pool = active.map(function (c) { return { idx: c.idx, len: c.len, qty: c.qty }; });
+      pool.sort(function (a, b) { return b.len - a.len; });
+      var guard = 0;
+      while (pool.some(function (c) { return c.qty > 0; }) && guard++ < 20000) {
+        var space = s.L;
+        var pieces = [];
+        var placed = true;
+        while (placed) {
+          placed = false;
+          for (var k2 = 0; k2 < pool.length; k2++) {
+            var p = pool[k2];
+            if (p.qty <= 0) continue;
+            var need = p.len + (pieces.length ? s.kerf : 0);
+            if (need <= space + EPS) {
+              space -= need;
+              p.qty--;
+              pieces.push(p.idx);
+              placed = true;
+              break;
+            }
+          }
+        }
+        if (!pieces.length) break;
+        strips.push(pieces);
+      }
+    }
+
+    var detailed = strips.map(function (pieces) {
+      var used = 0;
+      pieces.forEach(function (idx) { used += s.cuts[idx].len; });
+      used += Math.max(0, pieces.length - 1) * s.kerf;
+      return { pieces: pieces, used: used, left: s.L - used };
+    });
+
+    var sheets = perSheet > 0 ? Math.ceil(detailed.length / perSheet) : 0;
+
+    var pieceArea = 0, totalPieces = 0;
+    active.forEach(function (c) {
+      pieceArea += c.len * s.strip * c.qty;
+      totalPieces += c.qty;
+    });
+    var sheetArea = s.L * s.W * sheets;
+
+    return {
+      perSheet: perSheet,
+      strips: detailed,
+      sheets: sheets,
+      tooLong: tooLong,
+      pieceArea: pieceArea,
+      sheetArea: sheetArea,
+      totalPieces: totalPieces,
+      util: sheetArea > 0 ? pieceArea / sheetArea : 0,
+      spare: sheets * perSheet - detailed.length
+    };
+  }
+
+  /* ---------- rendering ---------- */
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+
+  function cellHTML(label, value, unit, note, key) {
+    var d = el("div", "tb-cell" + (key ? " is-key" : ""));
+    d.appendChild(el("div", "tb-label", label));
+    var v = el("div", "tb-value");
+    v.appendChild(document.createTextNode(value));
+    if (unit) {
+      var u = el("span", "unit", unit);
+      v.appendChild(u);
+    }
+    d.appendChild(v);
+    if (note) d.appendChild(el("div", "tb-note", note));
+    return d;
+  }
+
+  function renderTitleblock(p, s) {
+    var tb = document.getElementById("titleblock");
+    tb.textContent = "";
+    tb.appendChild(cellHTML("יריעות דיקט", String(p.sheets), "", fmt(s.L) + " × " + fmt(s.W) + " ס״מ", true));
+    tb.appendChild(cellHTML("פסים בשימוש", String(p.strips.length), "", "מתוך " + (p.perSheet * p.sheets) + " שיוצאים ביריעות", false));
+    tb.appendChild(cellHTML("חתיכות", String(p.totalPieces), "", "רוחב " + fmt(s.strip) + " ס״מ לכל אחת", false));
+    tb.appendChild(cellHTML("ניצולת", String(Math.round(p.util * 100)), "%", "פחת " + fmt(Math.round((p.sheetArea - p.pieceArea) / 100) / 100) + " מ״ר", false));
+  }
+
+  function renderNotices(p, s) {
+    var box = document.getElementById("notices");
+    box.textContent = "";
+    if (p.perSheet < 1) {
+      box.appendChild(el("div", "notice", "רוחב הפס גדול מרוחב היריעה — לא יוצא אף פס."));
+      return;
+    }
+    if (p.tooLong.length) {
+      box.appendChild(el("div", "notice",
+        "מידה של " + p.tooLong.map(fmt).join(", ") + " ס״מ ארוכה מהיריעה (" + fmt(s.L) + " ס״מ) ולא נכללה בפריסה."));
+    }
+    if (p.strips.length && p.spare > 0) {
+      var lastSheetUsed = p.strips.length - (p.sheets - 1) * p.perSheet;
+      box.appendChild(el("div", "notice",
+        "ביריעה האחרונה נשארים " + p.spare + " פסים פנויים (" +
+        fmt(p.spare * s.strip + (p.spare) * s.kerf) + " ס״מ מרוחב היריעה) — מקום לחתיכות נוספות או לרזרבה. " +
+        "ביריעה האחרונה בשימוש " + lastSheetUsed + " פסים."));
+    }
+  }
+
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function svg(tag, attrs) {
+    var n = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) if (Object.prototype.hasOwnProperty.call(attrs, k)) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+
+  function drawSheet(p, s, sheetIndex) {
+    var L = s.L, W = s.W, sw = s.strip, kerf = s.kerf;
+    var padL = 12, padR = 16, padT = 9, padB = 17;
+
+    var root = svg("svg", {
+      "class": "sheet-svg",
+      viewBox: (-padL) + " " + (-padT) + " " + (L + padL + padR) + " " + (W + padT + padB),
+      role: "img",
+      "aria-label": "שרטוט פריסה של יריעה " + (sheetIndex + 1)
+    });
+
+    var defs = svg("defs");
+    var pat = svg("pattern", { id: "hatch", width: "4", height: "4", patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" });
+    var pl = svg("line", { x1: "0", y1: "0", x2: "0", y2: "4", "class": "hatch-line" });
+    pat.appendChild(pl);
+    defs.appendChild(pat);
+    root.appendChild(defs);
+
+    root.appendChild(svg("rect", { x: 0, y: 0, width: L, height: W, "class": "sheet-outline" }));
+
+    var start = sheetIndex * p.perSheet;
+    var end = Math.min(start + p.perSheet, p.strips.length);
+    var pitch = sw + kerf;
+
+    for (var r = 0; r < p.perSheet; r++) {
+      var y = r * pitch;
+      var strip = (start + r < end) ? p.strips[start + r] : null;
+
+      root.appendChild(svg("text", { x: -5, y: y + sw / 2, "class": "rowno" })).textContent = String(r + 1);
+
+      if (!strip) {
+        root.appendChild(svg("rect", { x: 0, y: y, width: L, height: sw, "class": "waste" }));
+        continue;
+      }
+
+      var x = 0;
+      for (var i = 0; i < strip.pieces.length; i++) {
+        var ci = strip.pieces[i];
+        var len = s.cuts[ci].len;
+        root.appendChild(svg("rect", {
+          x: x, y: y, width: len, height: sw,
+          "class": "piece c" + (ci % 6)
+        }));
+        if (len >= 9) {
+          var t = svg("text", { x: x + len / 2, y: y + sw / 2, "class": "plabel" });
+          t.textContent = fmt(len);
+          root.appendChild(t);
+        }
+        x += len;
+        if (i < strip.pieces.length - 1) x += kerf;
+      }
+      if (L - x > 0.05) {
+        root.appendChild(svg("rect", { x: x, y: y, width: L - x, height: sw, "class": "waste" }));
+      }
+    }
+
+    /* bottom band below the last strip */
+    var bandY = p.perSheet * pitch - kerf;
+    if (W - bandY > 0.05) {
+      root.appendChild(svg("rect", { x: 0, y: bandY, width: L, height: W - bandY, "class": "waste" }));
+    }
+
+    /* dimension: length, below */
+    var dy = W + 9;
+    root.appendChild(svg("line", { x1: 0, y1: dy, x2: L, y2: dy, "class": "dim" }));
+    root.appendChild(svg("line", { x1: 0, y1: dy - 2.4, x2: 0, y2: dy + 2.4, "class": "dim" }));
+    root.appendChild(svg("line", { x1: L, y1: dy - 2.4, x2: L, y2: dy + 2.4, "class": "dim" }));
+    var dt = svg("text", { x: L / 2, y: dy + 5.4, "class": "dimtext" });
+    dt.textContent = fmt(L);
+    root.appendChild(dt);
+
+    /* dimension: width, left side */
+    var dx = -9.5;
+    root.appendChild(svg("line", { x1: dx, y1: 0, x2: dx, y2: W, "class": "dim" }));
+    root.appendChild(svg("line", { x1: dx - 2.4, y1: 0, x2: dx + 2.4, y2: 0, "class": "dim" }));
+    root.appendChild(svg("line", { x1: dx - 2.4, y1: W, x2: dx + 2.4, y2: W, "class": "dim" }));
+    var wt = svg("text", { x: dx - 3.2, y: W / 2, "class": "dimtext", transform: "rotate(-90 " + (dx - 3.2) + " " + (W / 2) + ")" });
+    wt.textContent = fmt(W);
+    root.appendChild(wt);
+
+    /* callout: strip width, right side of row 1 */
+    var cx = L + 5;
+    root.appendChild(svg("line", { x1: cx, y1: 0, x2: cx, y2: sw, "class": "dim" }));
+    root.appendChild(svg("line", { x1: cx - 1.8, y1: 0, x2: cx + 1.8, y2: 0, "class": "dim" }));
+    root.appendChild(svg("line", { x1: cx - 1.8, y1: sw, x2: cx + 1.8, y2: sw, "class": "dim" }));
+    var st = svg("text", { x: cx + 4.6, y: sw / 2, "class": "dimtext", transform: "rotate(-90 " + (cx + 4.6) + " " + (sw / 2) + ")" });
+    st.textContent = fmt(sw);
+    root.appendChild(st);
+
+    return root;
+  }
+
+  function renderDrawings(p, s) {
+    var box = document.getElementById("drawings");
+    box.textContent = "";
+    if (p.perSheet < 1 || !p.strips.length) return;
+
+    for (var i = 0; i < p.sheets; i++) {
+      var card = el("div", "drawing");
+      var head = el("div", "drawing-head");
+      var left = el("div");
+      left.appendChild(document.createTextNode("יריעה "));
+      var b = el("b", null, (i + 1) + " / " + p.sheets);
+      left.appendChild(b);
+      var used = Math.min(p.perSheet, p.strips.length - i * p.perSheet);
+      var right = el("div", null, used + " פסים בשימוש · " + (p.perSheet - used) + " פנויים");
+      head.appendChild(left);
+      head.appendChild(right);
+      card.appendChild(head);
+      var scroller = el("div", "svg-scroll");
+      scroller.appendChild(drawSheet(p, s, i));
+      card.appendChild(scroller);
+      box.appendChild(card);
+    }
+  }
+
+  function renderLegend(p, s) {
+    var box = document.getElementById("legend");
+    box.textContent = "";
+    s.cuts.forEach(function (c, i) {
+      if (!(c.len > 0) || !(c.qty > 0)) return;
+      var d = el("div", "lg");
+      d.appendChild(el("span", "sw c" + (i % 6)));
+      var b = el("b", null, fmt(c.len) + " × " + fmt(s.strip));
+      d.appendChild(b);
+      d.appendChild(document.createTextNode(" ס״מ — " + Math.round(c.qty) + " יח׳"));
+      box.appendChild(d);
+    });
+    var w = el("div", "lg");
+    w.appendChild(el("span", "sw waste"));
+    w.appendChild(document.createTextNode("פחת / שטח פנוי"));
+    box.appendChild(w);
+  }
+
+  function renderCutlist(p, s) {
+    var body = document.getElementById("cutlist");
+    body.textContent = "";
+
+    var groups = [];
+    var map = {};
+    p.strips.forEach(function (st) {
+      var key = st.pieces.join(",");
+      if (!map[key]) {
+        map[key] = { count: 0, strip: st };
+        groups.push(map[key]);
+      }
+      map[key].count++;
+    });
+
+    groups.forEach(function (g) {
+      var counts = [];
+      var order = [];
+      g.strip.pieces.forEach(function (idx) {
+        if (counts[idx] === undefined) { counts[idx] = 0; order.push(idx); }
+        counts[idx]++;
+      });
+
+      var tr = document.createElement("tr");
+
+      var td1 = document.createElement("td");
+      td1.className = "num";
+      td1.textContent = String(g.count);
+      tr.appendChild(td1);
+
+      var td2 = document.createElement("td");
+      td2.className = "recipe";
+      order.forEach(function (idx, k) {
+        if (k) td2.appendChild(document.createTextNode("  +  "));
+        td2.appendChild(document.createTextNode(counts[idx] + " × "));
+        var chip = el("span", "chip c" + (idx % 6), fmt(s.cuts[idx].len));
+        td2.appendChild(chip);
+      });
+      tr.appendChild(td2);
+
+      var td3 = document.createElement("td");
+      td3.className = "num";
+      td3.textContent = fmt(Math.round(g.strip.used * 10) / 10) + " מתוך " + fmt(s.L) + " ס״מ";
+      tr.appendChild(td3);
+
+      var td4 = document.createElement("td");
+      td4.className = "num";
+      td4.textContent = fmt(Math.round(g.strip.left * 10) / 10) + " ס״מ";
+      tr.appendChild(td4);
+
+      body.appendChild(tr);
+    });
+
+    var note = document.getElementById("cutnote");
+    if (!groups.length) {
+      note.textContent = "אין מידות לחתוך.";
+    } else {
+      var rips = p.strips.length;
+      var cross = 0;
+      p.strips.forEach(function (st) { cross += st.pieces.length; });
+      note.textContent =
+        "בסך הכול " + rips + " חיתוכי אורך לפסים ועוד " + cross +
+        " חיתוכי רוחב — בערך " + fmt(Math.round((rips * s.L + cross * s.strip) / 100)) + " מטר של חיתוך.";
+    }
+  }
+
+  function render() {
+    var p = computePlan(state);
+    renderTitleblock(p, state);
+    renderNotices(p, state);
+    renderDrawings(p, state);
+    renderLegend(p, state);
+    renderCutlist(p, state);
+  }
+
+  /* ---------- controls ---------- */
+
+  function numVal(input, fallback) {
+    var v = parseFloat(input.value);
+    return isFinite(v) && v > 0 ? v : fallback;
+  }
+
+  function buildCutRows() {
+    var box = document.getElementById("cutrows");
+    box.textContent = "";
+    state.cuts.forEach(function (c, i) {
+      var row = el("div", "cutrow");
+
+      row.appendChild(el("span", "tick c" + (i % 6)));
+
+      var l1 = document.createElement("label");
+      l1.appendChild(el("span", "lbl", "אורך (ס״מ)"));
+      var i1 = document.createElement("input");
+      i1.type = "number"; i1.min = "0.1"; i1.step = "0.5"; i1.value = String(c.len);
+      i1.addEventListener("input", function () {
+        state.cuts[i].len = numVal(i1, c.len);
+        render();
+        refreshTicks();
+      });
+      l1.appendChild(i1);
+      row.appendChild(l1);
+
+      var l2 = document.createElement("label");
+      l2.appendChild(el("span", "lbl", "כמות"));
+      var i2 = document.createElement("input");
+      i2.type = "number"; i2.min = "1"; i2.step = "1"; i2.value = String(c.qty);
+      i2.addEventListener("input", function () {
+        state.cuts[i].qty = numVal(i2, c.qty);
+        render();
+      });
+      l2.appendChild(i2);
+      row.appendChild(l2);
+
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "ghost";
+      del.textContent = "הסר";
+      del.setAttribute("aria-label", "הסר מידה " + fmt(c.len));
+      del.addEventListener("click", function () {
+        if (state.cuts.length <= 1) return;
+        state.cuts.splice(i, 1);
+        buildCutRows();
+        render();
+      });
+      row.appendChild(del);
+
+      box.appendChild(row);
+    });
+  }
+
+  function refreshTicks() { /* colour index is positional; nothing to redo */ }
+
+  ["L", "W", "strip"].forEach(function (key) {
+    var input = document.getElementById("in-" + key);
+    input.addEventListener("input", function () {
+      state[key] = numVal(input, state[key]);
+      render();
+    });
+  });
+
+  document.getElementById("in-kerf").addEventListener("input", function () {
+    var v = parseFloat(this.value);
+    state.kerf = isFinite(v) && v >= 0 ? v / 10 : 0;
+    render();
+  });
+
+  document.getElementById("add-cut").addEventListener("click", function () {
+    state.cuts.push({ len: 10, qty: 20 });
+    buildCutRows();
+    render();
+  });
+
+  var mEff = document.getElementById("mode-eff");
+  var mSim = document.getElementById("mode-simple");
+  function setMode(m) {
+    state.mode = m;
+    mEff.setAttribute("aria-pressed", String(m === "efficient"));
+    mSim.setAttribute("aria-pressed", String(m === "simple"));
+    render();
+  }
+  mEff.addEventListener("click", function () { setMode("efficient"); });
+  mSim.addEventListener("click", function () { setMode("simple"); });
+
+  document.getElementById("print").addEventListener("click", function () { window.print(); });
+
+  buildCutRows();
+  render();
+})();
+</script>
+</body>
+</html>
