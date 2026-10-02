@@ -376,6 +376,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 32px;
+    align-items: start;
   }
 
   .shop-card {
@@ -390,15 +391,14 @@
   }
 
   .shop-card-image {
-    aspect-ratio: 4/5;
-    overflow: hidden;
+    overflow: hidden;   /* image keeps the painting's own proportions — never cropped */
     background: #e8e4dd;
   }
 
   .shop-card-image img {
+    display: block;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
     transition: transform 0.5s;
   }
 
