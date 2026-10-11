@@ -4,9 +4,9 @@
     "year": "2026",
     "tech": "Oil on canvas",
     "size": "",
-    "price": 0,
+    "price": 3000,
     "available": true,
-    "forSale": false,
+    "forSale": true,
     "image": "/media/works/img-1196-edit-1791725179214.jpg",
     "description": "oil on canvas\n90x70cm"
   },
