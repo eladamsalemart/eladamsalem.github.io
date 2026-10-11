@@ -587,7 +587,19 @@ document.addEventListener('input',e=>{
   const [key,idx,field]=b.split(':');
   let val=e.target.value;
   if(e.target.type==='number') val=val===''?0:Number(val);
+  // typing the size of a shop work re-prices it, unless the price was set by hand
+  const w = key==='works' ? DATA.works.content[Number(idx)] : null;
+  const repricing = w && (field==='description'||field==='size') && w.forSale!==false;
+  const oldAuto = repricing ? priceFromWork(w) : null;
   setValue(key,idx,field,val);
+  if(repricing && (!w.price || w.price===oldAuto)){
+    const p = priceFromWork(w);
+    if(p && p!==w.price){
+      setValue(key,idx,'price',p);
+      const inp = document.querySelector(`[data-bind="works:${idx}:price"]`);
+      if(inp) inp.value = p;
+    }
+  }
 });
 document.addEventListener('change',e=>{
   const b=e.target.getAttribute('data-bind');
