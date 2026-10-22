@@ -1,183 +1,189 @@
-# Studio — Proposal v3
+<div dir="rtl">
 
-Elad Amsalem Studio · October 2026 · Working name: Studio. This version has been through two review rounds; see `REVIEW.md`.
+# Studio — הצעה v3
 
-## 1. Vision
+אלעד אמסלם סטודיו · אוקטובר 2026 · שם עבודה: Studio. הגרסה הזו עברה שני סבבי בדיקה (ראו `REVIEW.md`).
 
-**Studio is the home of working artists. Every approved artist is always on view.**
+> שפה: תוכן ועיצוב האפליקציה באנגלית. המצגות, ההסברים והחזון בעברית.
 
-It is built like Spotify: the artist owns a profile, people follow artists, exhibitions are albums and works are tracks. It is shown like an exhibition: each artist always has one live show, hung at real scale in a real-feeling space, of works that physically exist.
+## 1. חזון
 
-### Principles
+**Studio הוא הבית של אמנים פעילים. כל אמן מאושר תמיד מוצג.**
 
-1. **Always on view.** Every artist has one live show at all times. Earlier shows move to the archive.
-2. **Real works, real sizes.** Every work exists physically and is documented to a standard. Its size is checked against its photo.
-3. **Curated, not crowded.** Artists are admitted by application, and every work is approved by a person.
-4. **Screen to room.** Following leads to openings, and the City view leads to real shows.
-5. **For the art.** No sales, no ads, no paid reach. Curation is editorial and is never sold.
+הוא בנוי כמו Spotify: לאמן יש פרופיל משלו, הקהל עוקב אחרי אמנים, תערוכות הן אלבומים ועבודות הן שירים. הוא מוצג כמו תערוכה: לכל אמן יש תמיד תערוכה חיה אחת, תלויה בקנה מידה אמיתי בחלל שמרגיש אמיתי, של עבודות שקיימות פיזית.
 
-## 2. Decisions made (Oct 2026)
+### עקרונות
 
-- Only active, approved artists can join. Every work is approved.
-- No sales at launch.
-- English, for an international audience.
-- Medium is secondary: a tag and a filter, not the structure.
+1. **תמיד מוצג.** לכל אמן יש תערוכה חיה אחת בכל רגע. תערוכות קודמות עוברות לארכיון.
+2. **עבודות אמיתיות, מידות אמיתיות.** כל עבודה קיימת פיזית ומתועדת לפי סטנדרט. המידה שלה נבדקת מול התמונה.
+3. **נבחר, לא צפוף.** אמנים מתקבלים בהגשת מועמדות, ואדם מאשר כל עבודה.
+4. **מהמסך לחדר.** מעקב מוביל לפתיחות, ומסך העיר מוביל לתערוכות אמיתיות.
+5. **למען האמנות.** בלי מכירות, בלי פרסומות, בלי חשיפה בתשלום. האוצרות לא למכירה.
 
-## 3. The app
+## 2. החלטות שהתקבלו (אוקטובר 2026)
 
-The app has five tabs: **Home** (Following), **Discover**, **City**, **Issues**, and **You**.
+- רק אמנים פעילים ומאושרים יכולים להצטרף. כל עבודה עוברת אישור.
+- בלי מכירות בהשקה.
+- האפליקציה באנגלית, לקהל בינלאומי. ההסברים והמצגות בעברית.
+- המדיום משני: תגית ומסנן, לא המבנה.
 
-| Part | What it does |
+## 3. האפליקציה
+
+לאפליקציה חמש לשוניות: **Home** (מי שאני עוקב אחריו), **Discover**, **City**, **Issues** ו־**You**. שמות המסכים באנגלית, כמו באפליקציה עצמה.
+
+| חלק | מה הוא עושה |
 |---|---|
-| Artist profile | On view → Exhibitions → Works → Archive by year → In person → About and CV |
-| Exhibition | Title, text, curator, venue and dates, works, installation views. Entered as a 3D space or a 2D walkthrough. |
-| Work | Wall label (title, year, medium, H × W × D cm, red dot if sold, country), deep zoom, *At scale* view next to a 175 cm figure, AR on your wall, detail shots |
-| On view: space | Guided 3D: tap to go to the next work, drag to look around, True colour toggle, dimensions, scale figure. VR on Quest and Vision Pro. |
-| On view: walkthrough | The same show as a fast 2D sequence, always available |
-| City | Map plus list of Studio artists showing in person, by dates, with filters (following, opening this week, medium) |
-| Issues | Studio-curated group shows, published like magazine issues |
-| Studio for Artists | Apply, upload with automatic checks, exhibition builder on a wall drawn to scale, honest statistics |
-| Review console | A queue sorted by the machine checks. A person approves, returns with a reason, or declines. |
+| Artist profile | On view, ‏Exhibitions, ‏Works, ארכיון לפי שנים, In person, אודות וקורות חיים |
+| Exhibition | שם, טקסט, אוצר, מקום ותאריכים, עבודות, צילומי הצבה. נכנסים כחלל תלת־ממדי או כמעבר דו־ממדי. |
+| Work | תווית קיר (שם, שנה, טכניקה, גובה × רוחב × עומק בס"מ, נקודה אדומה אם נמכרה, מדינה), זום עמוק, תצוגת *At scale* ליד דמות בגובה 175 ס"מ, AR על הקיר שלך, צילומי פרט |
+| On view: החלל | תלת־ממד מונחה: לחיצה לעבודה הבאה, גרירה כדי להסתכל מסביב, מצב True colour, מידות, דמות קנה מידה. VR ב־Quest וב־Vision Pro. |
+| On view: Walkthrough | אותה תערוכה כרצף דו־ממדי מהיר, שזמין תמיד |
+| City | מפה ורשימה של אמני Studio שמציגים פיזית, לפי תאריכים, עם מסננים (עוקב, נפתח השבוע, מדיום) |
+| Issues | תערוכות קבוצתיות באוצרות Studio, שיוצאות כמו גיליונות של מגזין |
+| Studio for Artists | הגשה, העלאה עם בדיקות אוטומטיות, בונה תערוכות על קיר שמצויר בקנה מידה, סטטיסטיקות כנות |
+| Review console | תור שממוין לפי הבדיקות האוטומטיות. אדם מאשר, מחזיר עם סיבה, או דוחה. |
 
-## 4. Membership and approval
+## 4. חברות ואישורים
 
-**Apply (draft criteria, to be finalised):**
+**הגשה (קריטריונים בטיוטה, לסיכום בהמשך):**
 
-- **Route A, exhibition history:** at least one public exhibition in the last 36 months.
-- **Route B, portfolio:** a committee reviews the body of work.
-- **Both routes need:**
-  - 10–20 works documented at the *Accepted* level
-  - a statement (≤ 300 words) and a CV
-  - a studio photo, seen only by reviewers
-- **Review:** a committee of 3, with a decision target of 21 days and reapplication after 6 months.
+- **מסלול א, היסטוריית תערוכות:** לפחות תערוכה פומבית אחת ב־36 החודשים האחרונים.
+- **מסלול ב, פורטפוליו:** ועדה בודקת את גוף העבודות.
+- **בשני המסלולים צריך:**
+  - 10 עד 20 עבודות מתועדות ברמת *Accepted*
+  - הצהרת אמן (עד 300 מילה) וקורות חיים
+  - תמונת סטודיו, שרק הבודקים רואים
+- **בדיקה:** ועדה של 3, יעד של 21 יום להחלטה, הגשה חוזרת אחרי 6 חודשים.
 
-**Every work goes through:**
+**כל עבודה עוברת:**
 
-1. **Automatic checks:**
-   - resolution
-   - colour profile
-   - size against the photo's aspect ratio (within 6%)
-   - required fields
-   - AI-image screening
-   - duplicate or reverse-image search
-2. **Curator review**, with a target of 72 hours. The work is approved, returned with a fix, or declined.
-3. **Trust tiers:** artists with a clean record get a lighter review, never an automatic one.
+1. **בדיקות אוטומטיות:**
+   - רזולוציה
+   - פרופיל צבע
+   - מידה מול יחס הגובה־רוחב של התמונה (עד 6% פער)
+   - שדות חובה
+   - סינון תמונות AI
+   - חיפוש כפילויות וחיפוש תמונה הפוך
+2. **בדיקת אוצר**, ביעד של 72 שעות. העבודה מאושרת, מוחזרת עם תיקון, או נדחית.
+3. **רמות אמון:** אמנים עם רקורד נקי מקבלים בדיקה קלה יותר, אף פעם לא אוטומטית.
 
-## 5. Quality standard
+## 5. סטנדרט האיכות
 
-| Level | 2D works | 3D works | Video | Unlocks |
+| רמה | עבודות דו־ממד | עבודות תלת־ממד | וידאו | מה זה פותח |
 |---|---|---|---|---|
-| **Accepted** | ≥ 3,000 px, straight-on, cropped to the edge, no glare, sRGB/P3 embedded, H × W × D cm | 4 views ≥ 3,000 px, neutral ground | ≥ 1080p master | Profile, archive, walkthrough |
-| **On view** | ≥ 4,000 px, colour-managed, even light | 8 views, or a turntable | ≥ 1080p, graded | Hanging in a 3D space |
-| **Studio Standard** | ≥ 6,000 px, colour target (ΔE00 average ≤ 3 target), cross-polarised for gloss, 2 detail shots incl. raking light | 36-frame turntable, or 3D capture (glTF/USDZ mesh for AR + SPZ splat) | 4K, loudness-normalised | Badge, full deep zoom, Issues |
-| **Archive** (optional) | Stitched 10,000–30,000 px, FADGI-like colour | Scan + photogrammetry | Lossless | Institutions |
+| **Accepted** | לפחות 3,000 פיקסלים, צילום ישר, חיתוך לקצה, בלי בוהק, פרופיל sRGB/P3 מוטמע, גובה × רוחב × עומק בס"מ | 4 מבטים, לפחות 3,000 פיקסלים, רקע נייטרלי | לפחות 1080p | פרופיל, ארכיון, Walkthrough |
+| **On view** | לפחות 4,000 פיקסלים, ניהול צבע, אור אחיד | 8 מבטים או פטיפון | לפחות 1080p, אחרי עיבוד צבע | תלייה בחלל תלת־ממדי |
+| **Studio Standard** | לפחות 6,000 פיקסלים, כרטיס צבע (יעד ממוצע ΔE00 עד 3), קיטוב צולב למשטחים מבריקים, 2 צילומי פרט כולל אור משיק | פטיפון 36 פריימים, או סריקה (מודל glTF/USDZ ל־AR ועוד splat בפורמט SPZ) | 4K, עוצמת שמע מנורמלת | תג, זום עמוק מלא, Issues |
+| **Archive** (אופציונלי) | 10 עד 30 אלף פיקסלים בתפירה, צבע ברמת FADGI | סריקה ופוטוגרמטריה | ללא דחיסה | מוסדות |
 
-**Installation views** are a separate media type: at least 3–6 per show, level verticals, and the photographer credited.
+**צילומי הצבה** הם סוג מדיה נפרד: לפחות 3 עד 6 לתערוכה, קווים אנכיים ישרים, וקרדיט לצלם.
 
-## 6. The space
+## 6. החלל
 
-The space follows these rules:
+כללי החלל:
 
-- **Scale:** 1 unit = 1 m. Every work hangs at its verified size. Canvas depth is 3.5 cm by default.
-- **Hanging:** centre line 145 cm. Works over 2 m tall hang 30 cm off the floor.
-- **Viewing:** eye height 160 cm, viewing distance about 1.5 × the work's longest side.
-- **Lighting:** track spots at 30° from vertical, 3000–3500 K. Oils at about 100–200 lux, works on paper at 30–50 lux.
-- **Colour:** Khronos PBR Neutral tone mapping, and a True colour toggle.
-- **Labels:** wall labels at 145 cm, to the right of the work.
+- **קנה מידה:** יחידה אחת = מטר. כל עבודה תלויה במידה המאומתת שלה. עומק קנבס 3.5 ס"מ כברירת מחדל.
+- **תלייה:** קו מרכז בגובה 145 ס"מ. עבודות מעל 2 מטר נתלות 30 ס"מ מעל הרצפה.
+- **צפייה:** גובה עין 160 ס"מ, מרחק צפייה של בערך פי 1.5 מהצלע הארוכה של העבודה.
+- **תאורה:** ספוטים על מסילה ב־30° מהאנך, ‏3000 עד 3500K. שמן בכ־100 עד 200 לוקס, עבודות על נייר ב־30 עד 50.
+- **צבע:** מיפוי טונים Khronos PBR Neutral, ומצב True colour.
+- **תוויות:** תוויות קיר בגובה 145 ס"מ, מימין לעבודה.
 
-**Library v1:**
+**ספרייה v1:**
 
-| Space | Size | Notes |
+| חלל | מידות | הערות |
 |---|---|---|
-| White Cube | 16 × 10 × 4.5 m | |
-| Long Gallery | 30 × 8 × 5 m | skylight |
-| Project Space | 10 × 8 × 3.2 m | raw concrete |
-| Salon | 6 × 5 × 2.9 m | domestic; for small works |
+| White Cube | ‏16 × 10 × 4.5 מטר | |
+| Long Gallery | ‏30 × 8 × 5 מטר | צוהר בתקרה |
+| Project Space | ‏10 × 8 × 3.2 מטר | בטון חשוף |
+| Salon | ‏6 × 5 × 2.9 מטר | ביתי; לעבודות קטנות |
 
-The library is modelled and light-baked in Blender, with KTX2 textures. **Captured shows:** a physical exhibition captured as a Gaussian splat (SPZ, streamed with Spark).
+החללים ממודלים ומקבלים תאורה אפויה ב־Blender, עם טקסטורות KTX2. **תערוכות סרוקות:** תערוכה פיזית שנסרקת כ־Gaussian splat (בפורמט SPZ, מוזרמת עם Spark).
 
-**Performance:**
+**ביצועים:**
 
-- ≤ 15 MB to first view.
-- Works stream from 1k to 4k.
-- 60 fps target on recent phones.
-- The walkthrough as the fallback.
-- WebXR as an enhancement.
+- עד 15MB עד המבט הראשון.
+- העבודות נטענות מ־1k עד 4k.
+- יעד של 60 פריימים לשנייה בטלפונים חדשים.
+- ה־Walkthrough כגיבוי.
+- WebXR כתוספת.
 
-## 7. Technology
+## 7. טכנולוגיה
 
-| Layer | Choice | Why |
+| שכבה | בחירה | למה |
 |---|---|---|
-| App | Web app / PWA first (installable), native wrappers (Expo) when iOS push matters | One codebase. Android takes PWAs via TWA. iOS web push only works for installed PWAs. |
-| 3D | three.js + Spark (splats) + glTF/KTX2, WebXR | Open, mobile-capable |
-| Data, auth | Supabase (Postgres, auth, row-level security) | Small-team friendly |
-| Files | Cloudflare R2 + CDN, with masters backed up to a second provider | Zero egress fees. Images are heavy. |
-| Images | Derivatives and deep-zoom tiles generated at upload (AVIF + JPEG) | Predictable cost, no per-view transforms |
-| Video | Cloudflare Stream (or Mux) | Adaptive streaming, per-minute pricing |
-| Maps | Mapbox free tier, then MapLibre + self-hosted tiles | Avoid per-load costs at scale |
-| AI screening | Hive (about $6 per 1,000 images) | Used by Cara |
+| אפליקציה | Web app / PWA קודם (ניתנת להתקנה), עטיפה נייטיב (Expo) כשהתראות ב־iOS יהיו חשובות | בסיס קוד אחד. אנדרואיד מקבל PWA דרך TWA. ב־iOS התראות ווב עובדות רק ל־PWA מותקן. |
+| תלת־ממד | three.js, ‏Spark (splats), ‏glTF/KTX2, ‏WebXR | פתוח, עובד בנייד |
+| נתונים והרשאות | Supabase (Postgres, הרשאות, אבטחה ברמת שורה) | מתאים לצוות קטן |
+| קבצים | Cloudflare R2 ו־CDN, עם גיבוי של הקבצים המקוריים אצל ספק נוסף | בלי עלות תעבורה יוצאת. התמונות כבדות. |
+| תמונות | נגזרות ואריחי זום עמוק שנוצרים בהעלאה (AVIF ו־JPEG) | עלות צפויה, בלי המרות לכל צפייה |
+| וידאו | Cloudflare Stream (או Mux) | הזרמה מותאמת, תמחור לפי דקה |
+| מפות | שכבת החינם של Mapbox, ואז MapLibre עם אריחים בשרת שלנו | להימנע מתשלום לכל טעינה בקנה מידה |
+| סינון AI | Hive (בערך 6 דולר ל־1,000 תמונות) | בשימוש ב־Cara |
 
-## 8. Running it: storage, traffic, cost
+## 8. הפעלה: אחסון, תעבורה, עלות
 
-Assumptions (see `research/cost_model.py`):
+הנחות (ראו `research/cost_model.py`):
 
-- **Storage:** 40 works per artist, 25% of them 3D. That comes to about **5.8 GB per artist**, doubled for backup.
-- **Traffic:** 8 visits per user per month, 30% of visits in 3D (about 35 MB each), the rest 2D (about 5 MB each).
+- **אחסון:** 40 עבודות לאמן, 25% מהן תלת־ממד. יוצא **בערך 5.8GB לאמן**, כפול לגיבוי.
+- **תעבורה:** 8 ביקורים למשתמש בחודש, 30% מהם בתלת־ממד (כ־35MB כל אחד), והשאר דו־ממד (כ־5MB כל אחד).
 
-| Stage | Artists | Monthly users | Storage | Traffic/month | Cloud cost/month |
+| שלב | אמנים | משתמשים בחודש | אחסון | תעבורה בחודש | עלות ענן בחודש |
 |---|---|---|---|---|---|
-| Pilot | 1 | 500 | 12 GB | 0.05 TB | ≈ $0 (free tiers) |
-| Invited | 20 | 3,000 | 0.23 TB | 0.3 TB | ≈ $50 |
-| Growth | 500 | 20,000 | 5.7 TB | 2.1 TB | ≈ $250 |
-| Scale | 5,000 | 150,000 | 57 TB | 16 TB | ≈ $1,800 (≈ $3,000 if staying on Mapbox) |
+| פיילוט | 1 | 500 | ‏12GB | ‏0.05TB | בערך 0 (שכבות חינם) |
+| מוזמנים | 20 | 3,000 | ‏0.23TB | ‏0.3TB | בערך 50 דולר |
+| צמיחה | 500 | 20,000 | ‏5.7TB | ‏2.1TB | בערך 250 דולר |
+| קנה מידה | 5,000 | 150,000 | ‏57TB | ‏16TB | בערך 1,800 דולר (בערך 3,000 אם נשארים ב־Mapbox) |
 
-**Fixed costs:**
+**עלויות קבועות:**
 
-- Apple Developer: $99/year.
-- Google Play: $25 once.
-- Domain: a few dollars per year.
-- AI screening: about $1 (pilot) to $3,600 (scale) one-off for the back catalogue.
+- Apple Developer: ‏99 דולר לשנה.
+- Google Play: ‏25 דולר פעם אחת.
+- דומיין: כמה דולרים לשנה.
+- סינון AI: בערך דולר אחד (פיילוט) עד 3,600 דולר (קנה מידה), חד־פעמי לקטלוג הקיים.
 
-On AWS S3, bandwidth alone would add about $200/month at Growth and $1,500/month at Scale. That is why R2 is chosen.
+ב־AWS S3, רוחב הפס לבדו היה מוסיף כ־200 דולר בחודש בשלב הצמיחה וכ־1,500 בקנה מידה. לכן נבחר R2.
 
-**The real cost is people:** curatorial review (about 3 minutes per work, about 1 FTE at Growth, about 2 at Scale), the 3D artist for spaces, and capture days.
+**העלות האמיתית היא אנשים:** בדיקת אוצרות (בערך 3 דקות לעבודה, כמשרה מלאה אחת בשלב הצמיחה, כשתיים בקנה מידה), אמן תלת־ממד לחללים, וימי צילום.
 
-## 9. What it needs from you (Elad)
+## 9. מה זה דורש ממך (אלעד)
 
-1. **Your masters.** Find the original, full-resolution files of your works. The site only has 2,000 px versions.
-2. **A re-shoot of the Ritual works** (about 13) to *On view* level or better: a reproduction photographer, or a setup with 2 lights at 45°, polarising film plus a lens polariser, a colour target, and a tripod. Get 2–3 quotes.
-3. **Clean data:** H × W × D in cm for every work. The 17 mismatches, 7 double sizes and 1 missing size are listed in the deck.
-4. **Installation views** of Ritual (JAH, photo Elad Sarig), with permission to use them.
-5. **Accounts:** a domain, Cloudflare, Supabase, GitHub (you already have this), and later Apple and Google developer accounts.
-6. **A name** for the platform.
-7. **10–20 artists** for Phase 2, across media: painting, photography, ceramics, sculpture, video.
-8. **Time:** about 2 hours a week for decisions and review during the pilot.
+1. **הקבצים המקוריים.** למצוא את הקבצים ברזולוציה מלאה. באתר יש רק גרסאות של 2,000 פיקסלים.
+2. **צילום מחדש של עבודות "טקס"** (בערך 13) ברמת *On view* לפחות: צלם רפרודוקציה, או סטאפ עם 2 תאורות ב־45°, פילם מקטב ועוד מסנן מקטב על העדשה, כרטיס צבע וחצובה. להשיג 2 עד 3 הצעות מחיר.
+3. **נתונים נקיים:** גובה × רוחב × עומק בס"מ לכל עבודה. 17 הפערים, 7 הכפילויות והמידה החסרה מופיעים במצגת.
+4. **צילומי הצבה** של "טקס" (בית האמנים בירושלים, צילום: אלעד שריג), עם אישור שימוש.
+5. **חשבונות:** דומיין, Cloudflare, ‏Supabase, ‏GitHub (כבר קיים), ובהמשך חשבונות מפתח של Apple ו־Google.
+6. **שם** לפלטפורמה.
+7. **10 עד 20 אמנים** לשלב 2, ממדיומים שונים: ציור, צילום, קרמיקה, פיסול, וידאו.
+8. **זמן:** בערך שעתיים בשבוע להחלטות ולבדיקות בזמן הפיילוט.
 
-Hardware and internet: any modern computer is enough. Uploading about 3 GB of masters takes around 20 minutes at 20 Mbps upload. A phone with a LiDAR or recent camera is enough to try splat capture (Scaniverse).
+חומרה ואינטרנט: כל מחשב מודרני מספיק. העלאה של כ־3GB של קבצים מקוריים לוקחת בערך 20 דקות בהעלאה של 20Mbps. טלפון עם LiDAR או מצלמה עדכנית מספיק כדי לנסות סריקת splat (Scaniverse).
 
-## 10. Roadmap
+## 10. מפת דרכים
 
-| Phase | Scope | Exit when |
+| שלב | היקף | יוצאים כש־ |
 |---|---|---|
-| 0 · now | Vision, research, prototype, this deck | Name chosen, pilot scope agreed |
-| 1 · Pilot | Elad only. Web. Profile, archive, one show in the White Cube, walkthrough, work pages, follow by e-mail. | The show is live with re-shot works, and real visitors have tested it |
-| 2 · Invited | 20 artists in Tel Aviv. Apply, upload checks, builder, review console, accounts, 4 spaces. | 20 shows live. Review takes under 72 hours. |
-| 3 · City | City, physical shows, notifications, captured shows | Two cities |
-| 4 · Issues and apps | Issues No. 01, native apps, institutions | — |
+| 0 · עכשיו | חזון, מחקר, אב־טיפוס, טיזר, המצגת | נבחר שם וסוכם היקף הפיילוט |
+| 1 · פיילוט | רק אלעד. ווב. פרופיל, ארכיון, תערוכה אחת ב־White Cube, ‏Walkthrough, עמודי עבודה, מעקב במייל. | התערוכה באוויר עם עבודות שצולמו מחדש, ומבקרים אמיתיים בדקו אותה |
+| 2 · מוזמנים | 20 אמנים בתל אביב. הגשה, בדיקות העלאה, בונה תערוכות, מסוף בדיקה, חשבונות, 4 חללים. | 20 תערוכות באוויר. הבדיקה לוקחת פחות מ־72 שעות. |
+| 3 · עיר | City, תערוכות פיזיות, התראות, תערוכות סרוקות | שתי ערים |
+| 4 · Issues ואפליקציות | גיליון 01, אפליקציות נייטיב, מוסדות | — |
 
-**Pilot goals** (hypotheses to test, not facts):
+**יעדי הפיילוט** (השערות לבדיקה, לא עובדות):
 
-- median visit ≥ 3 minutes
-- ≥ 10% of visitors follow
-- artists would recommend it
+- ביקור חציוני של 3 דקות ומעלה
+- לפחות 10% מהמבקרים עוקבים
+- אמנים היו ממליצים
 
-## 11. Risks
+## 11. סיכונים
 
-| Risk | Mitigation |
+| סיכון | איך מתמודדים |
 |---|---|
-| Virtual-gallery fatigue | Short, guided shows, the 2D walkthrough, following as the reason to return |
-| Cold start | The artist's link as the loop, a city-by-city launch |
-| Documentation burden | Capture days, clear levels, instant feedback at upload |
-| Review load | Trust tiers, a budget for reviewers |
-| Platform dependency | Masters backed up to a second provider, open formats (glTF, SPZ, IIIF-style tiles) |
-| Generic name | Decide before brand work |
+| עייפות מגלריות וירטואליות | תערוכות קצרות ומונחות, Walkthrough דו־ממדי, מעקב כסיבה לחזור |
+| התחלה קרה (אין קהל ואין אמנים) | הקישור של האמן כמנוע צמיחה, השקה עיר אחר עיר |
+| עומס התיעוד על האמנים | ימי צילום, רמות ברורות, משוב מיידי בהעלאה |
+| עומס בדיקה | רמות אמון, תקציב לבודקים |
+| תלות בספק | גיבוי הקבצים המקוריים אצל ספק נוסף, פורמטים פתוחים (glTF, SPZ, אריחים בסגנון IIIF) |
+| שם גנרי | להחליט לפני עבודת מיתוג |
+
+</div>

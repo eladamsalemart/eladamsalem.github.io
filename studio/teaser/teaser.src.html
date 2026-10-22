@@ -1,0 +1,196 @@
+<title>Studio Teaser</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a 1920×1080 film frame scaled to the page, with a quiet transport bar under it. The film itself is one fixed look. */
+:root{
+  --night:#0F1011; --ink:#141516; --wall:#EEEEEB; --paper:#FAFAF8; --muted:#8E9195; --dot:#D0261D;
+  --serif:"Instrument Serif","Times New Roman",serif;
+  --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--night);color:var(--paper);font-family:var(--sans);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1280px;margin-inline:auto;padding-block:24px 40px;display:grid;gap:14px}
+.frame{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;overflow:hidden;background:var(--ink)}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;background:var(--ink)}
+#stage canvas{position:absolute;inset:0;width:1920px;height:1080px}
+.layer{position:absolute;opacity:0;will-change:opacity,transform}
+.bg{inset:0}
+.mono{font-family:var(--mono);letter-spacing:.18em;text-transform:uppercase}
+.serif{font-family:var(--serif);font-weight:400;line-height:.95}
+.dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;background:var(--dot);vertical-align:.05em}
+.card{background:var(--paper);color:var(--ink);padding:26px 30px;font-size:26px;line-height:1.35}
+.card b{font-weight:600;font-size:32px}
+.card .m{font-family:var(--mono);font-size:20px;color:#5d6165;margin-top:8px}
+.shade{background:linear-gradient(to top,rgba(14,15,16,.72),rgba(14,15,16,0) 55%)}
+.phone{position:absolute;display:block}
+.bar{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted)}
+.bar button{font:inherit;color:var(--paper);background:transparent;border:1px solid #3a3c3f;padding:8px 14px;cursor:pointer}
+.bar button:focus-visible{outline:2px solid var(--dot);outline-offset:2px}
+.track{flex:1;height:2px;background:#2c2e31;position:relative}
+.track i{position:absolute;left:0;top:0;bottom:0;background:var(--paper)}
+.note{font-size:13px;color:var(--muted);max-width:70ch}
+</style>
+
+<div class="wrap">
+  <div class="frame" id="frame"><div id="stage">
+
+    <!-- 1 · title -->
+    <div class="layer bg" id="tBg" style="background:var(--ink)"></div>
+    <div class="layer mono" id="tKicker" style="left:0;right:0;top:400px;text-align:center;font-size:22px;color:var(--muted)">Elad Amsalem Studio</div>
+    <div class="layer serif" id="tTitle" style="left:0;right:0;top:450px;text-align:center;font-size:220px;color:var(--paper)">Studio</div>
+    <div class="layer" id="tLine" style="left:0;right:0;top:700px;text-align:center;font-size:40px;color:#C9CBCD">Every artist. Always on view.</div>
+
+    <!-- 2–3 · the space (canvas sits under these) -->
+    <div class="layer bg shade" id="sShade"></div>
+    <div class="layer mono" id="sKicker" style="left:80px;top:72px;font-size:20px;background:var(--paper);color:var(--ink);padding:12px 18px"><span class="dot"></span>&nbsp; On view · Elad Amsalem · Ritual</div>
+    <div class="layer serif" id="sReal1" style="left:80px;bottom:200px;font-size:150px;color:var(--paper)">Real works.</div>
+    <div class="layer serif" id="sReal2" style="left:80px;bottom:70px;font-size:150px;color:var(--paper)">Real sizes.</div>
+    <div class="layer card" id="sLabel" style="right:80px;bottom:80px;width:520px"><b>Gathering</b> <span class="dot"></span><br>Elad Amsalem, 2026<div class="m">Oil on canvas · 170 × 140 × 3.5 cm</div></div>
+    <div class="layer serif" id="sScale" style="left:80px;bottom:150px;font-size:130px;color:var(--paper)">Hung at real scale.</div>
+    <div class="layer" id="sScaleSub" style="left:84px;bottom:90px;font-size:32px;color:#DADBD8">Every size checked against its photo. The figure is 175 cm.</div>
+    <div class="layer bg" id="sBlack" style="background:var(--ink)"></div>
+
+    <!-- 4 · profile -->
+    <div class="layer bg" id="pBg" style="background:var(--wall)"></div>
+    <img class="layer phone" id="pPhone" data-s="profile" alt="Artist profile screen" style="left:1180px;top:0;width:520px">
+    <div class="layer" id="pText" style="left:140px;top:360px;width:880px;color:var(--ink)">
+      <div class="mono" style="font-size:20px;color:var(--dot)">The artist profile</div>
+      <div class="serif" style="font-size:120px;margin-top:22px">Follow artists, not feeds.</div>
+      <div style="font-size:34px;color:#4a4d51;margin-top:30px;line-height:1.35">One profile. One live show. A whole career, year by year.</div>
+    </div>
+
+    <!-- 5 · show, work, scale -->
+    <div class="layer bg" id="wBg" style="background:var(--wall)"></div>
+    <img class="layer phone" id="w1" data-s="exhibition" alt="Exhibition screen" style="left:300px;top:150px;width:370px">
+    <img class="layer phone" id="w2" data-s="work" alt="Work screen" style="left:775px;top:150px;width:370px">
+    <img class="layer phone" id="w3" data-s="scale" alt="At scale screen" style="left:1250px;top:150px;width:370px">
+    <div class="layer serif" id="wText" style="left:0;right:0;top:40px;text-align:center;font-size:84px;color:var(--ink)">Every show. Every work. Every size.</div>
+
+    <!-- 6 · city -->
+    <div class="layer bg" id="cBg" style="background:var(--wall)"></div>
+    <img class="layer phone" id="c1" data-s="space" alt="The space on a phone" style="left:1020px;top:130px;width:380px">
+    <img class="layer phone" id="c2" data-s="city" alt="City screen" style="left:1440px;top:130px;width:380px">
+    <div class="layer" id="cText" style="left:140px;top:380px;width:820px;color:var(--ink)">
+      <div class="mono" style="font-size:20px;color:var(--dot)">On view, then in person</div>
+      <div class="serif" style="font-size:120px;margin-top:22px">From the screen to the room.</div>
+    </div>
+
+    <!-- 7 · end -->
+    <div class="layer bg" id="eBg" style="background:var(--ink)"></div>
+    <div class="layer serif" id="eTitle" style="left:0;right:0;top:330px;text-align:center;font-size:240px;color:var(--paper)">Studio</div>
+    <div class="layer" id="eLine" style="left:0;right:0;top:620px;text-align:center;font-size:44px;color:#DADBD8">A home for working artists. Always on view.</div>
+    <div class="layer mono" id="eFoot" style="left:0;right:0;top:880px;text-align:center;font-size:20px;color:var(--muted)">Elad Amsalem Studio · working name · prototype</div>
+  </div></div>
+
+  <div class="bar"><button type="button" id="play" aria-label="Pause">Pause</button><button type="button" id="again">Replay</button><div class="track" aria-hidden="true"><i id="prog"></i></div><span id="clock">0:00 / 0:40</span></div>
+  <p class="note">The film plays live in your browser: the gallery is rendered in 3D as it plays, from the same to-scale model as the proposal. Works and sizes are Elad's own. The screens are the app mock-ups.</p>
+</div>
+
+<script>
+/*WORKS*/
+/*SCREENS*/
+const fmt = w => `${Math.round(w.h)} × ${Math.round(w.w)} cm`;
+document.querySelectorAll('img[data-s]').forEach(i => { i.src = SCREENS[i.dataset.s]; });
+</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+/*SPACE*/
+
+const DURATION = 40;
+const stage = document.getElementById('stage'), frame = document.getElementById('frame');
+new ResizeObserver(() => { stage.style.transform = `scale(${frame.clientWidth / 1920})`; }).observe(frame);
+
+let loaded = false;
+const { renderer, scene, camera, fig, dimGroups, EYE } = buildSpace(THREE, RoomEnvironment, WORKS, () => { loaded = true; });
+renderer.setPixelRatio(window.__capture ? 1 : Math.min(devicePixelRatio, 1.5));
+renderer.setSize(1920, 1080, false);
+camera.aspect = 1920 / 1080; camera.fov = 50; camera.updateProjectionMatrix();
+stage.prepend(renderer.domElement);
+
+const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+const $ = id => document.getElementById(id);
+// opacity 0→1 over `fade` s from `a`, holds, 1→0 over `fade` s ending at `b`; `rise` px slides up while fading in
+function show(id, t, a, b, fade = 0.6, rise = 0) {
+  const k = Math.min(ease((t - a) / fade), ease((b - t) / fade));
+  const el = $(id); el.style.opacity = k;
+  if (rise) el.style.transform = `translateY(${(1 - ease((t - a) / fade)) * rise}px)`;
+  return k;
+}
+
+// camera keyframes: [time, position, look-at]
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const SHOTS = [
+  [[3.4, V(0, EYE, 4.4), V(0, 1.5, -5)], [9.2, V(0, EYE, -2.25), V(0, 1.45, -5)], [12.9, V(0, EYE, -2.05), V(0, 1.45, -5)]],
+  [[12.9, V(-3.3, EYE, 0.9), V(-8, 1.45, 0.4)], [18.2, V(-4.3, EYE, 0.2), V(-8, 1.42, 0.1)]],
+];
+function cameraAt(t) {
+  const shot = t < 12.9 ? SHOTS[0] : SHOTS[1];
+  let i = 0; while (i < shot.length - 2 && t > shot[i + 1][0]) i++;
+  const [ta, pa, la] = shot[i], [tb, pb, lb] = shot[i + 1];
+  const k = ease((t - ta) / (tb - ta));
+  camera.position.copy(pa).lerp(pb, k); camera.lookAt(la.clone().lerp(lb, k));
+}
+fig.position.set(-7.62, 0, -1.75); fig.rotation.y = Math.PI / 2;
+
+function render(t) {
+  // 1 · title
+  show('tBg', t, -1, 3.6, 0.5); show('tKicker', t, 0.3, 3.3, 0.7); show('tTitle', t, 0.9, 3.3, 0.9, 30); show('tLine', t, 1.8, 3.3, 0.8, 20);
+  // 2–3 · the space
+  const inSpace = t > 3.0 && t < 18.8;
+  renderer.domElement.style.opacity = inSpace ? 1 : 0;
+  show('sShade', t, 4.0, 18.6, 1.0); show('sKicker', t, 4.2, 12.5, 0.6);
+  show('sReal1', t, 5.0, 12.5, 0.8, 30); show('sReal2', t, 6.6, 12.5, 0.8, 30); show('sLabel', t, 9.6, 12.5, 0.6, 20);
+  show('sScale', t, 14.0, 18.4, 0.8, 30); show('sScaleSub', t, 15.0, 18.4, 0.8, 20);
+  const blk = Math.max(Math.min(ease((t - 12.4) / 0.5), ease((13.4 - t) / 0.5)), 0);
+  $('sBlack').style.opacity = blk;
+  dimGroups.forEach(g => g.visible = t > 12.9); fig.visible = t > 12.9;
+  if (inSpace) { cameraAt(t); renderer.render(scene, camera); }
+  // 4 · profile
+  show('pBg', t, 18.2, 25.4, 0.6); show('pText', t, 19.0, 25.0, 0.8, 30);
+  const pk = show('pPhone', t, 18.5, 25.0, 0.8);
+  $('pPhone').style.transform = `translateY(${120 - ease((t - 18.5) / 6.5) * 900}px)`;
+  // 5 · show, work, scale
+  show('wBg', t, 25.0, 31.4, 0.5); show('wText', t, 25.4, 31.0, 0.7, 20);
+  show('w1', t, 25.6, 31.0, 0.7, 120); show('w2', t, 26.1, 31.0, 0.7, 120); show('w3', t, 26.6, 31.0, 0.7, 120);
+  // 6 · city
+  show('cBg', t, 31.0, 36.0, 0.5); show('cText', t, 31.5, 35.6, 0.7, 30);
+  show('c1', t, 31.8, 35.6, 0.7, 100); show('c2', t, 32.3, 35.6, 0.7, 100);
+  // 7 · end
+  show('eBg', t, 35.6, DURATION + 1, 0.6); show('eTitle', t, 36.2, DURATION + 1, 1.0, 30); show('eLine', t, 37.2, DURATION + 1, 0.8, 20); show('eFoot', t, 38.0, DURATION + 1, 0.8);
+}
+
+// capture hook: a frame-exact seek for rendering the MP4
+window.__ready = () => loaded;
+window.__seek = t => render(t);
+
+// live playback
+let t0 = performance.now(), paused = false, pauseAt = 0;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const playBtn = $('play'), prog = $('prog'), clock = $('clock');
+const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+playBtn.onclick = () => {
+  paused = !paused;
+  if (paused) pauseAt = (performance.now() - t0) / 1000; else t0 = performance.now() - pauseAt * 1000;
+  playBtn.textContent = paused ? 'Play' : 'Pause'; playBtn.setAttribute('aria-label', playBtn.textContent);
+};
+$('again').onclick = () => { t0 = performance.now(); pauseAt = 0; if (paused) playBtn.click(); };
+render(window.__capture ? 0 : 2.4);
+if (reduceMotion && !window.__capture) { pauseAt = 2.4; paused = true; playBtn.textContent = 'Play'; playBtn.setAttribute('aria-label', 'Play'); }
+if (!window.__capture) (function loop() {
+  requestAnimationFrame(loop);
+  if (!loaded) { t0 = performance.now(); return; }
+  if (paused && reduceMotion && pauseAt === 2.4) return;
+  const t = paused ? pauseAt : Math.min((performance.now() - t0) / 1000, DURATION);
+  render(t);
+  prog.style.width = (t / DURATION * 100) + '%'; clock.textContent = `${mmss(t)} / ${mmss(DURATION)}`;
+})();
+</script>

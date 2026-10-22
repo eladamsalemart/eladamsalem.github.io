@@ -1,30 +1,34 @@
-# Studio — Self-review log
+<div dir="rtl">
 
-The proposal went through two critical review rounds after the first draft (v1). Each round looks for weak assumptions, contradictions, and things that would fail in reality. Every finding lists what changed.
+# Studio — יומן בדיקה עצמית
 
-## Round 1 — feasibility and quality (v1 → v2)
+ההצעה עברה שני סבבי בדיקה ביקורתיים אחרי הטיוטה הראשונה (v1). כל סבב חיפש הנחות חלשות, סתירות, ודברים שייכשלו במציאות. לכל ממצא מצוין מה השתנה.
 
-| # | Finding | Change |
+## סבב 1 · היתכנות ואיכות (v1 ← v2)
+
+| # | ממצא | מה השתנה |
 |---|---|---|
-| 1 | **The quality bar blocked the pilot.** v1 required 6,000 px, colour-checked images for any work in the 3D space. All 95 of Elad's current images are 2,000 px, so not one work could hang. Few artists can produce 6,000 px without a professional. | Hanging in a space needs **4,000 px**, straight-on, colour-managed. 6,000 px plus a colour target earns the **Studio Standard** badge and full deep zoom. Added **Studio capture days**: professional reproduction sessions per city, which turn the barrier into a service and a community event. |
-| 2 | **Sizes weren't enforced.** 17 of 47 of Elad's works have a stated size that doesn't match the photo, 7 have two sizes, 1 has none, and the order switches between h × w and w × h. | Size is a **hard gate** at upload: the photo's aspect ratio must match the stated size within 6%. One convention everywhere, **H × W × D in cm**, as in museums. The 3D space only hangs verified sizes. |
-| 3 | **The review console contradicted the standard.** It approved a 2,000 px work. | Fixed the mock-up. Below-standard works are returned with the reason. |
-| 4 | **Colour in 3D is not reference colour.** Spotlights and tone mapping change how a work looks. | Added a **True colour** toggle (even, flat light) in the space. The work page stays the colour reference. |
-| 5 | **Human review of every work doesn't scale linearly.** At 5,000 artists, it is about 2 full-time reviewers. | Kept the rule (every work approved by a person), and added **trust tiers**: artists with a clean record get a lighter, faster review, never an automatic one. The cost is budgeted (people, not cloud, are the main cost). |
-| 6 | **"Active artist" excluded people unfairly.** A rule of "exhibited in the last 3 years" shuts out self-taught artists and those between shows. | Two routes in: *exhibition history* or *portfolio review by the committee*. Plus an open call attached to each Issue. |
-| 7 | **Security.** v1 showed where each work is. | Public location is **country/city only**, never an address. The studio photo is visible to reviewers only. |
-| 8 | **Rights and AI.** Not addressed in v1. | Terms: the artist keeps all rights, there is **no AI training** on Studio content, and full-resolution files are never downloadable (deep zoom is served as tiles). |
-| 9 | **Accessibility.** The 3D space had no alternative. | Every show has the 2D walkthrough, alt text, keyboard navigation (← →), and reduced-motion support. |
+| 1 | **רף האיכות חסם את הפיילוט.** v1 דרש 6,000 פיקסלים עם כרטיס צבע לכל עבודה בחלל התלת־ממדי. כל 95 התמונות של אלעד הן ב־2,000 פיקסלים, כך שאף עבודה לא יכלה להיתלות. מעט אמנים יכולים להגיע ל־6,000 פיקסלים בלי צלם מקצועי. | תלייה בחלל דורשת **4,000 פיקסלים**, צילום ישר וניהול צבע. ‏6,000 פיקסלים עם כרטיס צבע מזכים בתג **Studio Standard** ובזום עמוק מלא. נוספו **ימי צילום**: סשנים של צילום רפרודוקציה מקצועי בכל עיר, שהופכים את המחסום לשירות ולאירוע קהילתי. |
+| 2 | **המידות לא נאכפו.** אצל 17 מתוך 47 העבודות של אלעד המידה הרשומה לא תואמת את התמונה, ל־7 יש שתי מידות, לאחת אין מידה, והסדר מתחלף בין גובה × רוחב לרוחב × גובה. | המידה היא **תנאי חובה** בהעלאה: יחס הגובה־רוחב של התמונה חייב להתאים למידה הרשומה עד 6% פער. מוסכמה אחת בכל מקום, **גובה × רוחב × עומק בס"מ**, כמו במוזיאונים. החלל התלת־ממדי תולה רק מידות מאומתות. |
+| 3 | **מסוף הבדיקה סתר את הסטנדרט.** הוא אישר עבודה של 2,000 פיקסלים. | ההדמיה תוקנה. עבודות מתחת לסטנדרט מוחזרות עם הסיבה. |
+| 4 | **הצבע בתלת־ממד הוא לא צבע רפרנס.** ספוטים ומיפוי טונים משנים את מראה העבודה. | נוסף מצב **True colour** (אור אחיד ושטוח) בחלל. עמוד העבודה נשאר הרפרנס לצבע. |
+| 5 | **בדיקה אנושית של כל עבודה לא גדלה בקלות.** ב־5,000 אמנים זה בערך שני בודקים במשרה מלאה. | הכלל נשאר (אדם מאשר כל עבודה), ונוספו **רמות אמון**: אמנים עם רקורד נקי מקבלים בדיקה קלה ומהירה יותר, אף פעם לא אוטומטית. העלות תוקצבה, כי אנשים, לא הענן, הם העלות המרכזית. |
+| 6 | **"אמן פעיל" הוציא אנשים בלי הצדקה.** כלל של "הציג ב־3 השנים האחרונות" משאיר בחוץ אמנים אוטודידקטים ואמנים בין תערוכות. | שני מסלולים: *היסטוריית תערוכות* או *בדיקת פורטפוליו על ידי הוועדה*. ועוד קול קורא לכל Issue. |
+| 7 | **אבטחה.** v1 הראה איפה כל עבודה נמצאת. | המיקום הציבורי הוא **מדינה או עיר בלבד**, אף פעם לא כתובת. תמונת הסטודיו גלויה רק לבודקים. |
+| 8 | **זכויות ו־AI.** לא טופל ב־v1. | תנאים: האמן שומר על כל הזכויות, **אין אימון AI** על תוכן של Studio, ואי אפשר להוריד קבצים ברזולוציה מלאה (הזום העמוק מוגש כאריחים). |
+| 9 | **נגישות.** לחלל התלת־ממדי לא הייתה חלופה. | לכל תערוכה יש Walkthrough דו־ממדי, טקסט חלופי, ניווט במקלדת (חיצים), ותמיכה בהפחתת תנועה. |
 
-## Round 2 — product and launch (v2 → v3)
+## סבב 2 · מוצר והשקה (v2 ← v3)
 
-| # | Finding | Change |
+| # | ממצא | מה השתנה |
 |---|---|---|
-| 1 | **Cold start.** A platform of approved artists with no audience. | The growth loop is the artist's own link: each **On View link replaces the artist's link-in-bio**. Artists bring their audience, as musicians share Spotify links. Launch city by city, starting in Tel Aviv with 20 invited artists. |
-| 2 | **Where do physical shows come from?** v1 assumed a listings database. | Artists add their own shows (as Spotify artists list concerts). Each listing is checked like a work. Venue submissions come later. |
-| 3 | **The pilot was too big.** v1 Phase 1 included City and Issues. | **Phase 1 = one artist (Elad), web only, one space, follow by e-mail.** City, Issues and accounts move to Phase 2–3. |
-| 4 | **Realism had no owner.** The prototype space is procedural. A production space needs modelling and light baking. | Spaces are modelled and baked in Blender (lightmaps, KTX2 textures) by a 3D artist, as a budget line with the quote left open. Captured real shows (Gaussian splats) are the second source of spaces. |
-| 5 | **No way to tell if the pilot works.** | Added pilot goals, stated as hypotheses to test, not facts: median visit length, follow rate from a visit, and artist satisfaction. |
-| 6 | **The name.** "Studio" is generic and can't be owned (domain, trademark, search). | Marked as a decision needed before any brand work. Shortlist in the deck. |
-| 7 | **Mixed-media works** (e.g. *Woman and a gun*: oil on canvas and ceramics). | A work can have up to 2 kinds plus a free materials line. Medium stays a tag for filtering, never the structure. |
-| 8 | **Cost numbers needed their assumptions shown.** | `research/cost_model.py` states every assumption as a constant, and the deck shows the assumptions next to the totals. |
+| 1 | **התחלה קרה.** פלטפורמה של אמנים מאושרים בלי קהל. | מנוע הצמיחה הוא הקישור של האמן עצמו: **קישור ה־On View מחליף את הקישור בביו**. האמנים מביאים את הקהל שלהם, כמו שמוזיקאים משתפים קישורים ל־Spotify. השקה עיר אחר עיר, מתחילים בתל אביב עם 20 אמנים מוזמנים. |
+| 2 | **מאיפה מגיעות התערוכות הפיזיות?** v1 הניח מאגר רשימות. | האמנים מוסיפים את התערוכות שלהם (כמו שאמנים ב־Spotify מוסיפים הופעות). כל רשומה נבדקת כמו עבודה. הגשות של חללי תצוגה מגיעות בהמשך. |
+| 3 | **הפיילוט היה גדול מדי.** שלב 1 ב־v1 כלל City ו־Issues. | **שלב 1 = אמן אחד (אלעד), ווב בלבד, חלל אחד, מעקב במייל.** ‏City, ‏Issues וחשבונות עוברים לשלבים 2 ו־3. |
+| 4 | **לריאליזם לא היה אחראי.** החלל באב־טיפוס פרוצדורלי. חלל ברמת הפקה צריך מידול ואפיית תאורה. | החללים ממודלים ומקבלים תאורה אפויה ב־Blender (מפות אור, טקסטורות KTX2) על ידי אמן תלת־ממד, כשורת תקציב שהצעת המחיר שלה פתוחה. תערוכות סרוקות (Gaussian splats) הן המקור השני לחללים. |
+| 5 | **לא הייתה דרך לדעת אם הפיילוט עובד.** | נוספו יעדי פיילוט, מנוסחים כהשערות לבדיקה ולא כעובדות: אורך ביקור חציוני, שיעור מעקב מתוך ביקור, ושביעות רצון של אמנים. |
+| 6 | **השם.** "Studio" גנרי ואי אפשר לרשום אותו (דומיין, סימן מסחר, חיפוש). | סומן כהחלטה שצריך לקבל לפני כל עבודת מיתוג. רשימה קצרה במצגת. |
+| 7 | **עבודות במדיה מעורבת** (למשל *Woman and a gun*: שמן על בד וקרמיקה). | לעבודה יכולים להיות עד 2 סוגים ועוד שורת חומרים חופשית. המדיום נשאר תגית לסינון, אף פעם לא המבנה. |
+| 8 | **מספרי העלויות היו צריכים להראות את ההנחות שלהם.** | `research/cost_model.py` מגדיר כל הנחה כקבוע, והמצגת מציגה את ההנחות ליד הסכומים. |
+
+</div>
