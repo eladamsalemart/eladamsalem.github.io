@@ -1,0 +1,596 @@
+<title>Studio — חזון</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Karantina:wght@400;700&family=IBM+Plex+Sans+Hebrew:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a white-cube gallery read right-to-left — a live room up top, then wall-label sized sections, phones hung like works */
+:root{
+  --wall:#ECEDEA; --paper:#F8F8F6; --ink:#161719; --muted:#65686B; --line:#D3D5D1;
+  --dot:#D3241C; --phone:#0F1011; --phone-ink:#F1F1EE; --phone-muted:#8E9194; --phone-card:#1D1E20;
+  --room-wall:#F2F2EF; --room-floor:#9C8466; --room-bg:#DADBD7;
+  --display:"Karantina","Arial Narrow",sans-serif;
+  --body:"IBM Plex Sans Hebrew","Segoe UI",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --wall:#121314; --paper:#1A1B1D; --ink:#ECECE8; --muted:#9A9DA0; --line:#2D2F32;
+  --dot:#FF4B3E; --phone:#050506; --phone-card:#18191B;
+  --room-wall:#3A3B3D; --room-floor:#4A3E31; --room-bg:#0B0B0C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --wall:#121314; --paper:#1A1B1D; --ink:#ECECE8; --muted:#9A9DA0; --line:#2D2F32;
+  --dot:#FF4B3E; --phone:#050506; --phone-card:#18191B;
+  --room-wall:#3A3B3D; --room-floor:#4A3E31; --room-bg:#0B0B0C; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--wall);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin-inline:auto}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+.label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;background:var(--dot);vertical-align:.05em}
+section{padding-block:72px;border-top:1px solid var(--line);display:grid;gap:32px}
+.sec-head{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:24px;align-items:start}
+.sec-head h2{font-family:var(--display);font-weight:700;font-size:clamp(44px,6vw,76px);line-height:.9}
+.sec-head .lede{max-width:62ch;font-size:18px;font-weight:300}
+@media (max-width:760px){.sec-head{grid-template-columns:minmax(0,1fr)}}
+
+/* hero */
+header.top{display:flex;justify-content:space-between;align-items:baseline;padding-block:22px;gap:16px;flex-wrap:wrap}
+header.top .mark{font-family:var(--mono);font-size:13px;letter-spacing:.2em}
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:40px;align-items:end;padding-block:12px 56px}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(84px,14vw,190px);line-height:.78;letter-spacing:.01em}
+.hero h1 small{display:block;font-size:.24em;font-weight:400;line-height:1.1;margin-top:18px;color:var(--muted)}
+.hero .thesis{font-size:21px;font-weight:300;max-width:34ch;margin-top:26px}
+.room{position:relative;aspect-ratio:4/3;max-width:100%;background:var(--room-bg);overflow:hidden;cursor:grab}
+.room:active{cursor:grabbing}
+.room canvas{display:block;width:100%;height:100%}
+.room .walllabel{position:absolute;bottom:16px;inset-inline-end:16px;background:var(--paper);color:var(--ink);padding:12px 14px;min-width:200px;max-width:70%;font-size:13px;line-height:1.4;box-shadow:0 1px 0 var(--line)}
+.walllabel b{font-weight:600;font-size:15px;display:block}
+.walllabel .m{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px}
+.room .badge{position:absolute;top:14px;inset-inline-start:14px;background:var(--paper);color:var(--ink);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 10px}
+.room .nav{position:absolute;bottom:16px;inset-inline-start:16px;display:flex;gap:6px}
+.room button,.btn{font:inherit;font-family:var(--mono);font-size:12px;letter-spacing:.06em;background:var(--ink);color:var(--wall);border:0;padding:9px 13px;cursor:pointer}
+.room button:focus-visible,.btn:focus-visible{outline:2px solid var(--dot);outline-offset:2px}
+.room .spaces{position:absolute;top:14px;inset-inline-end:14px;display:flex;gap:4px}
+.room .spaces button{background:var(--paper);color:var(--ink);padding:6px 9px;font-size:11px}
+.room .spaces button[aria-pressed="true"]{background:var(--ink);color:var(--wall)}
+@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr)}.room{aspect-ratio:1/1}}
+
+/* vision */
+.principles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.principles div{background:var(--paper);padding:26px;display:grid;gap:10px;align-content:start}
+.principles h3{font-family:var(--display);font-size:38px;font-weight:700;line-height:.95}
+@media (max-width:860px){.principles{grid-template-columns:minmax(0,1fr)}}
+.manifest{font-size:clamp(22px,2.6vw,30px);font-weight:300;line-height:1.45;max-width:40ch}
+.manifest em{font-style:normal;border-bottom:2px solid var(--dot)}
+
+/* mapping table */
+.tbl{overflow-x:auto;border:1px solid var(--line);background:var(--paper)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:15px}
+th,td{text-align:start;padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.sp{font-family:var(--mono);font-size:13px;color:var(--muted);white-space:nowrap}
+td.st{font-weight:600}
+
+/* phones */
+.phones{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:28px 22px;align-items:start}
+.ph{display:grid;gap:12px}
+.ph figcaption{font-size:14px;color:var(--muted);max-width:34ch}
+.ph figcaption b{color:var(--ink);font-weight:600;display:block}
+figure{margin:0}
+.scr{background:var(--phone);color:var(--phone-ink);border-radius:34px;padding:10px;aspect-ratio:9/18.5;max-width:100%;box-shadow:0 0 0 1px var(--line)}
+.scr .in{height:100%;border-radius:26px;overflow:hidden;background:var(--phone);position:relative;display:flex;flex-direction:column;font-size:12px;line-height:1.35}
+.scr .st{display:flex;justify-content:space-between;padding:8px 16px 4px;font-family:var(--mono);font-size:10px;color:var(--phone-muted);direction:ltr}
+.scr .body{flex:1;overflow:hidden;padding:6px 14px;display:flex;flex-direction:column;gap:10px}
+.scr .tab{display:flex;justify-content:space-around;padding:9px 6px 12px;border-top:1px solid var(--phone-card);font-size:10px;color:var(--phone-muted)}
+.scr .tab .on{color:var(--phone-ink)}
+.scr h4{margin:0;font-size:15px;font-weight:600}
+.scr .mut{color:var(--phone-muted)}
+.scr .k{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--phone-muted)}
+.scr img{display:block;object-fit:cover}
+.row{display:flex;gap:8px;align-items:center;min-width:0}
+.row>div{min-width:0}
+.cover{position:relative;height:150px;margin:-6px -14px 0;overflow:hidden}
+.cover img{width:100%;height:100%}
+.cover::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,var(--phone) 4%,transparent 65%)}
+.cover h3{position:absolute;bottom:8px;inset-inline-start:14px;z-index:1;font-family:var(--display);font-size:44px;line-height:.85;font-weight:700}
+.pill{display:inline-block;border:1px solid var(--phone-muted);border-radius:99px;padding:3px 10px;font-size:10px}
+.pill.f{background:var(--phone-ink);color:var(--phone);border-color:var(--phone-ink)}
+.now{background:var(--phone-card);border-radius:12px;padding:8px;display:flex;gap:9px;align-items:center}
+.now img{width:54px;height:54px;border-radius:6px}
+.albums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.albums img{width:100%;aspect-ratio:1;border-radius:4px}
+.albums span{display:block;font-size:10px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{display:flex;gap:8px;align-items:center}
+.track img{width:34px;height:34px;border-radius:3px}
+.track .t{flex:1;min-width:0}
+.track .t div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stories{display:flex;gap:9px}
+.stories div{display:grid;justify-items:center;gap:3px;font-size:9px;color:var(--phone-muted)}
+.stories img,.stories i{width:46px;height:46px;border-radius:50%;border:2px solid var(--dot);padding:2px;background:var(--phone-card)}
+.stories i{display:block;border-color:var(--phone-card)}
+.big{border-radius:10px;overflow:hidden;position:relative}
+.big img{width:100%;height:150px}
+.big .cap{position:absolute;bottom:0;inset-inline:0;padding:8px;background:linear-gradient(to top,rgba(0,0,0,.75),transparent);color:#fff}
+.view{flex:1;margin:-6px -14px 0;background:linear-gradient(to bottom,#E9E8E4 0 72%,#8B7558 72%);position:relative;display:grid;place-items:center}
+.view img{width:46%;box-shadow:0 10px 22px rgba(0,0,0,.35)}
+.view .lb{position:absolute;bottom:14%;inset-inline-start:12%;background:#fff;color:#111;font-size:8px;padding:4px 6px;line-height:1.3}
+.map{height:200px;margin:0 -14px;background:var(--phone-card);position:relative;overflow:hidden}
+.map svg{width:100%;height:100%;display:block}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+
+/* research */
+.verdict{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.verdict>div{display:grid;gap:10px;align-content:start}
+.verdict ul{margin:0;padding-inline-start:1.1em;display:grid;gap:6px}
+@media (max-width:760px){.verdict{grid-template-columns:minmax(0,1fr)}}
+.gapcell{color:var(--muted)}
+.near td:first-child::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--dot);margin-inline-end:8px}
+
+/* names, roadmap */
+.names{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.names div{background:var(--paper);padding:20px;display:grid;gap:6px;align-content:start}
+.names b{font-family:var(--display);font-size:46px;line-height:.9;font-weight:700;direction:ltr;text-align:right}
+.steps{display:grid;gap:0;border-top:1px solid var(--line)}
+.steps>div{display:grid;grid-template-columns:minmax(0,160px) minmax(0,1fr);gap:20px;padding-block:20px;border-bottom:1px solid var(--line)}
+.steps h3{font-size:19px;font-weight:600;margin-bottom:4px}
+.steps .now-step .label{color:var(--dot)}
+@media (max-width:600px){.steps>div{grid-template-columns:minmax(0,1fr);gap:4px}}
+.qs{display:grid;gap:10px;max-width:70ch;margin:0;padding-inline-start:1.2em}
+.src{font-size:13px;color:var(--muted);display:grid;gap:4px}
+.src a{color:inherit}
+footer{padding-block:40px 60px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+
+<div class="wrap" dir="rtl" lang="he">
+
+<header class="top">
+  <span class="mark">ELAD AMSALEM STUDIO</span>
+  <span class="label">פרויקט 01 · חזון וטיזרים · אוקטובר 2026</span>
+</header>
+
+<div class="hero">
+  <div>
+    <span class="label"><span class="dot"></span>&nbsp; עכשיו מוצג</span>
+    <h1>Studio<small>הבית הדיגיטלי של אמנים חזותיים. שם עבודה.</small></h1>
+    <p class="thesis">כמו שלכל מוזיקאי יש פרופיל עם אלבומים, סינגלים ו"מה מתנגן עכשיו", לכל אמן יהיה פרופיל עם תערוכות, עבודות, ותערוכה אחת שתמיד פתוחה.</p>
+  </div>
+  <div class="room" id="room" aria-label="חדר תערוכה תלת־ממדי. גררו כדי להסתכל מסביב, לחצו על עבודה כדי להתקרב">
+    <span class="badge"><span class="dot"></span>&nbsp;LIVE · טקס / RITUAL</span>
+    <div class="spaces" role="group" aria-label="סוג חלל">
+      <button type="button" data-space="cube" aria-pressed="true">קובייה לבנה</button>
+      <button type="button" data-space="concrete" aria-pressed="false">בטון</button>
+      <button type="button" data-space="night" aria-pressed="false">לילה</button>
+    </div>
+    <div class="nav">
+      <button type="button" id="prev" aria-label="העבודה הקודמת">→</button>
+      <button type="button" id="next" aria-label="העבודה הבאה">←</button>
+    </div>
+    <div class="walllabel" id="wl"><b>אלעד אמסלם</b><span>טקס — תערוכה דיגיטלית</span><div class="m">גררו להסתכל · לחצו על עבודה</div></div>
+  </div>
+</div>
+
+<!-- VISION -->
+<section id="vision">
+  <div class="sec-head">
+    <span class="label">01 · החזון</span>
+    <div style="display:grid;gap:18px">
+      <h2>Spotify, לאמנות</h2>
+      <p class="lede">פלטפורמה ואפליקציה לכל מי שעושה אמנות חזותית: ציור, צילום, פיסול, קרמיקה, הדפס, וידאו ומיצב. האמן מקבל בית שנראה כמו תערוכה ולא כמו פיד. הקהל מקבל דרך לעקוב אחרי אמנים, לראות מה הם מציגים עכשיו, ולמצוא את התערוכות שלהם בעיר שבה הוא נמצא.</p>
+    </div>
+  </div>
+  <p class="manifest">אמנות לא נועדה לגלילה. היא נועדה ל<em>חלל</em>. לכן כל פרופיל ב־Studio מחזיק תמיד תערוכה דיגיטלית חיה, של עבודות שקיימות באמת בעולם, תלויות בחלל שהאמן בחר.</p>
+  <div class="principles">
+    <div><span class="label">עיקרון א</span><h3>תמיד מוצג</h3><p>לכל אמן יש בכל רגע תערוכה אחת פתוחה. היא מתחלפת כשהאמן רוצה, והקודמות נשמרות בארכיון כמו אלבומים.</p></div>
+    <div><span class="label">עיקרון ב</span><h3>רק עבודות אמיתיות</h3><p>מה שמוצג בחלל הדיגיטלי חייב להיות עבודה שקיימת פיזית: מידות, טכניקה, שנה ומיקום. זה מה שמבדיל את Studio מגלריית NFT או מפיד של תמונות.</p></div>
+    <div><span class="label">עיקרון ג</span><h3>הדיגיטלי מוביל לפיזי</h3><p>עוקבים מקבלים התראה על פתיחות, ובכל עיר רואים אילו אמנים מציגים בה. נוסעים לפריז? פותחים את המפה ורואים מה פתוח.</p></div>
+  </div>
+</section>
+
+<!-- MAPPING -->
+<section id="map">
+  <div class="sec-head">
+    <span class="label">02 · המבנה</span>
+    <div style="display:grid;gap:18px">
+      <h2>מה מקביל למה</h2>
+      <p class="lede">המודל של Spotify עובד כי כל אחד מבין אותו מיד. כאן כל רכיב מקבל את המקבילה שלו בעולם האמנות.</p>
+    </div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>ב־Spotify</th><th>ב־Studio</th><th>מה זה אומר בפועל</th></tr></thead>
+    <tbody>
+      <tr><td class="sp">Artist profile</td><td class="st">פרופיל אמן</td><td>תמונה, ביו קצר, הצהרת אמן, קורות חיים, עיר, דיסציפלינות.</td></tr>
+      <tr><td class="sp">Now playing</td><td class="st">עכשיו מוצג</td><td>התערוכה הדיגיטלית החיה. נכנסים אליה ישר מהפרופיל, בחלל תלת־ממדי שהאמן בחר.</td></tr>
+      <tr><td class="sp">Album</td><td class="st">תערוכה</td><td>גוף עבודות עם שם, טקסט אוצרותי, חלל, תאריכים, ואם הייתה פיזית, גם המקום.</td></tr>
+      <tr><td class="sp">Single / Track</td><td class="st">עבודה</td><td>עבודה בודדת עם תווית קיר: כותרת, שנה, טכניקה, מידות, סטטוס (זמינה / נמכרה / באוסף).</td></tr>
+      <tr><td class="sp">Discography</td><td class="st">ארכיון לפי שנים</td><td>כל העבודות והתערוכות, מסודרות כמו פורטפוליו של אתר אמן.</td></tr>
+      <tr><td class="sp">Concerts / On tour</td><td class="st">תערוכות פיזיות</td><td>פתיחות ותערוכות בעולם האמיתי, על מפה, עם התראה לעוקבים.</td></tr>
+      <tr><td class="sp">Editorial playlist</td><td class="st">תערוכה אוצרותית / מגזין</td><td>Studio עצמה אוצרת תערוכות קבוצתיות דיגיטליות, כמו גיליון של מגזין.</td></tr>
+      <tr><td class="sp">Spotify for Artists</td><td class="st">Studio לאמנים</td><td>עורך תערוכות, העלאת עבודות, סטטיסטיקות צפייה, ניהול פניות ומכירות.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- TEASERS -->
+<section id="teasers">
+  <div class="sec-head">
+    <span class="label">03 · טיזרים</span>
+    <div style="display:grid;gap:18px">
+      <h2>איך זה יכול להיראות</h2>
+      <p class="lede">חמישה מסכים ראשונים של האפליקציה. הפרופיל בנוי על העבודות והתערוכות האמיתיות שלך. אמנים ומקומות אחרים במסכים הם דוגמאות בלבד.</p>
+    </div>
+  </div>
+  <div class="phones">
+
+    <figure class="ph">
+      <div class="scr"><div class="in">
+        <div class="st"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="body">
+          <div class="cover"><img data-w="Gathering" alt=""><h3>אלעד<br>אמסלם</h3></div>
+          <div class="row" style="justify-content:space-between"><span class="mut">צייר · חוף הכרמל · ציור שמן</span></div>
+          <div class="row"><span class="pill f">עוקב</span><span class="pill">פנייה</span><span class="pill">קורות חיים</span></div>
+          <div class="k"><span class="dot"></span>&nbsp; עכשיו מוצג</div>
+          <div class="now"><img data-w="Celebration" alt=""><div><h4>טקס</h4><div class="mut">תערוכה דיגיטלית · 8 עבודות</div><div class="mut">המקור: בית האמנים, ירושלים, 2026</div></div></div>
+          <div class="k">תערוכות</div>
+          <div class="albums">
+            <div><img data-w="Together" alt=""><span>טקס · 2026</span></div>
+            <div><img data-w="Nature of man" alt=""><span>טבע האדם · 2022</span></div>
+            <div><img data-w="Main space" alt=""><span>BFA שנקר · 2019</span></div>
+          </div>
+          <div class="k">עבודות</div>
+          <div class="track"><img data-w="Gathering" alt=""><div class="t"><div>Gathering</div><div class="mut">2026 · שמן על בד · 170×140</div></div><span class="dot"></span></div>
+          <div class="track"><img data-w="Harmony" alt=""><div class="t"><div>Harmony</div><div class="mut">2021 · שמן על בד · 190×115</div></div></div>
+        </div>
+        <div class="tab"><span>בית</span><span>עיר</span><span>מגזין</span><span class="on">פרופיל</span></div>
+      </div></div>
+      <figcaption><b>פרופיל אמן</b>"עכשיו מוצג" למעלה, תערוכות כמו אלבומים, עבודות כמו רשימת שירים. נקודה אדומה מסמנת עבודה שנמכרה, כמו בגלריה.</figcaption>
+    </figure>
+
+    <figure class="ph">
+      <div class="scr"><div class="in">
+        <div class="st"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="body">
+          <h4 style="font-size:20px">ערב טוב</h4>
+          <div class="k">פתוח עכשיו אצל מי שאתה עוקב</div>
+          <div class="stories">
+            <div><img data-w="Celebration" alt="">אלעד</div>
+            <div><i></i>צלמת</div>
+            <div><i></i>קרמיקאי</div>
+            <div><i></i>פסלת</div>
+          </div>
+          <div class="k">עבודה חדשה</div>
+          <div class="big"><img data-w="Sunflower" alt=""><div class="cap"><b>Sunflower</b> · אלעד אמסלם<br><span style="opacity:.8">2026 · שמן על בד · נוספה ל"טקס"</span></div></div>
+          <div class="k">פתיחות השבוע לידך</div>
+          <div class="track"><i style="width:34px;height:34px;background:var(--phone-card);border-radius:3px;display:block"></i><div class="t"><div>אמנית לדוגמה · תערוכת יחיד</div><div class="mut">חמישי 20:00 · תל אביב · 2.4 ק״מ</div></div></div>
+          <div class="track"><i style="width:34px;height:34px;background:var(--phone-card);border-radius:3px;display:block"></i><div class="t"><div>תערוכה קבוצתית לדוגמה</div><div class="mut">שישי 11:00 · יפו · 4.1 ק״מ</div></div></div>
+        </div>
+        <div class="tab"><span class="on">בית</span><span>עיר</span><span>מגזין</span><span>פרופיל</span></div>
+      </div></div>
+      <figcaption><b>בית</b>מה חדש אצל האמנים שאתה עוקב אחריהם: תערוכות שנפתחו, עבודות שנוספו, ופתיחות קרובות אליך.</figcaption>
+    </figure>
+
+    <figure class="ph">
+      <div class="scr"><div class="in">
+        <div class="st"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="body" style="padding-top:0">
+          <div class="view"><img data-w="Gathering" alt=""><div class="lb"><b>Gathering</b><br>2026 · Oil on canvas<br>170 × 140 cm <span class="dot"></span></div></div>
+          <div class="row" style="justify-content:space-between"><div><h4>טקס</h4><div class="mut">עבודה 1 מתוך 8</div></div><div class="row"><span class="pill">→</span><span class="pill">←</span></div></div>
+          <div class="chips"><span class="pill f">קובייה לבנה</span><span class="pill">בטון</span><span class="pill">לילה</span><span class="pill">AR בבית</span></div>
+        </div>
+        <div class="tab"><span>בית</span><span>עיר</span><span>מגזין</span><span class="on">פרופיל</span></div>
+      </div></div>
+      <figcaption><b>התערוכה הדיגיטלית</b>הליכה בחלל, תווית קיר לכל עבודה, בחירת חלל. בהמשך אפשר גם לתלות עבודה על הקיר בבית ב־AR.</figcaption>
+    </figure>
+
+    <figure class="ph">
+      <div class="scr"><div class="in">
+        <div class="st"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="body">
+          <div class="row" style="justify-content:space-between"><h4 style="font-size:20px">פריז</h4><span class="pill">12–16 בנובמבר</span></div>
+          <div class="map"><svg viewBox="0 0 300 200" aria-hidden="true">
+            <g stroke="currentColor" stroke-opacity=".12" fill="none">
+              <path d="M0 40H300M0 90H300M0 140H300M40 0V200M110 0V200M180 0V200M250 0V200"/>
+            </g>
+            <path d="M-10 70 C 50 60, 80 120, 140 110 S 230 60, 310 95" stroke="#3B6E9E" stroke-width="9" fill="none" stroke-opacity=".7"/>
+            <g fill="var(--dot)"><circle cx="70" cy="50" r="6"/><circle cx="160" cy="80" r="6"/><circle cx="205" cy="140" r="6"/><circle cx="120" cy="160" r="6"/><circle cx="250" cy="45" r="6"/></g>
+            <circle cx="160" cy="80" r="13" fill="none" stroke="var(--dot)" stroke-width="2"/>
+          </svg></div>
+          <div class="chips"><span class="pill f">הכל</span><span class="pill">ציור</span><span class="pill">צילום</span><span class="pill">קרמיקה</span><span class="pill">עוקב</span></div>
+          <div class="track"><i style="width:34px;height:34px;background:var(--phone-card);border-radius:3px;display:block"></i><div class="t"><div>צלם לדוגמה · Le Marais</div><div class="mut">פתוח עד 30.11 · 1.2 ק״מ</div></div></div>
+          <div class="track"><i style="width:34px;height:34px;background:var(--phone-card);border-radius:3px;display:block"></i><div class="t"><div>קרמיקאית לדוגמה · Belleville</div><div class="mut">פתיחה ביום ה׳ · 3.5 ק״מ</div></div></div>
+        </div>
+        <div class="tab"><span>בית</span><span class="on">עיר</span><span>מגזין</span><span>פרופיל</span></div>
+      </div></div>
+      <figcaption><b>עיר</b>בוחרים עיר ותאריכים ורואים על המפה אילו אמנים מציגים שם, עם סינון לפי סוג אמנות ולפי מי שאתה עוקב.</figcaption>
+    </figure>
+
+    <figure class="ph">
+      <div class="scr"><div class="in">
+        <div class="st"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="body">
+          <div class="k">Studio מגזין · גיליון 01</div>
+          <div class="big"><img data-w="Arising" alt="" style="height:210px"><div class="cap"><span style="font-family:var(--display);font-size:40px;line-height:.9">גוף וטקס</span><br><span style="opacity:.85">תערוכה קבוצתית דיגיטלית · 6 אמנים · 3 חדרים</span></div></div>
+          <p class="mut">איך אמנים עכשוויים משתמשים בגוף ובפעולה החוזרת כדי ליצור מקום מקודש בתוך השגרה.</p>
+          <div class="row"><span class="pill f">כניסה לתערוכה</span><span class="pill">קריאה</span></div>
+          <div class="k">משתתפים</div>
+          <div class="stories"><div><img data-w="Menora" alt="" style="border-color:var(--phone-card)">אלעד</div><div><i></i>אמן</div><div><i></i>אמנית</div><div><i></i>אמן</div></div>
+        </div>
+        <div class="tab"><span>בית</span><span>עיר</span><span class="on">מגזין</span><span>פרופיל</span></div>
+      </div></div>
+      <figcaption><b>מגזין</b>בשלב מאוחר יותר Studio מחברת בין אמנים ואוצרת תערוכות דיגיטליות קבוצתיות, שיוצאות כמו גיליונות.</figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- RESEARCH -->
+<section id="research">
+  <div class="sec-head">
+    <span class="label">04 · מחקר</span>
+    <div style="display:grid;gap:18px">
+      <h2>מה כבר קיים</h2>
+      <p class="lede">כל החלקים של הרעיון קיימים בנפרד אצל שחקנים שונים. לא מצאתי אף אחד שמחבר את כולם: פרופיל שהאמן מחזיק, תערוכה דיגיטלית שתמיד פתוחה, מעקב אחרי אמנים, וגילוי לפי עיר.</p>
+    </div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>שירות</th><th>מה הוא עושה</th><th>מה חסר לעומת Studio</th></tr></thead>
+    <tbody>
+      <tr class="near"><td><b>Artsy</b></td><td>מאגר ושוק אמנות גדול. מעקב אחרי אמנים, תערוכות של גלריות לפי עיר, מכירות ומכירות פומביות.</td><td class="gapcell">בנוי סביב גלריות ומכירה. האמן לא מנהל את הפרופיל שלו, ואין חלל תערוכה.</td></tr>
+      <tr class="near"><td><b>Artland</b></td><td>סיורים תלת־ממדיים בתערוכות של גלריות, AR, ומרקטפלייס.</td><td class="gapcell">הלקוח הוא הגלריה, תערוכה אחרי תערוכה. אין רשת של אמנים ועוקבים.</td></tr>
+      <tr><td><b>Kunstmatrix</b></td><td>כלי SaaS מברלין לבניית תערוכות תלת־ממדיות וירטואליות, כולל AR ו־CRM.</td><td class="gapcell">כלי בנייה בלבד. אין קהל, אין גילוי, אין פרופיל.</td></tr>
+      <tr><td><b>Artsteps</b></td><td>בניית גלריה תלת־ממדית בדפדפן ובנייד, חינם.</td><td class="gapcell">כלי, לא רשת. ביקורות מתארות אותו כלא מלוטש.</td></tr>
+      <tr><td><b>Vortic Collect</b></td><td>תערוכות של גלריות ב־VR ו־AR, עם סריקה תלת־ממדית של עבודות.</td><td class="gapcell">מכוון לגלריות ולאספנים, לא לאמנים ולקהל רחב.</td></tr>
+      <tr><td><b>Ocula</b></td><td>פלטפורמה ומגזין לאמנות עכשווית, רשת גלריות וייעוץ לאספנים.</td><td class="gapcell">עריכה ומגזין ברמה גבוהה, אבל ממוקד גלריות. אין חלל דיגיטלי לאמן.</td></tr>
+      <tr><td><b>ArtRabbit</b></td><td>רשימות תערוכות עכשוויות בעולם, מפות וסיורי הליכה.</td><td class="gapcell">מכסה את חלק העיר והמפה. אין פרופיל אמן או פורטפוליו.</td></tr>
+      <tr><td><b>Smartify · Bloomberg Connects</b></td><td>מדריכים דיגיטליים למוזיאונים, זיהוי יצירות מתמונה.</td><td class="gapcell">בנוי סביב מוסדות, לא סביב אמנים חיים.</td></tr>
+      <tr><td><b>Saatchi Art · Singulart</b></td><td>מרקטפלייס שבו אמנים מוכרים ישירות.</td><td class="gapcell">חנות, לא תערוכה. העבודות מוצגות כמוצרים.</td></tr>
+      <tr><td><b>Instagram · Cara · Behance</b></td><td>פיד ופורטפוליו חברתי. Cara התבלטה כרשת לאמנים בלי אמנות AI.</td><td class="gapcell">פיד שנגלל, אלגוריתמי, בלי הקשר של תערוכה ובלי מיקום פיזי.</td></tr>
+      <tr><td><b>Spotify</b> (כמודל)</td><td>פרופיל אמן, עוקבים, "Spotify for Artists", ורשימת אירועים בפרופיל.</td><td class="gapcell">התבנית שאנחנו מעתיקים: הפרופיל שייך לאמן, והקהל עוקב אחריו.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="verdict">
+    <div><span class="label">המסקנה</span><p>הקרובים ביותר הם Artsy (מעקב ותערוכות לפי עיר) ו־Artland (תערוכות תלת־ממדיות). שניהם עובדים בשביל הגלריה. הפער הוא פלטפורמה שבה <b>האמן</b> במרכז, כמו שהמוזיקאי במרכז ב־Spotify, והגלריה היא רק אחד המקומות שבהם הוא מציג.</p></div>
+    <div><span class="label">מה ללמוד מהם</span><ul>
+      <li>מ־Artsy: מבנה הנתונים של עבודה (מידות, טכניקה, סטטוס) ומעקב עם התראות.</li>
+      <li>מ־Artland ו־Kunstmatrix: תערוכה תלת־ממדית שנטענת מהר בנייד, ו־AR.</li>
+      <li>מ־ArtRabbit: מפה, תאריכי פתיחה ומסלולי הליכה.</li>
+      <li>מ־Artsteps: הביקורות מראות שעורך חלל מסובך מבריח אמנים. העורך צריך להיות פשוט מאוד.</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- NAMES -->
+<section id="names">
+  <div class="sec-head">
+    <span class="label">05 · שם</span>
+    <div style="display:grid;gap:18px">
+      <h2>רעיונות לשם</h2>
+      <p class="lede">"Studio" נשאר שם עבודה. עוד כיוונים, כולם קצרים ועובדים באנגלית ובעברית. צריך לבדוק זמינות של דומיין וסימן מסחר לפני שבוחרים.</p>
+    </div>
+  </div>
+  <div class="names">
+    <div><b>On View</b><span>המונח שמוזיאונים משתמשים בו לעבודה שמוצגת עכשיו. מתאים בדיוק לעיקרון "תמיד מוצג".</span></div>
+    <div><b>Hang</b><span>תלייה. מה שעושים לפני כל פתיחה. קצר וקל לזכור.</span></div>
+    <div><b>Vernissage</b><span>ערב הפתיחה. מכוון לחלק הפיזי והחברתי.</span></div>
+    <div><b>Salon</b><span>הסלון הפריזאי, תערוכה קבוצתית גדולה. מתאים לחלק של המגזין.</span></div>
+    <div><b>Wall</b><span>הקיר. כל אמן מקבל קיר משלו.</span></div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="sec-head">
+    <span class="label">06 · דרך</span>
+    <div style="display:grid;gap:18px">
+      <h2>איך מתחילים</h2>
+      <p class="lede">פרויקט גדול, אז בונים אותו בשכבות. כל שלב צריך לעבוד בפני עצמו לפני שממשיכים.</p>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="now-step"><span class="label">שלב 0 · עכשיו</span><div><h3>חזון, מחקר וטיזרים</h3><p>המסמך הזה. מחדדים את הרעיון, בוחרים שם, מחליטים מה בשלב 1.</p></div></div>
+    <div><span class="label">שלב 1</span><div><h3>אב־טיפוס על אמן אחד</h3><p>הפרופיל שלך כאפליקציית ווב: פרופיל, ארכיון לפי שנים, ותערוכה דיגיטלית אחת שעובדת טוב בנייד. הנתונים כבר קיימים באתר (עבודות, תערוכות, קורות חיים).</p></div></div>
+    <div><span class="label">שלב 2</span><div><h3>10–20 אמנים מוזמנים</h3><p>עורך תערוכות פשוט, כמה חללים לבחירה, הרשמה ועוקבים. אמנים מתחומים שונים כדי לבדוק צילום, פיסול וקרמיקה.</p></div></div>
+    <div><span class="label">שלב 3</span><div><h3>עיר ומפה</h3><p>תערוכות פיזיות, פתיחות, התראות לעוקבים, ומסך עיר לנוסעים.</p></div></div>
+    <div><span class="label">שלב 4</span><div><h3>מגזין, מכירות, אפליקציה</h3><p>תערוכות קבוצתיות שאנחנו אוצרים, פניות ורכישה, ואפליקציה ל־iOS ו־Android.</p></div></div>
+  </div>
+</section>
+
+<section id="questions">
+  <div class="sec-head">
+    <span class="label">07 · לחשוב</span>
+    <div style="display:grid;gap:18px"><h2>שאלות פתוחות</h2></div>
+  </div>
+  <ol class="qs">
+    <li>מי יכול להצטרף: כל מי שיוצר, או רק אמנים שעוברים אישור? זה קובע את האיכות של כל הפלטפורמה.</li>
+    <li>איך מוודאים שעבודה "קיימת בעולם"? מספיקות מידות ותמונה, או שצריך משהו נוסף?</li>
+    <li>האם למכור דרך הפלטפורמה כבר בהתחלה, או קודם רק להציג ולחבר?</li>
+    <li>ממה הפלטפורמה מתפרנסת: מנוי לאמנים, עמלה על מכירה, או שותפויות עם גלריות ופסטיבלים?</li>
+    <li>שפה ושוק ראשון: ישראל בעברית, או מההתחלה באנגלית לשוק בינלאומי?</li>
+  </ol>
+  <div class="src"><span class="label">מקורות</span>
+    <a href="https://www.kunstmatrix.com/en/info/about">Kunstmatrix — About</a>
+    <a href="https://uva.theopenscholar.com/vrc/virtual-galleries">UVA — Virtual galleries (Artsteps, Kunstmatrix)</a>
+    <a href="https://www.artweekends.com/en/contemporary-art/2026/04/06/essential-art-apps-collectors-galleries-travelers.html">Art Weekends — Essential art apps (2026)</a>
+    <a href="https://www.theartnewspaper.com/review/vortic-collect-review">The Art Newspaper — Vortic Collect review</a>
+    <a href="https://www.cbinsights.com/company/ocula">CB Insights — Ocula</a>
+    <a href="https://play.google.com/store/apps/details?id=com.artrabbit.arnativeapp&hl=en">ArtRabbit — Google Play</a>
+    <a href="https://mymodernmet.com/cool-art-app-smartify/">My Modern Met — Smartify</a>
+    <a href="https://apps.apple.com/us/app/connects-arts-culture/id1476456847">Bloomberg Connects — App Store</a>
+    <a href="https://artists.spotify.com/en/blog/making-the-most-of-your-artist-profile-on-spotify">Spotify for Artists — Artist profile</a>
+    <a href="https://techcrunch.com/?p=2046958">TechCrunch — Spotify adds virtual event listings</a>
+    <span>תיאורי Artsy, Saatchi Art, Singulart, Instagram, Cara ו־Behance מבוססים על ידע כללי ולא נבדקו לעומק בסבב הזה.</span>
+  </div>
+</section>
+
+<footer>Elad Amsalem Studio · Studio (שם עבודה) · טיוטה ראשונה לדיון</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/*WORKS*/
+const byTitle = Object.fromEntries(WORKS.map(w => [w.t, w]));
+document.querySelectorAll('img[data-w]').forEach(img => { const w = byTitle[img.dataset.w]; if (w) img.src = w.src; });
+
+(function () {
+  const host = document.getElementById('room');
+  if (!window.THREE) { host.style.background = 'var(--room-bg)'; return; }
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  host.prepend(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 100);
+
+  // Room: 14m × 10m, 4.2m ceiling
+  const W = 14, D = 10, H = 4.2;
+  const wallMat = new THREE.MeshStandardMaterial({ roughness: 0.95 });
+  const floorMat = new THREE.MeshStandardMaterial({ roughness: 0.6 });
+  const ceilMat = new THREE.MeshStandardMaterial({ roughness: 1 });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), floorMat);
+  floor.rotation.x = -Math.PI / 2; scene.add(floor);
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, D), ceilMat);
+  ceil.rotation.x = Math.PI / 2; ceil.position.y = H; scene.add(ceil);
+  const walls = [
+    [W, 0, H / 2, -D / 2, 0], [W, 0, H / 2, D / 2, Math.PI],
+    [D, -W / 2, H / 2, 0, Math.PI / 2], [D, W / 2, H / 2, 0, -Math.PI / 2]
+  ];
+  walls.forEach(([len, x, y, z, ry]) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(len, H), wallMat);
+    m.position.set(x, y, z); m.rotation.y = ry; scene.add(m);
+  });
+
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x8a7a66, 0.55); scene.add(hemi);
+  const amb = new THREE.AmbientLight(0xffffff, 0.25); scene.add(amb);
+
+  // Hang the "Ritual" works: real sizes where the label gives them (cm → m)
+  const hang = ['Gathering', 'Celebration', 'Together', 'Sunflower', 'Human nature', 'Harmony', 'Nature of man', 'In nature'];
+  const slots = [
+    [-3.2, -D / 2, 0], [0.4, -D / 2, 0], [3.8, -D / 2, 0],
+    [W / 2, -1.6, -Math.PI / 2], [W / 2, 2.2, -Math.PI / 2],
+    [2.2, D / 2, Math.PI], [-2.6, D / 2, Math.PI],
+    [-W / 2, 0, Math.PI / 2]
+  ];
+  const loader = new THREE.TextureLoader();
+  const pieces = [];
+  const spots = [];
+  hang.forEach((t, i) => {
+    const w = byTitle[t]; if (!w) return;
+    const m = /(\d+)\s*[x×]\s*(\d+)/.exec(w.s || '');
+    let hgt = m ? Math.max(+m[1], +m[2]) / 100 : 1.2;
+    hgt = Math.min(Math.max(hgt, 0.7), 1.9);
+    const wid = hgt * w.w / w.h;
+    const tex = loader.load(w.src); tex.encoding = THREE.sRGBEncoding;
+    const g = new THREE.Group();
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(wid + 0.04, hgt + 0.04, 0.05), new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.7 }));
+    const canvas = new THREE.Mesh(new THREE.PlaneGeometry(wid, hgt), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 }));
+    canvas.position.z = 0.03; g.add(frame, canvas);
+    const [x, z, ry] = slots[i];
+    g.position.set(x, 1.55, z); g.rotation.y = ry;
+    g.translateZ(0.03);
+    scene.add(g);
+    const sp = new THREE.SpotLight(0xfff4e6, 0.9, 9, 0.5, 0.6, 1.4);
+    const n = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), ry);
+    sp.position.copy(g.position).addScaledVector(n, 1.8).setY(H - 0.1);
+    sp.target = g; scene.add(sp); spots.push(sp);
+    canvas.userData = { i };
+    pieces.push({ w, g, mesh: canvas, n, hgt, wid });
+  });
+
+  const spaces = {
+    cube: () => ({ wall: css('--room-wall'), floor: css('--room-floor'), ceil: css('--room-wall'), light: 1 }),
+    concrete: () => ({ wall: '#8E8D89', floor: '#5E5D5A', ceil: '#6E6D6A', light: 1.15 }),
+    night: () => ({ wall: '#1B1C1F', floor: '#121212', ceil: '#0C0C0D', light: 1.6 })
+  };
+  let space = 'cube';
+  function applySpace() {
+    const s = spaces[space]();
+    wallMat.color.set(s.wall); floorMat.color.set(s.floor); ceilMat.color.set(s.ceil);
+    hemi.intensity = space === 'night' ? 0.12 : 0.85;
+    amb.intensity = space === 'night' ? 0.05 : 0.25;
+    spots.forEach(sp => sp.intensity = 0.9 * s.light);
+    scene.background = new THREE.Color(css('--room-bg') || '#000');
+  }
+  applySpace();
+  host.querySelectorAll('[data-space]').forEach(b => b.addEventListener('click', () => {
+    space = b.dataset.space;
+    host.querySelectorAll('[data-space]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    applySpace();
+  }));
+  new MutationObserver(applySpace).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySpace);
+
+  // Camera: free look from room centre, or walk up to a work
+  let yaw = 0, pitch = 0, focus = -1, idle = 0;
+  const pos = new THREE.Vector3(0, 1.6, 0), look = new THREE.Vector3(0, 1.6, -1);
+  const tPos = pos.clone(), tLook = look.clone();
+  const wl = document.getElementById('wl');
+  function setFocus(i) {
+    focus = (i + pieces.length) % pieces.length;
+    const p = pieces[focus];
+    const dist = Math.max(p.hgt, p.wid) * 1.25 + 0.9;
+    tPos.copy(p.g.position).addScaledVector(p.n, dist).setY(1.6);
+    tLook.copy(p.g.position);
+    const sold = p.w.t === 'Gathering';
+    wl.innerHTML = `<b>${p.w.t}${sold ? ' <span class="dot" title="נמכרה"></span>' : ''}</b><span>אלעד אמסלם, ${p.w.y}</span><div class="m">${p.w.m}${p.w.s ? ' · ' + p.w.s.replace('x', ' × ') : ''}</div>`;
+    idle = 0;
+  }
+  function freeLook() {
+    focus = -1; tPos.set(0, 1.6, 0);
+  }
+  document.getElementById('next').addEventListener('click', () => setFocus(focus + 1));
+  document.getElementById('prev').addEventListener('click', () => setFocus(focus < 0 ? pieces.length - 1 : focus - 1));
+
+  let drag = null, moved = 0;
+  host.addEventListener('pointerdown', e => { if (e.target !== renderer.domElement) return; drag = { x: e.clientX, y: e.clientY }; moved = 0; renderer.domElement.setPointerCapture(e.pointerId); });
+  host.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y; moved += Math.abs(dx) + Math.abs(dy);
+    drag = { x: e.clientX, y: e.clientY };
+    if (moved > 6 && focus >= 0) freeLook();
+    yaw += dx * 0.005; pitch = Math.max(-0.5, Math.min(0.5, pitch + dy * 0.003)); idle = 0;
+  });
+  const ray = new THREE.Raycaster();
+  host.addEventListener('pointerup', e => {
+    if (!drag) return; drag = null;
+    if (moved > 6) return;
+    const r = renderer.domElement.getBoundingClientRect();
+    ray.setFromCamera({ x: (e.clientX - r.left) / r.width * 2 - 1, y: -(e.clientY - r.top) / r.height * 2 + 1 }, camera);
+    const hit = ray.intersectObjects(pieces.map(p => p.mesh))[0];
+    if (hit) setFocus(hit.object.userData.i); else if (focus >= 0) freeLook();
+  });
+
+  function resize() {
+    const r = host.getBoundingClientRect();
+    renderer.setSize(r.width, r.height, false);
+    camera.aspect = r.width / r.height; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(host); resize();
+
+  let visible = true;
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(host);
+  let last = performance.now();
+  (function tick(now) {
+    requestAnimationFrame(tick);
+    const dt = Math.min((now - last) / 1000, 0.05); last = now;
+    if (!visible) return;
+    idle += dt;
+    if (focus < 0) {
+      if (!reduce && !drag && idle > 2) yaw += dt * 0.08;
+      tLook.set(pos.x - Math.sin(yaw) * Math.cos(pitch), 1.6 + Math.sin(pitch) * 1.2, pos.z - Math.cos(yaw) * Math.cos(pitch));
+    } else {
+      const d = new THREE.Vector3().subVectors(tLook, tPos);
+      yaw = Math.atan2(-d.x, -d.z); pitch = 0;
+    }
+    const k = reduce ? 1 : 1 - Math.pow(0.02, dt);
+    pos.lerp(tPos, k); look.lerp(tLook, k);
+    camera.position.copy(pos); camera.lookAt(look);
+    renderer.render(scene, camera);
+  })(last);
+})();
+</script>
