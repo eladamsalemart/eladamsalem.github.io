@@ -5,7 +5,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one artist's home, read top to bottom like a gallery wall; a single column on phones, a wider grid on desktop */
+/* Layout: one artist's home, read top to bottom like a gallery wall. Phone-first: on larger screens the app keeps a phone-width column (iPad and desktop layouts come later) */
 :root{
   --wall:#F3F2EE; --paper:#FBFBF9; --ink:#141516; --muted:#676B6F; --line:#E0DFDA; --card:#ECEBE6; --dot:#D0261D;
   --stage:#E9E8E3; --shade:rgba(10,10,11,.72);
@@ -20,6 +20,7 @@
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--wall);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+@media (min-width:600px){html{background:var(--card)}body{max-width:430px;margin-inline:auto;min-height:100vh;box-shadow:0 0 0 1px var(--line)}}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--wall)}
 a{color:inherit}
 img{display:block;max-width:100%}
@@ -58,9 +59,9 @@ main{padding-bottom:max(64px,env(safe-area-inset-bottom,0px))}
 .hero{position:relative;background:var(--card)}
 .hero img{width:100%;height:min(62vh,560px);object-fit:cover}
 .hero .ov{position:absolute;inset:auto 0 0 0;padding-block:28px 22px;background:linear-gradient(to top,var(--shade),transparent);color:#fff}
-.hero h1{font-family:var(--serif);font-size:clamp(52px,9vw,96px);line-height:.92}
+.hero h1{font-family:var(--serif);font-size:56px;line-height:.92}
 .hero .k{color:#DADAD6;margin-bottom:10px}
-.statement{font-family:var(--serif);font-size:clamp(24px,3.4vw,34px);line-height:1.2;max-width:30ch;padding-block:32px 8px}
+.statement{font-family:var(--serif);font-size:26px;line-height:1.2;max-width:30ch;padding-block:32px 8px}
 .onview{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;text-decoration:none}
 .onview img{width:120px;height:120px;object-fit:cover;border-radius:10px}
 .onview h3{font-family:var(--serif);font-size:30px;line-height:1}
@@ -88,14 +89,12 @@ main{padding-bottom:max(64px,env(safe-area-inset-bottom,0px))}
 .grid .im img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,.16))}
 .grid .c{font-size:13px;line-height:1.35}
 .grid .c .m{color:var(--muted)}
-@media (min-width:760px){.grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}}
 
 /* work */
 .stage{background:var(--stage);display:grid;place-items:center;padding:clamp(24px,6vw,64px) 16px;min-height:50vh}
 .stage button{border:0;padding:0;background:none;cursor:zoom-in}
 .stage img{max-height:70vh;width:auto;box-shadow:0 14px 30px rgba(0,0,0,.18)}
-.work{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;padding-block:28px}
-@media (max-width:760px){.work{grid-template-columns:minmax(0,1fr)}}
+.work{display:grid;gap:24px;padding-block:24px}
 .label{background:var(--paper);border:1px solid var(--line);padding:18px 20px;font-size:15px;line-height:1.5;max-width:420px;display:grid;gap:2px}
 .label b{font-size:20px;font-weight:600}
 .label .s{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:6px}
@@ -108,14 +107,13 @@ main{padding-bottom:max(64px,env(safe-area-inset-bottom,0px))}
 /* exhibition, about */
 .ex-hero img{width:100%;height:min(56vh,520px);object-fit:cover}
 .ex-head{display:grid;gap:10px;padding-block:28px 6px}
-.ex-head h1{font-family:var(--serif);font-size:clamp(48px,8vw,84px);line-height:.95}
+.ex-head h1{font-family:var(--serif);font-size:52px;line-height:.95}
 .ex-head .m{color:var(--muted)}
 .prose{max-width:66ch;display:grid;gap:14px;font-size:17px;line-height:1.65}
-.views{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.views{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .views button{border:0;padding:0;background:none;cursor:zoom-in}
 .views img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px}
-.about{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:36px;padding-block:32px}
-@media (max-width:760px){.about{grid-template-columns:minmax(0,1fr)}}
+.about{display:grid;gap:32px;padding-block:28px}
 .about img{width:100%;border-radius:4px}
 .cv{display:grid;gap:22px}
 .cv h3{font-size:14px;font-weight:600;margin-bottom:6px}
