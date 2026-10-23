@@ -20,17 +20,26 @@ def data_uri(path):
 if __name__ == '__main__':
     data = {n: json.load(open(f'content/{n}.json', encoding='utf-8')) for n in ['settings', 'works', 'exhibitions', 'objects', 'cv']}
     data['studio'] = json.load(open('studio/app/data/studio.json', encoding='utf-8'))
+    data['spaces'] = {e['space']: json.load(open(f"studio/app/data/spaces/{e['space']}.json", encoding='utf-8'))
+                      for e in data['studio']['exhibitions'].values() if e.get('space')}
     paths = {data['settings']['hero_image'], data['settings']['about_portrait']}
     paths |= {w['image'] for w in data['works']}
     for group in ('exhibitions', 'objects'):
         for item in data[group]:
             paths |= set(item.get('images', []))
+    for sp in data['spaces'].values():
+        paths |= {v['photo'] for v in sp.get('views', [])}
     data['media'] = {p: data_uri(p) for p in sorted(paths) if p}
+    for sp in data['spaces'].values():
+        for key in ('floor', 'baseboard'):
+            f = sp['room'][key]
+            data['media'][f] = 'data:image/jpeg;base64,' + base64.b64encode(open('studio/app/' + f, 'rb').read()).decode()
 
     page = open('studio/app/index.html', encoding='utf-8').read()
     head = re.search(r'<!-- app:head -->(.*?)<!-- app:head-end -->', page, re.S).group(1)
     body = re.search(r'<!-- app:body -->(.*?)<!-- app:body-end -->', page, re.S).group(1)
-    script = open('studio/app/app.js', encoding='utf-8').read()
+    space = open('studio/app/space/reconstruct.js', encoding='utf-8').read().replace('export async function openSpace', 'async function openSpace')
+    script = space + '\nwindow.__openSpace = openSpace;\n' + open('studio/app/app.js', encoding='utf-8').read()
     out = (head + body
            + '<script>window.STUDIO_DATA=' + json.dumps(data, ensure_ascii=False).replace('</', '<\\/') + ';</script>\n'
            + '<script type="module">\n' + script + '\n</script>\n')

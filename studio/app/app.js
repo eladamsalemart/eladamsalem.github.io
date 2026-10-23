@@ -9,7 +9,9 @@ async function loadData() {
   const get = url => fetch(url).then(r => r.json());
   const names = ['settings', 'works', 'exhibitions', 'objects', 'cv'];
   const [settings, works, exhibitions, objects, cv, studio] = await Promise.all([...names.map(n => get(`/content/${n}.json`)), get('data/studio.json')]);
-  return { settings, works, exhibitions, objects, cv, studio };
+  const spaces = {};
+  for (const e of Object.values(studio.exhibitions)) if (e.space) spaces[e.space] = await get(`data/spaces/${e.space}.json`);
+  return { settings, works, exhibitions, objects, cv, studio, spaces };
 }
 
 // --- model -----------------------------------------------------------------
@@ -56,6 +58,8 @@ function buildModel(d) {
       dates: hasDates ? lines[0] : '', text: (hasDates ? lines.slice(1) : lines).filter(Boolean), images: e.images || [],
       city: extra.city || '', country: extra.country || '', confirmed: !!extra.confirmed, artist,
       works: (extra.works || []).map(t => byTitle.get(t.toLowerCase().trim())).filter(Boolean),
+      maybe: (extra.maybe || []).map(t => byTitle.get(t.toLowerCase().trim())).filter(Boolean),
+      space: extra.space ? (d.spaces || {})[extra.space] : null,
     };
   }).sort((a, b) => (+b.year || 0) - (+a.year || 0));
   const objects = d.objects.map(o => ({
@@ -149,10 +153,12 @@ function exhibition(slug) {
       <h1>${esc(e.title)}</h1>
       <a class="by" href="#/artist/${e.artist.slug}">${im(e.artist.portrait, '')}${esc(e.artist.name)}</a>
       <div class="m">${esc([e.dates, e.venue].filter(Boolean).join(' · '))}</div>
+      ${e.space ? `<div class="btns"><a class="btn f" href="#/exhibition/${e.slug}/space">Enter the space</a></div><p class="m">${esc(e.space.source)}: a walkable 3D room, with every work at its recorded size.</p>` : ''}
     </div>
     ${e.works.length ? `<section class="sec"><div class="sec-h"><h2>Works</h2><span class="more">${e.works.length} works</span></div>
-      ${e.confirmed ? '' : '<p class="note">Draft list, grouped by year. Waiting for the artist to confirm which works were in the show.</p>'}
-      <div class="tracks">${e.works.map((w, i) => `<a class="track" href="#/work/${w.slug}"><span class="n">${i + 1}</span>${im(w.image, '')}<div class="t"><div><b>${esc(w.title)}</b></div><div class="m">${esc([w.medium, w.size].filter(Boolean).join(' · '))}</div></div>${w.sold ? '<span class="dot" title="Sold" aria-label="Sold"></span>' : '<span></span>'}</a>`).join('')}</div></section>` : ''}
+      ${e.confirmed ? '' : `<p class="note">${e.space ? 'Identified from the installation photos, in walking order. Waiting for the artist to confirm.' : 'Draft list, grouped by year. Waiting for the artist to confirm which works were in the show.'}</p>`}
+      <div class="tracks">${e.works.map((w, i) => `<a class="track" href="#/work/${w.slug}"><span class="n">${i + 1}</span>${im(w.image, '')}<div class="t"><div><b>${esc(w.title)}</b></div><div class="m">${esc([w.medium, w.size].filter(Boolean).join(' · '))}</div></div>${w.sold ? '<span class="dot" title="Sold" aria-label="Sold"></span>' : '<span></span>'}</a>`).join('')}</div>
+      ${e.maybe.length ? `<p class="note">Possibly also in the show, not visible in the photos: ${e.maybe.map(w => `<a href="#/work/${w.slug}">${esc(w.title)}</a>`).join(', ')}.</p>` : ''}</section>` : ''}
     <section class="sec"><div class="sec-h"><h2>About the exhibition</h2></div><div class="prose">${e.text.map(p => `<p>${esc(p)}</p>`).join('')}</div></section>
     ${e.images.length ? `<section class="sec"><div class="sec-h"><h2>Installation views</h2></div>
       <div class="views">${e.images.map((p, i) => `<button type="button" data-zoom="${esc(src(p))}" aria-label="Installation view ${i + 1}">${im(p, `Installation view ${i + 1} of ${e.title}`)}</button>`).join('')}</div></section>` : ''}
@@ -276,6 +282,7 @@ const routes = [
   [/^#\/works\/([^/]+)$/, m => archive(decodeURIComponent(m[1]))],
   [/^#\/work\/([^/]+)$/, m => work(m[1])],
   [/^#\/exhibition\/([^/]+)$/, m => exhibition(m[1])],
+  [/^#\/exhibition\/([^/]+)\/space$/, m => exhibition(m[1])],
   [/^#\/object\/([^/]+)$/, m => object(m[1])],
   [/^#\/about$/, () => about()],
 ];
@@ -290,9 +297,25 @@ function render() {
   const tabs = document.querySelector('.tabs');
   tabs.hidden = false; document.body.classList.add('has-tabs');
   tabs.querySelectorAll('a').forEach(a => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }
   app.innerHTML = html;
   window.scrollTo(0, 0);
   wire();
+  const sm = hash.match(/^#\/exhibition\/([^/]+)\/space$/);
+  if (sm) enterSpace(sm[1]);
+}
+
+// the 3D room opens over the exhibition page; leaving it returns to the page
+let openSpaceView = null;
+async function enterSpace(slug) {
+  const e = M.exhibitions.find(x => x.slug === slug);
+  if (!e || !e.space) return;
+  const openSpace = window.__openSpace || (await import('./space/reconstruct.js')).openSpace;
+  openSpaceView = await openSpace({
+    spec: e.space, works: M.works, src,
+    onClose: () => { openSpaceView = null; location.hash = `#/exhibition/${slug}`; },
+    onOpenWork: w => { location.hash = `#/work/${w.slug}`; },
+  });
 }
 
 function wire() {
