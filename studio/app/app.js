@@ -1,19 +1,21 @@
-// Studio prototype: one artist's home, built on the site's own content files.
-// Data comes from /content/*.json on the live site, or from window.STUDIO_DATA in a baked preview.
+// Studio prototype. Home → artist → exhibition (an album of works) → work, plus Search and Places.
+// Content comes from the site's own /content/*.json plus studio/app/data/studio.json (Studio-only data),
+// or from window.STUDIO_DATA in a baked preview.
 
 const app = document.getElementById('app');
 
 async function loadData() {
   if (window.STUDIO_DATA) return window.STUDIO_DATA;
-  const get = name => fetch(`/content/${name}.json`).then(r => r.json());
-  const [settings, works, exhibitions, objects, cv] = await Promise.all(['settings', 'works', 'exhibitions', 'objects', 'cv'].map(get));
-  return { settings, works, exhibitions, objects, cv };
+  const get = url => fetch(url).then(r => r.json());
+  const names = ['settings', 'works', 'exhibitions', 'objects', 'cv'];
+  const [settings, works, exhibitions, objects, cv, studio] = await Promise.all([...names.map(n => get(`/content/${n}.json`)), get('data/studio.json')]);
+  return { settings, works, exhibitions, objects, cv, studio };
 }
 
 // --- model -----------------------------------------------------------------
 const slugify = s => s.toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '-') || 'untitled';
 const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-const curly = s => String(s || '').replace(/^"/, '\u201C').replace(/"$/, '\u201D');
+const curly = s => String(s || '').replace(/^"/, '“').replace(/"$/, '”');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 // Every "a × b" pair recorded for a work: the description's line first (it came with the original records), then the size field.
@@ -25,61 +27,105 @@ function sizePairs(w) {
 function buildModel(d) {
   const seen = new Set();
   const uniq = base => { let s = base, i = 2; while (seen.has(s)) s = `${base}-${i++}`; seen.add(s); return s; };
+  const s = d.settings, studio = d.studio || { artists: [], exhibitions: {} };
+  const meta = studio.artists[0] || {};
+  const artist = {
+    slug: meta.slug || 'elad-amsalem', name: (s.hero_title || 'Elad Amsalem').replace(/\n/g, ' '),
+    label: s.hero_label, statement: s.hero_statement, hero: s.hero_image, portrait: s.about_portrait,
+    discipline: meta.discipline || '', city: meta.city || '', country: meta.country || '',
+  };
+  seen.add(artist.slug);
   const works = d.works.map((w, i) => {
     const firstLine = (w.description || '').split('\n')[0].replace(/\s+/g, ' ').trim();
     const pairs = sizePairs(w);
     return {
       i, slug: uniq(slugify(`${w.title}-${w.year}`)), title: (w.title || 'Untitled').trim(), year: String(w.year || ''),
       medium: cap(firstLine) || w.tech || '', pairs, size: pairs.length ? `${pairs[0][0]} × ${pairs[0][1]} cm` : '',
-      sold: w.available === false, image: w.image,
+      sold: w.available === false, image: w.image, artist,
     };
   });
   // newest first, keeping the editor's order inside a year
   works.sort((a, b) => (+b.year || 0) - (+a.year || 0) || a.i - b.i);
+  const byTitle = new Map(works.map(w => [w.title.toLowerCase(), w]));
   const exhibitions = d.exhibitions.map(e => {
-    const lines = (e.description || '').split('\n').map(s => s.trim());
+    const lines = (e.description || '').split('\n').map(x => x.trim());
     const hasDates = /\d{4}/.test(lines[0] || '') && lines[0].length < 40;
+    const extra = studio.exhibitions[e.title.trim()] || {};
     return {
       slug: uniq(slugify(e.title)), title: e.title.trim(), year: e.year, venue: (e.venue || '').trim(),
       dates: hasDates ? lines[0] : '', text: (hasDates ? lines.slice(1) : lines).filter(Boolean), images: e.images || [],
+      city: extra.city || '', country: extra.country || '', confirmed: !!extra.confirmed, artist,
+      works: (extra.works || []).map(t => byTitle.get(t.toLowerCase().trim())).filter(Boolean),
     };
   }).sort((a, b) => (+b.year || 0) - (+a.year || 0));
   const objects = d.objects.map(o => ({
     slug: uniq(slugify(o.title)), title: o.title.trim(), meta: o.meta || '', images: o.images || [],
-    text: (o.description || '').split('\n').map(s => s.replace(/​/g, '').trim()).filter(Boolean),
+    text: (o.description || '').split('\n').map(x => x.replace(/​/g, '').trim()).filter(Boolean),
   }));
-  return { s: d.settings, works, exhibitions, objects, cv: d.cv, media: d.media || {} };
+  const cities = [];
+  for (const e of exhibitions) if (e.city && !cities.some(c => c.name === e.city)) cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
+  if (artist.city && !cities.some(c => c.name === artist.city)) cities.push({ name: artist.city, slug: slugify(artist.city), country: artist.country });
+  return { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {} };
 }
 
-// --- views -----------------------------------------------------------------
+// --- helpers ---------------------------------------------------------------
 let M;
 const src = p => M.media[p] || p;
-const im = (p, alt, attrs = '') => `<img src="${esc(src(p))}" alt="${esc(alt)}" loading="lazy" ${attrs}>`;
+const im = (p, alt, attrs = '') => p ? `<img src="${esc(src(p))}" alt="${esc(alt)}" loading="lazy" ${attrs}>` : '';
 const metaLine = w => [w.year, w.medium, w.size].filter(Boolean).join(' · ');
+const soldDot = w => w.sold ? ' <span class="dot" title="Sold" aria-label="Sold"></span>' : '';
+const exOf = w => M.exhibitions.find(e => e.works.includes(w));
+const place = e => [e.city, e.dates || e.year].filter(Boolean).join(' · ');
 
 function workRow(w) {
   return `<a class="row" href="#/work/${w.slug}">${im(w.image, '')}<div class="t"><div><b>${esc(w.title)}</b></div><div class="m">${esc(metaLine(w))}</div></div>${w.sold ? '<span class="dot" title="Sold" aria-label="Sold"></span>' : '<span></span>'}</a>`;
 }
+const cover = e => `<a href="#/exhibition/${e.slug}">${im(e.images[0], '')}<div><b>${esc(e.title)}</b><div class="m">${esc([e.year, e.artist.name].join(' · '))}</div></div></a>`;
+const workCover = w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image, w.title)}</div><div><b>${esc(w.title)}</b>${soldDot(w)}<div class="m">${esc(w.artist.name)} · ${esc(w.year)}</div></div></a>`;
+const person = a => `<a class="person" href="#/artist/${a.slug}">${im(a.portrait, a.name)}<div><b>${esc(a.name)}</b><div class="m">${esc(a.discipline)}</div></div></a>`;
 
-function profile() {
-  const { s, works, exhibitions, objects } = M;
-  const name = (s.hero_title || 'Elad Amsalem').replace(/\n/g, ' ');
-  const live = exhibitions[0];
+// --- views -----------------------------------------------------------------
+function home() {
+  const live = M.exhibitions[0];
+  return `<div class="wrap gut">
+    <div class="home-h"><h1>Studio</h1><span class="tag">Prototype</span></div>
+    ${live ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
+      <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"')}
+        <div class="ov"><div class="k">${esc(live.artist.name)}</div><h2>${esc(live.title)}</h2><div class="m">${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
+    <section class="shelf"><h2>Artists</h2><div class="people">${M.artists.map(person).join('')}
+      <span class="person" aria-label="More artists are coming"><span class="ring" aria-hidden="true">+</span><div class="m">More artists<br>coming soon</div></span></div></section>
+    <section class="shelf"><h2>Exhibitions</h2><div class="covers">${M.exhibitions.map(cover).join('')}</div></section>
+    <section class="shelf"><h2>Latest works</h2><div class="covers works">${M.works.slice(0, 10).map(workCover).join('')}</div></section>
+    <section class="shelf"><h2>By location</h2><div class="places">${M.cities.map(cityCard).join('')}</div></section>
+  </div>`;
+}
+
+function cityCard(c) {
+  const shows = M.exhibitions.filter(e => e.city === c.name).length;
+  const artists = M.artists.filter(a => a.city === c.name).length;
+  const bits = [shows && `${shows} ${shows === 1 ? 'exhibition' : 'exhibitions'}`, artists && `${artists} ${artists === 1 ? 'artist' : 'artists'}`].filter(Boolean);
+  return `<a class="place" href="#/place/${c.slug}"><b>${esc(c.name)}</b><span class="m">${esc(bits.join(' · ') || c.country)}</span></a>`;
+}
+
+function artistPage(slug) {
+  const a = M.artists.find(x => x.slug === slug);
+  if (!a) return notFound();
+  const live = M.exhibitions[0];
   return `
-  <section class="hero">${im(s.hero_image, 'Installation view of Ritual, Jerusalem Artists’ House', 'loading="eager"')}
-    <div class="ov gut"><div class="wrap"><div class="k">${esc(s.hero_label)}</div><h1>${esc(name)}</h1></div></div></section>
+  <section class="hero">${im(a.hero, `Installation view, ${live ? live.title : ''}`, 'loading="eager"')}
+    <div class="ov gut"><div class="wrap"><div class="k">${esc(a.label)}</div><h1>${esc(a.name)}</h1></div></div></section>
   <div class="wrap gut">
-    <p class="statement">${esc(curly(s.hero_statement))}</p>
-    <div class="btns" style="padding-block:18px 32px"><a class="btn g" href="#/about">About & CV</a><a class="btn g" href="#/works">All works</a></div>
+    <p class="statement">${esc(curly(a.statement))}</p>
+    <div class="btns" style="padding-block:18px 32px"><a class="btn g" href="#/about">About & CV</a></div>
     ${live ? `<section class="sec"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
       <a class="onview" href="#/exhibition/${live.slug}">${im(live.images[0], '')}<div><h3>${esc(live.title)}</h3>
-      <div class="m">${esc([live.dates || live.year, live.venue].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
-    <section class="sec"><div class="sec-h"><h2>Exhibitions</h2></div>
-      <div class="rail">${exhibitions.map(e => `<a href="#/exhibition/${e.slug}">${im(e.images[0], '')}<div><b>${esc(e.title)}</b><div class="m">${esc(e.year)}</div></div></a>`).join('')}</div></section>
-    <section class="sec"><div class="sec-h"><h2>Works</h2><a class="more" href="#/works">All ${works.length} works →</a></div>
-      <div class="list">${works.slice(0, 8).map(workRow).join('')}</div></section>
-    ${objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
-      <div class="rail">${objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
+      <div class="m">${esc(place(live))}</div></div></a></section>` : ''}
+    <section class="sec"><div class="sec-h"><h2>Works</h2>
+      <div class="seg" role="group" aria-label="Show works"><button type="button" data-seg="latest" aria-pressed="true">Latest</button><button type="button" data-seg="by-exhibition" aria-pressed="false">By exhibition</button></div></div>
+      <div data-pane="latest"><div class="list">${M.works.slice(0, 8).map(workRow).join('')}</div><a class="more" href="#/works" style="display:block;padding-top:14px">All ${M.works.length} works →</a></div>
+      <div data-pane="by-exhibition" hidden><div class="covers">${M.exhibitions.map(cover).join('')}</div></div></section>
+    ${M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
+      <div class="covers">${M.objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
   </div>`;
 }
 
@@ -87,24 +133,44 @@ function archive(year) {
   const years = [...new Set(M.works.map(w => w.year))];
   const list = year ? M.works.filter(w => w.year === year) : M.works;
   return `<div class="wrap gut">
-    <div class="ex-head"><div class="k">Archive</div><h1>Works</h1><div class="m">${list.length} ${list.length === 1 ? 'work' : 'works'}${year ? ` from ${esc(year)}` : ''}</div></div>
+    <div class="ex-head"><div class="k">${esc(M.artist.name)} · Archive</div><h1>Works</h1><div class="m">${list.length} ${list.length === 1 ? 'work' : 'works'}${year ? ` from ${esc(year)}` : ''}</div></div>
     <div class="chips" style="padding-block:18px 28px"><a class="chip" href="#/works" ${!year ? 'aria-current="page"' : ''}>All</a>${years.map(y => `<a class="chip" href="#/works/${y}" ${y === year ? 'aria-current="page"' : ''}>${esc(y)}</a>`).join('')}</div>
-    <div class="grid">${list.map(w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image, w.title)}</div><div class="c"><b>${esc(w.title)}</b>${w.sold ? ' <span class="dot" aria-label="Sold"></span>' : ''}<div class="m">${esc(metaLine(w))}</div></div></a>`).join('')}</div>
+    <div class="grid">${list.map(w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image, w.title)}</div><div class="c"><b>${esc(w.title)}</b>${soldDot(w)}<div class="m">${esc(metaLine(w))}</div></div></a>`).join('')}</div>
+  </div>`;
+}
+
+function exhibition(slug) {
+  const e = M.exhibitions.find(x => x.slug === slug);
+  if (!e) return notFound();
+  return `<div class="wrap gut">
+    <div class="album">
+      ${im(e.images[0], `Installation view of ${e.title}`, 'class="cover" loading="eager"')}
+      <div class="k">Exhibition · ${esc(e.year)}${e.city ? ` · ${esc(e.city)}` : ''}</div>
+      <h1>${esc(e.title)}</h1>
+      <a class="by" href="#/artist/${e.artist.slug}">${im(e.artist.portrait, '')}${esc(e.artist.name)}</a>
+      <div class="m">${esc([e.dates, e.venue].filter(Boolean).join(' · '))}</div>
+    </div>
+    ${e.works.length ? `<section class="sec"><div class="sec-h"><h2>Works</h2><span class="more">${e.works.length} works</span></div>
+      ${e.confirmed ? '' : '<p class="note">Draft list, grouped by year. Waiting for the artist to confirm which works were in the show.</p>'}
+      <div class="tracks">${e.works.map((w, i) => `<a class="track" href="#/work/${w.slug}"><span class="n">${i + 1}</span>${im(w.image, '')}<div class="t"><div><b>${esc(w.title)}</b></div><div class="m">${esc([w.medium, w.size].filter(Boolean).join(' · '))}</div></div>${w.sold ? '<span class="dot" title="Sold" aria-label="Sold"></span>' : '<span></span>'}</a>`).join('')}</div></section>` : ''}
+    <section class="sec"><div class="sec-h"><h2>About the exhibition</h2></div><div class="prose">${e.text.map(p => `<p>${esc(p)}</p>`).join('')}</div></section>
+    ${e.images.length ? `<section class="sec"><div class="sec-h"><h2>Installation views</h2></div>
+      <div class="views">${e.images.map((p, i) => `<button type="button" data-zoom="${esc(src(p))}" aria-label="Installation view ${i + 1}">${im(p, `Installation view ${i + 1} of ${e.title}`)}</button>`).join('')}</div></section>` : ''}
   </div>`;
 }
 
 function work(slug) {
-  const idx = M.works.findIndex(w => w.slug === slug);
-  if (idx < 0) return notFound();
-  const w = M.works[idx], prev = M.works[idx - 1], next = M.works[idx + 1];
+  const w = M.works.find(x => x.slug === slug);
+  if (!w) return notFound();
+  const ex = exOf(w);
+  const seq = ex ? ex.works : M.works, idx = seq.indexOf(w), prev = seq[idx - 1], next = seq[idx + 1];
   return `<div class="stage"><button type="button" data-zoom="${esc(src(w.image))}" aria-label="Zoom into ${esc(w.title)}">${im(w.image, w.title, 'loading="eager"')}</button></div>
   <div class="wrap gut">
     <div class="work">
-      <div class="label"><b>${esc(w.title)}${w.sold ? ' <span class="dot" title="Sold" aria-label="Sold"></span>' : ''}</b><span>Elad Amsalem, ${esc(w.year)}</span><span>${esc(w.medium)}</span>${w.size ? `<span class="s">${esc(w.size)}</span>` : ''}${w.sold ? '<span class="s">Sold · private collection</span>' : ''}</div>
-      <div style="display:grid;gap:12px;align-content:start">
-        <div class="btns"><button type="button" class="btn f" data-zoom="${esc(src(w.image))}">Zoom</button>${w.pairs.length ? '<button type="button" class="btn g" id="scaleBtn" aria-expanded="false">At scale</button>' : ''}</div>
-        <div class="scale" id="scale" hidden></div>
-      </div>
+      <div class="label"><b>${esc(w.title)}${soldDot(w)}</b><span>${esc(w.artist.name)}, ${esc(w.year)}</span><span>${esc(w.medium)}</span>${w.size ? `<span class="s">${esc(w.size)}</span>` : ''}${w.sold ? '<span class="s">Sold · private collection</span>' : ''}</div>
+      <div class="btns"><button type="button" class="btn f" data-zoom="${esc(src(w.image))}">Zoom</button>${w.pairs.length ? '<button type="button" class="btn g" id="scaleBtn" aria-expanded="false">At scale</button>' : ''}</div>
+      <div class="scale" id="scale" hidden></div>
+      ${ex ? `<a class="onview" href="#/exhibition/${ex.slug}">${im(ex.images[0], '')}<div><div class="k">From the exhibition</div><h3>${esc(ex.title)}</h3><div class="m">${esc(place(ex))}</div></div></a>` : ''}
     </div>
     <nav class="pn" aria-label="More works">${prev ? `<a href="#/work/${prev.slug}">← ${esc(prev.title)}</a>` : '<span></span>'}${next ? `<a href="#/work/${next.slug}">${esc(next.title)} →</a>` : '<span></span>'}</nav>
   </div>`;
@@ -130,23 +196,11 @@ function drawScale(w, aspect) {
   </svg>`;
 }
 
-function exhibition(slug) {
-  const e = M.exhibitions.find(x => x.slug === slug);
-  if (!e) return notFound();
-  return `<div class="ex-hero">${e.images[0] ? im(e.images[0], `Installation view of ${e.title}`, 'loading="eager"') : ''}</div>
-  <div class="wrap gut">
-    <div class="ex-head"><div class="k">Exhibition · ${esc(e.year)}</div><h1>${esc(e.title)}</h1><div class="m">${esc([e.dates, e.venue].filter(Boolean).join(' · '))}</div></div>
-    <section class="sec" style="border-top:0"><div class="prose">${e.text.map(p => `<p>${esc(p)}</p>`).join('')}</div></section>
-    ${e.images.length ? `<section class="sec"><div class="sec-h"><h2>Installation views</h2></div>
-      <div class="views">${e.images.map((p, i) => `<button type="button" data-zoom="${esc(src(p))}" aria-label="Installation view ${i + 1}">${im(p, `Installation view ${i + 1} of ${e.title}`)}</button>`).join('')}</div></section>` : ''}
-  </div>`;
-}
-
 function object(slug) {
   const o = M.objects.find(x => x.slug === slug);
   if (!o) return notFound();
   return `<div class="wrap gut">
-    <div class="ex-head"><div class="k">Object</div><h1>${esc(o.title)}</h1><div class="m">${esc(o.meta)}</div></div>
+    <div class="ex-head"><div class="k">Object · ${esc(M.artist.name)}</div><h1>${esc(o.title)}</h1><div class="m">${esc(o.meta)}</div></div>
     <section class="sec" style="border-top:0"><div class="prose">${o.text.map(p => `<p>${esc(p)}</p>`).join('')}</div></section>
     <div class="views">${o.images.map((p, i) => `<button type="button" data-zoom="${esc(src(p))}" aria-label="View ${i + 1}">${im(p, `${o.title}, view ${i + 1}`)}</button>`).join('')}</div>
   </div>`;
@@ -156,21 +210,68 @@ function about() {
   const { s, cv } = M;
   const groups = [...new Set(cv.map(c => c.group))];
   return `<div class="wrap gut"><div class="about">
-    <div style="display:grid;gap:10px;align-content:start">${im(s.about_portrait, s.about_caption || 'Portrait')}<div class="k">${esc(s.about_caption)}</div></div>
-    <div style="display:grid;gap:30px">
-      <div class="ex-head" style="padding:0"><div class="k">About</div><h1>${esc((s.hero_title || '').replace(/\n/g, ' '))}</h1></div>
-      <div class="prose">${(s.about_text || '').split(/\n\s*\n/).map(p => `<p>${esc(p)}</p>`).join('')}<p style="color:var(--muted)">${esc(s.about_credit)}</p></div>
-      <div class="cv">${groups.map(g => `<div><h3>${esc(g)}</h3><dl>${cv.filter(c => c.group === g).map(c => `<dt>${esc(c.year)}</dt><dd>${esc(c.title)}${c.venue ? `<br><span>${esc(c.venue)}</span>` : ''}</dd>`).join('')}</dl></div>`).join('')}</div>
-      <div class="contact"><div class="k">Contact</div><span class="addr">${esc(s.email)}</span><a href="${esc(s.instagram)}" target="_blank" rel="noopener">Instagram</a></div>
-    </div>
+    <div style="display:grid;gap:10px">${im(s.about_portrait, s.about_caption || 'Portrait')}<div class="k">${esc(s.about_caption)}</div></div>
+    <div class="ex-head" style="padding:0"><div class="k">About</div><h1>${esc(M.artist.name)}</h1></div>
+    <div class="prose">${(s.about_text || '').split(/\n\s*\n/).map(p => `<p>${esc(p)}</p>`).join('')}<p style="color:var(--muted)">${esc(s.about_credit)}</p></div>
+    <div class="cv">${groups.map(g => `<div><h3>${esc(g)}</h3><dl>${cv.filter(c => c.group === g).map(c => `<dt>${esc(c.year)}</dt><dd>${esc(c.title)}${c.venue ? `<br><span>${esc(c.venue)}</span>` : ''}</dd>`).join('')}</dl></div>`).join('')}</div>
+    <div class="contact"><div class="k">Contact</div><span class="addr">${esc(s.email)}</span><a href="${esc(s.instagram)}" target="_blank" rel="noopener">Instagram</a></div>
   </div></div>`;
 }
 
-const notFound = () => `<div class="wrap gut loading"><p>This page doesn't exist. <a href="#/">Back to the profile</a></p></div>`;
+function search(q = '') {
+  return `<div class="wrap gut">
+    <div class="home-h"><h1>Search</h1></div>
+    <label for="q" class="k" style="display:block;margin-bottom:8px">Artists, exhibitions, works, places</label>
+    <input id="q" class="search" type="search" placeholder="Try “Ritual”, “oil”, “Jerusalem”" value="${esc(q)}" autocomplete="off">
+    <div id="results" class="results">${results(q)}</div>
+  </div>`;
+}
+
+function results(q) {
+  q = q.trim().toLowerCase();
+  if (!q) return `<p class="m" style="color:var(--muted)">Search across everything on Studio.</p>`;
+  const hit = (...xs) => xs.some(x => String(x || '').toLowerCase().includes(q));
+  const artists = M.artists.filter(a => hit(a.name, a.city, a.discipline));
+  const shows = M.exhibitions.filter(e => hit(e.title, e.venue, e.city, e.year));
+  const works = M.works.filter(w => hit(w.title, w.medium, w.year));
+  const places = M.cities.filter(c => hit(c.name, c.country));
+  if (!artists.length && !shows.length && !works.length && !places.length) return `<p style="color:var(--muted)">Nothing matches “${esc(q)}”.</p>`;
+  return [
+    artists.length && `<section class="shelf" style="padding:0"><h2>Artists</h2><div class="people">${artists.map(person).join('')}</div></section>`,
+    shows.length && `<section class="shelf" style="padding:0"><h2>Exhibitions</h2><div class="covers">${shows.map(cover).join('')}</div></section>`,
+    works.length && `<section class="shelf" style="padding:0"><h2>Works</h2><div class="list">${works.slice(0, 20).map(workRow).join('')}</div></section>`,
+    places.length && `<section class="shelf" style="padding:0"><h2>Places</h2><div class="places">${places.map(cityCard).join('')}</div></section>`,
+  ].filter(Boolean).join('');
+}
+
+function places() {
+  return `<div class="wrap gut">
+    <div class="home-h"><h1>Places</h1></div>
+    <p style="color:var(--muted);padding-bottom:18px">Where Studio artists live and show. Openings near you come later.</p>
+    <div class="places">${M.cities.map(cityCard).join('')}</div>
+  </div>`;
+}
+
+function placePage(slug) {
+  const c = M.cities.find(x => x.slug === slug);
+  if (!c) return notFound();
+  const shows = M.exhibitions.filter(e => e.city === c.name), artists = M.artists.filter(a => a.city === c.name);
+  return `<div class="wrap gut">
+    <div class="ex-head"><div class="k">Place · ${esc(c.country)}</div><h1>${esc(c.name)}</h1></div>
+    ${artists.length ? `<section class="shelf"><h2>Artists based here</h2><div class="people">${artists.map(person).join('')}</div></section>` : ''}
+    ${shows.length ? `<section class="shelf"><h2>Exhibitions here</h2><div class="covers">${shows.map(cover).join('')}</div></section>` : ''}
+  </div>`;
+}
+
+const notFound = () => `<div class="wrap gut loading"><p>This page doesn't exist. <a href="#/">Back to Home</a></p></div>`;
 
 // --- router ----------------------------------------------------------------
 const routes = [
-  [/^#?\/?$/, () => profile()],
+  [/^#?\/?$/, () => home(), 'home'],
+  [/^#\/search$/, () => search(), 'search'],
+  [/^#\/places$/, () => places(), 'places'],
+  [/^#\/place\/([^/]+)$/, m => placePage(m[1]), 'places'],
+  [/^#\/artist\/([^/]+)$/, m => artistPage(m[1])],
   [/^#\/works\/?$/, () => archive()],
   [/^#\/works\/([^/]+)$/, m => archive(decodeURIComponent(m[1]))],
   [/^#\/work\/([^/]+)$/, m => work(m[1])],
@@ -181,14 +282,28 @@ const routes = [
 
 function render() {
   const hash = location.hash || '#/';
-  let html = notFound();
-  for (const [re, view] of routes) { const m = hash.match(re); if (m) { html = view(m); break; } }
-  const home = /^#?\/?$/.test(hash);
-  document.querySelector('.bar .wrap').innerHTML = home
-    ? `<a class="brand" href="#/">Studio</a><span class="tag">Prototype</span>`
-    : `<a class="back" href="#/"><span aria-hidden="true">←</span> Elad Amsalem</a><a class="brand" href="#/">Studio</a>`;
+  let html = notFound(), tab = null;
+  for (const [re, view, t] of routes) { const m = hash.match(re); if (m) { html = view(m); tab = t || null; break; } }
+  const top = tab === 'home' || tab === 'search' || hash === '#/places';
+  document.querySelector('.bar').hidden = top;
+  if (!top) document.querySelector('.bar .wrap').innerHTML = `<button type="button" class="back" id="backBtn" style="border:0;background:none;cursor:pointer;padding:0"><span aria-hidden="true">←</span> Back</button><a class="brand" href="#/">Studio</a>`;
+  const tabs = document.querySelector('.tabs');
+  tabs.hidden = false; document.body.classList.add('has-tabs');
+  tabs.querySelectorAll('a').forEach(a => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   app.innerHTML = html;
   window.scrollTo(0, 0);
+  wire();
+}
+
+function wire() {
+  const back = document.getElementById('backBtn');
+  if (back) back.onclick = () => { if (history.length > 1) history.back(); else location.hash = '#/'; };
+  const q = document.getElementById('q');
+  if (q) q.oninput = () => { document.getElementById('results').innerHTML = results(q.value); };
+  document.querySelectorAll('[data-seg]').forEach(b => b.onclick = () => {
+    document.querySelectorAll('[data-seg]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    document.querySelectorAll('[data-pane]').forEach(p => { p.hidden = p.dataset.pane !== b.dataset.seg; });
+  });
   const scaleBtn = document.getElementById('scaleBtn');
   if (scaleBtn) scaleBtn.onclick = () => {
     const box = document.getElementById('scale'), w = M.works.find(x => location.hash.endsWith('/' + x.slug));

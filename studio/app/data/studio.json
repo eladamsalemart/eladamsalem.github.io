@@ -1,0 +1,20 @@
+{
+  "_note": "Studio-only data that the site's content files don't hold. Exhibition work lists are a draft grouped by year until Elad confirms them.",
+  "artists": [
+    { "slug": "elad-amsalem", "source": "site", "discipline": "Painting", "city": "Hof HaCarmel", "country": "Israel" }
+  ],
+  "exhibitions": {
+    "Ritual": {
+      "city": "Jerusalem", "country": "Israel", "confirmed": false,
+      "works": ["Gathering", "Celebration", "Ritual", "Together", "Woman", "Human nature", "Adam, Adam and a Lamp", "Woman and a gun", "Sunflower", "Flower", "Flowers 1", "Flowers 2", "Flowers 3", "Nature"]
+    },
+    "Nature of Man": {
+      "city": "Tel Aviv", "country": "Israel", "confirmed": false,
+      "works": ["Nature of man", "In nature", "Harmony", "Adam and Eve", "Adan and Hava", "Arising", "Left Right Center", "Two", "Three", "Q", "Toda", "Pura vida", "Moroccan pattern", "Emptiness", "Man shape"]
+    },
+    "BFA graduate exhibition": {
+      "city": "Tel Aviv", "country": "Israel", "confirmed": false,
+      "works": ["Main space", "Room", "Gallery", "Group solo exhibition", "Carpet TV", "2 people", "Carpet", "Carpet 2"]
+    }
+  }
+}

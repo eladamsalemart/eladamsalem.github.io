@@ -19,6 +19,7 @@ def data_uri(path):
 
 if __name__ == '__main__':
     data = {n: json.load(open(f'content/{n}.json', encoding='utf-8')) for n in ['settings', 'works', 'exhibitions', 'objects', 'cv']}
+    data['studio'] = json.load(open('studio/app/data/studio.json', encoding='utf-8'))
     paths = {data['settings']['hero_image'], data['settings']['about_portrait']}
     paths |= {w['image'] for w in data['works']}
     for group in ('exhibitions', 'objects'):
