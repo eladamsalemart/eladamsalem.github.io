@@ -104,6 +104,7 @@ function home() {
     <section class="shelf"><h2>Exhibitions</h2><div class="covers">${M.exhibitions.map(cover).join('')}</div></section>
     <section class="shelf"><h2>Latest works</h2><div class="covers works">${M.works.slice(0, 10).map(workCover).join('')}</div></section>
     <section class="shelf"><h2>By location</h2><div class="places">${M.cities.map(cityCard).join('')}</div></section>
+    <a class="for-artists" href="#/studio"><span class="k">For artists</span><b>Open your studio</b><span class="m">Your works at their real size, your shows as rooms anyone can walk through.</span><span aria-hidden="true">→</span></a>
   </div>`;
 }
 
@@ -294,6 +295,14 @@ let prevHash = null, lastHash = null;
 function render() {
   const hash = location.hash || '#/';
   if (hash !== lastHash) { prevHash = lastHash; lastHash = hash; }
+  // the artist's side: its own screens, without the visitors' bar and tabs
+  if (hash.startsWith('#/studio')) {
+    if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }
+    document.querySelector('.bar').hidden = true; document.querySelector('.tabs').hidden = true; document.body.classList.remove('has-tabs');
+    const go = (h, same) => { if (same || h === location.hash) render(); else location.hash = h; };
+    (window.__studio || import('./artist.js').then(m => m.studio)).then(f => { window.__studio = Promise.resolve(f); f(hash, app, go, M); window.scrollTo(0, 0); });
+    return;
+  }
   let html = notFound(), tab = null;
   for (const [re, view, t] of routes) { const m = hash.match(re); if (m) { html = view(m); tab = t || null; break; } }
   const top = tab === 'home' || tab === 'search' || hash === '#/places';

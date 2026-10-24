@@ -25,6 +25,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 from .works import ROOT, APP, resolve
+from . import status
 
 OUT = APP / 'data' / 'spaces'
 RENDER = APP / 'space' / 'inspect' / 'render.cjs'
@@ -342,6 +343,7 @@ def inspect(slug, keep=None, log=print):
     json.dump(spec, open(spec_path, 'w'), indent=1, ensure_ascii=False)
     sheet(tmp, shots, OUT / slug / 'inspection.jpg')
     report(slug, res, len(shots), time.time() - t0)
+    status.stage2(slug, res, len(shots))
     log(f"  {'published' if passed else 'withheld'} after inspection: {sum(ok for _, ok, _ in res)} of {len(res)} ({time.time() - t0:.0f} s, {len(shots)} shots)")
     if not keep:
         shutil.rmtree(tmp, ignore_errors=True)

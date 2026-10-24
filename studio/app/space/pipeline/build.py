@@ -14,7 +14,7 @@ import numpy as np
 from .works import load_exhibition, load_image, APP, slugify
 from .match import find_works
 from .solve import solve
-from . import room, bake, verify
+from . import status, room, bake, verify
 
 OUT = APP / 'data' / 'spaces'
 CACHE = APP / 'space' / '.cache'
@@ -187,6 +187,9 @@ def build(slug, log=print):
         floor_how = 'נמדדה: הגובה שבו הצילומים מסכימים על הרצפה'
     if fy is None:
         fy = float(np.median([room.centre(c)[1] for c in cams.values()]) - 1.45); floor_how = 'משוערת לפי גובה מצלמה רגיל'
+    # what the artist told us: where the works hang (the centre line above the floor) fixes the floor
+    if overrides.get('hang_centre'):
+        fy = float(np.median([w['c'][1] for w in works.values()]) - overrides['hang_centre']); floor_how = 'לפי גובה התלייה שהאמן מסר'; fconf = 1.0
     # measured by hand: the height of a work's centre above the floor fixes the floor exactly
     known = {t: h for t, h in overrides.get('work_centre_height', {}).items() if t in works}
     if known:
@@ -344,7 +347,7 @@ def build(slug, log=print):
                           'measured': [round(sw * sc[0] * 100, 1), round(sh * sc[1] * 100, 1)],
                           'centre': [round(float(v), 4) for v in wk['c'] - [0, fy, 0]],
                           'axes': [[round(float(v), 5) for v in R[:, k]] for k in range(3)],
-                          'depth': 0.035, 'light': lp, 'lightScale': 5,
+                          'depth': float(overrides.get('depths', {}).get(t, overrides.get('canvas_depth', 0.035))), 'light': lp, 'lightScale': 5,
                           **({'core': info['cutout']['core']} if info.get('cutout') else {}),
                           **({'imageFull': info['full']} if info.get('full') else {})})
     views = []
@@ -370,6 +373,7 @@ def build(slug, log=print):
     spec['checks'] = [{'rule': n, 'value': round(float(v), 3), 'passed': bool(ok)} for n, v, ok, _ in checks]
     log(f"  {'candidate for inspection' if passed else 'withheld'}: {sum(ok for *_, ok, _ in checks)} of {len(checks)} checks passed")
     json.dump(spec, open(OUT / f'{slug}.json', 'w'), indent=1, ensure_ascii=False)
+    status.stage1(slug, checks, ex)
     write_report(slug, ex, found, groups, g, sizes, works, spec, box_how, floor_how, ceiling_how, fconf, time.time() - t0, checks)
     log(f"  done in {time.time() - t0:.0f} s")
     return spec

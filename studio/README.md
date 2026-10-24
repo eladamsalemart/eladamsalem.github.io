@@ -66,8 +66,11 @@ python3 -m studio.app.space.pipeline --inspect ritual   # צריך node ו־play
 **מדידה ידנית (לא חובה):** אם יש מספרים ממד לייזר, כותבים אותם ב־`app/data/spaces/<תערוכה>.overrides.json`, והם גוברים על החישוב:
 
 ```
-{"height": 3.82, "work_centre_height": {"Gathering": 1.40}, "walls": {"x1": 6.10}}
+{"height": 3.82, "work_centre_height": {"Gathering": 1.40}, "walls": {"x1": 6.10},
+ "hang_centre": 1.50, "canvas_depth": 0.04, "depths": {"Gathering": 0.05}}
 ```
+
+`hang_centre` (גובה מרכז התלייה של העבודות, במטרים), `canvas_depth` (עובי קנבס רגיל) ו־`depths` (עובי לעבודה מסוימת) הם הפרטים שאמן מוסר בצד האמנים של האפליקציה, בדף התערוכה תחת "The room".
 
 שני סקריפטי הבנייה מטמיעים את העבודות מ־`content/works.json`, ובודקים את המידה של כל עבודה מול יחס הגובה־רוחב של התמונה שלה.
 
