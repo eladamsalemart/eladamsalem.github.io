@@ -22,6 +22,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   root.innerHTML = `
     <div class="sv-top"><button type="button" class="sv-x">← Exit</button>
       <div class="sv-t"><b>${spec.title}</b><span>${spec.source}</span></div>
+      <button type="button" class="sv-person" aria-pressed="false" title="A person, for scale" aria-label="Show a person for scale"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><circle cx="12" cy="4.2" r="2.4"/><path d="M8.6 8.2h6.8l1.3 6.6-1.9.4-.9-4.2V22h-2.2v-7.6h-.4V22H9.1V11l-.9 4.2-1.9-.4z"/></svg></button>
       <button type="button" class="sv-gyro" hidden aria-pressed="false" title="Look around by moving the phone">◎</button>
       <button type="button" class="sv-vr" hidden>VR</button></div>
     <div class="sv-modes seg" role="group" aria-label="Move by"><button type="button" data-mode="walk" aria-pressed="true">Walk</button><button type="button" data-mode="works" aria-pressed="false">Works</button><button type="button" data-mode="photos" aria-pressed="false">Photos</button></div>
@@ -341,6 +342,77 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       $('.sv-info').innerHTML = `<b>Photo ${idx + 1}</b><span>From the photo's own camera, as measured: compare the space with the real room.</span>`;
     }
   }
+  // --- a person, for scale: 175 cm, standing in front of the work in view (or ahead), looking at it -------
+  // A modelled figure in everyday clothes; a photograph of a real person, cut out (data/figure.png, 175 cm
+  // tall, feet at the bottom edge), takes its place when there is one.
+  function modelledFigure() {
+    // a standing figure's outline, 175 cm, drawn smooth: an architect's scale figure, quiet and exact
+    const half = [[0, 0], [6, 1], [9.6, 5], [10.4, 11], [9.2, 17.5], [6.2, 22.5], [5.6, 25], [6.5, 28.5], [13, 31], [18.6, 33.4], [21, 37.5], [21.8, 46],
+      [22.2, 55], [21.6, 63], [20.8, 72], [20.2, 81], [19.8, 86], [20.6, 92], [19.6, 98.5], [17.4, 99.5], [16.3, 95], [16.4, 88], [16.6, 80], [16.3, 70],
+      [15.8, 58], [15.2, 47], [14.8, 52], [13.8, 62], [13.6, 70], [15.6, 82], [16.6, 90], [16.2, 102], [14.6, 114], [12.6, 126], [12.2, 134], [11.6, 146],
+      [9.6, 158], [8.4, 166], [9.8, 171], [9.4, 175], [3.2, 175], [2.8, 170], [3.4, 162], [4.2, 150], [4.6, 138], [4.2, 127], [3.6, 114], [2.4, 101], [0, 94]];
+    const pts = [...half, ...half.slice(1, -1).reverse().map(([x, y]) => [-x, y])];
+    const k = 6, c = document.createElement('canvas'); c.width = 56 * k; c.height = 178 * k;
+    const x = c.getContext('2d'), P = ([px, py]) => [(px + 28) * k, (py + 1.5) * k];
+    x.beginPath();
+    for (let i = 0; i < pts.length; i++) {                      // through every point, smoothly (Catmull-Rom)
+      const p0 = P(pts[(i - 1 + pts.length) % pts.length]), p1 = P(pts[i]), p2 = P(pts[(i + 1) % pts.length]), p3 = P(pts[(i + 2) % pts.length]);
+      if (i === 0) x.moveTo(...p1);
+      x.bezierCurveTo(p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6, p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6, ...p2);
+    }
+    x.closePath();
+    const gr = x.createLinearGradient(0, 0, 0, c.height); gr.addColorStop(0, '#5d5f63'); gr.addColorStop(1, '#45474b');
+    x.fillStyle = gr; x.fill();
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = aniso;
+    const g = photoFigure(t, 178 / 175);
+    g.children[0].material.transparent = true; g.children[0].material.opacity = 0.94; g.children[0].material.alphaTest = 0.02;
+    return Promise.resolve(g);
+  }
+  function photoFigure(tex, extra = 1) {
+    const a = tex.image.width / tex.image.height, h = 1.75 * extra;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(h * a, h), new THREE.MeshBasicMaterial({ map: tex, alphaTest: 0.5, toneMapped: false, side: THREE.DoubleSide }));
+    m.position.y = h / 2; m.userData.billboard = true;
+    const g = new THREE.Group(); g.add(m); return g;
+  }
+  let person = null;
+  async function showPerson(on) {
+    if (person) { scene.remove(person); person = null; }
+    if (on) {
+      const tex = await loadTex(spec.figure || 'data/figure.png');
+      person = tex ? photoFigure(tex) : await modelledFigure();
+      const sh = new THREE.Mesh(new THREE.CircleGeometry(0.32, 32), new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false, toneMapped: false }));
+      sh.rotation.x = -Math.PI / 2; sh.position.y = 0.004; person.add(sh);
+      let at, faceTo;
+      if (focused) {                                            // beside the work in view, looking at it
+        const side = new THREE.Vector3(focused.facing.z, 0, -focused.facing.x);
+        const toCam = pos.clone().sub(focused.centre).dot(side) > 0 ? -1 : 1;   // on the side away from the visitor
+        const hw = focused.size.w / 200;
+        // beside the work if the screen has room for both, else in front of its lower corner, as people stand
+        camera.updateMatrixWorld();
+        const inView = p => { const a = p.clone().setY(0.1).project(camera), b = p.clone().setY(1.7).project(camera); return Math.abs(a.x) < 0.8 && Math.abs(b.x) < 0.8 && a.z < 1 && b.z < 1; };
+        for (const off of [hw + 0.45, hw + 0.15, hw * 0.55, hw * 0.25, 0]) {
+          at = focused.centre.clone().addScaledVector(focused.facing, 0.4).addScaledVector(side, toCam * off).setY(0);
+          if (inView(at)) break;
+        }
+        faceTo = focused.centre.clone().setY(0);
+      } else {                                                  // ahead, turned three-quarters to the visitor
+        const f = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+        at = pos.clone().addScaledVector(f, 2.6).setY(EYE); clampStand(at); at.setY(0);
+        faceTo = pos.clone().setY(0).addScaledVector(new THREE.Vector3(f.z, 0, -f.x), 1.5);
+      }
+      person.position.copy(at);
+      person.lookAt(faceTo);
+      scene.add(person);
+    }
+    $('.sv-person').setAttribute('aria-pressed', String(on)); dirty = true;
+  }
+  const blobTex = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
+    const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(0,0,0,0.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
+  })();
+  $('.sv-person').onclick = () => showPerson(!person);
+
   const ray = new THREE.Raycaster(), centreRay = new THREE.Vector2(0, 0);
   function focus() {
     ray.setFromCamera(centreRay, camera);
@@ -496,6 +568,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     camera.fov += (tFov - camera.fov) * k; camera.updateProjectionMatrix();
     if (renderer.xr.isPresenting) { rig.position.set(pos.x, 0, pos.z); rig.rotation.y = yaw; }
     else { camera.position.copy(pos); camera.up.copy(up); camera.lookAt(look); }
+    if (person) person.traverse(o => { if (o.userData.billboard) { o.lookAt(camera.position.x, o.getWorldPosition(new THREE.Vector3()).y, camera.position.z); } });
     // nothing moved and nothing new to show: the last frame still stands (a phone keeps its battery)
     const still = !renderer.xr.isPresenting && pos.distanceToSquared(lastPos) < 1e-10 && look.distanceToSquared(lastLook) < 1e-10 && Math.abs(camera.fov - lastFov) < 1e-4;
     lastPos.copy(pos); lastLook.copy(look); lastFov = camera.fov;
