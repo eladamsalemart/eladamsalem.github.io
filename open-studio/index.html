@@ -281,6 +281,13 @@ body.has-tabs main{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 .sv-t span{font-size:11px;color:#5d6165;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sv-modes{position:absolute;top:calc(60px + env(safe-area-inset-top,0px));left:10px;background:#FBFBF9}
 .sv-modes button[aria-pressed="true"]{background:#141516;color:#FBFBF9}
+.sv-map{position:absolute;right:10px;top:calc(60px + env(safe-area-inset-top,0px));max-width:40%;height:auto;background:rgba(251,251,249,.86);border-radius:8px;padding:3px;box-shadow:0 2px 10px rgba(0,0,0,.14);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer}
+.sv-map .room{fill:#F3F2EE;stroke:#141516;stroke-width:1.2}
+.sv-map .work{stroke:#141516;stroke-width:3;stroke-linecap:round}
+.sv-map .hit{stroke:transparent;stroke-width:14;stroke-linecap:round}
+.sv-map .me path{fill:rgba(208,38,29,.22)}
+.sv-map .me circle{fill:#D0261D;stroke:#FBFBF9;stroke-width:1.2}
+.sv[data-mode="photos"] .sv-map{display:none}
 .sv-photo{position:absolute;right:10px;top:calc(60px + env(safe-area-inset-top,0px));width:42%;margin:0;background:#FBFBF9;padding:4px;border-radius:6px;cursor:zoom-in;box-shadow:0 4px 14px rgba(0,0,0,.2)}
 .sv-photo.big{width:calc(100% - 20px);cursor:zoom-out}
 .sv-photo img{width:100%;border-radius:3px}
