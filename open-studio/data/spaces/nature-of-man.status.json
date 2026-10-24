@@ -1,0 +1,42 @@
+{
+ "state": "not yet",
+ "summary": "A tour can't be built from what's here yet. This is what it needs:",
+ "items": [
+  [
+   "no",
+   "6 of 15 works were found in the installation photos. Wide photos that show the others, 2–3 works and a corner in each, would place them."
+  ],
+  [
+   "no",
+   "Size missing, or not matching the work's image: Arising, Left Right Center, Three, Q, Emptiness, Man shape. Please check width and height."
+  ],
+  [
+   "no",
+   "The photos show a different size than recorded: Arising, Pura vida. Please check the size, or the image (is it cropped?)."
+  ],
+  [
+   "no",
+   "Only 2 of the room's 4 walls could be measured. Photos of the other walls, with a work or a corner in them, are needed."
+  ],
+  [
+   "no",
+   "The photos don't fit together precisely enough yet. More photos, overlapping each other, would fix it."
+  ],
+  [
+   "no",
+   "Only 43% of the walls are in the photos. Every wall should be in at least two photos."
+  ],
+  [
+   "no",
+   "The rebuilt room doesn't match the photos closely enough yet. More photos, or a short walk-through video, would help."
+  ],
+  [
+   "no",
+   "The rebuilt room doesn't match the photos closely enough yet. More photos, or a short walk-through video, would help."
+  ],
+  [
+   "warn",
+   "The surest way: a slow walk-through video of the room, a minute or two, filming every wall."
+  ]
+ ]
+}
