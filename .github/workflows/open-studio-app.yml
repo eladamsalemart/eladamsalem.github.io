@@ -1,0 +1,61 @@
+# Open Studio: publish the app from the studio branch to eladamsalem.com/open-studio/, where it installs
+# on any phone (Add to Home Screen). Only that folder on main is written; the rest of the site is not touched.
+# Runs when the app changes on studio, and after the spaces are rebuilt.
+name: Open Studio app
+
+on:
+  push:
+    branches: [studio]
+    paths:
+      - 'studio/app/**'
+      - '!studio/app/space/pipeline/**'
+  workflow_run:
+    workflows: [Studio spaces]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: open-studio-app
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Copy the app from studio
+        run: |
+          git fetch origin studio
+          git worktree add /tmp/studio origin/studio
+          src=/tmp/studio/studio/app
+          rm -rf open-studio && mkdir -p open-studio/space open-studio/data/spaces
+          cp $src/index.html $src/app.js $src/sw.js $src/manifest.webmanifest open-studio/
+          cp -r $src/icons open-studio/
+          cp $src/space/space.js open-studio/space/
+          cp $src/data/studio.json open-studio/data/
+          cp $src/data/spaces/index.json open-studio/data/spaces/
+          # only the spaces that passed their checks (the ones index.json lists)
+          for k in $(python3 -c "import json;print(' '.join(json.load(open('$src/data/spaces/index.json'))))"); do
+            cp $src/data/spaces/$k.json open-studio/data/spaces/
+            cp -r $src/data/spaces/$k open-studio/data/spaces/
+          done
+          # a new cache name with every version, so an installed app drops what it kept from the last one
+          sed -i "s/const VERSION = '[^']*'/const VERSION = 'open-studio-$(git -C /tmp/studio rev-parse --short HEAD)'/" open-studio/sw.js
+      - name: Commit and push to main
+        run: |
+          git config user.name "open-studio"
+          git config user.email "open-studio@users.noreply.github.com"
+          git add -A open-studio
+          git diff --cached --quiet && exit 0
+          git commit -m "Open Studio: publish the app from studio"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1
