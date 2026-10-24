@@ -59,6 +59,7 @@ if __name__ == '__main__':
 
     page = open('studio/app/index.html', encoding='utf-8').read()
     head = re.search(r'<!-- app:head -->(.*?)<!-- app:head-end -->', page, re.S).group(1)
+    head = re.sub(r'<link rel="(manifest|icon|apple-touch-icon)"[^>]*>\n', '', head)   # the installable app's files; a preview is one page
     body = re.search(r'<!-- app:body -->(.*?)<!-- app:body-end -->', page, re.S).group(1)
     space = open('studio/app/space/space.js', encoding='utf-8').read().replace('export async function openSpace', 'async function openSpace')
     script = space + '\nwindow.__openSpace = openSpace;\n' + open('studio/app/app.js', encoding='utf-8').read()

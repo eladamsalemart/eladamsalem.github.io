@@ -364,3 +364,6 @@ document.addEventListener('click', e => { const t = e.target.closest('[data-zoom
 
 loadData().then(d => { M = buildModel(d); render(); window.addEventListener('hashchange', render); })
   .catch(() => { app.innerHTML = `<div class="wrap gut loading"><p>The content couldn't be loaded. Refresh to try again.</p></div>`; });
+
+// Installed on a phone (Add to Home Screen) the app works offline and picks up every update on the next open
+if ('serviceWorker' in navigator && !window.STUDIO_DATA && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
