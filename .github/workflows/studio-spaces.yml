@@ -1,7 +1,8 @@
 # Studio: rebuild every exhibition's 3D space from its photos and works, whenever they change.
 # Content is edited on main (the site editor); Studio lives on the studio branch. A change on either
-# brings main's content into studio, runs studio/app/space/pipeline there, and commits the spaces it
-# writes (studio/app/data/spaces/) to studio. The live site on main is not touched.
+# brings main's content into studio, runs studio/app/space/pipeline there in two stages (build the space
+# from the photos and the works; then inspect it in the app's own viewer, in a browser), and commits the
+# spaces to studio. Only a space that passes both stages is listed for the app (data/spaces/index.json).
 name: Studio spaces
 
 on:
@@ -14,6 +15,8 @@ on:
       - 'studio/app/data/studio.json'
       - 'studio/app/data/spaces/*.overrides.json'
       - 'studio/app/space/pipeline/**'
+      - 'studio/app/space/inspect/**'
+      - 'studio/app/space/space.js'
   workflow_dispatch:
 
 permissions:
@@ -26,7 +29,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,7 +59,14 @@ jobs:
           key: lama-2025jan
       - name: Install
         run: pip install opencv-python-headless==5.0.0.93 numpy scipy pillow
-      - name: Build the spaces
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install a browser for the inspection
+        run: |
+          npm install --no-save --no-package-lock playwright@1.49.1
+          npx playwright install --with-deps chromium
+      - name: Build and inspect the spaces
         run: python -m studio.app.space.pipeline
       - name: Commit and push to studio
         run: |
