@@ -40,6 +40,15 @@
 - **מצלמת 360** (כ־2,000 ₪ ומעלה). היא משפרת חוויה בנקודות קבועות ולא הליכה.
 - **מנויים** ל־Matterport או Vortic.
 
+## מה הוסף בסבב השני: בלי גליצ'ים ובלי אזורים ריקים
+
+- **אזורים שאף צילום לא ראה, או ראה רק בזווית חדה** (שם הפיקסלים נמרחים), מושלמים עכשיו ברשת LaMa למילוי אזורים גדולים. הרשת בקוד פתוח (Apache 2.0) ומגיעה מאוסף המודלים הרשמי של OpenCV. היא רצה על מעבד רגיל, גם ב־GitHub.
+- **השלמה בלי כתמים:** הרשת שומרת טוב על מרקם וקווים, אבל באזור גדול הגוון שלה נסחף. לכן האור הכללי של ההשלמה מגיע ממשטח חלק שנמתח מכל השוליים שנראו (משוואת לפלס), ומהרשת נלקחים רק הפרטים. זה העיקרון של איזון הצבעים בין צילומים בשיטת Waechter ושות'.
+- **קיר שלא צולם בכלל** מושלם מהקירות שכן נראו: אותו טיח ואותה ירידת אור מהרצפה לתקרה.
+- **בתוך הפתחים** (עובי הקיר) הפנים נצרבים מהצילומים, כמו הקירות, ולא כמשטח אפור.
+- **הבהובים (z-fighting):** טווח העומק של המצלמה צומצם, כי ההמלצה המקובלת היא יחס של עד כמה מאות בין הרחוק לקרוב. בנוסף, הצל שמאחורי כל עבודה הוזז אל מחוץ למישור הקיר.
+- **שער איכות:** כל חלל מקבל דירוג טוב, חלקי או לא מספיק. חלל שאין עליו מספיק מידע לא מוצג כסיור, והדוח שלו אומר אילו צילומים חסרים.
+
 ## מקורות
 
 - [Gaussian Splatting guide 2026: tools, viewers, costs](https://www.utsubo.com/blog/gaussian-splatting-guide)
@@ -49,5 +58,8 @@
 - [Vortic: photogrammetry of gallery spaces + high-res artworks](https://news.artnet.com/art-world/new-extended-reality-app-1812807) · [CEO interview](https://www.madeinbed.co.uk/interviews/anindya-sen-in-conversation-with-nick-walter-ceo-of-vortic) · [David Zwirner × Victoria Miro](https://davidzwirner.com/news/announcing-side-by-side-a-presentation-by-david-zwirner-and-victoria-miro)
 - [Platform comparison (vendor view)](https://v21artspace.com/alternatives-to-kunstmatrix) · [Virtual gallery companies 2026](https://www.reality-atlas.com/blog/best-companies-virtual-art-galleries-vr-exhibitions)
 - [InstantSplat: sparse-view splatting](https://arxiv.org/html/2403.20309v5)
+- [LaMa: resolution-robust large-mask inpainting](https://cdn.jsdelivr.net/gh/advimman/lama@main/README.md) · [LaMa ONNX](https://huggingface.co/Carve/LaMa-ONNX) · OpenCV model zoo, models/inpainting_lama
+- [Texture mapping and seam levelling (Waechter et al., used in OpenMVS)](https://arxiv.org/pdf/2305.04763)
+- [three.js: z-fighting and the near / far range](https://discourse.threejs.org/t/fix-z-fighting-issues/13506)
 
 </div>
