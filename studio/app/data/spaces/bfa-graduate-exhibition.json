@@ -4,11 +4,11 @@
  "generated": "2026-10-24",
  "source": "Built from 5 installation photos",
  "room": {
-  "x0": -6.305,
-  "x1": 5.807,
-  "z0": 0.028,
-  "z1": 12.682,
-  "height": 4.5
+  "x0": -6.249,
+  "x1": 6.185,
+  "z0": -0.141,
+  "z1": 13.361,
+  "height": 3.65
  },
  "surfaces": [
   {
@@ -16,9 +16,9 @@
    "kind": "wall",
    "texture": "data/spaces/bfa-graduate-exhibition/wall-x0.jpg",
    "origin": [
-    -6.305,
-    4.5,
-    12.6818
+    -6.2494,
+    3.65,
+    13.3608
    ],
    "u": [
     0.0,
@@ -31,15 +31,15 @@
     0.0
    ],
    "size": [
-    12.6538,
-    4.5
+    13.5013,
+    3.65
    ],
    "normal": [
     1.0,
     0.0,
     0.0
    ],
-   "seen": 0.519,
+   "seen": 0.495,
    "openings": []
   },
   {
@@ -47,9 +47,9 @@
    "kind": "wall",
    "texture": "data/spaces/bfa-graduate-exhibition/wall-x1.jpg",
    "origin": [
-    5.8071,
-    4.5,
-    0.0281
+    6.185,
+    3.65,
+    -0.1405
    ],
    "u": [
     0.0,
@@ -62,15 +62,15 @@
     0.0
    ],
    "size": [
-    12.6538,
-    4.5
+    13.5013,
+    3.65
    ],
    "normal": [
     -1.0,
     0.0,
     0.0
    ],
-   "seen": 0.285,
+   "seen": 0.248,
    "openings": []
   },
   {
@@ -78,9 +78,9 @@
    "kind": "wall",
    "texture": "data/spaces/bfa-graduate-exhibition/wall-z0.jpg",
    "origin": [
-    -6.305,
-    4.5,
-    0.0281
+    -6.2494,
+    3.65,
+    -0.1405
    ],
    "u": [
     1.0,
@@ -93,35 +93,28 @@
     0.0
    ],
    "size": [
-    12.1122,
-    4.5
+    12.4344,
+    3.65
    ],
    "normal": [
     0.0,
     0.0,
     1.0
    ],
-   "seen": 0.987,
+   "seen": 0.985,
    "openings": [
     {
-     "from": 4.655,
-     "to": 6.53,
-     "height": 3.31,
+     "from": 8.405,
+     "to": 9.295,
+     "height": 2.56,
+     "arch": false,
+     "depth": 0.35
+    },
+    {
+     "from": 9.75,
+     "to": 10.995000000000001,
+     "height": 2.71,
      "arch": true,
-     "depth": 0.35
-    },
-    {
-     "from": 9.135,
-     "to": 10.91,
-     "height": 3.59,
-     "arch": false,
-     "depth": 0.35
-    },
-    {
-     "from": 11.465,
-     "to": 12.11,
-     "height": 2.09,
-     "arch": false,
      "depth": 0.35
     }
    ]
@@ -131,9 +124,9 @@
    "kind": "reveal",
    "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o0-a.jpg",
    "origin": [
-    -1.65,
-    3.31,
-    0.0281
+    2.1556,
+    2.56,
+    -0.1405
    ],
    "u": [
     -0.0,
@@ -147,14 +140,14 @@
    ],
    "size": [
     0.35,
-    3.31
+    2.56
    ],
    "normal": [
     1.0,
     0.0,
     0.0
    ],
-   "seen": 0.613,
+   "seen": 0.0,
    "openings": []
   },
   {
@@ -162,9 +155,9 @@
    "kind": "reveal",
    "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o0-b.jpg",
    "origin": [
-    0.225,
-    3.31,
-    -0.3219
+    3.0456,
+    2.56,
+    -0.4905
    ],
    "u": [
     0.0,
@@ -178,14 +171,14 @@
    ],
    "size": [
     0.35,
-    3.31
+    2.56
    ],
    "normal": [
     -1.0,
     -0.0,
     -0.0
    ],
-   "seen": 0.711,
+   "seen": 1.0,
    "openings": []
   },
   {
@@ -193,9 +186,9 @@
    "kind": "reveal",
    "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o0-top.jpg",
    "origin": [
-    -1.65,
-    3.31,
-    0.0281
+    2.1556,
+    2.56,
+    -0.1405
    ],
    "u": [
     1.0,
@@ -208,7 +201,7 @@
     -1.0
    ],
    "size": [
-    1.875,
+    0.89,
     0.35
    ],
    "normal": [
@@ -216,7 +209,7 @@
     -1.0,
     0.0
    ],
-   "seen": 1.0,
+   "seen": 0.573,
    "openings": []
   },
   {
@@ -224,9 +217,9 @@
    "kind": "reveal",
    "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o1-a.jpg",
    "origin": [
-    2.83,
-    3.59,
-    0.0281
+    3.5006,
+    2.71,
+    -0.1405
    ],
    "u": [
     -0.0,
@@ -240,7 +233,7 @@
    ],
    "size": [
     0.35,
-    3.59
+    2.71
    ],
    "normal": [
     1.0,
@@ -255,9 +248,9 @@
    "kind": "reveal",
    "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o1-b.jpg",
    "origin": [
-    4.605,
-    3.59,
-    -0.3219
+    4.7456,
+    2.71,
+    -0.4905
    ],
    "u": [
     0.0,
@@ -271,7 +264,7 @@
    ],
    "size": [
     0.35,
-    3.59
+    2.71
    ],
    "normal": [
     -1.0,
@@ -286,9 +279,9 @@
    "kind": "reveal",
    "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o1-top.jpg",
    "origin": [
-    2.83,
-    3.59,
-    0.0281
+    3.5006,
+    2.71,
+    -0.1405
    ],
    "u": [
     1.0,
@@ -301,7 +294,7 @@
     -1.0
    ],
    "size": [
-    1.775,
+    1.245,
     0.35
    ],
    "normal": [
@@ -309,100 +302,7 @@
     -1.0,
     0.0
    ],
-   "seen": 0.275,
-   "openings": []
-  },
-  {
-   "name": "wall-z0-o2-a",
-   "kind": "reveal",
-   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o2-a.jpg",
-   "origin": [
-    5.16,
-    2.09,
-    0.0281
-   ],
-   "u": [
-    -0.0,
-    -0.0,
-    -1.0
-   ],
-   "v": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "size": [
-    0.35,
-    2.09
-   ],
-   "normal": [
-    1.0,
-    0.0,
-    0.0
-   ],
-   "seen": 0.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z0-o2-b",
-   "kind": "reveal",
-   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o2-b.jpg",
-   "origin": [
-    5.805,
-    2.09,
-    -0.3219
-   ],
-   "u": [
-    0.0,
-    0.0,
-    1.0
-   ],
-   "v": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "size": [
-    0.35,
-    2.09
-   ],
-   "normal": [
-    -1.0,
-    -0.0,
-    -0.0
-   ],
-   "seen": 1.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z0-o2-top",
-   "kind": "reveal",
-   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o2-top.jpg",
-   "origin": [
-    5.16,
-    2.09,
-    0.0281
-   ],
-   "u": [
-    1.0,
-    0.0,
-    0.0
-   ],
-   "v": [
-    -0.0,
-    -0.0,
-    -1.0
-   ],
-   "size": [
-    0.645,
-    0.35
-   ],
-   "normal": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "seen": 0.0,
+   "seen": 0.184,
    "openings": []
   },
   {
@@ -410,9 +310,9 @@
    "kind": "wall",
    "texture": "data/spaces/bfa-graduate-exhibition/wall-z1.jpg",
    "origin": [
-    5.8071,
-    4.5,
-    12.6818
+    6.185,
+    3.65,
+    13.3608
    ],
    "u": [
     -1.0,
@@ -425,8 +325,8 @@
     0.0
    ],
    "size": [
-    12.1122,
-    4.5
+    12.4344,
+    3.65
    ],
    "normal": [
     0.0,
@@ -441,9 +341,9 @@
    "kind": "floor",
    "texture": "data/spaces/bfa-graduate-exhibition/floor-detail.jpg",
    "origin": [
-    -6.305,
+    -6.2494,
     0.0,
-    0.0281
+    -0.1405
    ],
    "u": [
     1.0,
@@ -456,23 +356,23 @@
     1.0
    ],
    "size": [
-    12.1122,
-    12.6538
+    12.4344,
+    13.5013
    ],
    "normal": [
     0.0,
     1.0,
     0.0
    ],
-   "seen": 0.161,
+   "seen": 0.11,
    "openings": [],
    "light": "data/spaces/bfa-graduate-exhibition/floor-light.jpg",
    "lightScale": 4,
    "tile": 1.0,
    "color": [
-    117,
-    86,
-    72
+    121,
+    90,
+    74
    ]
   },
   {
@@ -480,9 +380,9 @@
    "kind": "ceiling",
    "texture": "data/spaces/bfa-graduate-exhibition/ceiling.jpg",
    "origin": [
-    -6.305,
-    4.5,
-    12.6818
+    -6.2494,
+    3.65,
+    13.3608
    ],
    "u": [
     1.0,
@@ -495,15 +395,15 @@
     -1.0
    ],
    "size": [
-    12.1122,
-    12.6538
+    12.4344,
+    13.5013
    ],
    "normal": [
     0.0,
     -1.0,
     0.0
    ],
-   "seen": 0.352,
+   "seen": 0.476,
    "openings": []
   }
  ],
@@ -520,9 +420,9 @@
     89.9
    ],
    "centre": [
-    -0.0247,
-    2.2785,
-    0.0671
+    0.2521,
+    1.334,
+    -0.1015
    ],
    "axes": [
     [
@@ -553,13 +453,13 @@
     190.0
    ],
    "measured": [
-    165.7,
-    194.5
+    165.8,
+    194.4
    ],
    "centre": [
-    5.7681,
-    2.0703,
-    3.1072
+    6.146,
+    1.1122,
+    2.8458
    ],
    "axes": [
     [
@@ -586,110 +486,110 @@
  "views": [
   {
    "pos": [
-    2.575,
-    2.06,
-    3.03
+    2.71,
+    1.1,
+    2.805
    ],
    "look": [
-    6.574,
-    2.003,
-    3.111
+    6.709,
+    1.049,
+    2.839
    ],
    "up": [
-    0.0142,
+    0.0126,
     0.9999,
-    -0.0009
+    -0.0004
    ],
-   "fov": 52.99,
+   "fov": 49.67,
    "aspect": 0.6645,
    "photo": "/media/works/dsc-0623-1780918277383.jpg"
   },
   {
    "pos": [
-    -3.454,
-    2.066,
-    11.682
+    3.855,
+    1.65,
+    12.361
    ],
    "look": [
-    -3.666,
-    2.242,
-    7.691
+    1.604,
+    1.665,
+    9.054
    ],
    "up": [
-    0.0117,
-    0.999,
-    0.0433
+    0.0245,
+    0.9996,
+    -0.0122
    ],
-   "fov": 40.02,
+   "fov": 37.29,
    "aspect": 1.3689,
    "photo": "/media/works/dsc-0734-1780918236364.jpg"
   },
   {
    "pos": [
-    -3.519,
-    2.035,
-    11.669
+    -3.288,
+    1.031,
+    12.336
    ],
    "look": [
-    -3.709,
-    2.221,
-    7.678
+    -3.449,
+    1.223,
+    8.344
    ],
    "up": [
     0.011,
-    0.9989,
-    0.0459
+    0.9988,
+    0.0477
    ],
-   "fov": 40.02,
+   "fov": 37.35,
    "aspect": 1.3689,
    "photo": "/media/works/dsc-0734-1780918270567.jpg"
   },
   {
    "pos": [
-    -0.517,
-    2.332,
-    2.681
+    -0.251,
+    1.385,
+    2.712
    ],
    "look": [
-    -0.587,
-    2.338,
-    -1.319
+    -0.301,
+    1.394,
+    -1.287
    ],
    "up": [
-    -0.0003,
+    -0.0007,
     1.0,
-    0.0015
+    0.0022
    ],
-   "fov": 40.8,
+   "fov": 38.09,
    "aspect": 1.3405,
    "photo": "/media/works/dsc-0775-1780918299530.jpg"
   },
   {
    "pos": [
-    -5.305,
-    1.795,
-    5.672
+    -5.249,
+    0.85,
+    5.654
    ],
    "look": [
-    -1.923,
-    1.846,
-    3.536
+    -1.873,
+    0.898,
+    3.51
    ],
    "up": [
-    -0.0033,
+    -0.0016,
     0.9998,
-    0.0186
+    0.0201
    ],
-   "fov": 34.9,
+   "fov": 33.64,
    "aspect": 1.4981,
    "photo": "/media/works/dsc-0853-1780918223331.jpg"
   }
  ],
  "floorReflect": [
-  0.02,
-  0.05
+  0.067,
+  0.301
  ],
- "floorGloss": 0.605,
+ "floorGloss": 1.335,
  "quality": "withheld",
  "checks": [
   {
@@ -719,27 +619,27 @@
   },
   {
    "rule": "rms_px",
-   "value": 1.501,
+   "value": 1.557,
    "passed": true
   },
   {
    "rule": "walls_seen",
-   "value": 0.448,
+   "value": 0.432,
    "passed": false
   },
   {
    "rule": "work_match",
-   "value": 0.782,
+   "value": 0.932,
    "passed": true
   },
   {
    "rule": "ring_diff",
-   "value": 6.0,
+   "value": 7.0,
    "passed": true
   },
   {
    "rule": "wall_diff",
-   "value": 5.333,
+   "value": 4.667,
    "passed": true
   }
  ]
