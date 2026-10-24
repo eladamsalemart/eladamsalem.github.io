@@ -1,10 +1,12 @@
 # Studio: rebuild every exhibition's 3D space from its photos and works, whenever they change.
-# Runs studio/app/space/pipeline and commits the spaces it writes (studio/app/data/spaces/).
+# Content is edited on main (the site editor); Studio lives on the studio branch. A change on either
+# brings main's content into studio, runs studio/app/space/pipeline there, and commits the spaces it
+# writes (studio/app/data/spaces/) to studio. The live site on main is not touched.
 name: Studio spaces
 
 on:
   push:
-    branches: [studio]
+    branches: [main, studio]
     paths:
       - 'content/works.json'
       - 'content/exhibitions.json'
@@ -19,7 +21,7 @@ permissions:
 
 concurrency:
   group: studio-spaces
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -27,6 +29,16 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: studio
+          fetch-depth: 0
+      - name: Bring in main's content
+        run: |
+          git config user.name "studio-spaces"
+          git config user.email "studio-spaces@users.noreply.github.com"
+          git fetch origin main
+          # main is where content is edited, so on any clash its version wins
+          git merge --no-edit -X theirs origin/main -m "Studio: bring in the site's latest content"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -34,11 +46,13 @@ jobs:
         run: pip install opencv-python-headless==5.0.0.93 numpy scipy pillow
       - name: Build the spaces
         run: python -m studio.app.space.pipeline
-      - name: Commit what changed
+      - name: Commit and push to studio
         run: |
-          git config user.name "studio-spaces"
-          git config user.email "studio-spaces@users.noreply.github.com"
           git add studio/app/data/spaces
-          if git diff --cached --quiet; then echo "no change"; exit 0; fi
-          git commit -m "Studio: rebuild 3D spaces from the photos"
-          git push
+          git diff --cached --quiet || git commit -m "Studio: rebuild 3D spaces from the photos"
+          # someone may have pushed to studio meanwhile: take their work, keep ours on top
+          for i in 1 2 3; do
+            git pull --rebase -X theirs origin studio && git push origin HEAD:studio && exit 0
+            sleep 5
+          done
+          exit 1
