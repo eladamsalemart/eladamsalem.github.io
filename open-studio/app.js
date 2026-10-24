@@ -11,6 +11,9 @@ async function loadData() {
   const [settings, works, exhibitions, objects, cv, studio] = await Promise.all([...names.map(n => get(`/content/${n}.json`)), get('data/studio.json')]);
   // every exhibition the space pipeline has built a 3D space for (data/spaces/index.json lists them)
   const index = await get('data/spaces/index.json').catch(() => ({}));
+  // the inspection stage opens a space that is built but not yet published (?inspect=<slug>)
+  const inspecting = new URLSearchParams(location.search).get('inspect');
+  if (inspecting) index[inspecting] = {};
   const spaces = Object.fromEntries(await Promise.all(Object.keys(index).map(async k => [k, await get(`data/spaces/${k}.json`)])));
   return { settings, works, exhibitions, objects, cv, studio, spaces };
 }
@@ -324,6 +327,7 @@ async function enterSpace(slug) {
     },
     onOpenWork: w => { location.hash = `#/work/${w.slug}`; },
   });
+  window.__spaceView = openSpaceView;
 }
 
 function wire() {
