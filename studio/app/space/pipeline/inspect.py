@@ -25,7 +25,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 from .works import ROOT, APP, resolve
-from . import status
+from . import status, live
 
 OUT = APP / 'data' / 'spaces'
 RENDER = APP / 'space' / 'inspect' / 'render.cjs'
@@ -406,6 +406,7 @@ def main(argv):
                 spec = json.load(open(p, encoding='utf-8'))
                 spec['quality'] = 'withheld'; spec['inspection'] = [{'rule': 'inspection', 'passed': False, 'why': str(e)}]
                 json.dump(spec, open(p, 'w'), indent=1, ensure_ascii=False)
+        live.settle(s)
     from .build import write_index
     write_index()
 

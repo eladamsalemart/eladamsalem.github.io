@@ -14,7 +14,8 @@ import numpy as np
 from .works import load_exhibition, load_image, APP, slugify
 from .match import find_works
 from .solve import solve
-from . import status, room, bake, verify
+from .ties import find_ties
+from . import status, room, bake, verify, live
 
 OUT = APP / 'data' / 'spaces'
 CACHE = APP / 'space' / '.cache'
@@ -162,6 +163,7 @@ def look_of(cam, fy):
 
 def build(slug, log=print):
     t0 = time.time()
+    live.put_aside(slug)                                          # a live tour stays live until this build passes
     # start from nothing: a file a previous build wrote and this one doesn't must not linger in the space
     shutil.rmtree(OUT / slug, ignore_errors=True)
     ex = load_exhibition(slug)
@@ -171,7 +173,7 @@ def build(slug, log=print):
         overrides = json.load(open(of))
     log(f"{ex['title']}: {len(ex['photos'])} photos, {len(ex['works'])} works")
     found = cached('match2:' + file_key(ex['photos'] + [w['image'] for w in ex['works']]), lambda: find_works(ex, log))
-    groups, sizes = solve(found, ex, log)
+    groups, sizes = solve(found, ex, log, tie_fn=lambda: cached('ties1:' + file_key(ex['photos']), lambda: find_ties(ex['photos'], log)))
     if not groups:
         log('  no work was found in the photos: no space'); return None
     g = groups[0]
