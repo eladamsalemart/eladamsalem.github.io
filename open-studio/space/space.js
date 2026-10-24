@@ -26,6 +26,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       <button type="button" class="sv-gyro" hidden aria-pressed="false" title="Look around by moving the phone">◎</button>
       <button type="button" class="sv-vr" hidden>VR</button></div>
     <div class="sv-modes seg" role="group" aria-label="Move by"><button type="button" data-mode="walk" aria-pressed="true">Walk</button><button type="button" data-mode="works" aria-pressed="false">Works</button><button type="button" data-mode="photos" aria-pressed="false">Photos</button></div>
+    <svg class="sv-map" role="img" aria-label="Floor plan: the room, its works and where you stand. Tap a work to go to it."></svg>
     <figure class="sv-photo" hidden><img alt=""><figcaption>Original photo</figcaption></figure>
     <span class="sv-dot" aria-hidden="true"></span>
     <div class="sv-joy" role="application" aria-label="Walk: drag the knob to move"><i></i></div>
@@ -313,7 +314,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   aimFrom(pos, look);
   function goFree() { if (!free) { aimFrom(pos, look); tPos.copy(pos); free = true; tUp.set(0, 1, 0); } }
   function setMode(m) {
-    mode = m; root.classList.toggle('walk', m === 'walk');
+    mode = m; root.classList.toggle('walk', m === 'walk'); root.dataset.mode = m;
     root.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === m));
   }
   let focused = null;
@@ -412,6 +413,33 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
   })();
   $('.sv-person').onclick = () => showPerson(!person);
+
+  // --- a floor plan, like the one by a gallery's door: the room, its works, and where you stand ---------
+  // Tap a work to go to it; tap anywhere else in the room to walk there.
+  const map = $('.sv-map');
+  const rw = R.x1 - R.x0, rd = R.z1 - R.z0, ms = 120 / Math.max(rw, rd);
+  const mx = x => 6 + (x - R.x0) * ms, mz = z => 6 + (z - R.z0) * ms;
+  map.setAttribute('viewBox', `0 0 ${rw * ms + 12} ${rd * ms + 12}`); map.style.width = `${rw * ms + 12}px`;
+  map.innerHTML = `<rect class="room" x="6" y="6" width="${rw * ms}" height="${rd * ms}" rx="1.5"/>` + pieces.map((p, i) => {
+    const a = new THREE.Vector3(p.facing.z, 0, -p.facing.x).multiplyScalar(p.size.w / 200), c = p.centre;
+    const xy = `x1="${mx(c.x - a.x)}" y1="${mz(c.z - a.z)}" x2="${mx(c.x + a.x)}" y2="${mz(c.z + a.z)}"`;
+    return `<line class="work" ${xy}/><line class="hit" data-i="${i}" ${xy}><title>${p.w.title}</title></line>`;
+  }).join('') + '<g class="me"><path d="M0 0 L14 -7 A15.6 15.6 0 0 1 14 7 Z"/><circle r="3.4"/></g>';
+  const me = map.querySelector('.me'); let mapAt = '';
+  function updateMap() {
+    const a = Math.atan2(look.z - pos.z, look.x - pos.x) * 180 / Math.PI;
+    const t = `translate(${mx(pos.x).toFixed(1)} ${mz(pos.z).toFixed(1)}) rotate(${a.toFixed(0)})`;
+    if (t !== mapAt) { me.setAttribute('transform', t); mapAt = t; }
+  }
+  map.addEventListener('click', e => {
+    const i = e.target.dataset && e.target.dataset.i;
+    if (i != null) { setMode('works'); idx = pieces.indexOf(pieces[+i]); show(); return; }
+    const b = map.getBoundingClientRect(), pad = 3, k = (rw * ms + 12) / (b.width - 2 * pad);   // screen -> plan units
+    const x = R.x0 + ((e.clientX - b.left - pad) * k - 6) / ms, z = R.z0 + ((e.clientY - b.top - pad) * k - 6) / ms;
+    if (mode !== 'walk') { setMode('walk'); show(); }
+    goFree(); walkTo = clampStand(new THREE.Vector3(x, EYE, z), pos.clone());
+    aimFrom(pos, walkTo.clone().setY(EYE - 0.05)); dropHint();
+  });
 
   const ray = new THREE.Raycaster(), centreRay = new THREE.Vector2(0, 0);
   function focus() {
@@ -568,6 +596,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     camera.fov += (tFov - camera.fov) * k; camera.updateProjectionMatrix();
     if (renderer.xr.isPresenting) { rig.position.set(pos.x, 0, pos.z); rig.rotation.y = yaw; }
     else { camera.position.copy(pos); camera.up.copy(up); camera.lookAt(look); }
+    updateMap();
     if (person) person.traverse(o => { if (o.userData.billboard) { o.lookAt(camera.position.x, o.getWorldPosition(new THREE.Vector3()).y, camera.position.z); } });
     // nothing moved and nothing new to show: the last frame still stands (a phone keeps its battery)
     const still = !renderer.xr.isPresenting && pos.distanceToSquared(lastPos) < 1e-10 && look.distanceToSquared(lastLook) < 1e-10 && Math.abs(camera.fov - lastFov) < 1e-4;
