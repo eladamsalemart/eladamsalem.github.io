@@ -14,6 +14,7 @@ from .works import APP, resolve
 
 FRAMES = APP / 'space' / '.cache' / 'frames'
 MAX_FRAMES = 60           # enough to see every wall from two sides, overlapping; more mostly adds time
+KEEP = 0.5                # a new keyframe once the last one shares less than this much of the view
 EDGE = 2000               # frames are kept at most this large, like photos
 
 
@@ -24,14 +25,14 @@ def sharpness(gray):
 def frames(video, log=print):
     """Paths (relative to the app) of the frames picked from a video, extracting them once."""
     src = resolve(video)
-    key = hashlib.sha1(f'{video}:{src.stat().st_size}'.encode()).hexdigest()[:12]
+    key = hashlib.sha1(f'{video}:{src.stat().st_size}:keyframes5'.encode()).hexdigest()[:12]
     out = FRAMES / key
     done = sorted(out.glob('f*.jpg'))
     if done:
         return [str(p.relative_to(APP)) for p in done]
     cap = cv2.VideoCapture(str(src))
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
-    step = max(1, int(round(fps / 4)))                  # look at 4 frames a second
+    step = max(1, int(round(fps / 8)))                  # look at 8 frames a second (turning, views change fast)
     cands, i = [], 0
     while True:
         ok = cap.grab()
@@ -46,23 +47,34 @@ def frames(video, log=print):
         i += 1
     if not cands:
         raise ValueError(f'no frames in {video}')
-    # in each stretch of about half a second keep the sharpest (the camera's shake blurs the rest)
+    # in each quarter of a second keep the sharpest (the camera's shake blurs the rest), and drop a
+    # frame only if it is much blurrier than those round it: a frame of bare wall has little texture, but it is
+    # the bridge from one work to the next
     best = []
     for k in range(0, len(cands), 2):
         best.append(max(cands[k:k + 2], key=lambda c: c[1]))
-    sharp_floor = np.percentile([c[1] for c in best], 30)
-    best = [c for c in best if c[1] >= sharp_floor]
-    # never two of nearly the same view, yet each still overlapping the last, so the frames chain round the room
-    # (photos are joined through what they share): a new frame once about a third of the view has moved on
+    sh = np.array([c[1] for c in best])
+    local = np.array([np.median(sh[max(0, k - 3):k + 4]) for k in range(len(sh))])
+    best = [c for c, s, m in zip(best, sh, local) if s >= 0.5 * m]
+    # keyframes: the next one is the last frame that still overlaps the one before by KEEP, so the
+    # frames chain round the room (photos are joined through what they share)
     orb = cv2.ORB_create(800)
-    picked, last = [], None
-    for idx, s, g in best:
-        kp, des = orb.detectAndCompute(g, None)
-        if last is None or des is None or last[1] is None:
-            picked.append(idx); last = (kp, des); continue
-        m = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True).match(last[1], des)
-        if len(m) < 0.6 * min(len(last[0]), len(kp)):
-            picked.append(idx); last = (kp, des)
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    feats = [orb.detectAndCompute(g, None) for _, _, g in best]
+
+    def overlap(i, j):
+        (ka, da), (kb, db) = feats[i], feats[j]
+        if da is None or db is None or not len(ka) or not len(kb):
+            return 0.0
+        return len(bf.match(da, db)) / max(len(ka), len(kb))      # (a bare wall's few points don't overlap everything)
+    keep, last = [0], 0
+    for k in range(1, len(best)):
+        if overlap(last, k) < KEEP:
+            if k - 1 > last:                               # the frame before still overlapped: it is the next keyframe
+                keep.append(k - 1); last = k - 1
+            if overlap(last, k) < KEEP:                    # a jump the video doesn't bridge: start again from here
+                keep.append(k); last = k
+    picked = [best[k][0] for k in keep]
     if len(picked) > MAX_FRAMES:                         # evenly over the walk
         picked = [picked[int(j)] for j in np.linspace(0, len(picked) - 1, MAX_FRAMES)]
     out.mkdir(parents=True, exist_ok=True)
