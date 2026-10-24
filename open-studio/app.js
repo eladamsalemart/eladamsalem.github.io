@@ -47,7 +47,7 @@ function buildModel(d) {
     return {
       i, slug: uniq(slugify(`${w.title}-${w.year}`)), title: (w.title || 'Untitled').trim(), year: String(w.year || ''),
       medium: cap(firstLine) || w.tech || '', pairs, size: pairs.length ? `${pairs[0][0]} × ${pairs[0][1]} cm` : '',
-      sold: w.available === false, image: w.image, artist,
+      image: w.image, artist,
     };
   });
   // newest first, keeping the editor's order inside a year
@@ -81,15 +81,14 @@ let M;
 const src = p => M.media[p] || p;
 const im = (p, alt, attrs = '') => p ? `<img src="${esc(src(p))}" alt="${esc(alt)}" loading="lazy" ${attrs}>` : '';
 const metaLine = w => [w.year, w.medium, w.size].filter(Boolean).join(' · ');
-const soldDot = w => w.sold ? ' <span class="dot" title="Sold" aria-label="Sold"></span>' : '';
 const exOf = w => M.exhibitions.find(e => e.works.includes(w));
 const place = e => [e.city, e.dates || e.year].filter(Boolean).join(' · ');
 
 function workRow(w) {
-  return `<a class="row" href="#/work/${w.slug}">${im(w.image, '')}<div class="t"><div><b>${esc(w.title)}</b></div><div class="m">${esc(metaLine(w))}</div></div>${w.sold ? '<span class="dot" title="Sold" aria-label="Sold"></span>' : '<span></span>'}</a>`;
+  return `<a class="row" href="#/work/${w.slug}">${im(w.image, '')}<div class="t"><div><b>${esc(w.title)}</b></div><div class="m">${esc(metaLine(w))}</div></div><span></span></a>`;
 }
 const cover = e => `<a href="#/exhibition/${e.slug}">${im(e.images[0], '')}<div><b>${esc(e.title)}</b><div class="m">${esc([e.year, e.artist.name].join(' · '))}</div></div></a>`;
-const workCover = w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image, w.title)}</div><div><b>${esc(w.title)}</b>${soldDot(w)}<div class="m">${esc(w.artist.name)} · ${esc(w.year)}</div></div></a>`;
+const workCover = w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image, w.title)}</div><div><b>${esc(w.title)}</b><div class="m">${esc(w.artist.name)} · ${esc(w.year)}</div></div></a>`;
 const person = a => `<a class="person" href="#/artist/${a.slug}">${im(a.portrait, a.name)}<div><b>${esc(a.name)}</b><div class="m">${esc(a.discipline)}</div></div></a>`;
 
 // --- views -----------------------------------------------------------------
@@ -143,7 +142,7 @@ function archive(year) {
   return `<div class="wrap gut">
     <div class="ex-head"><div class="k">${esc(M.artist.name)} · Archive</div><h1>Works</h1><div class="m">${list.length} ${list.length === 1 ? 'work' : 'works'}${year ? ` from ${esc(year)}` : ''}</div></div>
     <div class="chips" style="padding-block:18px 28px"><a class="chip" href="#/works" ${!year ? 'aria-current="page"' : ''}>All</a>${years.map(y => `<a class="chip" href="#/works/${y}" ${y === year ? 'aria-current="page"' : ''}>${esc(y)}</a>`).join('')}</div>
-    <div class="grid">${list.map(w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image, w.title)}</div><div class="c"><b>${esc(w.title)}</b>${soldDot(w)}<div class="m">${esc(metaLine(w))}</div></div></a>`).join('')}</div>
+    <div class="grid">${list.map(w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image, w.title)}</div><div class="c"><b>${esc(w.title)}</b><div class="m">${esc(metaLine(w))}</div></div></a>`).join('')}</div>
   </div>`;
 }
 
@@ -161,7 +160,7 @@ function exhibition(slug) {
     </div>
     ${e.works.length ? `<section class="sec"><div class="sec-h"><h2>Works</h2><span class="more">${e.works.length} works</span></div>
       ${e.confirmed ? '' : `<p class="note">${e.space ? 'Identified from the installation photos, in walking order. Waiting for the artist to confirm.' : 'Draft list, grouped by year. Waiting for the artist to confirm which works were in the show.'}</p>`}
-      <div class="tracks">${e.works.map((w, i) => `<a class="track" href="#/work/${w.slug}"><span class="n">${i + 1}</span>${im(w.image, '')}<div class="t"><div><b>${esc(w.title)}</b></div><div class="m">${esc([w.medium, w.size].filter(Boolean).join(' · '))}</div></div>${w.sold ? '<span class="dot" title="Sold" aria-label="Sold"></span>' : '<span></span>'}</a>`).join('')}</div>
+      <div class="tracks">${e.works.map((w, i) => `<a class="track" href="#/work/${w.slug}"><span class="n">${i + 1}</span>${im(w.image, '')}<div class="t"><div><b>${esc(w.title)}</b></div><div class="m">${esc([w.medium, w.size].filter(Boolean).join(' · '))}</div></div><span></span></a>`).join('')}</div>
       ${e.maybe.length ? `<p class="note">Possibly also in the show, not visible in the photos: ${e.maybe.map(w => `<a href="#/work/${w.slug}">${esc(w.title)}</a>`).join(', ')}.</p>` : ''}</section>` : ''}
     <section class="sec"><div class="sec-h"><h2>About the exhibition</h2></div><div class="prose">${e.text.map(p => `<p>${esc(p)}</p>`).join('')}</div></section>
     ${e.images.length ? `<section class="sec"><div class="sec-h"><h2>Installation views</h2></div>
@@ -177,7 +176,7 @@ function work(slug) {
   return `<div class="stage"><button type="button" data-zoom="${esc(src(w.image))}" aria-label="Zoom into ${esc(w.title)}">${im(w.image, w.title, 'loading="eager"')}</button></div>
   <div class="wrap gut">
     <div class="work">
-      <div class="label"><b>${esc(w.title)}${soldDot(w)}</b><span>${esc(w.artist.name)}, ${esc(w.year)}</span><span>${esc(w.medium)}</span>${w.size ? `<span class="s">${esc(w.size)}</span>` : ''}${w.sold ? '<span class="s">Sold · private collection</span>' : ''}</div>
+      <div class="label"><b>${esc(w.title)}</b><span>${esc(w.artist.name)}, ${esc(w.year)}</span><span>${esc(w.medium)}</span>${w.size ? `<span class="s">${esc(w.size)}</span>` : ''}</div>
       <div class="btns"><button type="button" class="btn f" data-zoom="${esc(src(w.image))}">Zoom</button>${w.pairs.length ? '<button type="button" class="btn g" id="scaleBtn" aria-expanded="false">At scale</button>' : ''}</div>
       <div class="scale" id="scale" hidden></div>
       ${ex ? `<a class="onview" href="#/exhibition/${ex.slug}">${im(ex.images[0], '')}<div><div class="k">From the exhibition</div><h3>${esc(ex.title)}</h3><div class="m">${esc(place(ex))}</div></div></a>` : ''}
