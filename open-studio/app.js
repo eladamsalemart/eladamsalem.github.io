@@ -384,7 +384,8 @@ if ('serviceWorker' in navigator && !window.STUDIO_DATA && location.protocol ===
 (function offerInstall() {
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   let seen = false; try { seen = localStorage.getItem('os-install-dismissed') === '1'; } catch {}
-  if (window.STUDIO_DATA || standalone || seen || !matchMedia('(pointer: coarse)').matches) return;
+  let framed = true; try { framed = window.top !== window.self; } catch {}      // a tour shown on another website
+  if (window.STUDIO_DATA || standalone || seen || framed || !matchMedia('(pointer: coarse)').matches) return;
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
   let prompt = null;
   const show = () => {

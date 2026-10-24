@@ -213,6 +213,16 @@ function exhibitions() {
   </div>`;
 }
 
+// a live tour, to share anywhere: a link, and a frame for the artist's own website
+const tourLink = ex => new URL(`#/exhibition/${ex.id}/space`, location.href.split('#')[0]).href;
+const embed = ex => `<iframe src="${tourLink(ex)}" title="${ex.title}, a walkable tour" width="100%" height="560" style="border:0;border-radius:12px" allow="fullscreen; gyroscope; accelerometer" loading="lazy"></iframe>`;
+function share(ex) {
+  return `<div class="st-share"><h3>Share the tour</h3>
+    <div class="st-copy"><input readonly value="${esc(tourLink(ex))}" aria-label="Link to the tour"><button class="btn g" type="button" data-copy="link">Copy link</button></div>
+    <div class="st-copy"><input readonly value="${esc(embed(ex))}" aria-label="Code to show the tour on your website"><button class="btn g" type="button" data-copy="embed">Copy code</button></div>
+    <p class="m small">Paste the code into your website, and visitors can walk through the show right there.</p></div>`;
+}
+
 function exhibitionPage(id) {
   const isNew = id === 'new';
   const ex = isNew ? { id: '', title: '', venue: '', city: '', year: String(new Date().getFullYear()), dates: '', curator: '', text: '', works: [], photos: [], video: '', space: {}, tour: 'none' }
@@ -227,6 +237,7 @@ function exhibitionPage(id) {
         : `<p class="m">A tour is built from your installation photos and the works, then checked view by view before it goes up. This is what it still needs:</p>${checks(r.items)}`}
       ${!status && r.ready && ex.tour !== 'live' ? '<button class="btn f" type="button" id="buildTour">Build the tour</button>' : ''}
       ${ex.tour === 'building' ? '<p class="m small">Building: you\'ll get an email when it\'s ready, or what to add if it doesn\'t pass its checks.</p>' : ''}
+      ${ex.tour === 'live' && ex.real ? share(ex) : ''}
     </section>`}
     <form class="st-form" id="exForm" data-id="${esc(ex.id)}">
       <label>Title<input name="title" required value="${esc(ex.title)}"></label>
@@ -365,6 +376,11 @@ function wire(app, go) {
     const del = $('#delEx');
     if (del) del.onclick = () => { if (!confirm('Delete this exhibition?')) return; S.exhibitions = S.exhibitions.filter(x => x.id !== id); save(); go('#/studio/exhibitions'); };
   }
+  app.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+    const input = b.previousElementSibling;
+    try { await navigator.clipboard.writeText(input.value); } catch { input.select(); document.execCommand('copy'); }
+    const t = b.textContent; b.textContent = 'Copied'; setTimeout(() => { b.textContent = t; }, 1600);
+  });
   const bt = $('#buildTour');
   if (bt) bt.onclick = () => { const ex = S.exhibitions.find(x => location.hash.endsWith(x.id)); if (ex) { ex.tour = 'building'; save(); go(location.hash, true); } };
 
