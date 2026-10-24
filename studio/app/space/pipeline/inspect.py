@@ -192,8 +192,8 @@ def wall_trouble(img, walls, wall_c):
 
 
 def smear(img, walls, lbl):
-    """Share of the walls and floor in a shot whose texture is dragged into streaks: strong texture all in
-    one direction over an area (a single straight edge is too thin to count)."""
+    """Share of the walls in a shot whose texture is dragged into streaks: strong texture all in one direction
+    over an area, light and dark in turn (a single edge, thin or soft, doesn't count)."""
     # walls only: on screen the floor carries the room's reflection, whose edges are meant to be there (the
     # floor's own texture is checked as a tile, floor_tile below)
     m = walls
@@ -205,6 +205,10 @@ def smear(img, walls, lbl):
     tr = J[0] + J[1]; det = np.sqrt((J[0] - J[1]) ** 2 + 4 * J[2] ** 2)
     coh = det / (tr + 1e-6)
     streak = (coh > 0.8) & (tr > 400) & m
+    # streaks run light, dark, light across: their gradients cancel out over an area. A single edge (a spot's
+    # pool of light on a wall, seen at an angle) keeps one sign, and is meant to be there
+    mx, my = cv2.GaussianBlur(gx, (0, 0), 5), cv2.GaussianBlur(gy, (0, 0), 5)
+    streak &= (mx * mx + my * my) / (tr + 1e-6) < 0.5
     streak = cv2.morphologyEx(streak.astype(np.uint8), cv2.MORPH_OPEN, np.ones((9, 9), np.uint8)) > 0
     return float(streak.sum() / m.sum())
 
