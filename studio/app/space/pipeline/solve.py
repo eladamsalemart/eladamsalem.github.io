@@ -106,56 +106,76 @@ def initial(obs, photos_shape):
     return f0, components
 
 
-def merge(comps, ties, obs, f0, log=print):
-    """Join pieces that share no work through tie points. A tie point seen from a photo of the main piece lies
-    (mostly) on a wall that photo's works hang on: its ray met with that wall gives a point in 3D, and enough
-    of them place a photo of the other piece (PnP, outliers rejected), and with it that whole piece."""
+def merge(comps, ties, obs, f0, photos=(), log=print):
+    """Join pieces that share no work through tie points, growing the main piece one photo or piece at a time.
+
+    The 3D points come from the main piece itself: a tie point two of its photos see is triangulated; one
+    only a single photo sees lies (mostly) on a wall that photo's works hang on, so its ray met with that wall
+    places it. Enough of them place a photo of another piece (PnP, outliers rejected), and with it that whole
+    piece. Photos that see no work at all (a video's frames between works) are placed the same way, alone:
+    they are the bridges from one piece to the next."""
     comps = sorted(comps, key=lambda c: -len(c['works']))
     main, rest = comps[0], comps[1:]
     seen = {}
     for o in obs:
         seen.setdefault(o['photo'], []).append(o['work'])
+    placed = set(p for c in comps for p in c['cams'])
+    rest += [{'works': {}, 'cams': {p: np.eye(4)}} for p in photos if p not in placed and any(p in t for t in ties)]
+    zero = {p: np.zeros(2) for p in photos}
+
+    def wall_hit(a, xy):
+        Ta = main['cams'][a]; o = Ta[:3, 3]; d = Ta[:3, :3] @ np.r_[xy / f0[a], 1.0]
+        hits = []
+        for w in seen.get(a, []):
+            if w in main['works']:
+                n, p0 = main['works'][w][:3, 2], main['works'][w][:3, 3]
+                den = n @ d
+                if abs(den) > 1e-6 and (s := n @ (p0 - o) / den) > 0:
+                    hits.append(s)
+        return o + min(hits) * d if hits else None
+
     while rest:
+        pts = {}
+        for k, t in enumerate(ties):
+            if sum(p in main['cams'] for p in t) >= 2:
+                X = triangulate(t, main, f0, zero)
+                if X is not None:
+                    pts[k] = X
         cands = []
-        for k, other in enumerate(rest):
-            for a in main['cams']:
-                for b in other['cams']:
-                    shared = [t for t in ties if a in t and b in t]
-                    if len(shared) >= 12:
-                        cands.append((len(shared), k, a, b, shared))
-        joined = False
-        for _, k, a, b, shared in sorted(cands, key=lambda c: -c[0]):
-            Ta = main['cams'][a]; o = Ta[:3, 3]
-            X, x = [], []
-            for t in shared:
-                d = Ta[:3, :3] @ np.r_[t[a] / f0[a], 1.0]
-                hits = []
-                for w in seen.get(a, []):
-                    if w not in main['works']:
+        for j, other in enumerate(rest):
+            for b in other['cams']:
+                X, x = [], []
+                for k, t in enumerate(ties):
+                    if b not in t:
                         continue
-                    n, p0 = main['works'][w][:3, 2], main['works'][w][:3, 3]
-                    den = n @ d
-                    if abs(den) > 1e-6 and (s := n @ (p0 - o) / den) > 0:
-                        hits.append(s)
-                if hits:
-                    X.append(o + min(hits) * d); x.append(t[b])
-            if len(X) < 12:
-                continue
+                    if k in pts:
+                        X.append(pts[k]); x.append(t[b]); continue
+                    for a in t:
+                        if a in main['cams'] and (Xa := wall_hit(a, t[a])) is not None:
+                            X.append(Xa); x.append(t[b]); break
+                if len(X) >= 12:
+                    cands.append((bool(other['works']), len(X), j, b, X, x))
+        joined = False
+        for has_works, n, j, b, X, x in sorted(cands, key=lambda c: (-c[0], -c[1])):
             K = np.array([[f0[b], 0, 0], [0, f0[b], 0], [0, 0, 1]])
             ok, rv, tv, inl = cv2.solvePnPRansac(np.array(X), np.array(x), K, None, reprojectionError=8.0, iterationsCount=3000, confidence=0.999)
-            if not ok or inl is None or len(inl) < 10:
+            if not ok or inl is None or len(inl) < 10 or len(inl) < 0.3 * n:
                 continue
             R, _ = cv2.Rodrigues(rv)
-            M = np.linalg.inv(to_T(R, tv.ravel())) @ np.linalg.inv(rest[k]['cams'][b])     # the other piece's frame -> main's
-            other = rest.pop(k)
+            M = np.linalg.inv(to_T(R, tv.ravel())) @ np.linalg.inv(rest[j]['cams'][b])     # the other piece's frame -> main's
+            other = rest.pop(j)
             main['cams'].update({p: M @ T for p, T in other['cams'].items()})
             main['works'].update({t: M @ T for t, T in other['works'].items()})
-            log(f"  joined {len(other['works'])} more works through what {a.split('/')[-1][:20]} and {b.split('/')[-1][:20]} both see ({len(inl)} tie points)")
+            if has_works:
+                log(f"  joined {len(other['works'])} more works through {b.split('/')[-1][:24]} ({len(inl)} tie points)")
             joined = True
             break
         if not joined:
             break
-    return [main] + rest
+    bridges = [p for p in main['cams'] if p not in seen]
+    if bridges:
+        log(f"  {len(bridges)} photos that see no work placed by the walls alone")
+    return [main] + [c for c in rest if c['works']]
 
 
 # How strongly the solve leans on what galleries are like, in pixels of error per unit of departure
@@ -392,7 +412,7 @@ def solve(found, exhibition, log=print, tie_fn=None):
     ties = []
     if tie_fn and len([c for c in comps if c['cams']]) > 1:            # pieces that share no work: join them by the walls
         ties = tie_fn()
-        comps = merge([c for c in comps if c['cams']], ties, obs, f0, log)
+        comps = merge([c for c in comps if c['cams']], ties, obs, f0, list(shapes), log)
     groups = []
     for comp in comps:
         if not comp['cams']:
@@ -403,7 +423,7 @@ def solve(found, exhibition, log=print, tie_fn=None):
         if bad:
             log(f"  dropping {len(bad)} doubtful matches: {bad}")
             obs = [o for o in obs if (o['photo'], o['work']) not in bad]
-            cams = {p: c for p, c in cams.items() if any(o['photo'] == p for o in obs)}
+            cams = {p: c for p, c in cams.items() if any(o['photo'] == p for o in obs) or any(p in t for t in mine)}
             works = {t: w for t, w in works.items() if any(o['work'] == t for o in obs)}
             cams, works, rms, errs, mine = bundle_adjust(obs, f0, as_comp(cams, works), shapes, f_mid=f_mid, ties=mine)
         # into a frame with y up and the walls along x and z, then solved again with the gallery priors
