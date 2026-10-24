@@ -127,11 +127,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     box.scale.set(bx, R.height, bz);
     box.position.copy(mid).setY(R.height / 2); box.userData.kind = 'beyond'; scene.add(box);
     if (floorS) {
-      // the floor runs on from the wall's face, through the opening, into the room beyond
-      const fm = bottom.clone().addScaledVector(U, (o.from + o.to) / 2).addScaledVector(N, -(depth + d) / 2);
-      const fw = Math.abs(U.x) * w + Math.abs(N.x) * (depth + d), fl = Math.abs(U.z) * w + Math.abs(N.z) * (depth + d);
+      // the floor runs on from the wall's face, through the opening, into the room beyond; it starts a little
+      // inside the room, just under the room's floor, so the two never leave a hairline gap between them
+      const lap = 0.03, run = depth + d + lap;
+      const fm = bottom.clone().addScaledVector(U, (o.from + o.to) / 2).addScaledVector(N, lap - run / 2);
+      const fw = Math.abs(U.x) * w + Math.abs(N.x) * run, fl = Math.abs(U.z) * w + Math.abs(N.z) * run;
       const f = new THREE.Mesh(new THREE.PlaneGeometry(fw, fl), floorMaterial(fw, fl, false));
-      f.rotation.x = -Math.PI / 2; f.position.copy(fm).setY(0.002); f.userData.kind = 'floor'; scene.add(f);
+      f.rotation.x = -Math.PI / 2; f.position.copy(fm).setY(-0.001); f.userData.kind = 'floor'; scene.add(f);
     }
   }
 
