@@ -1,0 +1,418 @@
+{
+ "version": 2,
+ "title": "BFA graduate exhibition",
+ "generated": "2026-10-24",
+ "source": "Built from 5 installation photos",
+ "room": {
+  "x0": -6.305,
+  "x1": 5.807,
+  "z0": 0.028,
+  "z1": 12.682,
+  "height": 4.5
+ },
+ "surfaces": [
+  {
+   "name": "wall-x0",
+   "kind": "wall",
+   "texture": "data/spaces/bfa-graduate-exhibition/wall-x0.jpg",
+   "origin": [
+    -6.305,
+    4.5,
+    12.6818
+   ],
+   "u": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    12.6538,
+    4.5
+   ],
+   "normal": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "seen": 0.519,
+   "openings": []
+  },
+  {
+   "name": "wall-x1",
+   "kind": "wall",
+   "texture": "data/spaces/bfa-graduate-exhibition/wall-x1.jpg",
+   "origin": [
+    5.8071,
+    4.5,
+    0.0281
+   ],
+   "u": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    12.6538,
+    4.5
+   ],
+   "normal": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "seen": 0.284,
+   "openings": [
+    {
+     "from": 0.0,
+     "to": 1.77,
+     "height": 3.67,
+     "arch": true
+    }
+   ]
+  },
+  {
+   "name": "wall-z0",
+   "kind": "wall",
+   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0.jpg",
+   "origin": [
+    -6.305,
+    4.5,
+    0.0281
+   ],
+   "u": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    12.1122,
+    4.5
+   ],
+   "normal": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "seen": 0.987,
+   "openings": [
+    {
+     "from": 4.655,
+     "to": 6.53,
+     "height": 3.31,
+     "arch": true
+    },
+    {
+     "from": 9.135,
+     "to": 10.91,
+     "height": 3.59,
+     "arch": false
+    },
+    {
+     "from": 11.465,
+     "to": 12.11,
+     "height": 2.09,
+     "arch": false
+    }
+   ]
+  },
+  {
+   "name": "wall-z1",
+   "kind": "wall",
+   "texture": "data/spaces/bfa-graduate-exhibition/wall-z1.jpg",
+   "origin": [
+    5.8071,
+    4.5,
+    12.6818
+   ],
+   "u": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    12.1122,
+    4.5
+   ],
+   "normal": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "seen": 0.0,
+   "openings": []
+  },
+  {
+   "name": "floor",
+   "kind": "floor",
+   "texture": "data/spaces/bfa-graduate-exhibition/floor-detail.jpg",
+   "origin": [
+    -6.305,
+    0.0,
+    0.0281
+   ],
+   "u": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "size": [
+    12.1122,
+    12.6538
+   ],
+   "normal": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "seen": 0.161,
+   "openings": [],
+   "light": "data/spaces/bfa-graduate-exhibition/floor-light.jpg",
+   "lightScale": 4,
+   "tile": 1.0,
+   "color": [
+    117,
+    86,
+    72
+   ]
+  },
+  {
+   "name": "ceiling",
+   "kind": "ceiling",
+   "texture": "data/spaces/bfa-graduate-exhibition/ceiling.jpg",
+   "origin": [
+    -6.305,
+    4.5,
+    12.6818
+   ],
+   "u": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "size": [
+    12.1122,
+    12.6538
+   ],
+   "normal": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "seen": 0.352,
+   "openings": []
+  }
+ ],
+ "works": [
+  {
+   "work": "Carpet",
+   "image": "/media/works/carpet-oil-on-canvas-70x90cm-2019-1780937914660.jpg",
+   "size": [
+    70.0,
+    90.0
+   ],
+   "measured": [
+    69.9,
+    90.1
+   ],
+   "centre": [
+    -0.024,
+    2.2784,
+    0.0671
+   ],
+   "axes": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/bfa-graduate-exhibition/light/carpet.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Main space",
+   "image": "/media/works/main-space-170x190-2018-1780937489678.jpg",
+   "size": [
+    170.0,
+    190.0
+   ],
+   "measured": [
+    165.9,
+    194.7
+   ],
+   "centre": [
+    5.7681,
+    2.0703,
+    3.1072
+   ],
+   "axes": [
+    [
+     0.0,
+     -0.0,
+     1.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     -1.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/bfa-graduate-exhibition/light/main-space.png",
+   "lightScale": 5
+  }
+ ],
+ "views": [
+  {
+   "pos": [
+    2.575,
+    2.06,
+    3.03
+   ],
+   "look": [
+    6.574,
+    2.003,
+    3.111
+   ],
+   "up": [
+    0.0142,
+    0.9999,
+    -0.0009
+   ],
+   "fov": 52.99,
+   "aspect": 0.6645,
+   "photo": "/media/works/dsc-0623-1780918277383.jpg"
+  },
+  {
+   "pos": [
+    -3.454,
+    2.066,
+    11.682
+   ],
+   "look": [
+    -3.666,
+    2.242,
+    7.691
+   ],
+   "up": [
+    0.0117,
+    0.999,
+    0.0433
+   ],
+   "fov": 40.02,
+   "aspect": 1.3689,
+   "photo": "/media/works/dsc-0734-1780918236364.jpg"
+  },
+  {
+   "pos": [
+    -3.519,
+    2.035,
+    11.669
+   ],
+   "look": [
+    -3.709,
+    2.221,
+    7.678
+   ],
+   "up": [
+    0.011,
+    0.9989,
+    0.0459
+   ],
+   "fov": 40.02,
+   "aspect": 1.3689,
+   "photo": "/media/works/dsc-0734-1780918270567.jpg"
+  },
+  {
+   "pos": [
+    -0.517,
+    2.332,
+    2.681
+   ],
+   "look": [
+    -0.587,
+    2.338,
+    -1.319
+   ],
+   "up": [
+    -0.0003,
+    1.0,
+    0.0015
+   ],
+   "fov": 40.8,
+   "aspect": 1.3405,
+   "photo": "/media/works/dsc-0775-1780918299530.jpg"
+  },
+  {
+   "pos": [
+    -5.305,
+    1.795,
+    5.672
+   ],
+   "look": [
+    -1.923,
+    1.846,
+    3.536
+   ],
+   "up": [
+    -0.0033,
+    0.9998,
+    0.0186
+   ],
+   "fov": 34.9,
+   "aspect": 1.4981,
+   "photo": "/media/works/dsc-0853-1780918223331.jpg"
+  }
+ ],
+ "floorReflect": [
+  0.02,
+  0.05
+ ],
+ "floorGloss": 0.605
+}

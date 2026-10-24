@@ -1,0 +1,44 @@
+# Studio: rebuild every exhibition's 3D space from its photos and works, whenever they change.
+# Runs studio/app/space/pipeline and commits the spaces it writes (studio/app/data/spaces/).
+name: Studio spaces
+
+on:
+  push:
+    branches: [studio]
+    paths:
+      - 'content/works.json'
+      - 'content/exhibitions.json'
+      - 'media/works/**'
+      - 'studio/app/data/studio.json'
+      - 'studio/app/data/spaces/*.overrides.json'
+      - 'studio/app/space/pipeline/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: studio-spaces
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install opencv-python-headless==5.0.0.93 numpy scipy pillow
+      - name: Build the spaces
+        run: python -m studio.app.space.pipeline
+      - name: Commit what changed
+        run: |
+          git config user.name "studio-spaces"
+          git config user.email "studio-spaces@users.noreply.github.com"
+          git add studio/app/data/spaces
+          if git diff --cached --quiet; then echo "no change"; exit 0; fi
+          git commit -m "Studio: rebuild 3D spaces from the photos"
+          git push

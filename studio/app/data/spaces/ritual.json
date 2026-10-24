@@ -1,198 +1,721 @@
 {
-  "_note": "Ritual, Jerusalem Artists' House, reconstructed from the six installation photos (photo: Elad Sarig). Measured with studio/app/space/tools/measure.py: every painting's known size is a ruler, so the photos give the room's size, each work's position and height, and each photo's camera, to about ±0.2 m. Later the artist back office edits this file.",
-  "title": "Ritual",
-  "source": "Measured from installation photos",
-  "room": {
-    "width": 4.07,
-    "length": 12.31,
-    "height": 3.75,
-    "soffit": {
-      "width": 1.81,
-      "height": 3.11
-    },
-    "wall": "#F4F4F3",
-    "floor": "space/textures/terrazzo.jpg",
-    "floorTile": 1.3,
-    "floorReflect": [
-      0.06,
-      0.26
-    ],
-    "baseboard": "space/textures/baseboard.jpg",
-    "baseboardHeight": 0.103,
-    "openings": [
-      {
-        "wall": "L",
-        "from": 5.45,
-        "to": 6.65,
-        "height": 3.0,
-        "arch": true,
-        "depth": 0.7
-      },
-      {
-        "wall": "L",
-        "from": 9.42,
-        "to": 10.82,
-        "height": 3.0,
-        "arch": true,
-        "depth": 0.7
-      }
-    ],
-    "floorTint": "#e3dcd5"
+ "version": 2,
+ "title": "Ritual",
+ "generated": "2026-10-24",
+ "source": "Built from 6 installation photos",
+ "room": {
+  "x0": -7.298,
+  "x1": 6.142,
+  "z0": -0.012,
+  "z1": 4.114,
+  "height": 3.85
+ },
+ "surfaces": [
+  {
+   "name": "wall-x0",
+   "kind": "wall",
+   "texture": "data/spaces/ritual/wall-x0.jpg",
+   "origin": [
+    -7.2984,
+    3.85,
+    4.1137
+   ],
+   "u": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    4.1256,
+    3.85
+   ],
+   "normal": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "seen": 0.838,
+   "openings": []
   },
-  "_walls": "A = end wall with Gathering (z = 0). B = opposite end wall (z = length). L and R are the long walls, left and right when facing A. 'at' on L/R = metres from wall A; on A/B = metres from the wall's centre. 'center' = height of the work's centre above the floor.",
-  "hang": [
+  {
+   "name": "wall-x1",
+   "kind": "wall",
+   "texture": "data/spaces/ritual/wall-x1.jpg",
+   "origin": [
+    6.142,
+    3.85,
+    -0.0119
+   ],
+   "u": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    4.1256,
+    3.85
+   ],
+   "normal": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "seen": 0.893,
+   "openings": []
+  },
+  {
+   "name": "wall-z0",
+   "kind": "wall",
+   "texture": "data/spaces/ritual/wall-z0.jpg",
+   "origin": [
+    -7.2984,
+    3.85,
+    -0.0119
+   ],
+   "u": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    13.4404,
+    3.85
+   ],
+   "normal": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "seen": 0.881,
+   "openings": []
+  },
+  {
+   "name": "wall-z1",
+   "kind": "wall",
+   "texture": "data/spaces/ritual/wall-z1.jpg",
+   "origin": [
+    6.142,
+    3.85,
+    4.1137
+   ],
+   "u": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    13.4404,
+    3.85
+   ],
+   "normal": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "seen": 0.918,
+   "openings": [
     {
-      "work": "Gathering",
-      "wall": "A",
-      "at": 0.04,
-      "center": 1.28
+     "from": 1.075,
+     "to": 3.44,
+     "height": 2.83,
+     "arch": false
     },
     {
-      "work": "Flowers 1",
-      "wall": "L",
-      "at": 1.09,
-      "center": 1.47
-    },
-    {
-      "work": "Flowers 3",
-      "wall": "L",
-      "at": 1.43,
-      "center": 1.47
-    },
-    {
-      "work": "Flowers 2",
-      "wall": "L",
-      "at": 1.77,
-      "center": 1.47
-    },
-    {
-      "work": "Adam, Adam and a Lamp",
-      "wall": "L",
-      "at": 4.2,
-      "center": 1.33
-    },
-    {
-      "work": "Human nature",
-      "wall": "L",
-      "at": 7.72,
-      "center": 1.32
-    },
-    {
-      "work": "Woman",
-      "wall": "R",
-      "at": 3.0,
-      "center": 1.38
-    },
-    {
-      "work": "Ritual",
-      "wall": "R",
-      "at": 6.18,
-      "center": 1.32
-    },
-    {
-      "work": "Two",
-      "wall": "R",
-      "at": 9.77,
-      "center": 1.21
-    },
-    {
-      "work": "Woman and a gun",
-      "wall": "B",
-      "at": 0,
-      "center": 1.22
+     "from": 6.2250000000000005,
+     "to": 7.0600000000000005,
+     "height": 3.24,
+     "arch": false
     }
-  ],
-  "views": [
-    {
-      "photo": "/media/works/jah-005-1780915457989.jpg",
-      "name": "Looking toward Gathering",
-      "pos": [
-        0.24,
-        1.2,
-        9.59
-      ],
-      "look": [
-        0.49,
-        1.16,
-        5.59
-      ],
-      "fov": 42.9
-    },
-    {
-      "photo": "/media/works/jah-007-1780915483464.jpg",
-      "name": "Gathering and the right wall",
-      "pos": [
-        -1.32,
-        1.2,
-        8.14
-      ],
-      "look": [
-        1.03,
-        1.17,
-        4.9
-      ],
-      "fov": 48.2
-    },
-    {
-      "photo": "/media/works/jah-008-1780915493251.jpg",
-      "name": "The left wall",
-      "pos": [
-        1.4,
-        1.25,
-        2.96
-      ],
-      "look": [
-        -2.59,
-        0.94,
-        2.9
-      ],
-      "fov": 46.6
-    },
-    {
-      "photo": "/media/works/jah-009-1780915500705.jpg",
-      "name": "Ritual, Two and the far wall",
-      "pos": [
-        -1.8,
-        1.2,
-        2.89
-      ],
-      "look": [
-        0.59,
-        1.09,
-        6.1
-      ],
-      "fov": 34.2
-    },
-    {
-      "photo": "/media/works/jah-010-1780915508773.jpg",
-      "name": "Looking toward Woman and a gun",
-      "pos": [
-        -0.88,
-        1.17,
-        4.07
-      ],
-      "look": [
-        -0.58,
-        1.08,
-        8.05
-      ],
-      "fov": 38.1
-    },
-    {
-      "photo": "/media/works/jah-006-1780915473909.jpg",
-      "name": "The full length of the room",
-      "pos": [
-        -0.63,
-        1.3,
-        1.37
-      ],
-      "look": [
-        -0.7,
-        1.06,
-        5.36
-      ],
-      "fov": 49.6
-    }
-  ],
-  "_views": "pos / look / fov (vertical, degrees) are each photo's camera as measured by measure.py."
+   ]
+  },
+  {
+   "name": "floor",
+   "kind": "floor",
+   "texture": "data/spaces/ritual/floor-detail.jpg",
+   "origin": [
+    -7.2984,
+    0.0,
+    -0.0119
+   ],
+   "u": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "size": [
+    13.4404,
+    4.1256
+   ],
+   "normal": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "seen": 0.481,
+   "openings": [],
+   "light": "data/spaces/ritual/floor-light.jpg",
+   "lightScale": 4,
+   "tile": 1.0,
+   "color": [
+    140,
+    122,
+    108
+   ]
+  },
+  {
+   "name": "ceiling",
+   "kind": "ceiling",
+   "texture": "data/spaces/ritual/ceiling.jpg",
+   "origin": [
+    -7.2984,
+    3.85,
+    4.1137
+   ],
+   "u": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "size": [
+    13.4404,
+    4.1256
+   ],
+   "normal": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "seen": 0.616,
+   "openings": []
+  }
+ ],
+ "works": [
+  {
+   "work": "Adam, Adam and a Lamp",
+   "image": "/media/works/22-1780919892762.jpg",
+   "size": [
+    120.0,
+    70.0
+   ],
+   "measured": [
+    119.8,
+    69.9
+   ],
+   "centre": [
+    -2.4358,
+    1.4619,
+    4.0747
+   ],
+   "axes": [
+    [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     -1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/ritual/light/adam-adam-and-a-lamp.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Flowers 1",
+   "image": "/media/works/6666-1780919828634.jpg",
+   "size": [
+    30.0,
+    30.0
+   ],
+   "measured": [
+    30.0,
+    30.0
+   ],
+   "centre": [
+    -5.5567,
+    1.5836,
+    4.0747
+   ],
+   "axes": [
+    [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     -1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/ritual/light/flowers-1.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Flowers 2",
+   "image": "/media/works/66-1780919777734.jpg",
+   "size": [
+    30.0,
+    30.0
+   ],
+   "measured": [
+    30.0,
+    30.0
+   ],
+   "centre": [
+    -4.8344,
+    1.5787,
+    4.0747
+   ],
+   "axes": [
+    [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     -1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/ritual/light/flowers-2.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Flowers 3",
+   "image": "/media/works/888-1780919799905.jpg",
+   "size": [
+    30.0,
+    30.0
+   ],
+   "measured": [
+    30.0,
+    30.0
+   ],
+   "centre": [
+    -5.1791,
+    1.5744,
+    4.0747
+   ],
+   "axes": [
+    [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     -1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/ritual/light/flowers-3.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Gathering",
+   "image": "/media/works/img-7601-1780924375439.jpg",
+   "size": [
+    140.0,
+    170.0
+   ],
+   "measured": [
+    139.7,
+    170.3
+   ],
+   "centre": [
+    -7.2594,
+    1.3758,
+    2.1572
+   ],
+   "axes": [
+    [
+     0.0,
+     0.0,
+     -1.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     1.0,
+     -0.0,
+     0.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/ritual/light/gathering.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Human nature",
+   "image": "/media/works/adam-lamp.jpg",
+   "size": [
+    70.0,
+    90.0
+   ],
+   "measured": [
+    70.0,
+    90.0
+   ],
+   "centre": [
+    1.5563,
+    1.4606,
+    4.0747
+   ],
+   "axes": [
+    [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     -1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/ritual/light/human-nature.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Ritual",
+   "image": "/media/works/44-1780919907801.jpg",
+   "size": [
+    110.0,
+    130.0
+   ],
+   "measured": [
+    110.3,
+    130.5
+   ],
+   "centre": [
+    -0.0475,
+    1.4036,
+    0.0271
+   ],
+   "axes": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/ritual/light/ritual.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Two",
+   "image": "/media/works/two.jpg",
+   "size": [
+    100.0,
+    140.0
+   ],
+   "measured": [
+    100.0,
+    139.1
+   ],
+   "centre": [
+    3.5531,
+    1.3455,
+    0.0271
+   ],
+   "axes": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/ritual/light/two.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Woman",
+   "image": "/media/works/img-9895-1780919976150.jpg",
+   "size": [
+    90.0,
+    110.0
+   ],
+   "measured": [
+    90.0,
+    110.0
+   ],
+   "centre": [
+    -3.9046,
+    1.4053,
+    0.0271
+   ],
+   "axes": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/ritual/light/woman.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Woman and a gun",
+   "image": "/media/works/wood-panel.jpeg",
+   "size": [
+    120.0,
+    130.0
+   ],
+   "measured": [
+    124.0,
+    143.4
+   ],
+   "centre": [
+    6.103,
+    1.3895,
+    2.0696
+   ],
+   "axes": [
+    [
+     0.0,
+     -0.0,
+     1.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     -1.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/ritual/light/woman-and-a-gun.png",
+   "lightScale": 5
+  }
+ ],
+ "views": [
+  {
+   "pos": [
+    3.606,
+    1.277,
+    1.576
+   ],
+   "look": [
+    -0.394,
+    1.246,
+    1.52
+   ],
+   "up": [
+    -0.008,
+    0.9999,
+    0.0067
+   ],
+   "fov": 39.32,
+   "aspect": 1.5004,
+   "photo": "/media/works/jah-005-1780915457989.jpg"
+  },
+  {
+   "pos": [
+    -5.812,
+    1.371,
+    2.4
+   ],
+   "look": [
+    -1.824,
+    1.167,
+    2.644
+   ],
+   "up": [
+    0.0504,
+    0.9987,
+    0.0105
+   ],
+   "fov": 44.11,
+   "aspect": 1.5004,
+   "photo": "/media/works/jah-006-1780915473909.jpg"
+  },
+  {
+   "pos": [
+    3.106,
+    1.305,
+    3.704
+   ],
+   "look": [
+    -0.359,
+    1.243,
+    1.706
+   ],
+   "up": [
+    -0.0141,
+    0.9999,
+    -0.0064
+   ],
+   "fov": 38.38,
+   "aspect": 1.5004,
+   "photo": "/media/works/jah-007-1780915483464.jpg"
+  },
+  {
+   "pos": [
+    -3.617,
+    1.106,
+    0.06805698024944704
+   ],
+   "look": [
+    -3.709,
+    1.091,
+    3.819
+   ],
+   "up": [
+    0.0035,
+    1.0,
+    0.004
+   ],
+   "fov": 37.78,
+   "aspect": 1.5004,
+   "photo": "/media/works/jah-008-1780915493251.jpg"
+  },
+  {
+   "pos": [
+    -2.789,
+    1.253,
+    3.735
+   ],
+   "look": [
+    0.515,
+    1.151,
+    1.483
+   ],
+   "up": [
+    0.0222,
+    0.9997,
+    -0.0126
+   ],
+   "fov": 40.5,
+   "aspect": 1.5004,
+   "photo": "/media/works/jah-009-1780915500705.jpg"
+  },
+  {
+   "pos": [
+    -2.289,
+    1.283,
+    2.226
+   ],
+   "look": [
+    1.703,
+    1.202,
+    2.473
+   ],
+   "up": [
+    0.0204,
+    0.9998,
+    -0.0009
+   ],
+   "fov": 40.18,
+   "aspect": 1.5004,
+   "photo": "/media/works/jah-010-1780915508773.jpg"
+  }
+ ],
+ "floorReflect": [
+  0.063,
+  0.283
+ ],
+ "floorGloss": 1.314
 }

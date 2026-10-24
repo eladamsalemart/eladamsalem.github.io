@@ -1,0 +1,527 @@
+{
+ "version": 2,
+ "title": "Nature of Man",
+ "generated": "2026-10-24",
+ "source": "Built from 4 installation photos",
+ "room": {
+  "x0": -5.699,
+  "x1": 3.004,
+  "z0": 0.282,
+  "z1": 3.006,
+  "height": 2.85
+ },
+ "surfaces": [
+  {
+   "name": "wall-x0",
+   "kind": "wall",
+   "texture": "data/spaces/nature-of-man/wall-x0.jpg",
+   "origin": [
+    -5.6986,
+    2.85,
+    3.0063
+   ],
+   "u": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    2.7246,
+    2.85
+   ],
+   "normal": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "seen": 0.947,
+   "openings": []
+  },
+  {
+   "name": "wall-x1",
+   "kind": "wall",
+   "texture": "data/spaces/nature-of-man/wall-x1.jpg",
+   "origin": [
+    3.0044,
+    2.85,
+    0.2817
+   ],
+   "u": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    2.7246,
+    2.85
+   ],
+   "normal": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "seen": 0.0,
+   "openings": []
+  },
+  {
+   "name": "wall-z0",
+   "kind": "wall",
+   "texture": "data/spaces/nature-of-man/wall-z0.jpg",
+   "origin": [
+    -5.6986,
+    2.85,
+    0.2817
+   ],
+   "u": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    8.703,
+    2.85
+   ],
+   "normal": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "seen": 0.597,
+   "openings": [
+    {
+     "from": 6.03,
+     "to": 6.87,
+     "height": 1.91,
+     "arch": false
+    }
+   ]
+  },
+  {
+   "name": "wall-z1",
+   "kind": "wall",
+   "texture": "data/spaces/nature-of-man/wall-z1.jpg",
+   "origin": [
+    3.0044,
+    2.85,
+    3.0063
+   ],
+   "u": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    8.703,
+    2.85
+   ],
+   "normal": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "seen": 0.244,
+   "openings": []
+  },
+  {
+   "name": "floor",
+   "kind": "floor",
+   "texture": "data/spaces/nature-of-man/floor-detail.jpg",
+   "origin": [
+    -5.6986,
+    0.0,
+    0.2817
+   ],
+   "u": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "size": [
+    8.703,
+    2.7246
+   ],
+   "normal": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "seen": 0.424,
+   "openings": [],
+   "light": "data/spaces/nature-of-man/floor-light.jpg",
+   "lightScale": 4,
+   "tile": 1.0,
+   "color": [
+    172,
+    155,
+    143
+   ]
+  },
+  {
+   "name": "ceiling",
+   "kind": "ceiling",
+   "texture": "data/spaces/nature-of-man/ceiling.jpg",
+   "origin": [
+    -5.6986,
+    2.85,
+    3.0063
+   ],
+   "u": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "size": [
+    8.703,
+    2.7246
+   ],
+   "normal": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "seen": 0.383,
+   "openings": []
+  }
+ ],
+ "works": [
+  {
+   "work": "Adam and Eve",
+   "image": "/media/works/img-2011-1780926441257.jpg",
+   "size": [
+    135.0,
+    165.0
+   ],
+   "measured": [
+    130.1,
+    162.5
+   ],
+   "centre": [
+    0.0843,
+    1.0457,
+    0.3207
+   ],
+   "axes": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/nature-of-man/light/adam-and-eve.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Adan and Hava",
+   "image": "/media/works/img-5877-1780926453069.jpg",
+   "size": [
+    135.0,
+    165.0
+   ],
+   "measured": [
+    123.8,
+    157.5
+   ],
+   "centre": [
+    -1.3814,
+    1.0365,
+    0.3207
+   ],
+   "axes": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/nature-of-man/light/adan-and-hava.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Arising",
+   "image": "/media/works/arising-210x105cm-1780926824913.jpg",
+   "size": [
+    105.0,
+    210.0
+   ],
+   "measured": [
+    146.7,
+    150.3
+   ],
+   "centre": [
+    -0.3572,
+    2.0108,
+    2.9673
+   ],
+   "axes": [
+    [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     -1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/nature-of-man/light/arising.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Harmony",
+   "image": "/media/works/harmony-190x115cm-2021-1780926537745.jpg",
+   "size": [
+    115.0,
+    190.0
+   ],
+   "measured": [
+    115.7,
+    188.9
+   ],
+   "centre": [
+    -2.1153,
+    0.8242,
+    3.3548
+   ],
+   "axes": [
+    [
+     -0.75054,
+     -0.01441,
+     -0.66067
+    ],
+    [
+     0.02805,
+     0.99817,
+     -0.05363
+    ],
+    [
+     0.66023,
+     -0.05878,
+     -0.74876
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/nature-of-man/light/harmony.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Pura vida",
+   "image": "/media/works/img-0565-1780926831629.jpg",
+   "size": [
+    60.0,
+    70.0
+   ],
+   "measured": [
+    58.6,
+    86.4
+   ],
+   "centre": [
+    -4.2137,
+    1.2368,
+    0.3207
+   ],
+   "axes": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/nature-of-man/light/pura-vida.png",
+   "lightScale": 5
+  },
+  {
+   "work": "Q",
+   "image": "/media/works/1-1780926373422.jpg",
+   "size": [
+    35.0,
+    35.0
+   ],
+   "measured": [
+    34.7,
+    35.3
+   ],
+   "centre": [
+    -1.1913,
+    1.0195,
+    3.152
+   ],
+   "axes": [
+    [
+     -0.76265,
+     0.00517,
+     -0.64679
+    ],
+    [
+     -0.00387,
+     0.99991,
+     0.01256
+    ],
+    [
+     0.64679,
+     0.01208,
+     -0.76257
+    ]
+   ],
+   "depth": 0.035,
+   "light": "data/spaces/nature-of-man/light/q.png",
+   "lightScale": 5
+  }
+ ],
+ "views": [
+  {
+   "pos": [
+    -4.699,
+    1.193,
+    1.429
+   ],
+   "look": [
+    -1.877,
+    1.303,
+    -1.404
+   ],
+   "up": [
+    -0.0145,
+    0.9996,
+    0.0245
+   ],
+   "fov": 56.51,
+   "aspect": 1.2392,
+   "photo": "/media/works/1670f7f4-5624-4021-8881-d656129280a1-1780917574396.jpg"
+  },
+  {
+   "pos": [
+    -0.539,
+    0.946,
+    2.9262912083762367
+   ],
+   "look": [
+    -0.665,
+    0.842,
+    -0.287
+   ],
+   "up": [
+    -0.0084,
+    0.9996,
+    -0.0259
+   ],
+   "fov": 38.81,
+   "aspect": 1.2384,
+   "photo": "/media/works/362c4b70-67e2-48c1-a3eb-fe69060d172a-1780917560187.jpg"
+  },
+  {
+   "pos": [
+    -0.814,
+    1.011,
+    1.026
+   ],
+   "look": [
+    -0.926,
+    1.177,
+    5.021
+   ],
+   "up": [
+    0.0019,
+    0.9991,
+    -0.0415
+   ],
+   "fov": 74.41,
+   "aspect": 1.2384,
+   "photo": "/media/works/img-1373-1780917541456.jpg"
+  },
+  {
+   "pos": [
+    2.004,
+    1.109,
+    2.9262912083762367
+   ],
+   "look": [
+    -1.428,
+    0.569,
+    1.054
+   ],
+   "up": [
+    -0.1082,
+    0.9907,
+    -0.0823
+   ],
+   "fov": 56.77,
+   "aspect": 1.7778,
+   "photo": "/media/works/img-1375-1780917530942.jpg"
+  }
+ ],
+ "floorReflect": [
+  0.02,
+  0.05
+ ],
+ "floorGloss": 1.028
+}

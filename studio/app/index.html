@@ -221,6 +221,9 @@ body.has-tabs main{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 .sv-hint.gone{opacity:0}
 .sv-dot{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px;border-radius:50%;background:rgba(20,21,22,.45);box-shadow:0 0 0 1.5px rgba(251,251,249,.7);pointer-events:none;display:none}
 .sv.walk .sv-dot{display:block}
+.sv-gyro,.sv-vr{border:0;background:#FBFBF9;border-radius:99px;min-height:40px;min-width:40px;padding:0 12px;font-size:13px;font-weight:600;cursor:pointer;margin-left:auto}
+.sv-vr{margin-left:0}
+.sv-gyro[aria-pressed="true"]{background:#141516;color:#FBFBF9}
 .sv-loading{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:#5d6165;background:#d9d8d4}
 
 /* zoom viewer */

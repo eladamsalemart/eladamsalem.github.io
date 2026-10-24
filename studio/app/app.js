@@ -9,8 +9,9 @@ async function loadData() {
   const get = url => fetch(url).then(r => r.json());
   const names = ['settings', 'works', 'exhibitions', 'objects', 'cv'];
   const [settings, works, exhibitions, objects, cv, studio] = await Promise.all([...names.map(n => get(`/content/${n}.json`)), get('data/studio.json')]);
-  const spaces = {};
-  for (const e of Object.values(studio.exhibitions)) if (e.space) spaces[e.space] = await get(`data/spaces/${e.space}.json`);
+  // every exhibition the space pipeline has built a 3D space for (data/spaces/index.json lists them)
+  const index = await get('data/spaces/index.json').catch(() => ({}));
+  const spaces = Object.fromEntries(await Promise.all(Object.keys(index).map(async k => [k, await get(`data/spaces/${k}.json`)])));
   return { settings, works, exhibitions, objects, cv, studio, spaces };
 }
 
@@ -59,7 +60,7 @@ function buildModel(d) {
       city: extra.city || '', country: extra.country || '', confirmed: !!extra.confirmed, artist,
       works: (extra.works || []).map(t => byTitle.get(t.toLowerCase().trim())).filter(Boolean),
       maybe: (extra.maybe || []).map(t => byTitle.get(t.toLowerCase().trim())).filter(Boolean),
-      space: extra.space ? (d.spaces || {})[extra.space] : null,
+      space: (d.spaces || {})[extra.space || slugify(e.title)] || null,
     };
   }).sort((a, b) => (+b.year || 0) - (+a.year || 0));
   const objects = d.objects.map(o => ({
@@ -153,7 +154,7 @@ function exhibition(slug) {
       <h1>${esc(e.title)}</h1>
       <a class="by" href="#/artist/${e.artist.slug}">${im(e.artist.portrait, '')}${esc(e.artist.name)}</a>
       <div class="m">${esc([e.dates, e.venue].filter(Boolean).join(' · '))}</div>
-      ${e.space ? `<div class="btns"><a class="btn f" href="#/exhibition/${e.slug}/space">Enter the space</a></div><p class="m">${esc(e.space.source)}: a walkable 3D room, with every work at its recorded size.</p>` : ''}
+      ${e.space ? `<div class="btns"><a class="btn f" href="#/exhibition/${e.slug}/space">Enter the space</a></div><p class="m">${esc(e.space.source)}: a walkable 3D space in the room's own light, with every work at its measured size and place.</p>` : ''}
     </div>
     ${e.works.length ? `<section class="sec"><div class="sec-h"><h2>Works</h2><span class="more">${e.works.length} works</span></div>
       ${e.confirmed ? '' : `<p class="note">${e.space ? 'Identified from the installation photos, in walking order. Waiting for the artist to confirm.' : 'Draft list, grouped by year. Waiting for the artist to confirm which works were in the show.'}</p>`}
@@ -310,7 +311,7 @@ let openSpaceView = null;
 async function enterSpace(slug) {
   const e = M.exhibitions.find(x => x.slug === slug);
   if (!e || !e.space) return;
-  const openSpace = window.__openSpace || (await import('./space/reconstruct.js')).openSpace;
+  const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
   openSpaceView = await openSpace({
     spec: e.space, works: M.works, src,
     onClose: () => { openSpaceView = null; location.hash = `#/exhibition/${slug}`; },
