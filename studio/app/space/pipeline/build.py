@@ -14,7 +14,7 @@ import numpy as np
 from .works import load_exhibition, load_image, APP, slugify
 from .match import find_works
 from .solve import solve
-from . import room, bake
+from . import room, bake, verify
 
 OUT = APP / 'data' / 'spaces'
 CACHE = APP / 'space' / '.cache'
@@ -171,7 +171,7 @@ def build(slug, log=print):
     cams, works = g['cams'], g['works']
     images = {p: load_image(p, 2000) for p in cams}
     matched = {p: [t for t in hits if t != '_shape'] for p, hits in found.items()}
-    masks = room.work_masks(cams, works, sizes, matched, grow=0.02)
+    masks = room.work_masks(cams, works, sizes, matched, grow=0.01)
     fy, fconf = room.find_floor(cams, images, masks, log)
     floor_how = 'נמדדה: הגובה שבו הצילומים מסכימים על הרצפה'
     if fy is None:
@@ -265,7 +265,19 @@ def build(slug, log=print):
             if x @ wk['R'][:, 0] < 0: x = -x
             wk['R'] = np.column_stack([x, [0, 1, 0], np.cross(x, [0, 1, 0])])
             if wk['R'][:, 2] @ n < 0: wk['R'][:, 2] *= -1; wk['R'][:, 0] *= -1
-            wk['c'] = wk['c'].copy(); wk['c'][wl['axis']] = wl['offset'] + wl['side'] * (0.035 + 0.004)
+            # onto the wall along the line of sight of the photo that sees it best, so it stays exactly where
+            # that photo shows it (it grows or shrinks by the same ~1 % its distance changes)
+            on_wall = wl['offset'] + wl['side'] * (0.035 + 0.004)
+            best = max((p for p in cams if t in found.get(p, {})), key=lambda p: found[p][t]['inliers'], default=None)
+            c = wk['c'].copy()
+            if best is not None:
+                o = room.centre(cams[best]); dvec = c - o
+                if abs(dvec[wl['axis']]) > 1e-6:
+                    k = (on_wall - o[wl['axis']]) / dvec[wl['axis']]
+                    c = o + dvec * k
+                    wk['scale'] = wk.get('scale', np.ones(2)) * k
+            c[wl['axis']] = on_wall
+            wk['c'] = c
 
     # works: where, how big (as measured), and the light that fell on them
     by_title = {w['title']: w for w in ex['works']}
@@ -300,20 +312,15 @@ def build(slug, log=print):
         'floorReflect': [round(float(np.clip((floor_s.gloss - 1) * 0.2, 0.02, 0.1)), 3), round(float(np.clip((floor_s.gloss - 1) * 0.9, 0.05, 0.45)), 3)],
         'floorGloss': round(floor_s.gloss, 3),
     }
-    # how much to trust this space: too little and it is not offered as a walk (the report says what's missing)
-    measured_walls = sum(v.startswith('נמדד') for v in box_how.values())
-    if len(works) < 4 or measured_walls < 2:
-        quality = 'insufficient'
-    elif measured_walls < 4 or wall_seen < 0.7 or g['rms_px'] > 4:
-        quality = 'partial'
-    else:
-        quality = 'good'
-    spec['quality'] = quality
-    if quality == 'partial':
-        spec['source'] = f"Partly reconstructed from {len(cams)} installation photos"
-    log(f"  quality: {quality} ({len(works)} works placed, {measured_walls} walls measured, walls seen {wall_seen:.0%})")
+    # the space checks itself: published as a walk only if every check passes, never 'nearly'
+    spec['_fy'] = 0.0 if False else fy
+    passed, checks, scores = verify.check(spec, ex, found, g, sizes, box_how, wall_seen, log)
+    del spec['_fy']
+    spec['quality'] = 'published' if passed else 'withheld'
+    spec['checks'] = [{'rule': n, 'value': round(float(v), 3), 'passed': bool(ok)} for n, v, ok, _ in checks]
+    log(f"  {'published' if passed else 'withheld'}: {sum(ok for *_, ok, _ in checks)} of {len(checks)} checks passed")
     json.dump(spec, open(OUT / f'{slug}.json', 'w'), indent=1, ensure_ascii=False)
-    write_report(slug, ex, found, groups, g, sizes, works, spec, box_how, floor_how, ceiling_how, fconf, time.time() - t0)
+    write_report(slug, ex, found, groups, g, sizes, works, spec, box_how, floor_how, ceiling_how, fconf, time.time() - t0, checks)
     log(f"  done in {time.time() - t0:.0f} s")
     return spec
 
@@ -325,7 +332,7 @@ def surface_json(s, fy, tex, kind, cover, openings):
             'seen': round(float(cover.mean()), 3), 'openings': openings}
 
 
-def write_report(slug, ex, found, groups, g, sizes, works, spec, box_how, floor_how, ceiling_how, fconf, secs):
+def write_report(slug, ex, found, groups, g, sizes, works, spec, box_how, floor_how, ceiling_how, fconf, secs, checks=()):
     """A short report in Hebrew for the artist: what was found, measured, and what to check."""
     L = ['<div dir="rtl">', '', f"# דוח חלל: {ex['title']}", '',
          f"נבנה אוטומטית ב־{spec['generated']} מתוך {len(ex['photos'])} צילומים ו־{len(ex['works'])} עבודות ({secs:.0f} שניות).", '',
@@ -335,11 +342,17 @@ def write_report(slug, ex, found, groups, g, sizes, works, spec, box_how, floor_
         L.append(f"| `{p.split('/')[-1]}` | {', '.join(names) if names else '—'} |")
     r = spec['room']
     q = spec.get('quality')
-    L += ['', '## איכות', '',
-          {'good': 'החלל שלם ונמדד היטב, ומוצג באפליקציה.',
-           'partial': 'החלל מוצג באפליקציה כ"שחזור חלקי": חלק מהקירות או מהעבודות לא נמדדו מהצילומים.',
-           'insufficient': 'אין מספיק מידע בצילומים כדי לבנות חלל אמין, ולכן הוא לא מוצג כסיור. התערוכה עצמה מוצגת עם הצילומים שלה.'}.get(q, ''),
-          '', 'מה ישפר: צילומים רחבים שבכל אחד 2–3 עבודות ופינת חדר, כך שכל קיר מופיע בשני צילומים לפחות; או סרטון הליכה איטי של דקה–שתיים; ומד לייזר לאורך, רוחב וגובה החדר.' if q != 'good' else '']
+    L += ['', '## בדיקה עצמית', '',
+          'הסיור מתפרסם באפליקציה רק אם כל הבדיקות עוברות.' if q == 'published' else
+          '**הסיור לא מתפרסם**: לפחות בדיקה אחת לא עברה. התערוכה עצמה מוצגת עם הצילומים שלה.', '',
+          '| | בדיקה | תוצאה |', '|---|---|---|']
+    names = {'works_placed': 'כל העבודות נמצאו', 'image_edge_px': 'איכות תמונות העבודות', 'size_vs_image': 'מידה מול תמונה',
+             'size_vs_photos': 'מידה מול הצילומים', 'walls_measured': 'קירות נמדדו', 'rms_px': 'דיוק המדידה',
+             'walls_seen': 'כיסוי הקירות בצילומים', 'work_match': 'כל עבודה תואמת לצילום', 'ring_diff': 'הקיר סביב העבודות',
+             'wall_diff': 'הקירות תואמים לצילומים'}
+    L += [f"| {'✓' if ok else '✗'} | {names.get(name, name)} | {why} |" for name, v, ok, why in checks]
+    if q != 'published':
+        L += ['', 'מה יעזור: תמונה איכותית (2000 פיקסלים ומעלה, לא חתוכה) ומידה נכונה לכל עבודה; צילומי הצבה רחבים שבכל אחד 2–3 עבודות ופינת חדר, כך שכל קיר וכל עבודה מופיעים בשני צילומים לפחות; או סרטון הליכה איטי של דקה–שתיים.']
     L += ['', '## מידות', '',
           f"- **החדר:** {r['x1'] - r['x0']:.2f} × {r['z1'] - r['z0']:.2f} מ', גובה {r['height']:.2f} מ'.",
           f"- **רצפה:** {floor_how}" + (' (ודאות נמוכה: כדאי למדוד גובה של עבודה אחת מהרצפה)' if fconf < 0.08 else '') + '.',
@@ -397,7 +410,7 @@ def main(argv):
         if f.name.endswith(('.overrides.json',)) or f.name == 'index.json':
             continue
         spec = json.load(open(f, encoding='utf-8'))
-        if spec.get('version') == 2 and spec.get('quality') != 'insufficient':
+        if spec.get('version') == 2 and spec.get('quality') == 'published':
             index[f.stem] = {'title': spec['title'], 'generated': spec['generated'], 'works': len(spec['works'])}
     json.dump(index, open(OUT / 'index.json', 'w'), indent=1, ensure_ascii=False)
 

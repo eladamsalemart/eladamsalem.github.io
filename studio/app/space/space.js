@@ -234,7 +234,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const side = sideMat(new THREE.Color('#d5cab6').multiplyScalar(avg));
     const back = sideMat('#4a4640');
     const box = new THREE.Mesh(new THREE.BoxGeometry(wM, hM, dM), [side, side, side, side, front, back]);
-    const sh = new THREE.Mesh(new THREE.PlaneGeometry(wM + Math.min(0.08, 0.15 * Math.min(wM, hM)), hM + Math.min(0.1, 0.18 * Math.min(wM, hM))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.12, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
+    const sh = new THREE.Mesh(new THREE.PlaneGeometry(wM + Math.min(0.08, 0.15 * Math.min(wM, hM)), hM + Math.min(0.1, 0.18 * Math.min(wM, hM))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.07, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
     sh.position.set(Math.min(0.012, 0.03 * wM), -Math.min(0.03, 0.06 * hM), -dM / 2 - 0.002);   // just off the wall, never in it
     g.add(box, sh); scene.add(g); g.updateMatrixWorld(true);
     // a spot above and in front of the work: it only makes the sheen (the light itself is measured)

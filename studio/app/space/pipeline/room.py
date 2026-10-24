@@ -14,6 +14,7 @@ import numpy as np
 from .works import load_image
 
 CELL = 0.05               # floor grid, metres
+DEPTH = 0.035             # a canvas's thickness (stretcher depth) when not recorded
 
 
 def K_of(c):
@@ -53,15 +54,19 @@ def work_masks(cams, works, sizes, matched=None, grow=0.06, unsure=0.15):
         for t, wk in works.items():
             sw, sh = sizes[t]
             g = grow if (matched is None or t in matched.get(p, ())) else unsure
-            X = np.array([[-sw / 2 - g, sh / 2 + g, 0], [sw / 2 + g, sh / 2 + g, 0],
-                          [sw / 2 + g, -sh / 2 - g, 0], [-sw / 2 - g, -sh / 2 - g, 0]])
+            # the whole object, not just its face: front and back corners, so a canvas's sides seen at an
+            # angle are masked too (else they get painted onto the wall beside it)
+            sc = wk.get('scale', np.ones(2))
+            hw, hh = sw * sc[0] / 2 + g, sh * sc[1] / 2 + g
+            X = np.array([[x, y, z] for z in (0.005, -(DEPTH + 0.01)) for x in (-hw, hw) for y in (-hh, hh)])
             # a work seen from behind its own plane, or reaching behind the camera, can't hide anything here
             if wk['R'][:, 2] @ (centre(c) - wk['c']) <= 0.05:
                 continue
             Xw = (wk['R'] @ X.T).T + wk['c']
             uv, z = project(c, Xw)
             if (z > 0.3).all():
-                cv2.fillConvexPoly(m, np.clip(uv, -4 * w, 5 * w).astype(np.int32), 1)
+                hull = cv2.convexHull(np.clip(uv, -4 * w, 5 * w).astype(np.float32)).astype(np.int32)
+                cv2.fillConvexPoly(m, hull, 1)
         out[p] = m
     return out
 

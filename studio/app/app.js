@@ -1,4 +1,4 @@
-// Studio prototype. Home → artist → exhibition (an album of works) → work, plus Search and Places.
+// Open Studio prototype. Home → artist → exhibition (an album of works) → work, plus Search and Places.
 // Content comes from the site's own /content/*.json plus studio/app/data/studio.json (Studio-only data),
 // or from window.STUDIO_DATA in a baked preview.
 
@@ -93,7 +93,7 @@ const person = a => `<a class="person" href="#/artist/${a.slug}">${im(a.portrait
 function home() {
   const live = M.exhibitions[0];
   return `<div class="wrap gut">
-    <div class="home-h"><h1>Studio</h1><span class="tag">Prototype</span></div>
+    <div class="home-h"><h1>Open Studio</h1><span class="tag">Prototype</span></div>
     ${live ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
       <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"')}
         <div class="ov"><div class="k">${esc(live.artist.name)}</div><h2>${esc(live.title)}</h2><div class="m">${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
@@ -296,7 +296,7 @@ function render() {
   for (const [re, view, t] of routes) { const m = hash.match(re); if (m) { html = view(m); tab = t || null; break; } }
   const top = tab === 'home' || tab === 'search' || hash === '#/places';
   document.querySelector('.bar').hidden = top;
-  if (!top) document.querySelector('.bar .wrap').innerHTML = `<button type="button" class="back" id="backBtn" style="border:0;background:none;cursor:pointer;padding:0"><span aria-hidden="true">←</span> Back</button><a class="brand" href="#/">Studio</a>`;
+  if (!top) document.querySelector('.bar .wrap').innerHTML = `<button type="button" class="back" id="backBtn" style="border:0;background:none;cursor:pointer;padding:0"><span aria-hidden="true">←</span> Back</button><a class="brand" href="#/">Open Studio</a>`;
   const tabs = document.querySelector('.tabs');
   tabs.hidden = false; document.body.classList.add('has-tabs');
   tabs.querySelectorAll('a').forEach(a => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });

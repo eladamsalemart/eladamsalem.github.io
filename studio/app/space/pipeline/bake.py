@@ -253,7 +253,16 @@ def work_light(work, size_m, images, cams, gains, res=48):
         return None
     seen = acc / np.maximum(wsum, 1e-9)[..., None]
     ratio = (seen + 4) / (refs + 4)
-    ratio = cv2.GaussianBlur(ratio.astype(np.float32), (0, 0), 1.5)
+    # light from a spot falls off smoothly across a canvas: fit a gentle surface (quadratic in u and v) to the
+    # ratio, so no trace of the painting's own shapes (or of a slight misregistration) gets into the light
+    sel = (np.isfinite(ratio).all(-1)) & (refs.mean(-1) > 12)
+    A = np.column_stack([np.ones(U.size), U.ravel(), V.ravel(), U.ravel() ** 2, V.ravel() ** 2, (U * V).ravel()])
+    fit = np.zeros_like(ratio)
+    for ch in range(3):
+        y = np.log(np.clip(ratio[..., ch], 0.05, 20)).ravel()
+        coef, *_ = np.linalg.lstsq(A[sel.ravel()], y[sel.ravel()], rcond=None)
+        fit[..., ch] = np.exp(A @ coef).reshape(ratio.shape[:2])
+    ratio = fit.astype(np.float32)
     # keep the light's shape (brighter under the spot, falling off at the edges), not the photo's exposure
     # or colour cast: the work keeps the true colours of its own image
     ratio = ratio / np.median(ratio.reshape(-1, 3), axis=0)
