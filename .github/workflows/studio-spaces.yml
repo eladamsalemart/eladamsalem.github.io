@@ -72,9 +72,10 @@ jobs:
         run: |
           git add studio/app/data/spaces
           git diff --cached --quiet || git commit -m "Studio: rebuild 3D spaces from the photos"
-          # someone may have pushed to studio meanwhile: take their work, keep ours on top
+          # someone may have pushed to studio meanwhile: merge their work in (never rebase: that would replay
+          # main's commits one by one, workflow files and all, which this job may not push), keeping our spaces
           for i in 1 2 3; do
-            git pull --rebase -X theirs origin studio && git push origin HEAD:studio && exit 0
+            git pull --no-rebase --no-edit -X ours origin studio && git push origin HEAD:studio && exit 0
             sleep 5
           done
           exit 1
