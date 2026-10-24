@@ -66,6 +66,22 @@ def wall_surfaces(box, height, fy=0.0, texel=bake.TEXEL):
     ]
 
 
+REVEAL = 0.35          # depth of an opening (the wall's thickness) when the photos can't tell
+
+
+def reveal_surfaces(wall, o, ceiling, name):
+    """The two sides and the top of an opening cut in a wall, as surfaces facing into the opening."""
+    top = wall.o + wall.v * (ceiling - o['height'])              # the wall at the opening's top height, u = 0
+    out_dir = -wall.n                                            # into the wall's thickness
+    down = np.array([0, -1.0, 0])
+    h = o['height']
+    return [
+        bake.Surface(f'{name}-a', top + wall.u * o['from'], out_dir, down, REVEAL, h, wall.u),
+        bake.Surface(f'{name}-b', top + wall.u * o['to'] + out_dir * REVEAL, -out_dir, down, REVEAL, h, -wall.u),
+        bake.Surface(f'{name}-top', top + wall.u * o['from'], wall.u, out_dir, o['to'] - o['from'], REVEAL, down),
+    ]
+
+
 def floor_light(s, images, cams, masks, gains):
     """The light on the floor (pools under spots, darker corners), from the views that look steeply down.
     A polished floor mirrors the walls when seen at a low angle, so those views are left out; what remains
@@ -192,14 +208,33 @@ def build(slug, log=print):
     lab = cv2.cvtColor(ref.astype(np.uint8), cv2.COLOR_BGR2LAB).reshape(-1, 3).astype(np.float32)
     floor_lab = (np.median(lab, 0), np.median(np.abs(lab - np.median(lab, 0)), 0) * 1.48)
     measured = {'wall-x0': (0, 1), 'wall-x1': (0, -1), 'wall-z0': (2, 1), 'wall-z1': (2, -1)}
-    for s in wall_surfaces(box, ceiling, fy, texel=0.005):
-        col, cov, dis, n = bake.bake(s, images, cams, masks, gains)
+    walls_baked = [(s, *bake.bake(s, images, cams, masks, gains)[:2]) for s in wall_surfaces(box, ceiling, fy, texel=0.005)]
+    wall_seen = float(np.mean([c.mean() for _, _, c in walls_baked]))
+    # a wall no photo saw (or barely) is completed from the walls that were seen: the same plaster, the
+    # same fall of light from floor to ceiling, so it reads as the same room rather than a hole
+    ref = max(walls_baked, key=lambda b: b[2].mean())
+    profile = room.wall_profile(ref[1], ref[2] > 0)
+    for s, col, cov in walls_baked:
+        if cov.mean() < 0.15 and profile is not None:
+            synth = np.repeat(profile[:, None, :], col.shape[1], axis=1).astype(np.float32)
+            synth += cv2.GaussianBlur(np.random.default_rng(1).normal(0, 2.0, synth.shape[:2]).astype(np.float32), (0, 0), 0.7)[..., None]
+            col[cov == 0] = np.clip(synth, 0, 255).astype(np.uint8)[cov == 0]; cov[:] = 1
+    for s, col, cov in walls_baked:
         # openings only in walls whose place was measured (a guessed wall has nothing to cut into)
+        # and only where the wall was well photographed: a poorly seen corner is no evidence of a doorway
         ops = room.openings_in_wall(col, cov > 0, floor_lab, s.texel, ceiling, ceiling) \
-            if box_how[measured[s.name]].startswith('נמדד') else []
+            if box_how[measured[s.name]].startswith('נמדד') and cov.mean() > 0.7 else []
         col = bake.fill_holes(col, cov)
         write_jpg(d / f'{s.name}.jpg', col)
         surfaces.append(surface_json(s, fy, f'{rel}/{s.name}.jpg', 'wall', cov, ops))
+        # the inside of each opening (the wall's thickness) is baked from the photos too, like the walls
+        for k, o in enumerate(ops):
+            o['depth'] = REVEAL
+            for r in reveal_surfaces(s, o, ceiling, f'{s.name}-o{k}'):
+                rc, rcov, _, _ = bake.bake(r, images, cams, masks, gains)
+                rc = bake.fill_holes(rc, rcov)
+                write_jpg(d / f'{r.name}.jpg', rc)
+                surfaces.append(surface_json(r, fy, f'{rel}/{r.name}.jpg', 'reveal', rcov, []))
         if ops:
             log(f"  {s.name}: openings " + ', '.join(f"{o['from']:.2f}-{o['to']:.2f} m{' (arch)' if o['arch'] else ''}" for o in ops))
     if flight is not None:
@@ -265,6 +300,18 @@ def build(slug, log=print):
         'floorReflect': [round(float(np.clip((floor_s.gloss - 1) * 0.2, 0.02, 0.1)), 3), round(float(np.clip((floor_s.gloss - 1) * 0.9, 0.05, 0.45)), 3)],
         'floorGloss': round(floor_s.gloss, 3),
     }
+    # how much to trust this space: too little and it is not offered as a walk (the report says what's missing)
+    measured_walls = sum(v.startswith('נמדד') for v in box_how.values())
+    if len(works) < 4 or measured_walls < 2:
+        quality = 'insufficient'
+    elif measured_walls < 4 or wall_seen < 0.7 or g['rms_px'] > 4:
+        quality = 'partial'
+    else:
+        quality = 'good'
+    spec['quality'] = quality
+    if quality == 'partial':
+        spec['source'] = f"Partly reconstructed from {len(cams)} installation photos"
+    log(f"  quality: {quality} ({len(works)} works placed, {measured_walls} walls measured, walls seen {wall_seen:.0%})")
     json.dump(spec, open(OUT / f'{slug}.json', 'w'), indent=1, ensure_ascii=False)
     write_report(slug, ex, found, groups, g, sizes, works, spec, box_how, floor_how, ceiling_how, fconf, time.time() - t0)
     log(f"  done in {time.time() - t0:.0f} s")
@@ -287,6 +334,12 @@ def write_report(slug, ex, found, groups, g, sizes, works, spec, box_how, floor_
         names = [t for t in hits if t != '_shape']
         L.append(f"| `{p.split('/')[-1]}` | {', '.join(names) if names else '—'} |")
     r = spec['room']
+    q = spec.get('quality')
+    L += ['', '## איכות', '',
+          {'good': 'החלל שלם ונמדד היטב, ומוצג באפליקציה.',
+           'partial': 'החלל מוצג באפליקציה כ"שחזור חלקי": חלק מהקירות או מהעבודות לא נמדדו מהצילומים.',
+           'insufficient': 'אין מספיק מידע בצילומים כדי לבנות חלל אמין, ולכן הוא לא מוצג כסיור. התערוכה עצמה מוצגת עם הצילומים שלה.'}.get(q, ''),
+          '', 'מה ישפר: צילומים רחבים שבכל אחד 2–3 עבודות ופינת חדר, כך שכל קיר מופיע בשני צילומים לפחות; או סרטון הליכה איטי של דקה–שתיים; ומד לייזר לאורך, רוחב וגובה החדר.' if q != 'good' else '']
     L += ['', '## מידות', '',
           f"- **החדר:** {r['x1'] - r['x0']:.2f} × {r['z1'] - r['z0']:.2f} מ', גובה {r['height']:.2f} מ'.",
           f"- **רצפה:** {floor_how}" + (' (ודאות נמוכה: כדאי למדוד גובה של עבודה אחת מהרצפה)' if fconf < 0.08 else '') + '.',
@@ -344,7 +397,7 @@ def main(argv):
         if f.name.endswith(('.overrides.json',)) or f.name == 'index.json':
             continue
         spec = json.load(open(f, encoding='utf-8'))
-        if spec.get('version') == 2:
+        if spec.get('version') == 2 and spec.get('quality') != 'insufficient':
             index[f.stem] = {'title': spec['title'], 'generated': spec['generated'], 'works': len(spec['works'])}
     json.dump(index, open(OUT / 'index.json', 'w'), indent=1, ensure_ascii=False)
 

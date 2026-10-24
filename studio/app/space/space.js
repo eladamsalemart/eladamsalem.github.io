@@ -42,7 +42,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   root.prepend(renderer.domElement);
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#d8d7d3');
-  const camera = new THREE.PerspectiveCamera(60, 1, 0.03, 120);
+  // a tight depth range (far / near of a few hundred) keeps surfaces from flickering against each other
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.08, 45);
   const rig = new THREE.Group(); rig.add(camera); scene.add(rig);
   const aniso = renderer.capabilities.getMaxAnisotropy();
   const loader = new THREE.TextureLoader();
@@ -88,6 +89,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
 
   const floorS = surfaces.find(s => s.kind === 'floor');
   surfaces.forEach((s, i) => {
+    if (s.kind === 'reveal') { scene.add(planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide }))); return; }
     if (s.kind === 'wall' || s.kind === 'ceiling') {
       const m = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide }), s.openings || []);
       scene.add(m);
@@ -100,19 +102,23 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const depth = o.depth || 0.3;
     const U = V(s.u), N = V(s.normal), O = V(s.origin);
     const bottom = O.clone().addScaledVector(V(s.v), s.size[1]);  // the wall's foot at u = 0
-    const shape = openingPath(o, new THREE.Shape());
-    const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 24 });
-    const basis = new THREE.Matrix4().makeBasis(U, new THREE.Vector3(0, 1, 0), N.clone().negate());
-    const rev = new THREE.Mesh(geo, [new THREE.MeshBasicMaterial({ visible: false }), new THREE.MeshStandardMaterial({ color: '#d9d7d2', roughness: 1, side: THREE.DoubleSide })]);
-    rev.applyMatrix4(basis); rev.position.copy(bottom); scene.add(rev);
+    if (!surfaces.some(x => x.kind === 'reveal')) {          // older spaces: a plain modelled thickness
+      const geo = new THREE.ExtrudeGeometry(openingPath(o, new THREE.Shape()), { depth, bevelEnabled: false, curveSegments: 24 });
+      const basis = new THREE.Matrix4().makeBasis(U, new THREE.Vector3(0, 1, 0), N.clone().negate());
+      const rev = new THREE.Mesh(geo, [new THREE.MeshBasicMaterial({ visible: false }), new THREE.MeshStandardMaterial({ color: '#d9d7d2', roughness: 1, side: THREE.DoubleSide })]);
+      rev.applyMatrix4(basis); rev.position.copy(bottom); scene.add(rev);
+    }
     const w = o.to - o.from + 2.4, d = 3.2;
     const mid = bottom.clone().addScaledVector(U, (o.from + o.to) / 2).addScaledVector(N, -(depth + d / 2));
     const box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: '#bdbab4', roughness: 1, side: THREE.BackSide }));
     box.scale.set(Math.abs(U.x) * w + Math.abs(N.x) * d, R.height, Math.abs(U.z) * w + Math.abs(N.z) * d);
     box.position.copy(mid).setY(R.height / 2); scene.add(box);
     if (floorS) {
-      const f = new THREE.Mesh(new THREE.PlaneGeometry(box.scale.x, box.scale.z), floorMaterial(box.scale.x, box.scale.z, false));
-      f.rotation.x = -Math.PI / 2; f.position.copy(mid).setY(0.002); scene.add(f);
+      // the floor runs on from the wall's face, through the opening, into the room beyond
+      const fm = bottom.clone().addScaledVector(U, (o.from + o.to) / 2).addScaledVector(N, -(depth + d) / 2);
+      const fw = Math.abs(U.x) * w + Math.abs(N.x) * (depth + d), fl = Math.abs(U.z) * w + Math.abs(N.z) * (depth + d);
+      const f = new THREE.Mesh(new THREE.PlaneGeometry(fw, fl), floorMaterial(fw, fl, false));
+      f.rotation.x = -Math.PI / 2; f.position.copy(fm).setY(0.002); scene.add(f);
     }
   }
 
@@ -148,6 +154,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   }
 
   // --- where you may stand: inside the room, and into an opening to look through ---------
+  const keepOut = (spec.works || []).map(h => {
+    const n = V(h.axes[2]).setY(0).normalize(), x = new THREE.Vector3(-n.z, 0, n.x);
+    return { c: V(h.centre).setY(EYE), n, x, hw: h.measured[0] / 200, stop: 0.6 };
+  });
   const ops = surfaces.filter(s => s.kind === 'wall').flatMap(s => (s.openings || []).map(o => ({ s, o })));
   function clampStand(p, from) {
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -163,6 +173,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       }
     }
     if (!inRoom(p)) { p.x = clamp(p.x, R.x0 + MARGIN, R.x1 - MARGIN); p.z = clamp(p.z, R.z0 + MARGIN, R.z1 - MARGIN); }
+    // and not into a work: stop where its image is still sharp (about 60 cm), as a visitor would
+    for (const k of keepOut) {
+      const rel = p.clone().sub(k.c), a = rel.dot(k.x), d = rel.dot(k.n);
+      if (Math.abs(a) < k.hw + 0.25 && d < k.stop && d > -0.3) p.addScaledVector(k.n, k.stop - d);
+    }
     return p;
   }
 
@@ -206,7 +221,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     g.matrix.makeBasis(X, Y, Z).setPosition(c);
     // front: no diffuse light of its own (that is the measured light), only a faint varnish sheen from the spots
     const front = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: tex, roughness: 0.42, metalness: 0, toneMapped: false });
-    front.normalMap = reliefFrom(tex.image); front.normalScale.set(0.35, 0.35);
+    front.normalMap = reliefFrom(tex.image); front.normalScale.set(0.2, 0.2);
     if (light) {
       const k = (h.lightScale || 1).toFixed(3);
       front.onBeforeCompile = sh => {
@@ -219,8 +234,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const side = sideMat(new THREE.Color('#d5cab6').multiplyScalar(avg));
     const back = sideMat('#4a4640');
     const box = new THREE.Mesh(new THREE.BoxGeometry(wM, hM, dM), [side, side, side, side, front, back]);
-    const sh = new THREE.Mesh(new THREE.PlaneGeometry(wM + Math.min(0.08, 0.15 * Math.min(wM, hM)), hM + Math.min(0.1, 0.18 * Math.min(wM, hM))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.12, depthWrite: false, toneMapped: false }));
-    sh.position.set(Math.min(0.012, 0.03 * wM), -Math.min(0.03, 0.06 * hM), -dM / 2 - 0.004);
+    const sh = new THREE.Mesh(new THREE.PlaneGeometry(wM + Math.min(0.08, 0.15 * Math.min(wM, hM)), hM + Math.min(0.1, 0.18 * Math.min(wM, hM))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.12, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
+    sh.position.set(Math.min(0.012, 0.03 * wM), -Math.min(0.03, 0.06 * hM), -dM / 2 - 0.002);   // just off the wall, never in it
     g.add(box, sh); scene.add(g); g.updateMatrixWorld(true);
     // a spot above and in front of the work: it only makes the sheen (the light itself is measured)
     const centre = V(h.centre);
@@ -237,14 +252,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   // --- moving -----------------------------------------------------------------
   let mode = 'walk', idx = 0, yaw = 0, pitch = 0, drag = null, moved = 0, walkTo = null;
   const views = spec.views || [];
-  // start as a visitor would: near one end of the room, looking down its length (from the end most photos were taken)
+  // start as a visitor would: near the end of the room most photos were taken from, looking down its length
   const longX = R.x1 - R.x0 >= R.z1 - R.z0, cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2;
-  const fromHigh = views.filter(v => (longX ? v.pos[0] - cx : v.pos[2] - cz) > 0).length >= views.length / 2;
-  const len = longX ? R.x1 - R.x0 : R.z1 - R.z0, back = Math.min(1.4, len * 0.2) - len / 2;
-  const sgn = fromHigh ? -1 : 1;
-  const pos = (longX ? new THREE.Vector3(cx - sgn * back, EYE, cz) : new THREE.Vector3(cx, EYE, cz - sgn * back));
+  const end = views.filter(v => (longX ? v.pos[0] - cx : v.pos[2] - cz) > 0).length >= views.length / 2 ? 1 : -1;
+  const len = longX ? R.x1 - R.x0 : R.z1 - R.z0, off = len / 2 - Math.min(1.4, len * 0.15);
+  const pos = longX ? new THREE.Vector3(cx + end * off, EYE, cz) : new THREE.Vector3(cx, EYE, cz + end * off);
   clampStand(pos);
-  const look = longX ? new THREE.Vector3(cx + sgn * len, EYE - 0.1, cz) : new THREE.Vector3(cx, EYE - 0.1, cz + sgn * len);
+  const look = longX ? new THREE.Vector3(cx - end * len, EYE - 0.1, cz) : new THREE.Vector3(cx, EYE - 0.1, cz - end * len);
   const tPos = pos.clone(), tLook = look.clone(), up = new THREE.Vector3(0, 1, 0), tUp = up.clone();
   let tFov = 62, free = true;
   const fmtSize = p => `${Math.round(p.h.size[1])} × ${Math.round(p.h.size[0])} cm`;   // as recorded

@@ -288,8 +288,10 @@ const routes = [
   [/^#\/about$/, () => about()],
 ];
 
+let prevHash = null, lastHash = null;
 function render() {
   const hash = location.hash || '#/';
+  if (hash !== lastHash) { prevHash = lastHash; lastHash = hash; }
   let html = notFound(), tab = null;
   for (const [re, view, t] of routes) { const m = hash.match(re); if (m) { html = view(m); tab = t || null; break; } }
   const top = tab === 'home' || tab === 'search' || hash === '#/places';
@@ -314,7 +316,12 @@ async function enterSpace(slug) {
   const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
   openSpaceView = await openSpace({
     spec: e.space, works: M.works, src,
-    onClose: () => { openSpaceView = null; location.hash = `#/exhibition/${slug}`; },
+    // leaving the space goes back to where it was entered from, without leaving the space in the history
+    onClose: () => {
+      openSpaceView = null;
+      const page = `#/exhibition/${slug}`;
+      if (prevHash === page) history.back(); else location.replace(page);
+    },
     onOpenWork: w => { location.hash = `#/work/${w.slug}`; },
   });
 }

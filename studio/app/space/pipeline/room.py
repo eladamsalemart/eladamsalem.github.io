@@ -258,3 +258,18 @@ def openings_in_wall(img, valid, floor_lab, texel, top_height, ceiling):
         height = float(np.clip(mid if np.isfinite(mid) else 2.6, 1.9, ceiling - 0.05))
         out.append({'from': a * texel, 'to': b * texel, 'height': round(height, 2), 'arch': arch})
     return out
+
+
+def wall_profile(img, seen):
+    """A seen wall's colour from floor to ceiling (row by row), with its plaster grain: the template for a
+    wall no photo saw."""
+    rows = []
+    for r in range(img.shape[0]):
+        m = seen[r]
+        rows.append(np.median(img[r][m], axis=0) if m.sum() > 20 else None)
+    known = [i for i, v in enumerate(rows) if v is not None]
+    if len(known) < img.shape[0] * 0.3:
+        return None
+    prof = np.array([rows[i] if rows[i] is not None else rows[min(known, key=lambda k: abs(k - i))] for i in range(len(rows))], np.float32)
+    prof = cv2.GaussianBlur(prof[:, None, :], (1, 0), sigmaX=0.1, sigmaY=8)[:, 0, :]
+    return np.clip(prof, 0, 255).astype(np.uint8)

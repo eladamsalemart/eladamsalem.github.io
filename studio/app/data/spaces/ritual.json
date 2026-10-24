@@ -132,21 +132,209 @@
     0.0,
     -1.0
    ],
-   "seen": 0.918,
+   "seen": 0.912,
    "openings": [
     {
      "from": 1.09,
      "to": 3.4450000000000003,
      "height": 2.83,
-     "arch": false
+     "arch": false,
+     "depth": 0.35
     },
     {
      "from": 6.23,
      "to": 7.065,
      "height": 3.24,
-     "arch": false
+     "arch": false,
+     "depth": 0.35
     }
    ]
+  },
+  {
+   "name": "wall-z1-o0-a",
+   "kind": "reveal",
+   "texture": "data/spaces/ritual/wall-z1-o0-a.jpg",
+   "origin": [
+    5.067,
+    2.83,
+    4.1137
+   ],
+   "u": [
+    -0.0,
+    -0.0,
+    1.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    0.35,
+    2.83
+   ],
+   "normal": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "seen": 1.0,
+   "openings": []
+  },
+  {
+   "name": "wall-z1-o0-b",
+   "kind": "reveal",
+   "texture": "data/spaces/ritual/wall-z1-o0-b.jpg",
+   "origin": [
+    2.702,
+    2.83,
+    4.4637
+   ],
+   "u": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    0.35,
+    2.83
+   ],
+   "normal": [
+    1.0,
+    -0.0,
+    -0.0
+   ],
+   "seen": 0.0,
+   "openings": []
+  },
+  {
+   "name": "wall-z1-o0-top",
+   "kind": "reveal",
+   "texture": "data/spaces/ritual/wall-z1-o0-top.jpg",
+   "origin": [
+    5.067,
+    2.83,
+    4.1137
+   ],
+   "u": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    -0.0,
+    -0.0,
+    1.0
+   ],
+   "size": [
+    2.365,
+    0.35
+   ],
+   "normal": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "seen": 1.0,
+   "openings": []
+  },
+  {
+   "name": "wall-z1-o1-a",
+   "kind": "reveal",
+   "texture": "data/spaces/ritual/wall-z1-o1-a.jpg",
+   "origin": [
+    -0.083,
+    3.24,
+    4.1137
+   ],
+   "u": [
+    -0.0,
+    -0.0,
+    1.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    0.35,
+    3.24
+   ],
+   "normal": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "seen": 1.0,
+   "openings": []
+  },
+  {
+   "name": "wall-z1-o1-b",
+   "kind": "reveal",
+   "texture": "data/spaces/ritual/wall-z1-o1-b.jpg",
+   "origin": [
+    -0.918,
+    3.24,
+    4.4637
+   ],
+   "u": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "v": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    0.35,
+    3.24
+   ],
+   "normal": [
+    1.0,
+    -0.0,
+    -0.0
+   ],
+   "seen": 0.0,
+   "openings": []
+  },
+  {
+   "name": "wall-z1-o1-top",
+   "kind": "reveal",
+   "texture": "data/spaces/ritual/wall-z1-o1-top.jpg",
+   "origin": [
+    -0.083,
+    3.24,
+    4.1137
+   ],
+   "u": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "v": [
+    -0.0,
+    -0.0,
+    1.0
+   ],
+   "size": [
+    0.835,
+    0.35
+   ],
+   "normal": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "seen": 0.522,
+   "openings": []
   },
   {
    "name": "floor",
@@ -717,5 +905,6 @@
   0.063,
   0.283
  ],
- "floorGloss": 1.314
+ "floorGloss": 1.314,
+ "quality": "good"
 }

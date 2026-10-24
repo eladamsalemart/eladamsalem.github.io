@@ -2,7 +2,7 @@
  "version": 2,
  "title": "Nature of Man",
  "generated": "2026-10-24",
- "source": "Built from 4 installation photos",
+ "source": "Partly reconstructed from 4 installation photos",
  "room": {
   "x0": -5.811,
   "x1": 3.035,
@@ -70,7 +70,7 @@
     0.0,
     0.0
    ],
-   "seen": 0.0,
+   "seen": 1.0,
    "openings": []
   },
   {
@@ -101,7 +101,7 @@
     0.0,
     1.0
    ],
-   "seen": 0.593,
+   "seen": 0.597,
    "openings": []
   },
   {
@@ -516,5 +516,6 @@
   0.02,
   0.05
  ],
- "floorGloss": 1.01
+ "floorGloss": 1.028,
+ "quality": "partial"
 }

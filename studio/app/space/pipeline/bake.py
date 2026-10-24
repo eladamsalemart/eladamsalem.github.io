@@ -14,6 +14,7 @@ import numpy as np
 from .room import project, centre, K_of
 
 TEXEL = 0.01            # metres per texel on walls
+GRAZING = 0.17          # a view this oblique (cosine to the surface's normal) smears; treated as unseen
 
 
 class Surface:
@@ -84,7 +85,7 @@ def bake(s, images, cams, masks, gains, sharp=3.0):
     best one (from far, or at a grazing angle, where a small error moves things a long way) is left out
     there, even where the best photo fades out near a work's edge or its own frame."""
     X = s.grid()
-    views = []
+    views, facings = [], []
     for p, cam in cams.items():
         col, wgt, res, view = sample(images[p], cam, X, masks[p])
         if wgt.max() <= 0:
@@ -93,21 +94,24 @@ def bake(s, images, cams, masks, gains, sharp=3.0):
         quality = (res * facing) ** sharp * (facing > 0.08)
         # where this photo truly sees the spot (inside its frame, not behind a work), feathering aside
         sees = (wgt > 0) | ((masks[p] is not None) & (quality > 0) & _near_mask_only(images[p], cam, X, masks[p]))
-        views.append((col * gains[p][None, None, :], wgt, quality, sees))
+        views.append((col * gains[p][None, None, :], wgt, quality, sees)); facings.append(facing)
     best = np.max([q * sv for _, _, q, sv in views], axis=0) if views else np.zeros((s.H, s.W))
     acc = np.zeros((s.H, s.W, 3), np.float64); wsum = np.zeros((s.H, s.W))
     cols, ws = [], []
-    for col, wgt, quality, sees in views:
+    steep = np.zeros((s.H, s.W))
+    for (col, wgt, quality, sees), facing in zip(views, facings):
         q = wgt * quality * (quality >= 0.1 * best)
         acc += col * q[..., None]; wsum += q
         cols.append(col); ws.append(q)
+        steep = np.maximum(steep, np.where(q > 0, facing, 0))
     out = acc / np.maximum(wsum, 1e-12)[..., None]
     dis = np.zeros((s.H, s.W)); wn = np.zeros((s.H, s.W))
     for col, q in zip(cols, ws):
         qn = (q > 0).astype(float)
         dis += qn * np.abs(col - out).mean(-1); wn += qn
     dis = dis / np.maximum(wn, 1)
-    cover = (wsum > 0).astype(np.float32)
+    # seen only at a grazing angle is not really seen: the photo's pixels smear along the surface there
+    cover = ((wsum > 0) & (steep >= GRAZING)).astype(np.float32)
     return np.clip(out, 0, 255).astype(np.uint8), cover, dis, wn
 
 
@@ -122,12 +126,87 @@ def _near_mask_only(img, cam, X, mask):
     return inside & (m < 0.5)
 
 
+def membrane(img, miss):
+    """The smoothest colour field that agrees with the seen surface around each gap (Laplace, solved coarse
+    to fine). Where a gap runs off the surface's own edge, the field just carries on."""
+    H, W = miss.shape
+    k3 = np.ones((3, 3), np.float32)
+    V = None
+    for scale, iters in ((1 / 16, 800), (1 / 4, 300), (1 / 2, 120)):
+        size = (max(4, int(W * scale)), max(4, int(H * scale)))
+        s = cv2.resize(img, size, interpolation=cv2.INTER_AREA).astype(np.float32)
+        m = cv2.resize(miss.astype(np.uint8), size, interpolation=cv2.INTER_NEAREST) > 0
+        known = ~m
+        kn = cv2.filter2D(known.astype(np.float32), -1, k3, borderType=cv2.BORDER_REFLECT)
+        # seen pixels next to a gap hold their colour; the rest of the gap relaxes between them
+        good = known & (cv2.erode(known.astype(np.uint8), k3.astype(np.uint8)) > 0) | (known & (kn >= 9))
+        start = np.where(known[..., None], s, (cv2.filter2D(s * known[..., None], -1, np.ones((15, 15), np.float32), borderType=cv2.BORDER_REFLECT) /
+                                                np.maximum(cv2.filter2D(known.astype(np.float32), -1, np.ones((15, 15), np.float32), borderType=cv2.BORDER_REFLECT), 1e-6)[..., None]))
+        V = start if V is None else np.where(known[..., None], s, cv2.resize(V, size, interpolation=cv2.INTER_LINEAR))
+        for _ in range(iters):
+            avg = cv2.filter2D(V, -1, k3 / 9, borderType=cv2.BORDER_REFLECT)
+            V[m] = avg[m]
+    return cv2.resize(V, (W, H), interpolation=cv2.INTER_LINEAR)
+
+
+def match_edges(out, img, miss):
+    """Blend a filled area into what surrounds it: along every edge where it meets seen surface, the colour
+    difference is measured and spread smoothly across the fill (a membrane, solved coarse to fine). Where a
+    fill runs off the surface's own edge there is nothing to match, so the correction just carries on."""
+    H, W = miss.shape
+    if not miss.any() or miss.all():
+        return out
+    k3 = np.ones((3, 3), np.float32)
+    C = None
+    for scale, iters in ((1 / 16, 800), (1 / 4, 300), (1 / 2, 120)):
+        size = (max(4, int(W * scale)), max(4, int(H * scale)))
+        s = cv2.resize(out, size, interpolation=cv2.INTER_AREA).astype(np.float32)
+        m = cv2.resize(miss.astype(np.uint8), size, interpolation=cv2.INTER_NEAREST) > 0
+        known = ~m
+        if not known.any():
+            return out
+        kn = cv2.filter2D(known.astype(np.float32), -1, k3, borderType=cv2.BORDER_REFLECT)
+        outside = cv2.filter2D(s * known[..., None], -1, k3, borderType=cv2.BORDER_REFLECT) / np.maximum(kn, 1e-6)[..., None]
+        edge = m & (kn > 0)
+        C = np.zeros_like(s) if C is None else cv2.resize(C, size, interpolation=cv2.INTER_LINEAR)
+        C[edge] = outside[edge] - s[edge]
+        free = m & ~edge
+        cnt = cv2.filter2D(m.astype(np.float32), -1, k3, borderType=cv2.BORDER_REFLECT)
+        for _ in range(iters):
+            avg = cv2.filter2D(C * m[..., None], -1, k3, borderType=cv2.BORDER_REFLECT)
+            C[free] = (avg / np.maximum(cnt, 1e-6)[..., None])[free]
+    Cb = cv2.resize(C, (W, H), interpolation=cv2.INTER_LINEAR)
+    res = out.astype(np.float32); res[miss] += Cb[miss]
+    return np.clip(res, 0, 255).astype(np.uint8)
+
+
 def fill_holes(img, cover):
     """Where no photo saw the surface: small gaps are continued from their edges at full detail, large
     ones softly from the surrounding colour (both are hidden behind works more often than not)."""
     miss = (cover == 0)
     if not miss.any() or miss.all():
         return img
+    from . import inpaint
+    lam = inpaint.fill(img, miss)
+    if lam is not None:
+        out = img.copy(); out[miss] = lam[miss]
+        # the network keeps edges and texture well but drifts in tone toward the middle of a large area; so
+        # the fill's broad light is a smooth membrane stretched from all its seen edges, and only its detail
+        # comes from the network
+        base = membrane(out, miss)                                   # (out, not img: the gap's black must not bleed into its edge)
+        lf = lam.astype(np.float32)                                  # the network's whole picture: no step at the gap's edge
+        detail = lf - cv2.GaussianBlur(lf, (0, 0), 6)
+        out = np.where(miss[..., None], np.clip(base + detail, 0, 255), img).astype(np.uint8)
+        # the network works at a coarser scale: give the fill the plaster's own fine grain
+        grain = img.astype(np.float32) - cv2.GaussianBlur(img.astype(np.float32), (0, 0), 2)
+        sd = min(2.5, float(np.median(np.abs(grain[~miss]))) * 1.48) if (~miss).any() else 0
+        noise = cv2.GaussianBlur(np.random.default_rng(0).normal(0, sd, img.shape[:2]).astype(np.float32), (0, 0), 0.7)
+        out = np.where(miss[..., None], np.clip(out.astype(np.float32) + noise[..., None], 0, 255), out).astype(np.uint8)
+        # soften the seam between seen and filled
+        edge = cv2.dilate(miss.astype(np.uint8), np.ones((5, 5), np.uint8)) & ~cv2.erode(miss.astype(np.uint8), np.ones((5, 5), np.uint8))
+        blur = cv2.GaussianBlur(out, (0, 0), 1.5)
+        out[edge > 0] = blur[edge > 0]
+        return out
     out = img.copy()
     # small gaps (up to a few cm wide): inpaint at full resolution
     small = miss & (cv2.distanceTransform(miss.astype(np.uint8), cv2.DIST_L2, 3) <= 6)
@@ -175,4 +254,7 @@ def work_light(work, size_m, images, cams, gains, res=48):
     seen = acc / np.maximum(wsum, 1e-9)[..., None]
     ratio = (seen + 4) / (refs + 4)
     ratio = cv2.GaussianBlur(ratio.astype(np.float32), (0, 0), 1.5)
-    return np.clip(ratio, 0.2, 2.05)
+    # keep the light's shape (brighter under the spot, falling off at the edges), not the photo's exposure
+    # or colour cast: the work keeps the true colours of its own image
+    ratio = ratio / np.median(ratio.reshape(-1, 3), axis=0)
+    return np.clip(ratio, 0.6, 1.3)
