@@ -1,0 +1,218 @@
+{
+ "artist": {
+  "name": "Lia Morén",
+  "discipline": "Painter",
+  "city": "Haifa",
+  "photo": "data/demo/portrait.jpg",
+  "statement": "I paint the hour when a place stops being a view and becomes a feeling: tide lines, orchards, the light left in a room.",
+  "bio": "Lia Morén is a fictional painter, made up to show how Open Studio works for artists. Her works here are generated, not painted.",
+  "link": "",
+  "cover": "data/demo/works/late-garden.jpg"
+ },
+ "works": [
+  {
+   "id": "low-tide",
+   "title": "Low Tide",
+   "year": "2025",
+   "medium": "Oil on canvas",
+   "width": 100,
+   "height": 80,
+   "depth": 3.5,
+   "image": "data/demo/works/low-tide.jpg",
+   "check": {
+    "W": 5400,
+    "H": 4320,
+    "long": 5400,
+    "mean": 120,
+    "clipped": 0,
+    "sharp": 0.5,
+    "backdrop": false
+   },
+   "framed": "no"
+  },
+  {
+   "id": "orchard-at-noon",
+   "title": "Orchard at Noon",
+   "year": "2025",
+   "medium": "Oil on canvas",
+   "width": 120,
+   "height": 150,
+   "depth": 3.5,
+   "image": "data/demo/works/orchard-at-noon.jpg",
+   "check": {
+    "W": 4320,
+    "H": 5400,
+    "long": 5400,
+    "mean": 120,
+    "clipped": 0,
+    "sharp": 0.5,
+    "backdrop": false
+   },
+   "framed": "no"
+  },
+  {
+   "id": "two-rooms",
+   "title": "Two Rooms",
+   "year": "2024",
+   "medium": "Acrylic on canvas",
+   "width": 90,
+   "height": 90,
+   "depth": 3.5,
+   "image": "data/demo/works/two-rooms.jpg",
+   "check": {
+    "W": 5400,
+    "H": 5400,
+    "long": 5400,
+    "mean": 120,
+    "clipped": 0,
+    "sharp": 0.5,
+    "backdrop": false
+   },
+   "framed": "no"
+  },
+  {
+   "id": "late-garden",
+   "title": "Late Garden",
+   "year": "2024",
+   "medium": "Oil on linen",
+   "width": 140,
+   "height": 110,
+   "depth": 3.5,
+   "image": "data/demo/works/late-garden.jpg",
+   "check": {
+    "W": 5400,
+    "H": 4242,
+    "long": 5400,
+    "mean": 120,
+    "clipped": 0,
+    "sharp": 0.5,
+    "backdrop": false
+   },
+   "framed": "no"
+  },
+  {
+   "id": "night-window",
+   "title": "Night Window",
+   "year": "2023",
+   "medium": "Oil on panel",
+   "width": "",
+   "height": 80,
+   "depth": 0.5,
+   "image": "data/demo/works/night-window.jpg",
+   "check": {
+    "W": 4050,
+    "H": 5400,
+    "long": 5400,
+    "mean": 120,
+    "clipped": 0,
+    "sharp": 0.5,
+    "backdrop": false
+   },
+   "framed": "no"
+  },
+  {
+   "id": "salt",
+   "title": "Salt",
+   "year": "2023",
+   "medium": "Gouache on paper",
+   "width": 50,
+   "height": 50,
+   "depth": 0.5,
+   "image": "data/demo/works/salt.jpg",
+   "check": {
+    "W": 5400,
+    "H": 5400,
+    "long": 5400,
+    "mean": 120,
+    "clipped": 0,
+    "sharp": 0.5,
+    "backdrop": false
+   },
+   "framed": "no"
+  },
+  {
+   "id": "dusk-study-i",
+   "title": "Dusk Study I",
+   "year": "2025",
+   "medium": "Oil on canvas",
+   "width": 40,
+   "height": 30,
+   "depth": 3.5,
+   "image": "data/demo/works/dusk-study-i.jpg",
+   "check": {
+    "W": 1200,
+    "H": 900,
+    "long": 1200,
+    "mean": 120,
+    "clipped": 0,
+    "sharp": 0.5,
+    "backdrop": false
+   },
+   "framed": "no"
+  },
+  {
+   "id": "dusk-study-ii",
+   "title": "Dusk Study II",
+   "year": "2025",
+   "medium": "Oil on canvas",
+   "width": 40,
+   "height": 30,
+   "depth": 3.5,
+   "image": "data/demo/works/dusk-study-ii.jpg",
+   "check": {
+    "W": 5400,
+    "H": 4050,
+    "long": 5400,
+    "mean": 120,
+    "clipped": 0,
+    "sharp": 0.5,
+    "backdrop": false
+   },
+   "framed": "no"
+  }
+ ],
+ "exhibitions": [
+  {
+   "id": "shoreline",
+   "title": "Shoreline",
+   "venue": "Harbour Gallery",
+   "city": "Haifa",
+   "year": "2025",
+   "dates": "3 Apr – 18 May 2025",
+   "curator": "",
+   "text": "Paintings of the coast at low tide, made over one winter.",
+   "works": [
+    "low-tide",
+    "orchard-at-noon",
+    "two-rooms",
+    "late-garden"
+   ],
+   "photos": [],
+   "video": "",
+   "space": {},
+   "tour": "none",
+   "cover": "data/demo/works/low-tide.jpg"
+  },
+  {
+   "id": "night-studies",
+   "title": "Night Studies",
+   "venue": "Studio 5",
+   "city": "Tel Aviv",
+   "year": "2023",
+   "dates": "Nov 2023",
+   "curator": "",
+   "text": "Small works made at night.",
+   "works": [
+    "night-window",
+    "salt",
+    "dusk-study-i",
+    "dusk-study-ii"
+   ],
+   "photos": [],
+   "video": "",
+   "space": {},
+   "tour": "none",
+   "cover": "data/demo/works/night-window.jpg"
+  }
+ ]
+}
