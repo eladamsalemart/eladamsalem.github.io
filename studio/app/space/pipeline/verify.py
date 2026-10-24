@@ -12,7 +12,7 @@ Two kinds of check, all of which must pass; one failure and the space is not off
    canvas wider than its image, a smear or a hole all show up here)."""
 import cv2
 import numpy as np
-from .works import ROOT, APP, load_image
+from .works import ROOT, APP, load_image, resolve
 from .room import project, centre, K_of
 
 RULES = {
@@ -93,6 +93,9 @@ def render(spec, cam, width=640):
         c = np.array(w['centre'], float)
         su, sv = w['measured'][0] / 100, w['measured'][1] / 100
         ok, t, a, b = hit(c, X, -Y, Z, su, sv, centred=True)
+        if w.get('core') and ok.any():                            # cut out: the backdrop around it is not there
+            al = cv2.imread(str(resolve(w['image'])), cv2.IMREAD_UNCHANGED)[..., 3]
+            ok[ok] = _sample(al, (a[ok] / su + 0.5) * al.shape[1], (b[ok] / sv + 0.5) * al.shape[0])[:, 0] > 127
         if not ok.any():
             continue
         depth[ok] = t[ok]
@@ -158,7 +161,9 @@ def check(spec, ex, found, g, sizes, box_how, wall_seen, log=print):
                     bv = np.roll(np.roll(b, dy, 0), dx, 1)[inner]; bv = bv - bv.mean()
                     ncc = max(ncc, float((av * bv).sum() / (np.sqrt((av ** 2).sum() * (bv ** 2).sum()) + 1e-6)))
             work_scores.setdefault(w['work'], []).append(ncc)
-            ring = (cv2.dilate(m.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0) & ~(cv2.dilate(m.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0) & walls
+            # the wall a little way out from the work: right next to it is its shadow, which the viewer
+            # draws itself rather than taking it from the photos
+            ring = (cv2.dilate(m.astype(np.uint8), np.ones((21, 21), np.uint8)) > 0) & ~(cv2.dilate(m.astype(np.uint8), np.ones((11, 11), np.uint8)) > 0) & walls
             if ring.sum() > 50:
                 ring_scores.setdefault(w['work'], []).append(float(np.median(np.abs(lab_r - lab_p)[ring].mean(-1))))
     wm = {t: max(v) for t, v in work_scores.items()}               # the best view of each work decides

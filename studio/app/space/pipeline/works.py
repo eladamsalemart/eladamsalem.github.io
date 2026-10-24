@@ -3,6 +3,7 @@ import json, re
 from pathlib import Path
 import cv2
 import numpy as np
+from .matte import matte, core
 
 ROOT = Path(__file__).resolve().parents[4]          # the repository
 APP = ROOT / 'studio' / 'app'
@@ -14,8 +15,13 @@ def size_pairs(w):
     return [(float(a), float(b)) for a, b in re.findall(r'(\d+(?:\.\d+)?)\s*[x×X]\s*(\d+(?:\.\d+)?)', text)]
 
 
+def resolve(path):
+    """A site path ('/media/...') or a path inside the app ('data/spaces/...')."""
+    return ROOT / path.lstrip('/') if path.startswith('/') else APP / path
+
+
 def load_image(path, edge=None):
-    img = cv2.imread(str(ROOT / path.lstrip('/')), cv2.IMREAD_COLOR)
+    img = cv2.imread(str(resolve(path)), cv2.IMREAD_COLOR)
     if img is None:
         raise FileNotFoundError(path)
     if edge and max(img.shape[:2]) > edge:
@@ -52,10 +58,27 @@ def load_exhibition(slug):
             out['missing'].append(name)
             continue
         img = load_image(w['image'])
+        image, cut = w['image'], None
+        alpha, box = matte(img)
+        if alpha is not None:
+            # photographed against a backdrop: the work is what is inside it
+            x0, y0, x1, y1 = box
+            img = img[y0:y1, x0:x1]; a = alpha[y0:y1, x0:x1]
+            rel = f'data/spaces/{slug}/works/{slugify(w["title"])}.png'
+            (APP / rel).parent.mkdir(parents=True, exist_ok=True)
+            cv2.imwrite(str(APP / rel), np.dstack([img, a]), [cv2.IMWRITE_PNG_COMPRESSION, 9])
+            image, cut = rel, {'core': [round(float(v), 4) for v in core(alpha, box)], 'from': w['image']}
         h, wd = img.shape[:2]
         pairs = size_pairs(w)
-        size = oriented_size(pairs, wd / h) if pairs else None
-        out['works'].append({'title': w['title'], 'image': w['image'], 'listed': name in ex['works'],
+        if cut:
+            # the recorded size is the canvas's body; parts standing out of it come on top
+            c0, c1, c2, c3 = cut['core']
+            size = oriented_size(pairs, wd * (c2 - c0) / (h * (c3 - c1))) if pairs else None
+            if size:
+                size = (size[0] / (c2 - c0), size[1] / (c3 - c1), size[2])
+        else:
+            size = oriented_size(pairs, wd / h) if pairs else None
+        out['works'].append({'title': w['title'], 'image': image, 'cutout': cut, 'listed': name in ex['works'],
                              'size_cm': size[:2] if size else None, 'size_misfit': size[2] if size else None,
                              'pixels': (wd, h)})
     return out

@@ -88,11 +88,12 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   }
 
   const floorS = surfaces.find(s => s.kind === 'floor');
+  const plasterTex = await loadTex(spec.plaster);
   surfaces.forEach((s, i) => {
-    if (s.kind === 'reveal') { scene.add(planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide }))); return; }
+    if (s.kind === 'reveal') { const r = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide })); r.userData.kind = 'reveal'; scene.add(r); return; }
     if (s.kind === 'wall' || s.kind === 'ceiling') {
       const m = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide }), s.openings || []);
-      scene.add(m);
+      m.userData.kind = s.kind; scene.add(m);
       for (const o of s.openings || []) addOpening(s, o);
     }
   });
@@ -106,19 +107,28 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       const geo = new THREE.ExtrudeGeometry(openingPath(o, new THREE.Shape()), { depth, bevelEnabled: false, curveSegments: 24 });
       const basis = new THREE.Matrix4().makeBasis(U, new THREE.Vector3(0, 1, 0), N.clone().negate());
       const rev = new THREE.Mesh(geo, [new THREE.MeshBasicMaterial({ visible: false }), new THREE.MeshStandardMaterial({ color: '#d9d7d2', roughness: 1, side: THREE.DoubleSide })]);
-      rev.applyMatrix4(basis); rev.position.copy(bottom); scene.add(rev);
+      rev.applyMatrix4(basis); rev.position.copy(bottom); rev.userData.kind = 'reveal'; scene.add(rev);
     }
     const w = o.to - o.from + 2.4, d = 3.2;
     const mid = bottom.clone().addScaledVector(U, (o.from + o.to) / 2).addScaledVector(N, -(depth + d / 2));
-    const box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: '#bdbab4', roughness: 1, side: THREE.BackSide }));
-    box.scale.set(Math.abs(U.x) * w + Math.abs(N.x) * d, R.height, Math.abs(U.z) * w + Math.abs(N.z) * d);
-    box.position.copy(mid).setY(R.height / 2); scene.add(box);
+    // the room beyond: its walls in the gallery's own plaster and fall of light (a little dimmer, as rooms
+    // next door are), its ceiling plain, so the opening leads somewhere rather than into a grey box
+    const bx = Math.abs(U.x) * w + Math.abs(N.x) * d, bz = Math.abs(U.z) * w + Math.abs(N.z) * d;
+    const wallsOf = len => {
+      if (!plasterTex) return new THREE.MeshBasicMaterial({ color: '#cfccc6', toneMapped: false, side: THREE.BackSide });
+      const t = plasterTex.clone(); t.wrapS = THREE.RepeatWrapping; t.repeat.set(len / 2, 1); t.needsUpdate = true;
+      return new THREE.MeshBasicMaterial({ map: t, color: 0xdedede, toneMapped: false, side: THREE.BackSide });
+    };
+    const plain = new THREE.MeshBasicMaterial({ color: '#d6d4cf', toneMapped: false, side: THREE.BackSide });
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), [wallsOf(bz), wallsOf(bz), plain, plain, wallsOf(bx), wallsOf(bx)]);
+    box.scale.set(bx, R.height, bz);
+    box.position.copy(mid).setY(R.height / 2); box.userData.kind = 'beyond'; scene.add(box);
     if (floorS) {
       // the floor runs on from the wall's face, through the opening, into the room beyond
       const fm = bottom.clone().addScaledVector(U, (o.from + o.to) / 2).addScaledVector(N, -(depth + d) / 2);
       const fw = Math.abs(U.x) * w + Math.abs(N.x) * (depth + d), fl = Math.abs(U.z) * w + Math.abs(N.z) * (depth + d);
       const f = new THREE.Mesh(new THREE.PlaneGeometry(fw, fl), floorMaterial(fw, fl, false));
-      f.rotation.x = -Math.PI / 2; f.position.copy(fm).setY(0.002); scene.add(f);
+      f.rotation.x = -Math.PI / 2; f.position.copy(fm).setY(0.002); f.userData.kind = 'floor'; scene.add(f);
     }
   }
 
@@ -126,7 +136,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   function floorMaterial(w, l, withLight = true) {
     const i = surfaces.indexOf(floorS);
     const tile = texs[i] ? texs[i].clone() : null;
-    if (tile) { tile.wrapS = tile.wrapT = THREE.MirroredRepeatWrapping; tile.repeat.set(w / (floorS.tile || 1), l / (floorS.tile || 1)); tile.needsUpdate = true; }
+    if (tile) { tile.wrapS = tile.wrapT = THREE.RepeatWrapping; tile.repeat.set(w / (floorS.tile || 1), l / (floorS.tile || 1)); tile.needsUpdate = true; }
     const c = floorS.color || [140, 120, 100];
     const m = new THREE.MeshBasicMaterial({ map: tile, color: tile ? 0xffffff : new THREE.Color(`rgb(${c.join(',')})`), toneMapped: false });
     if (withLight && lights[i]) { m.lightMap = lights[i]; m.lightMapIntensity = Math.PI * (floorS.lightScale || 1); }
@@ -135,7 +145,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   if (floorS) {
     const [rNear, rLow] = spec.floorReflect || [0, 0];
     floorMesh = planeMesh(floorS, floorMaterial(floorS.size[0], floorS.size[1]));
-    scene.add(floorMesh);
+    floorMesh.userData.kind = 'floor'; scene.add(floorMesh);
     if (rLow > 0.03) {
       floorMesh.material.transparent = true;
       floorMesh.material.onBeforeCompile = sh => {
@@ -145,9 +155,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
           gl_FragColor.a = 1.0 - mix(${rNear.toFixed(3)}, ${rLow.toFixed(3)}, pow(1.0 - facing, 3.0));
           #include <dithering_fragment>`);
       };
-      const mirror = new Reflector(new THREE.PlaneGeometry(R.x1 - R.x0, R.z1 - R.z0), { textureWidth: 512, textureHeight: 512, color: 0xffffff, clipBias: 0.003 });
+      // sharp enough on a phone's screen: a soft reflection reads as smeared colour on the floor
+      const mirrorRes = Math.min(2048, Math.round(Math.max(innerWidth, innerHeight) * Math.min(devicePixelRatio, 2) * 0.6));
+      const mirror = new Reflector(new THREE.PlaneGeometry(R.x1 - R.x0, R.z1 - R.z0), { textureWidth: mirrorRes, textureHeight: mirrorRes, color: 0xffffff, clipBias: 0.003 });
       mirror.material.fragmentShader = mirror.material.fragmentShader.replace('blendOverlay( base.rgb, color )', 'base.rgb * color');
-      mirror.rotation.x = -Math.PI / 2; mirror.position.set((R.x0 + R.x1) / 2, -0.002, (R.z0 + R.z1) / 2); scene.add(mirror);
+      mirror.userData.kind = 'mirror'; mirror.rotation.x = -Math.PI / 2; mirror.position.set((R.x0 + R.x1) / 2, -0.002, (R.z0 + R.z1) / 2); scene.add(mirror);
       const draw = mirror.onBeforeRender;
       mirror.onBeforeRender = (...a) => { floorMesh.visible = false; draw.apply(mirror, a); floorMesh.visible = true; };
     }
@@ -230,13 +242,29 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
           `#include <emissivemap_fragment>\n totalEmissiveRadiance *= texture2D(lightTex, vEmissiveMapUv).rgb * ${k};`);
       };
     }
-    let avg = 1;
-    const side = sideMat(new THREE.Color('#d5cab6').multiplyScalar(avg));
+    const side = sideMat('#d5cab6');
     const back = sideMat('#4a4640');
-    const box = new THREE.Mesh(new THREE.BoxGeometry(wM, hM, dM), [side, side, side, side, front, back]);
-    const sh = new THREE.Mesh(new THREE.PlaneGeometry(wM + Math.min(0.08, 0.15 * Math.min(wM, hM)), hM + Math.min(0.1, 0.18 * Math.min(wM, hM))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.07, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
-    sh.position.set(Math.min(0.012, 0.03 * wM), -Math.min(0.03, 0.06 * hM), -dM / 2 - 0.002);   // just off the wall, never in it
-    g.add(box, sh); scene.add(g); g.updateMatrixWorld(true);
+    // a work cut out of its backdrop: its body is the solid rectangle (core), and the front shows only the
+    // work itself (parts standing out of the body, a shaped edge), the wall showing through around it
+    const cr = h.core || [0, 0, 1, 1];
+    const bw = wM * (cr[2] - cr[0]), bh = hM * (cr[3] - cr[1]);
+    const bx = wM * ((cr[0] + cr[2]) / 2 - 0.5), by = hM * (0.5 - (cr[1] + cr[3]) / 2);
+    let box;
+    if (h.core) {
+      front.map = tex; front.alphaTest = 0.5;                 // black diffuse: the map only carries the outline
+      const face = new THREE.Mesh(new THREE.PlaneGeometry(wM, hM), front);
+      face.position.z = dM / 2 + 0.0008;
+      const body = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, dM), [side, side, side, side, sideMat('#ece9e2'), back]);
+      body.position.set(bx, by, 0);
+      face.userData.kind = 'work'; body.userData.kind = 'workbody';
+      g.add(face, body); box = face;
+    } else {
+      box = new THREE.Mesh(new THREE.BoxGeometry(wM, hM, dM), [side, side, side, side, front, back]);
+      box.userData.kind = 'work'; g.add(box);
+    }
+    const sh = new THREE.Mesh(new THREE.PlaneGeometry(bw + Math.min(0.08, 0.15 * Math.min(bw, bh)), bh + Math.min(0.1, 0.18 * Math.min(bw, bh))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.07, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
+    sh.position.set(bx + Math.min(0.012, 0.03 * bw), by - Math.min(0.03, 0.06 * bh), -dM / 2 - 0.002);   // just off the wall, never in it
+    sh.userData.kind = 'shadow'; g.add(sh); scene.add(g); g.updateMatrixWorld(true);
     // a spot above and in front of the work: it only makes the sheen (the light itself is measured)
     const centre = V(h.centre);
     const spot = new THREE.SpotLight(0xffffff, 3.2, 0, 0.6, 1, 2);
@@ -446,5 +474,52 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   $('.sv-x').onclick = close;
   $('.sv-loading').hidden = true;
   setMode('walk'); show();
-  return { close: stop };
+  // for the inspection stage: render the room from any point, exactly as a visitor's screen shows it, and
+  // (ids) the same view with every surface in a flat colour saying what it is, to tell walls from works
+  const ID = { work: '#ff0000', workbody: '#0000ff', shadow: '#ff8000', wall: '#00ff00', ceiling: '#008000', floor: '#ffff00', reveal: '#00ffff', beyond: '#808080' };
+  const inspect = {
+    pieces: pieces.map(p => ({ title: p.w.title, centre: p.centre.toArray(), facing: p.facing.toArray(), size: p.size, stand: p.stand.toArray(), image: p.h.image, core: p.h.core || null })),
+    views, room: R, eye: EYE, start: { pos: pos.toArray(), look: look.toArray() },
+    stand: p => clampStand(V(p)).toArray(),                 // where a visitor can actually stand
+    shot(at, to, fov = 60, upv = [0, 1, 0], ids = false) {      // ids: false, true, or 'height'
+      running = false; renderer.setAnimationLoop(null);
+      camera.position.set(...at); camera.up.set(...upv); camera.lookAt(new THREE.Vector3(...to));
+      camera.fov = fov; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+      const bg = scene.background; scene.background = new THREE.Color('#ff00ff');   // a hole shows as magenta
+      const swapped = [], walls = [];
+      scene.traverse(o => { if (o.userData.kind === 'wall') walls.push(o); });
+      if (ids) scene.traverse(o => {
+        if (!o.isMesh && !o.isReflector) return;
+        const k = o.userData.kind;
+        if (k === 'mirror' || !k) { if (o.visible) { swapped.push([o, 'v']); o.visible = false; } return; }
+        // height: grey by height above the floor, 1 cm a level up to 2.55 m, then from the ceiling down in red
+        // each wall in its own shade of green, so a room's corner (two walls meeting) can be told apart
+        const tint = k === 'wall' ? new THREE.Color(0, 1, (walls.indexOf(o) + 1) * 12 / 255) : null;
+        const m = ids === 'height' ? new THREE.ShaderMaterial({
+          side: THREE.DoubleSide,
+          vertexShader: 'varying float vy; void main() { vec4 w = modelMatrix * vec4(position, 1.0); vy = w.y; gl_Position = projectionMatrix * viewMatrix * w; }',
+          fragmentShader: `varying float vy; void main() { gl_FragColor = vec4(clamp(vy / 2.55, 0.0, 1.0), clamp((${R.height.toFixed(3)} - vy) / 2.55, 0.0, 1.0), 0.0, 1.0); }`,
+        }) : new THREE.MeshBasicMaterial({ color: tint || ID[k], toneMapped: false, side: THREE.DoubleSide });
+        if (o.material.alphaTest && ids !== 'height') {       // a cut-out work: its outline, in the flat colour
+          m.map = o.material.map; m.alphaTest = o.material.alphaTest;
+          m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', 'diffuseColor.a *= texture2D( map, vMapUv ).a;'); };
+        }
+        swapped.push([o, o.material]); o.material = m;
+      });
+      renderer.render(scene, camera);
+      const png = renderer.domElement.toDataURL('image/png');
+      for (const [o, m] of swapped) { if (m === 'v') o.visible = true; else { o.material.dispose(); o.material = m; } }
+      scene.background = bg;
+      // where each work's corners fall on the screen (0..1 from the top left), for comparing it with its image
+      const corners = pieces.map(p => {
+        const h = p.h, X = V(h.axes[0]), Y = V(h.axes[1]), c = V(h.centre), wM = h.measured[0] / 200, hM = h.measured[1] / 200;
+        return [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([a, b]) => {
+          const q = c.clone().addScaledVector(X, a * wM).addScaledVector(Y, b * hM).project(camera);
+          return [(q.x + 1) / 2, (1 - q.y) / 2, q.z];
+        });
+      });
+      return { png, corners };
+    },
+  };
+  return { close: stop, inspect };
 }

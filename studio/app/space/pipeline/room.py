@@ -58,7 +58,9 @@ def work_masks(cams, works, sizes, matched=None, grow=0.06, unsure=0.15):
             # angle are masked too (else they get painted onto the wall beside it)
             sc = wk.get('scale', np.ones(2))
             hw, hh = sw * sc[0] / 2 + g, sh * sc[1] / 2 + g
-            X = np.array([[x, y, z] for z in (0.005, -(DEPTH + 0.01)) for x in (-hw, hw) for y in (-hh, hh)])
+            # and its shadow: under a spot a canvas casts a shadow a few cm below and beside it, which the
+            # viewer draws itself (the photo's would be a second one)
+            X = np.array([[x, y, z] for z in (0.01, -(DEPTH + 0.03)) for x in (-hw - 0.05, hw + 0.05) for y in (-hh - 0.09, hh + 0.02)])
             # a work seen from behind its own plane, or reaching behind the camera, can't hide anything here
             if wk['R'][:, 2] @ (centre(c) - wk['c']) <= 0.05:
                 continue
@@ -141,6 +143,90 @@ def find_floor(cams, images, masks, log=print):
     return float(fine[k]), conf
 
 
+HANG = 1.45               # a work's centre above the floor, as galleries hang (eye level)
+
+
+def level_edges(cams, images, masks, works, sizes, hs):
+    """For each height in hs (world y): how clearly the photos show a level edge running along the walls at
+    that height, 0..1 (the median over the photos that see a wall there, averaged over the walls). A line
+    where a wall meets the floor or the ceiling is the same line in every photo; a reflection in a polished
+    floor, or the ceiling's fittings seen through the wall's plane, falls in a different place in each, and
+    fades in the median."""
+    walls = wall_candidates(works, sizes)
+    grads = {}
+    for p in cams:
+        g = cv2.GaussianBlur(cv2.cvtColor(images[p], cv2.COLOR_BGR2GRAY).astype(np.float32), (0, 0), 1.5)
+        grads[p] = (cv2.Sobel(g, cv2.CV_32F, 1, 0, ksize=3), cv2.Sobel(g, cv2.CV_32F, 0, 1, ksize=3))
+    total, n_walls = np.zeros(len(hs)), 0
+    for wl in walls:
+        ax, side, off = wl['axis'], wl['side'], wl['offset']; other = 2 - ax
+        xs = [works[t]['c'][other] for t in wl['works']]
+        us = np.linspace(min(xs) - 2.5, max(xs) + 2.5, 300)
+        nrm = np.zeros(3); nrm[ax] = side
+        prof = np.full(len(hs), np.nan)
+        for i, y in enumerate(hs):
+            P = np.zeros((len(us), 3)); P[:, other] = us; P[:, ax] = off; P[:, 1] = y
+            sc = []
+            for p, cam in cams.items():
+                if (centre(cam) - P[0]) @ nrm < 0.2:              # this photo is behind the wall
+                    continue
+                uv, z = project(cam, P); H, W = images[p].shape[:2]
+                ok = (z > 0.3) & (uv[:, 0] > 2) & (uv[:, 1] > 2) & (uv[:, 0] < W - 3) & (uv[:, 1] < H - 3)
+                q = uv[ok]
+                if len(q) < 40:
+                    continue
+                q = q[masks[p][q[:, 1].astype(int), q[:, 0].astype(int)] == 0]
+                if len(q) < 40:
+                    continue
+                d = np.gradient(q, axis=0); d /= np.linalg.norm(d, axis=1, keepdims=True) + 1e-9
+                gx = cv2.remap(grads[p][0], q[:, :1].astype(np.float32), q[:, 1:].astype(np.float32), cv2.INTER_LINEAR)[:, 0]
+                gy = cv2.remap(grads[p][1], q[:, :1].astype(np.float32), q[:, 1:].astype(np.float32), cv2.INTER_LINEAR)[:, 0]
+                sc.append(np.median(np.abs(-gx * d[:, 1] + gy * d[:, 0])))   # across the line, not along it
+            if len(sc) >= 2:
+                prof[i] = np.median(sc)
+        if np.isfinite(prof).sum() > len(hs) // 3:
+            total += np.nan_to_num(prof / np.nanmax(prof)); n_walls += 1
+    return (total / n_walls if n_walls else total), n_walls
+
+
+def _peaks(total, k=0.35):
+    return [i for i in range(1, len(total) - 1) if total[i] >= total[i - 1] and total[i] >= total[i + 1]
+            and total[i] >= k * total.max() and total[i] > 0]
+
+
+def floor_from_walls(cams, images, masks, works, sizes, log=print):
+    """Height of the floor (world y): the lowest level edge along the walls (the wall's foot, or a skirting
+    board's bottom edge), searched where the works' hanging height puts the floor. (height, how sure) or
+    (None, 0)."""
+    if not works:
+        return None, 0.0
+    cy = np.median([w['c'][1] for w in works.values()])
+    hs = np.arange(cy - HANG - 0.35, cy - HANG + 0.351, 0.01)
+    total, n = level_edges(cams, images, masks, works, sizes, hs)
+    pk = _peaks(total) if n else []
+    if not pk:
+        return None, 0.0
+    i = min(pk, key=lambda k: hs[k])                             # the lowest: below it is the floor
+    log(f"  floor: where the walls meet it, y = {hs[i]:.2f} ({len(pk)} level edges along {n} walls; works hang {cy - hs[i]:.2f} m up)")
+    return float(hs[i]), float(total[i] / (np.median(total) + 1e-6))
+
+
+def ceiling_from_edges(cams, images, masks, works, sizes, fy, log=print):
+    """Height of the ceiling above the floor: the level edge along the walls that the photos agree on most
+    (where the walls end, at a flat ceiling or at the beams round a coffered one; a ceiling's fittings and
+    coffers, seen through the walls' plane, fall in a different place in each photo). None if unclear."""
+    top = max(w['c'][1] for w in works.values()) - fy + 0.3
+    hs = np.arange(max(2.4, top), 6.0, 0.01) + fy
+    total, n = level_edges(cams, images, masks, works, sizes, hs)
+    total = np.convolve(total, np.ones(5) / 5, mode='same')     # one edge, a few cm thick
+    pk = _peaks(total, 0.4) if n else []
+    if not pk:
+        return None
+    i = max(pk, key=lambda k: total[k])
+    log(f"  ceiling: where the walls meet it, {hs[i] - fy:.2f} m ({len(pk)} level edges along {n} walls)")
+    return float(hs[i] - fy)
+
+
 CANVAS = 0.035            # a canvas stands this far off its wall
 
 
@@ -212,6 +298,75 @@ def ceiling_from_walls(textures, texel, top_height):
     return float(max(h for h, s in votes.items() if s > 0.5 * best))
 
 
+def wall_spots(img, texel, ceiling, openings, works):
+    """Marks on a wall's open face, as a mask: anything that stands out from the plaster round it, by
+    lightness or by colour (the same test the inspection makes), away from the skirting, the ceiling's edge,
+    openings and the works themselves. Slow changes of light don't count."""
+    H, W = img.shape[:2]
+    L = cv2.cvtColor(img, cv2.COLOR_BGR2LAB).astype(np.float32)
+    L[..., 0] *= 100 / 255; L[..., 1:] -= 128
+    C = np.sqrt(L[..., 1] ** 2 + L[..., 2] ** 2)
+    open_face = np.zeros((H, W), bool)
+    open_face[int(0.35 / texel):H - int(0.3 / texel)] = True
+    for o in openings:
+        open_face[:, max(0, int((o['from'] - 0.15) / texel)):int((o['to'] + 0.15) / texel)] = False
+    for x0, y0, x1, y1 in works:
+        open_face[max(0, y0):max(0, y1), max(0, x0):max(0, x1)] = False
+    k = 0.06 / texel                                              # 'round it': about 6 cm
+    wf = open_face.astype(np.float32)
+    local = lambda x: cv2.GaussianBlur(x * wf, (0, 0), k) / (cv2.GaussianBlur(wf, (0, 0), k) + 1e-6)
+    dL = L[..., 0] - local(L[..., 0]); dC = C - local(C)
+    spot = open_face & ((np.abs(dL) > 5) | (dC > 4))
+    spot = cv2.morphologyEx(spot.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+    n, cc, st, _ = cv2.connectedComponentsWithStats(spot)
+    keep = np.zeros((H, W), bool)
+    for i in range(1, n):
+        if st[i, cv2.CC_STAT_AREA] * texel * texel >= 4e-4:       # 2 x 2 cm or more
+            keep |= cc == i
+    return cv2.dilate(keep.astype(np.uint8), np.ones((int(0.04 / texel) | 1,) * 2, np.uint8)) > 0
+
+
+def foot_runs(img, valid, texel, top_height, log=None):
+    """Stretches of a wall's texture that are not on the wall's plane, from where its foot shows.
+
+    Along a real wall the foot (the top of its skirting board, or where it meets the floor) is one level
+    line. Where the photos show something behind the plane through it (the side wall of a passage, seen
+    through its mouth) that line climbs away; where something stands in front (a pier), it drops. Returns
+    [(from, to, 'behind' | 'front')] in metres along the wall."""
+    H, W = img.shape[:2]
+    g = cv2.GaussianBlur(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32), (0, 0), 1.5)
+    gy = np.abs(cv2.Sobel(g, cv2.CV_32F, 0, 1, ksize=3))
+    lo = max(0, int((top_height - 0.9) / texel)); hi = H - 2
+    band = cv2.blur(gy[lo:hi] * valid[lo:hi], (max(1, int(0.05 / texel)), 1))
+    rows = lo + band.argmax(0); strength = band.max(0)
+    good = (valid[lo:hi].mean(0) > 0.6) & (strength > 0.3 * np.median(strength[strength > 0]) if (strength > 0).any() else False)
+    if good.sum() < W * 0.3:
+        return []
+    usual = np.median(rows[good])
+    dev = (usual - rows.astype(float)) * texel                   # + : the foot shows higher (behind)
+    k = max(1, int(0.1 / texel))
+    dev = np.array([np.median(dev[max(0, c - k):c + k + 1][good[max(0, c - k):c + k + 1]]) if good[max(0, c - k):c + k + 1].any() else np.nan for c in range(W)])
+    # off the plane: where the foot line runs steadily up or down (a surface at an angle to the wall, seen
+    # through it or standing out of it), or sits well away from the usual line
+    sm = max(1, int(0.2 / texel))
+    filled = np.where(np.isfinite(dev), dev, 0.0)
+    slope = np.gradient(cv2.blur(filled[None], (sm, 1))[0], texel)
+    off = np.isfinite(dev) & ((np.abs(slope) > 0.04) | (np.abs(dev) > 0.12))
+    off = cv2.morphologyEx(off.astype(np.uint8)[None], cv2.MORPH_CLOSE, np.ones((1, max(1, int(0.15 / texel))), np.uint8))[0] > 0
+    out, start = [], None
+    for c, v in enumerate(list(off) + [False]):
+        if v and start is None: start = c
+        if not v and start is not None:
+            if (c - start) * texel >= 0.5:
+                d = dev[start:c][np.isfinite(dev[start:c])]
+                far = d[np.argmax(np.abs(d))]
+                out.append((start * texel, c * texel, 'behind' if far > 0 else 'front'))
+            start = None
+    if log and out:
+        log('    off the wall\'s plane: ' + ', '.join(f'{x:.2f}-{y:.2f} m ({k})' for x, y, k in out))
+    return out
+
+
 def openings_in_wall(img, valid, floor_lab, texel, top_height, ceiling):
     """Openings in a wall: columns where the floor carries on above the wall's foot (seen through the
     wall plane), at least 0.6 m wide. Each gets a top: an arch if its edge rises to the middle."""
@@ -239,11 +394,38 @@ def openings_in_wall(img, valid, floor_lab, texel, top_height, ceiling):
     for i, c in enumerate(list(col) + [False]):
         if c and start is None: start = i
         if not c and start is not None: runs.append((start, i)); start = None
+    # where the wall's foot climbs away (a passage seen through its mouth), the mouth is known exactly:
+    # those come first, and the floor's evidence only adds openings elsewhere
+    # only those: the floor seen through the wall's plane alone is too easily a shadow, a reflection, or a
+    # dark band of skirting, and an opening cut in the wrong place is the worst thing a space can show
+    behind = [(int(round(a / texel)), int(round(b / texel))) for a, b, k in foot_runs(img, valid, texel, top_height) if k == 'behind']
+    runs = behind
     g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32)
     gy = np.abs(cv2.Sobel(cv2.GaussianBlur(g, (0, 0), 2), cv2.CV_32F, 0, 1, ksize=3))
+    gx = np.abs(cv2.Sobel(cv2.GaussianBlur(g, (0, 0), 2), cv2.CV_32F, 1, 0, ksize=3))
+    wall_gx = np.median(gx[valid]) if valid.any() else 1.0
+
+    def jamb(c, h):
+        """The column near c where the photos show the opening's side: a clear upright edge over most of its
+        height (or None). An opening is cut only on its real edges, never where its edge is only guessed."""
+        rows = slice(int(round((top_height - h + 0.2) / texel)), int(round((top_height - 0.3) / texel)))
+        best = None
+        for cc in range(max(1, c - int(0.15 / texel)), min(img.shape[1] - 1, c + int(0.15 / texel))):
+            colm = gx[rows, cc - 1:cc + 2].max(1)
+            ok = valid[rows, cc]
+            if ok.mean() < 0.6:
+                continue
+            frac = (colm[ok] > max(6.0, 4 * wall_gx)).mean()
+            if frac > 0.6 and (best is None or frac > best[1]):
+                best = (cc, frac)
+        return best[0] if best else None
+
     for a, b in runs:
         # a missing foot alone may be a stain or a shadow: an opening must also show the floor through it
-        if (b - a) * texel < 0.6 or floor_cols[a:b].sum() * texel < 0.3:
+        # (across most of its width: a pier standing out of the wall also loses the wall's foot, but only
+        # shows the floor at its sides)
+        known = (a, b) in behind
+        if (b - a) * texel < 0.6 or (not known and (floor_cols[a:b].sum() * texel < 0.3 or floor_cols[a:b].mean() < 0.5)):
             continue
         # per column, the lowest strong level edge between 1.9 m and just under the ceiling: the opening's top
         tops = []
@@ -261,7 +443,13 @@ def openings_in_wall(img, valid, floor_lab, texel, top_height, ceiling):
         sides = np.nanmedian(np.r_[tops[:len(tops) // 6], tops[-len(tops) // 6:]]) if np.isfinite(tops).any() else mid
         arch = bool(np.isfinite(mid) and np.isfinite(sides) and mid - sides > 0.25 * width)
         height = float(np.clip(mid if np.isfinite(mid) else 2.6, 1.9, ceiling - 0.05))
-        out.append({'from': a * texel, 'to': b * texel, 'height': round(height, 2), 'arch': arch})
+        if known:
+            ja, jb = a, b
+        else:
+            ja, jb = jamb(a, height), jamb(b, height)
+            if ja is None or jb is None or (jb - ja) * texel < 0.6:
+                continue
+        out.append({'from': round(ja * texel, 3), 'to': round(jb * texel, 3), 'height': round(height, 2), 'arch': arch})
     return out
 
 

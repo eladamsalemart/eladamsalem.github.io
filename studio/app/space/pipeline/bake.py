@@ -54,6 +54,38 @@ def sample(img, cam, X, mask=None, edge=24):
     return col, wgt * inside, (cam['f'] / np.maximum(dist, 0.1)) ** 2, view / dist[..., None]
 
 
+def off_plane(s, images, cams, masks, gains, min_quality=0.15):
+    """Where on a surface the photos show something that is not on its plane (a pier standing out of a
+    wall, an object in front of it, a room seen through it): a mask, True there.
+
+    Two photos of the same flat surface agree on its detail wherever both see it; anything standing off
+    the plane appears in a different place in each (parallax), so its edges disagree. Only the detail is
+    compared (each photo's light differs a little), and only where at least two photos see the spot well."""
+    X = s.grid()
+    det, ok = [], []
+    for p, cam in cams.items():
+        col, wgt, res, view = sample(images[p], cam, X, masks[p])
+        facing = np.clip((view * s.n).sum(-1), 0, 1)
+        g = (col * gains[p][None, None, :]).mean(-1).astype(np.float32)
+        hp = g - cv2.GaussianBlur(g, (0, 0), 3)
+        det.append(cv2.GaussianBlur(np.abs(hp), (0, 0), 1.5) * np.sign(cv2.GaussianBlur(hp, (0, 0), 1.0)))
+        ok.append((wgt > 0.5) & (facing > 0.3))
+    if len(det) < 2:
+        return np.zeros((s.H, s.W), bool)
+    acc = np.zeros((s.H, s.W)); n = np.zeros((s.H, s.W))
+    for i in range(len(det)):
+        for j in range(i + 1, len(det)):
+            m = ok[i] & ok[j]
+            # a strong edge in one photo with nothing (or the opposite) at the same place in the other
+            d = np.abs(det[i] - det[j]) - 0.5 * np.minimum(np.abs(det[i]), np.abs(det[j]))
+            acc += np.where(m, d, 0); n += m
+    dis = np.where(n > 0, acc / np.maximum(n, 1), 0)
+    dis = cv2.GaussianBlur(dis.astype(np.float32), (0, 0), 4)
+    off = dis > 2.5
+    off = cv2.morphologyEx(off.astype(np.uint8), cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+    return cv2.dilate(off, np.ones((15, 15), np.uint8)) > 0
+
+
 def exposure_gains(surfaces, images, cams, masks, step=6):
     """One brightness and colour gain per photo, so that photos agree where they overlap (log domain)."""
     ps = list(cams)
@@ -196,6 +228,15 @@ def fill_holes(img, cover):
         base = membrane(out, miss)                                   # (out, not img: the gap's black must not bleed into its edge)
         lf = lam.astype(np.float32)                                  # the network's whole picture: no step at the gap's edge
         detail = lf - cv2.GaussianBlur(lf, (0, 0), 6)
+        # no stronger than the detail round the gap: it may carry a skirting board's edge on across, but on
+        # plain plaster it must not draw an edge of its own (a gap round a work invites the trace of one)
+        f = img.astype(np.float32)
+        seen_d = np.where(miss[..., None], 0, np.abs(f - cv2.GaussianBlur(f, (0, 0), 6))).max(-1)
+        env = cv2.dilate(seen_d, np.ones((31, 31), np.uint8))
+        for _ in range(6):                                           # carried into the gap from its edges
+            env = np.maximum(env, cv2.dilate(env, np.ones((31, 31), np.uint8)) * miss)
+        env = cv2.GaussianBlur(env, (0, 0), 8)[..., None] * 1.2
+        detail = np.clip(detail, -env, env)
         out = np.where(miss[..., None], np.clip(base + detail, 0, 255), img).astype(np.uint8)
         # the network works at a coarser scale: give the fill the plaster's own fine grain
         grain = img.astype(np.float32) - cv2.GaussianBlur(img.astype(np.float32), (0, 0), 2)
@@ -255,15 +296,16 @@ def work_light(work, size_m, images, cams, gains, res=48):
     ratio = (seen + 4) / (refs + 4)
     # light from a spot falls off smoothly across a canvas: fit a gentle surface (quadratic in u and v) to the
     # ratio, so no trace of the painting's own shapes (or of a slight misregistration) gets into the light
-    sel = (np.isfinite(ratio).all(-1)) & (refs.mean(-1) > 12)
+    # one brightness for all three channels: the light from gallery spots is white, so the work keeps the
+    # true colours of its own image (a channel fitted on its own drifts at the corners into colour casts)
+    ratio = ratio.mean(-1)
+    sel = np.isfinite(ratio) & (refs.mean(-1) > 12)
     A = np.column_stack([np.ones(U.size), U.ravel(), V.ravel(), U.ravel() ** 2, V.ravel() ** 2, (U * V).ravel()])
-    fit = np.zeros_like(ratio)
-    for ch in range(3):
-        y = np.log(np.clip(ratio[..., ch], 0.05, 20)).ravel()
-        coef, *_ = np.linalg.lstsq(A[sel.ravel()], y[sel.ravel()], rcond=None)
-        fit[..., ch] = np.exp(A @ coef).reshape(ratio.shape[:2])
-    ratio = fit.astype(np.float32)
-    # keep the light's shape (brighter under the spot, falling off at the edges), not the photo's exposure
-    # or colour cast: the work keeps the true colours of its own image
-    ratio = ratio / np.median(ratio.reshape(-1, 3), axis=0)
-    return np.clip(ratio, 0.6, 1.3)
+    y = np.log(np.clip(ratio, 0.05, 20)).ravel()
+    coef, *_ = np.linalg.lstsq(A[sel.ravel()], y[sel.ravel()], rcond=None)
+    fit = np.exp(A @ coef).reshape(ratio.shape)
+    # keep the light's shape (brighter under the spot, falling off at the edges), not the photo's exposure;
+    # a spot never makes one part of a canvas more than ~1.5x another, so anything steeper is a poor fit
+    fit = fit / np.median(fit)
+    fit = np.clip(fit, 0.8, 1.2)
+    return np.repeat(fit[..., None], 3, -1).astype(np.float32)

@@ -2,3 +2,4 @@ _serve.ps1
 studio/app/space/.cache/
 __pycache__/
 studio/app/preview.html
+node_modules/

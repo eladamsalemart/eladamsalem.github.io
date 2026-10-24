@@ -7,7 +7,7 @@ Writes studio/app/data/spaces/<slug>.json, its textures in studio/app/data/space
 (<slug>.report.md) of what was found, what was measured, and what is uncertain. Overrides measured by hand
 (a laser meter, say) go in studio/app/data/spaces/<slug>.overrides.json and win over the photos, e.g.
     {"height": 3.82, "work_centre_height": {"Gathering": 1.40}, "walls": {"x1": 6.10}}"""
-import json, hashlib, pickle, time, sys
+import json, shutil, hashlib, pickle, time, sys
 from datetime import date
 import cv2
 import numpy as np
@@ -29,8 +29,8 @@ def cached(key, fn):
 
 
 def file_key(paths):
-    from .works import ROOT
-    return '|'.join(f"{p}:{(ROOT / p.lstrip('/')).stat().st_size}" for p in paths)
+    from .works import resolve
+    return '|'.join(f"{p}:{resolve(p).stat().st_size}" for p in paths)
 
 
 def write_jpg(path, img, q=88):
@@ -137,7 +137,12 @@ def floor_detail(images, cams, masks, gains, fy, size=1.0, mpp=0.003):
         return None
     t = best[1]
     mean = t.reshape(-1, 3).mean(0)
-    t = t / (cv2.GaussianBlur(t, (0, 0), 30) + 1) * mean      # texture of the floor at its average colour, without light
+    # texture of the floor at its average colour, without light: only grain finer than ~2 cm is kept, so the
+    # walls and spots the polished floor mirrored in that photo (soft bands) don't repeat across the room as streaks
+    t = t / (cv2.GaussianBlur(t, (0, 0), 6) + 1) * mean
+    r = t - mean
+    r -= r.mean(0, keepdims=True); r -= r.mean(1, keepdims=True)   # what is left of a band along either axis
+    t = mean + r
     n = t.shape[0]
     # seamless: cross-fade the tile with itself shifted by half
     sh = np.roll(np.roll(t, n // 2, 0), n // 2, 1)
@@ -157,6 +162,8 @@ def look_of(cam, fy):
 
 def build(slug, log=print):
     t0 = time.time()
+    # start from nothing: a file a previous build wrote and this one doesn't must not linger in the space
+    shutil.rmtree(OUT / slug, ignore_errors=True)
     ex = load_exhibition(slug)
     overrides = {}
     of = OUT / f'{slug}.overrides.json'
@@ -171,9 +178,13 @@ def build(slug, log=print):
     cams, works = g['cams'], g['works']
     images = {p: load_image(p, 2000) for p in cams}
     matched = {p: [t for t in hits if t != '_shape'] for p, hits in found.items()}
-    masks = room.work_masks(cams, works, sizes, matched, grow=0.01)
-    fy, fconf = room.find_floor(cams, images, masks, log)
-    floor_how = 'נמדדה: הגובה שבו הצילומים מסכימים על הרצפה'
+    # a few cm round each work: a canvas's edge and side must never stay on the wall beside it
+    masks = room.work_masks(cams, works, sizes, matched, grow=0.035)
+    fy, fconf = room.floor_from_walls(cams, images, masks, works, sizes, log)
+    floor_how = 'נמדדה: הקו שבו הקירות פוגשים את הרצפה בכל הצילומים'
+    if fy is None:
+        fy, fconf = room.find_floor(cams, images, masks, log)
+        floor_how = 'נמדדה: הגובה שבו הצילומים מסכימים על הרצפה'
     if fy is None:
         fy = float(np.median([room.centre(c)[1] for c in cams.values()]) - 1.45); floor_how = 'משוערת לפי גובה מצלמה רגיל'
     # measured by hand: the height of a work's centre above the floor fixes the floor exactly
@@ -189,7 +200,8 @@ def build(slug, log=print):
     for s in tall:
         col, cov, dis, n = bake.bake(s, images, cams, masks, gains)
         tex.append((col, cov > 0))
-    ceiling = overrides.get('height') or room.ceiling_from_walls(tex, bake.TEXEL, 5.0)
+    ceiling = overrides.get('height') or room.ceiling_from_edges(cams, images, masks, works, sizes, fy, log) \
+        or room.ceiling_from_walls(tex, bake.TEXEL, 5.0)
     ceiling_how = 'נמדדה: הקו שבו הקירות פוגשים את התקרה' if ceiling and 'height' not in overrides else ('ממדידה ידנית' if ceiling else 'משוערת')
     ceiling = ceiling or 3.5
     x0, x1, z0, z1 = box[(0, 1)], box[(0, -1)], box[(2, 1)], box[(2, -1)]
@@ -222,9 +234,35 @@ def build(slug, log=print):
     for s, col, cov in walls_baked:
         # openings only in walls whose place was measured (a guessed wall has nothing to cut into)
         # and only where the wall was well photographed: a poorly seen corner is no evidence of a doorway
-        ops = room.openings_in_wall(col, cov > 0, floor_lab, s.texel, ceiling, ceiling) \
+        # (read from the wall as it will show, completed where no photo saw it: a gap is not an edge)
+        whole = bake.fill_holes(col, cov)
+        ops = room.openings_in_wall(whole, np.ones(cov.shape, bool), floor_lab, s.texel, ceiling, ceiling) \
             if box_how[measured[s.name]].startswith('נמדד') and cov.mean() > 0.7 else []
+        # round each opening, the photos show its real edge a few cm from where it is cut: that band is
+        # filled with plain wall, so no sliver of the photo's edge runs alongside the cut
+        cov = cov.copy()
+        # something standing out of the wall (a pier, a cabinet) can't be shown on its flat plane without
+        # looking painted on: the wall there is completed as plain wall instead
+        if box_how[measured[s.name]].startswith('נמדד'):
+            for a, b, kind in room.foot_runs(whole, np.ones(cov.shape, bool), s.texel, ceiling):
+                if kind == 'front':
+                    cov[:, int(a / s.texel):int(b / s.texel)] = 0
+                    log(f"  {s.name}: {a:.2f}-{b:.2f} m stands out of the wall: completed as plain wall")
+        for o in ops:
+            b = int(0.12 / s.texel)
+            c0, c1 = int(o['from'] / s.texel), int(o['to'] / s.texel)
+            r_top = int((ceiling - o['height']) / s.texel)
+            cov[:, max(0, c0 - b):c0 + 1] = 0; cov[:, c1:c1 + b] = 0
+            # over the top: a lintel's edge, or for an arch the whole curve from where it springs
+            r_spring = int((ceiling - o['height'] + ((o['to'] - o['from']) / 2 if o.get('arch') else 0)) / s.texel)
+            cov[max(0, r_top - b):r_spring + 1, max(0, c0 - b):c1 + b] = 0
         col = bake.fill_holes(col, cov)
+        # what is left on the open wall that stands out from the plaster round it (a wall label, a switch,
+        # a stain, the trace of a work's edge) is taken away: the walls show the works and nothing else
+        spots = room.wall_spots(col, s.texel, ceiling, [o for o in ops], works_on(s, works, sizes, fy, ceiling))
+        if spots.any():
+            col = bake.fill_holes(col, (~spots).astype(np.float32))
+            log(f"  {s.name}: {spots.mean() * 100:.2f}% of the wall cleaned of marks")
         write_jpg(d / f'{s.name}.jpg', col)
         surfaces.append(surface_json(s, fy, f'{rel}/{s.name}.jpg', 'wall', cov, ops))
         # the inside of each opening (the wall's thickness) is baked from the photos too, like the walls
@@ -232,6 +270,11 @@ def build(slug, log=print):
             o['depth'] = REVEAL
             for r in reveal_surfaces(s, o, ceiling, f'{s.name}-o{k}'):
                 rc, rcov, _, _ = bake.bake(r, images, cams, masks, gains)
+                if rcov.mean() < 0.3 and profile is not None:
+                    # a side of the opening no photo saw: the room's own plaster and fall of light
+                    hts = o['height'] - (np.arange(rc.shape[0]) + 0.5) * r.texel if r.name[-4:] != '-top' else np.full(rc.shape[0], o['height'])
+                    rc = plaster(profile, rc.shape, hts, ceiling)
+                    rcov = np.ones_like(rcov)
                 rc = bake.fill_holes(rc, rcov)
                 write_jpg(d / f'{r.name}.jpg', rc)
                 surfaces.append(surface_json(r, fy, f'{rel}/{r.name}.jpg', 'reveal', rcov, []))
@@ -249,6 +292,9 @@ def build(slug, log=print):
     surfaces.append(surface_json(ceil_s, fy, f'{rel}/ceiling.jpg', 'ceiling', ccov, []))
     if tile is not None:
         write_jpg(d / 'floor-detail.jpg', tile, 90)
+    # beyond an opening: the same plaster, from floor to ceiling, for the room the opening leads into
+    if profile is not None:
+        write_jpg(d / 'plaster.jpg', plaster(profile, (profile.shape[0], int(2.0 / 0.005), 3)))
 
     # a work that hangs flat on a wall is set exactly flat on it, just off its surface (the photos put it there
     # to within a few millimetres; exactly is better than nearly, since a sliver of tilt would cut into the wall)
@@ -298,7 +344,8 @@ def build(slug, log=print):
                           'measured': [round(sw * sc[0] * 100, 1), round(sh * sc[1] * 100, 1)],
                           'centre': [round(float(v), 4) for v in wk['c'] - [0, fy, 0]],
                           'axes': [[round(float(v), 5) for v in R[:, k]] for k in range(3)],
-                          'depth': 0.035, 'light': lp, 'lightScale': 5})
+                          'depth': 0.035, 'light': lp, 'lightScale': 5,
+                          **({'core': info['cutout']['core']} if info.get('cutout') else {})})
     views = []
     for p, cam in sorted(cams.items()):
         v = look_of(cam, fy); v['photo'] = p
@@ -311,18 +358,47 @@ def build(slug, log=print):
         'surfaces': surfaces, 'works': out_works, 'views': views,
         'floorReflect': [round(float(np.clip((floor_s.gloss - 1) * 0.2, 0.02, 0.1)), 3), round(float(np.clip((floor_s.gloss - 1) * 0.9, 0.05, 0.45)), 3)],
         'floorGloss': round(floor_s.gloss, 3),
+        'plaster': f'{rel}/plaster.jpg' if profile is not None else None,
     }
-    # the space checks itself: published as a walk only if every check passes, never 'nearly'
+    # stage 1 checks the measurement against the photos: only a space that passes every check goes on to
+    # stage 2 (inspect.py), which looks at it in the viewer itself before it may be published
     spec['_fy'] = 0.0 if False else fy
     passed, checks, scores = verify.check(spec, ex, found, g, sizes, box_how, wall_seen, log)
     del spec['_fy']
-    spec['quality'] = 'published' if passed else 'withheld'
+    spec['quality'] = 'candidate' if passed else 'withheld'
     spec['checks'] = [{'rule': n, 'value': round(float(v), 3), 'passed': bool(ok)} for n, v, ok, _ in checks]
-    log(f"  {'published' if passed else 'withheld'}: {sum(ok for *_, ok, _ in checks)} of {len(checks)} checks passed")
+    log(f"  {'candidate for inspection' if passed else 'withheld'}: {sum(ok for *_, ok, _ in checks)} of {len(checks)} checks passed")
     json.dump(spec, open(OUT / f'{slug}.json', 'w'), indent=1, ensure_ascii=False)
     write_report(slug, ex, found, groups, g, sizes, works, spec, box_how, floor_how, ceiling_how, fconf, time.time() - t0, checks)
     log(f"  done in {time.time() - t0:.0f} s")
     return spec
+
+
+def works_on(s, works, sizes, fy, ceiling, margin=0.08):
+    """The rectangles (texture pixels) the works on wall surface s cover, with a margin: hidden anyway."""
+    out = []
+    for t, w in works.items():
+        n = w['R'][:, 2]
+        if abs(n @ s.n) < 0.9 or abs((w['c'] - s.o) @ s.n) > 0.3:
+            continue
+        sc = w.get('scale', np.ones(2)); hw = sizes[t][0] * sc[0] / 2 + margin; hh = sizes[t][1] * sc[1] / 2 + margin
+        a = (w['c'] - s.o) @ s.u; r = (s.o[1] - w['c'][1])
+        out.append((int((a - hw) / s.texel), int((r - hh) / s.texel), int((a + hw) / s.texel), int((r + hh) / s.texel)))
+    return out
+
+
+def plaster(profile, shape, heights=None, ceiling=None, ptexel=0.005):
+    """A wall no photo saw, from a seen wall's colour from floor to ceiling (profile: rows ptexel apart, the
+    first at the ceiling) and its grain. heights: the height above the floor of each row to make (default:
+    the whole wall, floor to ceiling)."""
+    H, W = shape[:2]
+    if heights is None:
+        col = cv2.resize(profile[:, None, :], (1, H), interpolation=cv2.INTER_AREA)[:, 0, :]
+    else:
+        col = profile[np.clip(((ceiling - np.asarray(heights)) / ptexel).astype(int), 0, len(profile) - 1)]
+    out = np.repeat(col[:, None, :].astype(np.float32), W, 1)
+    out += cv2.GaussianBlur(np.random.default_rng(2).normal(0, 2.0, (H, W)).astype(np.float32), (0, 0), 0.7)[..., None]
+    return np.clip(out, 0, 255).astype(np.uint8)
 
 
 def surface_json(s, fy, tex, kind, cover, openings):
@@ -342,9 +418,9 @@ def write_report(slug, ex, found, groups, g, sizes, works, spec, box_how, floor_
         L.append(f"| `{p.split('/')[-1]}` | {', '.join(names) if names else '—'} |")
     r = spec['room']
     q = spec.get('quality')
-    L += ['', '## בדיקה עצמית', '',
-          'הסיור מתפרסם באפליקציה רק אם כל הבדיקות עוברות.' if q == 'published' else
-          '**הסיור לא מתפרסם**: לפחות בדיקה אחת לא עברה. התערוכה עצמה מוצגת עם הצילומים שלה.', '',
+    L += ['', '## שלב 1: בנייה ובדיקת המדידה', '',
+          'הסיור נבנה מהצילומים ומנתוני העבודות, והמדידה נבדקה מול הצילומים. עבר: ממשיך לבדיקה היסודית (שלב 2).' if q == 'candidate' else
+          '**הסיור לא מתפרסם**: לפחות בדיקה אחת לא עברה, ולכן הוא לא ממשיך לשלב 2. התערוכה עצמה מוצגת עם הצילומים שלה.', '',
           '| | בדיקה | תוצאה |', '|---|---|---|']
     names = {'works_placed': 'כל העבודות נמצאו', 'image_edge_px': 'איכות תמונות העבודות', 'size_vs_image': 'מידה מול תמונה',
              'size_vs_photos': 'מידה מול הצילומים', 'walls_measured': 'קירות נמדדו', 'rms_px': 'דיוק המדידה',
@@ -404,7 +480,11 @@ def main(argv):
         except Exception as e:                                    # one exhibition failing must not stop the rest
             import traceback; traceback.print_exc()
             print(f'{s}: failed: {e}')
-    # the app finds the built spaces through this index
+    write_index()
+
+
+def write_index():
+    """The app finds the published spaces through this index: only those that passed both stages."""
     index = {}
     for f in sorted(OUT.glob('*.json')):
         if f.name.endswith(('.overrides.json',)) or f.name == 'index.json':
