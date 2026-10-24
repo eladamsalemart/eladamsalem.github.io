@@ -66,16 +66,19 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   const wallColor = new THREE.Color('#f2f2ef');
 
   // a flat surface with holes, as triangles in its own (along, up-from-bottom) coordinates
-  function planeMesh(s, material, holes = []) {
+  // pad: how far the surface runs on past its sides and top (and 1 cm under the floor), hidden behind its
+  // neighbours: two planes that just meet leave a hairline between them, at a room's corner, a wall's foot or top
+  function planeMesh(s, material, holes = [], pad = 0) {
     const [su, sv] = s.size;
-    const shape = new THREE.Shape([new THREE.Vector2(0, 0), new THREE.Vector2(su, 0), new THREE.Vector2(su, sv), new THREE.Vector2(0, sv)]);
+    const lo = -Math.min(pad, 0.01);                              // under the floor just enough to close the seam
+    const shape = new THREE.Shape([new THREE.Vector2(-pad, lo), new THREE.Vector2(su + pad, lo), new THREE.Vector2(su + pad, sv + pad), new THREE.Vector2(-pad, sv + pad)]);
     for (const o of holes) shape.holes.push(openingPath(o, new THREE.Path()));
     const g = new THREE.ShapeGeometry(shape, 24);
     const pos = g.attributes.position, uv = g.attributes.uv;
     const O = V(s.origin), U = V(s.u), Vd = V(s.v);
     for (let i = 0; i < pos.count; i++) {
       const a = pos.getX(i), b = pos.getY(i);                  // b: up from the texture's bottom edge
-      uv.setXY(i, a / su, b / sv);
+      uv.setXY(i, Math.min(1, Math.max(0, a / su)), Math.min(1, Math.max(0, b / sv)));
       const p = O.clone().addScaledVector(U, a).addScaledVector(Vd, sv - b);
       pos.setXYZ(i, p.x, p.y, p.z);
     }
@@ -95,7 +98,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   surfaces.forEach((s, i) => {
     if (s.kind === 'reveal') { const r = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide })); r.userData.kind = 'reveal'; scene.add(r); return; }
     if (s.kind === 'wall' || s.kind === 'ceiling') {
-      const m = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide }), s.openings || []);
+      const m = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide }), s.openings || [], s.kind === 'wall' ? 0.03 : 0);
       m.userData.kind = s.kind; scene.add(m);
       for (const o of s.openings || []) addOpening(s, o);
     }
