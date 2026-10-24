@@ -237,13 +237,17 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   // --- moving -----------------------------------------------------------------
   let mode = 'walk', idx = 0, yaw = 0, pitch = 0, drag = null, moved = 0, walkTo = null;
   const views = spec.views || [];
-  const v0 = views.slice().sort((a, b) => b.fov - a.fov)[0];
-  const pos = V(v0 ? v0.pos : [(R.x0 + R.x1) / 2, EYE, (R.z0 + R.z1) / 2]).setY(EYE);
+  // start as a visitor would: near one end of the room, looking down its length (from the end most photos were taken)
+  const longX = R.x1 - R.x0 >= R.z1 - R.z0, cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2;
+  const fromHigh = views.filter(v => (longX ? v.pos[0] - cx : v.pos[2] - cz) > 0).length >= views.length / 2;
+  const len = longX ? R.x1 - R.x0 : R.z1 - R.z0, back = Math.min(1.4, len * 0.2) - len / 2;
+  const sgn = fromHigh ? -1 : 1;
+  const pos = (longX ? new THREE.Vector3(cx - sgn * back, EYE, cz) : new THREE.Vector3(cx, EYE, cz - sgn * back));
   clampStand(pos);
-  const look = v0 ? V(v0.look).setY(EYE) : pos.clone().add(new THREE.Vector3(0, 0, -1));
+  const look = longX ? new THREE.Vector3(cx + sgn * len, EYE - 0.1, cz) : new THREE.Vector3(cx, EYE - 0.1, cz + sgn * len);
   const tPos = pos.clone(), tLook = look.clone(), up = new THREE.Vector3(0, 1, 0), tUp = up.clone();
   let tFov = 62, free = true;
-  const fmtSize = p => `${Math.round(p.size.h)} × ${Math.round(p.size.w)} cm`;
+  const fmtSize = p => `${Math.round(p.h.size[1])} × ${Math.round(p.h.size[0])} cm`;   // as recorded
   const workInfo = p => `<b>${p.w.title}${p.w.sold ? ' <span class="dot" aria-label="Sold"></span>' : ''}</b><span>${[p.w.artist && p.w.artist.name, p.w.year].filter(Boolean).join(', ')}${p.w.medium ? ' · ' + p.w.medium : ''}</span><span class="sv-s">${fmtSize(p)}</span>${p.w.slug ? '<button type="button" class="sv-open">Open work</button>' : ''}`;
   function aimFrom(from, to) { const d = new THREE.Vector3().subVectors(to, from); yaw = Math.atan2(-d.x, -d.z); pitch = Math.atan2(d.y, Math.hypot(d.x, d.z)); }
   aimFrom(pos, look);

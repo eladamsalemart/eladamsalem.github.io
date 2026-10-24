@@ -62,7 +62,7 @@ if __name__ == '__main__':
     body = re.search(r'<!-- app:body -->(.*?)<!-- app:body-end -->', page, re.S).group(1)
     space = open('studio/app/space/space.js', encoding='utf-8').read().replace('export async function openSpace', 'async function openSpace')
     script = space + '\nwindow.__openSpace = openSpace;\n' + open('studio/app/app.js', encoding='utf-8').read()
-    out = (head + body
+    out = ('<meta charset="utf-8">\n' + head + body
            + '<script>window.STUDIO_DATA=' + json.dumps(data, ensure_ascii=False).replace('</', '<\\/') + ';</script>\n'
            + '<script type="module">\n' + script + '\n</script>\n')
     dest = OUT / 'index.html' if OUT else Path('studio/app/preview.html')
