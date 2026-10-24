@@ -387,8 +387,9 @@ def build(slug, log=print):
     return spec
 
 
-def works_on(s, works, sizes, fy, ceiling, margin=0.08):
-    """The rectangles (texture pixels) the works on wall surface s cover, with a margin: hidden anyway."""
+def works_on(s, works, sizes, fy, ceiling, margin=0.02):
+    """The rectangles (texture pixels) the works on wall surface s cover (hidden anyway), with a margin for
+    how exactly they are placed: a mark right by a work's edge (its shadow, its side) is still cleaned."""
     out = []
     for t, w in works.items():
         n = w['R'][:, 2]

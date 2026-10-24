@@ -60,7 +60,7 @@ def work_masks(cams, works, sizes, matched=None, grow=0.06, unsure=0.15):
             hw, hh = sw * sc[0] / 2 + g, sh * sc[1] / 2 + g
             # and its shadow: under a spot a canvas casts a shadow a few cm below and beside it, which the
             # viewer draws itself (the photo's would be a second one)
-            X = np.array([[x, y, z] for z in (0.01, -(DEPTH + 0.03)) for x in (-hw - 0.05, hw + 0.05) for y in (-hh - 0.09, hh + 0.02)])
+            X = np.array([[x, y, z] for z in (0.01, -(DEPTH + 0.03)) for x in (-hw - 0.10, hw + 0.10) for y in (-hh - 0.12, hh + 0.04)])
             # a work seen from behind its own plane, or reaching behind the camera, can't hide anything here
             if wk['R'][:, 2] @ (centre(c) - wk['c']) <= 0.05:
                 continue
