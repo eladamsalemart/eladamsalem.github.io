@@ -350,14 +350,18 @@ def build(slug, log=print):
                           'depth': float(overrides.get('depths', {}).get(t, overrides.get('canvas_depth', 0.035))), 'light': lp, 'lightScale': 5,
                           **({'core': info['cutout']['core']} if info.get('cutout') else {}),
                           **({'imageFull': info['full']} if info.get('full') else {})})
+    n_photos = sum(p.startswith('/') for p in cams)     # the show's own photos; the rest are a video's frames
     views = []
     for p, cam in sorted(cams.items()):
+        if n_photos and not p.startswith('/'):          # the photos are the places to stand, when there are any
+            continue
         v = look_of(cam, fy); v['photo'] = p
         v['pos'][0] = float(np.clip(v['pos'][0], x0 + 0.08, x1 - 0.08)); v['pos'][2] = float(np.clip(v['pos'][2], z0 + 0.08, z1 - 0.08))
         views.append(v)
     spec = {
         'version': 2, 'title': ex['title'], 'generated': str(date.today()),
-        'source': f"Built from {len(cams)} installation photos",
+        'source': (f"Built from {n_photos} installation photos" + (" and a walk-through video" if len(cams) > n_photos else '')
+                   if n_photos else "Built from a walk-through video"),
         'room': {'x0': round(x0, 3), 'x1': round(x1, 3), 'z0': round(z0, 3), 'z1': round(z1, 3), 'height': round(ceiling, 3)},
         'surfaces': surfaces, 'works': out_works, 'views': views,
         'floorReflect': [round(float(np.clip((floor_s.gloss - 1) * 0.2, 0.02, 0.1)), 3), round(float(np.clip((floor_s.gloss - 1) * 0.9, 0.05, 0.45)), 3)],
@@ -492,7 +496,7 @@ def write_index():
     """The app finds the published spaces through this index: only those that passed both stages."""
     index = {}
     for f in sorted(OUT.glob('*.json')):
-        if f.name.endswith(('.overrides.json',)) or f.name == 'index.json':
+        if f.name.endswith(('.overrides.json', '.status.json')) or f.name == 'index.json':
             continue
         spec = json.load(open(f, encoding='utf-8'))
         if spec.get('version') == 2 and spec.get('quality') == 'published':

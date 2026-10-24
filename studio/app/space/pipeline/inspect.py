@@ -394,7 +394,7 @@ def main(argv):
     keep = None
     if '--keep' in argv:
         i = argv.index('--keep'); keep = argv[i + 1]; argv = argv[:i] + argv[i + 2:]
-    slugs = argv or [f.stem for f in sorted(OUT.glob('*.json')) if f.name != 'index.json' and not f.name.endswith('.overrides.json')]
+    slugs = argv or [f.stem for f in sorted(OUT.glob('*.json')) if f.name != 'index.json' and not f.name.endswith(('.overrides.json', '.status.json'))]
     for s in slugs:
         try:
             inspect(s, keep and f'{keep}/{s}')

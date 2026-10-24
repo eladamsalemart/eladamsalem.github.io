@@ -51,14 +51,14 @@ jobs:
           fi
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - name: Keep the inpainting model between runs
         uses: actions/cache@v4
         with:
           path: studio/app/space/.cache/inpainting_lama_2025jan.onnx
           key: lama-2025jan
       - name: Install
-        run: pip install opencv-python-headless==5.0.0.93 numpy scipy pillow
+        run: pip install opencv-python-headless==5.0.0.93 numpy==2.5.3 scipy==1.18.1 pillow==12.3.0   # exactly the versions it is developed with: the same inputs must give the same space
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -67,7 +67,19 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.49.1
           npx playwright install --with-deps chromium
       - name: Build and inspect the spaces
-        run: python -m studio.app.space.pipeline
+        run: |
+          python -m studio.app.space.pipeline --build
+          python -m studio.app.space.pipeline --inspect --keep "$RUNNER_TEMP/inspect"
+      - name: Keep the inspection's views for a few days
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inspection
+          path: |
+            ${{ runner.temp }}/inspect/**/*.png
+            ${{ runner.temp }}/inspect/**/*.json
+          retention-days: 3
+          if-no-files-found: ignore
       - name: Commit and push to studio
         run: |
           git add studio/app/data/spaces

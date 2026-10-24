@@ -52,6 +52,9 @@ def load_exhibition(slug):
     title = next(k for k, v in studio['exhibitions'].items() if v is ex)
     show = next(s for s in shows if s['title'] == title)
     out = {'title': title, 'slug': slug, 'photos': show.get('images', []), 'works': [], 'missing': []}
+    if ex.get('video'):                                 # a walk-through video: its frames are photos too
+        from .video import frames
+        out['photos'] = out['photos'] + frames(ex['video'])
     for name in ex['works'] + (ex.get('maybe') or []):
         w = by_title.get(name.strip().lower())
         if not w or not w.get('image'):
