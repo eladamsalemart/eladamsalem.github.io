@@ -345,7 +345,8 @@ def build(slug, log=print):
                           'centre': [round(float(v), 4) for v in wk['c'] - [0, fy, 0]],
                           'axes': [[round(float(v), 5) for v in R[:, k]] for k in range(3)],
                           'depth': 0.035, 'light': lp, 'lightScale': 5,
-                          **({'core': info['cutout']['core']} if info.get('cutout') else {})})
+                          **({'core': info['cutout']['core']} if info.get('cutout') else {}),
+                          **({'imageFull': info['full']} if info.get('full') else {})})
     views = []
     for p, cam in sorted(cams.items()):
         v = look_of(cam, fy); v['photo'] = p

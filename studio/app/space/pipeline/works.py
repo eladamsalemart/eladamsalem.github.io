@@ -78,7 +78,9 @@ def load_exhibition(slug):
                 size = (size[0] / (c2 - c0), size[1] / (c3 - c1), size[2])
         else:
             size = oriented_size(pairs, wd / h) if pairs else None
-        out['works'].append({'title': w['title'], 'image': image, 'cutout': cut, 'listed': name in ex['works'],
+        # a larger image of the work (an artist's full-resolution upload), shown when a visitor comes close
+        full = w.get('imageFull') if not cut else None
+        out['works'].append({'title': w['title'], 'image': image, 'cutout': cut, 'full': full, 'listed': name in ex['works'],
                              'size_cm': size[:2] if size else None, 'size_misfit': size[2] if size else None,
                              'pixels': (wd, h)})
     return out

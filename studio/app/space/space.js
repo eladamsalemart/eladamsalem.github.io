@@ -36,6 +36,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   const $ = s => root.querySelector(s);
   if (matchMedia('(pointer: fine)').matches) $('.sv-hint').innerHTML = 'Drag to look around<br>W A S D or arrows to walk · Click the floor to go there';
 
+  let dirty = true;                                               // something changed: draw the next frame
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -218,7 +219,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.NoColorSpace; return t;
   }
 
-  const pieces = [];
+  const pieces = [], pendingFull = [];
   await Promise.all((spec.works || []).map(async (h, order) => {
     const w = works.find(x => x.title.toLowerCase() === h.work.toLowerCase()) || { title: h.work, image: h.image, artist: { name: '' }, year: '', medium: '' };
     const [tex, light] = await Promise.all([loadTex(h.image), loadTex(h.light, false)]);
@@ -234,14 +235,30 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     // front: no diffuse light of its own (that is the measured light), only a faint varnish sheen from the spots
     const front = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: tex, roughness: 0.42, metalness: 0, toneMapped: false });
     front.normalMap = reliefFrom(tex.image); front.normalScale.set(0.2, 0.2);
-    if (light) {
-      const k = (h.lightScale || 1).toFixed(3);
-      front.onBeforeCompile = sh => {
-        sh.uniforms.lightTex = { value: light };
-        sh.fragmentShader = 'uniform sampler2D lightTex;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>',
-          `#include <emissivemap_fragment>\n totalEmissiveRadiance *= texture2D(lightTex, vEmissiveMapUv).rgb * ${k};`);
-      };
-    }
+    // up close (more than one screen pixel to each pixel of the image) the image's own detail is brought out
+    // a little, as the eye sees paint up close: a gentle sharpening of what is there, nothing added. And the
+    // measured light, when there is one.
+    const k = light ? (h.lightScale || 1).toFixed(3) : '1.0';
+    front.onBeforeCompile = sh => {
+      sh.uniforms.lightTex = { value: light };
+      sh.fragmentShader = (light ? 'uniform sampler2D lightTex;\n' : '') + sh.fragmentShader.replace('#include <emissivemap_fragment>',
+        `#include <emissivemap_fragment>
+        {
+          vec2 ts = 1.0 / vec2(textureSize(emissiveMap, 0));
+          vec2 per = fwidth(vEmissiveMapUv) / ts;                      // image pixels per screen pixel
+          float zoom = 1.0 / max(max(per.x, per.y), 1e-4);
+          float amt = clamp((zoom - 1.0) * 0.3, 0.0, 0.45);
+          if (amt > 0.0) {
+            vec3 c = texture2D(emissiveMap, vEmissiveMapUv).rgb;
+            vec3 n = 0.25 * (texture2D(emissiveMap, vEmissiveMapUv + vec2(ts.x, 0.0)).rgb + texture2D(emissiveMap, vEmissiveMapUv - vec2(ts.x, 0.0)).rgb
+                           + texture2D(emissiveMap, vEmissiveMapUv + vec2(0.0, ts.y)).rgb + texture2D(emissiveMap, vEmissiveMapUv - vec2(0.0, ts.y)).rgb);
+            totalEmissiveRadiance = max(totalEmissiveRadiance + (c - n) * amt * 1.5, 0.0);
+          }
+        }
+        ${light ? `totalEmissiveRadiance *= texture2D(lightTex, vEmissiveMapUv).rgb * ${k};` : ''}`);
+    };
+    // a larger image of the work, when there is one, is loaded once a visitor comes close enough to see it
+    if (h.imageFull) pendingFull.push({ h, front, centre: V(h.centre), reach: Math.max(1.6, 1.2 * Math.max(wM, hM)) });
     const side = sideMat('#d5cab6');
     const back = sideMat('#4a4640');
     // a work cut out of its backdrop: its body is the solid rectangle (core), and the front shows only the
@@ -290,7 +307,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   const tPos = pos.clone(), tLook = look.clone(), up = new THREE.Vector3(0, 1, 0), tUp = up.clone();
   let tFov = 62, free = true;
   const fmtSize = p => `${Math.round(p.h.size[1])} × ${Math.round(p.h.size[0])} cm`;   // as recorded
-  const workInfo = p => `<b>${p.w.title}${p.w.sold ? ' <span class="dot" aria-label="Sold"></span>' : ''}</b><span>${[p.w.artist && p.w.artist.name, p.w.year].filter(Boolean).join(', ')}${p.w.medium ? ' · ' + p.w.medium : ''}</span><span class="sv-s">${fmtSize(p)}</span>${p.w.slug ? '<button type="button" class="sv-open">Open work</button>' : ''}`;
+  const workInfo = p => `<b>${p.w.title}</b><span>${[p.w.artist && p.w.artist.name, p.w.year].filter(Boolean).join(', ')}${p.w.medium ? ' · ' + p.w.medium : ''}</span><span class="sv-s">${fmtSize(p)}</span>${p.w.slug ? '<button type="button" class="sv-open">Open work</button>' : ''}`;
   function aimFrom(from, to) { const d = new THREE.Vector3().subVectors(to, from); yaw = Math.atan2(-d.x, -d.z); pitch = Math.atan2(d.y, Math.hypot(d.x, d.z)); }
   aimFrom(pos, look);
   function goFree() { if (!free) { aimFrom(pos, look); tPos.copy(pos); free = true; tUp.set(0, 1, 0); } }
@@ -343,13 +360,29 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   setTimeout(dropHint, 7000);
 
   const canvas = renderer.domElement;
-  canvas.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; moved = 0; canvas.setPointerCapture(e.pointerId); });
+  // one finger looks around (and, with the phone's motion on, turns the view on top of it); two fingers
+  // pinch to look closer, as with a photo
+  const touches = new Map(); let pinch = null;
+  const spread = () => { const [a, b] = [...touches.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+  canvas.addEventListener('pointerdown', e => {
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY }); canvas.setPointerCapture(e.pointerId);
+    if (touches.size === 2) { pinch = { d: spread(), fov: tFov }; drag = null; moved = 99; return; }
+    drag = { x: e.clientX, y: e.clientY }; moved = 0;
+  });
   canvas.addEventListener('pointermove', e => {
+    if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && touches.size === 2) { tFov = Math.max(22, Math.min(75, pinch.fov * pinch.d / Math.max(20, spread()))); dropHint(); return; }
     if (!drag) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y; moved += Math.abs(dx) + Math.abs(dy); drag = { x: e.clientX, y: e.clientY };
-    if (moved > 6) { goFree(); dropHint(); yaw += dx * 0.005; pitch = Math.max(-0.7, Math.min(0.7, pitch + dy * 0.003)); }
+    if (moved > 6) {
+      goFree(); dropHint();
+      if (gyro) gyroBase += dx * 0.005; else { yaw += dx * 0.005; pitch = Math.max(-0.7, Math.min(0.7, pitch + dy * 0.003)); }
+    }
   });
+  const lift = e => { touches.delete(e.pointerId); if (touches.size < 2) pinch = null; };
+  canvas.addEventListener('pointercancel', e => { lift(e); drag = null; });
   canvas.addEventListener('pointerup', e => {
+    lift(e);
     if (!drag) return; drag = null; if (moved > 6) return;
     const r = canvas.getBoundingClientRect();
     ray.setFromCamera({ x: (e.clientX - r.left) / r.width * 2 - 1, y: -(e.clientY - r.top) / r.height * 2 + 1 }, camera);
@@ -422,6 +455,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   }
 
   function resize() {
+    dirty = true;
     const r = root.getBoundingClientRect(); renderer.setSize(r.width, r.height, false);
     camera.aspect = r.width / r.height; camera.updateProjectionMatrix();
   }
@@ -429,7 +463,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fwd = new THREE.Vector3(), sideV = new THREE.Vector3();
-  let last = performance.now(), running = true, nextFocus = 0;
+  let last = performance.now(), running = true, nextFocus = 0, lastFov = 0, nextAdapt = 0;
+  const lastPos = new THREE.Vector3(1e9, 0, 0), lastLook = new THREE.Vector3(), frameTimes = [];
+  const maxRatio = Math.min(devicePixelRatio, 2);
+  THREE.DefaultLoadingManager.onLoad = () => { dirty = true; };      // a texture arrived: show it
   function frame(now) {
     if (!running) return;
     const dt = Math.min((now - last) / 1000, 0.05); last = now;
@@ -459,7 +496,30 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     camera.fov += (tFov - camera.fov) * k; camera.updateProjectionMatrix();
     if (renderer.xr.isPresenting) { rig.position.set(pos.x, 0, pos.z); rig.rotation.y = yaw; }
     else { camera.position.copy(pos); camera.up.copy(up); camera.lookAt(look); }
+    // nothing moved and nothing new to show: the last frame still stands (a phone keeps its battery)
+    const still = !renderer.xr.isPresenting && pos.distanceToSquared(lastPos) < 1e-10 && look.distanceToSquared(lastLook) < 1e-10 && Math.abs(camera.fov - lastFov) < 1e-4;
+    lastPos.copy(pos); lastLook.copy(look); lastFov = camera.fov;
+    if (still && !dirty) return;
+    dirty = false;
+    // a phone that can't keep up draws at a lower resolution rather than stutter
+    frameTimes.push(dt); if (frameTimes.length > 40) frameTimes.shift();
+    if (frameTimes.length === 40 && now > nextAdapt) {
+      const avg = frameTimes.reduce((a, b) => a + b) / 40, pr = renderer.getPixelRatio();
+      if (avg > 0.028 && pr > 1) { renderer.setPixelRatio(Math.max(1, pr - 0.25)); resize(); nextAdapt = now + 1500; frameTimes.length = 0; }
+      else if (avg < 0.014 && pr < maxRatio) { renderer.setPixelRatio(Math.min(maxRatio, pr + 0.25)); resize(); nextAdapt = now + 4000; frameTimes.length = 0; }
+    }
     if (mode === 'walk' && now > nextFocus) { focus(); nextFocus = now + 200; }
+    for (let i = pendingFull.length - 1; i >= 0; i--) {
+      const f = pendingFull[i];
+      if (pos.distanceTo(f.centre) < f.reach) {
+        pendingFull.splice(i, 1);
+        loadTex(f.h.imageFull).then(t => {
+          if (!t) return;
+          t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
+          f.front.emissiveMap = t; if (f.front.map) f.front.map = t; f.front.needsUpdate = true; dirty = true;
+        });
+      }
+    }
     renderer.render(scene, camera);
   }
   renderer.setAnimationLoop(frame);
