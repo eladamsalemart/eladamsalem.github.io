@@ -1,37 +1,198 @@
 {
-  "_note": "Ritual, Jerusalem Artists' House, reconstructed from the six installation photos (photo: Elad Sarig). Room size and positions are estimated from the works' known sizes in the photos, to about ±0.5 m. Later the artist back office edits this file.",
+  "_note": "Ritual, Jerusalem Artists' House, reconstructed from the six installation photos (photo: Elad Sarig). Measured with studio/app/space/tools/measure.py: every painting's known size is a ruler, so the photos give the room's size, each work's position and height, and each photo's camera, to about ±0.2 m. Later the artist back office edits this file.",
   "title": "Ritual",
-  "source": "Reconstructed from installation photos",
+  "source": "Measured from installation photos",
   "room": {
-    "width": 4.1, "length": 15.0, "height": 3.7,
-    "soffit": { "width": 2.1, "height": 3.05 },
-    "wall": "#F3F3F0",
-    "floor": "space/textures/terrazzo.jpg", "floorTile": 1.3,
-    "baseboard": "space/textures/baseboard.jpg", "baseboardHeight": 0.1,
+    "width": 4.07,
+    "length": 12.31,
+    "height": 3.75,
+    "soffit": {
+      "width": 1.81,
+      "height": 3.11
+    },
+    "wall": "#F4F4F3",
+    "floor": "space/textures/terrazzo.jpg",
+    "floorTile": 1.3,
+    "floorReflect": [
+      0.06,
+      0.26
+    ],
+    "baseboard": "space/textures/baseboard.jpg",
+    "baseboardHeight": 0.103,
     "openings": [
-      { "wall": "L", "from": 10.4, "to": 11.6, "height": 2.95, "arch": true },
-      { "wall": "L", "from": 12.9, "to": 14.3, "height": 2.95, "arch": true }
-    ]
+      {
+        "wall": "L",
+        "from": 5.45,
+        "to": 6.65,
+        "height": 3.0,
+        "arch": true,
+        "depth": 0.7
+      },
+      {
+        "wall": "L",
+        "from": 9.42,
+        "to": 10.82,
+        "height": 3.0,
+        "arch": true,
+        "depth": 0.7
+      }
+    ],
+    "floorTint": "#e3dcd5"
   },
   "_walls": "A = end wall with Gathering (z = 0). B = opposite end wall (z = length). L and R are the long walls, left and right when facing A. 'at' on L/R = metres from wall A; on A/B = metres from the wall's centre. 'center' = height of the work's centre above the floor.",
   "hang": [
-    { "work": "Gathering", "wall": "A", "at": 0, "center": 1.28 },
-    { "work": "Flowers 1", "wall": "L", "at": 1.87, "center": 1.48 },
-    { "work": "Flowers 3", "wall": "L", "at": 2.2, "center": 1.48 },
-    { "work": "Flowers 2", "wall": "L", "at": 2.53, "center": 1.48 },
-    { "work": "Adam, Adam and a Lamp", "wall": "L", "at": 5.4, "center": 1.39 },
-    { "work": "Human nature", "wall": "L", "at": 9.6, "center": 1.4 },
-    { "work": "Woman", "wall": "R", "at": 3.9, "center": 1.36 },
-    { "work": "Ritual", "wall": "R", "at": 7.85, "center": 1.45 },
-    { "work": "Two", "wall": "R", "at": 12.5, "center": 1.45 },
-    { "work": "Woman and a gun", "wall": "B", "at": 0, "center": 1.42 }
+    {
+      "work": "Gathering",
+      "wall": "A",
+      "at": 0.04,
+      "center": 1.28
+    },
+    {
+      "work": "Flowers 1",
+      "wall": "L",
+      "at": 1.09,
+      "center": 1.47
+    },
+    {
+      "work": "Flowers 3",
+      "wall": "L",
+      "at": 1.43,
+      "center": 1.47
+    },
+    {
+      "work": "Flowers 2",
+      "wall": "L",
+      "at": 1.77,
+      "center": 1.47
+    },
+    {
+      "work": "Adam, Adam and a Lamp",
+      "wall": "L",
+      "at": 4.2,
+      "center": 1.33
+    },
+    {
+      "work": "Human nature",
+      "wall": "L",
+      "at": 7.72,
+      "center": 1.32
+    },
+    {
+      "work": "Woman",
+      "wall": "R",
+      "at": 3.0,
+      "center": 1.38
+    },
+    {
+      "work": "Ritual",
+      "wall": "R",
+      "at": 6.18,
+      "center": 1.32
+    },
+    {
+      "work": "Two",
+      "wall": "R",
+      "at": 9.77,
+      "center": 1.21
+    },
+    {
+      "work": "Woman and a gun",
+      "wall": "B",
+      "at": 0,
+      "center": 1.22
+    }
   ],
   "views": [
-    { "photo": "/media/works/jah-005-1780915457989.jpg", "name": "Looking toward Gathering", "pos": [0.15, 1.45, 11.7], "look": [0, 1.38, 0], "fov": 40 },
-    { "photo": "/media/works/jah-007-1780915483464.jpg", "name": "Gathering and the right wall", "pos": [-1.5, 1.45, 10.2], "look": [1.1, 1.38, 2.6], "fov": 46 },
-    { "photo": "/media/works/jah-008-1780915493251.jpg", "name": "The left wall", "pos": [1.9, 1.45, 3.9], "look": [-2.05, 1.4, 3.9], "fov": 58 },
-    { "photo": "/media/works/jah-009-1780915500705.jpg", "name": "Ritual, Two and the far wall", "pos": [-1.6, 1.45, 5.9], "look": [1.4, 1.38, 12.8], "fov": 46 },
-    { "photo": "/media/works/jah-010-1780915508773.jpg", "name": "Looking toward Woman and a gun", "pos": [0.25, 1.45, 7.4], "look": [0, 1.38, 15], "fov": 44 },
-    { "photo": "/media/works/jah-006-1780915473909.jpg", "name": "The full length of the room", "pos": [0.3, 1.45, 1.6], "look": [0, 1.38, 15], "fov": 40 }
-  ]
+    {
+      "photo": "/media/works/jah-005-1780915457989.jpg",
+      "name": "Looking toward Gathering",
+      "pos": [
+        0.24,
+        1.2,
+        9.59
+      ],
+      "look": [
+        0.49,
+        1.16,
+        5.59
+      ],
+      "fov": 42.9
+    },
+    {
+      "photo": "/media/works/jah-007-1780915483464.jpg",
+      "name": "Gathering and the right wall",
+      "pos": [
+        -1.32,
+        1.2,
+        8.14
+      ],
+      "look": [
+        1.03,
+        1.17,
+        4.9
+      ],
+      "fov": 48.2
+    },
+    {
+      "photo": "/media/works/jah-008-1780915493251.jpg",
+      "name": "The left wall",
+      "pos": [
+        1.4,
+        1.25,
+        2.96
+      ],
+      "look": [
+        -2.59,
+        0.94,
+        2.9
+      ],
+      "fov": 46.6
+    },
+    {
+      "photo": "/media/works/jah-009-1780915500705.jpg",
+      "name": "Ritual, Two and the far wall",
+      "pos": [
+        -1.8,
+        1.2,
+        2.89
+      ],
+      "look": [
+        0.59,
+        1.09,
+        6.1
+      ],
+      "fov": 34.2
+    },
+    {
+      "photo": "/media/works/jah-010-1780915508773.jpg",
+      "name": "Looking toward Woman and a gun",
+      "pos": [
+        -0.88,
+        1.17,
+        4.07
+      ],
+      "look": [
+        -0.58,
+        1.08,
+        8.05
+      ],
+      "fov": 38.1
+    },
+    {
+      "photo": "/media/works/jah-006-1780915473909.jpg",
+      "name": "The full length of the room",
+      "pos": [
+        -0.63,
+        1.3,
+        1.37
+      ],
+      "look": [
+        -0.7,
+        1.06,
+        5.36
+      ],
+      "fov": 49.6
+    }
+  ],
+  "_views": "pos / look / fov (vertical, degrees) are each photo's camera as measured by measure.py."
 }

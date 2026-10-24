@@ -19,6 +19,11 @@
 | `proposal/screens/` | צילומי מסך של מסכי האפליקציה |
 | `teaser/` | טיזר של 40 שניות: דף שמנגן חי, וקובץ `studio-teaser.mp4` |
 | `index.html` | עמוד החזון הראשון (טיוטה מוקדמת, בעברית) |
+| `app/` | אב הטיפוס של האפליקציה (צד המשתמש). `app/preview.html` הוא עותק עצמאי לצפייה |
+| `app/space/reconstruct.js` | החלל התלת־ממדי של תערוכה: הליכה חופשית (ג'ויסטיק / WASD), מעבר בין עבודות, ומבט מנקודת הצילום של כל תמונה |
+| `app/data/spaces/ritual.json` | המידות של חלל "Ritual": החדר, הקשתות, מיקום וגובה כל עבודה, ומצלמת כל צילום |
+| `app/space/tools/measure.py` | מודד את החלל מהצילומים: כל ציור הוא סרגל (המידה שלו ידועה), ומכאן גודל החדר, מיקומי העבודות והמצלמות |
+| `app/space/tools/detect.py` | מאתר את ארבע הפינות של כל ציור בצילום |
 
 ## בנייה
 
@@ -28,6 +33,8 @@
 python3 studio/proposal/build.py   # בונה את studio/proposal/index.html
 python3 studio/teaser/build.py     # בונה את studio/teaser/index.html
 python3 studio/research/cost_model.py
+python3 studio/app/build.py        # בונה את studio/app/preview.html
+python3 studio/app/space/tools/measure.py   # מדידת החלל מהצילומים (דורש opencv-python-headless)
 ```
 
 שני סקריפטי הבנייה מטמיעים את העבודות מ־`content/works.json`, ובודקים את המידה של כל עבודה מול יחס הגובה־רוחב של התמונה שלה.

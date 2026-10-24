@@ -3,11 +3,12 @@
 // installation photos it was reconstructed from, so every view can be checked against its photo.
 // Coordinates: x across the room, y up, z from wall A (z = 0) to wall B (z = length), in metres.
 
-const EYE = 1.6, DEPTH = 0.035;
+const EYE = 1.6, DEPTH = 0.035, WALK = 1.3, MARGIN = 0.35;
 
 export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   const THREE = await import('three');
   const { RoomEnvironment } = await import('three/addons/environments/RoomEnvironment.js');
+  const { Reflector } = await import('three/addons/objects/Reflector.js');
   const R = spec.room, W = R.width, L = R.length, H = R.height;
 
   // --- overlay -------------------------------------------------------------
@@ -16,13 +17,17 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   root.innerHTML = `
     <div class="sv-top"><button type="button" class="sv-x">← Exit</button>
       <div class="sv-t"><b>${spec.title}</b><span>${spec.source}</span></div></div>
-    <div class="sv-modes seg" role="group" aria-label="Move by"><button type="button" data-mode="works" aria-pressed="true">Works</button><button type="button" data-mode="photos" aria-pressed="false">Photos</button></div>
+    <div class="sv-modes seg" role="group" aria-label="Move by"><button type="button" data-mode="walk" aria-pressed="true">Walk</button><button type="button" data-mode="works" aria-pressed="false">Works</button><button type="button" data-mode="photos" aria-pressed="false">Photos</button></div>
     <figure class="sv-photo" hidden><img alt=""><figcaption>Original photo · Elad Sarig</figcaption></figure>
+    <span class="sv-dot" aria-hidden="true"></span>
+    <div class="sv-joy" role="application" aria-label="Walk: drag the knob to move"><i></i></div>
+    <div class="sv-hint">Drag to look around<br>Joystick to walk · Tap the floor to go there</div>
     <div class="sv-card"><div class="sv-info"></div>
       <div class="sv-nav"><button type="button" class="sv-prev" aria-label="Previous">←</button><span class="sv-count"></span><button type="button" class="sv-next" aria-label="Next">→</button></div></div>
     <div class="sv-loading">Building the room…</div>`;
   document.body.append(root);
   const $ = s => root.querySelector(s);
+  if (matchMedia('(pointer: fine)').matches) $('.sv-hint').innerHTML = 'Drag to look around<br>W A S D or arrows to walk · Click the floor to go there';
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -33,8 +38,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   scene.background = new THREE.Color('#d9d8d4');
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 1.05;
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xb59a80, 0.32));
+  scene.environmentIntensity = 0.55;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xd2c8bf, 1.05));
   const camera = new THREE.PerspectiveCamera(55, 1, 0.05, 80);
   const aniso = renderer.capabilities.getMaxAnisotropy();
   const loader = new THREE.TextureLoader();
@@ -45,14 +50,38 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   const dark = new THREE.MeshStandardMaterial({ color: '#2b2b2b', roughness: 0.6 });
   const rail = new THREE.MeshStandardMaterial({ color: '#e6e6e3', roughness: 0.7 });
   const [floorTex, baseTex] = await Promise.all([loadTex(src(R.floor)), loadTex(src(R.baseboard))]);
+  const floorMat = (w, l) => {
+    const t = floorTex ? floorTex.clone() : null;
+    if (t) { t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping; t.repeat.set(w / R.floorTile, l / R.floorTile); t.needsUpdate = true; }   // mirrored: no seams between tiles
+    // the mirror below carries the reflections, so the stone's own highlights stay faint
+    return new THREE.MeshPhysicalMaterial({ map: t, color: t ? (R.floorTint || '#ffffff') : '#93806c', roughness: 0.4, specularIntensity: 0.15, envMapIntensity: 0.08 });
+  };
 
-  if (floorTex) { floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping; floorTex.repeat.set(W / R.floorTile, L / R.floorTile); }
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, L), new THREE.MeshStandardMaterial({ map: floorTex, color: floorTex ? '#ffffff' : '#93806c', roughness: 0.45, envMapIntensity: 0.45 }));
+  // polished terrazzo: a mirror under a see-through floor, so the works and walls reflect softly as in the photos.
+  // Like real stone, it reflects little straight down and more at a low angle (Fresnel)
+  const [rNear, rLow] = R.floorReflect || [0, 0];   // share of mirror looking straight down, and at a low angle
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, L), floorMat(W, L));
   floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, L / 2); scene.add(floor);
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, L), wallMat); ceil.rotation.x = Math.PI / 2; ceil.position.set(0, H, L / 2); scene.add(ceil);
+  if (rLow) {
+    floor.material.transparent = true; floor.material.envMapIntensity = 0;
+    floor.material.onBeforeCompile = sh => {
+      sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>',
+        `float facing = clamp(dot(normalize(vViewPosition), normal), 0.0, 1.0);
+        gl_FragColor.a = 1.0 - mix(${rNear.toFixed(3)}, ${rLow.toFixed(3)}, pow(1.0 - facing, 3.0));
+        #include <dithering_fragment>`);
+    };
+    const mirror = new Reflector(new THREE.PlaneGeometry(W, L), { textureWidth: 320, textureHeight: 640, color: 0xffffff, clipBias: 0.003 });
+    mirror.material.fragmentShader = mirror.material.fragmentShader.replace('blendOverlay( base.rgb, color )', 'base.rgb * color');   // a plain mirror, dimmed by the floor above it
+    mirror.rotation.x = -Math.PI / 2; mirror.position.set(0, -0.002, L / 2); scene.add(mirror);
+    const draw = mirror.onBeforeRender;
+    mirror.onBeforeRender = (...a) => { floor.visible = false; draw.apply(mirror, a); floor.visible = true; };
+  }
+  // the ceiling beside the soffit gets no direct light, so it reads grey in the photos
+  const ceilMat = new THREE.MeshStandardMaterial({ color: R.ceiling || '#d0cdc8', roughness: 0.95, side: THREE.DoubleSide });
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, L), ceilMat); ceil.rotation.x = Math.PI / 2; ceil.position.set(0, H, L / 2); scene.add(ceil);
   if (R.soffit) {
     const s = R.soffit;
-    const box = new THREE.Mesh(new THREE.BoxGeometry(s.width, H - s.height, L), wallMat);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(s.width, H - s.height, L), [ceilMat, ceilMat, ceilMat, wallMat, ceilMat, ceilMat]);
     box.position.set(0, (H + s.height) / 2, L / 2); scene.add(box);
     for (const sx of [-1, 1]) {
       const track = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.03, L - 0.4), rail);
@@ -65,21 +94,34 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
 
   // long walls (L, R) carry openings; u runs along the wall from wall A
   const openingsOn = side => (R.openings || []).filter(o => o.wall === side);
+  const outline = (o, path) => {
+    const r = o.arch ? (o.to - o.from) / 2 : 0;
+    path.moveTo(o.from, 0); path.lineTo(o.to, 0); path.lineTo(o.to, o.height - r);
+    if (o.arch) path.absarc((o.from + o.to) / 2, o.height - r, r, 0, Math.PI, false); else path.lineTo(o.from, o.height);
+    path.lineTo(o.from, 0); return path;
+  };
+  const hidden = new THREE.MeshBasicMaterial({ visible: false });
+  const revealMat = new THREE.MeshStandardMaterial({ color: R.wall || '#EDEDEA', roughness: 0.95, side: THREE.BackSide });
   function longWall(side) {
-    const shape = new THREE.Shape();
+    const shape = new THREE.Shape(), out = side === 'L' ? -1 : 1;
     shape.moveTo(0, 0); shape.lineTo(L, 0); shape.lineTo(L, H); shape.lineTo(0, H); shape.lineTo(0, 0);
-    for (const o of openingsOn(side)) {
-      const r = o.arch ? (o.to - o.from) / 2 : 0, hole = new THREE.Path();
-      hole.moveTo(o.from, 0); hole.lineTo(o.to, 0); hole.lineTo(o.to, o.height - r);
-      if (o.arch) hole.absarc((o.from + o.to) / 2, o.height - r, r, 0, Math.PI, false); else hole.lineTo(o.from, o.height);
-      hole.lineTo(o.from, 0); shape.holes.push(hole);
-    }
+    for (const o of openingsOn(side)) shape.holes.push(outline(o, new THREE.Path()));
     const m = new THREE.Mesh(new THREE.ShapeGeometry(shape, 24), wallMat);
-    m.rotation.y = -Math.PI / 2; m.position.set(side === 'L' ? -W / 2 : W / 2, 0, 0); scene.add(m);
-    // the space seen through an opening: a plain white room behind it
+    m.rotation.y = -Math.PI / 2; m.position.set(out * W / 2, 0, 0); scene.add(m);
     for (const o of openingsOn(side)) {
-      const depth = 3.2, roomBox = new THREE.Mesh(new THREE.BoxGeometry(depth, o.height + 0.3, o.to - o.from + 2.4), new THREE.MeshStandardMaterial({ color: '#F1F1EE', roughness: 1, side: THREE.BackSide }));
-      roomBox.position.set((side === 'L' ? -1 : 1) * (W / 2 + depth / 2), (o.height + 0.3) / 2, (o.from + o.to) / 2); scene.add(roomBox);
+      const d = o.depth || 0.3;
+      // the thickness of the wall inside the opening (its reveal), then the next room seen through it
+      const geo = new THREE.ExtrudeGeometry(outline(o, new THREE.Shape()), { depth: d, bevelEnabled: false, curveSegments: 24 });
+      if (side === 'R') geo.translate(0, 0, -d);
+      const rev = new THREE.Mesh(geo, [hidden, revealMat]); rev.rotation.y = -Math.PI / 2; rev.position.set(out * W / 2, 0, 0); scene.add(rev);
+      const sill = new THREE.Mesh(new THREE.PlaneGeometry(d, o.to - o.from), floorMat(d, o.to - o.from));
+      sill.rotation.x = -Math.PI / 2; sill.position.set(out * (W / 2 + d / 2), 0.001, (o.from + o.to) / 2); scene.add(sill);
+      const depth = 3.2, len = o.to - o.from + 2.4, cx = out * (W / 2 + d + depth / 2), cz = (o.from + o.to) / 2;
+      const room = new THREE.Mesh(new THREE.BoxGeometry(depth, H, len), new THREE.MeshStandardMaterial({ color: R.wall || '#F1F1EE', roughness: 1, side: THREE.BackSide }));
+      room.position.set(cx, H / 2, cz); scene.add(room);
+      const f = new THREE.Mesh(new THREE.PlaneGeometry(depth, len), floorMat(depth, len));
+      f.rotation.x = -Math.PI / 2; f.position.set(cx, 0.002, cz); scene.add(f);
+      const lamp = new THREE.PointLight(0xfff4ea, 2.2, 0, 2); lamp.position.set(cx, H - 0.4, cz); scene.add(lamp);
     }
   }
   longWall('L'); longWall('R');
@@ -144,64 +186,135 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const tx = h.wall === 'L' ? -trackX : h.wall === 'R' ? trackX : (h.at >= 0 ? trackX : -trackX) * (h.wall === 'B' ? -1 : 1);
     const tz = h.wall === 'A' ? 1.6 : h.wall === 'B' ? L - 1.6 : h.at;
     const pos = new THREE.Vector3(tx, trackY, tz), dist = pos.distanceTo(centre);
-    const spot = new THREE.SpotLight(0xfff1e2, 6 * dist * dist / 4, 0, Math.atan((Math.max(wM, hM) / 2 + 0.4) / dist), 0.85, 2);
+    // same light on every wall: a spot meeting a wall head-on (the end walls) is dimmed to match the long walls' raking light
+    const facing = wall.n.dot(pos.clone().sub(centre).normalize());
+    const spot = new THREE.SpotLight(0xfff7ef, 4.5 * dist * dist / 4 * Math.min(1, 0.6 / facing), 0, Math.atan((Math.max(wM, hM) / 2 + 0.7) / dist), 1, 2);
     spot.position.copy(pos); spot.target.position.copy(centre); scene.add(spot, spot.target);
     const head = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.12, 14), rail);
     head.position.copy(pos); head.lookAt(centre); head.rotateX(Math.PI / 2); scene.add(head);
-    const maxD = h.wall === 'A' || h.wall === 'B' ? L - 1 : W - 0.35;
+    const maxD = h.wall === 'A' || h.wall === 'B' ? L - 1 : W - MARGIN;
     const stand = centre.clone().addScaledVector(wall.n, Math.min(Math.max(1.5 * Math.max(wM, hM), 1.6), maxD)).setY(EYE);
     pieces.push({ w, size, mesh: box, centre, stand, order: spec.hang.indexOf(h) });
   }));
   pieces.sort((a, b) => a.order - b.order);
 
-  // --- camera and stops ----------------------------------------------------
-  let mode = 'works', idx = 0, yaw = 0, pitch = 0, drag = null, moved = 0;
-  const pos = new THREE.Vector3(...(spec.views[0]?.pos || [0, EYE, L - 2])), look = new THREE.Vector3(...(spec.views[0]?.look || [0, EYE, 0]));
+  // --- moving: walk freely, or step between the works or the photos' viewpoints ---------
+  let mode = 'walk', idx = 0, yaw = 0, pitch = 0, drag = null, moved = 0, walkTo = null;
+  const v0 = spec.views[0];
+  const pos = new THREE.Vector3(...(v0?.pos || [0, EYE, L - 2])).setY(EYE), look = new THREE.Vector3(...(v0?.look || [0, EYE, 0])).setY(EYE);
   const tPos = pos.clone(), tLook = look.clone();
-  let tFov = 55, free = false;
+  let tFov = 50, free = true;
   const fmtSize = p => `${p.size.h} × ${p.size.w} cm`;
+  const workInfo = p => `<b>${p.w.title}${p.w.sold ? ' <span class="dot" aria-label="Sold"></span>' : ''}</b><span>${p.w.artist.name}, ${p.w.year} · ${p.w.medium}</span><span class="sv-s">${fmtSize(p)}${p.size.err > 0.06 ? ' · size to confirm' : ''}</span><button type="button" class="sv-open">Open work</button>`;
 
+  function aimFrom(from, to) { const d = new THREE.Vector3().subVectors(to, from); yaw = Math.atan2(-d.x, -d.z); pitch = Math.atan2(d.y, Math.hypot(d.x, d.z)); }
+  aimFrom(pos, look);
+  function goFree() { if (!free) { aimFrom(pos, look); tPos.copy(pos); free = true; } }
+  function setMode(m) {
+    mode = m; root.classList.toggle('walk', m === 'walk');
+    root.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === m));
+  }
+
+  let focused = null;
   function show() {
+    if (mode === 'walk') {
+      goFree(); tFov = 50; $('.sv-photo').hidden = true; tPos.y = EYE; focused = undefined; return;
+    }
     const list = mode === 'works' ? pieces : spec.views;
-    idx = (idx + list.length) % list.length; free = false;
+    idx = (idx + list.length) % list.length; free = false; walkTo = null; $('.sv-card').hidden = false;
     $('.sv-count').textContent = `${idx + 1} / ${list.length}`;
     const photo = $('.sv-photo');
     if (mode === 'works') {
       const p = pieces[idx]; tPos.copy(p.stand); tLook.copy(p.centre); tFov = 55; photo.hidden = true;
-      $('.sv-info').innerHTML = `<b>${p.w.title}${p.w.sold ? ' <span class="dot" aria-label="Sold"></span>' : ''}</b><span>${p.w.artist.name}, ${p.w.year} · ${p.w.medium}</span><span class="sv-s">${fmtSize(p)}${p.size.err > 0.06 ? ' · size to confirm' : ''}</span><button type="button" class="sv-open">Open work</button>`;
+      $('.sv-info').innerHTML = workInfo(p);
       $('.sv-open').onclick = () => onOpenWork(p.w);
     } else {
       const v = spec.views[idx]; tPos.set(...v.pos); tLook.set(...v.look); tFov = v.fov || 50;
       photo.hidden = false; photo.querySelector('img').src = src(v.photo);
-      $('.sv-info').innerHTML = `<b>${v.name}</b><span>Same viewpoint as the photo, to compare the reconstruction with the real room.</span>`;
+      $('.sv-info').innerHTML = `<b>${v.name}</b><span>The photo's own camera, measured from it, to compare the reconstruction with the real room.</span>`;
     }
   }
-  root.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
-    mode = b.dataset.mode; idx = 0;
-    root.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', x === b)); show();
-  });
+  // while walking, the card names the work in front of you
+  const ray = new THREE.Raycaster(), centreRay = new THREE.Vector2(0, 0);
+  function focus() {
+    ray.setFromCamera(centreRay, camera);
+    const hit = ray.intersectObjects(pieces.map(p => p.mesh))[0];
+    const p = hit && hit.distance < 5 ? pieces.find(x => x.mesh === hit.object) : null;
+    if (p === focused) return;
+    focused = p;
+    $('.sv-card').hidden = !p;
+    $('.sv-info').innerHTML = p ? workInfo(p) : '';
+    if (p) $('.sv-open').onclick = () => onOpenWork(p.w);
+  }
+  root.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { setMode(b.dataset.mode); idx = 0; show(); });
   $('.sv-next').onclick = () => { idx++; show(); };
   $('.sv-prev').onclick = () => { idx--; show(); };
   $('.sv-photo').onclick = () => $('.sv-photo').classList.toggle('big');
+
+  // where you may stand: inside the room, and into the depth of an opening to look through it
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  function clampStand(p, from) {
+    const ops = R.openings || [];
+    // already inside an opening: its sides hold you until you step back into the room
+    const within = ops.find(o => (o.wall === 'L' ? from.x < -W / 2 + MARGIN : from.x > W / 2 - MARGIN) && from.z > o.from && from.z < o.to);
+    p.z = within ? clamp(p.z, within.from + 0.3, within.to - 0.3) : clamp(p.z, MARGIN, L - MARGIN);
+    let minX = -W / 2 + MARGIN, maxX = W / 2 - MARGIN;
+    for (const o of ops) if (p.z >= o.from + 0.3 && p.z <= o.to - 0.3) {
+      if (o.wall === 'L') minX = -W / 2 - (o.depth || 0) + 0.15; else maxX = W / 2 + (o.depth || 0) - 0.15;
+    }
+    p.x = clamp(p.x, minX, maxX);
+    return p;
+  }
+
+  const hint = $('.sv-hint'); let hintGone = false;
+  const dropHint = () => { if (!hintGone) { hintGone = true; hint.classList.add('gone'); } };
+  setTimeout(dropHint, 6000);
 
   const canvas = renderer.domElement;
   canvas.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; moved = 0; canvas.setPointerCapture(e.pointerId); });
   canvas.addEventListener('pointermove', e => {
     if (!drag) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y; moved += Math.abs(dx) + Math.abs(dy); drag = { x: e.clientX, y: e.clientY };
-    if (moved > 6 && !free) { free = true; const d = new THREE.Vector3().subVectors(look, pos); yaw = Math.atan2(-d.x, -d.z); pitch = Math.atan2(d.y, Math.hypot(d.x, d.z)); tPos.copy(pos); }
-    if (free) { yaw += dx * 0.005; pitch = Math.max(-0.5, Math.min(0.5, pitch + dy * 0.003)); }
+    if (moved > 6) { goFree(); dropHint(); yaw += dx * 0.005; pitch = Math.max(-0.6, Math.min(0.6, pitch + dy * 0.003)); }
   });
-  const ray = new THREE.Raycaster();
   canvas.addEventListener('pointerup', e => {
     if (!drag) return; drag = null; if (moved > 6) return;
     const r = canvas.getBoundingClientRect();
     ray.setFromCamera({ x: (e.clientX - r.left) / r.width * 2 - 1, y: -(e.clientY - r.top) / r.height * 2 + 1 }, camera);
-    const hit = ray.intersectObjects(pieces.map(p => p.mesh))[0];
-    if (hit) { mode = 'works'; root.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === 'works')); idx = pieces.findIndex(p => p.mesh === hit.object); show(); }
+    const hit = ray.intersectObjects([...pieces.map(p => p.mesh), floor])[0];
+    if (!hit) return;
+    dropHint();
+    if (hit.object === floor) { setMode('walk'); show(); walkTo = clampStand(hit.point.clone().setY(EYE), hit.point); return; }
+    setMode('works'); idx = pieces.findIndex(p => p.mesh === hit.object); show();
   });
-  const onKey = e => { if (e.key === 'Escape') close(); if (e.key === 'ArrowRight') { idx++; show(); } if (e.key === 'ArrowLeft') { idx--; show(); } };
-  document.addEventListener('keydown', onKey);
+
+  // joystick: up/down walks forward/back, left/right steps sideways
+  const joy = { x: 0, y: 0 }, pad = $('.sv-joy'), knob = pad.querySelector('i');
+  let joyId = null;
+  const joyMove = e => {
+    const r = pad.getBoundingClientRect(), rad = r.width / 2;
+    let x = (e.clientX - r.left - rad) / rad, y = (e.clientY - r.top - rad) / rad;
+    const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
+    joy.x = x; joy.y = y; knob.style.transform = `translate(${x * rad * 0.6}px, ${y * rad * 0.6}px)`;
+  };
+  pad.addEventListener('pointerdown', e => { joyId = e.pointerId; pad.setPointerCapture(e.pointerId); goFree(); walkTo = null; dropHint(); joyMove(e); });
+  pad.addEventListener('pointermove', e => { if (e.pointerId === joyId) joyMove(e); });
+  const joyEnd = e => { if (e.pointerId !== joyId) return; joyId = null; joy.x = joy.y = 0; knob.style.transform = ''; };
+  pad.addEventListener('pointerup', joyEnd); pad.addEventListener('pointercancel', joyEnd);
+
+  const keys = new Set();
+  const MOVE_KEYS = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'q', 'e'];
+  const onKey = e => {
+    const k = e.key.toLowerCase();
+    if (k === 'escape') return close();
+    if (mode !== 'walk' && (k === 'arrowright' || k === 'arrowleft')) { idx += k === 'arrowright' ? 1 : -1; show(); return; }
+    if (MOVE_KEYS.includes(k) || k === 'arrowleft' || k === 'arrowright') {
+      e.preventDefault(); keys.add(k); walkTo = null; dropHint();
+      if (mode !== 'walk') { setMode('walk'); show(); }
+    }
+  };
+  const onKeyUp = e => keys.delete(e.key.toLowerCase());
+  document.addEventListener('keydown', onKey); document.addEventListener('keyup', onKeyUp);
 
   function resize() {
     const r = root.getBoundingClientRect(); renderer.setSize(r.width, r.height, false);
@@ -210,26 +323,45 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   const ro = new ResizeObserver(resize); ro.observe(root); resize();
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let last = performance.now(), running = true;
+  const fwd = new THREE.Vector3(), side = new THREE.Vector3();
+  let last = performance.now(), running = true, nextFocus = 0;
   (function frame(now) {
     if (!running) return;
     requestAnimationFrame(frame);
     const dt = Math.min((now - last) / 1000, 0.05); last = now;
-    if (free) tLook.set(pos.x - Math.sin(yaw) * Math.cos(pitch), pos.y + Math.sin(pitch), pos.z - Math.cos(yaw) * Math.cos(pitch));
-    const k = reduce ? 1 : 1 - Math.pow(0.02, dt);
+    if (free) {
+      const turn = (keys.has('arrowleft') || keys.has('q') ? 1 : 0) - (keys.has('arrowright') || keys.has('e') ? 1 : 0);
+      yaw += turn * 1.6 * dt;
+      fwd.set(-Math.sin(yaw), 0, -Math.cos(yaw)); side.set(Math.cos(yaw), 0, -Math.sin(yaw));
+      const f = -joy.y + (keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0);
+      const s = joy.x + (keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0);
+      if (f || s) {
+        if (mode !== 'walk') { setMode('walk'); show(); }
+        const was = tPos.clone();
+        tPos.addScaledVector(fwd, f * WALK * dt).addScaledVector(side, s * WALK * dt); tPos.y = EYE; clampStand(tPos, was);
+      } else if (walkTo) {
+        const d = new THREE.Vector3().subVectors(walkTo, tPos), n = d.length();
+        if (n < 0.02) walkTo = null; else tPos.addScaledVector(d, Math.min(1, WALK * 1.6 * dt / n));
+      }
+      tLook.set(tPos.x - Math.sin(yaw) * Math.cos(pitch), tPos.y + Math.sin(pitch), tPos.z - Math.cos(yaw) * Math.cos(pitch));
+    }
+    const k = reduce ? 1 : 1 - Math.pow(free ? 0.0005 : 0.02, dt);
     pos.lerp(tPos, k); look.lerp(tLook, k);
     // the photos were taken with a wider lens on a phone held upright, so fov eases with the stop
     camera.fov += (tFov * (camera.aspect < 1 ? 1.45 : 1) - camera.fov) * k; camera.updateProjectionMatrix();
     camera.position.copy(pos); camera.lookAt(look);
+    if (mode === 'walk' && now > nextFocus) { focus(); nextFocus = now + 200; }
     renderer.render(scene, camera);
   })(last);
 
-  function close() {
-    running = false; ro.disconnect(); document.removeEventListener('keydown', onKey);
-    renderer.dispose(); root.remove(); onClose();
+  function stop() {
+    running = false; ro.disconnect();
+    document.removeEventListener('keydown', onKey); document.removeEventListener('keyup', onKeyUp);
+    renderer.dispose(); root.remove();
   }
+  function close() { stop(); onClose(); }
   $('.sv-x').onclick = close;
   $('.sv-loading').hidden = true;
-  show();
-  return { close: () => { running = false; ro.disconnect(); document.removeEventListener('keydown', onKey); renderer.dispose(); root.remove(); } };
+  setMode('walk'); show();
+  return { close: stop };
 }
