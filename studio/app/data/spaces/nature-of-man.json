@@ -39,7 +39,7 @@
     0.0,
     0.0
    ],
-   "seen": 0.988,
+   "seen": 0.984,
    "openings": []
   },
   {
@@ -101,7 +101,7 @@
     0.0,
     1.0
    ],
-   "seen": 0.368,
+   "seen": 0.355,
    "openings": []
   },
   {
@@ -132,7 +132,7 @@
     0.0,
     -1.0
    ],
-   "seen": 0.0,
+   "seen": 0.608,
    "openings": []
   },
   {
@@ -169,9 +169,9 @@
    "lightScale": 4,
    "tile": 1.0,
    "color": [
-    171,
-    156,
-    143
+    172,
+    157,
+    144
    ]
   },
   {
@@ -672,7 +672,7 @@
   },
   {
    "rule": "walls_seen",
-   "value": 0.437,
+   "value": 0.429,
    "passed": false
   },
   {
@@ -682,12 +682,12 @@
   },
   {
    "rule": "ring_diff",
-   "value": 63.0,
+   "value": 15.333,
    "passed": false
   },
   {
    "rule": "wall_diff",
-   "value": 8.667,
+   "value": 8.0,
    "passed": true
   }
  ]

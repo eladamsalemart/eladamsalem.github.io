@@ -70,7 +70,7 @@
     0.0,
     0.0
    ],
-   "seen": 0.82,
+   "seen": 0.871,
    "openings": []
   },
   {
@@ -101,7 +101,7 @@
     0.0,
     1.0
    ],
-   "seen": 0.271,
+   "seen": 0.269,
    "openings": []
   },
   {
@@ -442,10 +442,10 @@
   }
  ],
  "floorReflect": [
-  0.084,
-  0.378
+  0.081,
+  0.366
  ],
- "floorGloss": 1.42,
+ "floorGloss": 1.407,
  "plaster": "data/spaces/bfa-graduate-exhibition/plaster.jpg",
  "quality": "withheld",
  "checks": [
@@ -481,23 +481,23 @@
   },
   {
    "rule": "walls_seen",
-   "value": 0.368,
+   "value": 0.367,
    "passed": false
   },
   {
    "rule": "work_match",
-   "value": 0.271,
+   "value": 0.27,
    "passed": false
   },
   {
    "rule": "ring_diff",
-   "value": 42.0,
+   "value": 41.667,
    "passed": false
   },
   {
    "rule": "wall_diff",
-   "value": 11.667,
-   "passed": true
+   "value": 12.5,
+   "passed": false
   }
  ]
 }
