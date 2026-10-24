@@ -254,7 +254,9 @@ def build(slug, log=print):
                     cov[:, int(a / s.texel):int(b / s.texel)] = 0
                     log(f"  {s.name}: {a:.2f}-{b:.2f} m stands out of the wall: completed as plain wall")
         for o in ops:
-            b = int(0.12 / s.texel)
+            # the opening's side (the wall's thickness), seen at an angle, falls on the wall's plane up to ~20 cm
+            # beside the cut: a doorframe drawn twice unless that whole band is plain wall
+            b = int(0.22 / s.texel)
             c0, c1 = int(o['from'] / s.texel), int(o['to'] / s.texel)
             r_top = int((ceiling - o['height']) / s.texel)
             cov[:, max(0, c0 - b):c0 + 1] = 0; cov[:, c1:c1 + b] = 0

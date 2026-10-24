@@ -81,7 +81,7 @@ def labels(ids):
     d = np.linalg.norm(rgb[..., None, :] - pal[None, None], axis=-1)
     k = d.argmin(-1)
     k[d.min(-1) > 30] = -1
-    wall = (rgb[..., 0] < 30) & (rgb[..., 1] > 225)
+    wall = (rgb[..., 0] < 30) & (rgb[..., 1] > 225) & (rgb[..., 2] < 200)     # (an opening's side is green and full blue)
     k[wall] = NAMES.index('wall')
     return k
 
@@ -89,7 +89,7 @@ def labels(ids):
 def corners(ids, px=8):
     """Where two walls meet on screen (a room's corner, meant to be there)."""
     b = ids[..., 0].astype(np.int16)
-    wall = (ids[..., 2] < 30) & (ids[..., 1] > 225)
+    wall = (ids[..., 2] < 30) & (ids[..., 1] > 225) & (ids[..., 0] < 200)
     q = np.where(wall, (b + 6) // 12, -1).astype(np.int16)
     big = cv2.dilate(q.astype(np.float32), np.ones((3, 3), np.uint8)); small = cv2.erode(q.astype(np.float32), np.ones((3, 3), np.uint8))
     edge = wall & (big != small)
@@ -294,7 +294,11 @@ def inspect(slug, keep=None, log=print):
     wall_c = float(np.median(wc)) if wc else 5.0
     for s in shots:
         img, lbl, walls = imgs[s['name']]
-        hole = (lbl == NAMES.index('hole')) & (img[..., 1] < 40) & (img[..., 0] > 200) & (img[..., 2] > 200)
+        # the background shows through: magenta, or a magenta tint where a gap is thinner than a pixel (a seam
+        # between two surfaces, blended into what's round it); nothing in a room is that colour but the works
+        b, g, r = (img[..., i].astype(int) for i in range(3))
+        near_work = cv2.dilate(np.isin(lbl, (NAMES.index('work'), NAMES.index('workbody'))).astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+        hole = ((lbl == NAMES.index('hole')) & (g < 40) & (r > 200) & (b > 200)) | ((r - g > 25) & (b - g > 25) & ~near_work)
         holes[s['name']] = float(inner(hole, 0).mean())
         if s['kind'] in ('walk', 'view', 'oblique'):
             ghosts[s['name']], blotches[s['name']] = wall_trouble(img, walls, wall_c)
