@@ -1,18 +1,18 @@
 {
- "state": "live",
- "summary": "Live. The tour passed all 13 checks, from 139 views inside it.",
+ "state": "not yet",
+ "summary": "The tour was built, but didn't pass its final check, so it isn't shown. We're working on it; nothing is needed from you.",
  "items": [
   [
-   "ok",
-   "Every work whole, sharp and in its own colours."
+   "no",
+   "A mark left on a wall."
   ],
   [
-   "ok",
-   "Walls and floor clean, no holes."
+   "no",
+   "A dark patch on a wall."
   ],
   [
-   "ok",
-   "Every work hung on its wall, at its measured size."
+   "no",
+   "A smeared patch on a wall."
   ]
  ]
 }
