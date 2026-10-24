@@ -13,7 +13,7 @@ import numpy as np
 from .works import APP, resolve
 
 FRAMES = APP / 'space' / '.cache' / 'frames'
-MAX_FRAMES = 40           # enough to see every wall from two sides; more mostly adds time
+MAX_FRAMES = 60           # enough to see every wall from two sides, overlapping; more mostly adds time
 EDGE = 2000               # frames are kept at most this large, like photos
 
 
@@ -52,7 +52,8 @@ def frames(video, log=print):
         best.append(max(cands[k:k + 2], key=lambda c: c[1]))
     sharp_floor = np.percentile([c[1] for c in best], 30)
     best = [c for c in best if c[1] >= sharp_floor]
-    # never two of nearly the same view: a new frame once the view has moved on (less than half overlaps)
+    # never two of nearly the same view, yet each still overlapping the last, so the frames chain round the room
+    # (photos are joined through what they share): a new frame once about a third of the view has moved on
     orb = cv2.ORB_create(800)
     picked, last = [], None
     for idx, s, g in best:
@@ -60,7 +61,7 @@ def frames(video, log=print):
         if last is None or des is None or last[1] is None:
             picked.append(idx); last = (kp, des); continue
         m = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True).match(last[1], des)
-        if len(m) < 0.35 * min(len(last[0]), len(kp)):
+        if len(m) < 0.6 * min(len(last[0]), len(kp)):
             picked.append(idx); last = (kp, des)
     if len(picked) > MAX_FRAMES:                         # evenly over the walk
         picked = [picked[int(j)] for j in np.linspace(0, len(picked) - 1, MAX_FRAMES)]

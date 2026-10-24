@@ -212,8 +212,8 @@ def floor_from_walls(cams, images, masks, works, sizes, log=print):
 
 
 def ceiling_from_edges(cams, images, masks, works, sizes, fy, log=print):
-    """Height of the ceiling above the floor: the level edge along the walls that the photos agree on most
-    (where the walls end, at a flat ceiling or at the beams round a coffered one; a ceiling's fittings and
+    """Height of the ceiling above the floor: the lowest of the level edges along the walls that the photos
+    agree on most (where the walls end, at a flat ceiling or at the beams round a coffered one; a ceiling's fittings and
     coffers, seen through the walls' plane, fall in a different place in each photo). None if unclear."""
     top = max(w['c'][1] for w in works.values()) - fy + 0.3
     hs = np.arange(max(2.4, top), 6.0, 0.01) + fy
@@ -222,7 +222,10 @@ def ceiling_from_edges(cams, images, masks, works, sizes, fy, log=print):
     pk = _peaks(total, 0.4) if n else []
     if not pk:
         return None
-    i = max(pk, key=lambda k: total[k])
+    # the lowest of the strongest: a coffered or beamed ceiling has strong edges above where the walls end, as
+    # strong as the walls' own top (a few cm of difference in the measurement can swap which is strongest)
+    strong = [k for k in pk if total[k] >= 0.85 * max(total[j] for j in pk)]
+    i = min(strong, key=lambda k: hs[k])
     log(f"  ceiling: where the walls meet it, {hs[i] - fy:.2f} m ({len(pk)} level edges along {n} walls)")
     return float(hs[i] - fy)
 

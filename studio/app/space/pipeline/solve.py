@@ -106,6 +106,58 @@ def initial(obs, photos_shape):
     return f0, components
 
 
+def merge(comps, ties, obs, f0, log=print):
+    """Join pieces that share no work through tie points. A tie point seen from a photo of the main piece lies
+    (mostly) on a wall that photo's works hang on: its ray met with that wall gives a point in 3D, and enough
+    of them place a photo of the other piece (PnP, outliers rejected), and with it that whole piece."""
+    comps = sorted(comps, key=lambda c: -len(c['works']))
+    main, rest = comps[0], comps[1:]
+    seen = {}
+    for o in obs:
+        seen.setdefault(o['photo'], []).append(o['work'])
+    while rest:
+        cands = []
+        for k, other in enumerate(rest):
+            for a in main['cams']:
+                for b in other['cams']:
+                    shared = [t for t in ties if a in t and b in t]
+                    if len(shared) >= 12:
+                        cands.append((len(shared), k, a, b, shared))
+        joined = False
+        for _, k, a, b, shared in sorted(cands, key=lambda c: -c[0]):
+            Ta = main['cams'][a]; o = Ta[:3, 3]
+            X, x = [], []
+            for t in shared:
+                d = Ta[:3, :3] @ np.r_[t[a] / f0[a], 1.0]
+                hits = []
+                for w in seen.get(a, []):
+                    if w not in main['works']:
+                        continue
+                    n, p0 = main['works'][w][:3, 2], main['works'][w][:3, 3]
+                    den = n @ d
+                    if abs(den) > 1e-6 and (s := n @ (p0 - o) / den) > 0:
+                        hits.append(s)
+                if hits:
+                    X.append(o + min(hits) * d); x.append(t[b])
+            if len(X) < 12:
+                continue
+            K = np.array([[f0[b], 0, 0], [0, f0[b], 0], [0, 0, 1]])
+            ok, rv, tv, inl = cv2.solvePnPRansac(np.array(X), np.array(x), K, None, reprojectionError=8.0, iterationsCount=3000, confidence=0.999)
+            if not ok or inl is None or len(inl) < 10:
+                continue
+            R, _ = cv2.Rodrigues(rv)
+            M = np.linalg.inv(to_T(R, tv.ravel())) @ np.linalg.inv(rest[k]['cams'][b])     # the other piece's frame -> main's
+            other = rest.pop(k)
+            main['cams'].update({p: M @ T for p, T in other['cams'].items()})
+            main['works'].update({t: M @ T for t, T in other['works'].items()})
+            log(f"  joined {len(other['works'])} more works through what {a.split('/')[-1][:20]} and {b.split('/')[-1][:20]} both see ({len(inl)} tie points)")
+            joined = True
+            break
+        if not joined:
+            break
+    return [main] + rest
+
+
 # How strongly the solve leans on what galleries are like, in pixels of error per unit of departure
 PRIOR = {                # one 'sigma' of departure costs about as much as 30 px of error
     'level': 30 / np.radians(1),     # a work's horizontal edge is level
@@ -117,7 +169,33 @@ PRIOR = {                # one 'sigma' of departure costs about as much as 30 px
 }
 
 
-def bundle_adjust(obs, f0, comp, photos_shape, gravity=False, f_mid=None, pp0={}, size_sigma={}):
+def triangulate(track, comp, f, pp):
+    """A tie point's position from the two of its photos furthest apart, or None if it doesn't fit."""
+    ps = [p for p in track if p in comp['cams']]
+    best = None
+    for i in range(len(ps)):
+        for j in range(i + 1, len(ps)):
+            d = np.linalg.norm(comp['cams'][ps[i]][:3, 3] - comp['cams'][ps[j]][:3, 3])
+            if best is None or d > best[0]:
+                best = (d, ps[i], ps[j])
+    if best is None or best[0] < 0.05:
+        return None
+    P = []
+    for p in best[1:]:
+        T = np.linalg.inv(comp['cams'][p])
+        P.append(np.array([[f[p], 0, pp[p][0]], [0, f[p], pp[p][1]], [0, 0, 1]]) @ T[:3])
+    Xh = cv2.triangulatePoints(P[0], P[1], track[best[1]].reshape(2, 1), track[best[2]].reshape(2, 1)).ravel()
+    if abs(Xh[3]) < 1e-9:
+        return None
+    X = Xh[:3] / Xh[3]
+    for p in ps:
+        T = np.linalg.inv(comp['cams'][p]); Pc = T[:3, :3] @ X + T[:3, 3]
+        if Pc[2] < 0.2 or np.linalg.norm(f[p] * Pc[:2] / Pc[2] + pp[p] - track[p]) > 8:
+            return None
+    return X
+
+
+def bundle_adjust(obs, f0, comp, photos_shape, gravity=False, f_mid=None, pp0={}, size_sigma={}, ties=()):
     """Refine one connected group of cameras and works.
 
     First pass (gravity=False): the most-seen work stays fixed and sets the frame. Second pass
@@ -136,7 +214,18 @@ def bundle_adjust(obs, f0, comp, photos_shape, gravity=False, f_mid=None, pp0={}
     fi = {p: i for i, p in enumerate(cams)}
     WP = 8 if gravity else 6                                         # + log width, log height scale
     nc, nw, nf = 6 * len(free_c), WP * len(free_w), 3 * len(cams)     # per camera: log focal, centre offset x, y
-    x0 = np.zeros(nc + nw + nf)
+    # tie points (when pieces were joined through them): each a free point in 3D, seen from two photos or more
+    tp, tX = [], []
+    for track in ties:
+        X = triangulate(track, comp, f0, {p: np.array(pp0.get(p, (0, 0))) * max(photos_shape[p]) for p in cams})
+        if X is not None:
+            tp.append({p: xy for p, xy in track.items() if p in fi}); tX.append(X)
+    t_cam = np.array([fi[p] for t in tp for p in t], int); t_pt = np.array([k for k, t in enumerate(tp) for p in t], int)
+    t_px = np.array([xy for t in tp for xy in t.values()]).reshape(-1, 2)
+    nt = 3 * len(tp)
+    x0 = np.zeros(nc + nw + nf + nt)
+    if tp:
+        x0[nc + nw + nf:] = np.array(tX).ravel()
     for p in free_c:
         T = np.linalg.inv(comp['cams'][p])
         x0[6 * ci[p]:6 * ci[p] + 3] = cv2.Rodrigues(T[:3, :3])[0].ravel(); x0[6 * ci[p] + 3:6 * ci[p] + 6] = T[:3, 3]
@@ -165,6 +254,17 @@ def bundle_adjust(obs, f0, comp, photos_shape, gravity=False, f_mid=None, pp0={}
             Wk[t] = (cv2.Rodrigues(x[o:o + 3])[0], x[o + 3:o + 6], np.exp(x[o + 6:o + 8]) if gravity else np.ones(2))
         return C, Wk
 
+    def tie_residuals(x, C):
+        Xs = x[nc + nw + nf:].reshape(-1, 3)
+        r = np.zeros((len(t_cam), 2))
+        for p in cams:
+            k = t_cam == fi[p]
+            if k.any():
+                R, t, f, pp = C[p]
+                Pc = Xs[t_pt[k]] @ R.T + t
+                r[k] = f * Pc[:, :2] / np.maximum(Pc[:, 2:3], 1e-3) + pp - t_px[k]
+        return r
+
     def residuals(x):
         C, Wk = unpack(x)
         out = []
@@ -174,6 +274,8 @@ def bundle_adjust(obs, f0, comp, photos_shape, gravity=False, f_mid=None, pp0={}
             Pc = (R @ (Rw @ X.T + tw[:, None]) + t[:, None])
             z = np.maximum(Pc[2], 1e-3)
             out.append(((f * Pc[:2] / z).T + pp - o['x']).ravel() * np.repeat(np.sqrt(o['w']), 2))
+        if tp:
+            out.append(tie_residuals(x, C).ravel())
         pri = []
         if gravity:
             for t in free_w:
@@ -192,7 +294,7 @@ def bundle_adjust(obs, f0, comp, photos_shape, gravity=False, f_mid=None, pp0={}
         return np.concatenate(out + [np.array(pri)]) if pri else np.concatenate(out)
 
     npri = (5 * len(free_w) if gravity else 0) + (len(cams) if mu is not None else 0) + 2 * len(cams)
-    nres = sum(sizes) + npri
+    nres = sum(sizes) + 2 * len(t_cam) + npri
     S = lil_matrix((nres, len(x0)), dtype=int)
     r = 0
     for o, n in zip(use, sizes):
@@ -200,6 +302,12 @@ def bundle_adjust(obs, f0, comp, photos_shape, gravity=False, f_mid=None, pp0={}
         S[r:r + n, nc + nw + 3 * fi[o['photo']]:nc + nw + 3 * fi[o['photo']] + 3] = 1
         if o['work'] in wi: S[r:r + n, nc + WP * wi[o['work']]:nc + WP * wi[o['work']] + WP] = 1
         r += n
+    for p_i, k in zip(t_cam, t_pt):
+        p = cams[p_i]
+        if p in ci: S[r:r + 2, 6 * ci[p]:6 * ci[p] + 6] = 1
+        S[r:r + 2, nc + nw + 3 * p_i:nc + nw + 3 * p_i + 3] = 1
+        S[r:r + 2, nc + nw + nf + 3 * k:nc + nw + nf + 3 * k + 3] = 1
+        r += 2
     if gravity:
         for t in free_w:
             S[r:r + 5, nc + WP * wi[t]:nc + WP * wi[t] + WP] = 1; r += 5
@@ -220,7 +328,15 @@ def bundle_adjust(obs, f0, comp, photos_shape, gravity=False, f_mid=None, pp0={}
         e = per[r // 2:(r + n) // 2]
         errs[(o['photo'], o['work'])] = float(np.sqrt(np.mean(np.sum(e ** 2, axis=1))))
         r += n
-    return cams_out, works_out, rms, errs
+    # the tie points that fit, for the next pass (a mismatch that slipped through is dropped)
+    kept = []
+    if tp:
+        te = np.linalg.norm(tie_residuals(res.x, C), axis=1)
+        for k, t in enumerate(tp):
+            good = {p: xy for (p, xy), e in zip(t.items(), te[t_pt == k]) if e < max(4.0, 2 * rms)}
+            if len(good) >= 2:
+                kept.append(good)
+    return cams_out, works_out, rms, errs, kept
 
 
 def gravity_frame(works, cams):
@@ -264,7 +380,7 @@ def as_comp(cams, works):
             'works': {t: to_T(w['R'], w['c']) for t, w in works.items()}}
 
 
-def solve(found, exhibition, log=print):
+def solve(found, exhibition, log=print, tie_fn=None):
     sizes = {w['title']: (w['size_cm'][0] / 100, w['size_cm'][1] / 100) for w in exhibition['works'] if w['size_cm']}
     shapes = {p: hits['_shape'][:2] for p, hits in found.items()}
     obs = observations(found, sizes)
@@ -273,24 +389,29 @@ def solve(found, exhibition, log=print):
     f0, comps = initial(obs, shapes)
     # typical focal length of this photographer, from photos that see works on more than one wall
     f_mid = float(np.median(list(f0.values())))
+    ties = []
+    if tie_fn and len([c for c in comps if c['cams']]) > 1:            # pieces that share no work: join them by the walls
+        ties = tie_fn()
+        comps = merge([c for c in comps if c['cams']], ties, obs, f0, log)
     groups = []
     for comp in comps:
         if not comp['cams']:
             continue
-        cams, works, rms, errs = bundle_adjust(obs, f0, comp, shapes, f_mid=f_mid)
+        mine = [t for t in ties if sum(p in comp['cams'] for p in t) >= 2] if len(comp['works']) > 0 and ties else []
+        cams, works, rms, errs, mine = bundle_adjust(obs, f0, comp, shapes, f_mid=f_mid, ties=mine)
         bad = [k for k, e in errs.items() if e > max(25.0, 4 * rms)]
         if bad:
             log(f"  dropping {len(bad)} doubtful matches: {bad}")
             obs = [o for o in obs if (o['photo'], o['work']) not in bad]
             cams = {p: c for p, c in cams.items() if any(o['photo'] == p for o in obs)}
             works = {t: w for t, w in works.items() if any(o['work'] == t for o in obs)}
-            cams, works, rms, errs = bundle_adjust(obs, f0, as_comp(cams, works), shapes, f_mid=f_mid)
+            cams, works, rms, errs, mine = bundle_adjust(obs, f0, as_comp(cams, works), shapes, f_mid=f_mid, ties=mine)
         # into a frame with y up and the walls along x and z, then solved again with the gallery priors
         Rg = gravity_frame(works, cams)
         apply_frame(Rg, works, cams)
         fs = {p: c['f'] for p, c in cams.items()}
         pps = {p: c['pp'] / max(shapes[p]) for p, c in cams.items()}
-        cams, works, rms, errs = bundle_adjust(obs, fs, as_comp(cams, works), shapes, gravity=True, f_mid=f_mid, pp0=pps, size_sigma=size_sigma)
+        cams, works, rms, errs, _ = bundle_adjust(obs, fs, as_comp(cams, works), shapes, gravity=True, f_mid=f_mid, pp0=pps, size_sigma=size_sigma, ties=mine)
         Rg = gravity_frame(works, cams)
         apply_frame(Rg, works, cams)
         groups.append({'cams': cams, 'works': works, 'rms_px': rms, 'errs': errs})
