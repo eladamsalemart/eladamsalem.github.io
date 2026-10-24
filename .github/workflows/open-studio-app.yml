@@ -35,8 +35,10 @@ jobs:
           git worktree add /tmp/studio origin/studio
           src=/tmp/studio/studio/app
           rm -rf open-studio && mkdir -p open-studio/space open-studio/data/spaces
-          cp $src/index.html $src/app.js $src/sw.js $src/manifest.webmanifest open-studio/
+          cp $src/index.html $src/app.js $src/artist.js $src/sw.js $src/manifest.webmanifest open-studio/
           cp -r $src/icons open-studio/
+          cp -r $src/data/demo open-studio/data/
+          cp $src/data/spaces/*.status.json open-studio/data/spaces/ 2>/dev/null || true
           cp $src/space/space.js open-studio/space/
           cp $src/data/studio.json open-studio/data/
           cp $src/data/spaces/index.json open-studio/data/spaces/
