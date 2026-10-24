@@ -367,3 +367,27 @@ loadData().then(d => { M = buildModel(d); render(); window.addEventListener('has
 
 // Installed on a phone (Add to Home Screen) the app works offline and picks up every update on the next open
 if ('serviceWorker' in navigator && !window.STUDIO_DATA && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+
+// On a phone, offer to put the app on the home screen: Android installs on a tap; iPhone needs Share → Add to Home Screen
+(function offerInstall() {
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  let seen = false; try { seen = localStorage.getItem('os-install-dismissed') === '1'; } catch {}
+  if (window.STUDIO_DATA || standalone || seen || !matchMedia('(pointer: coarse)').matches) return;
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  let prompt = null;
+  const show = () => {
+    if (document.querySelector('.install')) return;
+    const card = document.createElement('aside');
+    card.className = 'install';
+    card.innerHTML = `<img src="icons/icon-192.png" alt=""><div><b>Get Open Studio</b>${ios
+      ? 'Tap <span aria-label="Share">Share</span>, then “Add to Home Screen”.'
+      : 'Install the app on your phone.'}</div>${prompt ? '<button class="btn f" data-install>Install</button>' : ''}<button class="x" aria-label="Close">×</button>`;
+    card.querySelector('.x').onclick = () => { card.remove(); try { localStorage.setItem('os-install-dismissed', '1'); } catch {} };
+    const b = card.querySelector('[data-install]');
+    if (b) b.onclick = async () => { prompt.prompt(); await prompt.userChoice.catch(() => {}); card.remove(); };
+    document.body.appendChild(card);
+  };
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); prompt = e; show(); });
+  window.addEventListener('appinstalled', () => document.querySelector('.install')?.remove());
+  if (ios) setTimeout(show, 2500);
+})();

@@ -172,6 +172,13 @@ main{padding-bottom:max(64px,env(safe-area-inset-bottom,0px))}
 .tabs a{display:grid;justify-items:center;gap:3px;padding:10px 4px 8px;min-height:52px;text-decoration:none;font-size:11px;color:var(--muted)}
 .tabs a[aria-current="page"]{color:var(--ink);font-weight:600}
 .tabs svg{width:22px;height:22px}
+/* Install card: on a phone, until the app is on the home screen */
+.install{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom,0px));width:min(calc(100% - 24px),406px);z-index:7;display:flex;gap:12px;align-items:center;padding:12px 12px 12px 14px;border-radius:16px;background:var(--paper);border:1px solid var(--line);box-shadow:0 12px 32px -14px rgba(0,0,0,.35)}
+.install img{width:44px;height:44px;border-radius:10px;flex:none}
+.install div{flex:1;min-width:0;font-size:13px;line-height:1.35;color:var(--muted)}
+.install b{display:block;color:var(--ink);font-size:14px;font-weight:600}
+.install .btn{min-height:38px;padding:8px 14px}
+.install .x{border:0;background:none;color:var(--muted);font-size:20px;line-height:1;padding:6px;cursor:pointer}
 body.has-tabs main{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 
 /* album (exhibition) */
