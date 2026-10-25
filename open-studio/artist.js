@@ -252,7 +252,7 @@ function exhibitionPage(id) {
         <p class="m small">Wide views, each with 2–3 works and a corner of the room, so that every wall is in at least two photos. Natural light, no people in front of the works.</p></fieldset>
       <fieldset><legend>Walk-through video (optional)</legend>
         <label class="st-add wide"><input type="file" accept="video/*" name="video" hidden>${ex.video ? '✓ ' + esc(ex.video) : '+ Add a video'}</label>
-        <p class="m small">Walk slowly round the room once, filming every wall, a minute or two. The surest way to a tour.</p></fieldset>
+        <p class="m small">The surest way to a tour. Hold the phone sideways, walk slowly down the middle of the room and back, filming every wall, a minute or two. Turn slowly at the ends, with a little of the floor and ceiling in view.</p></fieldset>
       <fieldset><legend>The room (optional, makes the tour exact)</legend>
         <div class="st-row"><label>Ceiling height (m)<input name="ceiling" inputmode="decimal" placeholder="3.40" value="${esc(sp.ceiling || '')}"></label>
           <label>Works hung at, centre (cm)<input name="centre" inputmode="decimal" placeholder="150" value="${esc(sp.centre || '')}"></label></div>
