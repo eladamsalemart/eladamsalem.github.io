@@ -26,7 +26,9 @@ self.addEventListener('fetch', e => {
   if (lasting) {
     e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => { keep(req, res.clone()); return res; })));
   } else {
-    e.respondWith(fetch(req)
+    // the network first, and past the browser's own cache too (the site lets it keep files for minutes): a
+    // new version shows on the next opening, not ten minutes later
+    e.respondWith(fetch(req, { cache: 'no-cache' })
       .then(res => { keep(req, res.clone()); return res; })
       .catch(() => caches.match(req).then(hit => hit || (req.mode === 'navigate' ? caches.match('index.html') : Response.error()))));
   }

@@ -388,7 +388,15 @@ loadData().then(d => { M = buildModel(d); render(); window.addEventListener('has
   .catch(() => { app.innerHTML = `<div class="wrap gut loading"><p>The content couldn't be loaded. Refresh to try again.</p></div>`; });
 
 // Installed on a phone (Add to Home Screen) the app works offline and picks up every update on the next open
-if ('serviceWorker' in navigator && !window.STUDIO_DATA && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && !window.STUDIO_DATA && location.protocol === 'https:') {
+  // a new version: look for it whenever the app comes back to the front (an installed app on a phone is
+  // resumed, not reloaded), and once it has taken over, show it
+  const had = !!navigator.serviceWorker.controller; let reloaded = false;
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (had && !reloaded) { reloaded = true; location.reload(); } });
+}
 
 // On a phone, offer to put the app on the home screen: Android installs on a tap; iPhone needs Share → Add to Home Screen
 (function offerInstall() {
