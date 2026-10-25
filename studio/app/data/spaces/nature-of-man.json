@@ -210,6 +210,7 @@
   {
    "work": "Adam and Eve",
    "image": "/media/works/img-2011-1780926441257.jpg",
+   "imageSmall": "data/spaces/nature-of-man/works/adam-and-eve-small.webp",
    "size": [
     135.0,
     165.0
@@ -247,6 +248,7 @@
   {
    "work": "Adan and Hava",
    "image": "/media/works/img-5877-1780926453069.jpg",
+   "imageSmall": "data/spaces/nature-of-man/works/adan-and-hava-small.webp",
    "size": [
     135.0,
     165.0
@@ -284,6 +286,7 @@
   {
    "work": "Arising",
    "image": "/media/works/arising-210x105cm-1780926824913.jpg",
+   "imageSmall": "data/spaces/nature-of-man/works/arising-small.webp",
    "size": [
     105.0,
     210.0
@@ -321,6 +324,7 @@
   {
    "work": "Emptiness",
    "image": "/media/works/img-0530-1780926813596.jpg",
+   "imageSmall": "data/spaces/nature-of-man/works/emptiness-small.webp",
    "size": [
     45.0,
     35.0
@@ -358,6 +362,7 @@
   {
    "work": "Harmony",
    "image": "/media/works/harmony-190x115cm-2021-1780926537745.jpg",
+   "imageSmall": "data/spaces/nature-of-man/works/harmony-small.webp",
    "size": [
     115.0,
     190.0
@@ -395,6 +400,7 @@
   {
    "work": "Nature of man",
    "image": "/media/works/nature-of-man-1780926065258.jpg",
+   "imageSmall": "data/spaces/nature-of-man/works/nature-of-man-small.webp",
    "size": [
     110.0,
     130.0
@@ -432,6 +438,7 @@
   {
    "work": "Pura vida",
    "image": "data/spaces/nature-of-man/works/pura-vida.png",
+   "imageSmall": "data/spaces/nature-of-man/works/pura-vida-small.webp",
    "size": [
     64.3,
     78.7
@@ -475,6 +482,7 @@
   {
    "work": "Q",
    "image": "/media/works/1-1780926373422.jpg",
+   "imageSmall": "data/spaces/nature-of-man/works/q-small.webp",
    "size": [
     35.0,
     35.0

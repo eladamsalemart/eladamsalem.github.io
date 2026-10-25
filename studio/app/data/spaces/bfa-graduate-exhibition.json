@@ -511,6 +511,7 @@
   {
    "work": "Carpet",
    "image": "/media/works/carpet-oil-on-canvas-70x90cm-2019-1780937914660.jpg",
+   "imageSmall": "data/spaces/bfa-graduate-exhibition/works/carpet-small.webp",
    "size": [
     70.0,
     90.0
@@ -548,6 +549,7 @@
   {
    "work": "Group solo exhibition",
    "image": "/media/works/group-solo-exhibition-oil-on-canvas-160x-1780937744215.jpg",
+   "imageSmall": "data/spaces/bfa-graduate-exhibition/works/group-solo-exhibition-small.webp",
    "size": [
     160.0,
     180.0
@@ -585,6 +587,7 @@
   {
    "work": "Main space",
    "image": "/media/works/main-space-170x190-2018-1780937489678.jpg",
+   "imageSmall": "data/spaces/bfa-graduate-exhibition/works/main-space-small.webp",
    "size": [
     170.0,
     190.0
@@ -622,6 +625,7 @@
   {
    "work": "Room",
    "image": "/media/works/room-oil-on-canvas-210-210-2019-1780937822726.jpg",
+   "imageSmall": "data/spaces/bfa-graduate-exhibition/works/room-small.webp",
    "size": [
     210.0,
     210.0
