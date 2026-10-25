@@ -11,13 +11,14 @@ import json, shutil, hashlib, pickle, time, sys
 from datetime import date
 import cv2
 import numpy as np
-from .works import load_exhibition, load_image, APP, slugify
+from .works import load_exhibition, load_image, APP, slugify, resolve
 from .match import find_works
 from .solve import solve
 from .ties import find_ties
 from . import status, room, bake, verify, live
 
 OUT = APP / 'data' / 'spaces'
+SMALL = 1024            # px, the long side of the image a work first shows in the walk
 CACHE = APP / 'space' / '.cache'
 
 
@@ -347,7 +348,16 @@ def build(slug, log=print):
             # stored linear (the viewer multiplies light in linear space), 1.0 = the reference image's own brightness
             cv2.imwrite(str(d / 'light' / f'{slugify(t)}.png'), np.clip((light ** 2.2) / 5 * 255, 0, 255).astype(np.uint8))
         R = wk['R']
-        out_works.append({'work': t, 'image': info['image'], 'size': [round(sw * 100, 1), round(sh * 100, 1)],
+        # a light version to open the room with (the viewer swaps in the full image as a visitor nears it)
+        src = cv2.imread(str(resolve(info['image'])), cv2.IMREAD_UNCHANGED)
+        small = None
+        if src is not None and max(src.shape[:2]) > SMALL * 1.3:
+            k = SMALL / max(src.shape[:2])
+            src = cv2.resize(src, None, fx=k, fy=k, interpolation=cv2.INTER_AREA)
+            small = f'{rel}/works/{slugify(t)}-small.webp'
+            (d / 'works').mkdir(parents=True, exist_ok=True)
+            cv2.imwrite(str(APP / small), src, [cv2.IMWRITE_WEBP_QUALITY, 88])
+        out_works.append({'work': t, 'image': info['image'], **({'imageSmall': small} if small else {}), 'size': [round(sw * 100, 1), round(sh * 100, 1)],
                           'measured': [round(sw * sc[0] * 100, 1), round(sh * sc[1] * 100, 1)],
                           'centre': [round(float(v), 4) for v in wk['c'] - [0, fy, 0]],
                           'axes': [[round(float(v), 5) for v in R[:, k]] for k in range(3)],

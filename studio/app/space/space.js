@@ -227,9 +227,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   }
 
   const pieces = [], pendingFull = [];
+  const inspecting = new URLSearchParams(location.search).has('inspect');
+  let upgrading = false, opened = performance.now();
   await Promise.all((spec.works || []).map(async (h, order) => {
     const w = works.find(x => x.title.toLowerCase() === h.work.toLowerCase()) || { title: h.work, image: h.image, artist: { name: '' }, year: '', medium: '' };
-    const [tex, light] = await Promise.all([loadTex(h.image), loadTex(h.light, false)]);
+    // a light image first, so the room opens quickly on a phone (the inspection sees the full one at once)
+    const first = !inspecting && h.imageSmall ? h.imageSmall : h.image;
+    const [tex, light] = await Promise.all([loadTex(first), loadTex(h.light, false)]);
     if (!tex) return;
     tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
     const wM = h.measured[0] / 100, hM = h.measured[1] / 100, dM = h.depth || 0.035;
@@ -265,7 +269,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
         ${light ? `totalEmissiveRadiance *= texture2D(lightTex, vEmissiveMapUv).rgb * ${k};` : ''}`);
     };
     // a larger image of the work, when there is one, is loaded once a visitor comes close enough to see it
-    if (h.imageFull) pendingFull.push({ h, front, centre: V(h.centre), reach: Math.max(1.6, 1.2 * Math.max(wM, hM)) });
+    // then the full image, once a visitor nears the work (or the room has been open a few seconds), and the
+    // artist's full-resolution upload, when there is one, only up close
+    const urls = [...(first !== h.image ? [[h.image, Math.max(5, 3 * Math.max(wM, hM))]] : []), ...(h.imageFull ? [[h.imageFull, Math.max(1.6, 1.2 * Math.max(wM, hM))]] : [])];
+    if (urls.length) pendingFull.push({ front, centre: V(h.centre), urls });
     const side = sideMat('#d5cab6');
     const back = sideMat('#4a4640');
     // a work cut out of its backdrop: its body is the solid rectangle (core), and the front shows only the
@@ -616,14 +623,21 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       else if (avg < 0.014 && pr < maxRatio) { renderer.setPixelRatio(Math.min(maxRatio, pr + 0.25)); resize(); nextAdapt = now + 4000; frameTimes.length = 0; }
     }
     if (mode === 'walk' && now > nextFocus) { focus(); nextFocus = now + 200; }
-    for (let i = pendingFull.length - 1; i >= 0; i--) {
-      const f = pendingFull[i];
-      if (pos.distanceTo(f.centre) < f.reach) {
-        pendingFull.splice(i, 1);
-        loadTex(f.h.imageFull).then(t => {
+    // one image at a time: the nearest work in reach, or after a few seconds the nearest still light one
+    if (!upgrading && pendingFull.length) {
+      const idle = now - opened > 4000;
+      const ok = pendingFull.filter(f => { const d = pos.distanceTo(f.centre); return d < f.urls[0][1] || (idle && f.urls[0][1] >= 5); });
+      const f = ok.sort((a, b) => pos.distanceTo(a.centre) - pos.distanceTo(b.centre))[0];
+      if (f) {
+        upgrading = true;
+        const [url] = f.urls.shift(); if (!f.urls.length) pendingFull.splice(pendingFull.indexOf(f), 1);
+        loadTex(url).then(t => {
+          upgrading = false;
           if (!t) return;
           t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
+          const old = f.front.emissiveMap;
           f.front.emissiveMap = t; if (f.front.map) f.front.map = t; f.front.needsUpdate = true; dirty = true;
+          if (old && old !== t) old.dispose();
         });
       }
     }
