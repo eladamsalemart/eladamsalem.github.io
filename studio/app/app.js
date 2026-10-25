@@ -103,7 +103,7 @@ const person = a => `<a class="person" href="#/artist/${a.slug}">${im(a.portrait
 function home() {
   const live = M.exhibitions[0];
   return `<div class="wrap gut">
-    <div class="home-h"><h1>Open Studio</h1><span class="tag">Prototype</span></div>
+    <div class="home-h"><h1 class="brand-h">open studio</h1><span class="tag">No. 01 · Prototype</span></div>
     ${live ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
       <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"', '100vw')}
         <div class="ov"><div class="k">${esc(live.artist.name)}</div><h2>${esc(live.title)}</h2><div class="m">${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
