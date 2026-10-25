@@ -32,7 +32,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     <div class="sv-joy" role="application" aria-label="Walk: drag the knob to move"><i></i></div>
     <div class="sv-hint">Drag to look around<br>Joystick to walk · Tap the floor to go there</div>
     <div class="sv-card" hidden><div class="sv-info"></div>
-      <div class="sv-nav"><button type="button" class="sv-prev" aria-label="Previous">←</button><span class="sv-count"></span><button type="button" class="sv-next" aria-label="Next">→</button></div></div>
+      <div class="sv-nav"><button type="button" class="sv-prev" aria-label="Previous">←</button><span class="sv-count"></span><button type="button" class="sv-play" aria-pressed="false" aria-label="Play: go from work to work">▶</button><button type="button" class="sv-next" aria-label="Next">→</button></div></div>
     <div class="sv-loading">Building the room…</div>`;
   document.body.append(root);
   const $ = s => root.querySelector(s);
@@ -227,9 +227,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   }
 
   const pieces = [], pendingFull = [];
+  const inspecting = new URLSearchParams(location.search).has('inspect');
+  let upgrading = false, opened = performance.now();
   await Promise.all((spec.works || []).map(async (h, order) => {
     const w = works.find(x => x.title.toLowerCase() === h.work.toLowerCase()) || { title: h.work, image: h.image, artist: { name: '' }, year: '', medium: '' };
-    const [tex, light] = await Promise.all([loadTex(h.image), loadTex(h.light, false)]);
+    // a light image first, so the room opens quickly on a phone (the inspection sees the full one at once)
+    const first = !inspecting && h.imageSmall ? h.imageSmall : h.image;
+    const [tex, light] = await Promise.all([loadTex(first), loadTex(h.light, false)]);
     if (!tex) return;
     tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
     const wM = h.measured[0] / 100, hM = h.measured[1] / 100, dM = h.depth || 0.035;
@@ -265,7 +269,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
         ${light ? `totalEmissiveRadiance *= texture2D(lightTex, vEmissiveMapUv).rgb * ${k};` : ''}`);
     };
     // a larger image of the work, when there is one, is loaded once a visitor comes close enough to see it
-    if (h.imageFull) pendingFull.push({ h, front, centre: V(h.centre), reach: Math.max(1.6, 1.2 * Math.max(wM, hM)) });
+    // then the full image, once a visitor nears the work (or the room has been open a few seconds), and the
+    // artist's full-resolution upload, when there is one, only up close
+    const urls = [...(first !== h.image ? [[h.image, Math.max(5, 3 * Math.max(wM, hM))]] : []), ...(h.imageFull ? [[h.imageFull, Math.max(1.6, 1.2 * Math.max(wM, hM))]] : [])];
+    if (urls.length) pendingFull.push({ front, centre: V(h.centre), urls });
     const side = sideMat('#d5cab6');
     const back = sideMat('#4a4640');
     // a work cut out of its backdrop: its body is the solid rectangle (core), and the front shows only the
@@ -456,8 +463,22 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const b = $('.sv-open'); if (p && b) b.onclick = () => onOpenWork(p.w);
   }
   root.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { setMode(b.dataset.mode); idx = 0; show(); });
-  $('.sv-next').onclick = () => { idx++; show(); };
-  $('.sv-prev').onclick = () => { idx--; show(); };
+  $('.sv-next').onclick = () => { stopPlay(); idx++; show(); };
+  $('.sv-prev').onclick = () => { stopPlay(); idx--; show(); };
+  // play: from work to work by itself, a few seconds at each (longer at a large one), like an album playing;
+  // any touch on the room, or the joystick, stops it
+  let playing = null;
+  function stopPlay() { if (playing) { clearTimeout(playing); playing = null; $('.sv-play').setAttribute('aria-pressed', 'false'); $('.sv-play').textContent = '▶'; } }
+  function playNext() {
+    const p = pieces[idx % pieces.length];
+    playing = setTimeout(() => { idx++; show(); playNext(); }, reduce ? 9000 : 6500 + Math.min(4000, (p.size.w * p.size.h) / 4000));
+  }
+  $('.sv-play').onclick = () => {
+    if (playing) return stopPlay();
+    if (mode !== 'works') { setMode('works'); idx = 0; show(); }
+    $('.sv-play').setAttribute('aria-pressed', 'true'); $('.sv-play').textContent = '❚❚'; playNext();
+  };
+  root.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', stopPlay));
   $('.sv-photo').onclick = () => $('.sv-photo').classList.toggle('big');
 
   const hint = $('.sv-hint'); let hintGone = false;
@@ -470,6 +491,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   const touches = new Map(); let pinch = null;
   const spread = () => { const [a, b] = [...touches.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
   canvas.addEventListener('pointerdown', e => {
+    stopPlay();
     touches.set(e.pointerId, { x: e.clientX, y: e.clientY }); canvas.setPointerCapture(e.pointerId);
     if (touches.size === 2) { pinch = { d: spread(), fov: tFov }; drag = null; moved = 99; return; }
     drag = { x: e.clientX, y: e.clientY }; moved = 0;
@@ -507,7 +529,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
     joy.x = x; joy.y = y; knob.style.transform = `translate(${x * rad * 0.6}px, ${y * rad * 0.6}px)`;
   };
-  pad.addEventListener('pointerdown', e => { joyId = e.pointerId; pad.setPointerCapture(e.pointerId); goFree(); walkTo = null; dropHint(); joyMove(e); });
+  pad.addEventListener('pointerdown', e => { stopPlay(); joyId = e.pointerId; pad.setPointerCapture(e.pointerId); goFree(); walkTo = null; dropHint(); joyMove(e); });
   pad.addEventListener('pointermove', e => { if (e.pointerId === joyId) joyMove(e); });
   const joyEnd = e => { if (e.pointerId !== joyId) return; joyId = null; joy.x = joy.y = 0; knob.style.transform = ''; };
   pad.addEventListener('pointerup', joyEnd); pad.addEventListener('pointercancel', joyEnd);
@@ -616,14 +638,21 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       else if (avg < 0.014 && pr < maxRatio) { renderer.setPixelRatio(Math.min(maxRatio, pr + 0.25)); resize(); nextAdapt = now + 4000; frameTimes.length = 0; }
     }
     if (mode === 'walk' && now > nextFocus) { focus(); nextFocus = now + 200; }
-    for (let i = pendingFull.length - 1; i >= 0; i--) {
-      const f = pendingFull[i];
-      if (pos.distanceTo(f.centre) < f.reach) {
-        pendingFull.splice(i, 1);
-        loadTex(f.h.imageFull).then(t => {
+    // one image at a time: the nearest work in reach, or after a few seconds the nearest still light one
+    if (!upgrading && pendingFull.length) {
+      const idle = now - opened > 4000;
+      const ok = pendingFull.filter(f => { const d = pos.distanceTo(f.centre); return d < f.urls[0][1] || (idle && f.urls[0][1] >= 5); });
+      const f = ok.sort((a, b) => pos.distanceTo(a.centre) - pos.distanceTo(b.centre))[0];
+      if (f) {
+        upgrading = true;
+        const [url] = f.urls.shift(); if (!f.urls.length) pendingFull.splice(pendingFull.indexOf(f), 1);
+        loadTex(url).then(t => {
+          upgrading = false;
           if (!t) return;
           t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
+          const old = f.front.emissiveMap;
           f.front.emissiveMap = t; if (f.front.map) f.front.map = t; f.front.needsUpdate = true; dirty = true;
+          if (old && old !== t) old.dispose();
         });
       }
     }
