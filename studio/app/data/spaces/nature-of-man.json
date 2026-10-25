@@ -690,12 +690,12 @@
   },
   {
    "rule": "ring_diff",
-   "value": 15.333,
+   "value": 17.333,
    "passed": false
   },
   {
    "rule": "wall_diff",
-   "value": 8.0,
+   "value": 8.333,
    "passed": true
   }
  ]
