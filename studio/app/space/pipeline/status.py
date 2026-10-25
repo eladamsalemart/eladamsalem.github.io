@@ -39,7 +39,7 @@ def stage1(slug, checks, ex):
             items.append(['no', "The rebuilt room doesn't match the photos closely enough yet. More photos, or a short walk-through video, would help."])
     if items:
         write(slug, 'not yet', "A tour can't be built from what's here yet. This is what it needs:", items
-              + [['warn', 'The surest way: a slow walk-through video of the room, a minute or two, filming every wall.']])
+              + [['warn', 'The surest way: a walk-through video. Phone sideways, slowly down the middle of the room and back, a minute or two, every wall in view; turn slowly at the ends, with a little floor and ceiling in view.']])
     else:
         write(slug, 'building', 'The room has been measured from the photos and is being checked view by view.', [['ok', 'Every work found, measured and matching the photos.']])
 
