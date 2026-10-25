@@ -32,7 +32,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     <div class="sv-joy" role="application" aria-label="Walk: drag the knob to move"><i></i></div>
     <div class="sv-hint">Drag to look around<br>Joystick to walk · Tap the floor to go there</div>
     <div class="sv-card" hidden><div class="sv-info"></div>
-      <div class="sv-nav"><button type="button" class="sv-prev" aria-label="Previous">←</button><span class="sv-count"></span><button type="button" class="sv-next" aria-label="Next">→</button></div></div>
+      <div class="sv-nav"><button type="button" class="sv-prev" aria-label="Previous">←</button><span class="sv-count"></span><button type="button" class="sv-play" aria-pressed="false" aria-label="Play: go from work to work">▶</button><button type="button" class="sv-next" aria-label="Next">→</button></div></div>
     <div class="sv-loading">Building the room…</div>`;
   document.body.append(root);
   const $ = s => root.querySelector(s);
@@ -463,8 +463,22 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const b = $('.sv-open'); if (p && b) b.onclick = () => onOpenWork(p.w);
   }
   root.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { setMode(b.dataset.mode); idx = 0; show(); });
-  $('.sv-next').onclick = () => { idx++; show(); };
-  $('.sv-prev').onclick = () => { idx--; show(); };
+  $('.sv-next').onclick = () => { stopPlay(); idx++; show(); };
+  $('.sv-prev').onclick = () => { stopPlay(); idx--; show(); };
+  // play: from work to work by itself, a few seconds at each (longer at a large one), like an album playing;
+  // any touch on the room, or the joystick, stops it
+  let playing = null;
+  function stopPlay() { if (playing) { clearTimeout(playing); playing = null; $('.sv-play').setAttribute('aria-pressed', 'false'); $('.sv-play').textContent = '▶'; } }
+  function playNext() {
+    const p = pieces[idx % pieces.length];
+    playing = setTimeout(() => { idx++; show(); playNext(); }, reduce ? 9000 : 6500 + Math.min(4000, (p.size.w * p.size.h) / 4000));
+  }
+  $('.sv-play').onclick = () => {
+    if (playing) return stopPlay();
+    if (mode !== 'works') { setMode('works'); idx = 0; show(); }
+    $('.sv-play').setAttribute('aria-pressed', 'true'); $('.sv-play').textContent = '❚❚'; playNext();
+  };
+  root.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', stopPlay));
   $('.sv-photo').onclick = () => $('.sv-photo').classList.toggle('big');
 
   const hint = $('.sv-hint'); let hintGone = false;
@@ -477,6 +491,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   const touches = new Map(); let pinch = null;
   const spread = () => { const [a, b] = [...touches.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
   canvas.addEventListener('pointerdown', e => {
+    stopPlay();
     touches.set(e.pointerId, { x: e.clientX, y: e.clientY }); canvas.setPointerCapture(e.pointerId);
     if (touches.size === 2) { pinch = { d: spread(), fov: tFov }; drag = null; moved = 99; return; }
     drag = { x: e.clientX, y: e.clientY }; moved = 0;
@@ -514,7 +529,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
     joy.x = x; joy.y = y; knob.style.transform = `translate(${x * rad * 0.6}px, ${y * rad * 0.6}px)`;
   };
-  pad.addEventListener('pointerdown', e => { joyId = e.pointerId; pad.setPointerCapture(e.pointerId); goFree(); walkTo = null; dropHint(); joyMove(e); });
+  pad.addEventListener('pointerdown', e => { stopPlay(); joyId = e.pointerId; pad.setPointerCapture(e.pointerId); goFree(); walkTo = null; dropHint(); joyMove(e); });
   pad.addEventListener('pointermove', e => { if (e.pointerId === joyId) joyMove(e); });
   const joyEnd = e => { if (e.pointerId !== joyId) return; joyId = null; joy.x = joy.y = 0; knob.style.transform = ''; };
   pad.addEventListener('pointerup', joyEnd); pad.addEventListener('pointercancel', joyEnd);
