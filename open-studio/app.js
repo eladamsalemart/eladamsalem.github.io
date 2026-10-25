@@ -15,7 +15,9 @@ async function loadData() {
   const inspecting = new URLSearchParams(location.search).get('inspect');
   if (inspecting) index[inspecting] = {};
   const spaces = Object.fromEntries(await Promise.all(Object.keys(index).map(async k => [k, await get(`data/spaces/${k}.json`)])));
-  return { settings, works, exhibitions, objects, cv, studio, spaces };
+  // small versions of the site's images (written when the app is published), for grids and lists on a phone
+  const thumbs = await get('data/thumbs.json').catch(() => ({}));
+  return { settings, works, exhibitions, objects, cv, studio, spaces, thumbs };
 }
 
 // --- model -----------------------------------------------------------------
@@ -73,13 +75,19 @@ function buildModel(d) {
   const cities = [];
   for (const e of exhibitions) if (e.city && !cities.some(c => c.name === e.city)) cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
   if (artist.city && !cities.some(c => c.name === artist.city)) cities.push({ name: artist.city, slug: slugify(artist.city), country: artist.country });
-  return { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {} };
+  return { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: d.thumbs || {} };
 }
 
 // --- helpers ---------------------------------------------------------------
 let M;
 const src = p => M.media[p] || p;
-const im = (p, alt, attrs = '') => p ? `<img src="${esc(src(p))}" alt="${esc(alt)}" loading="lazy" ${attrs}>` : '';
+// with a small version, the browser takes it wherever the image shows small, and the full one where it fills
+// the screen (sizes: how wide it shows; most images here are covers and rows, a third of the screen or less)
+const im = (p, alt, attrs = '', sizes = '33vw') => {
+  if (!p) return '';
+  const t = M.thumbs[p], set = t ? ` srcset="${esc(t)} 640w, ${esc(src(p))} 2000w" sizes="${sizes}"` : '';
+  return `<img src="${esc(src(p))}"${set} alt="${esc(alt)}" loading="lazy" ${attrs}>`;
+};
 const metaLine = w => [w.year, w.medium, w.size].filter(Boolean).join(' · ');
 const exOf = w => M.exhibitions.find(e => e.works.includes(w));
 const place = e => [e.city, e.dates || e.year].filter(Boolean).join(' · ');
@@ -97,7 +105,7 @@ function home() {
   return `<div class="wrap gut">
     <div class="home-h"><h1>Open Studio</h1><span class="tag">Prototype</span></div>
     ${live ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
-      <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"')}
+      <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"', '100vw')}
         <div class="ov"><div class="k">${esc(live.artist.name)}</div><h2>${esc(live.title)}</h2><div class="m">${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
     <section class="shelf"><h2>Artists</h2><div class="people">${M.artists.map(person).join('')}
       <span class="person" aria-label="More artists are coming"><span class="ring" aria-hidden="true">+</span><div class="m">More artists<br>coming soon</div></span></div></section>
@@ -120,7 +128,7 @@ function artistPage(slug) {
   if (!a) return notFound();
   const live = M.exhibitions[0];
   return `
-  <section class="hero">${im(a.hero, `Installation view, ${live ? live.title : ''}`, 'loading="eager"')}
+  <section class="hero">${im(a.hero, `Installation view, ${live ? live.title : ''}`, 'loading="eager"', '100vw')}
     <div class="ov gut"><div class="wrap"><div class="k">${esc(a.label)}</div><h1>${esc(a.name)}</h1></div></div></section>
   <div class="wrap gut">
     <p class="statement">${esc(curly(a.statement))}</p>
@@ -152,7 +160,7 @@ function exhibition(slug) {
   if (!e) return notFound();
   return `<div class="wrap gut">
     <div class="album">
-      ${im(e.images[0], `Installation view of ${e.title}`, 'class="cover" loading="eager"')}
+      ${im(e.images[0], `Installation view of ${e.title}`, 'class="cover" loading="eager"', '100vw')}
       <div class="k">Exhibition · ${esc(e.year)}${e.city ? ` · ${esc(e.city)}` : ''}</div>
       <h1>${esc(e.title)}</h1>
       <a class="by" href="#/artist/${e.artist.slug}">${im(e.artist.portrait, '')}${esc(e.artist.name)}</a>
@@ -165,7 +173,7 @@ function exhibition(slug) {
       ${e.maybe.length ? `<p class="note">Possibly also in the show, not visible in the photos: ${e.maybe.map(w => `<a href="#/work/${w.slug}">${esc(w.title)}</a>`).join(', ')}.</p>` : ''}</section>` : ''}
     <section class="sec"><div class="sec-h"><h2>About the exhibition</h2></div><div class="prose">${e.text.map(p => `<p>${esc(p)}</p>`).join('')}</div></section>
     ${e.images.length ? `<section class="sec"><div class="sec-h"><h2>Installation views</h2></div>
-      <div class="views">${e.images.map((p, i) => `<button type="button" data-zoom="${esc(src(p))}" aria-label="Installation view ${i + 1}">${im(p, `Installation view ${i + 1} of ${e.title}`)}</button>`).join('')}</div></section>` : ''}
+      <div class="views">${e.images.map((p, i) => `<button type="button" data-zoom="${esc(src(p))}" aria-label="Installation view ${i + 1}">${im(p, `Installation view ${i + 1} of ${e.title}`, '', '60vw')}</button>`).join('')}</div></section>` : ''}
   </div>`;
 }
 
@@ -174,7 +182,7 @@ function work(slug) {
   if (!w) return notFound();
   const ex = exOf(w);
   const seq = ex ? ex.works : M.works, idx = seq.indexOf(w), prev = seq[idx - 1], next = seq[idx + 1];
-  return `<div class="stage"><button type="button" data-zoom="${esc(src(w.image))}" aria-label="Zoom into ${esc(w.title)}">${im(w.image, w.title, 'loading="eager"')}</button></div>
+  return `<div class="stage"><button type="button" data-zoom="${esc(src(w.image))}" aria-label="Zoom into ${esc(w.title)}">${im(w.image, w.title, 'loading="eager"', '100vw')}</button></div>
   <div class="wrap gut">
     <div class="work">
       <div class="label"><b>${esc(w.title)}</b><span>${esc(w.artist.name)}, ${esc(w.year)}</span><span>${esc(w.medium)}</span>${w.size ? `<span class="s">${esc(w.size)}</span>` : ''}</div>
