@@ -370,7 +370,7 @@ def foot_runs(img, valid, texel, top_height, log=None):
     return out
 
 
-def openings_in_wall(img, valid, floor_lab, texel, top_height, ceiling):
+def openings_in_wall(img, valid, floor_lab, texel, top_height, ceiling, log=None):
     """Openings in a wall: columns where the floor carries on above the wall's foot (seen through the
     wall plane), at least 0.6 m wide. Each gets a top: an arch if its edge rises to the middle."""
     lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB).astype(np.float32)
@@ -452,8 +452,51 @@ def openings_in_wall(img, valid, floor_lab, texel, top_height, ceiling):
             ja, jb = jamb(a, height), jamb(b, height)
             if ja is None or jb is None or (jb - ja) * texel < 0.6:
                 continue
-        out.append({'from': round(ja * texel, 3), 'to': round(jb * texel, 3), 'height': round(height, 2), 'arch': arch})
+        shape = opening_shape(lab[..., 0], wall_L, ja, jb, height, texel, top_height)
+        if shape is None:
+            if log:
+                log(f"    {ja * texel:.2f}-{jb * texel:.2f} m: nothing seen through it, not an opening")
+            continue
+        rise = shape
+        out.append({'from': round(ja * texel, 3), 'to': round(jb * texel, 3), 'height': round(height, 2), 'arch': rise > 0,
+                    **({'rise': round(rise, 2)} if rise > 0 else {})})
     return out
+
+
+def opening_shape(L, wall_L, a, b, height, texel, top_height):
+    """An opening's top, from its outline in the photos.
+    Returns the arch's rise in metres (0: a square top), or None if no outline is seen at all (the wall's
+    foot dropping at a corner, say: not an opening).
+
+    The top is the shape whose outline runs along the strongest edge in the photos: a straight lintel or
+    half an ellipse of any rise (a wide arch has steep sides, so its top's height alone, middle against
+    sides, misses it)."""
+    H = L.shape[0]
+    hw = (b - a) / 2 * texel
+    # the top's outline is a sharp edge in the photos: the shape whose outline runs along the strongest edge
+    g = cv2.GaussianBlur(L, (0, 0), 1.5)
+    mag = np.hypot(cv2.Sobel(g, cv2.CV_32F, 1, 0), cv2.Sobel(g, cv2.CV_32F, 0, 1))
+
+    def along(rise):
+        spring = height - rise
+        t = np.linspace(0, np.pi, 200)
+        px = (a + b) / 2 + np.cos(t) * hw / texel
+        py = (top_height - (spring + np.sin(t) * rise)) / texel if rise else np.full_like(t, (top_height - height) / texel)
+        if not rise:
+            px = np.linspace(a + 2, b - 2, 200)
+        ix = np.clip(px.astype(int), 0, L.shape[1] - 1); iy = np.clip(py.astype(int), 0, H - 1)
+        return float(np.mean([mag[max(0, j - 2):j + 3, i].max() for i, j in zip(ix, iy)]))
+    rises = [0.0] + list(np.linspace(0.3, min(hw, height - 1.0), 16))
+    scores = [along(r) for r in rises]
+    # an opening's outline is sharp; plain wall's texture is not (the wall beside it, at the works' height)
+    band = mag[int((top_height - 2.0) / texel):int((top_height - 0.3) / texel)]
+    wall = np.percentile(np.delete(band, np.s_[max(0, a - 20):b + 20], axis=1), 90) if band.size else 1.0
+    if max(scores) < 1.8 * wall:
+        return None
+    best = rises[int(np.argmax(scores))]
+    if best and scores[int(np.argmax(scores))] < 1.5 * max(scores[0], 1.0):
+        best = 0.0                                                    # no clear curve: a square top
+    return float(best)
 
 
 def wall_profile(img, seen):

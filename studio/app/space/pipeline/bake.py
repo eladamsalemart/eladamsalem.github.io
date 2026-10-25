@@ -212,12 +212,23 @@ def match_edges(out, img, miss):
     return np.clip(res, 0, 255).astype(np.uint8)
 
 
-def fill_holes(img, cover):
+def fill_holes(img, cover, feather=0):
     """Where no photo saw the surface: small gaps are continued from their edges at full detail, large
-    ones softly from the surrounding colour (both are hidden behind works more often than not)."""
+    ones softly from the surrounding colour (both are hidden behind works more often than not).
+
+    feather (pixels): the seen surface right round a gap is often its least trustworthy part (a canvas's
+    edge or shadow just outside a work's mask, a doorframe's): a ring that wide is filled too, and blended
+    back into what was seen from the gap outward, so the fill starts from clean wall and leaves no seam."""
     miss = (cover == 0)
     if not miss.any() or miss.all():
         return img
+    if feather:
+        ring = cv2.dilate(miss.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * feather + 1,) * 2)) > 0
+        filled = fill_holes(img, (~ring).astype(np.float32))
+        d = cv2.distanceTransform((~miss).astype(np.uint8), cv2.DIST_L2, 5)
+        a = np.clip(1 - d / feather, 0, 1)[..., None]
+        a = a * a * (3 - 2 * a)                                      # a smooth step, no edge of its own
+        return np.clip(filled * a + img * (1 - a), 0, 255).astype(np.uint8)
     from . import inpaint
     lam = inpaint.fill(img, miss)
     if lam is not None:

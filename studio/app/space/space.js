@@ -87,9 +87,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     return new THREE.Mesh(g, material);
   }
   function openingPath(o, path) {
-    const r = o.arch ? Math.min((o.to - o.from) / 2, o.height - 0.5) : 0;
+    // an arch: half an ellipse as wide as the opening, rising as measured (a semicircle when not measured)
+    const hw = (o.to - o.from) / 2, r = o.arch ? Math.min(o.rise || hw, o.height - 0.5) : 0;
     path.moveTo(o.from, 0); path.lineTo(o.to, 0); path.lineTo(o.to, o.height - r);
-    if (o.arch) path.absarc((o.from + o.to) / 2, o.height - r, (o.to - o.from) / 2, 0, Math.PI, false); else path.lineTo(o.from, o.height);
+    if (o.arch) path.absellipse(o.from + hw, o.height - r, hw, r, 0, Math.PI, false); else path.lineTo(o.from, o.height);
     path.lineTo(o.from, 0); return path;
   }
 
@@ -109,11 +110,28 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const depth = o.depth || 0.3;
     const U = V(s.u), N = V(s.normal), O = V(s.origin);
     const bottom = O.clone().addScaledVector(V(s.v), s.size[1]);  // the wall's foot at u = 0
-    if (!surfaces.some(x => x.kind === 'reveal')) {          // older spaces: a plain modelled thickness
-      const geo = new THREE.ExtrudeGeometry(openingPath(o, new THREE.Shape()), { depth, bevelEnabled: false, curveSegments: 24 });
+    if (o.arch || !surfaces.some(x => x.kind === 'reveal')) {
+      // an arch's curved inside (or, in older spaces, any opening's sides): modelled, in the room's plaster
+      const geo = new THREE.ExtrudeGeometry(openingPath(o, new THREE.Shape()), { depth, bevelEnabled: false, curveSegments: 48 });
       const basis = new THREE.Matrix4().makeBasis(U, new THREE.Vector3(0, 1, 0), N.clone().negate());
-      const rev = new THREE.Mesh(geo, [new THREE.MeshBasicMaterial({ visible: false }), new THREE.MeshStandardMaterial({ color: '#d9d7d2', roughness: 1, side: THREE.DoubleSide })]);
+      let side;
+      if (plasterTex) {
+        const t = plasterTex.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true;
+        side = new THREE.MeshBasicMaterial({ map: t, color: 0xe4e2de, toneMapped: false, side: THREE.DoubleSide });
+      } else side = new THREE.MeshStandardMaterial({ color: '#d9d7d2', roughness: 1, side: THREE.DoubleSide });
+      const rev = new THREE.Mesh(geo, [new THREE.MeshBasicMaterial({ visible: false }), side]);
       rev.applyMatrix4(basis); rev.position.copy(bottom); rev.userData.kind = 'reveal'; scene.add(rev);
+    }
+    if (o.view) {
+      // what the photos show through the opening, just behind it: the room beyond as it really is
+      loadTex(o.view).then(t => {
+        if (!t) return;
+        const w0 = o.to - o.from, g = new THREE.PlaneGeometry(w0, o.height);
+        const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: t, toneMapped: false, side: THREE.DoubleSide }));
+        const c = bottom.clone().addScaledVector(U, (o.from + o.to) / 2).addScaledVector(N, -(depth + 0.02)).setY(o.height / 2);
+        m.matrixAutoUpdate = false; m.matrix.makeBasis(U, new THREE.Vector3(0, 1, 0), N).setPosition(c);
+        m.userData.kind = 'beyond'; scene.add(m); dirty = true;
+      });
     }
     const w = o.to - o.from + 2.4, d = 3.2;
     const mid = bottom.clone().addScaledVector(U, (o.from + o.to) / 2).addScaledVector(N, -(depth + d / 2));

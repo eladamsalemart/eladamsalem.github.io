@@ -18,6 +18,7 @@ from .ties import find_ties
 from . import status, room, bake, verify, live
 
 OUT = APP / 'data' / 'spaces'
+GRAIN = 14              # the floor tile's grain, standard deviation in 0-255 (a terrazzo's chips read at a few metres)
 SMALL = 1024            # px, the long side of the image a work first shows in the walk
 CACHE = APP / 'space' / '.cache'
 
@@ -151,7 +152,11 @@ def floor_detail(images, cams, masks, gains, fy, size=1.0, mpp=0.003):
     yy, xx = np.mgrid[0:n, 0:n] / (n - 1)
     w = (np.minimum(xx, 1 - xx) * 2) * (np.minimum(yy, 1 - yy) * 2)
     w = np.clip(w * 3, 0, 1)[..., None]
-    return np.clip(t * w + sh * (1 - w), 0, 255).astype(np.uint8)
+    t = t * w + sh * (1 - w)
+    # the grain as strong as on the real floor: sampled from a photo at an angle (and cross-faded) it comes out
+    # faint, and a terrazzo's chips then melt into a flat, plastic-looking floor a few metres away
+    gain = float(np.clip(GRAIN / max(t.std(axis=(0, 1)).mean(), 1e-3), 1.0, 2.5))
+    return np.clip(mean + (t - mean) * gain, 0, 255).astype(np.uint8)
 
 
 def look_of(cam, fy):
@@ -242,7 +247,7 @@ def build(slug, log=print):
         # and only where the wall was well photographed: a poorly seen corner is no evidence of a doorway
         # (read from the wall as it will show, completed where no photo saw it: a gap is not an edge)
         whole = bake.fill_holes(col, cov)
-        ops = room.openings_in_wall(whole, np.ones(cov.shape, bool), floor_lab, s.texel, ceiling, ceiling) \
+        ops = room.openings_in_wall(whole, np.ones(cov.shape, bool), floor_lab, s.texel, ceiling, ceiling, log) \
             if box_how[measured[s.name]].startswith('נמדד') and cov.mean() > 0.7 else []
         # round each opening, the photos show its real edge a few cm from where it is cut: that band is
         # filled with plain wall, so no sliver of the photo's edge runs alongside the cut
@@ -262,9 +267,9 @@ def build(slug, log=print):
             r_top = int((ceiling - o['height']) / s.texel)
             cov[:, max(0, c0 - b):c0 + 1] = 0; cov[:, c1:c1 + b] = 0
             # over the top: a lintel's edge, or for an arch the whole curve from where it springs
-            r_spring = int((ceiling - o['height'] + ((o['to'] - o['from']) / 2 if o.get('arch') else 0)) / s.texel)
+            r_spring = int((ceiling - o['height'] + (o.get('rise', (o['to'] - o['from']) / 2) if o.get('arch') else 0)) / s.texel)
             cov[max(0, r_top - b):r_spring + 1, max(0, c0 - b):c1 + b] = 0
-        col = bake.fill_holes(col, cov)
+        col = bake.fill_holes(col, cov, feather=int(0.06 / s.texel))
         # what is left on the open wall that stands out from the plaster round it (a wall label, a switch,
         # a stain, the trace of a work's edge) is taken away: the walls show the works and nothing else
         spots = room.wall_spots(col, s.texel, ceiling, [o for o in ops], works_on(s, works, sizes, fy, ceiling))
@@ -273,9 +278,17 @@ def build(slug, log=print):
             log(f"  {s.name}: {spots.mean() * 100:.2f}% of the wall cleaned of marks")
         write_jpg(d / f'{s.name}.jpg', col)
         surfaces.append(surface_json(s, fy, f'{rel}/{s.name}.jpg', 'wall', cov, ops))
-        # the inside of each opening (the wall's thickness) is baked from the photos too, like the walls
+        # the inside of each opening (the wall's thickness) is baked from the photos too, like the walls; an
+        # arch's curved inside is modelled by the viewer, in the room's plaster
         for k, o in enumerate(ops):
             o['depth'] = REVEAL
+            # what the photos show through the opening (the room beyond), seen from the wall's plane: the
+            # viewer shows it just behind the opening, instead of an empty box
+            c0, c1 = int(o['from'] / s.texel), int(o['to'] / s.texel); r0 = max(0, int((ceiling - o['height']) / s.texel))
+            write_jpg(d / f'{s.name}-o{k}-view.jpg', whole[r0:, c0:c1], q=86)      # (before the band round it was cleared)
+            o['view'] = f'{rel}/{s.name}-o{k}-view.jpg'
+            if o.get('arch'):
+                continue
             for r in reveal_surfaces(s, o, ceiling, f'{s.name}-o{k}'):
                 rc, rcov, _, _ = bake.bake(r, images, cams, masks, gains)
                 if rcov.mean() < 0.3 and profile is not None:

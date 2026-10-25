@@ -19,7 +19,8 @@ const fs = require('fs'), path = require('path');
   // network failures are caught below, with their address
   page.on('console', m => { if (m.type() === 'error' && !/^Failed to load resource/.test(m.text())) errors.push('console: ' + m.text()); });
   page.on('requestfailed', r => { if (!/fonts\.(googleapis|gstatic)/.test(r.url())) errors.push('failed: ' + r.url()); });
-  page.on('response', r => { if (r.status() >= 400) errors.push(`http ${r.status()}: ${r.url()}`); });
+  // (data/thumbs.json is written only when the app is published: its absence is not a fault of the space)
+  page.on('response', r => { if (r.status() >= 400 && !r.url().endsWith('/data/thumbs.json')) errors.push(`http ${r.status()}: ${r.url()}`); });
   // offline runs (no CDN): serve three.js from a local copy
   if (process.env.THREE_DIR) await page.route('https://cdn.jsdelivr.net/npm/three@*/**', r => {
     const rel = new URL(r.request().url()).pathname.replace(/^\/npm\/three@[^/]+\//, '');

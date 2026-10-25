@@ -132,123 +132,26 @@
     0.0,
     -1.0
    ],
-   "seen": 0.83,
+   "seen": 0.688,
    "openings": [
     {
      "from": 0.0,
      "to": 3.835,
      "height": 3.04,
-     "arch": false,
-     "depth": 0.35
+     "arch": true,
+     "rise": 1.92,
+     "depth": 0.35,
+     "view": "data/spaces/ritual/wall-z1-o0-view.jpg"
     },
     {
      "from": 5.81,
      "to": 7.695,
      "height": 3.04,
      "arch": false,
-     "depth": 0.35
-    },
-    {
-     "from": 13.32,
-     "to": 14.135,
-     "height": 2.6,
-     "arch": false,
-     "depth": 0.35
+     "depth": 0.35,
+     "view": "data/spaces/ritual/wall-z1-o1-view.jpg"
     }
    ]
-  },
-  {
-   "name": "wall-z1-o0-a",
-   "kind": "reveal",
-   "texture": "data/spaces/ritual/wall-z1-o0-a.jpg",
-   "origin": [
-    5.3359,
-    3.04,
-    4.0421
-   ],
-   "u": [
-    -0.0,
-    -0.0,
-    1.0
-   ],
-   "v": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "size": [
-    0.35,
-    3.04
-   ],
-   "normal": [
-    -1.0,
-    0.0,
-    0.0
-   ],
-   "seen": 1.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z1-o0-b",
-   "kind": "reveal",
-   "texture": "data/spaces/ritual/wall-z1-o0-b.jpg",
-   "origin": [
-    1.5009,
-    3.04,
-    4.3921
-   ],
-   "u": [
-    0.0,
-    0.0,
-    -1.0
-   ],
-   "v": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "size": [
-    0.35,
-    3.04
-   ],
-   "normal": [
-    1.0,
-    -0.0,
-    -0.0
-   ],
-   "seen": 1.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z1-o0-top",
-   "kind": "reveal",
-   "texture": "data/spaces/ritual/wall-z1-o0-top.jpg",
-   "origin": [
-    5.3359,
-    3.04,
-    4.0421
-   ],
-   "u": [
-    -1.0,
-    0.0,
-    0.0
-   ],
-   "v": [
-    -0.0,
-    -0.0,
-    1.0
-   ],
-   "size": [
-    3.835,
-    0.35
-   ],
-   "normal": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "seen": 1.0,
-   "openings": []
   },
   {
    "name": "wall-z1-o1-a",
@@ -333,99 +236,6 @@
    ],
    "size": [
     1.885,
-    0.35
-   ],
-   "normal": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "seen": 1.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z1-o2-a",
-   "kind": "reveal",
-   "texture": "data/spaces/ritual/wall-z1-o2-a.jpg",
-   "origin": [
-    -7.9841,
-    2.6,
-    4.0421
-   ],
-   "u": [
-    -0.0,
-    -0.0,
-    1.0
-   ],
-   "v": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "size": [
-    0.35,
-    2.6
-   ],
-   "normal": [
-    -1.0,
-    0.0,
-    0.0
-   ],
-   "seen": 1.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z1-o2-b",
-   "kind": "reveal",
-   "texture": "data/spaces/ritual/wall-z1-o2-b.jpg",
-   "origin": [
-    -8.7991,
-    2.6,
-    4.3921
-   ],
-   "u": [
-    0.0,
-    0.0,
-    -1.0
-   ],
-   "v": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "size": [
-    0.35,
-    2.6
-   ],
-   "normal": [
-    1.0,
-    -0.0,
-    -0.0
-   ],
-   "seen": 1.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z1-o2-top",
-   "kind": "reveal",
-   "texture": "data/spaces/ritual/wall-z1-o2-top.jpg",
-   "origin": [
-    -7.9841,
-    2.6,
-    4.0421
-   ],
-   "u": [
-    -1.0,
-    0.0,
-    0.0
-   ],
-   "v": [
-    -0.0,
-    -0.0,
-    1.0
-   ],
-   "size": [
-    0.815,
     0.35
    ],
    "normal": [
@@ -1062,12 +872,12 @@
   },
   {
    "rule": "work_match",
-   "value": 0.753,
+   "value": 0.755,
    "passed": true
   },
   {
    "rule": "ring_diff",
-   "value": 3.0,
+   "value": 3.667,
    "passed": true
   },
   {
