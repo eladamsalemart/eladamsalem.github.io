@@ -18,7 +18,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <style>
 /* Layout: one artist's home, read top to bottom like a gallery wall. Phone-first: on larger screens the app keeps a phone-width column (iPad and desktop layouts come later) */
@@ -335,7 +335,9 @@ body.has-tabs main{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 
 /* --- Studio Paper layer: square corners, ruled sections, italic wordmark, typewriter labels --- */
-.brand{font-style:italic;font-weight:500;text-transform:lowercase;letter-spacing:-.01em;font-size:30px}
+.brand,.brand-h{display:inline-flex;align-items:center;gap:.32em;font-family:'Figtree',var(--sans) !important;font-style:normal !important;font-weight:700 !important;letter-spacing:-.01em;text-decoration:none}
+.brand{font-size:22px}
+.brand .mark,.brand-h .mark{width:1.2em;height:1.2em;flex:none}
 .bar{border-bottom:1.5px solid var(--rule)}
 .sec{border-top:1.5px solid var(--rule)}
 .sec-h h2,.hero h1,.statement,h1,h2{font-family:var(--serif);font-weight:500}
@@ -344,7 +346,7 @@ body.has-tabs main{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 .btn.f{background:var(--dot);border-color:var(--dot);color:#F6F1E7}
 .btn.g{border-color:var(--rule)}
 .more{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
-.brand-h{font-style:italic;font-weight:500;letter-spacing:-.015em;white-space:nowrap;font-size:40px !important}
+.brand-h{white-space:nowrap;font-size:34px !important}
 .home-h:has(.brand-h){flex-wrap:wrap;row-gap:4px}
 /* square, like prints pinned to a board: no rounded corners in the pages (the walk keeps its own controls) */
 main *,.install,.install *{border-radius:0 !important}
@@ -357,7 +359,7 @@ main .person img,main .person .ring,main .album .by img,main .dot{border-radius:
 </head>
 <body>
 <!-- app:body -->
-<header class="bar gut"><div class="wrap"><a class="brand" href="#/">Open Studio</a><span class="tag">Prototype</span></div></header>
+<header class="bar gut"><div class="wrap"><a class="brand" href="#/" aria-label="Open Studio, home"><svg class="mark" viewBox="0 0 132 132" aria-hidden="true"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg><span>Open Studio</span></a><span class="tag">Prototype</span></div></header>
 <main id="app"><div class="loading">Loading…</div></main>
 <nav class="tabs" aria-label="Main" hidden>
   <a href="#/" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Home</a>
