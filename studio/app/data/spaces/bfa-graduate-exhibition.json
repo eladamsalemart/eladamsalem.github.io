@@ -101,28 +101,15 @@
     0.0,
     1.0
    ],
-   "seen": 0.385,
+   "seen": 0.452,
    "openings": [
-    {
-     "from": 3.975,
-     "to": 4.625,
-     "height": 2.11,
-     "arch": false,
-     "depth": 0.35
-    },
     {
      "from": 5.05,
      "to": 5.87,
      "height": 4.62,
      "arch": false,
-     "depth": 0.35
-    },
-    {
-     "from": 8.205,
-     "to": 8.895,
-     "height": 1.93,
-     "arch": false,
-     "depth": 0.35
+     "depth": 0.35,
+     "view": "data/spaces/bfa-graduate-exhibition/wall-z0-o0-view.jpg"
     }
    ]
   },
@@ -130,99 +117,6 @@
    "name": "wall-z0-o0-a",
    "kind": "reveal",
    "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o0-a.jpg",
-   "origin": [
-    -1.892,
-    2.11,
-    -4.467
-   ],
-   "u": [
-    -0.0,
-    -0.0,
-    -1.0
-   ],
-   "v": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "size": [
-    0.35,
-    2.11
-   ],
-   "normal": [
-    1.0,
-    0.0,
-    0.0
-   ],
-   "seen": 1.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z0-o0-b",
-   "kind": "reveal",
-   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o0-b.jpg",
-   "origin": [
-    -1.242,
-    2.11,
-    -4.817
-   ],
-   "u": [
-    0.0,
-    0.0,
-    1.0
-   ],
-   "v": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "size": [
-    0.35,
-    2.11
-   ],
-   "normal": [
-    -1.0,
-    -0.0,
-    -0.0
-   ],
-   "seen": 1.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z0-o0-top",
-   "kind": "reveal",
-   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o0-top.jpg",
-   "origin": [
-    -1.892,
-    2.11,
-    -4.467
-   ],
-   "u": [
-    1.0,
-    0.0,
-    0.0
-   ],
-   "v": [
-    -0.0,
-    -0.0,
-    -1.0
-   ],
-   "size": [
-    0.65,
-    0.35
-   ],
-   "normal": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "seen": 1.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z0-o1-a",
-   "kind": "reveal",
-   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o1-a.jpg",
    "origin": [
     -0.817,
     4.62,
@@ -251,9 +145,9 @@
    "openings": []
   },
   {
-   "name": "wall-z0-o1-b",
+   "name": "wall-z0-o0-b",
    "kind": "reveal",
-   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o1-b.jpg",
+   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o0-b.jpg",
    "origin": [
     0.003,
     4.62,
@@ -282,9 +176,9 @@
    "openings": []
   },
   {
-   "name": "wall-z0-o1-top",
+   "name": "wall-z0-o0-top",
    "kind": "reveal",
-   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o1-top.jpg",
+   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o0-top.jpg",
    "origin": [
     -0.817,
     4.62,
@@ -302,99 +196,6 @@
    ],
    "size": [
     0.82,
-    0.35
-   ],
-   "normal": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "seen": 1.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z0-o2-a",
-   "kind": "reveal",
-   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o2-a.jpg",
-   "origin": [
-    2.338,
-    1.93,
-    -4.467
-   ],
-   "u": [
-    -0.0,
-    -0.0,
-    -1.0
-   ],
-   "v": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "size": [
-    0.35,
-    1.93
-   ],
-   "normal": [
-    1.0,
-    0.0,
-    0.0
-   ],
-   "seen": 1.0,
-   "openings": []
-  },
-  {
-   "name": "wall-z0-o2-b",
-   "kind": "reveal",
-   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o2-b.jpg",
-   "origin": [
-    3.028,
-    1.93,
-    -4.817
-   ],
-   "u": [
-    0.0,
-    0.0,
-    1.0
-   ],
-   "v": [
-    0.0,
-    -1.0,
-    0.0
-   ],
-   "size": [
-    0.35,
-    1.93
-   ],
-   "normal": [
-    -1.0,
-    -0.0,
-    -0.0
-   ],
-   "seen": 0.985,
-   "openings": []
-  },
-  {
-   "name": "wall-z0-o2-top",
-   "kind": "reveal",
-   "texture": "data/spaces/bfa-graduate-exhibition/wall-z0-o2-top.jpg",
-   "origin": [
-    2.338,
-    1.93,
-    -4.467
-   ],
-   "u": [
-    1.0,
-    0.0,
-    0.0
-   ],
-   "v": [
-    -0.0,
-    -0.0,
-    -1.0
-   ],
-   "size": [
-    0.69,
     0.35
    ],
    "normal": [
@@ -790,7 +591,7 @@
   },
   {
    "rule": "work_match",
-   "value": 0.332,
+   "value": 0.3,
    "passed": false
   },
   {
@@ -800,7 +601,7 @@
   },
   {
    "rule": "wall_diff",
-   "value": 15.0,
+   "value": 15.5,
    "passed": false
   }
  ]
