@@ -185,6 +185,8 @@ PRIOR = {                # one 'sigma' of departure costs about as much as 30 px
     'upright': 30 / np.radians(3),   # works hang straight; a leaning canvas still leans if the photos say so
     'size': 30 / 0.015,              # recorded sizes are trusted to about 1.5 %
     'focal': 30 / 0.25,              # one photographer's lenses are similar (log focal, ~25 %)
+    'focal_flat': 30 / 0.04,         # ...and a photo that sees one flat wall square on can't tell its own lens
+                                     # from its distance (both only scale the wall): it is held to the others'
     'centre': 30 / 0.04,             # lens centre within ~4 % of the picture's centre
 }
 
@@ -215,7 +217,7 @@ def triangulate(track, comp, f, pp):
     return X
 
 
-def bundle_adjust(obs, f0, comp, photos_shape, gravity=False, f_mid=None, pp0={}, size_sigma={}, ties=()):
+def bundle_adjust(obs, f0, comp, photos_shape, gravity=False, f_mid=None, pp0={}, size_sigma={}, ties=(), f_tight=()):
     """Refine one connected group of cameras and works.
 
     First pass (gravity=False): the most-seen work stays fixed and sets the frame. Second pass
@@ -307,7 +309,7 @@ def bundle_adjust(obs, f0, comp, photos_shape, gravity=False, f_mid=None, pp0={}
                 pri.append(PRIOR['upright'] * za[1])
                 pri += list(30 / size_sigma.get(t, 0.015) * np.log(sc))
         if mu is not None:
-            pri += [PRIOR['focal'] * (x[nc + nw + 3 * fi[p]] - mu) for p in cams]
+            pri += [(PRIOR['focal_flat'] if p in f_tight else PRIOR['focal']) * (x[nc + nw + 3 * fi[p]] - mu) for p in cams]
         # photos are often cropped, so the lens centre may sit off the picture's centre (by a few %)
         for p in cams:
             pri += list(PRIOR['centre'] * x[nc + nw + 3 * fi[p] + 1:nc + nw + 3 * fi[p] + 3])
@@ -400,6 +402,27 @@ def as_comp(cams, works):
             'works': {t: to_T(w['R'], w['c']) for t, w in works.items()}}
 
 
+def flat_views(obs, cams, works, sizes):
+    """Photos whose works all hang on one flat wall, seen nearly square on: for such a photo a longer lens
+    from further back and a shorter one from closer give the same picture, so its focal length is unknown."""
+    out = set()
+    for p, c in cams.items():
+        ts = {o['work'] for o in obs if o['photo'] == p and o['work'] in works}
+        if not ts:
+            continue
+        # the wall: the plane of the largest work (a small one's facing is loose before the gallery priors),
+        # with every work's centre on it
+        big = max(ts, key=lambda t: np.prod(works[t].get('scale', np.ones(2))) * sizes.get(t, (1, 1))[0] * sizes.get(t, (1, 1))[1])
+        n = works[big]['R'][:, 2]
+        offs = np.array([(works[t]['c'] - works[big]['c']) @ n for t in ts])
+        if np.abs(offs).max() > 0.2:
+            continue
+        fwd = c['R'][2]                                            # the camera's axis, in the room
+        if abs(fwd @ n) > np.cos(np.radians(25)):
+            out.add(p)
+    return out
+
+
 def solve(found, exhibition, log=print, tie_fn=None):
     sizes = {w['title']: (w['size_cm'][0] / 100, w['size_cm'][1] / 100) for w in exhibition['works'] if w['size_cm']}
     shapes = {p: hits['_shape'][:2] for p, hits in found.items()}
@@ -432,6 +455,14 @@ def solve(found, exhibition, log=print, tie_fn=None):
         fs = {p: c['f'] for p, c in cams.items()}
         pps = {p: c['pp'] / max(shapes[p]) for p, c in cams.items()}
         cams, works, rms, errs, _ = bundle_adjust(obs, fs, as_comp(cams, works), shapes, gravity=True, f_mid=f_mid, pp0=pps, size_sigma=size_sigma, ties=mine)
+        flat = flat_views(obs, cams, works, sizes)
+        if flat and len(flat) < len(cams):
+            # once more, those photos' lens held to the typical one (from the photos that see the room in depth)
+            log(f"  {len(flat)} photo(s) see one wall only, square on: their lens is held to the others'")
+            f_deep = float(np.median([c['f'] for p, c in cams.items() if p not in flat]))
+            fs = {p: (f_deep if p in flat else c['f']) for p, c in cams.items()}
+            pps = {p: c['pp'] / max(shapes[p]) for p, c in cams.items()}
+            cams, works, rms, errs, _ = bundle_adjust(obs, fs, as_comp(cams, works), shapes, gravity=True, f_mid=f_deep, pp0=pps, size_sigma=size_sigma, ties=mine, f_tight=flat)
         Rg = gravity_frame(works, cams)
         apply_frame(Rg, works, cams)
         groups.append({'cams': cams, 'works': works, 'rms_px': rms, 'errs': errs})

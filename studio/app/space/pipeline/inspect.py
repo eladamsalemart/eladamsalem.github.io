@@ -14,11 +14,15 @@ notice; one failure and the space is not published:
 - the walls carry no trace of a work (a ghost of a painting baked into the wall) and no dark blotch;
 - walls and floor have no smear (texture dragged into streaks);
 - works hang where works can hang: on a wall (not in it, not floating), not over each other, between floor
-  and ceiling.
+  and ceiling;
+- no seam on a wall (a long straight step in its light, where one photo gives way to another);
+- the room's shape agrees with every photo: seen from each photo's camera with that photo left out, the
+  others, projected onto the room, line up with it edge for edge (a misplaced arch, a wall a few cm off, a
+  ceiling at the wrong height all show as edges that land in the wrong place).
 
     python -m studio.app.space.pipeline.inspect [slug ...]
 """
-import json, shutil, socket, subprocess, sys, tempfile, threading, time
+import json, os, shutil, socket, subprocess, sys, tempfile, threading, time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -41,6 +45,12 @@ RULES = {
     'smear': 0.03,            # share of the walls in a shot that may be streaked (every smear found while
                               # tuning, a pier painted flat, an opening's seam, a streaked floor, was 0.04-0.25)
     'gap': 0.08,
+    'photo_match': 0.62,      # the room, each photo left out, against that photo: agreement of the edges, on
+                              # average (Ritual as built: 0.65; with its ceiling made flat at the wrong height,
+                              # 0.57; with a wall 25 cm off, stage 1 stops it already)
+    'photo_match_one': 0.45,  # ...and for every photo
+    'seams': 0.003,           # share of a shot that may be a seam on a plain wall (a step of 4 % in the light
+                              # across a wall shows as 0.004 or more; a 2 % one, barely visible, as 0)
     'floor_bands': 0.25,      # bands across the floor's tile, against its grain              # a work's back may stand off its wall this much (m) at most
 }
 
@@ -213,6 +223,60 @@ def smear(img, walls, lbl):
     return float(streak.sum() / m.sum())
 
 
+def photo_match(tmp, name, photo):
+    """The room against one photo, left out of it (render.cjs): from the photo's own camera, the other photos
+    alone, projected onto the room's surfaces. Where the room's shape is right (a wall where the wall is, an
+    arch where the arch is, the ceiling at its height) they line up with the photo left out, edge for edge;
+    where it is wrong, what they show lands elsewhere. Returns (agreement of the edges, 0..1: the share of
+    the photo's edges that the room shows within 4 px, and of the room's that the photo shows, combined;
+    over the walls, ceiling and openings the other photos saw; share of the frame checked), or None."""
+    r = cv2.imread(str(Path(tmp) / f'{name}.png')); cov = cv2.imread(str(Path(tmp) / f'{name}.cover.png'), cv2.IMREAD_GRAYSCALE)
+    ids = cv2.imread(str(Path(tmp) / f'{name}.ids.png')); ph = cv2.imread(str(resolve(photo)))
+    if r is None or cov is None or ids is None or ph is None:
+        return None
+    H, W = r.shape[:2]
+    ph = cv2.resize(ph, (W, H), interpolation=cv2.INTER_AREA)
+    lbl = labels(ids)
+    roomish = np.isin(lbl, [NAMES.index(k) for k in ('wall', 'ceiling', 'reveal', 'beyond')])
+    # (not the floor, whose reflections are meant to differ from one photo to the next; not the works, which
+    # are checked against their own images, nor a band round them)
+    worky = cv2.dilate(np.isin(lbl, [NAMES.index(k) for k in ('work', 'workbody', 'shadow')]).astype(np.uint8), np.ones((25, 25), np.uint8)) > 0
+    valid = inner(roomish & (cov > 230), 3) & ~worky
+    valid[:10] = valid[-10:] = False; valid[:, :10] = valid[:, -10:] = False
+    if valid.mean() < 0.05:
+        return None
+
+    def edges(img):
+        return (cv2.Canny(cv2.GaussianBlur(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), (0, 0), 2.0), 20, 50) > 0) & valid
+    ea, eb = edges(r), edges(ph)
+    if ea.sum() < 50 or eb.sum() < 50:
+        return None
+    # the photo's edges found in the room (within 4 px), and the room's found in the photo
+    near = lambda e: cv2.distanceTransform((~e).astype(np.uint8), cv2.DIST_L2, 3) <= 4
+    found, true = float(near(ea)[eb].mean()), float(near(eb)[ea].mean())
+    return 2 * found * true / (found + true + 1e-6), float(valid.mean())
+
+
+def seams(img, walls):
+    """Share of a shot that is a seam on a plain wall: a long straight step in its brightness (where one
+    photo gives way to the next, or a surface's edge where there is none in the room). A spot's pool of light
+    is soft and curved, and does not count."""
+    if walls.sum() < 4000:
+        return 0.0
+    L = lab(img)[..., 0]
+    g = cv2.GaussianBlur(L, (0, 0), 1.2)
+    mag = np.hypot(cv2.Sobel(g, cv2.CV_32F, 1, 0, ksize=3), cv2.Sobel(g, cv2.CV_32F, 0, 1, ksize=3))
+    step = ((mag > 6) & inner(walls, 3)).astype(np.uint8) * 255
+    H = img.shape[0]
+    lines = cv2.HoughLinesP(step, 1, np.pi / 180, threshold=int(H * 0.12), minLineLength=int(H * 0.18), maxLineGap=4)
+    if lines is None:
+        return 0.0
+    m = np.zeros(step.shape, np.uint8)
+    for x0, y0, x1, y1 in lines.reshape(-1, 4):
+        cv2.line(m, (int(x0), int(y0)), (int(x1), int(y1)), 255, 3)
+    return float((m > 0).sum() / m.size)
+
+
 def floor_tile(spec):
     """The floor's texture tile must be grain, not streaks (it repeats across the whole floor)."""
     f = next((x for x in spec['surfaces'] if x['kind'] == 'floor'), None)
@@ -273,7 +337,8 @@ def inspect(slug, keep=None, log=print):
     t0 = time.time()
     tmp = Path(keep or tempfile.mkdtemp(prefix=f'inspect-{slug}-'))
     log(f'{slug}: inspecting in the viewer...')
-    data = render(slug, tmp)
+    # (INSPECT_REUSE=1 with --keep: look again at shots already taken, for tuning the checks)
+    data = json.load(open(tmp / 'shots.json')) if os.environ.get('INSPECT_REUSE') and (tmp / 'shots.json').exists() else render(slug, tmp)
     shots = data['shots']
     res = []          # (rule, ok, why)
     errs = [e for e in data['errors'] if 'favicon' not in e]
@@ -281,7 +346,7 @@ def inspect(slug, keep=None, log=print):
     for rule, ok, why in geometry(spec):
         res.append((rule, ok, why))
 
-    holes, ghosts, blotches, smears = {}, {}, {}, {}
+    holes, ghosts, blotches, smears, seam = {}, {}, {}, {}, {}
     work_scores = {}
     # the walls' own colour (gallery walls are white or one colour): measured on all walk shots
     imgs = {}
@@ -307,6 +372,7 @@ def inspect(slug, keep=None, log=print):
         if s['kind'] in ('walk', 'view', 'oblique'):
             ghosts[s['name']], blotches[s['name']] = wall_trouble(img, walls, wall_c)
             smears[s['name']] = smear(img, walls, lbl)
+            seam[s['name']] = seams(img, walls)
         if s['kind'] in ('work', 'near') and s.get('corners'):
             # the viewer orders works along the room: find this one in the space by its image
             img_path = data['info']['pieces'][s['work']]['image']
@@ -338,12 +404,25 @@ def inspect(slug, keep=None, log=print):
     k, v = worst(smears)
     res.append(('smear', v <= RULES['smear'], 'אין מריחות בקירות' if v <= RULES['smear'] else f'מריחה בקיר ({k})'))
 
+    k, v = worst(seam)
+    res.append(('seams', v <= RULES['seams'], 'אין תפרים על הקירות (מעבר חד בין צילום לצילום)' if v <= RULES['seams'] else f'תפר על קיר ({k})'))
+    matches = {}
+    for p in data.get('photos', []):
+        m = photo_match(tmp, p['name'], p['photo'])
+        if m:
+            matches[p['name']] = m
+    if matches:
+        k = min(matches, key=lambda x: matches[x][0]); v = matches[k][0]
+        mean = float(np.mean([m[0] for m in matches.values()]))
+        ok = mean >= RULES['photo_match'] and v >= RULES['photo_match_one']
+        res.append(('photo_match', ok, f'צורת החדר תואמת לצילומים (כל צילום נבדק מול האחרים: {mean:.2f})' if ok else f'צורת החדר לא תואמת לצילומים ({mean:.2f}; הכי פחות: {k}, {v:.2f})'))
+        log('    photos left out (edges agree, share checked): ' + ', '.join(f'{n} {a:.2f}/{c:.2f}' for n, (a, c) in matches.items()))
     ft = floor_tile(spec)
     res.append(('floor', ft <= RULES['floor_bands'], 'מרקם הרצפה אחיד, בלי פסים' if ft <= RULES['floor_bands'] else 'פסים במרקם הרצפה'))
     passed = all(ok for _, ok, _ in res)
     log('    work (whole, sharp, colour drift): ' + ', '.join(f"{t} {d['work'][0]:.2f}/{d['work'][1]:.2f}/{d['work'][2]:.1f}" for t, d in work_scores.items() if 'work' in d))
     log('    up close: ' + ', '.join(f"{t} {d['near'][1]:.2f}" for t, d in work_scores.items() if 'near' in d))
-    log(f'    worst: holes {worst(holes)}, ghost {worst(ghosts)}, blotch {worst(blotches)}, smear {worst(smears)}')
+    log(f'    worst: holes {worst(holes)}, ghost {worst(ghosts)}, blotch {worst(blotches)}, smear {worst(smears)}, seams {worst(seam)}')
     for rule, ok, why in res:
         log(f"    {'✓' if ok else '✗'} {rule}: {why}")
     spec['inspection'] = [{'rule': r, 'passed': bool(ok), 'why': why} for r, ok, why in res]
@@ -376,7 +455,7 @@ def sheet(tmp, shots, dest, w=150):
 NAMES_HE = {'opens': 'נפתח בלי שגיאות', 'on_wall': 'עבודות על הקיר', 'in_room': 'עבודות בתוך החדר', 'no_overlap': 'בלי חפיפות',
             'holes': 'בלי חורים', 'work_whole': 'עבודות שלמות', 'work_sharp': 'עבודות חדות', 'work_near': 'חדות מקרוב',
             'work_colour': 'צבעים נכונים', 'ghost': 'קירות נקיים', 'blotch': 'בלי כתמים', 'smear': 'בלי מריחות',
-            'floor': 'רצפה בלי פסים'}
+            'floor': 'רצפה בלי פסים', 'seams': 'בלי תפרים', 'photo_match': 'צורת החדר מול הצילומים'}
 
 
 def report(slug, res, n, secs):

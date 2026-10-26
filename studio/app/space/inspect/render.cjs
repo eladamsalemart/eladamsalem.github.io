@@ -4,6 +4,7 @@
 // as seen, and with every surface in a flat colour that says what it is (so the analysis can tell walls,
 // floor and works apart), and once more with every surface shaded by its height (to tell a skirting board
 // or a ceiling's edge, which are meant to be there, from a blotch or a streak).
+// Last, the room seen from each photo's own camera with that photo left out (see space.js, ibrLeaveOut).
 // Writes PNGs and shots.json (with page errors) into the output folder.
 //   node render.cjs <app url> <slug> <outdir>
 const { chromium } = require('playwright');
@@ -72,6 +73,24 @@ const fs = require('fs'), path = require('path');
       if (!ids) s.corners = r.corners;
     }
   }
-  fs.writeFileSync(path.join(out, 'shots.json'), JSON.stringify({ info, shots, errors }, null, 1));
+  // the room against each photo, that photo left out: from its own camera, at its own shape, the other
+  // photos alone (and, as white, where they saw), and what each pixel is
+  const photos = [];
+  const withLens = info.views.filter(v => v.project);
+  if (withLens.length > 1) {
+    const a = withLens[0].aspect || 1.5;
+    await page.setViewportSize({ width: 900, height: Math.round(900 / a) });
+    await page.addStyleTag({ content: '.sv{max-width:none !important;width:100vw !important;height:100vh !important;left:0 !important;right:0 !important;margin:0 !important;inset:0 !important;transform:none !important}' });
+    await page.evaluate(() => window.dispatchEvent(new Event('resize'))); await page.waitForTimeout(800);
+    for (const [i, v] of withLens.entries()) {
+      const one = async (ids, leave) => (await page.evaluate(([v, ids, leave]) => window.__spaceView.inspect.shot(v.pos, v.look, v.fov, v.up, ids, v.project, leave), [v, ids, leave])).png;
+      const save = (tag, png) => fs.writeFileSync(path.join(out, `photo-${i}${tag}.png`), Buffer.from(png.split(',')[1], 'base64'));
+      save('', await one(false, { photo: v.photo }));
+      save('.cover', await one(false, { photo: v.photo, cover: true }));
+      save('.ids', await one(true, null));
+      photos.push({ name: `photo-${i}`, photo: v.photo });
+    }
+  }
+  fs.writeFileSync(path.join(out, 'shots.json'), JSON.stringify({ info, shots, photos, errors }, null, 1));
   await browser.close();
 })().catch(e => { console.error(e); process.exit(1); });

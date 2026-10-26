@@ -137,6 +137,8 @@ def bake(s, images, cams, masks, gains, sharp=3.0):
         cols.append(col); ws.append(q)
         steep = np.maximum(steep, np.where(q > 0, facing, 0))
     out = acc / np.maximum(wsum, 1e-12)[..., None]
+    if len(cols) > 1:
+        out = multiband(cols, ws, out, wsum > 0)
     dis = np.zeros((s.H, s.W)); wn = np.zeros((s.H, s.W))
     for col, q in zip(cols, ws):
         qn = (q > 0).astype(float)
@@ -145,6 +147,42 @@ def bake(s, images, cams, masks, gains, sharp=3.0):
     # seen only at a grazing angle is not really seen: the photo's pixels smear along the surface there
     cover = ((wsum > 0) & (steep >= GRAZING)).astype(np.float32)
     return np.clip(out, 0, 255).astype(np.uint8), cover, dis, wn
+
+
+def multiband(cols, ws, base, seen, levels=7):
+    """The photos blended band by band (Burt and Adelson): fine detail from the photo that sees each spot
+    best, changing over a few pixels, and the broad light from all of them, changing over metres. One photo
+    a little brighter than the next (its exposure, the angle it saw the wall at) then leaves no edge where it
+    ends: its brightness fades into the others' over a wide band instead."""
+    H, W = base.shape[:2]
+    levels = int(min(levels, np.log2(max(2, min(H, W))) - 2))
+    if levels < 2:
+        return base
+    wsum = np.maximum(np.sum(ws, axis=0), 1e-12)
+
+    def gauss(img):
+        pyr = [img]
+        for _ in range(levels):
+            pyr.append(cv2.pyrDown(pyr[-1]))
+        return pyr
+
+    def lap(img):
+        g = gauss(img)
+        return [g[i] - cv2.pyrUp(g[i + 1], dstsize=(g[i].shape[1], g[i].shape[0])) for i in range(levels)] + [g[-1]]
+    acc = None; norm = None
+    for col, q in zip(cols, ws):
+        c = np.where((q > 0)[..., None], col, base).astype(np.float32)   # outside its view: the plain blend
+        gw = gauss((q / wsum).astype(np.float32))
+        lc = lap(c)
+        if acc is None:
+            acc = [l * w[..., None] for l, w in zip(lc, gw)]; norm = [w.copy() for w in gw]
+        else:
+            for i in range(levels + 1):
+                acc[i] += lc[i] * gw[i][..., None]; norm[i] += gw[i]
+    out = acc[-1] / np.maximum(norm[-1], 1e-6)[..., None]
+    for i in range(levels - 1, -1, -1):
+        out = cv2.pyrUp(out, dstsize=(acc[i].shape[1], acc[i].shape[0])) + acc[i] / np.maximum(norm[i], 1e-6)[..., None]
+    return np.where(seen[..., None], out, base)
 
 
 def _near_mask_only(img, cam, X, mask):

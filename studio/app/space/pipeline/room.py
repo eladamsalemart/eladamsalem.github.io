@@ -230,6 +230,78 @@ def ceiling_from_edges(cams, images, masks, works, sizes, fy, log=print):
     return float(hs[i] - fy)
 
 
+def line_strength(cams, images, grads, masks, P):
+    """How clearly the photos show an edge along the 3D line through points P (n,3): the median, over the
+    photos that see it, of the gradient across the line (None if fewer than two photos see it)."""
+    sc = []
+    for p, cam in cams.items():
+        uv, z = project(cam, P); H, W = images[p].shape[:2]
+        ok = (z > 0.3) & (uv[:, 0] > 2) & (uv[:, 1] > 2) & (uv[:, 0] < W - 3) & (uv[:, 1] < H - 3)
+        q = uv[ok]
+        if len(q) < 40:
+            continue
+        if masks is not None:
+            q = q[masks[p][q[:, 1].astype(int), q[:, 0].astype(int)] == 0]
+            if len(q) < 40:
+                continue
+        d = np.gradient(q, axis=0); d /= np.linalg.norm(d, axis=1, keepdims=True) + 1e-9
+        gx = cv2.remap(grads[p][0], q[:, :1].astype(np.float32), q[:, 1:].astype(np.float32), cv2.INTER_LINEAR)[:, 0]
+        gy = cv2.remap(grads[p][1], q[:, :1].astype(np.float32), q[:, 1:].astype(np.float32), cv2.INTER_LINEAR)[:, 0]
+        sc.append(np.median(np.abs(-gx * d[:, 1] + gy * d[:, 0])))
+    return float(np.median(sc)) if len(sc) >= 2 else None
+
+
+def ceiling_profile(cams, images, masks, box, fy, flat, log=print):
+    """The ceiling's shape across the room, when it isn't flat: a flat middle (often a lowered panel carrying
+    the light tracks) with sloping sides that rise to where the long walls end, higher up.
+
+    flat: the height (above the floor) of the lowest strong level edge, where a flat ceiling would be. The
+    long walls' own top is the strongest level edge along each of them, searched above it. If the walls do
+    rise clearly higher, the flat middle's two sides are the strongest lines running the room's length at
+    that height. Returns (points [(offset across the room, height), ...] from one long wall to the other, the
+    axis across the room (0 = x, 2 = z)), or None for a flat ceiling."""
+    x0, x1, z0, z1 = box[(0, 1)], box[(0, -1)], box[(2, 1)], box[(2, -1)]
+    along, across = (0, 2) if x1 - x0 >= z1 - z0 else (2, 0)
+    lo_a, hi_a = (x0, x1) if along == 0 else (z0, z1)
+    lo_c, hi_c = (z0, z1) if across == 2 else (x0, x1)
+    grads = {}
+    for p in cams:
+        g = cv2.GaussianBlur(cv2.cvtColor(images[p], cv2.COLOR_BGR2GRAY).astype(np.float32), (0, 0), 1.5)
+        grads[p] = (cv2.Sobel(g, cv2.CV_32F, 1, 0, ksize=3), cv2.Sobel(g, cv2.CV_32F, 0, 1, ksize=3))
+    ts = np.linspace(lo_a + 0.6, hi_a - 0.6, 240)
+
+    def line(c, h):
+        P = np.zeros((len(ts), 3)); P[:, along] = ts; P[:, across] = c; P[:, 1] = fy + h
+        return line_strength(cams, images, grads, masks, P)
+    tops = []
+    for c in (lo_c, hi_c):
+        hs = np.arange(flat + 0.2, flat + 1.6, 0.02)
+        s = np.array([line(c, h) or 0.0 for h in hs])
+        s = np.convolve(s, np.ones(3) / 3, mode='same')
+        if not s.any():
+            return None
+        tops.append((float(hs[int(np.argmax(s))]), float(s.max()), float(np.median(s))))
+    if any(sc < 1.8 * med for _, sc, med in tops):
+        return None                                                  # no clear wall top above the flat height
+    cs = np.arange(lo_c + 0.25, hi_c - 0.25, 0.05)
+    s = np.array([line(c, flat) or 0.0 for c in cs])
+    if not s.any():
+        return None
+    med = np.median(s[s > 0])
+    # the flat middle's two sides: the two strongest lines along the room at that height, well clear of the rest
+    pk = [i for i in range(1, len(s) - 1) if s[i] >= s[i - 1] and s[i] >= s[i + 1] and s[i] > 2.5 * med]
+    pk = sorted(pk, key=lambda i: -s[i])[:2]
+    if len(pk) < 2:
+        return None
+    a, b = cs[min(pk)], cs[max(pk)]
+    if b - a < 0.5 or a - lo_c < 0.3 or hi_c - b < 0.3:
+        return None
+    pts = [(lo_c, tops[0][0]), (float(a), flat), (float(b), flat), (hi_c, tops[1][0])]
+    log(f"  ceiling: a flat middle at {flat:.2f} m from {a - lo_c:.2f} to {b - lo_c:.2f} m across the room, "
+        f"rising to the walls at {tops[0][0]:.2f} and {tops[1][0]:.2f} m")
+    return pts, across
+
+
 CANVAS = 0.035            # a canvas stands this far off its wall
 
 
@@ -486,7 +558,7 @@ def opening_shape(L, wall_L, a, b, height, texel, top_height):
             px = np.linspace(a + 2, b - 2, 200)
         ix = np.clip(px.astype(int), 0, L.shape[1] - 1); iy = np.clip(py.astype(int), 0, H - 1)
         return float(np.mean([mag[max(0, j - 2):j + 3, i].max() for i, j in zip(ix, iy)]))
-    rises = [0.0] + list(np.linspace(0.3, min(hw, height - 1.0), 16))
+    rises = [0.0, 0.1, 0.2] + list(np.linspace(0.3, min(hw, height - 1.0), 16))      # (a shallow, segmental arch too)
     scores = [along(r) for r in rises]
     # an opening's outline is sharp; plain wall's texture is not (the wall beside it, at the works' height)
     band = mag[int((top_height - 2.0) / texel):int((top_height - 0.3) / texel)]

@@ -72,6 +72,30 @@ def wall_surfaces(box, height, fy=0.0, texel=bake.TEXEL):
 REVEAL = 0.35          # depth of an opening (the wall's thickness) when the photos can't tell
 
 
+def ceiling_surfaces(box, fy, height, profile=None, texel=0.02):
+    """The ceiling: one flat plane at height, or, for a ceiling shaped across the room (profile: points
+    (offset across, height) from wall to wall, and that axis), one strip per stretch of it, the room's length."""
+    x0, x1, z0, z1 = box[(0, 1)], box[(0, -1)], box[(2, 1)], box[(2, -1)]
+    if not profile:
+        return [bake.Surface('ceiling', [x0, fy + height, z1], [1, 0, 0], [0, 0, -1], x1 - x0, z1 - z0, [0, -1, 0], texel=texel)]
+    pts, across = profile
+    along = 2 if across == 0 else 0
+    lo, hi = (x0, x1) if along == 0 else (z0, z1)
+    mid = np.array([(x0 + x1) / 2, fy + height / 2, (z0 + z1) / 2])
+    out = []
+    for k in range(len(pts) - 1):
+        (ca, ha), (cb, hb) = pts[k], pts[k + 1]
+        u = np.zeros(3); u[along] = 1.0
+        a = np.zeros(3); a[along] = lo; a[across] = ca; a[1] = fy + ha
+        b = a.copy(); b[across] = cb; b[1] = fy + hb
+        v = a - b; length = float(np.linalg.norm(v)); v /= length
+        n = np.cross(v, u)
+        if n @ (mid - (a + b) / 2) < 0:
+            n = -n
+        out.append(bake.Surface('ceiling' if not out else f'ceiling-{k}', b, u, v, hi - lo, length, n, texel=texel))
+    return out
+
+
 def reveal_surfaces(wall, o, ceiling, name):
     """The two sides and the top of an opening cut in a wall, as surfaces facing into the opening."""
     top = wall.o + wall.v * (ceiling - o['height'])              # the wall at the opening's top height, u = 0
@@ -159,6 +183,37 @@ def floor_detail(images, cams, masks, gains, fy, size=1.0, mpp=0.003):
     return np.clip(mean + (t - mean) * gain, 0, 255).astype(np.uint8)
 
 
+def square_to_walls(cams, works, sizes, log=print):
+    """Turn the room (about the vertical) so its walls run exactly along the axes. The works hung on one
+    wall line up along it: over a long wall, a slope of even half a degree in that line puts the room's far
+    end 10 cm off, enough for the photos to land on the wall beside where they belong."""
+    slopes = []
+    for wl in room.wall_candidates(works, sizes):
+        ts = wl['works']
+        if len(ts) < 2:
+            continue
+        along = 2 - wl['axis']
+        a = np.array([works[t]['c'][along] for t in ts]); o = np.array([works[t]['c'][wl['axis']] for t in ts])
+        if a.max() - a.min() < 2.0:
+            continue
+        k = np.polyfit(a, o, 1)[0]
+        # a wall along x (axis 2): z = k x, turning by +atan(k) about y; along z (axis 0): x = k z, by -atan(k)
+        slopes.append((np.arctan(k) * (1 if wl['axis'] == 2 else -1), a.max() - a.min()))
+    if not slopes:
+        return 0.0
+    th = float(np.average([s for s, _ in slopes], weights=[w for _, w in slopes]))
+    if abs(np.degrees(th)) < 0.1 or abs(np.degrees(th)) > 5:
+        return 0.0
+    c, s_ = np.cos(th), np.sin(th)
+    Ry = np.array([[c, 0, s_], [0, 1, 0], [-s_, 0, c]])           # turns the line z = tan(th) x onto z = const
+    for cam in cams.values():
+        cam['R'] = cam['R'] @ Ry.T                                # (t stays: the camera turns with the room)
+    for w in works.values():
+        w['c'] = Ry @ w['c']; w['R'] = Ry @ w['R']
+    log(f"  room squared to its walls: turned {np.degrees(th):.2f} degrees")
+    return th
+
+
 def look_of(cam, fy):
     c = room.centre(cam); fwd = cam['R'].T @ np.array([0, 0, 1.0]); up = -(cam['R'].T @ np.array([0, 1.0, 0]))
     h, w = cam['shape']
@@ -184,6 +239,7 @@ def build(slug, log=print):
         log('  no work was found in the photos: no space'); return None
     g = groups[0]
     cams, works = g['cams'], g['works']
+    square_to_walls(cams, works, sizes, log)
     images = {p: load_image(p, 2000) for p in cams}
     matched = {p: [t for t in hits if t != '_shape'] for p, hits in found.items()}
     # a few cm round each work: a canvas's edge and side must never stay on the wall beside it
@@ -219,7 +275,13 @@ def build(slug, log=print):
     for k, v in overrides.get('walls', {}).items():               # e.g. {"x1": 6.1}
         kk = {'x0': (0, 1), 'x1': (0, -1), 'z0': (2, 1), 'z1': (2, -1)}[k]; box[kk] = v; box_how[kk] = 'ממדידה ידנית'
     x0, x1, z0, z1 = box[(0, 1)], box[(0, -1)], box[(2, 1)], box[(2, -1)]
-    log(f"  room {x1 - x0:.2f} x {z1 - z0:.2f} m, ceiling {ceiling:.2f} m")
+    # a ceiling that isn't flat (a lowered middle, sloping up to the walls): the walls rise to their own top,
+    # and the ceiling follows its shape across the room
+    profile_c = None if overrides.get('height') else room.ceiling_profile(cams, images, masks, box, fy, ceiling, log)
+    if profile_c:
+        ceiling = max(h for _, h in profile_c[0])
+        ceiling_how = 'נמדדה: אמצע שטוח (הקווים שלאורך החדר) ושיפועים עד ראש הקירות'
+    log(f"  room {x1 - x0:.2f} x {z1 - z0:.2f} m, walls {ceiling:.2f} m high")
 
     d = OUT / slug
     rel = f'data/spaces/{slug}'
@@ -306,11 +368,18 @@ def build(slug, log=print):
     surfaces.append(surface_json(floor_s, fy, f'{rel}/floor-detail.jpg' if tile is not None else None, 'floor', fseen, []))
     surfaces[-1].update({'light': f'{rel}/floor-light.jpg' if flight is not None else None, 'lightScale': 4,
                          'tile': 1.0, 'color': [int(v) for v in (fmean[::-1] if fmean is not None else (140, 120, 100))]})
-    ceil_s = bake.Surface('ceiling', [x0, fy + ceiling, z1], [1, 0, 0], [0, 0, -1], x1 - x0, z1 - z0, [0, -1, 0], texel=0.02)
-    ccol, ccov, _, _ = bake.bake(ceil_s, images, cams, masks, gains)
-    ccol = bake.fill_holes(ccol, ccov)
-    write_jpg(d / 'ceiling.jpg', ccol)
-    surfaces.append(surface_json(ceil_s, fy, f'{rel}/ceiling.jpg', 'ceiling', ccov, []))
+    for k, ceil_s in enumerate(ceiling_surfaces(box, fy, ceiling, profile_c)):
+        ccol, ccov, _, _ = bake.bake(ceil_s, images, cams, masks, gains)
+        ccol = bake.fill_holes(ccol, ccov)
+        if (ccov > 0.5).any() and (ccov <= 0.5).any():
+            # well away from what the photos saw, the ceiling's own plain colour (not the edge of a fitting,
+            # carried on across the gap)
+            far = cv2.distanceTransform((ccov <= 0.5).astype(np.uint8), cv2.DIST_L2, 5) * ceil_s.texel
+            k = np.clip((far - 0.1) / 0.3, 0, 1)[..., None]
+            plain = np.median(ccol[ccov > 0.5], axis=0)
+            ccol = (ccol * (1 - k) + plain * k).astype(np.uint8)
+        write_jpg(d / f'{ceil_s.name}.jpg', ccol)
+        surfaces.append(surface_json(ceil_s, fy, f'{rel}/{ceil_s.name}.jpg', 'ceiling', ccov, []))
     if tile is not None:
         write_jpg(d / 'floor-detail.jpg', tile, 90)
     # beyond an opening: the same plaster, from floor to ceiling, for the room the opening leads into
@@ -361,6 +430,8 @@ def build(slug, log=print):
             # stored linear (the viewer multiplies light in linear space), 1.0 = the reference image's own brightness
             cv2.imwrite(str(d / 'light' / f'{slugify(t)}.png'), np.clip((light ** 2.2) / 5 * 255, 0, 255).astype(np.uint8))
         R = wk['R']
+        depth = float(overrides.get('depths', {}).get(t, overrides.get('canvas_depth', 0.035)))
+        sides = work_sides(wk, (sw * sc[0], sh * sc[1]), depth, images, cams, gains)
         # a light version to open the room with (the viewer swaps in the full image as a visitor nears it)
         src = cv2.imread(str(resolve(info['image'])), cv2.IMREAD_UNCHANGED)
         small = None
@@ -374,7 +445,7 @@ def build(slug, log=print):
                           'measured': [round(sw * sc[0] * 100, 1), round(sh * sc[1] * 100, 1)],
                           'centre': [round(float(v), 4) for v in wk['c'] - [0, fy, 0]],
                           'axes': [[round(float(v), 5) for v in R[:, k]] for k in range(3)],
-                          'depth': float(overrides.get('depths', {}).get(t, overrides.get('canvas_depth', 0.035))), 'light': lp, 'lightScale': 5,
+                          'depth': depth, 'light': lp, 'lightScale': 5, **({'sides': sides} if sides else {}),
                           **({'core': info['cutout']['core']} if info.get('cutout') else {}),
                           **({'imageFull': info['full']} if info.get('full') else {})})
     n_photos = sum(p.startswith('/') for p in cams)     # the show's own photos; the rest are a video's frames
@@ -383,6 +454,20 @@ def build(slug, log=print):
         if n_photos and not p.startswith('/'):          # the photos are the places to stand, when there are any
             continue
         v = look_of(cam, fy); v['photo'] = p
+        # the photo itself, for the viewer to show the room as the photo does from wherever it was taken (and,
+        # blended with its neighbours, from between): its exact lens (focal length and centre, as fractions of
+        # the frame) and the gain that matches its exposure to the others'
+        h, w = cam['shape']; pp = cam.get('pp', (0, 0))
+        (d / 'photos').mkdir(parents=True, exist_ok=True)
+        k = len(views)
+        write_jpg(d / 'photos' / f'{k}.jpg', images[p], 90)
+        # where the photo shows a work (its face and its sides): those pixels belong to the work, never to the
+        # wall behind it, however a few millimetres of error fall
+        cv2.imwrite(str(d / 'photos' / f'{k}-works.png'), works_in_photo(cam, works, sizes, found.get(p, {})))
+        v['project'] = {'image': f'{rel}/photos/{k}.jpg', 'works': f'{rel}/photos/{k}-works.png', 'f': round(float(cam['f'] / h), 5),
+                        'centre': [round(float(0.5 + pp[0] / w), 5), round(float(0.5 + pp[1] / h), 5)],
+                        'gain': [round(float(x), 4) for x in gains[p][::-1]], 'eye': [round(float(x), 4) for x in room.centre(cam) - [0, fy, 0]],
+                        'axes': [[round(float(x), 6) for x in row] for row in cam['R']]}     # the photo's right, down, forward
         v['pos'][0] = float(np.clip(v['pos'][0], x0 + 0.08, x1 - 0.08)); v['pos'][2] = float(np.clip(v['pos'][2], z0 + 0.08, z1 - 0.08))
         views.append(v)
     spec = {
@@ -408,6 +493,73 @@ def build(slug, log=print):
     write_report(slug, ex, found, groups, g, sizes, works, spec, box_how, floor_how, ceiling_how, fconf, time.time() - t0, checks)
     log(f"  done in {time.time() - t0:.0f} s")
     return spec
+
+
+def work_sides(wk, size, depth, images, cams, gains):
+    """The colour of a canvas's four sides (its edge, round the stretcher), as the photos show them: raw
+    linen, primed white, or the painting carried round. Each side from the photo that sees it most squarely,
+    if any sees it well enough (its depth at least a few pixels wide); sRGB, or None for a side none saw."""
+    w, h = size
+    X, Y, Z = wk['R'][:, 0], wk['R'][:, 1], wk['R'][:, 2]
+    out = {}
+    for name, n, along, half, alen in (('right', X, Y, w / 2, h), ('left', -X, Y, w / 2, h), ('top', Y, X, h / 2, w), ('bottom', -Y, X, h / 2, w)):
+        # points across the side's middle: along its length (10..90 %) and its depth (30..70 %, clear of both edges)
+        a, d = np.meshgrid(np.linspace(-0.4, 0.4, 24) * alen, -np.linspace(0.3, 0.7, 5) * depth)
+        P = wk['c'] + n * half + a.reshape(-1, 1) * along + d.reshape(-1, 1) * Z
+        best = None
+        for p, cam in cams.items():
+            mid = wk['c'] + n * half - Z * depth / 2
+            v = room.centre(cam) - mid; dist = np.linalg.norm(v); cosn = v @ n / dist
+            if cosn < 0.2:
+                continue
+            uv, z = room.project(cam, P)
+            H, W = images[p].shape[:2]
+            if (z < 0.3).any() or (uv < 2).any() or (uv[:, 0] > W - 3).any() or (uv[:, 1] > H - 3).any():
+                continue
+            front, back = room.project(cam, np.array([mid + Z * depth / 2, mid - Z * depth / 2]))[0]
+            if np.linalg.norm(front - back) < 5:                          # the side only a sliver in this photo
+                continue
+            px = images[p][uv[:, 1].astype(int), uv[:, 0].astype(int)].astype(np.float64) * gains[p]
+            # the painting's own edge, just inside it, in the same photo: a side that looks just like it is
+            # most likely the front, a centimetre off (or the painting carried round, which the viewer does
+            # anyway); that photo then says nothing sure about the side
+            F = wk['c'] + n * half * 0.985 + a[0].reshape(-1, 1) * along
+            fu, fz = room.project(cam, F)
+            fpx = images[p][np.clip(fu[:, 1].astype(int), 0, H - 1), np.clip(fu[:, 0].astype(int), 0, W - 1)].astype(np.float64) * gains[p]
+            lab = lambda c: cv2.cvtColor(np.clip(c, 0, 255).astype(np.uint8).reshape(1, 1, 3), cv2.COLOR_BGR2LAB).astype(float).ravel()
+            side_c, face_c = np.median(px, axis=0), np.median(fpx, axis=0)
+            if np.linalg.norm(lab(side_c) - lab(face_c)) < 18:
+                continue
+            if best is None or cosn > best[0]:
+                best = (cosn, side_c)
+        if best is not None:
+            out[name] = [int(np.clip(v, 0, 255)) for v in best[1][::-1]]
+    return out
+
+
+def works_in_photo(cam, works, sizes, hits, scale=0.5):
+    """A mask (at half the photo's size) of where the photo shows each work: its face as the photo itself
+    shows it (the matched outline), and its whole body as placed in the room (face and sides), a little larger.
+    A work the photo should show but wasn't recognised in is masked by its placement alone, more widely."""
+    h, w = cam['shape']
+    m = np.zeros((int(h * scale), int(w * scale)), np.uint8)
+    for t, wk in works.items():
+        sw, sh = sizes[t]
+        sc = wk.get('scale', np.ones(2))
+        if t in hits and 'quad' in hits[t]:
+            q = hits[t]['quad'].astype(np.float64)
+            ctr = q.mean(0); q = ctr + (q - ctr) * 1.015                  # the outline, 1.5 % larger
+            cv2.fillConvexPoly(m, (q * scale).astype(np.int32), 255)
+        g = 0.02 if t in hits else 0.06
+        if wk['R'][:, 2] @ (room.centre(cam) - wk['c']) <= 0.02:
+            continue
+        hw, hh = sw * sc[0] / 2 + g, sh * sc[1] / 2 + g
+        X = np.array([[x, y, z] for z in (g * 0.5, -(room.DEPTH + 0.01)) for x in (-hw, hw) for y in (-hh, hh)])
+        uv, z = room.project(cam, (wk['R'] @ X.T).T + wk['c'])
+        if (z > 0.3).all():
+            hull = cv2.convexHull((np.clip(uv, -4 * w, 5 * w) * scale).astype(np.float32)).astype(np.int32)
+            cv2.fillConvexPoly(m, hull, 255)
+    return cv2.dilate(m, np.ones((3, 3), np.uint8))
 
 
 def works_on(s, works, sizes, fy, ceiling, margin=0.02):
