@@ -81,6 +81,8 @@ function buildModel(d) {
 // --- helpers ---------------------------------------------------------------
 let M;
 const src = p => M.media[p] || p;
+// the logo (Soft Round): a tile with an open, arched doorway, and the name
+const LOGO = '<svg class="mark" viewBox="0 0 132 132" aria-hidden="true"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg><span>Open Studio</span>';
 // with a small version, the browser takes it wherever the image shows small, and the full one where it fills
 // the screen (sizes: how wide it shows; most images here are covers and rows, a third of the screen or less)
 const im = (p, alt, attrs = '', sizes = '33vw') => {
@@ -103,7 +105,7 @@ const person = a => `<a class="person" href="#/artist/${a.slug}">${im(a.portrait
 function home() {
   const live = M.exhibitions[0];
   return `<div class="wrap gut">
-    <div class="home-h"><h1>Open Studio</h1><span class="tag">Prototype</span></div>
+    <div class="home-h"><h1 class="brand-h">${LOGO}</h1><span class="tag">No. 01 · Prototype</span></div>
     ${live ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
       <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"', '100vw')}
         <div class="ov"><div class="k">${esc(live.artist.name)}</div><h2>${esc(live.title)}</h2><div class="m">${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
@@ -315,7 +317,7 @@ function render() {
   for (const [re, view, t] of routes) { const m = hash.match(re); if (m) { html = view(m); tab = t || null; break; } }
   const top = tab === 'home' || tab === 'search' || hash === '#/places';
   document.querySelector('.bar').hidden = top;
-  if (!top) document.querySelector('.bar .wrap').innerHTML = `<button type="button" class="back" id="backBtn" style="border:0;background:none;cursor:pointer;padding:0"><span aria-hidden="true">←</span> Back</button><a class="brand" href="#/">Open Studio</a>`;
+  if (!top) document.querySelector('.bar .wrap').innerHTML = `<button type="button" class="back" id="backBtn" style="border:0;background:none;cursor:pointer;padding:0"><span aria-hidden="true">←</span> Back</button><a class="brand" href="#/" aria-label="Open Studio, home">${LOGO}</a>`;
   const tabs = document.querySelector('.tabs');
   tabs.hidden = false; document.body.classList.add('has-tabs');
   tabs.querySelectorAll('a').forEach(a => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
@@ -386,7 +388,15 @@ loadData().then(d => { M = buildModel(d); render(); window.addEventListener('has
   .catch(() => { app.innerHTML = `<div class="wrap gut loading"><p>The content couldn't be loaded. Refresh to try again.</p></div>`; });
 
 // Installed on a phone (Add to Home Screen) the app works offline and picks up every update on the next open
-if ('serviceWorker' in navigator && !window.STUDIO_DATA && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && !window.STUDIO_DATA && location.protocol === 'https:') {
+  // a new version: look for it whenever the app comes back to the front (an installed app on a phone is
+  // resumed, not reloaded), and once it has taken over, show it
+  const had = !!navigator.serviceWorker.controller; let reloaded = false;
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (had && !reloaded) { reloaded = true; location.reload(); } });
+}
 
 // On a phone, offer to put the app on the home screen: Android installs on a tap; iPhone needs Share → Add to Home Screen
 (function offerInstall() {

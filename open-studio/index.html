@@ -13,25 +13,26 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Open Studio">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#F3F2EE" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#121314" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#EFE9DD" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171613" media="(prefers-color-scheme: dark)">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <style>
 /* Layout: one artist's home, read top to bottom like a gallery wall. Phone-first: on larger screens the app keeps a phone-width column (iPad and desktop layouts come later) */
+/* Studio Paper: raw, editorial. Paper and ink, a catalogue's ruled lines, a typewriter's labels, one deep green */
 :root{
-  --wall:#F3F2EE; --paper:#FBFBF9; --ink:#141516; --muted:#676B6F; --line:#E0DFDA; --card:#ECEBE6; --dot:#D0261D;
-  --stage:#E9E8E3; --shade:rgba(10,10,11,.72);
-  --serif:"Instrument Serif","Times New Roman",serif;
-  --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
+  --wall:#EFE9DD; --paper:#F6F1E7; --ink:#1B1A17; --muted:#5E594F; --line:#CFC7B6; --rule:#1B1A17; --card:#E6DFD0; --dot:#2F6B4F;
+  --stage:#E8E1D3; --shade:rgba(20,18,14,.72);
+  --serif:"Fraunces","Times New Roman",serif;
+  --sans:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --wall:#121314; --paper:#1A1B1D; --ink:#ECECE8; --muted:#9A9DA1; --line:#2C2E31; --card:#202124; --dot:#FF4A3D; --stage:#1C1D1F; color-scheme:dark}}
-:root[data-theme="dark"]{--wall:#121314; --paper:#1A1B1D; --ink:#ECECE8; --muted:#9A9DA1; --line:#2C2E31; --card:#202124; --dot:#FF4A3D; --stage:#1C1D1F; color-scheme:dark}
+  --wall:#171613; --paper:#1F1D19; --ink:#EFE9DD; --muted:#A49D8F; --line:#3A362E; --rule:#EFE9DD; --card:#26231E; --dot:#6FB08F; --stage:#1D1B17; color-scheme:dark}}
+:root[data-theme="dark"]{--wall:#171613; --paper:#1F1D19; --ink:#EFE9DD; --muted:#A49D8F; --line:#3A362E; --rule:#EFE9DD; --card:#26231E; --dot:#6FB08F; --stage:#1D1B17; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
@@ -332,13 +333,33 @@ body.has-tabs main{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 .zoom .x{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));background:#FBFBF9;color:#141516;border:0;border-radius:99px;min-width:44px;min-height:44px;font-size:20px;cursor:pointer}
 .loading{min-height:60vh;display:grid;place-items:center;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* --- Studio Paper layer: square corners, ruled sections, italic wordmark, typewriter labels --- */
+.brand,.brand-h{display:inline-flex;align-items:center;gap:.32em;font-family:'Figtree',var(--sans) !important;font-style:normal !important;font-weight:700 !important;letter-spacing:-.01em;text-decoration:none}
+.brand{font-size:22px}
+.brand .mark,.brand-h .mark{width:1.2em;height:1.2em;flex:none}
+.bar{border-bottom:1.5px solid var(--rule)}
+.sec{border-top:1.5px solid var(--rule)}
+.sec-h h2,.hero h1,.statement,h1,h2{font-family:var(--serif);font-weight:500}
+.sec-h h2{font-style:italic}
+.btn{border-radius:0;font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:.02em}
+.btn.f{background:var(--dot);border-color:var(--dot);color:#F6F1E7}
+.btn.g{border-color:var(--rule)}
+.more{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.brand-h{white-space:nowrap;font-size:34px !important}
+.home-h:has(.brand-h){flex-wrap:wrap;row-gap:4px}
+/* square, like prints pinned to a board: no rounded corners in the pages (the walk keeps its own controls) */
+main *,.install,.install *{border-radius:0 !important}
+main *{box-shadow:none !important}
+main .person img,main .person .ring,main .album .by img,main .dot{border-radius:50% !important}
+.install{border:1.5px solid var(--rule);box-shadow:none}
 </style>
 
 <!-- app:head-end -->
 </head>
 <body>
 <!-- app:body -->
-<header class="bar gut"><div class="wrap"><a class="brand" href="#/">Open Studio</a><span class="tag">Prototype</span></div></header>
+<header class="bar gut"><div class="wrap"><a class="brand" href="#/" aria-label="Open Studio, home"><svg class="mark" viewBox="0 0 132 132" aria-hidden="true"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg><span>Open Studio</span></a><span class="tag">Prototype</span></div></header>
 <main id="app"><div class="loading">Loading…</div></main>
 <nav class="tabs" aria-label="Main" hidden>
   <a href="#/" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Home</a>
