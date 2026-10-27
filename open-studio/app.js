@@ -236,10 +236,12 @@ function artistPage(slug) {
     ${live ? `<section class="sec"><div class="k"><span class="dot"></span>&nbsp; ${esc(when(live))}</div>
       <a class="onview" href="#/exhibition/${live.slug}">${im(live.images[0], '')}<div><h3>${esc(live.title)}</h3>
       <div class="m">${esc(live.kind === 'online' ? 'Online exhibition' : [live.venue, live.city].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
-    <section class="sec"><div class="sec-h"><h2>Works</h2>
-      <div class="seg" role="group" aria-label="Show works"><button type="button" data-seg="latest" aria-pressed="true">Latest</button><button type="button" data-seg="by-exhibition" aria-pressed="false">By exhibition</button></div></div>
-      <div data-pane="latest"><div class="list">${works.slice(0, 8).map(workRow).join('')}</div><a class="more" href="${own ? '#/works' : `#/artist/${a.slug}/works`}" style="display:block;padding-top:14px">All ${works.length} works →</a></div>
-      <div data-pane="by-exhibition" hidden><div class="covers">${shows.map(e => cover(e)).join('')}</div></div></section>
+    <section class="sec"><div class="sec-h"><h2>Latest works</h2><a class="more" href="${own ? '#/works' : `#/artist/${a.slug}/works`}">All ${works.length} →</a></div>
+      <div class="list">${works.slice(0, 8).map(workRow).join('')}</div></section>
+    ${shows.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">${shows.length}</span></div>
+      <div class="list">${[...shows].sort((x, y) => y.end - x.end).map(e => `<a class="row" href="#/exhibition/${e.slug}">${im(e.images[0], '')}<div class="t"><div><b>${esc(e.title)}</b></div>
+        <div class="m">${esc([e.year, e.kind === 'online' ? 'Online' : e.city, (e.artists || []).length > 1 ? `with ${(e.artists).filter(x => x !== a).map(x => x.name).join(', ')}` : ''].filter(Boolean).join(' · '))}</div>
+        ${status(e) !== 'past' || e.space ? `<div class="m" style="color:var(--dot)">${esc(when(e))}</div>` : ''}</div><span></span></a>`).join('')}</div></section>` : ''}
     ${own && M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
       <div class="covers">${M.objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
   </div>`;
