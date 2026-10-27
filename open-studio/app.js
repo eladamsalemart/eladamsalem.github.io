@@ -17,7 +17,9 @@ async function loadData() {
   const spaces = Object.fromEntries(await Promise.all(Object.keys(index).map(async k => [k, await get(`data/spaces/${k}.json`)])));
   // small versions of the site's images (written when the app is published), for grids and lists on a phone
   const thumbs = await get('data/thumbs.json').catch(() => ({}));
-  return { settings, works, exhibitions, objects, cv, studio, spaces, thumbs };
+  // the demo world: fictional artists, galleries and shows, to see the app full (data/demo/world.json)
+  const world = await get('data/demo/world.json').catch(() => null);
+  return { settings, works, exhibitions, objects, cv, studio, spaces, thumbs, world };
 }
 
 // --- model -----------------------------------------------------------------
@@ -66,6 +68,8 @@ function buildModel(d) {
       works: (extra.works || []).map(t => byTitle.get(t.toLowerCase().trim())).filter(Boolean),
       maybe: (extra.maybe || []).map(t => byTitle.get(t.toLowerCase().trim())).filter(Boolean),
       space: (d.spaces || {})[extra.space || slugify(e.title)] || null,
+      artists: [artist], kind: 'gallery', ...span(hasDates ? lines[0] : '', e.year), events: [],
+      ...((d.world && d.world.venues || {})[e.title.trim()] || {}),
     };
   }).sort((a, b) => (+b.year || 0) - (+a.year || 0));
   const objects = d.objects.map(o => ({
@@ -75,7 +79,89 @@ function buildModel(d) {
   const cities = [];
   for (const e of exhibitions) if (e.city && !cities.some(c => c.name === e.city)) cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
   if (artist.city && !cities.some(c => c.name === artist.city)) cities.push({ name: artist.city, slug: slugify(artist.city), country: artist.country });
-  return { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: d.thumbs || {} };
+  const m = { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: { ...(d.thumbs || {}) },
+    live: [], listings: [], places: {} };
+  if (d.world) addWorld(m, d.world, uniq, seen);
+  return m;
+}
+
+// a show's dates as days: "21 Feb — 30 May, 2026" (else the whole year it's from)
+function span(dates, year) {
+  const y = +(String(dates).match(/\d{4}/) || [year])[0] || new Date().getFullYear();
+  const days = [...String(dates).matchAll(/(\d{1,2})\s+([A-Za-z]{3})/g)].map(m => new Date(`${m[1]} ${m[2]} ${y}`));
+  if (days.length >= 2 && !isNaN(days[0]) && !isNaN(days[1])) return { start: days[0], end: new Date(+days[1] + 86399000) };
+  return { start: new Date(y, 0, 1), end: new Date(y, 11, 31, 23, 59) };
+}
+const DAY = 86400000;
+const today = () => { const t = new Date(); t.setHours(0, 0, 0, 0); return t; };
+const inDays = (n, time) => { const t = new Date(+today() + n * DAY); if (time) { const [h, mi] = time.split(':'); t.setHours(+h, +mi); } return t; };
+
+// the demo world joins the real content: its artists, works, shows (dates as days from today), the studio
+// clips on artists' pages, and the galleries listed on the map that aren't on Open Studio
+function addWorld(m, w, uniq, seen) {
+  const A = new Map();
+  for (const a of w.artists) {
+    seen.add(a.slug);
+    const x = { ...a, label: [a.discipline, a.city].filter(Boolean).join(' · '), country: 'Israel', demo: true };
+    A.set(a.slug, x); m.artists.push(x);
+  }
+  const W = new Map();
+  for (const v of w.works) {
+    const [cw, ch] = v.size, x = { i: m.works.length, slug: uniq(v.slug), title: v.title, year: v.year, medium: v.medium, pairs: [[ch, cw]],
+      size: `${ch} × ${cw} cm`, image: v.image, artist: A.get(v.artist), demo: true };
+    W.set(v.slug, x); m.works.push(x);
+  }
+  m.works.sort((a, b) => (+b.year || 0) - (+a.year || 0) || a.i - b.i);
+  for (const v of w.shows) {
+    const start = inDays(v.start), end = new Date(+inDays(v.end) + DAY - 60000);
+    const fmt = t => t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    m.exhibitions.push({
+      slug: uniq(v.slug), title: v.title, year: String(start.getFullYear()), venue: v.venue, address: v.address || '',
+      dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: [v.text], images: v.images || [], city: v.city, country: v.city ? 'Israel' : '',
+      confirmed: true, artist: A.get(v.artists[0]), artists: v.artists.map(s => A.get(s)), works: v.works.map(s => W.get(s)).filter(Boolean), maybe: [],
+      space: null, kind: v.kind, start, end, hours: v.hours, at: v.at, curator: v.curator || '', demo: true,
+      events: (v.events || []).map(e => ({ at: inDays(e.day, e.time), what: e.what })),
+    });
+  }
+  m.exhibitions.sort((a, b) => b.end - a.end);
+  for (const e of m.exhibitions) for (const ev of e.events) ev.show = e;
+  m.live = w.live.map(p => ({ ...p, artist: A.get(p.artist), work: W.get(p.work) || null, at: new Date(Date.now() - p.ago * 3600000) }));
+  m.listings = w.listings.map(l => ({ ...l, start: inDays(l.start), end: new Date(+inDays(l.end) + DAY - 60000),
+    events: (l.events || []).map(e => ({ at: inDays(e.day, e.time), what: e.what })) }));
+  for (const l of m.listings) for (const ev of l.events) ev.listing = l;
+  m.places = w.places || {};
+  Object.assign(m.thumbs, w.thumbs || {});
+  for (const e of m.exhibitions) if (e.city && !m.cities.some(c => c.name === e.city)) m.cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
+}
+
+// where a show stands today
+const status = e => { const now = Date.now(); return now < e.start ? 'soon' : now > e.end ? 'past' : 'on'; };
+const isOn = e => status(e) === 'on';
+const nextEvent = e => e.events.filter(v => +v.at > Date.now() - 3 * 3600000).sort((a, b) => a.at - b.at)[0];
+const worksOf = a => M.works.filter(w => w.artist === a);
+const showsOf = a => M.exhibitions.filter(e => (e.artists || [e.artist]).includes(a));
+const byOf = e => (e.artists || [e.artist]).map(a => a.name).join(' × ');
+const dayName = t => { const d = Math.round((new Date(t).setHours(0, 0, 0, 0) - today()) / DAY); return d === 0 ? 'Tonight' : d === 1 ? 'Tomorrow' : t.toLocaleDateString('en-GB', { weekday: 'short' }); };
+const hm = t => t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+const evWhen = ev => { const d = dayName(ev.at); return `${ev.what} ${d === 'Tonight' || d === 'Tomorrow' ? d.toLowerCase() : d} · ${hm(ev.at)}`; };
+const dm = t => t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+function when(e) {
+  const st = status(e), left = Math.ceil((e.end - Date.now()) / DAY), ev = nextEvent(e);
+  if (e.kind === 'online' && st === 'on') return left <= 7 ? `Online · closing in ${left} days` : 'Online now · open all the time';
+  if (st === 'soon') return ev ? evWhen(ev) : `Opens ${dm(e.start)}`;
+  if (st === 'on') return ev && +ev.at - Date.now() < 2 * DAY ? evWhen(ev) : left <= 7 ? `Closing in ${left} ${left === 1 ? 'day' : 'days'}` : `On until ${dm(e.end)}`;
+  return e.space ? 'Closed · walk it in 3D' : `Closed ${e.end.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}`;
+}
+
+// following artists (kept on this phone); to start with, a few
+const FOLLOW_KEY = 'os-following';
+function following() {
+  try { const f = JSON.parse(localStorage.getItem(FOLLOW_KEY)); if (Array.isArray(f)) return f; } catch {}
+  return [M.artist.slug, 'lia-moren', 'maya-haddad'];
+}
+function setFollow(slug, on) {
+  const f = new Set(following()); if (on) f.add(slug); else f.delete(slug);
+  try { localStorage.setItem(FOLLOW_KEY, JSON.stringify([...f])); } catch {}
 }
 
 // --- helpers ---------------------------------------------------------------
@@ -97,23 +183,38 @@ const place = e => [e.city, e.dates || e.year].filter(Boolean).join(' · ');
 function workRow(w) {
   return `<a class="row" href="#/work/${w.slug}">${im(w.image, '')}<div class="t"><div><b>${esc(w.title)}</b></div><div class="m">${esc(metaLine(w))}</div></div><span></span></a>`;
 }
-const cover = e => `<a href="#/exhibition/${e.slug}">${im(e.images[0], '')}<div><b>${esc(e.title)}</b><div class="m">${esc([e.year, e.artist.name].join(' · '))}</div></div></a>`;
+const cover = (e, badge) => `<a href="#/exhibition/${e.slug}"><span class="cv-im">${im(e.images[0], '')}${badge || e.kind === 'online' ? `<i class="badge">${esc(badge || 'Online')}</i>` : ''}</span><div><b>${esc(e.title)}</b><div class="m">${esc(status(e) !== 'past' || e.space ? when(e) : [e.year, e.city].filter(Boolean).join(' · '))}</div><div class="m">${esc(byOf(e))}</div></div></a>`;
 const workCover = w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image, w.title)}</div><div><b>${esc(w.title)}</b><div class="m">${esc(w.artist.name)} · ${esc(w.year)}</div></div></a>`;
-const person = a => `<a class="person" href="#/artist/${a.slug}">${im(a.portrait, a.name)}<div><b>${esc(a.name)}</b><div class="m">${esc(a.discipline)}</div></div></a>`;
+// fresh: something new from the studio in the last two days (a ring round the picture)
+const person = (a, fresh) => `<a class="person${fresh ? ' fresh' : ''}" href="#/artist/${a.slug}">${im(a.portrait, a.name)}<div><b>${esc(a.name)}</b><div class="m">${esc(a.discipline)}</div></div></a>`;
 
 // --- views -----------------------------------------------------------------
+// Home: like a music app's, the artists you follow first (what's new from them: their shows, their works),
+// then what might suit you
 function home() {
-  const live = M.exhibitions[0];
+  const fol = following(), mine = M.artists.filter(a => fol.includes(a.slug)), others = M.artists.filter(a => !fol.includes(a.slug));
+  const fresh = a => M.live.some(p => p.artist === a && Date.now() - p.at < 2 * DAY);
+  // what's happening soonest first: an opening or a closing night in the next two days, then the shows on,
+  // then the ones still to open
+  const urgency = e => { const ev = nextEvent(e); return ev && +ev.at - Date.now() < 2 * DAY ? +ev.at : isOn(e) ? Date.now() + 2 * DAY + (e.kind === 'online' ? DAY : 0) : +e.start + 3 * DAY; };
+  const theirShows = M.exhibitions.filter(e => status(e) !== 'past' && (e.artists || [e.artist]).some(a => mine.includes(a)))
+    .sort((a, b) => urgency(a) - urgency(b));
+  const feature = theirShows[0] || M.exhibitions.find(e => status(e) !== 'past');
+  const theirWorks = M.works.filter(w => mine.includes(w.artist)).sort((a, b) => (+b.year || 0) - (+a.year || 0)).slice(0, 12);
+  const suggestShows = M.exhibitions.filter(e => status(e) !== 'past' && !theirShows.includes(e));
+  const walk = M.exhibitions.filter(e => e.space);
   return `<div class="wrap gut">
-    <div class="home-h"><h1 class="brand-h">${LOGO}</h1><span class="tag">No. 01 · Prototype</span></div>
-    ${live ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
-      <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"', '100vw')}
-        <div class="ov"><div class="k">${esc(live.artist.name)}</div><h2>${esc(live.title)}</h2><div class="m">${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
-    <section class="shelf"><h2>Artists</h2><div class="people">${M.artists.map(person).join('')}
-      <span class="person" aria-label="More artists are coming"><span class="ring" aria-hidden="true">+</span><div class="m">More artists<br>coming soon</div></span></div></section>
-    <section class="shelf"><h2>Exhibitions</h2><div class="covers">${M.exhibitions.map(cover).join('')}</div></section>
-    <section class="shelf"><h2>Latest works</h2><div class="covers works">${M.works.slice(0, 10).map(workCover).join('')}</div></section>
-    <section class="shelf"><h2>By location</h2><div class="places">${M.cities.map(cityCard).join('')}</div></section>
+    <div class="home-h"><h1 class="brand-h">${LOGO}</h1><span class="tag">Prototype</span></div>
+    <section class="shelf"><div class="sec-h"><h2>Following</h2><a class="more" href="#/search">Find artists</a></div>
+      <div class="people">${mine.map(a => person(a, fresh(a))).join('') || '<p class="m">Follow artists to see their shows and works here first.</p>'}</div></section>
+    ${feature ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; ${esc(when(feature))}</div>
+      <a class="feature" href="#/exhibition/${feature.slug}">${im(feature.images[0], `Installation view of ${feature.title}`, 'loading="eager"', '100vw')}
+        <div class="ov"><div class="k">${esc(byOf(feature))}</div><h2>${esc(feature.title)}</h2><div class="m">${esc([feature.kind === 'online' ? 'Online exhibition' : feature.venue, feature.city].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
+    ${theirShows.length > 1 ? `<section class="shelf"><h2>Their shows</h2><div class="covers">${theirShows.slice(1).map(e => cover(e)).join('')}</div></section>` : ''}
+    ${theirWorks.length ? `<section class="shelf"><h2>New from your artists</h2><div class="covers works">${theirWorks.map(workCover).join('')}</div></section>` : ''}
+    ${walk.length ? `<section class="shelf"><h2>Walk in, from anywhere</h2><div class="covers">${walk.map(e => cover(e, '3D')).join('')}</div></section>` : ''}
+    ${others.length ? `<section class="shelf"><h2>Artists you might like</h2><div class="people">${others.map(a => person(a, fresh(a))).join('')}</div></section>` : ''}
+    ${suggestShows.length ? `<section class="shelf"><h2>Picked for you</h2><div class="covers">${suggestShows.map(e => cover(e)).join('')}</div></section>` : ''}
     <a class="for-artists" href="#/studio"><span class="k">For artists</span><b>Open your studio</b><span class="m">Your works at their real size, your shows as rooms anyone can walk through.</span><span aria-hidden="true">→</span></a>
   </div>`;
 }
@@ -128,31 +229,43 @@ function cityCard(c) {
 function artistPage(slug) {
   const a = M.artists.find(x => x.slug === slug);
   if (!a) return notFound();
-  const live = M.exhibitions[0];
+  const shows = showsOf(a), works = worksOf(a), live = shows.find(e => status(e) !== 'past'), last = shows[0];
+  const posts = M.live.filter(p => p.artist === a).sort((x, y) => y.at - x.at);
+  const followed = following().includes(a.slug), own = a === M.artist;
+  const hero = a.hero || (last && last.images[0]) || (works[0] && works[0].image);
   return `
-  <section class="hero">${im(a.hero, `Installation view, ${live ? live.title : ''}`, 'loading="eager"', '100vw')}
+  <section class="hero">${im(hero, last ? `Installation view, ${last.title}` : a.name, 'loading="eager"', '100vw')}
     <div class="ov gut"><div class="wrap"><div class="k">${esc(a.label)}</div><h1>${esc(a.name)}</h1></div></div></section>
   <div class="wrap gut">
+    <div class="btns" style="padding-block:18px 0"><button type="button" class="btn ${followed ? 'g' : 'f'}" data-follow="${esc(a.slug)}" aria-pressed="${followed}">${followed ? 'Following' : 'Follow'}</button>${own ? '<a class="btn g" href="#/about">About & CV</a>' : ''}</div>
     <p class="statement">${esc(curly(a.statement))}</p>
-    <div class="btns" style="padding-block:18px 32px"><a class="btn g" href="#/about">About & CV</a></div>
-    ${live ? `<section class="sec"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
+    ${a.demo ? '<p class="note" style="margin-top:14px">A made-up artist, to show how Open Studio looks full. The works are generated.</p>' : ''}
+    ${posts.length ? `<section class="sec" style="margin-top:28px"><div class="sec-h"><h2>Live from the studio</h2><span class="more">${posts.length} new</span></div>
+      <div class="studio-log">${posts.map((p, i) => `<button type="button" class="log" data-log="${esc(a.slug)}:${i}">
+        ${p.kind === 'video' ? `<video src="${esc(p.video)}" poster="${esc(p.poster)}" muted playsinline loop preload="none" aria-hidden="true"></video>` : im(p.frames[0], '', '', '40vw')}
+        <span class="lk">${p.kind === 'video' ? '▶ Video' : 'Story'} · ${esc(ago(p.at))}</span>
+        <span class="lt">${esc(p.text)}</span>
+        ${p.work ? `<span class="lw">${im(p.work.image, '', '', '10vw')}${esc(p.work.title)}</span>` : ''}</button>`).join('')}</div></section>` : ''}
+    ${live ? `<section class="sec"><div class="k"><span class="dot"></span>&nbsp; ${esc(when(live))}</div>
       <a class="onview" href="#/exhibition/${live.slug}">${im(live.images[0], '')}<div><h3>${esc(live.title)}</h3>
-      <div class="m">${esc(place(live))}</div></div></a></section>` : ''}
+      <div class="m">${esc(live.kind === 'online' ? 'Online exhibition' : [live.venue, live.city].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
     <section class="sec"><div class="sec-h"><h2>Works</h2>
       <div class="seg" role="group" aria-label="Show works"><button type="button" data-seg="latest" aria-pressed="true">Latest</button><button type="button" data-seg="by-exhibition" aria-pressed="false">By exhibition</button></div></div>
-      <div data-pane="latest"><div class="list">${M.works.slice(0, 8).map(workRow).join('')}</div><a class="more" href="#/works" style="display:block;padding-top:14px">All ${M.works.length} works →</a></div>
-      <div data-pane="by-exhibition" hidden><div class="covers">${M.exhibitions.map(cover).join('')}</div></div></section>
-    ${M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
+      <div data-pane="latest"><div class="list">${works.slice(0, 8).map(workRow).join('')}</div><a class="more" href="${own ? '#/works' : `#/artist/${a.slug}/works`}" style="display:block;padding-top:14px">All ${works.length} works →</a></div>
+      <div data-pane="by-exhibition" hidden><div class="covers">${shows.map(e => cover(e)).join('')}</div></div></section>
+    ${own && M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
       <div class="covers">${M.objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
   </div>`;
 }
+const ago = t => { const h = Math.round((Date.now() - t) / 3600000); return h < 1 ? 'just now' : h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`; };
 
-function archive(year) {
-  const years = [...new Set(M.works.map(w => w.year))];
-  const list = year ? M.works.filter(w => w.year === year) : M.works;
+function archive(year, a = M.artist) {
+  const mine = worksOf(a), base = a === M.artist ? '#/works' : `#/artist/${a.slug}/works`;
+  const years = [...new Set(mine.map(w => w.year))];
+  const list = year ? mine.filter(w => w.year === year) : mine;
   return `<div class="wrap gut">
-    <div class="ex-head"><div class="k">${esc(M.artist.name)} · Archive</div><h1>Works</h1><div class="m">${list.length} ${list.length === 1 ? 'work' : 'works'}${year ? ` from ${esc(year)}` : ''}</div></div>
-    <div class="chips" style="padding-block:18px 28px"><a class="chip" href="#/works" ${!year ? 'aria-current="page"' : ''}>All</a>${years.map(y => `<a class="chip" href="#/works/${y}" ${y === year ? 'aria-current="page"' : ''}>${esc(y)}</a>`).join('')}</div>
+    <div class="ex-head"><div class="k">${esc(a.name)} · Archive</div><h1>Works</h1><div class="m">${list.length} ${list.length === 1 ? 'work' : 'works'}${year ? ` from ${esc(year)}` : ''}</div></div>
+    <div class="chips" style="padding-block:18px 28px"><a class="chip" href="${base}" ${!year ? 'aria-current="page"' : ''}>All</a>${years.map(y => `<a class="chip" href="${base}/${y}" ${y === year ? 'aria-current="page"' : ''}>${esc(y)}</a>`).join('')}</div>
     <div class="grid">${list.map(w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image, w.title)}</div><div class="c"><b>${esc(w.title)}</b><div class="m">${esc(metaLine(w))}</div></div></a>`).join('')}</div>
   </div>`;
 }
@@ -163,10 +276,12 @@ function exhibition(slug) {
   return `<div class="wrap gut">
     <div class="album">
       ${im(e.images[0], `Installation view of ${e.title}`, 'class="cover" loading="eager"', '100vw')}
-      <div class="k">Exhibition · ${esc(e.year)}${e.city ? ` · ${esc(e.city)}` : ''}</div>
+      <div class="k">${status(e) === 'past' ? 'Exhibition' : `<span class="dot"></span>&nbsp; ${esc(when(e))}`} · ${e.kind === 'online' ? 'Online' : esc(e.city || e.year)}</div>
       <h1>${esc(e.title)}</h1>
-      <a class="by" href="#/artist/${e.artist.slug}">${im(e.artist.portrait, '')}${esc(e.artist.name)}</a>
-      <div class="m">${esc([e.dates, e.venue].filter(Boolean).join(' · '))}</div>
+      <div class="bys">${(e.artists || [e.artist]).map(a => `<a class="by" href="#/artist/${a.slug}">${im(a.portrait, '')}${esc(a.name)}</a>`).join('')}</div>
+      <div class="m">${esc([e.dates, e.kind === 'online' ? 'An online exhibition' : e.venue].filter(Boolean).join(' · '))}${e.curator ? ` · Curated by ${esc(e.curator)}` : ''}</div>
+      ${status(e) !== 'past' && (e.address || e.hours) ? `<div class="visit">${e.address ? `<a href="#/map/${e.slug}"><b>${esc(e.venue)}</b><span>${esc(e.address)}</span></a>` : ''}${e.hours ? `<span>${esc(e.hours)}</span>` : ''}</div>` : ''}
+      ${e.events.filter(v => +v.at > Date.now() - 3 * 3600000).map(v => `<div class="event"><b>${esc(dayName(v.at))}</b><span>${esc(v.what)} · ${esc(hm(v.at))} · ${esc(v.at.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }))}</span></div>`).join('')}
       ${e.space ? `<div class="btns"><a class="btn f" href="#/exhibition/${e.slug}/space">Enter the space</a></div><p class="m">${esc(e.space.source)}: a walkable 3D space in the room's own light, with every work at its measured size and place.</p>` : ''}
     </div>
     ${e.works.length ? `<section class="sec"><div class="sec-h"><h2>Works</h2><span class="more">${e.works.length} works</span></div>
@@ -257,8 +372,8 @@ function results(q) {
   const places = M.cities.filter(c => hit(c.name, c.country));
   if (!artists.length && !shows.length && !works.length && !places.length) return `<p style="color:var(--muted)">Nothing matches “${esc(q)}”.</p>`;
   return [
-    artists.length && `<section class="shelf" style="padding:0"><h2>Artists</h2><div class="people">${artists.map(person).join('')}</div></section>`,
-    shows.length && `<section class="shelf" style="padding:0"><h2>Exhibitions</h2><div class="covers">${shows.map(cover).join('')}</div></section>`,
+    artists.length && `<section class="shelf" style="padding:0"><h2>Artists</h2><div class="people">${artists.map(a => person(a)).join('')}</div></section>`,
+    shows.length && `<section class="shelf" style="padding:0"><h2>Exhibitions</h2><div class="covers">${shows.map(e => cover(e)).join('')}</div></section>`,
     works.length && `<section class="shelf" style="padding:0"><h2>Works</h2><div class="list">${works.slice(0, 20).map(workRow).join('')}</div></section>`,
     places.length && `<section class="shelf" style="padding:0"><h2>Places</h2><div class="places">${places.map(cityCard).join('')}</div></section>`,
   ].filter(Boolean).join('');
@@ -278,9 +393,135 @@ function placePage(slug) {
   const shows = M.exhibitions.filter(e => e.city === c.name), artists = M.artists.filter(a => a.city === c.name);
   return `<div class="wrap gut">
     <div class="ex-head"><div class="k">Place · ${esc(c.country)}</div><h1>${esc(c.name)}</h1></div>
-    ${artists.length ? `<section class="shelf"><h2>Artists based here</h2><div class="people">${artists.map(person).join('')}</div></section>` : ''}
-    ${shows.length ? `<section class="shelf"><h2>Exhibitions here</h2><div class="covers">${shows.map(cover).join('')}</div></section>` : ''}
+    ${artists.length ? `<section class="shelf"><h2>Artists based here</h2><div class="people">${artists.map(a => person(a)).join('')}</div></section>` : ''}
+    ${shows.length ? `<section class="shelf"><h2>Exhibitions here</h2><div class="covers">${shows.map(e => cover(e)).join('')}</div></section>` : ''}
   </div>`;
+}
+
+// --- Shows: "Opening Night" — what's on now, in rooms and online; tonight first ---------------------------
+let showsKind = 'all', showsDay = 0;
+function showsPage() {
+  const pick = e => showsKind === 'all' || (showsKind === 'online' ? e.kind === 'online' : e.kind !== 'online');
+  const all = M.exhibitions.filter(pick);
+  const on = all.filter(isOn), soon = all.filter(e => status(e) === 'soon').sort((a, b) => a.start - b.start);
+  const evs = [...M.exhibitions.filter(pick).flatMap(e => e.events), ...(showsKind === 'online' ? [] : M.listings.flatMap(l => l.events))]
+    .filter(v => +v.at > Date.now() - 3 * 3600000).sort((a, b) => a.at - b.at);
+  const tonight = evs.find(v => v.show && dayName(v.at) === 'Tonight') || evs.find(v => v.show);
+  const hero = tonight ? tonight.show : on[0];
+  const days = Array.from({ length: 7 }, (_, i) => new Date(+today() + i * DAY));
+  const dayEvs = evs.filter(v => Math.floor((new Date(v.at).setHours(0, 0, 0, 0) - today()) / DAY) === showsDay);
+  const closing = on.filter(e => e.kind !== 'online' && e.end - Date.now() < 7 * DAY && e !== hero);
+  const rooms = on.filter(e => e.kind !== 'online' && e !== hero && !closing.includes(e)), online = on.filter(e => e.kind === 'online' && e !== hero);
+  const walk = M.exhibitions.filter(e => e.space && pick(e));
+  const card = e => `<a class="nx-show" href="#/exhibition/${e.slug}">${im(e.images[0], '', '', '45vw')}${e.kind === 'online' ? '<i class="badge">Online</i>' : ''}
+    <b>${esc(e.title)}</b><span>${esc(byOf(e))}</span><span class="nx-when">${esc(when(e))}${e.city ? ` · ${esc(e.city)}` : ''}</span></a>`;
+  return `<div class="wrap gut nx">
+    <div class="nx-h"><h1>Shows</h1><div class="seg" role="group" aria-label="Which shows">${[['all', 'All'], ['rooms', 'In a room'], ['online', 'Online']].map(([k, t]) => `<button type="button" data-kind="${k}" aria-pressed="${showsKind === k}">${t}</button>`).join('')}</div></div>
+    ${hero ? `<a class="nx-hero" href="#/exhibition/${hero.slug}">${im(hero.images[0], `${hero.title}`, 'loading="eager"', '100vw')}
+      <span class="nx-live"><i></i>${esc(tonight && tonight.show === hero ? `${tonight.what} ${dayName(tonight.at) === 'Tonight' ? 'tonight' : dayName(tonight.at).toLowerCase()} · ${hm(tonight.at)}` : when(hero))}</span>
+      <span class="nx-ov"><span class="k">${esc(byOf(hero))}${hero.venue && hero.kind !== 'online' ? ` · ${esc(hero.venue)}` : ''}</span><b>${esc(hero.title)}</b>
+      <span class="m">${hero.works.length} works · ${esc(hero.kind === 'online' ? 'online' : hero.city)}</span>
+      <span class="nx-cta">${hero.kind === 'online' || hero.space ? 'Walk in now' : 'See the show'}</span></span></a>` : ''}
+    <section class="nx-sec"><div class="nx-sh"><h2>This week</h2></div>
+      <div class="nx-days" role="group" aria-label="Day">${days.map((d, i) => `<button type="button" data-day="${i}" aria-pressed="${i === showsDay}"><span>${i === 0 ? 'Today' : d.toLocaleDateString('en-GB', { weekday: 'short' })}</span><b>${d.getDate()}</b>${evs.some(v => Math.floor((new Date(v.at).setHours(0, 0, 0, 0) - today()) / DAY) === i) ? '<i></i>' : ''}</button>`).join('')}</div>
+      <div class="nx-evs">${dayEvs.length ? dayEvs.map(v => v.show
+        ? `<a class="nx-ev" href="#/exhibition/${v.show.slug}">${im(v.show.images[0], '', '', '25vw')}<span><span class="nx-when">${esc(hm(v.at))} · ${esc(v.show.kind === 'online' ? 'Online' : v.show.city)}</span><b>${esc(v.show.title)}</b><span class="m">${esc(byOf(v.show))} · ${esc(v.what)}</span></span></a>`
+        : `<a class="nx-ev info" href="#/map">${'<span class="ph" aria-hidden="true"></span>'}<span><span class="nx-when">${esc(hm(v.at))} · ${esc(v.listing.city)}</span><b>${esc(v.listing.show)}</b><span class="m">${esc(v.listing.name)} · ${esc(v.what)} · Not on Open Studio</span></span></a>`).join('')
+        : '<p class="m">Nothing that day yet.</p>'}</div></section>
+    ${rooms.length ? `<section class="nx-sec"><div class="nx-sh"><h2>On view now</h2><a class="more" href="#/map">On the map</a></div><div class="nx-grid">${rooms.map(card).join('')}</div></section>` : ''}
+    ${closing.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Last chance</h2></div><div class="nx-grid">${closing.map(card).join('')}</div></section>` : ''}
+    ${online.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Online now</h2></div><p class="m nx-sub">Digital exhibitions: no room, open all the time.</p><div class="nx-grid">${online.map(card).join('')}</div></section>` : ''}
+    ${walk.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Walk-throughs</h2><span class="more">3D</span></div><p class="m nx-sub">Real shows, kept as rooms you can walk through after they close.</p><div class="nx-rail">${walk.map(e => `<a href="#/exhibition/${e.slug}/space">${im(e.images[0], '', '', '70vw')}<i class="badge">3D</i><b>${esc(e.title)}${e.city ? ` — ${esc(e.city)}` : ''}</b></a>`).join('')}</div></section>` : ''}
+    ${soon.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Coming up</h2></div><div class="nx-grid">${soon.map(card).join('')}</div></section>` : ''}
+  </div>`;
+}
+
+// --- Map: "On the walls" — what's on near you, or near a place you pick ----------------------------------
+let mapFilter = 'now', mapFocus = null;
+const PLACE_KEY = 'os-place';
+function myPlace() {
+  try { const p = JSON.parse(localStorage.getItem(PLACE_KEY)); if (p && p.at) return p; } catch {}
+  return { name: 'Tel Aviv', at: M.places['Tel Aviv'] || [32.0809, 34.7806] };
+}
+function km(a, b) {
+  const r = Math.PI / 180, dl = (b[0] - a[0]) * r, dn = (b[1] - a[1]) * r;
+  const h = Math.sin(dl / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dn / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(h));
+}
+const away = d => d < 2.5 ? `${Math.max(1, Math.round(d * 12.5))} min walk` : `${d < 10 ? d.toFixed(1) : Math.round(d)} km`;
+function mapItems() {
+  const me = myPlace().at, now = Date.now();
+  const keep = (start, end, evs) => mapFilter === 'all' ? end > now
+    : mapFilter === 'now' ? start <= now && end > now
+    : mapFilter === 'openings' ? evs.some(v => +v.at > now - 3 * 3600000 && +v.at - now < 7 * DAY)
+    : start <= now && end > now && end - now < 7 * DAY;
+  const shows = M.exhibitions.filter(e => e.at && keep(e.start, e.end, e.events)).map(e => ({ kind: 'show', e, at: e.at, d: km(me, e.at) }));
+  const lists = M.listings.filter(l => keep(l.start, l.end, l.events)).map(l => ({ kind: 'listing', l, at: l.at, d: km(me, l.at) }));
+  return [...shows, ...lists].sort((a, b) => a.d - b.d);
+}
+function mapPage(focus) {
+  mapFocus = focus ? M.exhibitions.find(e => e.slug === focus) || null : null;
+  if (mapFocus) mapFilter = 'all';                      // (a show asked for by name shows, whenever it's on)
+  const p = myPlace(), items = mapItems();
+  const walk = M.exhibitions.find(e => e.space);
+  return `<div class="wrap gut wl">
+    <div class="wl-top"><span class="wl-mark">${LOGO.split('<span>')[0]}</span>
+      <label class="wl-place"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        <select id="placeSel" aria-label="Where">${['Near me', ...Object.keys(M.places)].map(n => `<option ${n === p.name ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label></div>
+    <h1 class="wl-h">On the walls <em>${{ now: 'now', openings: 'this week', closing: 'closing soon', all: 'now and next' }[mapFilter]}</em>, near ${p.name === 'Near me' ? 'you' : esc(p.name)}</h1>
+    <div class="wl-map" id="map" role="application" aria-label="Map of shows near ${esc(p.name)}"></div>
+    <div class="wl-chips" role="group" aria-label="Show">${[['now', 'Open now'], ['openings', 'Openings'], ['closing', 'Closing soon'], ['all', 'All']].map(([k, t]) => `<button type="button" data-mf="${k}" aria-pressed="${mapFilter === k}">${t}</button>`).join('')}</div>
+    <h2 class="wl-h2">${items.length ? `${items.length} ${items.length === 1 ? 'place' : 'places'} · nearest first` : 'Nothing here for now'}</h2>
+    <div class="wl-list">${items.map(x => x.kind === 'show'
+      ? `<a class="wl-item${x.e === mapFocus ? ' on' : ''}" href="#/exhibition/${x.e.slug}" data-at="${x.at.join(',')}">${im(x.e.images[0], '', '', '30vw')}<span><b>${esc(x.e.title)}</b><span class="m">${esc(byOf(x.e))} · ${esc(x.e.venue)}</span><span class="g">${esc(when(x.e))} · ${esc(away(x.d))}</span></span><i aria-hidden="true">→</i></a>`
+      : `<details class="wl-item info" data-at="${x.at.join(',')}"><summary><span class="ph" aria-hidden="true">${esc(x.l.name.slice(0, 1))}</span><span><b>${esc(x.l.show)}</b><span class="m">${esc(x.l.name)} · ${esc(x.l.what)}</span><span class="g">${esc(away(x.d))} · Not on Open Studio yet</span></span></summary>
+          <div class="wl-info"><span>${esc(x.l.address)}</span><span>${esc(x.l.hours)}</span><span>Until ${esc(dm(x.l.end))}</span><span class="m">Their details only, as they list them: no works or tour here yet.</span></div></details>`).join('')}</div>
+    ${walk ? `<a class="wl-far" href="#/exhibition/${walk.slug}/space"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg><span><b>Can't make it?</b> Walk ${esc(walk.title)} from home, in 3D.</span></a>` : ''}
+    <p class="wl-credit">Map © OpenStreetMap contributors © CARTO</p>
+  </div>`;
+}
+
+// a small map of tiles (no library): drag to move, + and − to zoom; pins for the shows and the galleries
+function drawMap(el) {
+  const p = myPlace(), items = mapItems();
+  let z = 14, c = mapFocus && mapFocus.at ? mapFocus.at : p.at;
+  const T = 256, proj = ([la, lo], zz) => { const s = T * 2 ** zz, x = (lo + 180) / 360 * s, r = la * Math.PI / 180; return [x, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * s]; };
+  const unproj = ([x, y], zz) => { const s = T * 2 ** zz, lo = x / s * 360 - 180, n = Math.PI - 2 * Math.PI * y / s; return [180 / Math.PI * Math.atan(Math.sinh(n)), lo]; };
+  if (!mapFocus) {                                     // fit where you are and the nearest places (within 10 km)
+    const pts = [p.at, ...items.filter(x => x.d < 10).slice(0, 6).map(x => x.at)];
+    for (z = 15; z > 9; z--) {
+      const xy = pts.map(q => proj(q, z)), xs = xy.map(q => q[0]), ys = xy.map(q => q[1]);
+      if (Math.max(...xs) - Math.min(...xs) < el.clientWidth - 120 && Math.max(...ys) - Math.min(...ys) < el.clientHeight - 70) {
+        c = unproj([(Math.max(...xs) + Math.min(...xs)) / 2, (Math.max(...ys) + Math.min(...ys)) / 2], z); break;
+      }
+    }
+  }
+  el.innerHTML = '<div class="tiles"></div><div class="pins"></div><div class="zoom-b"><button type="button" aria-label="Zoom in">+</button><button type="button" aria-label="Zoom out">−</button></div>';
+  const tiles = el.querySelector('.tiles'), pins = el.querySelector('.pins');
+  const dpr = devicePixelRatio > 1.5 ? '@2x' : '';
+  function paint() {
+    const W = el.clientWidth, H = el.clientHeight, [cx, cy] = proj(c, z), x0 = cx - W / 2, y0 = cy - H / 2, n = 2 ** z;
+    let html = '';
+    for (let ty = Math.floor(y0 / T); ty <= Math.floor((y0 + H) / T); ty++) for (let tx = Math.floor(x0 / T); tx <= Math.floor((x0 + W) / T); tx++) {
+      if (ty < 0 || ty >= n) continue;
+      const sub = 'abcd'[(tx + ty) & 3], wx = ((tx % n) + n) % n;
+      html += `<img alt="" draggable="false" src="https://${sub}.basemaps.cartocdn.com/light_all/${z}/${wx}/${ty}${dpr}.png" style="left:${tx * T - x0}px;top:${ty * T - y0}px" onerror="this.remove()">`;
+    }
+    tiles.innerHTML = html;
+    const pin = (at, cls, label, href, thumb) => { const [x, y] = proj(at, z); return `<a class="pin ${cls}" ${href ? `href="${href}"` : 'tabindex="-1"'} style="left:${x - x0}px;top:${y - y0}px">${thumb ? im(thumb, '', 'loading="eager"', '10vw') : ''}${label ? `<span>${esc(label)}</span>` : ''}</a>`; };
+    pins.innerHTML = pin(p.at, 'me', '', null)
+      + items.map(x => x.kind === 'show' ? pin(x.at, `show${x.e === mapFocus ? ' focus' : ''}${isOn(x.e) ? ' open' : ''}`, x.e.title, `#/exhibition/${x.e.slug}`, x.e.images[0])
+        : pin(x.at, 'info', x.l.name, null)).join('');
+  }
+  paint();
+  let drag = null;
+  el.addEventListener('pointerdown', e => { if (e.target.closest('.zoom-b,.pin')) return; drag = { x: e.clientX, y: e.clientY, c: proj(c, z) }; el.setPointerCapture(e.pointerId); });
+  el.addEventListener('pointermove', e => { if (!drag) return; c = unproj([drag.c[0] - (e.clientX - drag.x), drag.c[1] - (e.clientY - drag.y)], z); paint(); });
+  el.addEventListener('pointerup', () => { drag = null; });
+  const [zin, zout] = el.querySelectorAll('.zoom-b button');
+  zin.onclick = () => { z = Math.min(17, z + 1); paint(); };
+  zout.onclick = () => { z = Math.max(8, z - 1); paint(); };
+  el.addEventListener('dblclick', () => { z = Math.min(17, z + 1); paint(); });
 }
 
 const notFound = () => `<div class="wrap gut loading"><p>This page doesn't exist. <a href="#/">Back to Home</a></p></div>`;
@@ -289,9 +530,13 @@ const notFound = () => `<div class="wrap gut loading"><p>This page doesn't exist
 const routes = [
   [/^#?\/?$/, () => home(), 'home'],
   [/^#\/search$/, () => search(), 'search'],
-  [/^#\/places$/, () => places(), 'places'],
-  [/^#\/place\/([^/]+)$/, m => placePage(m[1]), 'places'],
+  [/^#\/shows$/, () => showsPage(), 'shows'],
+  [/^#\/(map|places)$/, () => mapPage(), 'map'],
+  [/^#\/map\/([^/]+)$/, m => mapPage(m[1]), 'map'],
+  [/^#\/place\/([^/]+)$/, m => placePage(m[1]), 'map'],
   [/^#\/artist\/([^/]+)$/, m => artistPage(m[1])],
+  [/^#\/artist\/([^/]+)\/works\/?$/, m => { const a = M.artists.find(x => x.slug === m[1]); return a ? archive(null, a) : notFound(); }],
+  [/^#\/artist\/([^/]+)\/works\/([^/]+)$/, m => { const a = M.artists.find(x => x.slug === m[1]); return a ? archive(decodeURIComponent(m[2]), a) : notFound(); }],
   [/^#\/works\/?$/, () => archive()],
   [/^#\/works\/([^/]+)$/, m => archive(decodeURIComponent(m[1]))],
   [/^#\/work\/([^/]+)$/, m => work(m[1])],
@@ -315,7 +560,12 @@ function render() {
   }
   let html = notFound(), tab = null;
   for (const [re, view, t] of routes) { const m = hash.match(re); if (m) { html = view(m); tab = t || null; break; } }
-  const top = tab === 'home' || tab === 'search' || hash === '#/places';
+  const top = tab === 'home' || tab === 'search' || tab === 'shows' || tab === 'map';
+  // the shows on now have the look of an opening night; the map, of walls in daylight
+  const ex = hash.match(/^#\/exhibition\/([^/]+)$/), exOn = ex && M.exhibitions.find(e => e.slug === ex[1]);
+  const look = tab === 'shows' || (exOn && status(exOn) !== 'past') ? 'night' : tab === 'map' ? 'walls' : '';
+  if (look) document.body.dataset.look = look; else delete document.body.dataset.look;
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = look === 'night' ? '#0E0E10' : look === 'walls' ? '#E8E6E1' : m.media.includes('dark') ? '#171613' : '#EFE9DD'; });
   document.querySelector('.bar').hidden = top;
   if (!top) document.querySelector('.bar .wrap').innerHTML = `<button type="button" class="back" id="backBtn" style="border:0;background:none;cursor:pointer;padding:0"><span aria-hidden="true">←</span> Back</button><a class="brand" href="#/" aria-label="Open Studio, home">${LOGO}</a>`;
   const tabs = document.querySelector('.tabs');
@@ -357,6 +607,24 @@ function wire() {
     document.querySelectorAll('[data-seg]').forEach(x => x.setAttribute('aria-pressed', x === b));
     document.querySelectorAll('[data-pane]').forEach(p => { p.hidden = p.dataset.pane !== b.dataset.seg; });
   });
+  document.querySelectorAll('[data-follow]').forEach(b => b.onclick = () => {
+    const on = b.getAttribute('aria-pressed') !== 'true'; setFollow(b.dataset.follow, on);
+    b.setAttribute('aria-pressed', on); b.textContent = on ? 'Following' : 'Follow'; b.classList.toggle('f', !on); b.classList.toggle('g', on);
+  });
+  const rerender = () => { const y = scrollY; render(true); scrollTo(0, y); };
+  document.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { showsKind = b.dataset.kind; rerender(); });
+  document.querySelectorAll('[data-day]').forEach(b => b.onclick = () => { showsDay = +b.dataset.day; rerender(); });
+  document.querySelectorAll('[data-mf]').forEach(b => b.onclick = () => { mapFilter = b.dataset.mf; rerender(); });
+  document.querySelectorAll('[data-log]').forEach(b => b.onclick = () => { const [s, i] = b.dataset.log.split(':'); openLog(s, +i); });
+  const sel = document.getElementById('placeSel');
+  if (sel) sel.onchange = () => {
+    const save = p => { try { localStorage.setItem(PLACE_KEY, JSON.stringify(p)); } catch {} rerender(); };
+    if (sel.value !== 'Near me') return save({ name: sel.value, at: M.places[sel.value] });
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(g => save({ name: 'Near me', at: [g.coords.latitude, g.coords.longitude] }), () => { sel.value = myPlace().name; }, { timeout: 10000, maximumAge: 600000 });
+  };
+  const mapEl = document.getElementById('map');
+  if (mapEl) drawMap(mapEl);
   const scaleBtn = document.getElementById('scaleBtn');
   if (scaleBtn) scaleBtn.onclick = () => {
     const box = document.getElementById('scale'), w = M.works.find(x => location.hash.endsWith('/' + x.slug));
@@ -368,6 +636,46 @@ function wire() {
     }
     box.hidden = !open; scaleBtn.setAttribute('aria-expanded', open);
   };
+}
+
+// the studio log: an artist's clips and stories, full screen, one after another; each belongs to a work
+function openLog(slug, start) {
+  const a = M.artists.find(x => x.slug === slug); if (!a) return;
+  const posts = M.live.filter(p => p.artist === a).sort((x, y) => y.at - x.at);
+  const z = document.createElement('div');
+  z.className = 'log-view'; z.setAttribute('role', 'dialog'); z.setAttribute('aria-label', `From ${a.name}'s studio`);
+  let i = start, f = 0, timer = null;
+  const close = () => { clearTimeout(timer); z.remove(); document.removeEventListener('keydown', onKey); };
+  const go = d => {
+    const p = posts[i];
+    if (p.kind === 'story' && f + d >= 0 && f + d < p.frames.length) { f += d; return show(); }
+    i += d; f = 0;
+    if (i < 0) { i = 0; return show(); }
+    if (i >= posts.length) return close();
+    show();
+  };
+  function show() {
+    clearTimeout(timer);
+    const p = posts[i];
+    z.innerHTML = `<div class="lv-bars">${posts.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"><b></b></i>`).join('')}</div>
+      <div class="lv-top"><a href="#/artist/${a.slug}">${im(a.portrait, '')}<span><b>${esc(a.name)}</b><span>Studio log · ${esc(ago(p.at))}</span></span></a><button type="button" class="x" aria-label="Close">×</button></div>
+      <div class="lv-media">${p.kind === 'video' ? `<video src="${esc(p.video)}" poster="${esc(p.poster)}" playsinline autoplay muted></video>` : `<img src="${esc(p.frames[f])}" alt="">`}</div>
+      <button type="button" class="lv-prev" aria-label="Back"></button><button type="button" class="lv-next" aria-label="Next"></button>
+      <div class="lv-foot"><p>${esc(p.text)}</p>${p.work ? `<a class="lv-work" href="#/work/${p.work.slug}">${im(p.work.image, '', '', '15vw')}<span><b>${esc(p.work.title)}</b><span>${esc([p.work.year, p.work.medium].filter(Boolean).join(' · '))}</span></span><span aria-hidden="true">→</span></a>` : ''}</div>`;
+    const bar = z.querySelector('.lv-bars .now b'), v = z.querySelector('video');
+    let started = false;
+    const run = ms => { if (started) return; started = true; clearTimeout(timer); bar.style.transition = `width ${ms}ms linear`; requestAnimationFrame(() => { bar.style.width = '100%'; }); timer = setTimeout(() => go(1), ms); };
+    // a clip runs its length (if it can't tell, seven seconds); a story's frame, four and a half
+    if (v) { v.addEventListener('loadedmetadata', () => run((v.duration || 7) * 1000), { once: true }); v.play().catch(() => {}); timer = setTimeout(() => run(7000), 4000); }
+    else run(4500);
+    z.querySelector('.x').onclick = close;
+    z.querySelector('.lv-prev').onclick = () => go(-1);
+    z.querySelector('.lv-next').onclick = () => go(1);
+    z.querySelectorAll('a').forEach(l => l.addEventListener('click', close));
+  }
+  const onKey = e => { if (e.key === 'Escape') close(); if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); };
+  document.addEventListener('keydown', onKey);
+  document.body.append(z); show();
 }
 
 // zoom viewer: tap to switch between fit-to-screen and full size, Escape or × to close
