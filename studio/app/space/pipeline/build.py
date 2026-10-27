@@ -183,6 +183,44 @@ def floor_detail(images, cams, masks, gains, fy, size=1.0, mpp=0.003):
     return np.clip(mean + (t - mean) * gain, 0, 255).astype(np.uint8)
 
 
+MEASURE_VERSION = 1      # raise when the measuring itself changes: every space is then measured afresh
+
+
+def measure_key(ex, overrides):
+    """What a measurement depends on: the photos, the works' images and sizes, the hand measurements, and the
+    measuring code's version."""
+    parts = [str(MEASURE_VERSION), file_key(ex['photos'] + [w['image'] for w in ex['works']]),
+             json.dumps([[w['title'], w.get('size_cm')] for w in ex['works']], sort_keys=True), json.dumps(overrides, sort_keys=True)]
+    return hashlib.sha1('|'.join(parts).encode()).hexdigest()[:20]
+
+
+def _arr(x):
+    return {k: _arr(v) for k, v in x.items()} if isinstance(x, dict) else (x.tolist() if isinstance(x, np.ndarray) else x)
+
+
+def save_measure(slug, key, cams, works, sizes, g, groups, room_m):
+    """Keep a measurement that passed stage 1 with the space (data/spaces/<slug>.measure.json)."""
+    m = {'key': key, 'cams': {p: _arr(c) for p, c in cams.items()}, 'works': {t: _arr(w) for t, w in works.items()},
+         'sizes': {t: list(v) for t, v in sizes.items()}, 'rms_px': float(g['rms_px']),
+         'other_works': [t for gg in groups[1:] for t in gg['works']],
+         'room': {**room_m, 'box': {f'{k[0]},{k[1]}': float(v) for k, v in room_m['box'].items()}}}
+    json.dump(m, open(OUT / f'{slug}.measure.json', 'w'), indent=0)
+
+
+def load_measure(slug, key):
+    f = OUT / f'{slug}.measure.json'
+    if not f.exists():
+        return None
+    m = json.load(open(f))
+    if m.get('key') != key:
+        return None
+    cams = {p: {k: (np.array(v) if k in ('R', 't', 'pp') else (tuple(v) if k == 'shape' else v)) for k, v in c.items()} for p, c in m['cams'].items()}
+    works = {t: {k: (np.array(v) if isinstance(v, list) else v) for k, v in w.items()} for t, w in m['works'].items()}
+    sizes = {t: tuple(v) for t, v in m['sizes'].items()}
+    g = {'cams': cams, 'works': works, 'rms_px': m['rms_px'], 'errs': {}}
+    return {'cams': cams, 'works': works, 'sizes': sizes, 'g': g, 'groups': [g, {'works': {t: None for t in m['other_works']}}], 'room': m['room']}
+
+
 def square_to_walls(cams, works, sizes, log=print):
     """Turn the room (about the vertical) so its walls run exactly along the axes. The works hung on one
     wall line up along it: over a long wall, a slope of even half a degree in that line puts the room's far
@@ -234,17 +272,28 @@ def build(slug, log=print):
         overrides = json.load(open(of))
     log(f"{ex['title']}: {len(ex['photos'])} photos, {len(ex['works'])} works")
     found = cached('match2:' + file_key(ex['photos'] + [w['image'] for w in ex['works']]), lambda: find_works(ex, log))
-    groups, sizes = solve(found, ex, log, tie_fn=lambda: cached('ties1:' + file_key(ex['photos']), lambda: find_ties(ex['photos'], log)))
-    if not groups:
-        log('  no work was found in the photos: no space'); return None
-    g = groups[0]
-    cams, works = g['cams'], g['works']
-    square_to_walls(cams, works, sizes, log)
+    # the measurement (cameras, works, floor, walls, ceiling, openings) is kept with the space: the same photos
+    # and works are measured once, and every later build (on any machine) starts from that measurement, so a
+    # space that passed its checks is rebuilt the same, not re-measured a few cm differently on other hardware
+    mkey = measure_key(ex, overrides)
+    frozen = load_measure(slug, mkey)
+    if frozen:
+        log('  measurement: the one kept with the space (same photos, works and sizes)')
+        cams, works, sizes, g, groups = frozen['cams'], frozen['works'], frozen['sizes'], frozen['g'], frozen['groups']
+    else:
+        groups, sizes = solve(found, ex, log, tie_fn=lambda: cached('ties1:' + file_key(ex['photos']), lambda: find_ties(ex['photos'], log)))
+        if not groups:
+            log('  no work was found in the photos: no space'); return None
+        g = groups[0]
+        cams, works = g['cams'], g['works']
+        square_to_walls(cams, works, sizes, log)
+    works_measured = {t: {k: (v.copy() if isinstance(v, np.ndarray) else v) for k, v in w.items()} for t, w in works.items()}
+    fm = (frozen or {}).get('room', {})
     images = {p: load_image(p, 2000) for p in cams}
     matched = {p: [t for t in hits if t != '_shape'] for p, hits in found.items()}
     # a few cm round each work: a canvas's edge and side must never stay on the wall beside it
     masks = room.work_masks(cams, works, sizes, matched, grow=0.035)
-    fy, fconf = room.floor_from_walls(cams, images, masks, works, sizes, log)
+    fy, fconf = (fm['fy'], fm['fconf']) if fm else room.floor_from_walls(cams, images, masks, works, sizes, log)
     floor_how = 'נמדדה: הקו שבו הקירות פוגשים את הרצפה בכל הצילומים'
     if fy is None:
         fy, fconf = room.find_floor(cams, images, masks, log)
@@ -260,6 +309,8 @@ def build(slug, log=print):
         fy = float(np.mean([works[t]['c'][1] - h for t, h in known.items()])); floor_how = 'ממדידה ידנית של גובה ' + ', '.join(known); fconf = 1.0
     walls = room.wall_candidates(works, sizes)
     box, box_how = box_from_walls(walls, works, cams, log)
+    if fm:
+        box = {tuple(int(x) for x in k.split(',')): v for k, v in fm['box'].items()}
     # tall wall textures first, to find where the walls meet the ceiling
     tall = wall_surfaces(box, 5.0, fy)
     gains = bake.exposure_gains(tall, images, cams, masks)
@@ -267,8 +318,8 @@ def build(slug, log=print):
     for s in tall:
         col, cov, dis, n = bake.bake(s, images, cams, masks, gains)
         tex.append((col, cov > 0))
-    ceiling = overrides.get('height') or room.ceiling_from_edges(cams, images, masks, works, sizes, fy, log) \
-        or room.ceiling_from_walls(tex, bake.TEXEL, 5.0)
+    ceiling = fm['ceiling0'] if fm else (overrides.get('height') or room.ceiling_from_edges(cams, images, masks, works, sizes, fy, log)
+                                         or room.ceiling_from_walls(tex, bake.TEXEL, 5.0))
     ceiling_how = 'נמדדה: הקו שבו הקירות פוגשים את התקרה' if ceiling and 'height' not in overrides else ('ממדידה ידנית' if ceiling else 'משוערת')
     ceiling = ceiling or 3.5
     x0, x1, z0, z1 = box[(0, 1)], box[(0, -1)], box[(2, 1)], box[(2, -1)]
@@ -277,7 +328,9 @@ def build(slug, log=print):
     x0, x1, z0, z1 = box[(0, 1)], box[(0, -1)], box[(2, 1)], box[(2, -1)]
     # a ceiling that isn't flat (a lowered middle, sloping up to the walls): the walls rise to their own top,
     # and the ceiling follows its shape across the room
-    profile_c = None if overrides.get('height') else room.ceiling_profile(cams, images, masks, box, fy, ceiling, log)
+    profile_c = (fm['profile'] and (fm['profile'][0], fm['profile'][1])) if fm else \
+        (None if overrides.get('height') else room.ceiling_profile(cams, images, masks, box, fy, ceiling, log))
+    ceiling0 = ceiling
     if profile_c:
         ceiling = max(h for _, h in profile_c[0])
         ceiling_how = 'נמדדה: אמצע שטוח (הקווים שלאורך החדר) ושיפועים עד ראש הקירות'
@@ -294,6 +347,7 @@ def build(slug, log=print):
     floor_lab = (np.median(lab, 0), np.median(np.abs(lab - np.median(lab, 0)), 0) * 1.48)
     measured = {'wall-x0': (0, 1), 'wall-x1': (0, -1), 'wall-z0': (2, 1), 'wall-z1': (2, -1)}
     walls_baked = [(s, *bake.bake(s, images, cams, masks, gains)[:2]) for s in wall_surfaces(box, ceiling, fy, texel=0.005)]
+    openings_found = {}
     wall_seen = float(np.mean([c.mean() for _, _, c in walls_baked]))
     # a wall no photo saw (or barely) is completed from the walls that were seen: the same plaster, the
     # same fall of light from floor to ceiling, so it reads as the same room rather than a hole
@@ -309,8 +363,12 @@ def build(slug, log=print):
         # and only where the wall was well photographed: a poorly seen corner is no evidence of a doorway
         # (read from the wall as it will show, completed where no photo saw it: a gap is not an edge)
         whole = bake.fill_holes(col, cov)
-        ops = room.openings_in_wall(whole, np.ones(cov.shape, bool), floor_lab, s.texel, ceiling, ceiling, log) \
-            if box_how[measured[s.name]].startswith('נמדד') and cov.mean() > 0.7 else []
+        if fm:
+            ops = [dict(o) for o in fm['openings'].get(s.name, [])]
+        else:
+            ops = room.openings_in_wall(whole, np.ones(cov.shape, bool), floor_lab, s.texel, ceiling, ceiling, log) \
+                if box_how[measured[s.name]].startswith('נמדד') and cov.mean() > 0.7 else []
+        openings_found[s.name] = [dict(o) for o in ops]
         # round each opening, the photos show its real edge a few cm from where it is cut: that band is
         # filled with plain wall, so no sliver of the photo's edge runs alongside the cut
         cov = cov.copy()
@@ -484,6 +542,9 @@ def build(slug, log=print):
     # stage 2 (inspect.py), which looks at it in the viewer itself before it may be published
     spec['_fy'] = 0.0 if False else fy
     passed, checks, scores = verify.check(spec, ex, found, g, sizes, box_how, wall_seen, log)
+    if passed and not frozen:
+        save_measure(slug, mkey, cams, works_measured, sizes, g, groups, {'fy': fy, 'fconf': fconf, 'box': box, 'ceiling0': ceiling0,
+                     'profile': list(profile_c) if profile_c else None, 'openings': openings_found})
     del spec['_fy']
     spec['quality'] = 'candidate' if passed else 'withheld'
     spec['checks'] = [{'rule': n, 'value': round(float(v), 3), 'passed': bool(ok)} for n, v, ok, _ in checks]
