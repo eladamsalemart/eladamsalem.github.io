@@ -139,7 +139,8 @@ const status = e => { const now = Date.now(); return now < e.start ? 'soon' : no
 const isOn = e => status(e) === 'on';
 const nextEvent = e => e.events.filter(v => +v.at > Date.now() - 3 * 3600000).sort((a, b) => a.at - b.at)[0];
 const worksOf = a => M.works.filter(w => w.artist === a);
-const showsOf = a => M.exhibitions.filter(e => (e.artists || [e.artist]).includes(a));
+// an artist's shows, their own first (a group show after)
+const showsOf = a => M.exhibitions.filter(e => (e.artists || [e.artist]).includes(a)).sort((x, y) => (y.artist === a) - (x.artist === a));
 const byOf = e => (e.artists || [e.artist]).map(a => a.name).join(' × ');
 const dayName = t => { const d = Math.round((new Date(t).setHours(0, 0, 0, 0) - today()) / DAY); return d === 0 ? 'Tonight' : d === 1 ? 'Tomorrow' : t.toLocaleDateString('en-GB', { weekday: 'short' }); };
 const hm = t => t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -384,6 +385,20 @@ function placePage(slug) {
   </div>`;
 }
 
+// --- Artists: everyone on Open Studio, the ones you follow first ---------------------------------------
+function artistsPage() {
+  const fol = following(), list = [...M.artists].sort((a, b) => fol.includes(b.slug) - fol.includes(a.slug));
+  return `<div class="wrap gut">
+    <div class="home-h"><h1>Artists</h1></div>
+    <div class="artists">${list.map(a => {
+      const on = showsOf(a).find(e => status(e) !== 'past');
+      return `<a class="artist-row" href="#/artist/${a.slug}">${im(a.portrait, a.name)}<span><b>${esc(a.name)}</b>
+        <div class="m">${esc([a.discipline, a.city].filter(Boolean).join(' · '))}${fol.includes(a.slug) ? ' · Following' : ''}</div>
+        ${on ? `<div class="on">${esc(on.title)} · ${esc(when(on))}</div>` : ''}</span><span aria-hidden="true">→</span></a>`;
+    }).join('')}</div>
+  </div>`;
+}
+
 // --- Shows: "Opening Night" — what's on now, in rooms and online; tonight first ---------------------------
 let showsKind = 'all', showsDay = 0;
 function showsPage() {
@@ -516,11 +531,12 @@ const notFound = () => `<div class="wrap gut loading"><p>This page doesn't exist
 const routes = [
   [/^#?\/?$/, () => home(), 'home'],
   [/^#\/search$/, () => search(), 'search'],
+  [/^#\/artists$/, () => artistsPage(), 'artists'],
   [/^#\/shows$/, () => showsPage(), 'shows'],
   [/^#\/(map|places)$/, () => mapPage(), 'map'],
   [/^#\/map\/([^/]+)$/, m => mapPage(m[1]), 'map'],
   [/^#\/place\/([^/]+)$/, m => placePage(m[1]), 'map'],
-  [/^#\/artist\/([^/]+)$/, m => artistPage(m[1])],
+  [/^#\/artist\/([^/]+)$/, m => artistPage(m[1]), 'artists'],
   [/^#\/artist\/([^/]+)\/works\/?$/, m => { const a = M.artists.find(x => x.slug === m[1]); return a ? archive(null, a) : notFound(); }],
   [/^#\/artist\/([^/]+)\/works\/([^/]+)$/, m => { const a = M.artists.find(x => x.slug === m[1]); return a ? archive(decodeURIComponent(m[2]), a) : notFound(); }],
   [/^#\/works\/?$/, () => archive()],
@@ -546,7 +562,7 @@ function render() {
   }
   let html = notFound(), tab = null;
   for (const [re, view, t] of routes) { const m = hash.match(re); if (m) { html = view(m); tab = t || null; break; } }
-  const top = tab === 'home' || tab === 'search' || tab === 'shows' || tab === 'map';
+  const top = tab === 'home' || tab === 'search' || tab === 'shows' || tab === 'map' || hash === '#/artists';
   // the shows on now have the look of an opening night; the map, of walls in daylight
   const ex = hash.match(/^#\/exhibition\/([^/]+)$/), exOn = ex && M.exhibitions.find(e => e.slug === ex[1]);
   const look = tab === 'shows' || (exOn && status(exOn) !== 'past') ? 'night' : tab === 'map' ? 'walls' : '';
