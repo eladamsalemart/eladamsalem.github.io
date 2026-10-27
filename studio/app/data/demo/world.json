@@ -1,0 +1,1008 @@
+{
+ "_note": "Demo content: fictional artists, galleries and shows, with generated works, to see the app full. Dates are days from today.",
+ "artists": [
+  {
+   "slug": "lia-moren",
+   "name": "Lia Morén",
+   "discipline": "Painting",
+   "city": "Haifa",
+   "statement": "I paint the hour when a place stops being a view and becomes a feeling: tide lines, orchards, the light left in a room.",
+   "portrait": "data/demo/people/lia-moren.jpg"
+  },
+  {
+   "slug": "noa-ben-ari",
+   "name": "Noa Ben-Ari",
+   "discipline": "Textile & collage",
+   "city": "Jaffa",
+   "statement": "Cloth remembers hands. I cut up what my family wore and sew it into maps of the places we left.",
+   "portrait": "data/demo/people/noa-ben-ari.jpg"
+  },
+  {
+   "slug": "daniel-ostrovsky",
+   "name": "Daniel Ostrovsky",
+   "discipline": "Painting",
+   "city": "Tel Aviv",
+   "statement": "Colour slowly, and it starts to breathe. Each painting is twenty thin layers and a lot of waiting.",
+   "portrait": "data/demo/people/daniel-ostrovsky.jpg"
+  },
+  {
+   "slug": "maya-haddad",
+   "name": "Maya Haddad",
+   "discipline": "Works on paper",
+   "city": "Jerusalem",
+   "statement": "One breath, one stroke. I draw the city's stone and wind with a brush that holds a single dip of ink.",
+   "portrait": "data/demo/people/maya-haddad.jpg"
+  },
+  {
+   "slug": "tomer-lev",
+   "name": "Tomer Lev",
+   "discipline": "Digital art",
+   "city": "Tel Aviv",
+   "statement": "I write the rules and let the work grow. Every piece is a field of forces made visible, different every time it runs.",
+   "portrait": "data/demo/people/tomer-lev.jpg"
+  }
+ ],
+ "works": [
+  {
+   "slug": "low-tide",
+   "artist": "lia-moren",
+   "title": "Low Tide",
+   "year": "2025",
+   "medium": "Oil on canvas",
+   "size": [
+    100,
+    80
+   ],
+   "image": "data/demo/works/low-tide.jpg"
+  },
+  {
+   "slug": "orchard-at-noon",
+   "artist": "lia-moren",
+   "title": "Orchard at Noon",
+   "year": "2025",
+   "medium": "Oil on canvas",
+   "size": [
+    120,
+    150
+   ],
+   "image": "data/demo/works/orchard-at-noon.jpg"
+  },
+  {
+   "slug": "two-rooms",
+   "artist": "lia-moren",
+   "title": "Two Rooms",
+   "year": "2025",
+   "medium": "Acrylic on canvas",
+   "size": [
+    90,
+    90
+   ],
+   "image": "data/demo/works/two-rooms.jpg"
+  },
+  {
+   "slug": "late-garden",
+   "artist": "lia-moren",
+   "title": "Late Garden",
+   "year": "2024",
+   "medium": "Oil on linen",
+   "size": [
+    140,
+    110
+   ],
+   "image": "data/demo/works/late-garden.jpg"
+  },
+  {
+   "slug": "night-window",
+   "artist": "lia-moren",
+   "title": "Night Window",
+   "year": "2024",
+   "medium": "Oil on panel",
+   "size": [
+    60,
+    80
+   ],
+   "image": "data/demo/works/night-window.jpg"
+  },
+  {
+   "slug": "salt",
+   "artist": "lia-moren",
+   "title": "Salt",
+   "year": "2024",
+   "medium": "Gouache on paper",
+   "size": [
+    50,
+    50
+   ],
+   "image": "data/demo/works/salt.jpg"
+  },
+  {
+   "slug": "dusk-study-i",
+   "artist": "lia-moren",
+   "title": "Dusk Study I",
+   "year": "2023",
+   "medium": "Oil on canvas",
+   "size": [
+    40,
+    30
+   ],
+   "image": "data/demo/works/dusk-study-i.jpg"
+  },
+  {
+   "slug": "dusk-study-ii",
+   "artist": "lia-moren",
+   "title": "Dusk Study II",
+   "year": "2023",
+   "medium": "Oil on canvas",
+   "size": [
+    40,
+    30
+   ],
+   "image": "data/demo/works/dusk-study-ii.jpg"
+  },
+  {
+   "slug": "market-day",
+   "artist": "noa-ben-ari",
+   "title": "Market Day",
+   "year": "2026",
+   "medium": "Hand-stitched textile collage",
+   "size": [
+    120,
+    90
+   ],
+   "image": "data/demo/works/market-day.jpg"
+  },
+  {
+   "slug": "indigo-map",
+   "artist": "noa-ben-ari",
+   "title": "Indigo Map",
+   "year": "2026",
+   "medium": "Hand-stitched textile collage",
+   "size": [
+    100,
+    140
+   ],
+   "image": "data/demo/works/indigo-map.jpg"
+  },
+  {
+   "slug": "grandmothers-kitchen",
+   "artist": "noa-ben-ari",
+   "title": "Grandmother's Kitchen",
+   "year": "2025",
+   "medium": "Hand-stitched textile collage",
+   "size": [
+    90,
+    90
+   ],
+   "image": "data/demo/works/grandmothers-kitchen.jpg"
+  },
+  {
+   "slug": "patchwork-weather",
+   "artist": "noa-ben-ari",
+   "title": "Patchwork Weather",
+   "year": "2025",
+   "medium": "Hand-stitched textile collage",
+   "size": [
+    160,
+    120
+   ],
+   "image": "data/demo/works/patchwork-weather.jpg"
+  },
+  {
+   "slug": "saturday-quilt",
+   "artist": "noa-ben-ari",
+   "title": "Saturday Quilt",
+   "year": "2024",
+   "medium": "Hand-stitched textile collage",
+   "size": [
+    140,
+    140
+   ],
+   "image": "data/demo/works/saturday-quilt.jpg"
+  },
+  {
+   "slug": "red-thread",
+   "artist": "noa-ben-ari",
+   "title": "Red Thread",
+   "year": "2024",
+   "medium": "Hand-stitched textile collage",
+   "size": [
+    70,
+    100
+   ],
+   "image": "data/demo/works/red-thread.jpg"
+  },
+  {
+   "slug": "slow-colour-i",
+   "artist": "daniel-ostrovsky",
+   "title": "Slow Colour I",
+   "year": "2026",
+   "medium": "Acrylic on canvas",
+   "size": [
+    120,
+    160
+   ],
+   "image": "data/demo/works/slow-colour-i.jpg"
+  },
+  {
+   "slug": "slow-colour-ii",
+   "artist": "daniel-ostrovsky",
+   "title": "Slow Colour II",
+   "year": "2026",
+   "medium": "Acrylic on canvas",
+   "size": [
+    120,
+    160
+   ],
+   "image": "data/demo/works/slow-colour-ii.jpg"
+  },
+  {
+   "slug": "ochre-hour",
+   "artist": "daniel-ostrovsky",
+   "title": "Ochre Hour",
+   "year": "2025",
+   "medium": "Acrylic on canvas",
+   "size": [
+    100,
+    130
+   ],
+   "image": "data/demo/works/ochre-hour.jpg"
+  },
+  {
+   "slug": "blue-room",
+   "artist": "daniel-ostrovsky",
+   "title": "Blue Room",
+   "year": "2025",
+   "medium": "Acrylic on canvas",
+   "size": [
+    150,
+    180
+   ],
+   "image": "data/demo/works/blue-room.jpg"
+  },
+  {
+   "slug": "between-two-greens",
+   "artist": "daniel-ostrovsky",
+   "title": "Between Two Greens",
+   "year": "2024",
+   "medium": "Acrylic on canvas",
+   "size": [
+    90,
+    120
+   ],
+   "image": "data/demo/works/between-two-greens.jpg"
+  },
+  {
+   "slug": "late-pink",
+   "artist": "daniel-ostrovsky",
+   "title": "Late Pink",
+   "year": "2024",
+   "medium": "Acrylic on canvas",
+   "size": [
+    80,
+    100
+   ],
+   "image": "data/demo/works/late-pink.jpg"
+  },
+  {
+   "slug": "breath-i",
+   "artist": "maya-haddad",
+   "title": "Breath I",
+   "year": "2026",
+   "medium": "Sumi ink on paper",
+   "size": [
+    70,
+    100
+   ],
+   "image": "data/demo/works/breath-i.jpg"
+  },
+  {
+   "slug": "breath-ii",
+   "artist": "maya-haddad",
+   "title": "Breath II",
+   "year": "2026",
+   "medium": "Sumi ink on paper",
+   "size": [
+    70,
+    100
+   ],
+   "image": "data/demo/works/breath-ii.jpg"
+  },
+  {
+   "slug": "stone-wind",
+   "artist": "maya-haddad",
+   "title": "Stone Wind",
+   "year": "2025",
+   "medium": "Sumi ink on paper",
+   "size": [
+    100,
+    70
+   ],
+   "image": "data/demo/works/stone-wind.jpg"
+  },
+  {
+   "slug": "circle-for-the-old-city",
+   "artist": "maya-haddad",
+   "title": "Circle for the Old City",
+   "year": "2025",
+   "medium": "Sumi ink on paper",
+   "size": [
+    90,
+    90
+   ],
+   "image": "data/demo/works/circle-for-the-old-city.jpg"
+  },
+  {
+   "slug": "rain-on-musrara",
+   "artist": "maya-haddad",
+   "title": "Rain on Musrara",
+   "year": "2024",
+   "medium": "Sumi ink on paper",
+   "size": [
+    70,
+    100
+   ],
+   "image": "data/demo/works/rain-on-musrara.jpg"
+  },
+  {
+   "slug": "one-line",
+   "artist": "maya-haddad",
+   "title": "One Line",
+   "year": "2024",
+   "medium": "Sumi ink on paper",
+   "size": [
+    50,
+    140
+   ],
+   "image": "data/demo/works/one-line.jpg"
+  },
+  {
+   "slug": "signal-01",
+   "artist": "tomer-lev",
+   "title": "Signal 01",
+   "year": "2026",
+   "medium": "Generative digital work, edition of 5",
+   "size": [
+    120,
+    67.5
+   ],
+   "image": "data/demo/works/signal-01.jpg"
+  },
+  {
+   "slug": "signal-02",
+   "artist": "tomer-lev",
+   "title": "Signal 02",
+   "year": "2026",
+   "medium": "Generative digital work, edition of 5",
+   "size": [
+    120,
+    67.5
+   ],
+   "image": "data/demo/works/signal-02.jpg"
+  },
+  {
+   "slug": "noise-garden",
+   "artist": "tomer-lev",
+   "title": "Noise Garden",
+   "year": "2025",
+   "medium": "Generative digital work, edition of 5",
+   "size": [
+    100,
+    100
+   ],
+   "image": "data/demo/works/noise-garden.jpg"
+  },
+  {
+   "slug": "night-traffic",
+   "artist": "tomer-lev",
+   "title": "Night Traffic",
+   "year": "2025",
+   "medium": "Generative digital work, edition of 5",
+   "size": [
+    160,
+    90
+   ],
+   "image": "data/demo/works/night-traffic.jpg"
+  },
+  {
+   "slug": "carrier-wave",
+   "artist": "tomer-lev",
+   "title": "Carrier Wave",
+   "year": "2024",
+   "medium": "Generative digital work, edition of 5",
+   "size": [
+    120,
+    67.5
+   ],
+   "image": "data/demo/works/carrier-wave.jpg"
+  },
+  {
+   "slug": "static-bloom",
+   "artist": "tomer-lev",
+   "title": "Static Bloom",
+   "year": "2024",
+   "medium": "Generative digital work, edition of 5",
+   "size": [
+    100,
+    100
+   ],
+   "image": "data/demo/works/static-bloom.jpg"
+  }
+ ],
+ "shows": [
+  {
+   "slug": "low-tide-haifa",
+   "title": "Low Tide",
+   "artists": [
+    "lia-moren"
+   ],
+   "kind": "gallery",
+   "venue": "Harbour Gallery",
+   "address": "Ha-Atsmaut Rd 41, Haifa",
+   "city": "Haifa",
+   "at": [
+    32.8193,
+    34.999
+   ],
+   "start": 0,
+   "end": 45,
+   "hours": "Tue–Sat 11:00–19:00",
+   "events": [
+    {
+     "day": 0,
+     "time": "20:00",
+     "what": "Opening"
+    }
+   ],
+   "works": [
+    "low-tide",
+    "salt",
+    "night-window",
+    "dusk-study-i",
+    "dusk-study-ii"
+   ],
+   "text": "New paintings of the bay at low tide: the hour when the water steps back and the harbour shows its floor.",
+   "images": [
+    "data/demo/shows/low-tide-haifa-1.jpg",
+    "data/demo/shows/low-tide-haifa-2.jpg"
+   ]
+  },
+  {
+   "slug": "patchwork-weather",
+   "title": "Patchwork Weather",
+   "artists": [
+    "noa-ben-ari"
+   ],
+   "kind": "gallery",
+   "venue": "Rope Street Gallery",
+   "address": "Rope St 7, Jaffa",
+   "city": "Jaffa",
+   "at": [
+    32.0527,
+    34.7563
+   ],
+   "start": -12,
+   "end": 6,
+   "hours": "Mon–Fri 10:00–18:00, Sat 11:00–14:00",
+   "events": [
+    {
+     "day": 5,
+     "time": "19:00",
+     "what": "Closing night"
+    }
+   ],
+   "works": [
+    "patchwork-weather",
+    "market-day",
+    "indigo-map",
+    "red-thread"
+   ],
+   "text": "Six large textiles sewn from clothes of three generations, hung like weather maps of a family.",
+   "images": [
+    "data/demo/shows/patchwork-weather-1.jpg",
+    "data/demo/shows/patchwork-weather-2.jpg"
+   ]
+  },
+  {
+   "slug": "slow-colour",
+   "title": "Slow Colour",
+   "artists": [
+    "daniel-ostrovsky"
+   ],
+   "kind": "gallery",
+   "venue": "Studio 5",
+   "address": "Levontin St 5, Tel Aviv",
+   "city": "Tel Aviv",
+   "at": [
+    32.0628,
+    34.774
+   ],
+   "start": 2,
+   "end": 50,
+   "hours": "Wed–Sat 12:00–20:00",
+   "events": [
+    {
+     "day": 2,
+     "time": "19:00",
+     "what": "Opening"
+    }
+   ],
+   "works": [
+    "slow-colour-i",
+    "slow-colour-ii",
+    "ochre-hour",
+    "blue-room"
+   ],
+   "text": "Colour fields built from twenty thin layers each. Stand close, and they move.",
+   "images": [
+    "data/demo/shows/slow-colour-1.jpg",
+    "data/demo/shows/slow-colour-2.jpg"
+   ]
+  },
+  {
+   "slug": "ink-breath",
+   "title": "Ink, Breath",
+   "artists": [
+    "maya-haddad"
+   ],
+   "kind": "gallery",
+   "venue": "Musrara Lane Gallery",
+   "address": "Ha-Neviim St 60, Jerusalem",
+   "city": "Jerusalem",
+   "at": [
+    31.7838,
+    35.2265
+   ],
+   "start": -26,
+   "end": 3,
+   "hours": "Sun–Thu 10:00–18:00, Fri 10:00–13:00",
+   "events": [
+    {
+     "day": 2,
+     "time": "18:00",
+     "what": "Artist talk"
+    }
+   ],
+   "works": [
+    "breath-i",
+    "breath-ii",
+    "stone-wind",
+    "circle-for-the-old-city",
+    "rain-on-musrara"
+   ],
+   "text": "Ink drawings made in one breath each, on paper from a mill in the Old City.",
+   "images": [
+    "data/demo/shows/ink-breath-1.jpg",
+    "data/demo/shows/ink-breath-2.jpg"
+   ]
+  },
+  {
+   "slug": "two-rooms-one-light",
+   "title": "Two Rooms, One Light",
+   "artists": [
+    "lia-moren",
+    "daniel-ostrovsky"
+   ],
+   "kind": "gallery",
+   "venue": "Courtyard Hall",
+   "address": "Rothschild Blvd 70, Tel Aviv",
+   "city": "Tel Aviv",
+   "at": [
+    32.0663,
+    34.7748
+   ],
+   "start": 6,
+   "end": 40,
+   "hours": "Tue–Sat 11:00–19:00",
+   "events": [
+    {
+     "day": 6,
+     "time": "19:30",
+     "what": "Opening"
+    }
+   ],
+   "works": [
+    "two-rooms",
+    "late-garden",
+    "between-two-greens",
+    "late-pink"
+   ],
+   "text": "Two painters who never met, paired by the light in their rooms: Lia Morén's harbour and Daniel Ostrovsky's colour fields.",
+   "curator": "Open Studio",
+   "images": [
+    "data/demo/shows/two-rooms-one-light-1.jpg",
+    "data/demo/shows/two-rooms-one-light-2.jpg"
+   ]
+  },
+  {
+   "slug": "signal-noise",
+   "title": "Signal / Noise",
+   "artists": [
+    "tomer-lev"
+   ],
+   "kind": "online",
+   "venue": "Online",
+   "city": "",
+   "at": null,
+   "start": -4,
+   "end": 60,
+   "hours": "Open all the time",
+   "events": [
+    {
+     "day": 1,
+     "time": "21:00",
+     "what": "Live render"
+    }
+   ],
+   "works": [
+    "signal-01",
+    "signal-02",
+    "night-traffic",
+    "carrier-wave",
+    "static-bloom"
+   ],
+   "text": "A digital exhibition: works that grow from a field of forces, different each time they run. Only online.",
+   "images": [
+    "data/demo/works/signal-01.jpg"
+   ]
+  },
+  {
+   "slug": "afterimage",
+   "title": "Afterimage",
+   "artists": [
+    "lia-moren",
+    "noa-ben-ari",
+    "maya-haddad",
+    "tomer-lev"
+   ],
+   "kind": "online",
+   "venue": "Online",
+   "city": "",
+   "at": null,
+   "start": -2,
+   "end": 30,
+   "hours": "Open all the time",
+   "events": [],
+   "works": [
+    "orchard-at-noon",
+    "saturday-quilt",
+    "one-line",
+    "noise-garden"
+   ],
+   "text": "A concept exhibition: four artists, four ways a place stays with you after you leave it. Curated on Open Studio.",
+   "curator": "Open Studio",
+   "images": [
+    "data/demo/works/orchard-at-noon.jpg"
+   ]
+  },
+  {
+   "slug": "threads",
+   "title": "Threads",
+   "artists": [
+    "noa-ben-ari"
+   ],
+   "kind": "gallery",
+   "venue": "Salt Room",
+   "address": "Yefet St 30, Jaffa",
+   "city": "Jaffa",
+   "at": [
+    32.05,
+    34.7537
+   ],
+   "start": -420,
+   "end": -380,
+   "hours": "",
+   "events": [],
+   "works": [
+    "grandmothers-kitchen",
+    "saturday-quilt"
+   ],
+   "text": "Noa Ben-Ari's first solo show.",
+   "images": [
+    "data/demo/shows/threads-1.jpg",
+    "data/demo/shows/threads-2.jpg"
+   ]
+  },
+  {
+   "slug": "shoreline",
+   "title": "Shoreline",
+   "artists": [
+    "lia-moren"
+   ],
+   "kind": "gallery",
+   "venue": "Harbour Gallery",
+   "address": "Ha-Atsmaut Rd 41, Haifa",
+   "city": "Haifa",
+   "at": [
+    32.8193,
+    34.999
+   ],
+   "start": -560,
+   "end": -515,
+   "hours": "",
+   "events": [],
+   "works": [
+    "low-tide",
+    "orchard-at-noon",
+    "two-rooms",
+    "late-garden"
+   ],
+   "text": "Paintings of the coast at low tide, made over one winter.",
+   "images": [
+    "data/demo/shows/shoreline-1.jpg",
+    "data/demo/shows/shoreline-2.jpg"
+   ]
+  }
+ ],
+ "live": [
+  {
+   "artist": "lia-moren",
+   "work": "low-tide",
+   "kind": "video",
+   "video": "data/demo/live/low-tide.mp4",
+   "poster": "data/demo/live/low-tide.jpg",
+   "ago": 3,
+   "text": "The last layer of Low Tide, before it goes to the harbour"
+  },
+  {
+   "artist": "noa-ben-ari",
+   "work": "red-thread",
+   "kind": "video",
+   "video": "data/demo/live/red-thread.mp4",
+   "poster": "data/demo/live/red-thread.jpg",
+   "ago": 20,
+   "text": "Sewing Red Thread, the whole afternoon in seven seconds"
+  },
+  {
+   "artist": "daniel-ostrovsky",
+   "work": "slow-colour-i",
+   "kind": "video",
+   "video": "data/demo/live/slow-colour-i.mp4",
+   "poster": "data/demo/live/slow-colour-i.jpg",
+   "ago": 30,
+   "text": "Layer by layer: how Slow Colour I was built"
+  },
+  {
+   "artist": "maya-haddad",
+   "work": "one-line",
+   "kind": "video",
+   "video": "data/demo/live/one-line.mp4",
+   "poster": "data/demo/live/one-line.jpg",
+   "ago": 6,
+   "text": "One Line, in one breath"
+  },
+  {
+   "artist": "tomer-lev",
+   "work": "static-bloom",
+   "kind": "video",
+   "video": "data/demo/live/static-bloom.mp4",
+   "poster": "data/demo/live/static-bloom.jpg",
+   "ago": 50,
+   "text": "Static Bloom, rendering live"
+  },
+  {
+   "artist": "lia-moren",
+   "kind": "story",
+   "frames": [
+    "data/demo/shows/low-tide-haifa-1.jpg",
+    "data/demo/works/salt.jpg",
+    "data/demo/shows/low-tide-haifa-2.jpg"
+   ],
+   "ago": 9,
+   "text": "Hanging Low Tide at the Harbour Gallery",
+   "work": "salt"
+  },
+  {
+   "artist": "noa-ben-ari",
+   "kind": "story",
+   "frames": [
+    "data/demo/works/market-day.jpg",
+    "data/demo/works/indigo-map.jpg"
+   ],
+   "ago": 52,
+   "text": "Cloth from the Jaffa market, before it's cut",
+   "work": "market-day"
+  },
+  {
+   "artist": "maya-haddad",
+   "kind": "story",
+   "frames": [
+    "data/demo/works/rain-on-musrara.jpg",
+    "data/demo/shows/ink-breath-1.jpg"
+   ],
+   "ago": 28,
+   "text": "Rain all morning: a new drawing",
+   "work": "rain-on-musrara"
+  },
+  {
+   "artist": "daniel-ostrovsky",
+   "kind": "story",
+   "frames": [
+    "data/demo/works/blue-room.jpg",
+    "data/demo/works/ochre-hour.jpg"
+   ],
+   "ago": 70,
+   "text": "Two finished, drying side by side",
+   "work": "ochre-hour"
+  }
+ ],
+ "listings": [
+  {
+   "name": "Courtyard 31",
+   "city": "Tel Aviv",
+   "address": "Nahalat Binyamin St 31, Tel Aviv",
+   "at": [
+    32.0668,
+    34.7716
+   ],
+   "show": "Small Hours",
+   "what": "Group show of drawings",
+   "start": -10,
+   "end": 14,
+   "hours": "Tue–Sat 11:00–19:00"
+  },
+  {
+   "name": "Kiosk 9",
+   "city": "Tel Aviv",
+   "address": "Florentin St 9, Tel Aviv",
+   "at": [
+    32.0567,
+    34.769
+   ],
+   "show": "Night Garden",
+   "what": "Opening night",
+   "start": 1,
+   "end": 30,
+   "hours": "Thu–Sat 18:00–23:00",
+   "events": [
+    {
+     "day": 1,
+     "time": "20:00",
+     "what": "Opening"
+    }
+   ]
+  },
+  {
+   "name": "Paper Mill Rooms",
+   "city": "Jerusalem",
+   "address": "Emek Refaim St 12, Jerusalem",
+   "at": [
+    31.7676,
+    35.2196
+   ],
+   "show": "Prints from the North",
+   "what": "Printmaking",
+   "start": -20,
+   "end": 20,
+   "hours": "Sun–Thu 10:00–18:00"
+  },
+  {
+   "name": "North Light Space",
+   "city": "Haifa",
+   "address": "Masada St 18, Haifa",
+   "at": [
+    32.8086,
+    34.9925
+   ],
+   "show": "Coastline",
+   "what": "Photography",
+   "start": -5,
+   "end": 9,
+   "hours": "Wed–Sat 12:00–19:00"
+  },
+  {
+   "name": "Old Bakery Gallery",
+   "city": "Be'er Sheva",
+   "address": "Smilansky St 20, Be'er Sheva",
+   "at": [
+    31.2427,
+    34.7955
+   ],
+   "show": "Desert Notes",
+   "what": "Group show",
+   "start": -15,
+   "end": 25,
+   "hours": "Sun–Thu 10:00–17:00"
+  },
+  {
+   "name": "Salt Room",
+   "city": "Jaffa",
+   "address": "Yefet St 30, Jaffa",
+   "at": [
+    32.05,
+    34.7537
+   ],
+   "show": "Open Studios Weekend",
+   "what": "Twelve studios open their doors",
+   "start": 3,
+   "end": 4,
+   "hours": "Fri–Sat 10:00–17:00",
+   "events": [
+    {
+     "day": 3,
+     "time": "10:00",
+     "what": "Open studios"
+    }
+   ]
+  }
+ ],
+ "places": {
+  "Tel Aviv": [
+   32.0809,
+   34.7806
+  ],
+  "Jaffa": [
+   32.054,
+   34.752
+  ],
+  "Jerusalem": [
+   31.778,
+   35.225
+  ],
+  "Haifa": [
+   32.8156,
+   34.9892
+  ],
+  "Be'er Sheva": [
+   31.252,
+   34.7915
+  ]
+ },
+ "venues": {
+  "Ritual": {
+   "venue": "Jerusalem Artists' House",
+   "address": "Shmuel HaNagid St 12, Jerusalem",
+   "at": [
+    31.7808,
+    35.2172
+   ]
+  }
+ },
+ "thumbs": {
+  "data/demo/works/between-two-greens.jpg": "data/demo/works/between-two-greens-s.jpg",
+  "data/demo/works/blue-room.jpg": "data/demo/works/blue-room-s.jpg",
+  "data/demo/works/breath-i.jpg": "data/demo/works/breath-i-s.jpg",
+  "data/demo/works/breath-ii.jpg": "data/demo/works/breath-ii-s.jpg",
+  "data/demo/works/carrier-wave.jpg": "data/demo/works/carrier-wave-s.jpg",
+  "data/demo/works/circle-for-the-old-city.jpg": "data/demo/works/circle-for-the-old-city-s.jpg",
+  "data/demo/works/dusk-study-i.jpg": "data/demo/works/dusk-study-i-s.jpg",
+  "data/demo/works/dusk-study-ii.jpg": "data/demo/works/dusk-study-ii-s.jpg",
+  "data/demo/works/grandmothers-kitchen.jpg": "data/demo/works/grandmothers-kitchen-s.jpg",
+  "data/demo/works/indigo-map.jpg": "data/demo/works/indigo-map-s.jpg",
+  "data/demo/works/late-garden.jpg": "data/demo/works/late-garden-s.jpg",
+  "data/demo/works/late-pink.jpg": "data/demo/works/late-pink-s.jpg",
+  "data/demo/works/low-tide.jpg": "data/demo/works/low-tide-s.jpg",
+  "data/demo/works/market-day.jpg": "data/demo/works/market-day-s.jpg",
+  "data/demo/works/night-traffic.jpg": "data/demo/works/night-traffic-s.jpg",
+  "data/demo/works/night-window.jpg": "data/demo/works/night-window-s.jpg",
+  "data/demo/works/noise-garden.jpg": "data/demo/works/noise-garden-s.jpg",
+  "data/demo/works/ochre-hour.jpg": "data/demo/works/ochre-hour-s.jpg",
+  "data/demo/works/one-line.jpg": "data/demo/works/one-line-s.jpg",
+  "data/demo/works/orchard-at-noon.jpg": "data/demo/works/orchard-at-noon-s.jpg",
+  "data/demo/works/patchwork-weather.jpg": "data/demo/works/patchwork-weather-s.jpg",
+  "data/demo/works/rain-on-musrara.jpg": "data/demo/works/rain-on-musrara-s.jpg",
+  "data/demo/works/red-thread.jpg": "data/demo/works/red-thread-s.jpg",
+  "data/demo/works/salt.jpg": "data/demo/works/salt-s.jpg",
+  "data/demo/works/saturday-quilt.jpg": "data/demo/works/saturday-quilt-s.jpg",
+  "data/demo/works/signal-01.jpg": "data/demo/works/signal-01-s.jpg",
+  "data/demo/works/signal-02.jpg": "data/demo/works/signal-02-s.jpg",
+  "data/demo/works/slow-colour-i.jpg": "data/demo/works/slow-colour-i-s.jpg",
+  "data/demo/works/slow-colour-ii.jpg": "data/demo/works/slow-colour-ii-s.jpg",
+  "data/demo/works/static-bloom.jpg": "data/demo/works/static-bloom-s.jpg",
+  "data/demo/works/stone-wind.jpg": "data/demo/works/stone-wind-s.jpg",
+  "data/demo/works/two-rooms.jpg": "data/demo/works/two-rooms-s.jpg",
+  "data/demo/shows/ink-breath-1.jpg": "data/demo/shows/ink-breath-1-s.jpg",
+  "data/demo/shows/ink-breath-2.jpg": "data/demo/shows/ink-breath-2-s.jpg",
+  "data/demo/shows/low-tide-haifa-1.jpg": "data/demo/shows/low-tide-haifa-1-s.jpg",
+  "data/demo/shows/low-tide-haifa-2.jpg": "data/demo/shows/low-tide-haifa-2-s.jpg",
+  "data/demo/shows/patchwork-weather-1.jpg": "data/demo/shows/patchwork-weather-1-s.jpg",
+  "data/demo/shows/patchwork-weather-2.jpg": "data/demo/shows/patchwork-weather-2-s.jpg",
+  "data/demo/shows/shoreline-1.jpg": "data/demo/shows/shoreline-1-s.jpg",
+  "data/demo/shows/shoreline-2.jpg": "data/demo/shows/shoreline-2-s.jpg",
+  "data/demo/shows/slow-colour-1.jpg": "data/demo/shows/slow-colour-1-s.jpg",
+  "data/demo/shows/slow-colour-2.jpg": "data/demo/shows/slow-colour-2-s.jpg",
+  "data/demo/shows/threads-1.jpg": "data/demo/shows/threads-1-s.jpg",
+  "data/demo/shows/threads-2.jpg": "data/demo/shows/threads-2-s.jpg",
+  "data/demo/shows/two-rooms-one-light-1.jpg": "data/demo/shows/two-rooms-one-light-1-s.jpg",
+  "data/demo/shows/two-rooms-one-light-2.jpg": "data/demo/shows/two-rooms-one-light-2-s.jpg"
+ }
+}

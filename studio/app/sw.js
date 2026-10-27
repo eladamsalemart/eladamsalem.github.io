@@ -21,6 +21,8 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // videos are asked for in pieces (a phone plays them as they arrive): straight from the network
+  if (/\.(mp4|webm|mov)$/i.test(url.pathname)) return;
   const lasting = /\.(png|jpe?g|webp|avif|gif|svg|woff2?|ttf)$/i.test(url.pathname)
     || url.hostname === 'cdn.jsdelivr.net' || url.hostname === 'fonts.gstatic.com';
   if (lasting) {

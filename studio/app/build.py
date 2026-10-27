@@ -38,6 +38,7 @@ if __name__ == '__main__':
         OUT = Path(sys.argv[sys.argv.index('--out') + 1]); OUT.mkdir(parents=True, exist_ok=True)
     data = {n: json.load(open(f'content/{n}.json', encoding='utf-8')) for n in ['settings', 'works', 'exhibitions', 'objects', 'cv']}
     data['studio'] = json.load(open('studio/app/data/studio.json', encoding='utf-8'))
+    data['world'] = json.load(open('studio/app/data/demo/world.json', encoding='utf-8'))   # (its images load beside the page)
     index = json.load(open('studio/app/data/spaces/index.json', encoding='utf-8'))
     data['spaces'] = {k: json.load(open(f"studio/app/data/spaces/{k}.json", encoding='utf-8')) for k in index}
     paths = {data['settings']['hero_image'], data['settings']['about_portrait']}
