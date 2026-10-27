@@ -237,11 +237,10 @@ function artistPage(slug) {
       <a class="onview" href="#/exhibition/${live.slug}">${im(live.images[0], '')}<div><h3>${esc(live.title)}</h3>
       <div class="m">${esc(live.kind === 'online' ? 'Online exhibition' : [live.venue, live.city].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
     <section class="sec"><div class="sec-h"><h2>Latest works</h2><a class="more" href="${own ? '#/works' : `#/artist/${a.slug}/works`}">All ${works.length} →</a></div>
-      <div class="list">${works.slice(0, 8).map(workRow).join('')}</div></section>
+      <div class="list" data-more-list>${works.map((w, k) => k < 5 ? workRow(w) : workRow(w).replace('<a class="row"', '<a class="row" hidden')).join('')}</div>
+      ${works.length > 5 ? '<button type="button" class="btn g" data-more style="justify-self:start">Show more</button>' : ''}</section>
     ${shows.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">${shows.length}</span></div>
-      <div class="list">${[...shows].sort((x, y) => y.end - x.end).map(e => `<a class="row" href="#/exhibition/${e.slug}">${im(e.images[0], '')}<div class="t"><div><b>${esc(e.title)}</b></div>
-        <div class="m">${esc([e.year, e.kind === 'online' ? 'Online' : e.city, (e.artists || []).length > 1 ? `with ${(e.artists).filter(x => x !== a).map(x => x.name).join(', ')}` : ''].filter(Boolean).join(' · '))}</div>
-        ${status(e) !== 'past' || e.space ? `<div class="m" style="color:var(--dot)">${esc(when(e))}</div>` : ''}</div><span></span></a>`).join('')}</div></section>` : ''}
+      <div class="covers">${[...shows].sort((x, y) => y.end - x.end).map(e => cover(e)).join('')}</div></section>` : ''}
     ${own && M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
       <div class="covers">${M.objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
   </div>`;
@@ -629,6 +628,12 @@ function wire() {
   };
   const mapEl = document.getElementById('map');
   if (mapEl) drawMap(mapEl);
+  // a list that opens five more at a time
+  document.querySelectorAll('[data-more]').forEach(b => b.onclick = () => {
+    const rest = [...b.parentNode.querySelectorAll('[data-more-list] > [hidden]')];
+    rest.slice(0, 5).forEach(x => { x.hidden = false; });
+    if (rest.length <= 5) b.remove();
+  });
   const scaleBtn = document.getElementById('scaleBtn');
   if (scaleBtn) scaleBtn.onclick = () => {
     const box = document.getElementById('scale'), w = M.works.find(x => location.hash.endsWith('/' + x.slug));

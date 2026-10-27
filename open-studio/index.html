@@ -342,7 +342,8 @@ body.has-tabs main{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 .sec{border-top:1.5px solid var(--rule)}
 .sec-h h2,.hero h1,.statement,h1,h2{font-family:var(--serif);font-weight:500}
 .sec-h h2{font-style:italic}
-.btn{border-radius:0;font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:.02em}
+/* buttons: rounded (14 px), in the text's own font: inviting, not toy-like */
+.btn{border-radius:14px;font-family:var(--sans);font-weight:600;font-size:14px;letter-spacing:0}
 .btn.f{background:var(--dot);border-color:var(--dot);color:#F6F1E7}
 .btn.g{border-color:var(--rule)}
 .more{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
@@ -352,6 +353,10 @@ body.has-tabs main{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 main *,.install,.install *{border-radius:0 !important}
 main *{box-shadow:none !important}
 main .person img,main .person .ring,main .album .by img,main .dot{border-radius:50% !important}
+main .btn,.install .btn{border-radius:14px !important}
+main .seg{border-radius:14px !important}
+main .seg button{border-radius:11px !important}
+main .chip,main .st-nav a{border-radius:12px !important}
 .install{border:1.5px solid var(--rule);box-shadow:none}
 
 /* artists: everyone on Open Studio, a row each */
@@ -399,7 +404,6 @@ main .person.fresh img{box-shadow:0 0 0 2.5px var(--wall),0 0 0 4.5px var(--dot)
 /* Opening Night: the shows on now (the Shows tab, and a show's page while it's on) */
 body[data-look="night"]{--wall:#0E0E10;--paper:#18181B;--ink:#F3EFE7;--muted:#9C978E;--line:#2B2A2E;--rule:#3A383C;--card:#1D1D21;--dot:#F0B43C;--stage:#141417;--shade:rgba(0,0,0,.78);color-scheme:dark}
 body[data-look="night"] .btn.f{background:var(--dot);border-color:var(--dot);color:#141414}
-body[data-look="night"] main .btn,body[data-look="night"] main .seg,body[data-look="night"] main .seg button{border-radius:99px !important}
 .nx-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-block:22px 16px}
 .nx-h h1{font-family:var(--serif);font-size:44px;line-height:1}
 .nx .seg button{font-size:12px;padding:7px 11px}
@@ -410,7 +414,7 @@ body[data-look="night"] main .nx-hero{display:block;position:relative;border-rad
 @keyframes pulse{50%{box-shadow:0 0 0 7px rgba(240,180,60,0) }}
 .nx-ov{position:absolute;inset:auto 0 0 0;padding:22px 18px 18px;background:linear-gradient(to top,rgba(0,0,0,.9) 40%,transparent);display:grid;gap:6px;color:#fff}
 .nx-ov .k{color:#D9D4CA}.nx-ov b{font-family:var(--serif);font-weight:500;font-size:52px;line-height:.95}.nx-ov .m{color:#D9D4CA;font-size:14px}
-body[data-look="night"] main .nx-cta{justify-self:start;margin-top:8px;background:var(--dot);color:#141414;font-weight:600;font-size:15px;padding:12px 22px;border-radius:99px !important}
+body[data-look="night"] main .nx-cta{justify-self:start;margin-top:8px;background:var(--dot);color:#141414;font-weight:600;font-size:15px;padding:12px 22px;border-radius:14px !important}
 .nx-sec{display:grid;gap:14px;padding-top:34px}
 .nx-sh{display:flex;justify-content:space-between;align-items:baseline}
 .nx-sh h2{font-family:var(--serif);font-size:32px;line-height:1}
@@ -442,7 +446,7 @@ body[data-look="walls"]{--wall:#E8E6E1;--paper:#FFFFFF;--ink:#1B2130;--muted:#5F
 .wl{padding-top:calc(14px + env(safe-area-inset-top,0px))}
 .wl-top{display:flex;justify-content:space-between;align-items:center}
 .wl-mark svg{width:38px;height:38px}
-body[data-look="walls"] main .wl-place{display:flex;align-items:center;gap:6px;background:var(--paper);padding:0 6px 0 14px;border-radius:99px !important;min-height:44px}
+body[data-look="walls"] main .wl-place{display:flex;align-items:center;gap:6px;background:var(--paper);padding:0 6px 0 14px;border-radius:14px !important;min-height:44px}
 .wl-place svg{width:18px;height:18px}
 .wl-place select{font:600 15px var(--sans);border:0;background:none;color:var(--ink);padding:10px 6px;max-width:150px}
 .wl-h{font-family:'Figtree',var(--sans) !important;font-weight:700 !important;font-size:38px;line-height:1.05;letter-spacing:-.02em;padding-block:16px 16px}
@@ -460,7 +464,7 @@ body[data-look="walls"] main .pin.me{width:18px;height:18px;padding:0;background
 .zoom-b{position:absolute;right:10px;bottom:10px;display:grid;gap:6px;z-index:3}
 body[data-look="walls"] main .zoom-b button{width:40px;height:40px;border:0;background:#fff;border-radius:12px !important;font-size:20px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.12) !important}
 .wl-chips{display:flex;gap:8px;overflow-x:auto;padding-block:16px 4px}
-body[data-look="walls"] main .wl-chips button{flex:none;border:0;background:var(--paper);color:var(--ink);font-weight:600;font-size:15px;padding:12px 18px;border-radius:99px !important;cursor:pointer}
+body[data-look="walls"] main .wl-chips button{flex:none;border:0;background:var(--paper);color:var(--ink);font-weight:600;font-size:15px;padding:12px 18px;border-radius:14px !important;cursor:pointer}
 .wl-chips button[aria-pressed="true"]{background:var(--ink) !important;color:#fff !important}
 .wl-h2{font-family:'Figtree',var(--sans) !important;font-weight:700 !important;font-size:22px;padding-block:18px 12px}
 .wl-list{display:grid;gap:10px}
