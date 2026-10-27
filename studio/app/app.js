@@ -189,32 +189,18 @@ const workCover = w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image,
 const person = (a, fresh) => `<a class="person${fresh ? ' fresh' : ''}" href="#/artist/${a.slug}">${im(a.portrait, a.name)}<div><b>${esc(a.name)}</b><div class="m">${esc(a.discipline)}</div></div></a>`;
 
 // --- views -----------------------------------------------------------------
-// Home: like a music app's, the artists you follow first (what's new from them: their shows, their works),
-// then what might suit you
 function home() {
-  const fol = following(), mine = M.artists.filter(a => fol.includes(a.slug)), others = M.artists.filter(a => !fol.includes(a.slug));
-  const fresh = a => M.live.some(p => p.artist === a && Date.now() - p.at < 2 * DAY);
-  // what's happening soonest first: an opening or a closing night in the next two days, then the shows on,
-  // then the ones still to open
-  const urgency = e => { const ev = nextEvent(e); return ev && +ev.at - Date.now() < 2 * DAY ? +ev.at : isOn(e) ? Date.now() + 2 * DAY + (e.kind === 'online' ? DAY : 0) : +e.start + 3 * DAY; };
-  const theirShows = M.exhibitions.filter(e => status(e) !== 'past' && (e.artists || [e.artist]).some(a => mine.includes(a)))
-    .sort((a, b) => urgency(a) - urgency(b));
-  const feature = theirShows[0] || M.exhibitions.find(e => status(e) !== 'past');
-  const theirWorks = M.works.filter(w => mine.includes(w.artist)).sort((a, b) => (+b.year || 0) - (+a.year || 0)).slice(0, 12);
-  const suggestShows = M.exhibitions.filter(e => status(e) !== 'past' && !theirShows.includes(e));
-  const walk = M.exhibitions.filter(e => e.space);
+  const live = M.exhibitions.find(e => isOn(e) && e.kind !== 'online') || M.exhibitions[0];
   return `<div class="wrap gut">
-    <div class="home-h"><h1 class="brand-h">${LOGO}</h1><span class="tag">Prototype</span></div>
-    <section class="shelf"><div class="sec-h"><h2>Following</h2><a class="more" href="#/search">Find artists</a></div>
-      <div class="people">${mine.map(a => person(a, fresh(a))).join('') || '<p class="m">Follow artists to see their shows and works here first.</p>'}</div></section>
-    ${feature ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; ${esc(when(feature))}</div>
-      <a class="feature" href="#/exhibition/${feature.slug}">${im(feature.images[0], `Installation view of ${feature.title}`, 'loading="eager"', '100vw')}
-        <div class="ov"><div class="k">${esc(byOf(feature))}</div><h2>${esc(feature.title)}</h2><div class="m">${esc([feature.kind === 'online' ? 'Online exhibition' : feature.venue, feature.city].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
-    ${theirShows.length > 1 ? `<section class="shelf"><h2>Their shows</h2><div class="covers">${theirShows.slice(1).map(e => cover(e)).join('')}</div></section>` : ''}
-    ${theirWorks.length ? `<section class="shelf"><h2>New from your artists</h2><div class="covers works">${theirWorks.map(workCover).join('')}</div></section>` : ''}
-    ${walk.length ? `<section class="shelf"><h2>Walk in, from anywhere</h2><div class="covers">${walk.map(e => cover(e, '3D')).join('')}</div></section>` : ''}
-    ${others.length ? `<section class="shelf"><h2>Artists you might like</h2><div class="people">${others.map(a => person(a, fresh(a))).join('')}</div></section>` : ''}
-    ${suggestShows.length ? `<section class="shelf"><h2>Picked for you</h2><div class="covers">${suggestShows.map(e => cover(e)).join('')}</div></section>` : ''}
+    <div class="home-h"><h1 class="brand-h">${LOGO}</h1><span class="tag">No. 01 · Prototype</span></div>
+    ${live ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
+      <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"', '100vw')}
+        <div class="ov"><div class="k">${esc(live.artist.name)}</div><h2>${esc(live.title)}</h2><div class="m">${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
+    <section class="shelf"><h2>Artists</h2><div class="people">${M.artists.map(a => person(a)).join('')}
+      <span class="person" aria-label="More artists are coming"><span class="ring" aria-hidden="true">+</span><div class="m">More artists<br>coming soon</div></span></div></section>
+    <section class="shelf"><h2>Exhibitions</h2><div class="covers">${M.exhibitions.map(e => `<a href="#/exhibition/${e.slug}">${im(e.images[0], '')}<div><b>${esc(e.title)}</b><div class="m">${esc([e.year, e.artist.name].join(' · '))}</div></div></a>`).join('')}</div></section>
+    <section class="shelf"><h2>Latest works</h2><div class="covers works">${M.works.slice(0, 10).map(workCover).join('')}</div></section>
+    <section class="shelf"><h2>By location</h2><div class="places">${M.cities.map(cityCard).join('')}</div></section>
     <a class="for-artists" href="#/studio"><span class="k">For artists</span><b>Open your studio</b><span class="m">Your works at their real size, your shows as rooms anyone can walk through.</span><span aria-hidden="true">→</span></a>
   </div>`;
 }
