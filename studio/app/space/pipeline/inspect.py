@@ -51,6 +51,11 @@ RULES = {
     'photo_match_one': 0.45,  # ...and for every photo
     'seams': 0.003,           # share of a shot that may be a seam on a plain wall (a step of 4 % in the light
                               # across a wall shows as 0.004 or more; a 2 % one, barely visible, as 0)
+    'floor_seams': 0.0005,    # the floor: no cut at all (one cut across a shot: 0.001 or more), where one photo's
+                              # floor gives way to another's, or a band of something else lies on it
+    'floor_cut_step': 13,     # ...and only where the floor's tone on its two sides differs (L, of 100): a real cut
+                              # (Ritual with the floor laid from six photos: 14-17); a reflection in the floor <= 12
+    'phone_memory': 260,      # MB of images a phone holds at once, at most (an iPhone's page has a few hundred)
     'floor_bands': 0.25,      # bands across the floor's tile, against its grain              # a work's back may stand off its wall this much (m) at most
 }
 
@@ -277,6 +282,43 @@ def seams(img, walls):
     return float((m > 0).sum() / m.size)
 
 
+def floor_cuts(img, low):
+    """Share of a shot that is a cut across the floor: a long straight line with the floor's tone different on
+    its two sides (where one photo's floor gives way to another's, or a band of something else lies on it).
+    The floor's grain is not a cut (smoothed away first), nor a line with the same tone on both sides, nor
+    one along its edge (a skirting board's reflection in a polished floor: in the photos too)."""
+    fl = inner(low, 6)
+    if fl.sum() < 4000:
+        return 0.0
+    g = cv2.GaussianBlur(lab(img)[..., 0], (0, 0), 3.0)
+    mag = np.hypot(cv2.Sobel(g, cv2.CV_32F, 1, 0, ksize=3), cv2.Sobel(g, cv2.CV_32F, 0, 1, ksize=3))
+    step = ((mag > 3) & inner(fl, 3)).astype(np.uint8) * 255
+    H, W = g.shape
+    lines = cv2.HoughLinesP(step, 1, np.pi / 180, threshold=int(H * 0.12), minLineLength=int(H * 0.18), maxLineGap=4)
+    if lines is None:
+        return 0.0
+    edge = cv2.distanceTransform(low.astype(np.uint8), cv2.DIST_L2, 3)       # how far inside the floor
+    m = np.zeros(step.shape, np.uint8)
+    for x0, y0, x1, y1 in lines.reshape(-1, 4):
+        a, b = np.array([x0, y0], float), np.array([x1, y1], float)
+        t = (b - a) / max(np.linalg.norm(b - a), 1e-6); n = np.array([-t[1], t[0]])
+        steps, inside = [], []
+        for k in np.linspace(0.1, 0.9, 15):
+            p = a + k * (b - a)
+            inside.append(edge[int(p[1]), int(p[0])])
+            side = []
+            for sg in (1, -1):
+                q = [np.round(p + sg * o * n).astype(int) for o in range(12, 36, 3)]
+                v = [g[y, x] for x, y in q if 0 <= x < W and 0 <= y < H and low[y, x]]
+                side.append(np.mean(v) if len(v) >= 4 else None)
+            if None not in side:
+                steps.append(abs(side[0] - side[1]))
+        if not steps or np.median(steps) < RULES['floor_cut_step'] or np.median(inside) < 45:
+            continue
+        cv2.line(m, (int(x0), int(y0)), (int(x1), int(y1)), 255, 3)
+    return float((m > 0).sum() / m.size)
+
+
 def floor_tile(spec):
     """The floor's texture tile must be grain, not streaks (it repeats across the whole floor)."""
     f = next((x for x in spec['surfaces'] if x['kind'] == 'floor'), None)
@@ -346,23 +388,24 @@ def inspect(slug, keep=None, log=print):
     for rule, ok, why in geometry(spec):
         res.append((rule, ok, why))
 
-    holes, ghosts, blotches, smears, seam = {}, {}, {}, {}, {}
+    holes, ghosts, blotches, smears, seam, fseam, unseen = {}, {}, {}, {}, {}, {}, {}
     work_scores = {}
     # the walls' own colour (gallery walls are white or one colour): measured on all walk shots
     imgs = {}
     for s in shots:
         img = cv2.imread(str(tmp / f"{s['name']}.png")); ids = cv2.imread(str(tmp / f"{s['name']}.ids.png"))
         lbl = labels(ids)
-        imgs[s['name']] = (img, lbl, plain_wall(lbl, cv2.imread(str(tmp / f"{s['name']}.height.png"))) & ~corners(ids))
+        hgt = cv2.imread(str(tmp / f"{s['name']}.height.png"))
+        imgs[s['name']] = (img, lbl, plain_wall(lbl, hgt) & ~corners(ids), hgt)
     wc = []
     for s in shots:
         if s['kind'] in ('walk', 'view'):
-            img, lbl, m = imgs[s['name']]
+            img, lbl, m, _ = imgs[s['name']]
             if m.sum() > 2000:
                 L = lab(img); wc.append(np.median(np.sqrt(L[m, 1] ** 2 + L[m, 2] ** 2)))
     wall_c = float(np.median(wc)) if wc else 5.0
     for s in shots:
-        img, lbl, walls = imgs[s['name']]
+        img, lbl, walls, hgt = imgs[s['name']]
         # the background shows through: magenta, or a magenta tint where a gap is thinner than a pixel (a seam
         # between two surfaces, blended into what's round it); nothing in a room is that colour but the works
         b, g, r = (img[..., i].astype(int) for i in range(3))
@@ -373,6 +416,26 @@ def inspect(slug, keep=None, log=print):
             ghosts[s['name']], blotches[s['name']] = wall_trouble(img, walls, wall_c)
             smears[s['name']] = smear(img, walls, lbl)
             seam[s['name']] = seams(img, walls)
+            # the floor: whatever lies at floor level (by its height), away from the works. A cut across it (its
+            # grain is not one, a step in its tone is), and any other surface lying flat on it (an opening's
+            # inside run on along the floor: a band across the threshold) are both cuts in the floor
+            low = (hgt[..., 2] <= 1) & (hgt[..., 1] > 200) & ~np.isin(lbl, (NAMES.index('work'), NAMES.index('workbody'), NAMES.index('shadow'), NAMES.index('hole')))
+            lying = inner(low & np.isin(lbl, [NAMES.index(n) for n in ('reveal', 'wall', 'ceiling', 'beyond')]), 3)
+            fseam[s['name']] = floor_cuts(img, low) + float(lying.mean())
+            # every work that should be in view is: its middle, on screen, in front, facing the visitor, shows the
+            # work (not the wall where it hangs)
+            for i, c in enumerate(s.get('corners') or []):
+                cx = np.mean([q[0] for q in c]); cy = np.mean([q[1] for q in c]); z = min(q[2] for q in c)
+                piece = data['info']['pieces'][i]
+                cam = np.array(s['at']); ctr = np.array(piece['centre']); fac = np.array(piece['facing'])
+                ahead = np.array(s['to']) - cam; ahead /= np.linalg.norm(ahead)
+                if not (0.08 < cx < 0.92 and 0.08 < cy < 0.92 and -1 < z < 1) or np.linalg.norm(ctr - cam) > 9 or fac @ (cam - ctr) < 0.3 * np.linalg.norm(cam - ctr) \
+                        or ahead @ (ctr - cam) < 0.5 * np.linalg.norm(ctr - cam):          # (behind the visitor)
+                    continue
+                H, W = lbl.shape; px, py = int(cx * W), int(cy * H)
+                patch = lbl[max(0, py - 3):py + 4, max(0, px - 3):px + 4]
+                if not np.isin(patch, [NAMES.index('work'), NAMES.index('workbody')]).any():
+                    unseen.setdefault(piece['title'], []).append(s['name'])
         if s['kind'] in ('work', 'near') and s.get('corners'):
             # the viewer orders works along the room: find this one in the space by its image
             img_path = data['info']['pieces'][s['work']]['image']
@@ -406,6 +469,20 @@ def inspect(slug, keep=None, log=print):
 
     k, v = worst(seam)
     res.append(('seams', v <= RULES['seams'], 'אין תפרים על הקירות (מעבר חד בין צילום לצילום)' if v <= RULES['seams'] else f'תפר על קיר ({k})'))
+    k, v = worst(fseam)
+    res.append(('floor_seams', v <= RULES['floor_seams'], 'הרצפה רציפה, בלי חיתוכים' if v <= RULES['floor_seams'] else f'חיתוך ברצפה ({k})'))
+    res.append(('works_in_view', not unseen, 'כל עבודה נראית מכל מקום שאמורים לראות אותה ממנו' if not unseen else
+                'עבודה לא נראית מאיפה שאמורים לראות אותה: ' + ', '.join(f'{t} ({len(v)})' for t, v in unseen.items())))
+    ph = data.get('phone') or {}
+    if ph.get('stops'):
+        n = len(spec['works'])
+        miss = sorted({w['title'] for st in ph['stops'] for w in st['works'] if not w['inScene'] or not w['visible'] or w['image'][0] < 64} |
+                      {t for st in ph['stops'] for t in st['failed']} | ({'(missing works)'} if any(len(st['works']) < n for st in ph['stops']) else set()))
+        mem = max(st['memory'] for st in ph['stops'])
+        ok = not miss and not ph.get('errors') and mem <= RULES['phone_memory']
+        res.append(('phone', ok, f'בטלפון: כל העבודות בכל עצירה, {mem} MB תמונות בזיכרון' if ok else
+                    'בטלפון: ' + '; '.join(([f'חסרות: {", ".join(miss)}'] if miss else []) + ([f'{mem} MB, יותר מדי'] if mem > RULES['phone_memory'] else []) + (ph.get('errors') or [])[:2])))
+        log(f"    phone: {len(ph['stops'])} stops, up to {mem} MB, missing {miss or 'none'}")
     matches = {}
     for p in data.get('photos', []):
         m = photo_match(tmp, p['name'], p['photo'])
@@ -422,7 +499,7 @@ def inspect(slug, keep=None, log=print):
     passed = all(ok for _, ok, _ in res)
     log('    work (whole, sharp, colour drift): ' + ', '.join(f"{t} {d['work'][0]:.2f}/{d['work'][1]:.2f}/{d['work'][2]:.1f}" for t, d in work_scores.items() if 'work' in d))
     log('    up close: ' + ', '.join(f"{t} {d['near'][1]:.2f}" for t, d in work_scores.items() if 'near' in d))
-    log(f'    worst: holes {worst(holes)}, ghost {worst(ghosts)}, blotch {worst(blotches)}, smear {worst(smears)}, seams {worst(seam)}')
+    log(f'    worst: holes {worst(holes)}, ghost {worst(ghosts)}, blotch {worst(blotches)}, smear {worst(smears)}, seams {worst(seam)}, floor seams {worst(fseam)}, unseen {unseen}')
     for rule, ok, why in res:
         log(f"    {'✓' if ok else '✗'} {rule}: {why}")
     spec['inspection'] = [{'rule': r, 'passed': bool(ok), 'why': why} for r, ok, why in res]
@@ -455,7 +532,8 @@ def sheet(tmp, shots, dest, w=150):
 NAMES_HE = {'opens': 'נפתח בלי שגיאות', 'on_wall': 'עבודות על הקיר', 'in_room': 'עבודות בתוך החדר', 'no_overlap': 'בלי חפיפות',
             'holes': 'בלי חורים', 'work_whole': 'עבודות שלמות', 'work_sharp': 'עבודות חדות', 'work_near': 'חדות מקרוב',
             'work_colour': 'צבעים נכונים', 'ghost': 'קירות נקיים', 'blotch': 'בלי כתמים', 'smear': 'בלי מריחות',
-            'floor': 'רצפה בלי פסים', 'seams': 'בלי תפרים', 'photo_match': 'צורת החדר מול הצילומים'}
+            'floor': 'רצפה בלי פסים', 'seams': 'בלי תפרים', 'photo_match': 'צורת החדר מול הצילומים',
+            'floor_seams': 'רצפה רציפה', 'works_in_view': 'עבודות נראות מכל מקום', 'phone': 'בטלפון'}
 
 
 def report(slug, res, n, secs):

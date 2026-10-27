@@ -30,6 +30,8 @@ const fs = require('fs'), path = require('path');
   if (process.env.NO_FONTS) await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
   await page.goto(`${base}?inspect=${slug}#/exhibition/${slug}/space`);
   await page.waitForFunction(() => window.__spaceView && window.__spaceView.inspect, null, { timeout: 120000 });
+  // the photos all in place on the room (each is laid over with the works' mask first: slow on a slow machine)
+  await page.waitForFunction(() => window.__spaceView.inspect.ready(), null, { timeout: 120000 });
   await page.waitForTimeout(2500);                                  // textures settle
   const info = await page.evaluate(() => { const i = window.__spaceView.inspect; return { pieces: i.pieces, views: i.views, room: i.room, eye: i.eye, start: i.start }; });
   const stand = p => page.evaluate(q => window.__spaceView.inspect.stand(q), p);
@@ -91,6 +93,33 @@ const fs = require('fs'), path = require('path');
       photos.push({ name: `photo-${i}`, photo: v.photo });
     }
   }
-  fs.writeFileSync(path.join(out, 'shots.json'), JSON.stringify({ info, shots, photos, errors }, null, 1));
+  // Last, as a phone sees it: the app opened the way a visitor opens it (light images first, full ones as one
+  // nears a work, the phone's memory budget), walking from place to place across the room. Every work must be
+  // there with its image at every stop, and the images held must fit a phone's memory.
+  const phone = { stops: [], errors: [] };
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+    const pg = await ctx.newPage();
+    pg.on('pageerror', e => phone.errors.push('page: ' + e.message));
+    if (process.env.THREE_DIR) await pg.route('https://cdn.jsdelivr.net/npm/three@*/**', r => {
+      const rel = new URL(r.request().url()).pathname.replace(/^\/npm\/three@[^/]+\//, '');
+      r.fulfill({ path: path.join(process.env.THREE_DIR, rel), contentType: 'application/javascript' });
+    });
+    if (process.env.NO_FONTS) await pg.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+    // (testing the inspection itself: INSPECT_BLOCK=<pattern> makes those images fail to arrive on the phone,
+    // as a weak connection might, and the inspection must then hold the space back)
+    if (process.env.INSPECT_BLOCK) await pg.route(new RegExp(process.env.INSPECT_BLOCK), r => r.abort());
+    // (a space not yet published is opened the way the app opens a published one, only without ?inspect's full images)
+    await pg.goto(`${base}?inspect=${slug}&phone=1#/exhibition/${slug}/space`);
+    await pg.waitForFunction(() => window.__spaceView && window.__spaceView.inspect, null, { timeout: 120000 });
+    const grid = shots.filter(s => s.kind === 'walk' && /-0$/.test(s.name)).map(s => [s.at, s.to]);
+    for (const [at, to] of grid) {
+      await pg.evaluate(([a, t]) => window.__spaceView.inspect.place(a, t), [at, to]);
+      await pg.waitForTimeout(3000);
+      phone.stops.push(await pg.evaluate(() => { const v = window.__spaceView.inspect; return { works: v.works(), memory: v.memory(), failed: v.failed }; }));
+    }
+    await ctx.close();
+  }
+  fs.writeFileSync(path.join(out, 'shots.json'), JSON.stringify({ info, shots, photos, phone, errors }, null, 1));
   await browser.close();
 })().catch(e => { console.error(e); process.exit(1); });
