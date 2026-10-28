@@ -45,6 +45,7 @@ jobs:
           cp $src/data/spaces/*.status.json open-studio/data/spaces/ 2>/dev/null || true
           cp $src/space/space.js open-studio/space/
           cp $src/data/studio.json open-studio/data/
+          cp -r $src/data/art open-studio/data/ 2>/dev/null || true
           cp $src/data/spaces/index.json open-studio/data/spaces/
           # only the spaces that passed their checks (the ones index.json lists)
           for k in $(python3 -c "import json;print(' '.join(json.load(open('$src/data/spaces/index.json'))))"); do
@@ -55,6 +56,8 @@ jobs:
           python3 /tmp/studio/studio/app/thumbs.py media open-studio
           # a new cache name with every version, so an installed app drops what it kept from the last one
           sed -i "s/const VERSION = '[^']*'/const VERSION = 'open-studio-$(git -C /tmp/studio rev-parse --short HEAD)'/" open-studio/sw.js
+      - name: Check what phones will fetch (the map's tiles really are a map)
+        run: python3 /tmp/studio/studio/app/check_app.py /tmp/studio/studio/app/app.js
       - name: Commit and push to main
         run: |
           git config user.name "open-studio"
