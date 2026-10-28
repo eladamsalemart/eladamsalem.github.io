@@ -177,6 +177,54 @@ def fetch(url):
         return r.read().decode('utf-8', 'ignore')
 
 
+# --- openings and gallery talks from a public events listing (מה קורה), at places on the map ------------------
+MAKORE = 'https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94'
+KEEP_EVENT = re.compile(r'פתיחת? (ה)?תערוכ|שיח גלריה|שיח אמן|מפגש עם האמנ|opening', re.I)
+
+
+def makore_events(places, today, pages=6):
+    """Events at known places: openings and gallery talks only (tours, workshops and entry tickets left out)."""
+    sys.path.insert(0, str(HERE))
+    from places import norm
+    keys = []
+    for p in places.values():
+        for n in (p.get('name_he'), p.get('name')):
+            k = norm(n or '')
+            if len(k) >= 4:
+                keys.append((k, p['id']))
+    out, seen = [], set()
+    for i in range(1, pages + 1):
+        url = MAKORE + (f'?pages={i}' if i > 1 else '')
+        if not allowed(url):
+            break
+        try:
+            page = fetch(url)
+        except Exception:
+            break
+        for blob in re.findall(r'<script type="application/ld\+json">(.*?)</script>', page, re.S):
+            try:
+                graph = json.loads(blob).get('@graph', [])
+            except ValueError:
+                continue
+            for g in graph:
+                for it in g.get('itemListElement', []) if g.get('@type') == 'ItemList' else []:
+                    e = it.get('item', {})
+                    title, loc = e.get('name', ''), norm((e.get('location') or {}).get('name', ''))
+                    if not KEEP_EVENT.search(title) or not loc:
+                        continue
+                    place = next((pid for k, pid in keys if re.search(r'(^|\s)' + re.escape(k) + r'(\s|$)', loc)), None)
+                    when = (e.get('startDate') or '')[:16]
+                    if not place or not when:
+                        continue
+                    d = dt.datetime.fromisoformat(when.replace('Z', '')) + dt.timedelta(hours=2)    # UTC to Israel (roughly)
+                    if not (today <= d.date() <= today + dt.timedelta(days=45)) or (place, title, d.date()) in seen:
+                        continue
+                    seen.add((place, title, d.date()))
+                    out.append({'title': re.sub(r'^\s*פתיחת תערוכה\s*:?\s*', 'Opening: ', title).strip(), 'date': d.date().isoformat(),
+                                'time': d.strftime('%H:%M') if d.hour or d.minute else '', 'place': place, 'url': e.get('url', ''), 'source': 'makore'})
+    return out
+
+
 def load_sources():
     out = []
     for line in (HERE / 'sources.tsv').read_text(encoding='utf-8').splitlines():
@@ -228,6 +276,15 @@ def main():
         h.update(status='ok' if found or evs else 'nothing found', shows=len(found), events=len(evs))
         health.append(h)
         print(f"{s['id']:<24} {h['status']:<14} {len(found)} shows, {len(evs)} events", file=sys.stderr)
+
+    if places and not a.offline:
+        try:
+            mk = makore_events(places, today)
+            events += mk
+            health.append({'source': 'makore', 'place': '(many)', 'url': MAKORE, 'status': 'ok' if mk else 'nothing found', 'events': len(mk)})
+            print(f'makore                   {len(mk)} openings and talks at places on the map', file=sys.stderr)
+        except Exception as e:
+            health.append({'source': 'makore', 'status': f'failed: {type(e).__name__}'})
 
     # keep what was seen before (first seen), so a show doesn't flicker when one day's read fails
     prev = json.loads(OUT.read_text()) if OUT.exists() else {'shows': []}

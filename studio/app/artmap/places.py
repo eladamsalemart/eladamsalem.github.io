@@ -249,10 +249,12 @@ def read_wikidata():
 
 
 # --- Nominatim, for curated places OpenStreetMap does not tag ------------------------------------------------
-_last = [0.0]
+_last, _fails = [0.0], [0]
 
 
 def nominatim(q):
+    if _fails[0] >= 3:                               # the service is not answering: don't keep the run waiting
+        return []
     wait = 1.1 - (time.time() - _last[0])
     if wait > 0:
         time.sleep(wait)
@@ -260,9 +262,11 @@ def nominatim(q):
     u = 'https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode(
         {'q': q, 'format': 'jsonv2', 'countrycodes': 'il', 'limit': 3, 'extratags': 1, 'accept-language': 'he,en'})
     try:
-        with urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': UA}), timeout=30) as r:
+        with urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': UA}), timeout=12) as r:
+            _fails[0] = 0
             return json.load(r)
     except Exception as e:
+        _fails[0] += 1
         print('nominatim:', q, e, file=sys.stderr)
         return []
 
