@@ -553,6 +553,7 @@ let prevHash = null, lastHash = null;
 function render() {
   const hash = location.hash || '#/';
   if (hash !== lastHash) { prevHash = lastHash; lastHash = hash; }
+  document.querySelectorAll('.log-view').forEach(v => v.remove());       // (a studio log open over the page closes with it)
   // the artist's side: its own screens, without the visitors' bar and tabs
   if (hash.startsWith('#/studio')) {
     if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }
