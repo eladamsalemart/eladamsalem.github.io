@@ -307,8 +307,8 @@ def match_seed(seed, cands):
     if not hits:
         return None
     ref = city_at(seed['city'])
-    if ref:
-        hits = [c for c in hits if km(c['at'], ref) < 25] or []
+    if ref:                                          # in the seed's own town (a big city's edge is ~10 km out)
+        hits = [c for c in hits if km(c['at'], ref) < 12] or []
     if not hits:
         return None
     return sorted(hits, key=lambda c: (not c['tagged'], bool(c.get('wd')), km(c['at'], ref) if ref else 0))[0]
