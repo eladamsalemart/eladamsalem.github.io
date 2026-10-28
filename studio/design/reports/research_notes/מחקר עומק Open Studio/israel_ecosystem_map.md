@@ -145,7 +145,7 @@ Types marked * are my classification from other sources or general knowledge; th
 - No official count of commercial galleries exists. The Israeli Art Galleries Association (איגוד הגלריות) did not surface in search, and it is unclear whether one exists today.
 - The current (2025/2026) list of supported galleries was not found. The PDF is 2022 data.
 - The Fresh Paint 2026 gallery exhibitor list was not published online in readable form.
-- Haifa: almost no Haifa venues appeared in the support list or the directories. Haifa Museum, the Haifa University Art Gallery and the HaMoshava WIZO campus show up only through graduate shows. A Haifa count needs a separate search.
+- Haifa: almost no Haifa venues appeared in the support list or the directories. Haifa Museum, the Haifa University Art Gallery and the HaMoshava WIZO campus show up only through graduate shows. A Haifa count needs a separate search. A dedicated Hebrew search for Haifa contemporary and cooperative galleries also returned no list. The only nearby hit was the renovated contemporary gallery at the Ein Hod artists' village (Porta 6) — [Time Out](https://timeout.co.il/porta-6-הגלריה-לאמנות-עין-הוד/). Haifa should be treated as **unmapped**.
 - Time Out and Haaretz full listings could not be fetched (403 and paywall).
 
 ---
