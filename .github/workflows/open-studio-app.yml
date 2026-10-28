@@ -45,6 +45,7 @@ jobs:
           cp $src/data/spaces/*.status.json open-studio/data/spaces/ 2>/dev/null || true
           cp $src/space/space.js open-studio/space/
           cp $src/data/studio.json open-studio/data/
+          cp -r $src/data/art open-studio/data/ 2>/dev/null || true
           cp $src/data/spaces/index.json open-studio/data/spaces/
           # only the spaces that passed their checks (the ones index.json lists)
           for k in $(python3 -c "import json;print(' '.join(json.load(open('$src/data/spaces/index.json'))))"); do
