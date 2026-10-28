@@ -1,84 +1,172 @@
 # Art places, 2026-10-28
 
-94 places: museum 29, public 41, artist-run 1, academy 2, commercial 5, centre 16; curated 48, with a building 86
+169 places: museum 68, public 59, artist-run 1, academy 2, commercial 22, centre 17; curated 77, with a building 148
+
+## New
+- Ashdod Art Museum
+- MoBY - Museums of Bat Yam
+- Wilfrid Israel Museum
+- Umm el-Fahem Art Gallery
+- Kupferman Collection House
+- Benyamini Contemporary Ceramics Center
+- Artspace Tel Aviv
+- Tel Aviv Artists' Studios
+- Jerusalem Print Workshop
+- Jerusalem Artists' Studios
+- Israeli Center for Digital Art
+- Be'eri Gallery Tel Aviv
+- Kabri Gallery
+- Atelier Shemi
+- Rishon LeZion Municipal Art Gallery
+- P8 Gallery
+- Center for Visual Arts Tel Aviv
+- Modiin Artists House
+- Hanina Gallery
+- Kav 16 Gallery
+- Musrara
+- Artport
+- Beit Benyamini
+- Dvir Gallery
+- Braverman Gallery
+- Hezi Cohen Gallery
+- Alon Segev Gallery
+- Rothschild Fine Art
+- TA Tarbut Da Vinci
+- גלריית בלייכר
+- ביתא ירושלים
+- מכון המים - הגלריה העירונית גבעתיים
+- גלריה מרי
+- הגלריה לאמנות ישראלית בקריית טבעון
+- Bauhaus Center Tel Aviv
+- Farkash Gallery collection
+- Debel Gallery
+- Chelouche Gallery
+- Mayanot Gallery
+- Beit Avi Chai
+- Sheik Murad House
+- The Edge gallery
+- Berlin House
+- Beyt Haomanim, Tel Aviv-Yafo
+- Tel Aviv Museum of Art
+- Rockefeller Museum
+- Beeri Gallery
+- CCA Tel Aviv-Yafo
+- Tel Aviv Museum Pavilion
+- Ein Hod Art Gallery
+- Pan Homo Art Gallery
+- Bet ot ha-motsar ha-Yerushalmi
+- PhotoHouse
+- Sommer Contemporary Art
+- Meyerhoff Art Education Center
+- Cadim Gallery
+- Nora Gallery
+- The Arab Museum of Contemporary Art
+- The Edmond de Rothschild Center
+- Galeryah Perisḳop
+- Julie M. Gallery
+- Marc Chagall Artists’ House, Haifa
+- Noga Gallery
+- Mamuta Art and Research Center
+- Beit Castel
+- Municipal Art Gallery Rishon Lezion
+- Yodfat Gallery
+- N&N Aman Gallery
+- ZUZU Gallery
+- Beth Meirov
+- Bait HaLavan
+- The Pumphouse Gallery
+- B.Y5 Gallery
+- Art Shelter Gallery
+- Arie Klang House
 
 ## Notes
-- not found on the map: Ashdod Art Museum (Ashdod)
-- not found on the map: MoBY - Museums of Bat Yam (Bat Yam)
-- not found on the map: Wilfrid Israel Museum (HaZorea)
-- not found on the map: Umm el-Fahem Art Gallery (Umm al-Fahm)
 - not found on the map: Beit Uri and Rami Nehushtan Museum (Ashdot Ya'akov)
-- not found on the map: Kupferman Collection House (Lohamei HaGeta'ot)
 - not found on the map: Bar David Museum (Bar'am)
 - not found on the map: CCA Tel Aviv (Tel Aviv)
-- not found on the map: Benyamini Contemporary Ceramics Center (Tel Aviv)
-- not found on the map: Artspace Tel Aviv (Tel Aviv)
-- not found on the map: Tel Aviv Artists' Studios (Tel Aviv)
-- not found on the map: Jerusalem Print Workshop (Jerusalem)
-- not found on the map: Jerusalem Artists' Studios (Jerusalem)
 - not found on the map: HaMekarer (Jerusalem)
 - not found on the map: Footnote Center for Art (Tel Aviv)
 - not found on the map: Toar (Tel Aviv)
-- not found on the map: Israeli Center for Digital Art (Holon)
 - not found on the map: Vitrer Ceramics Center (Tel Aviv)
 - not found on the map: Neve Schechter Gallery (Tel Aviv)
 - not found on the map: Be'eri Gallery (Be'eri)
-- not found on the map: Be'eri Gallery Tel Aviv (Tel Aviv)
-- not found on the map: Kabri Gallery (Kabri)
-- not found on the map: Atelier Shemi (Kabri)
 - not found on the map: Rehovot Municipal Gallery (Rehovot)
-- not found on the map: Rishon LeZion Municipal Art Gallery (Rishon LeZion)
 - not found on the map: Architect's House Gallery (Jaffa)
-- not found on the map: P8 Gallery (Tel Aviv)
-- not found on the map: Center for Visual Arts Tel Aviv (Tel Aviv)
 - not found on the map: Studio of Her Own (Jerusalem)
 - not found on the map: Sapir College Gallery (Sderot)
-- not found on the map: Modiin Artists House (Modi'in)
-- not found on the map: Hanina Gallery (Tel Aviv)
 - not found on the map: Dana Gallery (Yad Mordechai)
 - not found on the map: Hankin House (Kfar Yehoshua)
 - not found on the map: Indie Photography Group (Tel Aviv)
-- not found on the map: Kav 16 Gallery (Tel Aviv)
 - not found on the map: Gallery Binyamin (Tel Aviv)
-- not found on the map: Musrara (Jerusalem)
 - not found on the map: Beit HaYotzer Afula (Afula)
 - not found on the map: Barer Arts Center (Ma'alot-Tarshiha)
 - not found on the map: Kiryat Tiv'on Art Gallery (Kiryat Tiv'on)
 - not found on the map: Ramat HaSharon Art Gallery (Ramat HaSharon)
 - not found on the map: Beit HaMashevot (Tel Aviv)
-- not found on the map: Artport (Tel Aviv)
-- not found on the map: Beit Benyamini (Tel Aviv)
 - not found on the map: Ahad Ha'am 9 Gallery (Tel Aviv)
 - not found on the map: Nolobaz (Tel Aviv)
 - not found on the map: Shared Art Salon (Tel Aviv)
 - not found on the map: Cubia 6 (Tel Aviv)
 - not found on the map: Minshar Gallery (Tel Aviv)
-- not found on the map: Dvir Gallery (Tel Aviv)
-- not found on the map: Braverman Gallery (Tel Aviv)
 - not found on the map: Givon Art Gallery (Tel Aviv)
 - not found on the map: Zemack Contemporary Art (Tel Aviv)
 - not found on the map: Litvak Gallery (Tel Aviv)
 - not found on the map: Tavi Art Gallery (Tel Aviv)
-- not found on the map: Hezi Cohen Gallery (Tel Aviv)
 - not found on the map: Shulamit Gallery (Tel Aviv)
-- not found on the map: Alon Segev Gallery (Tel Aviv)
 - not found on the map: Raw Art Gallery (Tel Aviv)
-- not found on the map: Rothschild Fine Art (Tel Aviv)
 - not found on the map: Gal-On Art Space (Tel Aviv)
 - not found on the map: Frater Gallery (Tel Aviv)
 - not found on the map: Parezia (Tel Aviv)
 - not found on the map: Gallery Dov (Tel Aviv)
 - not found on the map: BY5 (Tel Aviv)
-- not found on the map: TA Tarbut Da Vinci (Tel Aviv)
 - not found on the map: Light Boxes Gallery (Jaffa)
 - not found on the map: Mazal Dagim Gallery (Jaffa)
 - not found on the map: HaBayit BeHerzl (Tel Aviv)
+- unconfirmed (not found this month): Contemporary art museum
+- unconfirmed (not found this month): Art studio RIMONIM Workroom
+- unconfirmed (not found this month): Beit Aharon Kahana
+- unconfirmed (not found this month): Bruno Gallery
+- unconfirmed (not found this month): Capaim Gallery
+- unconfirmed (not found this month): Elia Photo Service
+- unconfirmed (not found this month): Keren Bar Gil
+- unconfirmed (not found this month): Levys Art
+- unconfirmed (not found this month): Michel Kikoine Gallery
+- unconfirmed (not found this month): Municipality Gallery
+- unconfirmed (not found this month): Olive Tree
+- unconfirmed (not found this month): Ta'ar Gallery
+- unconfirmed (not found this month): The Old Village
+- unconfirmed (not found this month): The Photo House
+- unconfirmed (not found this month): Yom Tov
+- unconfirmed (not found this month): marie Art Gallery
+- unconfirmed (not found this month): Изготовление картин и рам
+- unconfirmed (not found this month): גלריה עודד
+- unconfirmed (not found this month): הגלרייה על האגם
+- unconfirmed (not found this month): הסטודיו של אסתי
+- unconfirmed (not found this month): הציפור הכחולה
+- unconfirmed (not found this month): ליאם גלריה לעיצוב הבית
+- unconfirmed (not found this month): ציאורים - גלרייה לאומנות
+- unconfirmed (not found this month): After-Brar arts center
+- unconfirmed (not found this month): AlHoash Art Court
+- unconfirmed (not found this month): Ariel Sharon Center for Art and Culture
+- unconfirmed (not found this month): Arison Arts Center
+- unconfirmed (not found this month): Art Workshop
+- unconfirmed (not found this month): Arts Center
+- unconfirmed (not found this month): Arts center
+- unconfirmed (not found this month): Centre d'arts Monart
+- unconfirmed (not found this month): Elma Arts Complex
+- unconfirmed (not found this month): House of Arts
+- unconfirmed (not found this month): Moshe Meir Arts Center
+- unconfirmed (not found this month): Palestinian Art House
+- unconfirmed (not found this month): Shraga Goren Arts Center
+- unconfirmed (not found this month): גלירה לאומנות
+- unconfirmed (not found this month): מרכז אמנים
 
 ## Left out of OpenStreetMap candidates
-- museum (untyped), not art: 131
-- name says not art: 54
-- arts centre without art in its name: 31
-- studio or art shop (shown only if curated): 26
+- museum (untyped), not art: 128
+- name says not art: 56
+- arts centre without art in its name: 30
+- studio or art shop (shown only if curated): 25
+- public only on OpenStreetMap, not curated (galleries there include framers and decor shops): 22
+- centre only on OpenStreetMap, not curated (galleries there include framers and decor shops): 15
 - museum (history), not art: 13
 - museum (open_air), not art: 8
 - museum (military), not art: 1
