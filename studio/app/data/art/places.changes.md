@@ -1,83 +1,6 @@
 # Art places, 2026-10-28
 
-169 places: museum 68, public 59, artist-run 1, academy 2, commercial 22, centre 17; curated 77, with a building 148
-
-## New
-- Ashdod Art Museum
-- MoBY - Museums of Bat Yam
-- Wilfrid Israel Museum
-- Umm el-Fahem Art Gallery
-- Kupferman Collection House
-- Benyamini Contemporary Ceramics Center
-- Artspace Tel Aviv
-- Tel Aviv Artists' Studios
-- Jerusalem Print Workshop
-- Jerusalem Artists' Studios
-- Israeli Center for Digital Art
-- Be'eri Gallery Tel Aviv
-- Kabri Gallery
-- Atelier Shemi
-- Rishon LeZion Municipal Art Gallery
-- P8 Gallery
-- Center for Visual Arts Tel Aviv
-- Modiin Artists House
-- Hanina Gallery
-- Kav 16 Gallery
-- Musrara
-- Artport
-- Beit Benyamini
-- Dvir Gallery
-- Braverman Gallery
-- Hezi Cohen Gallery
-- Alon Segev Gallery
-- Rothschild Fine Art
-- TA Tarbut Da Vinci
-- גלריית בלייכר
-- ביתא ירושלים
-- מכון המים - הגלריה העירונית גבעתיים
-- גלריה מרי
-- הגלריה לאמנות ישראלית בקריית טבעון
-- Bauhaus Center Tel Aviv
-- Farkash Gallery collection
-- Debel Gallery
-- Chelouche Gallery
-- Mayanot Gallery
-- Beit Avi Chai
-- Sheik Murad House
-- The Edge gallery
-- Berlin House
-- Beyt Haomanim, Tel Aviv-Yafo
-- Tel Aviv Museum of Art
-- Rockefeller Museum
-- Beeri Gallery
-- CCA Tel Aviv-Yafo
-- Tel Aviv Museum Pavilion
-- Ein Hod Art Gallery
-- Pan Homo Art Gallery
-- Bet ot ha-motsar ha-Yerushalmi
-- PhotoHouse
-- Sommer Contemporary Art
-- Meyerhoff Art Education Center
-- Cadim Gallery
-- Nora Gallery
-- The Arab Museum of Contemporary Art
-- The Edmond de Rothschild Center
-- Galeryah Perisḳop
-- Julie M. Gallery
-- Marc Chagall Artists’ House, Haifa
-- Noga Gallery
-- Mamuta Art and Research Center
-- Beit Castel
-- Municipal Art Gallery Rishon Lezion
-- Yodfat Gallery
-- N&N Aman Gallery
-- ZUZU Gallery
-- Beth Meirov
-- Bait HaLavan
-- The Pumphouse Gallery
-- B.Y5 Gallery
-- Art Shelter Gallery
-- Arie Klang House
+131 places: museum 67, public 37, artist-run 1, academy 2, commercial 22, centre 2; curated 77, with a building 112
 
 ## Notes
 - not found on the map: Beit Uri and Rami Nehushtan Museum (Ashdot Ya'akov)
@@ -118,55 +41,58 @@
 - not found on the map: Parezia (Tel Aviv)
 - not found on the map: Gallery Dov (Tel Aviv)
 - not found on the map: BY5 (Tel Aviv)
+- not found on the map: TA Tarbut Da Vinci (Tel Aviv)
 - not found on the map: Light Boxes Gallery (Jaffa)
 - not found on the map: Mazal Dagim Gallery (Jaffa)
 - not found on the map: HaBayit BeHerzl (Tel Aviv)
-- unconfirmed (not found this month): Contemporary art museum
-- unconfirmed (not found this month): Art studio RIMONIM Workroom
-- unconfirmed (not found this month): Beit Aharon Kahana
-- unconfirmed (not found this month): Bruno Gallery
-- unconfirmed (not found this month): Capaim Gallery
-- unconfirmed (not found this month): Elia Photo Service
-- unconfirmed (not found this month): Keren Bar Gil
-- unconfirmed (not found this month): Levys Art
-- unconfirmed (not found this month): Michel Kikoine Gallery
-- unconfirmed (not found this month): Municipality Gallery
-- unconfirmed (not found this month): Olive Tree
-- unconfirmed (not found this month): Ta'ar Gallery
-- unconfirmed (not found this month): The Old Village
-- unconfirmed (not found this month): The Photo House
-- unconfirmed (not found this month): Yom Tov
-- unconfirmed (not found this month): marie Art Gallery
-- unconfirmed (not found this month): Изготовление картин и рам
-- unconfirmed (not found this month): גלריה עודד
-- unconfirmed (not found this month): הגלרייה על האגם
-- unconfirmed (not found this month): הסטודיו של אסתי
-- unconfirmed (not found this month): הציפור הכחולה
-- unconfirmed (not found this month): ליאם גלריה לעיצוב הבית
-- unconfirmed (not found this month): ציאורים - גלרייה לאומנות
-- unconfirmed (not found this month): After-Brar arts center
-- unconfirmed (not found this month): AlHoash Art Court
-- unconfirmed (not found this month): Ariel Sharon Center for Art and Culture
-- unconfirmed (not found this month): Arison Arts Center
-- unconfirmed (not found this month): Art Workshop
-- unconfirmed (not found this month): Arts Center
-- unconfirmed (not found this month): Arts center
-- unconfirmed (not found this month): Centre d'arts Monart
-- unconfirmed (not found this month): Elma Arts Complex
-- unconfirmed (not found this month): House of Arts
-- unconfirmed (not found this month): Moshe Meir Arts Center
-- unconfirmed (not found this month): Palestinian Art House
-- unconfirmed (not found this month): Shraga Goren Arts Center
-- unconfirmed (not found this month): גלירה לאומנות
-- unconfirmed (not found this month): מרכז אמנים
+- unconfirmed (not found this month): Beyt Haomanim, Tel Aviv-Yafo
+- dropped (not found two months running): Contemporary art museum
+- dropped (not found two months running): Art studio RIMONIM Workroom
+- dropped (not found two months running): Beit Aharon Kahana
+- dropped (not found two months running): Bruno Gallery
+- dropped (not found two months running): Capaim Gallery
+- dropped (not found two months running): Elia Photo Service
+- dropped (not found two months running): Keren Bar Gil
+- dropped (not found two months running): Levys Art
+- dropped (not found two months running): Michel Kikoine Gallery
+- dropped (not found two months running): Municipality Gallery
+- dropped (not found two months running): Olive Tree
+- dropped (not found two months running): Ta'ar Gallery
+- dropped (not found two months running): The Old Village
+- dropped (not found two months running): The Photo House
+- dropped (not found two months running): Yom Tov
+- dropped (not found two months running): marie Art Gallery
+- dropped (not found two months running): Изготовление картин и рам
+- dropped (not found two months running): גלריה עודד
+- dropped (not found two months running): הגלרייה על האגם
+- dropped (not found two months running): הסטודיו של אסתי
+- dropped (not found two months running): הציפור הכחולה
+- dropped (not found two months running): ליאם גלריה לעיצוב הבית
+- dropped (not found two months running): ציאורים - גלרייה לאומנות
+- unconfirmed (not found this month): TA Tarbut Da Vinci
+- dropped (not found two months running): After-Brar arts center
+- dropped (not found two months running): AlHoash Art Court
+- dropped (not found two months running): Ariel Sharon Center for Art and Culture
+- dropped (not found two months running): Arison Arts Center
+- dropped (not found two months running): Art Workshop
+- dropped (not found two months running): Arts Center
+- dropped (not found two months running): Arts center
+- dropped (not found two months running): Centre d'arts Monart
+- dropped (not found two months running): Elma Arts Complex
+- dropped (not found two months running): House of Arts
+- dropped (not found two months running): Moshe Meir Arts Center
+- dropped (not found two months running): Palestinian Art House
+- dropped (not found two months running): Shraga Goren Arts Center
+- dropped (not found two months running): גלירה לאומנות
+- dropped (not found two months running): מרכז אמנים
 
 ## Left out of OpenStreetMap candidates
 - museum (untyped), not art: 128
 - name says not art: 56
-- arts centre without art in its name: 30
+- arts centre without art in its name: 31
 - studio or art shop (shown only if curated): 25
 - public only on OpenStreetMap, not curated (galleries there include framers and decor shops): 22
-- centre only on OpenStreetMap, not curated (galleries there include framers and decor shops): 15
+- centre only on OpenStreetMap, not curated (galleries there include framers and decor shops): 16
 - museum (history), not art: 13
 - museum (open_air), not art: 8
 - museum (military), not art: 1
