@@ -1,3 +1,4 @@
+import re
 """Shared look for the two department reports (business, product): A4 portrait, Hebrew, the Open Studio paper style."""
 
 LOGO = '<svg viewBox="0 0 132 132" width="30" height="30"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg>'
@@ -58,7 +59,17 @@ td.c,th.c{text-align:center}
 .tl{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:2px solid #1B1A17;margin:3mm 0}
 .tl>div{padding:3mm 3mm 0;border-left:1px dashed #CFC7B6;font-size:10pt}.tl>div:last-child{border-left:0}
 .tl b{display:block;font-size:11.4pt;margin-bottom:1mm}.tl .k{display:block;margin-bottom:1mm}
-.sm{font-size:10.4pt}'''
+.sm{font-size:10.4pt}
+.xs{font-size:9.4pt;line-height:1.45}
+.cv{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:6.6pt;letter-spacing:.02em;padding:0 1.1mm;border:1px solid #8F877A;color:#5E594F;margin-right:1mm;vertical-align:1px;white-space:nowrap}
+.cv.v{border-color:#2F6B4F;color:#2F6B4F}.cv.e{border-color:#8F7340;color:#8F7340}
+.phones{display:flex;gap:3mm;justify-content:flex-start;margin:2.5mm 0}
+.phones figure{margin:0;flex:1;text-align:center}.phones img{width:100%;border:1px solid #CFC7B6;border-radius:2.5mm;display:block}
+.phones figcaption{font-size:8.6pt;color:#5E594F;margin-top:1mm}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:8.4pt;direction:ltr;text-align:left;background:#1B1A17;color:#F6F1E7;padding:2.5mm 3.5mm;white-space:pre-wrap;line-height:1.5}
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:6mm;align-items:start}
+.chk li{list-style:none;position:relative}.chk{padding-right:5mm}.chk li:before{content:"☐";position:absolute;right:-5mm;color:#2F6B4F}
+table.tight td,table.tight th{padding:1.3mm 1.4mm}'''
 
 FONTS = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&family=Figtree:wght@700&family=IBM+Plex+Mono:wght@500&display=swap">'
 
@@ -71,11 +82,18 @@ def doc(title, pages, dept, date='אוקטובר 2026'):
             continue
         out.append(f'''<section class="page {cls}"><div class="head"><div><div class="k">{kicker}</div><h2>{heading}</h2></div><div class="dept">{dept}</div></div>
 {body}<div class="foot"><span>Open Studio · {dept}</span><span>{date} · עמוד {i + 1}</span></div></section>''')
-    return f'''<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>{title}</title>{FONTS}<style>{CSS}</style></head><body>{''.join(out)}</body></html>'''
+    # numeric ranges ("1,750–2,500") keep their order inside Hebrew text
+    body = re.sub(r'(?<![\w-])([$₪]?\d[\d,.]*[KMB%$]?)\s?–\s?([$₪]?\d[\d,.]*[KMB%$]?)', r'<bdi dir="ltr">\1–\2</bdi>', ''.join(out))
+    return f'''<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>{title}</title>{FONTS}<style>{CSS}</style></head><body>{body}</body></html>'''
+
+
+def g(k):
+    """certainty tag: v verified, s secondary, e estimate"""
+    return {'v': '<span class="cv v">מאומת</span>', 's': '<span class="cv">משני</span>', 'e': '<span class="cv e">הערכה</span>'}[k]
 
 
 def bars(rows, unit='%', maxv=None):
     """Single-series horizontal bars, one hue: label, value (light=True for a reference row)."""
     m = maxv or max(r[1] for r in rows)
     return '<div class="bars">' + ''.join(
-        f'<div class="bar"><span>{r[0]}</span><i class="{"l" if len(r) > 2 and r[2] else ""}" style="width:{max(1.5, r[1] / m * 100):.1f}%"></i><b>{r[1]}{unit}</b></div>' for r in rows) + '</div>'
+        f'<div class="bar"><span>{r[0]}</span><i class="{"l" if len(r) > 2 and r[2] else ""}" style="width:{max(1.5, r[1] / m * 100):.1f}%"></i><b>{r[1]:,}{unit}</b></div>' for r in rows) + '</div>'

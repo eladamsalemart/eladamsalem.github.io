@@ -54,223 +54,368 @@ td.c,th.c{text-align:center}
 .tl{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:2px solid #1B1A17;margin:3mm 0}
 .tl>div{padding:3mm 3mm 0;border-left:1px dashed #CFC7B6;font-size:10pt}.tl>div:last-child{border-left:0}
 .tl b{display:block;font-size:11.4pt;margin-bottom:1mm}.tl .k{display:block;margin-bottom:1mm}
-.sm{font-size:10.4pt}</style></head><body><section class="page paper cover"><div class="logo"><svg viewBox="0 0 132 132" width="30" height="30"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg><span>Open Studio</span></div>
-<div class="k" style="margin-top:28mm">דוח פיתוח מוצר · מסמך מס' 2</div>
-<h1>מאב‑טיפוס חי<br>לאפליקציה אמיתית</h1>
-<p class="big" style="max-width:150mm">מה בנינו, מה חסר כדי שאנשים אמיתיים ישתמשו, איך נראה עולם האפליקציות היום, ואיך משיקים ומשווקים אפליקציה חדשה.</p>
-<div style="margin-top:18mm" class="roles">
-<div class="role"><b>CTO</b>ארכיטקטורה, תשתית, החלטות טכנולוגיה</div>
+.sm{font-size:10.4pt}
+.xs{font-size:9.4pt;line-height:1.45}
+.cv{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:6.6pt;letter-spacing:.02em;padding:0 1.1mm;border:1px solid #8F877A;color:#5E594F;margin-right:1mm;vertical-align:1px;white-space:nowrap}
+.cv.v{border-color:#2F6B4F;color:#2F6B4F}.cv.e{border-color:#8F7340;color:#8F7340}
+.phones{display:flex;gap:3mm;justify-content:flex-start;margin:2.5mm 0}
+.phones figure{margin:0;flex:1;text-align:center}.phones img{width:100%;border:1px solid #CFC7B6;border-radius:2.5mm;display:block}
+.phones figcaption{font-size:8.6pt;color:#5E594F;margin-top:1mm}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:8.4pt;direction:ltr;text-align:left;background:#1B1A17;color:#F6F1E7;padding:2.5mm 3.5mm;white-space:pre-wrap;line-height:1.5}
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:6mm;align-items:start}
+.chk li{list-style:none;position:relative}.chk{padding-right:5mm}.chk li:before{content:"☐";position:absolute;right:-5mm;color:#2F6B4F}
+table.tight td,table.tight th{padding:1.3mm 1.4mm}</style></head><body><section class="page paper cover"><div class="logo"><svg viewBox="0 0 132 132" width="30" height="30"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg><span>Open Studio</span></div>
+<div class="k" style="margin-top:22mm">דוח פיתוח מוצר · מהדורה 2 · בדיקה מעשית וסבב מחקר עומק</div>
+<h1>מאב‑טיפוס<br>למוצר שאמן סומך עליו</h1>
+<p class="big" style="max-width:155mm">מה בנינו ומה בדקנו בפועל בטלפון, מה תיקנו כבר, מה עוד חוסם, איך נראה עולם האפליקציות ב‑2026, איזו טכנולוגיה, כמה זה עולה, איך פותרים את הצילום, ובאיזה סדר בונים.</p>
+<div style="margin-top:12mm" class="roles">
+<div class="role"><b>CTO</b>ארכיטקטורה, עלויות, החלטות טכנולוגיה</div>
 <div class="role"><b>מנהל מוצר</b>תיעדוף, מפת דרכים, מדדים</div>
-<div class="role"><b>מעצבת מוצר</b>חוויה, מסכים, מותג</div>
-<div class="role"><b>מהנדס תלת‑ממד וראייה ממוחשבת</b>הסיורים, הלכידה</div>
-<div class="role"><b>QA ותפעול</b>בדיקות, שחרורים, ניטור</div>
-<div class="role"><b>צמיחה ושיווק</b>השקה, ערוצים, קהילה</div></div>
-<p class="src" style="position:absolute;bottom:16mm;right:15mm;left:15mm">נכתב על ידי Claude בכובע של מחלקת פיתוח מוצר, על בסיס הקוד במאגר, תהליך העבודה עד כה, ומחקר עדכני (אוקטובר 2026). משלים את דוח הייעוץ העסקי: אותם שלבים, אותם יעדים.</p></section><section class="page "><div class="head"><div><div class="k">תקציר</div><h2>איפה אנחנו, במשפט אחד</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<div class="role"><b>מעצב מוצר</b>חמש השניות הראשונות, משפכים, מסכים</div>
+<div class="role"><b>מהנדס תלת‑ממד וראייה</b>צינור הצילום, מודלים, רישיונות</div>
+<div class="role"><b>QA, נגישות וביצועים</b>149 מסלולים, axe, Lighthouse, 4G איטי</div>
+<div class="role"><b>Backend ואבטחה</b>חשבונות, הרשאות, העלאות, פרטיות</div></div>
+<p class="src" style="position:absolute;bottom:16mm;right:15mm;left:15mm">נכתב על ידי Claude בכובע של מחלקת פיתוח מוצר, 28.10.2026, על בסיס הקוד בענף studio, בדיקה מעשית של האפליקציה החיה בהדמיית אייפון, ומחקר עדכני. משלים את דוח הייעוץ העסקי, מהדורה 2: אותם שלבים, אותם תנאים.</p></section><section class="page "><div class="head"><div><div class="k">איך עבדנו</div><h2>בדקנו את האפליקציה כמו מבקר, ואת השוק כמו מחלקה</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
-<div class="quote">יש לנו את החלק הכי קשה להעתקה (סיור שנבנה מתערוכה אמיתית, עם 28 בדיקות איכות) ואת החלק הכי מורגש (חוויה נקייה). חסר לנו הבסיס שכל אפליקציה צריכה כדי שאנשים אמיתיים ישתמשו בה: חשבונות, העלאות, שרת ומדידה.</div>
-<h3>שלוש העדיפויות של המחלקה</h3>
+<div class="cols"><div>
+<h3>הבדיקה המעשית</h3>
+<ul class="sm"><li><b>149 מסלולים</b> באפליקציה החיה, בהדמיית אייפון (390×844, מגע, DPR 3), צילום מסך לכל אחד.</li>
+<li><b>axe‑core</b> לנגישות על כל המסלולים; <b>Lighthouse</b> על עמוד הבית.</li>
+<li><b>4G איטי</b> (150 מ"ש, 1.6 מגה‑ביט) ומעבד מואט פי 4: זמני טעינה, משקל, בקשות.</li>
+<li><b>בלי רשת</b> אחרי ביקור אחד; סיור התלת‑ממד בשלוש התערוכות.</li>
+<li><b>קריאת קוד</b>: מבנה, הימלטות טקסט, טיפול בשגיאות, בדיקות.</li></ul>
+<div class="box yel"><b>מגבלה:</b> Chromium שמדמה אייפון, לא Safari על אייפון אמיתי. התנהגויות של Safari (זיכרון WebGL, הוספה למסך הבית, 100vh) לא הוכחו כאן. נדרשת בדיקה על מכשיר.</div></div>
+<div><h3>המחקר</h3>
+<table class="tight xs"><tr><th>צוות</th><th>מה בדק</th></tr>
+<tr><td>עולם האפליקציות וטכנולוגיה</td><td>Sensor Tower, Appfigures, RevenueCat, AppsFlyer; WebKit; Apple Guidelines; Supabase, Firebase, Cloudflare, PostHog, Sentry; Veracode; ביצועי WebGL באייפון</td></tr>
+<tr><td>טכנולוגיית צילום</td><td>Gaussian Splatting, Scaniverse, Polycam, Teleport, Luma; VGGT, MapAnything, DUSt3R; Spark, SOG, gsplat; RoomPlan, Matterport; נאמנות צבע; רישיונות</td></tr>
+<tr><td>אנלוגים ולקחים</td><td>Letterboxd, DailyArt, Partiful, Strava, Untappd, Wrapped, Vero, Are.na</td></tr>
+<tr><td>קול הלקוח</td><td>ביקורות בחנויות, סקרי אמנים וגלריות</td></tr>
+<tr><td>יציאה לשוק, ישראל</td><td>(משותפים עם הדוח העסקי)</td></tr></table>
+<p class="sm">כל מספר מסומן: <span class="cv v">מאומת</span> ממקור ראשוני או מדידה שלנו; <span class="cv">משני</span> מסיקור או תקציר, לבדיקה; <span class="cv e">הערכה</span> חישוב שלנו. אתרי ספקים רבים (supabase.com, posthog.com, matterport.com) חסומים ברשת הסביבה, ולכן מחירים רבים <span class="cv">משני</span>.</p>
+<div class="box g"><b>"לעבוד מול האפליקציה":</b> הבדיקה מצאה תקלה חמורה באתר החי (המפה), והיא תוקנה, נבדקה בטלפון, ופורסמה במהלך העבודה על הדוח. פרטים בעמוד 6.</div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 2</span></div></section><section class="page "><div class="head"><div><div class="k">תקציר</div><h2>הבסיס חזק. מה שחסר הוא מה שהופך הדגמה למוצר</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+
+<div class="quote">ב‑149 מסלולים לא נמצאו גלילה אופקית, תמונות בלי תיאור או שגיאות. Lighthouse נתן לנגישות 100. אבל אמן עוד לא יכול להירשם, קישור בוואטסאפ לא מציג כלום, תוכן מומצא מוצג כאמיתי, והסיור לוקח 25 שניות ב‑4G איטי.</div>
+<h3>חמש מסקנות</h3>
 <div class="steps">
-<div class="step"><div><b>יסודות (שבועות 1–4).</b> חשבונות אמיתיים, מסד נתונים, העלאת עבודות ותמונות הצבה, תור לבניית סיורים, מדיניות פרטיות, מדידה. בלי זה אין פיילוט.</div></div>
-<div class="step"><div><b>לכידה שמצליחה בניסיון הראשון.</b> רק 1 מ‑3 תערוכות אמיתיות הפכה לסיור. צריך הנחיית צילום בתוך האפליקציה (וידאו הליכה) ובדיקה בזמן הצילום. זה המדד הטכני שהעסק תלוי בו.</div></div>
-<div class="step"><div><b>להישאר אפליקציית ווב (PWA) עד ההשקה הציבורית, ואז לעטוף לחנויות.</b> אותו קוד, בלי לכתוב מחדש. ב‑App Store נדרשות יכולות "של אפליקציה" (התראות, מצלמה, שיתוף), אחרת אפל דוחה.</div></div></div>
-<h3>מפת הדרך, במבט אחד</h3>
-<div class="tl"><div><span class="k">שבועות 1–4</span><b>יסודות</b>חשבונות, העלאות, שרת, פרטיות, מדידה</div>
-<div><span class="k">שבועות 5–10</span><b>בטא סגורה</b>10 אמנים, 3–5 גלריות, צילום על ידינו</div>
-<div><span class="k">שבועות 11–20</span><b>בטא ציבורית</b>ישראל, אפליקציה בחנויות, התראות</div>
-<div><span class="k">חודש 6+</span><b>צמיחה</b>חללים דיגיטליים, תערוכות קונספט, עיר בחו"ל</div></div>
-<div class="box g"><b>הכלל שלנו מעכשיו:</b> שום דבר לא "גמור" עד שעובד בטלפון, נבדק אוטומטית, ועבר בשרת. כך כבר עובדים מאז באג הרצפה, והכלל כתוב בפרויקט (CLAUDE.md).</div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 2</span></div></section><section class="page "><div class="head"><div><div class="k">1 · מה השגנו</div><h2>מה קיים היום, במספרים</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<div class="step"><div><b>להישאר אפליקציית ווב.</b> ב‑iOS 26 כל אתר במסך הבית נפתח כאפליקציה, Push עובד מ‑16.4 <span class="cv v">מאומת</span>. בישראל iOS הוא רק ~33% <span class="cv v">מאומת</span>: ווב נותן קוד אחד גם לאנדרואיד. Capacitor רק כשיש ערך ילידי, ואז למכור בווב, כי מנוי בחנות חייב IAP <span class="cv v">מאומת</span>.</div></div>
+<div class="step"><div><b>Backend בעשרות דולרים בחודש:</b> Supabase לנתונים וחשבונות, Cloudflare R2 לסיורים (בלי עלות תעבורה), PostHog למדידה. הסיכון הוא אבטחה, לא כסף: 45% מהקוד שנכתב ב‑AI הכניס פגיעויות <span class="cv v">מאומת</span>.</div></div>
+<div class="step"><div><b>הצילום הוא הנתיב הקריטי.</b> רק 1 מ‑3 תערוכות קיבלה סיור <span class="cv v">מאומת</span>. אפליקציות Splatting מניחות מאות פריימים; מודלים חדשים (MapAnything, VGGT) משחזרים חדר מקומץ תמונות, ויש להם גרסאות שמותרות לשימוש מסחרי <span class="cv v">מאומת</span>.</div></div>
+<div class="step"><div><b>הסיור כבד מדי לטלפון:</b> 7.73 מגה‑בייט, 81 בקשות, 25.2 שניות עד שהחדר נראה ב‑4G איטי <span class="cv v">מאומת</span>. תקציב משקל וזמן צריך להיכנס לבדיקה האוטומטית.</div></div>
+<div class="step"><div><b>שערי בדיקה גם לאפליקציה, לא רק לסיור.</b> המפה הריקה הגיעה לאתר החי כי לאפליקציה לא היה שער. עכשיו יש (check_app.py), וכל באג שמגיע מהשטח מוסיף בדיקה.</div></div></div>
+<div class="tl"><div><span class="k">נוב'–דצמ' 2026</span><b>חוסמים</b>הרשמה ו‑backend, דמו, קישורים, משקל הסיור</div>
+<div><span class="k">ינו'–מרץ 2027</span><b>גרעין</b>קריית המלאכה, הזמנות לפתיחות, מדידה</div>
+<div><span class="k">אפר'–אוג' 2027</span><b>צילום</b>MapAnything/VGGT, בדיקת כיסוי, צבע טרי</div>
+<div><span class="k">2028</span><b>הרחבה</b>Capacitor אם צריך, מנוע הצילום לחו"ל</div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 3</span></div></section><section class="page "><div class="head"><div><div class="k">1 · מה קיים</div><h2>מה בנינו עד היום, במספרים ובמסכים</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
-<div class="stats"><div class="stat"><div class="num">229</div><span>עדכוני קוד מאז 22 באוקטובר</span></div>
-<div class="stat"><div class="num">~6,000</div><span>שורות קוד: אפליקציה, צופה תלת‑ממד, צינור בנייה</span></div>
-<div class="stat"><div class="num">17</div><span>מודולים בצינור שבונה סיור מצילומים</span></div>
-<div class="stat"><div class="num">28</div><span>בדיקות איכות לכל סיור (10 + 18), כולל מעבר טלפון</span></div></div>
-<div style="display:flex;gap:2.5mm;margin:3mm 0"><img src="../compare/open-studio/01-home.jpg" style="width:23mm;border:1px solid #CFC7B6;border-radius:1.5mm"><img src="../compare/open-studio/02-artists.jpg" style="width:23mm;border:1px solid #CFC7B6;border-radius:1.5mm"><img src="../compare/open-studio/11-artist-top.jpg" style="width:23mm;border:1px solid #CFC7B6;border-radius:1.5mm"><img src="../compare/open-studio/05-shows.jpg" style="width:23mm;border:1px solid #CFC7B6;border-radius:1.5mm"><img src="../compare/open-studio/06-show.jpg" style="width:23mm;border:1px solid #CFC7B6;border-radius:1.5mm"><img src="../compare/open-studio/09-map.jpg" style="width:23mm;border:1px solid #CFC7B6;border-radius:1.5mm"><img src="../compare/open-studio/10-tour.jpg" style="width:23mm;border:1px solid #CFC7B6;border-radius:1.5mm"></div>
-<table><tr><th style="width:24%">תחום</th><th>מה קיים</th><th class="c">מצב</th></tr>
-<tr><td>אפליקציית הקהל</td><td>בית, אמנים, תערוכות (עיצוב "ערב פתיחה"), מפה ("על הקירות"), חיפוש, עמוד אמן עם Follow ו"Live from the studio", עמוד תערוכה כאלבום, עמוד עבודה עם "בגודל אמיתי"</td><td class="c y">עובד</td></tr>
-<tr><td>הסיור התלת‑ממדי</td><td>חדר שנבנה מצילומי ההצבה: אור אמיתי, קשתות, רצפה; הליכה, מצב עבודות, מצב צילומים, מפה קטנה, ג'ירו</td><td class="c y">עובד</td></tr>
-<tr><td>צינור הבנייה</td><td>זיהוי עבודות בצילומים, מדידת החדר, אפייה, מדידה קפואה, שני שלבי בדיקה, שומר שמחזיר גרסה טובה</td><td class="c y">עובד, בשרת</td></tr>
-<tr><td>הצד של האמן</td><td>כניסה, פרופיל, עבודות עם בדיקת תמונה, תערוכות, סטטוס סיור, תצוגה מקדימה</td><td class="c m">אב‑טיפוס, שמור בדפדפן</td></tr>
-<tr><td>התקנה וזמינות</td><td>אפליקציית ווב שאפשר להתקין (PWA), עובדת בלי רשת, מתעדכנת לבד</td><td class="c y">עובד</td></tr>
-<tr><td>תשתית ופרסום</td><td>GitHub Pages; שתי עבודות אוטומטיות: בניית סיורים ופרסום האפליקציה</td><td class="c m">חינם, מוגבל</td></tr>
-<tr><td>תוכן הדגמה</td><td>5 אמנים בדויים, 32 עבודות, 9 תערוכות, סרטוני תהליך</td><td class="c y">להסיר לפני השקה</td></tr></table><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 3</span></div></section><section class="page "><div class="head"><div><div class="k">2 · מה חסר</div><h2>הפער בין אב‑טיפוס למוצר</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<div class="stats">
+<div class="stat"><div class="num">185</div><span>עדכוני קוד מאז 22.10.2026 <span class="cv v">מאומת</span></span></div>
+<div class="stat"><div class="num">~6,600</div><span>שורות קוד: אפליקציה, צופה, צינור ובדיקות <span class="cv v">מאומת</span></span></div>
+<div class="stat"><div class="num">28</div><span>בדיקות איכות לכל סיור (10 + 18), כולל מעבר טלפון <span class="cv v">מאומת</span></span></div>
+<div class="stat"><div class="num">149</div><span>מסלולים באפליקציה שנבדקו בהדמיית אייפון <span class="cv v">מאומת</span></span></div></div>
+<div class="phones"><figure><img src="img/home.jpg"><figcaption>בית</figcaption></figure><figure><img src="img/artists.jpg"><figcaption>אמנים</figcaption></figure><figure><img src="img/shows.jpg"><figcaption>תערוכות, "ערב פתיחה"</figcaption></figure><figure><img src="img/map-after.jpg"><figcaption>מפה, "על הקירות"</figcaption></figure><figure><img src="img/artist.jpg"><figcaption>עמוד אמן</figcaption></figure><figure><img src="img/tour.jpg"><figcaption>סיור Ritual</figcaption></figure></div>
+<table class="tight xs"><tr><th>תחום</th><th>מה קיים</th><th>מצב</th></tr>
+<tr><td>אפליקציית הקהל</td><td>5 לשוניות; עמוד אמן עם Follow ויומן סטודיו; תערוכה כאלבום; עבודה בגודל אמיתי; מפה עם סינון; חיפוש</td><td class="y">עובד</td></tr>
+<tr><td>הסיור התלת‑ממדי</td><td>חדר מצילומי ההצבה: אור, קירות, רצפה עם השתקפויות, קשתות, עבודות במקום ובגודל, מפה קטנה, מצב "עבודה הבאה"</td><td class="y">עובד; פגם בתקרה</td></tr>
+<tr><td>צינור הבנייה</td><td>זיהוי עבודות בתמונות, מדידת החדר, אפייה, שני שלבי בדיקה, פרסום רק כשהכול עובר</td><td class="y">עובד, בשרת</td></tr>
+<tr><td>הצד של האמן</td><td>כניסה, פרופיל, עבודות עם בדיקת תמונה, תערוכות, סטטוס סיור</td><td class="m">אב‑טיפוס, נשמר בדפדפן בלבד</td></tr>
+<tr><td>תוכן</td><td>אמן אמיתי אחד ו‑3 תערוכות; עולם דמו: 5 אמנים, 32 עבודות, 9 תערוכות, 9 קליפים, 6 גלריות</td><td class="m">דמו לא מסומן</td></tr>
+<tr><td>תשתית</td><td>GitHub Pages; שתי עבודות אוטומטיות (בניית סיורים, פרסום אפליקציה); בדיקת אפליקציה לפני פרסום</td><td class="y">חינם</td></tr></table><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 4</span></div></section><section class="page "><div class="head"><div><div class="k">2 · הבדיקה המעשית</div><h2>מה עבר: הבסיס חזק</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
-<table><tr><th style="width:20%">תחום</th><th>היום</th><th>חייב לבטא הסגורה</th><th>חייב להשקה</th></tr>
-<tr><td><b>חשבונות</b></td><td>אין; הצד של האמן בדפדפן בלבד</td><td>כניסה במייל (קישור קסם), חשבון אמן וגלריה</td><td>מחיקת חשבון (דרישת App Store), הרשאות צוות לגלריה</td></tr>
-<tr><td><b>מסד נתונים</b></td><td>קבצי JSON במאגר; עורך האתר לאלעד</td><td>מסד נתונים אמיתי: אמנים, עבודות, תערוכות, מעקבים</td><td>גיבויים, הרשאות לפי משתמש</td></tr>
-<tr><td><b>העלאות</b></td><td>רק דרך המאגר</td><td>העלאת עבודות, צילומי הצבה ווידאו מהטלפון</td><td>דחיסה ותמונות קטנות אוטומטית</td></tr>
-<tr><td><b>בניית סיורים</b></td><td>GitHub Actions, כ‑25 דק' לסיור</td><td>תור עבודות וסטטוס חי לאמן</td><td>שרת בנייה משלנו, התראה כשהסיור מוכן</td></tr>
-<tr><td><b>לכידה</b></td><td>הנחיה בטקסט</td><td>מסך צילום מודרך (וידאו)</td><td>בדיקת כיסוי בזמן הצילום</td></tr>
-<tr><td><b>זכויות והסכמה</b></td><td>אין</td><td>אישור זכויות בכל העלאה; מדיניות פרטיות ותנאי שימוש</td><td>נוהל הסרה, תיעוד הסכמות</td></tr>
-<tr><td><b>מדידה</b></td><td>אין</td><td>אירועי שימוש בסיסיים (PostHog)</td><td>לוח מדדים, ניסויים</td></tr>
-<tr><td><b>ניטור תקלות</b></td><td>בדיקת טלפון בשרת בלבד</td><td>דיווח שגיאות מהטלפונים (Sentry)</td><td>התראות ותורנות</td></tr>
-<tr><td><b>התראות</b></td><td>אין</td><td>מייל</td><td>Push לפתיחות של אמנים שעוקבים אחריהם</td></tr>
-<tr><td><b>מפה</b></td><td>אריחים של CARTO בלי מפתח</td><td>ספק עם מפתח ומכסה (MapTiler / Stadia)</td><td>מטמון ובקרת עלויות</td></tr>
-<tr><td><b>שפה ונגישות</b></td><td>ממשק באנגלית</td><td>החלטה: עברית לפיילוט?</td><td>שתי שפות, RTL, בדיקת נגישות</td></tr></table>
-<div class="box r"><b>מה לא לבנות עכשיו:</b> תשלומים, מכירת יצירות, צ'אט, תגובות, חללים וירטואליים, אפליקציה נייטיב נפרדת. כל אחד מהם חשוב בהמשך, אבל אף אחד לא נדרש כדי לגלות אם הפיילוט עובד.</div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 4</span></div></section><section class="page "><div class="head"><div><div class="k">3 · עולם האפליקציות היום</div><h2>מה השתנה, ומה זה אומר עלינו</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
-
+<div class="stats">
+<div class="stat"><div class="num">100</div><span>Lighthouse נגישות, עמוד הבית <span class="cv v">מאומת</span></span></div>
+<div class="stat"><div class="num">100</div><span>Lighthouse Best Practices <span class="cv v">מאומת</span></span></div>
+<div class="stat"><div class="num">79</div><span>Lighthouse ביצועים (LCP 4.5 ש') <span class="cv v">מאומת</span></span></div>
+<div class="stat"><div class="num">58</div><span>Lighthouse SEO (חסום למנועי חיפוש, בכוונה) <span class="cv v">מאומת</span></span></div></div>
 <div class="cols"><div>
-<h3>שימור: רוב המשתמשים לא חוזרים</h3>
-<p class="sm">אחוז המשתמשים שחוזרים אחרי X ימים, ממוצע לכל הקטגוריות (2025–2026):</p>
-<div class="bars"><div class="bar"><span>אחרי יום</span><i class="" style="width:100.0%"></i><b>25.5%</b></div><div class="bar"><span>אחרי שבוע</span><i class="" style="width:47.1%"></i><b>12%</b></div><div class="bar"><span>אחרי 30 יום</span><i class="" style="width:23.5%"></i><b>6%</b></div><div class="bar"><span>רשתות חברתיות, 30 יום</span><i class="l" style="width:11.8%"></i><b>3%</b></div></div>
-<p class="src">מקור: Phiture; Business of Apps, דרך Braze.</p>
-<p><b>המשמעות:</b> השקה לא בונה אפליקציה. חזרה בונה. לכן ההתראה "האמנית שאת עוקבת אחריה פותחת תערוכה בחמישי" שווה יותר מכל קמפיין.</p></div>
-<div><h3>הכלכלה של אפליקציות חדשות</h3>
-<div class="box"><div class="num">4.6%</div>מהאפליקציות החדשות מגיעות ל‑‎$10K הכנסה בחודש תוך שנתיים <span class="src">(RevenueCat, 2026)</span></div>
-<p>החנויות עמוסות, וגילוי בחנות עצמה קשה. אפליקציות חדשות נמצאות היום דרך תוכן קצר (רילס, טיקטוק), קהילות, והמלצות. ASO (אופטימיזציה לחנות) חשוב, אבל רק אחרי שיש ביקוש.</p>
-<h3>מגמות שנוגעות לנו</h3>
-<ul class="sm"><li><b>לכידה בטלפון:</b> טכנולוגיית Gaussian Splatting מאפשרת היום לצלם וידאו קצר בטלפון ולקבל סצנה תלת‑ממדית (Polycam, Luma, Scaniverse). הצפייה בדפדפן בטלפון עדיין כבדה, אבל זה הכיוון שלנו בעוד שנה.</li>
-<li><b>בינה מלאכותית:</b> MyGallery3D כבר כותבת שלטי פתיחה עם AI. אצלנו: תיאור עבודה מתמונה, תרגום, זיהוי עבודות בצילום. כבר עושים את זה.</li>
-<li><b>אפליקציות ווב:</b> גם באייפון אפשר היום "להתקין" אתר ולקבל ממנו התראות, אבל עם מגבלות (עמוד הבא).</li></ul></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 5</span></div></section><section class="page "><div class="head"><div><div class="k">4 · ההחלטה הטכנולוגית</div><h2>אתר, אפליקציה, או שניהם</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<h3>מה עבר בכל 149 המסלולים</h3>
+<ul class="chk"><li>אין גלילה אופקית באף מסלול.</li><li>אין תמונה בלי טקסט חלופי, ואין תמונה שבורה.</li><li>אין שגיאות של האפליקציה בקונסול.</li><li>עמוד 404 ברור לכתובות לא קיימות.</li><li>אחרי ביקור אחד, כל עמוד שנבדק נפתח בלי רשת.</li><li>קישור לסיור של תערוכה שלא פורסם חוזר בשקט לעמוד התערוכה.</li><li>Manifest וסמלים תקינים להתקנה.</li><li>כל טקסט שמגיע מנתונים עובר הימלטות (<span class="ltr">esc()</span>).</li><li>axe מצא בעיות ניגודיות רק ב‑7 מסלולים (35 רכיבים); בשאר 142, כלום.</li></ul></div>
+<div><h3>זמני טעינה ב‑4G איטי</h3>
+<div class="bars"><div class="bar"><span>סיור Ritual: החדר נראה</span><i class="" style="width:57.3%"></i><b>25.2 ש'</b></div><div class="bar"><span>סיור Ritual: סוף ההורדות</span><i class="" style="width:99.5%"></i><b>43.8 ש'</b></div><div class="bar"><span>בית: התמונה הראשית (LCP)</span><i class="" style="width:18.4%"></i><b>8.1 ש'</b></div><div class="bar"><span>עמוד אמן: LCP</span><i class="" style="width:15.5%"></i><b>6.8 ש'</b></div><div class="bar"><span>תערוכות: LCP</span><i class="" style="width:13.0%"></i><b>5.7 ש'</b></div><div class="bar"><span>יעד Google ל‑LCP</span><i class="l" style="width:5.7%"></i><b>2.5 ש'</b></div></div>
+<p class="src">מדידה שלנו <span class="cv v">מאומת</span>, 4G איטי + מעבד ×4.</p>
+<div class="box"><b>למה איטי:</b> תמונות ראשיות נשלחות בגודל מלא גם כשיש גרסה קטנה. בסיור נטענים קבצי ה‑JPEG המקוריים של העבודות (877 ו‑631 קילו‑בייט). Lighthouse מעריך חיסכון של 855 קילו‑בייט בעמוד הבית לבד <span class="cv v">מאומת</span>.</div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 5</span></div></section><section class="page "><div class="head"><div><div class="k">2 · הבדיקה המעשית</div><h2>מה תיקנו כבר, תוך כדי העבודה על הדוח</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
-<h3>מה אפשר ומה אי אפשר באייפון, בלי חנות</h3>
-<table><tr><th>יכולת</th><th class="c">אפליקציית ווב (PWA)</th><th class="c">אפליקציה בחנות</th></tr>
-<tr><td>התקנה למסך הבית</td><td class="c m">ידנית בלבד (שיתוף ← הוסף למסך הבית), בלי הודעת התקנה</td><td class="c y">מהחנות</td></tr>
-<tr><td>התראות Push</td><td class="c m">רק אחרי שהמשתמש התקין ואישר (iOS 16.4 ומעלה)</td><td class="c y">כן</td></tr>
-<tr><td>מצלמה ווידאו ללכידה</td><td class="c y">כן, דרך הדפדפן</td><td class="c y">כן, עם שליטה מלאה</td></tr>
-<tr><td>עבודה ברקע, העלאה ארוכה</td><td class="c n">לא</td><td class="c y">כן</td></tr>
-<tr><td>אחסון מקומי</td><td class="c m">מוגבל, Safari עלול למחוק</td><td class="c y">יציב</td></tr>
-<tr><td>גילוי בחנות, אמון</td><td class="c n">אין</td><td class="c y">כן</td></tr>
-<tr><td>עדכון מיידי בלי אישור</td><td class="c y">כן</td><td class="c m">דרך בדיקת אפל, עם עדכוני תוכן מהשרת</td></tr></table>
-<h3>ארבע דרכים לבנות</h3>
-<table><tr><th>דרך</th><th>מה זה</th><th>בשבילנו</th></tr>
-<tr><td><b>PWA</b> (היום)</td><td>אתר שמתנהג כמו אפליקציה</td><td><span class="tag g">לבטא</span> מהיר, חינם, עדכון מיידי</td></tr>
-<tr><td><b>Capacitor</b></td><td>עוטף את אותו קוד באפליקציה לחנויות, ומוסיף יכולות של הטלפון</td><td><span class="tag g">להשקה</span> אותו קוד, עם התראות, מצלמה ושיתוף</td></tr>
-<tr><td><b>React Native</b></td><td>כתיבה מחדש בממשק נייטיב</td><td><span class="tag r">לא עכשיו</span> חודשים של שכתוב בלי ערך למשתמש</td></tr>
-<tr><td><b>נייטיב מלא</b> (Swift / Kotlin)</td><td>שתי אפליקציות נפרדות</td><td><span class="tag r">לא</span> כפול עבודה</td></tr></table>
-<div class="box"><b>אזהרה לגבי App Store (סעיף 4.2, "פונקציונליות מינימלית"):</b> אפל דוחה אפליקציות שהן "אתר עטוף". אפליקציות Capacitor עוברות כשהן משתמשות ביכולות אמיתיות של הטלפון: התראות, מצלמה, שיתוף, עבודה בלי רשת. יש גם דיווחים על דחיות. לכן ההגשה לחנות תבוא רק עם מסך הצילום המודרך וההתראות, לא לפני. עלויות: אפל ‎$99 לשנה, גוגל ‎$25 חד‑פעמי.</div>
-<p class="src">מקורות: MagicBell, Toimi ו‑Synthetixis על PWA באייפון (2026); פורומי Apple Developer ו‑Ionic על סעיף 4.2; buildmvpfast על Capacitor ו‑React Native.</p><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 6</span></div></section><section class="page "><div class="head"><div><div class="k">5 · ארכיטקטורת יעד</div><h2>איך זה נראה מתחת למכסה</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<div class="two"><div>
+<h3>המפה: תקלה חמורה באתר החי</h3>
+<p>שירות המפות CARTO התחיל לדרוש מפתח, ובמקום מפה כל אריח החזיר תמונה תקינה עם הכיתוב "API KEY REQUIRED". השרת ענה 200, התמונה נטענה, ושום דבר לא נכשל: המבקר פשוט ראה מפה ריקה.</p>
+<p><b>למה לא נתפס קודם:</b> בצילומי המסך שלנו במחשב, אריחי המפה הוחלפו בתמונה מקומית כדי לחסוך רשת. כך הבדיקה ראתה מפה, והטלפון לא.</p>
+<p><b>התיקון:</b> אריחי OpenStreetMap, מרוככים לגוון הנייר של העמוד. נבדק בהדמיית טלפון, פורסם (גרסה b0b011c), ונבדק שוב באתר החי.</p>
+<p><b>השער החדש:</b> <span class="ltr">studio/app/check_app.py</span> רץ בשרת לפני כל פרסום של האפליקציה. הוא מוריד אריח ממרכז תל אביב מהכתובת שהאפליקציה באמת משתמשת בה, ובודק שזו מפה: מאות צבעים ופרטים בכל מקום. אם לא, האפליקציה לא מתפרסמת. הוכחנו שהוא עובד: החזרנו את הכתובת הישנה, והוא עצר.</p>
+<div class="mono">ok   map: tile.openstreetmap.org/15/19550/13299.png (256 colours, 38% detail)
+FAIL map: basemaps.cartocdn.com/light_all/15/19550/13299.png is not a map of the city (16 colours, 4% detail)</div>
+<h3>ועוד שלושה</h3>
+<ul class="sm"><li><b>שם לכל עמוד</b> ("Lia Morén · Open Studio") בלשונית, בהיסטוריה ולקוראי מסך.</li><li><b>ניגודיות:</b> הירוק של "על הקירות" הוכהה ל‑#17834A (4.8:1 על לבן).</li><li><b>כפתור הסגירה</b> של באנר ההתקנה: 44 פיקסלים.</li></ul></div>
+<div><div class="phones"><figure><img src="img/map-before.jpg"><figcaption>לפני: "API KEY REQUIRED"</figcaption></figure><figure><img src="img/map-after.jpg"><figcaption>אחרי: האתר החי</figcaption></figure></div>
+<div class="box yel"><b>לפני השקה:</b> שרת האריחים של OpenStreetMap מיועד לשימוש מתון <span class="cv v">מאומת</span>. לפני השקה ציבורית: ספק אריחים עם מפתח (MapTiler, Stadia) או אריחים סטטיים באירוח עצמי לאזורי הפעילות. השער ימשיך לשמור.</div>
+<div class="box"><b>נכנס לכללי העבודה</b> (CLAUDE.md): "צילום מסך שבו שירות חיצוני הוחלף בתחליף לא מוכיח כלום על השירות הזה."</div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 6</span></div></section><section class="page "><div class="head"><div><div class="k">2 · הבדיקה המעשית</div><h2>מה עוד פתוח, לפי חומרה</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
+<table class="tight xs"><tr><th>#</th><th>חומרה</th><th>ממצא</th><th>הראיה</th><th>מה עושים</th></tr>
+<tr><td>1</td><td class="n">חוסם פנייה</td><td>אין הרשמה אמיתית: "Send me a sign‑in link" לא שולח, הסטודיו נשמר בדפדפן, אמן חדש דורש עריכת קבצים</td><td><span class="ltr">artist.js:5, :315</span></td><td>Supabase: חשבונות, העלאה, רשומת זכויות לכל עבודה</td></tr>
+<tr><td>2</td><td class="n">חוסם פנייה</td><td>תוכן דמו בדיוני מעורבב עם האמן האמיתי, בלי סימון ("Opening tonight 20:00"; אמני דמו מסומנים מראש כ‑Following)</td><td>מסכי בית, תערוכות</td><td>להסיר או לסמן בכל מסך</td></tr>
+<tr><td>3</td><td class="n">חוסם פנייה</td><td>כל קישור משותף מציג אותו כרטיס: ניתוב hash, אין תיאור ואין Open Graph. סורקי תצוגה מקדימה לא מריצים JavaScript ולא רואים מה שאחרי #</td><td><span class="ltr">index.html:6</span>; 0 כתובות ב‑sitemap</td><td>נתיבים אמיתיים + עמוד HTML סטטי לכל תערוכה/אמן/עבודה בזמן הפרסום, עם og:image</td></tr>
+<tr><td>4</td><td class="n">חוסם פנייה</td><td>2 מ‑3 תערוכות בלי סיור; הודעת המצב בשפה פנימית; התערוכות לא מאושרות</td><td>8/15, 3/8 עבודות</td><td>פרוטוקול צילום, שיפור הצינור, ניסוח ציבורי</td></tr>
+<tr><td>5</td><td class="m">גבוה</td><td>הסיור כבד; LCP <bdi dir="ltr">5.7–8.6</bdi> שניות</td><td>מדידה, עמוד 5</td><td>תמונות רספונסיביות, טעינה הדרגתית, KTX2, תקציב בבדיקה</td></tr>
+<tr><td>6</td><td class="m">גבוה</td><td>פגם בתקרת Ritual: משטחים אפורים משופעים ופסים, בעוד שבתמונות התקרה שטוחה</td><td>עמוד 15</td><td>תיקון + בדיקה שהייתה תופסת, והוכחה (לפי CLAUDE.md)</td></tr>
+<tr><td>7</td><td class="m">חוסם השקה</td><td>noindex, sitemap ריק</td><td>SEO 58</td><td>להסיר בהשקה, עם העמודים הסטטיים</td></tr>
+<tr><td>8</td><td>בינוני</td><td>באנר ההתקנה מכסה תוכן בכל עמוד, לפני שהמבקר ראה ערך</td><td>כל המסלולים</td><td>להציג רק אחרי סיור שנצפה או מעקב ראשון</td></tr>
+<tr><td>9</td><td>בינוני</td><td>נגישות SPA: פוקוס לא עובר, אין הכרזת עמוד, אין קישור דילוג; ~3.6 יעדי מגע קטנים מ‑44px בעמוד</td><td>axe</td><td>ניהול פוקוס, aria‑live, הגדלת יעדים</td></tr>
+<tr><td>10</td><td>בינוני</td><td>אין עברית ו‑RTL: lang="en", left/right ב‑CSS 38 פעמים, גופנים בלי עברית</td><td>קוד</td><td>CSS לוגי, dir, גופן עברי; החלטה על שפה</td></tr>
+<tr><td>11</td><td>נמוך</td><td>כותרת לא מוברחת בקוד ההטמעה; קובץ אחד חסר מפיל הכול; מטמון תמונות בלי תקרה; PNG של 4.6MB שלא בשימוש; אין תמונת פתיחה ל‑iOS</td><td><span class="ltr">artist.js:218</span></td><td>תיקונים נקודתיים</td></tr></table>
+<div class="box"><b>שני ממצאים שמעידים על הרגל, לא רק על באג:</b> לסיור יש שער איכות אמיתי, ולאפליקציה עד השבוע לא היה שום שער; ו"היכולת המבדלת" (הסיור) נמצאת שלוש הקשות פנימה, כך שהמבקר הראשון לא רואה אותה.</div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 7</span></div></section><section class="page "><div class="head"><div><div class="k">3 · חוויה</div><h2>חמש השניות הראשונות</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+
+<div class="two"><div>
+<h3>מה מבקר חדש מבין</h3>
+<p>המסך הראשון אומר "NO. 01 · PROTOTYPE · ON VIEW NOW" ומציג תערוכה בדיונית. משפט שמסביר מה המוצר קיים רק במסך האמנים. הסיור האמיתי היחיד נמצא שלוש הקשות פנימה: בית, אמן, תערוכה, "Enter the space".</p>
+<p>המראה חזק, וזה לא מובן מאליו: "נקי ומזכיר ספוטיפיי" עובד. אבל מבקר שהגיע מקישור בוואטסאפ צריך לקבל תוך שנייה תשובה ל"מה זה ולמה לי".</p>
+<h3>מה המחלקה ממליצה</h3>
+<ol class="sm"><li><b>שורת ערך אחת</b> מעל הכול: "תערוכות פתוחות עכשיו ליד, האמנים שאתם עוקבים אחריהם, וחדרים שאפשר להיכנס אליהם מהטלפון".</li>
+<li><b>הסיור במרחק הקשה:</b> רצועת "Walk‑throughs" עם תג 3D ישירות בבית, כבר קיימת בעמוד התערוכות, להביא גם לבית.</li>
+<li><b>נחיתה לפי מקור:</b> מי שהגיע מקישור תערוכה נוחת על התערוכה, עם "עקוב אחרי הגלריה" ו"עוד תערוכות ליד".</li>
+<li><b>באנר התקנה רק אחרי ערך:</b> אחרי סיור ראשון או מעקב ראשון, עם הסבר למה (התראה על פתיחה).</li>
+<li><b>מצב ריק כן:</b> כשאין תערוכה פתוחה ליד, להגיד את זה ולהציע את הסיורים.</li></ol>
+<div class="box yel"><b>קהל מבוגר:</b> מחקר משתמשים מצא שניווט חופשי במרחב תלת‑ממדי קשה למבוגרים <span class="cv v">מאומת</span>. מצב "עבודה הבאה" ורשימת העבודות שכבר קיימים בצופה הם לא תוספת אלא הכרח, וכדאי שיהיו ברירת המחדל למי שלא נגע בג'ויסטיק.</div></div>
+<div><div class="phones"><figure><img src="img/home.jpg"><figcaption>הבית היום</figcaption></figure><figure><img src="img/exhibition.jpg"><figcaption>עמוד תערוכה</figcaption></figure></div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 8</span></div></section><section class="page "><div class="head"><div><div class="k">4 · עולם האפליקציות</div><h2>2026: ההתקנות קפואות, השימור קורס אחרי חודש</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+
+<div class="stats">
+<div class="stat"><div class="num">167B$</div><span>הוצאה באפליקציות 2025, ‎+10%; לראשונה לא‑משחקים עקפו משחקים <span class="cv">משני</span></span></div>
+<div class="stat"><div class="num">70%+</div><span>מהמשתמשים אובדים בתוך 30 יום <span class="cv">משני</span></span></div>
+<div class="stat"><div class="num">~33%</div><span>חלק iOS בשימוש בטלפונים בישראל, 8/2026 <span class="cv v">מאומת</span></span></div>
+<div class="stat"><div class="num">4.6%</div><span>מהאפליקציות החדשות מגיעות ל‑10K$ בחודש בתוך שנתיים <span class="cv">משני</span></span></div></div>
+<div class="two"><div>
+<h3>שימור אחרי 30 יום, לפי קטגוריה</h3>
+<div class="bars"><div class="bar"><span>חדשות (iOS)</span><i class="" style="width:93.8%"></i><b>15%</b></div><div class="bar"><span>ממוצע כל הקטגוריות</span><i class="" style="width:37.5%"></i><b>6%</b></div><div class="bar"><span>רשתות חברתיות (iOS)</span><i class="" style="width:18.8%"></i><b>3%</b></div><div class="bar"><span>צילום ווידאו</span><i class="" style="width:6.2%"></i><b>1%</b></div><div class="bar"><span>יעד Open Studio (תחתון–עליון)</span><i class="l" style="width:50.0%"></i><b>8%</b></div></div>
+<p class="src">Braze על נתוני AppsFlyer <span class="cv">משני</span>. היעד שלנו, <bdi dir="ltr">3–8%</bdi>, <span class="cv e">הערכה</span>.</p>
+<p>ההורדות עמדו במקום (Sensor Tower: ~150 מיליארד; Appfigures: ירידה חמישית ברציפות) <span class="cv">משני</span>. הקושי הוא לא לבנות אלא להגיע ולשמור. <b>כל השקעה בפיתוח שלא משרתת חזרה שבועית היא בזבוז.</b></p></div>
+<div><h3>מה זה אומר לבנייה</h3>
+<div class="box"><b>המחזור השבועי הוא המוצר.</b> פתיחות השבוע, התראה "האמנית שאתם עוקבים אחריה פותחת", ותזכורת ביום הפתיחה. זה מה שמחזיר אנשים, לא עוד פיצ'ר.</div>
+<div class="box"><b>אנדרואיד הוא רוב הארץ.</b> 66.57% <span class="cv v">מאומת</span>. קהל האמנות אולי נוטה לאייפון ולכן הבדיקה באייפון קודמת, אבל צמיחה בלי אנדרואיד לא אפשרית. גם זה נימוק לווב.</div>
+<div class="box"><b>גרסאות iOS:</b> 26.5 היא ~66.5% מהאייפונים בישראל <span class="cv v">מאומת</span>. אפשר להסתמך על יכולות WebKit חדשות, עם גיבוי לשליש שעל גרסאות ישנות.</div>
+<div class="box"><b>מנויים:</b> המרה חציונית מניסיון ארוך (17+ ימים) 42.5%, מקצר 25.5% <span class="cv">משני</span>. רלוונטי ל‑Studio Pro בעתיד, לא עכשיו.</div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 9</span></div></section><section class="page "><div class="head"><div><div class="k">5 · ההחלטה הטכנולוגית</div><h2>להישאר בווב, ולעטוף לחנויות רק כשיש סיבה</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+
+<table class="tight xs"><tr><th>יכולת</th><th>אפליקציית ווב באייפון (2026)</th><th>אפליקציה בחנות</th></tr>
+<tr><td>התקנה</td><td class="m">ידנית (שיתוף ← הוסף למסך הבית); ב‑iOS 26 נפתח כאפליקציה כברירת מחדל <span class="cv">משני</span></td><td class="y">מהחנות</td></tr>
+<tr><td>Push ותגי ספירה</td><td class="m">כן מ‑16.4, רק אחרי הוספה למסך הבית ובעקבות פעולת משתמש <span class="cv v">מאומת</span></td><td class="y">כן</td></tr>
+<tr><td>מצלמה ווידאו</td><td class="y">כן, דרך הדפדפן</td><td class="y">כן, עם שליטה מלאה</td></tr>
+<tr><td>אחסון לא מקוון</td><td class="m">עד 60% מהדיסק, אבל עלול להימחק <span class="cv v">מאומת</span>: מטמון, לא עותק יחיד</td><td class="y">יציב</td></tr>
+<tr><td>WebGPU</td><td class="y">מופעל כברירת מחדל ב‑iOS 26 <span class="cv">משני</span></td><td class="y">כן</td></tr>
+<tr><td>גילוי בחנות</td><td class="n">אין</td><td class="y">כן (ASO)</td></tr>
+<tr><td>עדכון</td><td class="y">מיידי</td><td class="m">דרך בדיקת Apple (תוכן מהשרת: מיידי)</td></tr>
+<tr><td>עלות</td><td class="y">0</td><td>99$ לשנה (Apple), 25$ פעם אחת (Google)</td></tr></table>
 <div class="cols"><div>
+<h3>ארבע דרכים</h3>
+<p class="sm"><b>PWA (היום):</b> מהיר, חינם, קוד אחד. <span class="tag g">לבטא</span><br>
+<b>Capacitor:</b> אותו קוד בתוך אפליקציה, עם יכולות טלפון. הדרך היחידה שמשמרת את three.js והקוד הקיים <span class="cv">משני</span>. <span class="tag g">כשיש סיבה</span><br>
+<b>React Native / Flutter:</b> כתיבה מחדש, ועדיין WebView לצופה. <span class="tag r">לא</span><br>
+<b>ילידי מלא:</b> שתי אפליקציות. <span class="tag r">לא</span></p>
+<div class="box yel"><b>סעיף 4.2:</b> Apple דוחה עטיפה של אתר. "הוספת web view שמוביל לעמוד קיים אינה מספיקה" <span class="cv v">מאומת</span>. גרסת חנות צריכה ערך ילידי: מצלמה והעלאה, Push, סיורים לצפייה בלי רשת, תפריט שיתוף.</div></div>
+<div><h3>הכסף: למה למכור בווב</h3>
+<p class="sm">לפי סעיף 3.1.1, מנוי שפותח יכולות באפליקציית iOS חייב IAP. בחנות הישראלית אסור קישור לתשלום חיצוני: הפטור ל"אפליקציות קריאה" מכסה מגזינים, ספרים, מוזיקה ווידאו, לא אמנות <span class="cv v">מאומת</span>. בארה"ב מותר קישור, והעמלה בדיון בבית המשפט העליון <span class="cv v">מאומת</span>.</p>
+<div class="box g"><b>ההחלטה:</b> מוכרים בווב. גרסת חנות (אם תהיה) בלי מחירים ובלי "הירשם ל‑Pro". חיוב גלריה הוא שירות לעסק מחוץ לאפליקציה. אם תהיה כניסה עם חשבון רשת חברתית, חובה גם Sign in with Apple. אם בכל זאת IAP: 15% בתוכנית לעסקים קטנים <span class="cv">משני</span>.</div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 10</span></div></section><section class="page "><div class="head"><div><div class="k">6 · ארכיטקטורה</div><h2>איך זה נראה מתחת למכסה</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+
+<div class="two"><div>
 <h3>החלקים</h3>
-<table><tr><th>חלק</th><th>בחירה</th><th>למה</th></tr>
-<tr><td>אפליקציה</td><td>הקוד הקיים (ווב), ו‑Capacitor להשקה</td><td>בלי שכתוב</td></tr>
-<tr><td>חשבונות, מסד נתונים, קבצים</td><td>Supabase</td><td>Postgres אמיתי, כניסה במייל, אחסון קבצים; חינם בהתחלה, ‎$25 לחודש אחר כך</td></tr>
-<tr><td>בניית סיורים</td><td>היום GitHub Actions; אחר כך שרת עבודות בענן</td><td>הצינור כבר רץ בשרת, רק מחליפים "איפה"</td></tr>
-<tr><td>הגשת סיורים ותמונות</td><td>CDN (למשל Cloudflare R2)</td><td>תמונות כבדות מהר לכל טלפון</td></tr>
-<tr><td>מדידה</td><td>PostHog</td><td>מיליון אירועים בחודש בחינם</td></tr>
-<tr><td>תקלות</td><td>Sentry</td><td>לדעת על באג לפני שמישהו שולח צילום מסך</td></tr>
-<tr><td>מפה</td><td>MapTiler או Stadia, עם מפתח</td><td>תנאי שימוש ברורים</td></tr></table></div>
+<table class="tight xs"><tr><th>חלק</th><th>בחירה</th><th>למה</th></tr>
+<tr><td>אפליקציה</td><td>הקוד הקיים (PWA); Capacitor בעתיד</td><td>בלי שכתוב</td></tr>
+<tr><td>חשבונות, נתונים</td><td>Supabase: Postgres, Auth, הרשאות ברמת שורה (RLS)</td><td>יחסי, פתוח, 25$ ל‑100K משתמשים בחודש <span class="cv">משני</span></td></tr>
+<tr><td>סיורים, תמונות, העלאות</td><td>Cloudflare R2</td><td>0.015$ לג'יגה בחודש, בלי עלות תעבורה <span class="cv">משני</span></td></tr>
+<tr><td>וידאו (אם יהפוך לליבה)</td><td>Cloudflare Stream</td><td>5$ ל‑1,000 דקות שמורות, 1$ ל‑1,000 נצפות <span class="cv">משני</span></td></tr>
+<tr><td>בניית סיורים</td><td>GitHub Actions היום; GPU שכור לשלב Splatting</td><td>~<bdi dir="ltr">1.4–4$</bdi> לשעת GPU <span class="cv">משני</span></td></tr>
+<tr><td>מדידה ודגלים</td><td>PostHog</td><td>~1M אירועים בחודש חינם <span class="cv">משני</span></td></tr>
+<tr><td>שגיאות</td><td>Sentry (או PostHog)</td><td>5K שגיאות בחינם <span class="cv">משני</span></td></tr>
+<tr><td>מפה</td><td>OSM היום; MapTiler/Stadia עם מפתח לפני השקה</td><td>תנאי שימוש</td></tr>
+<tr><td>עמודי שיתוף</td><td>HTML סטטי לכל תערוכה/אמן/עבודה בזמן הפרסום</td><td>תצוגה מקדימה בוואטסאפ</td></tr></table></div>
 <div><h3>מודל הנתונים</h3>
-<div class="card sm"><b>Artist</b> · פרופיל, עיר, תחום<br><b>Work</b> · יצירה, מידות, תמונה<br><b>Venue</b> · גלריה, כתובת, מיקום<br><b>Exhibition</b> · תאריכים, אמנים, עבודות, אירועים<br><b>Space</b> · הסיור: סטטוס, בדיקות, קבצים<br><b>Capture</b> · צילומים ווידאו שהועלו, הסכמת זכויות<br><b>Post</b> · יומן סטודיו: וידאו או סטורי, קשור ליצירה<br><b>Follow</b> · מי עוקב אחרי מי<br><b>Listing</b> · גלריה שלא מחוברת: פרטים בלבד</div>
-<h3>עלות חודשית משוערת</h3>
-<table><tr><th>שלב</th><th>עלות</th></tr>
-<tr><td>בטא סגורה</td><td>‎$0–30 <span class="est">אומדן</span></td></tr>
-<tr><td>בטא ציבורית (כ‑5,000 משתמשים)</td><td>‎$80–200 <span class="est">אומדן</span></td></tr>
-<tr><td>חנויות</td><td>‎$99 לשנה + ‎$25 פעם אחת</td></tr></table></div></div>
-<div class="box g"><b>עיקרון:</b> כל רכיב בחינם או כמעט בחינם עד שיש משתמשים, וכל רכיב אפשר להחליף. אין נעילה על ספק אחד.</div>
-<p class="src">מקורות: Supabase ו‑Firebase, השוואות 2026 (dev.to, makerkit); PostHog (מחירון 2026).</p><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 7</span></div></section><section class="page "><div class="head"><div><div class="k">6 · הלכידה</div><h2>הנתיב הקריטי של כל המוצר</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<div class="card xs"><b class="ltr">Artist</b> · פרופיל, עיר, תחום, טווח מחירים (לבחירה)<br><b class="ltr">Work</b> · יצירה, מידות, תמונה, <b>רשומת זכויות והסכמה</b><br><b class="ltr">Venue</b> · גלריה, כתובת, מיקום, אימות<br><b class="ltr">Exhibition</b> · תאריכים, אמנים, עבודות, אירועים<br><b class="ltr">Event</b> · פתיחה, שיחה; אישורי הגעה<br><b class="ltr">Capture</b> · תמונות, כיסוי, סטטוס, בדיקות<br><b class="ltr">Space</b> · הסיור, גרסה, אישור אמן<br><b class="ltr">Post</b> · יומן סטודיו, קשור לעבודה<br><b class="ltr">Follow / Visit / Save</b> · עוקבים, יומן ביקורים, שמירות<br><b class="ltr">License</b> · מי אישר מה, מתי, לאיזה שימוש</div>
+<div class="box"><b>עיקרון:</b> כל רכיב חינם או כמעט חינם עד שיש משתמשים, וכל רכיב אפשר להחליף. אין נעילה על ספק אחד.</div>
+<div class="box yel"><b>רשומת זכויות היא חלק מהמודל, לא מסמך בצד:</b> כל עבודה בסיור צריכה הסכמה מתועדת של האמן, והסרה צריכה להוריד אותה מכל מקום, כולל מטמון.</div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 11</span></div></section><section class="page "><div class="head"><div><div class="k">6 · ארכיטקטורה</div><h2>כמה זה עולה, בשלושה גדלים</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
-<p class="lead">הסיור טוב בדיוק כמו החומר שנכנס אליו. ב‑Ritual היו 6 צילומים טובים והתוצאה מדויקת. ב‑Nature of Man ובתערוכת הבוגרים הצינור עצר, ובצדק, כי היה חסר.</p>
-<table><tr><th>תערוכה</th><th>מה היה</th><th>מה חסר</th><th class="c">תוצאה</th></tr>
-<tr><td>Ritual</td><td>6 צילומי הצבה, 10 עבודות</td><td>-</td><td class="c y">סיור חי, 18/18</td></tr>
-<tr><td>Nature of Man</td><td>צילומים חלקיים, 15 עבודות</td><td>8 מ‑15 עבודות נמצאו; 44% מהקירות; מידות חסרות</td><td class="c n">לא נבנה</td></tr>
-<tr><td>תערוכת בוגרים</td><td>צילומים חלקיים, 8 עבודות</td><td>3 מ‑8 עבודות; 47% מהקירות</td><td class="c n">לא נבנה</td></tr></table>
-<h3>התוכנית, בשלוש שכבות</h3>
-<div class="steps">
-<div class="step"><div><b>עכשיו: אנחנו מצלמים</b> (בטא סגורה). וידאו הליכה של 1–2 דקות לכל תערוכה, לפי הפרוטוקול שכבר כתוב באפליקציה. כך כל סיור בפיילוט מצליח, ולומדים מה משתבש.</div></div>
-<div class="step"><div><b>בשבועות 5–10: מסך צילום מודרך</b> באפליקציה. "לך לאט לאורך הקיר", חיווי של כמה מהחדר כבר נקלט, ועצירה אם המצלמה זזה מהר מדי. לבדוק את הכיסוי <i>בזמן</i> הצילום, לא אחרי 25 דקות בשרת.</div></div>
-<div class="step"><div><b>מחקר מקביל: סצנות Gaussian Splat</b> מוידאו של הטלפון, ככלי עזר לגאומטריה ולמקרים קשים. לא מחליף את מה שעובד; נכנס רק אם עובר את אותן 28 בדיקות.</div></div></div>
-<div class="cols"><div class="box g"><h4>מדד</h4><b>הצלחה בניסיון ראשון:</b> 70% בפיילוט, 85% בהשקה. היום 33%.</div>
-<div class="box"><h4>מה כבר יש לנו</h4>סטטוס שמסביר לאמן בדיוק מה חסר ("3 מ‑8 עבודות נמצאו, צלמו את הקירות האחרים"), ותמיכה בוידאו בצינור (video.py).</div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 8</span></div></section><section class="page "><div class="head"><div><div class="k">7 · מפת דרכים</div><h2>ארבעה שלבים, וכל אחד עם תנאי יציאה</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<table class="tight"><tr><th>שלב</th><th>משתמשים</th><th>מה רץ</th><th class="c">עלות חודשית <span class="cv e">הערכה</span></th></tr>
+<tr><td>בטא סגורה</td><td>עד 1,000</td><td>Supabase חינם, R2 חינם (10GB), PostHog חינם, GitHub Pages</td><td class="c"><bdi dir="ltr">0–30$</bdi></td></tr>
+<tr><td>בטא ציבורית</td><td>~5,000</td><td>Supabase Pro 25$, R2 ~<bdi dir="ltr">50–100</bdi>GB, PostHog חינם</td><td class="c"><bdi dir="ltr">30–80$</bdi></td></tr>
+<tr><td>השקה</td><td>~20,000</td><td>+ מפה עם מפתח, GPU לסיורים, Sentry</td><td class="c"><bdi dir="ltr">80–250$</bdi></td></tr>
+<tr><td>חנויות</td><td>—</td><td>99$ לשנה + 25$ פעם אחת</td><td class="c">~9$</td></tr></table>
+<div class="two"><div>
+<h3>תעבורה היא שקובעת את העלות</h3>
+<p>סיור של 200 מגה‑בייט שנצפה 10,000 פעמים מייצר 2 טרה‑בייט תעבורה. ב‑R2 זה 0$; באחסון של Supabase, ~157$ בחודש <span class="cv e">הערכה</span>. לכן הסיורים, התמונות והווידאו יושבים ב‑R2, והמסד רק מצביע עליהם.</p>
+<div class="bars"><div class="bar"><span>2TB תעבורת סיורים ב‑Supabase Storage</span><i class="" style="width:98.1%"></i><b>157$</b></div><div class="bar"><span>אותו דבר ב‑R2</span><i class="" style="width:1.5%"></i><b>0$</b></div><div class="bar"><span>Supabase Pro (בסיס)</span><i class="" style="width:15.6%"></i><b>25$</b></div></div></div>
+<div><h3>מלכודות עלות</h3>
+<ul class="sm"><li><b>זינוק ויראלי:</b> לפי דיווח לא מאומת, Cara קיבלה חשבון ענן של ~96 אלף$ <span class="cv">משני</span>. תקרות הוצאה ואזעקות מהיום הראשון.</li>
+<li><b>Firebase Storage</b> דורש היום את תוכנית התשלום Blaze <span class="cv">משני</span>.</li>
+<li><b>הקלטות מפגש</b> של קנבס WebGL לא שוות הרבה; עדיף אירועים מותאמים.</li>
+<li><b>Mixpanel ו‑Amplitude:</b> נתוני השכבה החינמית סותרים בין מקורות; PostHog מספיק לבד.</li></ul>
+<div class="box g"><b>שורה תחתונה:</b> בשנה הראשונה התשתית עולה עשרות דולרים בחודש. העלות האמיתית היא זמן, ואבטחה.</div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 12</span></div></section><section class="page "><div class="head"><div><div class="k">7 · אבטחה</div><h2>הסיכון הוא לא כסף אלא דליפה</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
-<table><tr><th style="width:17%">שלב</th><th>מה בונים</th><th style="width:28%">תנאי מעבר לשלב הבא</th></tr>
-<tr><td><b>0 · יסודות</b><br><span class="k">שבועות 1–4</span></td><td>Supabase: חשבונות במייל, מסד נתונים, אחסון · הצד של האמן מחובר לשרת (במקום דפדפן) · העלאות מהטלפון · תור בניית סיורים עם סטטוס · אישור זכויות בהעלאה · מדיניות פרטיות ותנאים · PostHog ו‑Sentry · הסרת ההדגמה ממצב ברירת המחדל · החלטת שם</td><td>אמן אמיתי נרשם, מעלה 10 עבודות ותערוכה, ורואה את עצמו באפליקציה, בלי עזרה</td></tr>
-<tr><td><b>1 · בטא סגורה</b><br><span class="k">שבועות 5–10</span></td><td>הזמנה לפי קוד · 10 אמנים, 3–5 גלריות · צילום על ידינו · מסך צילום מודרך, גרסה ראשונה · שמירת תערוכה, הוספה ליומן, "הייתי שם" · QR לפתיחות · הטמעת סיור באתר גלריה · מייל שבועי "חדש אצל האמנים שלך"</td><td>15 סיורים חיים, 70% בניסיון ראשון, 30% מהמבקרים עוקבים אחרי אמן, אפס באגים חוסמים בשבועיים האחרונים</td></tr>
-<tr><td><b>2 · בטא ציבורית</b><br><span class="k">שבועות 11–20</span></td><td>אפליקציה ב‑App Store וב‑Google Play (Capacitor) · Push לפתיחות · "אמנים קרובים" · רשת גישה מהירה בבית · Studio Pro בתשלום · הרשמה עצמית לגלריות · עברית ואנגלית</td><td>שימור 10% אחרי 30 יום, 3 גלריות משלמות, אישור בשתי החנויות</td></tr>
-<tr><td><b>3 · צמיחה וחללים חדשים</b><br><span class="k">חודש 6+</span></td><td>חללים דיגיטליים לתערוכות שלא קיימות במציאות · תערוכות קונספט וחיבורים בין אמנים · קול של האמן לכל עבודה · פנייה לאמן או לגלריה (לידים) · עיר בינלאומית ראשונה</td><td>לפי דוח הייעוץ: רשת תל אביב מחזיקה את עצמה</td></tr></table>
-<div class="box"><b>קצב עבודה:</b> שחרור כל שבוע. כל שחרור עובר בדיקה אוטומטית בטלפון (מסכים ראשיים, לא רק סיורים), ובבטא גם בדיקה ידנית באייפון ובאנדרואיד אמיתיים.</div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 9</span></div></section><section class="page "><div class="head"><div><div class="k">8 · סימולציית תרחישים</div><h2>מסעות משתמש, ומה יכול להשתבש בכל אחד</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<div class="stats">
+<div class="stat"><div class="num">45%</div><span>מהמשימות שבהן קוד שנוצר ב‑AI הכניס פגיעות (Veracode 2025) <span class="cv v">מאומת</span></span></div>
+<div class="stat"><div class="num">86%</div><span>מהמקרים שבהם המודלים לא מנעו XSS <span class="cv v">מאומת</span></span></div>
+<div class="stat"><div class="num">170/1,645</div><span>אפליקציות Lovable חשופות בגלל RLS חסר ב‑Supabase (CVE‑2025‑48757) <span class="cv v">מאומת</span></span></div>
+<div class="stat"><div class="num">150K ₪</div><span>עיצום אפשרי על הפרות מסוימות לפי תיקון 13 <span class="cv">משני</span></span></div></div>
+<div class="cols"><div>
+<h3>מה עושים, כבדיקות אוטומטיות</h3>
+<ul class="chk sm"><li><b>RLS בכל טבלה</b>, ובדיקה בשרת: "מפתח ציבורי לא קורא שורות של משתמש אחר". נכשלת = לא מתפרסם.</li>
+<li>מפתחות שירות רק בשרת, לעולם לא בדפדפן; סריקת סודות ותלויות בכל דחיפה.</li>
+<li>העלאות: כתובת חתומה וקצרת חיים, מגבלת גודל וסוג, קידוד מחדש בשרת של כל תמונה ווידאו (מוחק גם GPS מ‑EXIF).</li>
+<li>טשטוש פנים אוטומטי בתמונות הצבה לפני פרסום.</li>
+<li>Content‑Security‑Policy; מעבר לבניית DOM שמבצעת הימלטות כברירת מחדל, לפני שתוכן משתמשים נכנס.</li>
+<li>מיקום רק בהסכמה ובזמן אמת, בלי היסטוריה.</li></ul></div>
+<div><h3>למה זה דחוף דווקא אצלנו</h3>
+<p>היום כל טקסט עובר <span class="ltr">esc()</span>, וזה עובד כי כל התוכן שלנו. ברגע שאמנים יכתבו כותרות ותיאורים, החמצה אחת של <span class="ltr">esc()</span> בתבנית היא XSS שמור. כבר נמצא מקום אחד כזה, בקוד ההטמעה (<span class="ltr">artist.js:218</span>).</p>
+<p>וחשוב מזה: הפרויקט נכתב ברובו בעזרת AI. זה לא רע, כי זה מה שאפשר להתקדם כל כך מהר. אבל לפי המחקר זה בדיוק המקום שבו נכנסות פגיעויות. התשובה היא אותה תשובה שכבר עובדת בסיורים: <b>שער אוטומטי שלא נותן לפרסם</b>.</p>
+<div class="box"><b>בדיקה חיצונית:</b> לפני השקה ציבורית, סקירת אבטחה חד‑פעמית של מומחה ל‑RLS ולהעלאות <span class="cv e">הערכה</span>: כמה אלפי שקלים, שווה כל שקל.</div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 13</span></div></section><section class="page "><div class="head"><div><div class="k">8 · ביצועים</div><h2>הסיור צריך תקציב, כמו כל דבר יקר</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
-<table><tr><th style="width:24%">מסע</th><th>מה קורה</th><th>מה יכול להשתבש</th><th>מה צריך</th></tr>
-<tr><td><b>מבקרת חדשה</b>, קישור מאינסטגרם, אייפון</td><td>נכנסת לעמוד התערוכה, נכנסת לסיור, עוקבת אחרי האמנית</td><td>הסיור נטען לאט ברשת סלולרית; לא מבינה איך הולכים; עוזבת לפני Follow</td><td>טעינה הדרגתית (קיים), הסבר של 3 שורות בכניסה ראשונה, "עקוב" בסוף הסיור</td></tr>
-<tr><td><b>אמן מעלה 40 עבודות</b></td><td>נרשם, מעלה עבודות עם מידות, יוצר תערוכה</td><td>תמונות כבדות; מידות חסרות; מתעייף באמצע</td><td>העלאה ברקע, שמירה אוטומטית, בדיקת תמונה מיידית (קיים באב‑הטיפוס)</td></tr>
-<tr><td><b>גלריה, בוקר אחרי פתיחה</b></td><td>מעלה וידאו הליכה, מחכה לסיור</td><td>הוידאו חלקי; הסיור לא עובר בדיקה</td><td>סטטוס שמסביר מה חסר (קיים), מסך צילום מודרך, התראה כשמוכן</td></tr>
-<tr><td><b>ערב פתיחה</b></td><td>200 איש סורקים QR בבת אחת</td><td>עומס על השרת והמפה</td><td>סיורים כקבצים סטטיים ב‑CDN (כך זה עובד כבר היום)</td></tr>
-<tr><td><b>טלפון ישן או רשת חלשה</b></td><td>אנדרואיד בן 5 שנים</td><td>זיכרון נגמר, עבודה חסרה בסיור</td><td>מעבר הטלפון בבדיקה (קיים), תקציב זיכרון, ניסיון חוזר (קיים)</td></tr>
-<tr><td><b>אמנית מבקשת להסיר עבודה</b></td><td>"זו לא הייתה אמורה להופיע"</td><td>העבודה מופיעה בסיור ובצילומים</td><td>הסתרה מהסיור (מסכה), נוהל 48 שעות</td></tr>
-<tr><td><b>אפל דוחה את האפליקציה</b></td><td>סעיף 4.2</td><td>עיכוב השקה</td><td>להגיש רק עם מצלמה, התראות ושיתוף; PWA ממשיכה לעבוד בינתיים</td></tr>
-<tr><td><b>מבקר מחו"ל</b></td><td>לא מבין עברית</td><td>תוכן בעברית בלבד</td><td>ממשק באנגלית (קיים), תרגום אוטומטי של טקסטים</td></tr></table>
-<div class="box yel"><b>"פרה‑מורטם":</b> שנה מהיום, Open Studio נכשלה. למה? (1) הסיורים לא הצליחו בלי ליווי; (2) מבקרים נכנסו פעם אחת ולא חזרו; (3) אמנים לא עדכנו תוכן; (4) תקלה בטלפון ביום ההשקה; (5) מותג שאי אפשר למצוא. לכל אחת מהן יש כאן מענה, בפרק 6 (1), פרקים 7 ו‑9 (2, 3), CLAUDE.md (4), ודוח הייעוץ (5).</div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 10</span></div></section><section class="page "><div class="head"><div><div class="k">9 · השקה ושיווק</div><h2>איך משיקים אפליקציה חדשה ב‑2026</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<div class="two"><div>
+<h3>מה מדדנו בסיור Ritual</h3>
+<table class="tight xs"><tr><th>מדד</th><th class="c">היום <span class="cv v">מאומת</span></th><th class="c">יעד <span class="cv e">הערכה</span></th></tr>
+<tr><td>בקשות</td><td class="c">81</td><td class="c">עד 40</td></tr>
+<tr><td>משקל כולל</td><td class="c">7.73MB</td><td class="c">עד 4MB לחדר נראה</td></tr>
+<tr><td>מתוכו: קבצי הסיור</td><td class="c">4.73MB, 47 קבצים</td><td class="c">—</td></tr>
+<tr><td>החדר נראה, 4G איטי</td><td class="c">25.2 ש'</td><td class="c">עד ~10 ש'</td></tr>
+<tr><td>סוף ההורדות, 4G איטי</td><td class="c">43.8 ש'</td><td class="c">עבודות נטענות בזמן ההליכה</td></tr>
+<tr><td>בלי האטה</td><td class="c">8.2 ש'</td><td class="c">עד 3 ש'</td></tr></table>
+<h3>הקבצים הכבדים</h3>
+<p class="xs">877KB ו‑631KB: קבצי JPEG מקוריים של עבודות, במקום הגרסה הקטנה שכבר קיימת. 372KB: עבודה ב‑WebP. ~365KB כל אחת: 6 תמונות ההצבה. <span class="cv v">מאומת</span></p></div>
+<div><h3>האיום האמיתי: זיכרון GPU באייפון</h3>
+<p class="sm">Safari ב‑iOS הורג עמודי WebGL בלחץ זיכרון הרבה לפני שה‑RAM נגמר, ו‑Apple לא מפרסמת מגבלה <span class="cv">משני</span>. יש דיווחים על עמודים כבדי טקסטורות שנטענים מחדש בלולאה. "גם כמה טקסטורות 4K עלולות להיות יותר מדי"; JPEG לא מקטין זיכרון GPU, KTX2 כן <span class="cv">משני</span>.</p>
+<h3>התוכנית</h3>
+<ol class="sm"><li>גרסאות קטנות לתמונות ראשיות ולעבודות (קיימות, רק לא בשימוש). מהיר וזול.</li>
+<li>טעינה הדרגתית: קודם החדר, אחר כך העבודות לפי קרבה.</li>
+<li>תקרה של ~2K לטקסטורה בטלפון; KTX2 (ETC1S לקירות ולרצפה, UASTC לעבודות).</li>
+<li>שחרור מה שמחוץ למסך; האזנה ל‑<span class="ltr">webglcontextlost</span> והתאוששות.</li>
+<li><b>תקציב בתוך הבדיקה:</b> משקל מקסימלי לסיור וזמן מקסימלי עד שהחדר נראה ב‑4G איטי. חריגה = הסיור לא מתפרסם.</li>
+<li>בדיקה על אייפון אמיתי לפני כל השקה.</li></ol></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 14</span></div></section><section class="page "><div class="head"><div><div class="k">9 · הצילום</div><h2>הנתיב הקריטי: כיסוי, ולא רק אלגוריתם</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
-<p class="lead">אפליקציות לא "מושקות" ביום אחד. הן נבנות בשלבים: קהל קטן שאוהב אותן, ואחר כך גל. בעולם האמנות הערוצים הכי חזקים הם האנשים עצמם: אמנים, גלריות ופתיחות.</p>
-<table><tr><th>ערוץ</th><th>איך</th><th class="c">עלות</th><th class="c">מתי</th></tr>
-<tr><td><b>הקהל של כל אמן</b></td><td>ערכת שיתוף: קישור, QR, תבנית סטורי, וסרטון "הליכה בתערוכה" אוטומטי מכל סיור</td><td class="c y">0</td><td class="c">בטא סגורה</td></tr>
-<tr><td><b>גלריות</b></td><td>הטמעת סיור באתר, QR בפתיחה, ניוזלטר הגלריה</td><td class="c y">0</td><td class="c">בטא סגורה</td></tr>
-<tr><td><b>תוכן קצר</b></td><td>אינסטגרם וטיקטוק של Open Studio: הליכות בתערוכות, סרטוני תהליך, "מה פותח השבוע"</td><td class="c y">זמן</td><td class="c">שבוע 6+</td></tr>
-<tr><td><b>בתי ספר לאמנות</b></td><td>תערוכות בוגרים: כל המחזור בסיור אחד</td><td class="c y">0</td><td class="c">עונת בוגרים</td></tr>
-<tr><td><b>אירועים</b></td><td>Fresh Paint, לילות גלריות: "כל התערוכות, מהטלפון"</td><td class="c m">נמוכה</td><td class="c">בטא ציבורית</td></tr>
-<tr><td><b>עיתונות אמנות</b></td><td>סיפור: "תערוכות שלא נעלמות"; אמן‑מייסד</td><td class="c y">0</td><td class="c">בטא ציבורית</td></tr>
-<tr><td><b>חנויות (ASO)</b></td><td>שם, מילות מפתח, צילומי מסך, ביקורות</td><td class="c y">0</td><td class="c">אחרי אישור</td></tr>
-<tr><td><b>פרסום ממומן</b></td><td>רק אחרי שהשימור מוכח</td><td class="c n">גבוהה</td><td class="c">לא לפני חודש 6</td></tr></table>
-<h3>רצף ההשקה</h3>
-<div class="tl"><div><span class="k">לפני</span><b>רשימת המתנה</b>דף נחיתה עם Ritual בתוכו; "קבל גישה כשהאמנים שלך עולים"</div>
-<div><span class="k">בטא סגורה</span><b>100 הראשונים</b>מוזמנים אישית; קבוצת וואטסאפ למשוב</div>
-<div><span class="k">בטא ציבורית</span><b>שבוע השקה</b>אירוע אמנות + 15 תערוכות חיות + עיתונות</div>
-<div><span class="k">אחרי</span><b>חזרה</b>התראות, מייל שבועי, תוכן חדש מהסטודיו</div></div>
-<p class="src">מקורות: Flowjam ו‑SEM Nexus על רשימות המתנה (2026); VMobify על השקת אפליקציות; ArtRabbit, דף Partnerships.</p><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 11</span></div></section><section class="page "><div class="head"><div><div class="k">10 · מדידה</div><h2>מה מודדים, מהיום הראשון</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<table class="tight"><tr><th>תערוכה</th><th>מה היה</th><th>מה נמצא</th><th>תוצאה</th></tr>
+<tr><td>Ritual</td><td>6 צילומי הצבה, 10 עבודות</td><td>כל העבודות</td><td class="y">סיור חי, 18/18 בדיקות</td></tr>
+<tr><td>Nature of Man</td><td>צילומים חלקיים, 15 עבודות</td><td>8 מ‑15; 44% מהקירות</td><td class="n">לא נבנה</td></tr>
+<tr><td>תערוכת בוגרים</td><td>צילומים חלקיים, 8 עבודות</td><td>3 מ‑8; 47% מהקירות</td><td class="n">לא נבנה</td></tr></table>
+<img src="img/ritual-photos.jpg" style="width:100%;margin:2mm 0;border:1px solid #CFC7B6">
+<p class="src">ששת צילומי ההצבה של Ritual: תקרה שטוחה ולבנה עם מסילות תאורה.</p>
+<div class="two"><div>
+<h3>ופגם שהבדיקה לא תפסה</h3>
+<p class="sm">במבט הפתיחה של הסיור החי, התקרה מוצגת כמשטחים אפורים משופעים עם פסים, בעוד שבצילומים היא שטוחה. הסיור עבר 18 מתוך 18 בדיקות. לפי כללי העבודה: מתקנים, מוסיפים בדיקה שהייתה תופסת, ומוכיחים אותה על ידי החזרת הבאג. <b>זו המשימה הבאה של המחלקה, מיד אחרי הדוח.</b></p>
+<h3>מה זה אומר</h3>
+<p class="sm">כשהצילום מלא, הצינור עובד ואפילו יפה. כשהוא חלקי, הוא נכשל, ובצדק: בדיקה שמונעת חדר לא נכון היא תכונה. לכן הצעד הראשון הוא לא אלגוריתם אלא <b>פרוטוקול צילום ובדיקת כיסוי בזמן הצילום</b>, כשהגלריסט עוד עומד בחלל.</p></div>
+<div><div class="phones" style="max-width:58mm;margin:2.5mm auto"><figure><img src="img/tour.jpg"><figcaption>הסיור החי: התקרה</figcaption></figure></div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 15</span></div></section><section class="page "><div class="head"><div><div class="k">9 · הצילום</div><h2>מה קיים בעולם, ומה מותר לנו להשתמש בו</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+
+<h3>אפליקציות Splatting: כולן מניחות סריקה צפופה</h3>
+<table class="tight xs"><tr><th>כלי</th><th>מה הוא</th><th>מחיר</th><th>מתאים לנו?</th></tr>
+<tr><td>Scaniverse (Niantic Spatial)</td><td>אימון על הטלפון עצמו, הושק מחדש 4/2026</td><td>חינם</td><td>לצילום מלווה, לא לתמונות של גלריה</td></tr>
+<tr><td>Polycam, KIRI</td><td>ענן; וידאו או מאות תמונות</td><td>בתשלום</td><td>אותו דבר</td></tr>
+<tr><td>Varjo Teleport</td><td>איכות גבוהה</td><td>~30$/חודש <span class="cv">משני</span></td><td>יקר לכל תערוכה</td></tr>
+<tr><td>Luma</td><td>השכבה החינמית בוטלה ב‑2026 <span class="cv">משני</span></td><td>בתשלום</td><td>לא</td></tr>
+<tr><td>Matterport</td><td>אייפון או מצלמת 360</td><td>לפי מספר חללים מאוחסנים</td><td>יקר לתערוכות קצרות; זה הפער שלנו</td></tr>
+<tr><td>Apple RoomPlan</td><td>מישורי קיר מדויקים, הדרכה בזמן צילום</td><td>חינם</td><td>רק LiDAR ואפליקציה ילידית: שלב Capacitor</td></tr></table>
+<p class="xs">מחקר אקדמי צילם חדר אחד באייפון ב‑430 תמונות, ועדיין נשארו ערפול וארטיפקטים <span class="cv">משני</span>. Splatting לבד לא פותר כיסוי חלקי.</p>
+<h3>הדור החדש: חדר מקומץ תמונות, ומוקשי רישוי</h3>
+<table class="tight xs"><tr><th>רכיב</th><th>מה עושה</th><th>רישיון</th><th></th></tr>
+<tr><td><b>MapAnything</b> (Meta, CMU)</td><td>מצלמות וגאומטריה צפופה מתמונות לא מסודרות; מייצא ל‑COLMAP ול‑gsplat</td><td>משקולות <span class="ltr">map-anything-apache</span>: Apache 2.0 <span class="cv v">מאומת</span></td><td class="y">מותר</td></tr>
+<tr><td><b>VGGT</b> (פרס CVPR 2025)</td><td>"מתמונה אחת, מכמה או ממאות", בדרך כלל בפחות משנייה</td><td>רק VGGT‑1B‑Commercial, בטופס בקשה <span class="cv v">מאומת</span></td><td class="y">מותר, בבקשה</td></tr>
+<tr><td><b>gsplat</b></td><td>אימון Splat, עד פי 4 פחות זיכרון GPU</td><td>Apache 2.0 <span class="cv v">מאומת</span></td><td class="y">מותר</td></tr>
+<tr><td><b>Spark</b> (World Labs) + SOG</td><td>צופה three.js; פורמט קטן פי <bdi dir="ltr">15–20</bdi> מ‑PLY <span class="cv">משני</span></td><td>MIT <span class="cv v">מאומת</span></td><td class="y">מותר</td></tr>
+<tr><td>קוד Inria המקורי</td><td>הייחוס של Gaussian Splatting</td><td>לא מסחרי בלבד <span class="cv v">מאומת</span></td><td class="n">אסור</td></tr>
+<tr><td>DUSt3R, MASt3R, Pi3, Apple SHARP</td><td>שחזור מתמונות</td><td>CC‑BY‑NC / מחקר <span class="cv v">מאומת</span></td><td class="n">אסור</td></tr>
+<tr><td>World Labs Marble</td><td>עולם שלם בבינה גנרטיבית</td><td>מסחרי מ‑Pro</td><td class="n">לא לתיעוד: ממציא תוכן</td></tr></table><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 16</span></div></section><section class="page "><div class="head"><div><div class="k">9 · הצילום</div><h2>התוכנית: פרוטוקול, בדיקת כיסוי, מודל, צבע</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
 <div class="cols"><div>
-<h3>מדד הצפון</h3>
-<div class="box g"><b>מבקרים שעוקבים וחוזרים בשבוע:</b> נכנסו לעמוד של אמן שהם עוקבים אחריו, או לסיור. זהה למדד בדוח הייעוץ.</div>
+<h3>שלב 1, עכשיו: פרוטוקול בתוך האפליקציה</h3>
+<ul class="chk sm"><li>לעמוד בכל פינה ולצלם את הקיר שמולה.</li><li>צילום חזיתי אחד לכל עבודה, ישר, בלי השתקפות.</li><li>צילום אחד של כל פתח וקשת.</li><li>גובה קבוע, כ‑150 ס"מ (כמו ב‑Zillow) <span class="cv v">מאומת</span>.</li><li>רצפה ותקרה בקצה הפריים, בכל צילום פינה.</li><li>רשימת עבודות עם מידות, מהגלריה.</li></ul>
+<h3>שלב 2: בדיקת כיסוי מיד אחרי ההעלאה</h3>
+<p class="sm">MapAnything או VGGT רצים בשרת על התמונות שהועלו, ובתוך שניות מחזירים: אילו קירות לא נראו, אילו עבודות חסרות. האפליקציה מבקשת את התמונה החסרה כשהגלריסט עוד בחלל. זה תוקף ישירות את הכשל של Nature of Man ושל תערוכת הבוגרים.</p>
+<h3>שלב 3: Splat לחדר, תמונות לעבודות</h3>
+<p class="sm">MapAnything‑Apache או VGGT‑Commercial לשחזור; אחריו gsplat לאימון; אחריו SOG לדחיסה; ובסוף Spark, בתוך הצופה הקיים. יעד בטלפון: פחות ממיליון גאוסיאנים, עשרות מגה‑בייט לחדר. דיווח אנקדוטלי: קובץ גדול נטען ב‑Safari נייד רק מתחת ל‑60MB <span class="cv">משני</span>. צריך לבדוק שבתלויות של gsplat אין קוד של Inria.</p></div>
+<div><h3>צבע: הגישה הקיימת נכונה</h3>
+<p class="sm">Splatting ופוטוגרמטריה "אופים" בוהק ואור תלוי‑זווית לתוך הצבע. מוזיאונים פותרים את זה בתאורה מקוטבת ובצילום ייעודי של היצירה <span class="cv v">מאומת</span>. לכן: <b>החדר יהיה Splat או קופסה משוחזרת, והעבודות יישארו תמונות חזיתיות עם ניהול צבע על מישורים</b>, ואזורי העבודות יחוררו מה‑Splat כדי שלא תהיה כפילות. Vortic בנתה את אותו מבנה ב‑2020.</p>
+<h3>מה לא עושים</h3>
+<p class="sm">לא ממלאים אזור שלא צולם במילוי גנרטיבי. ברשומה של תערוכה אמיתית זה עלול להמציא עבודות או אדריכלות: בעיית אמון ובעיה משפטית מול האמנים. קיר ורצפה ניטרליים, כמו היום.</p>
+<h3>כמה זה עולה</h3>
+<div class="bars"><div class="bar"><span>A100, שעה</span><i class="" style="width:50.0%"></i><b>2$</b></div><div class="bar"><span>H100, שעה</span><i class="" style="width:100.0%"></i><b>4$</b></div><div class="bar"><span>חדר אחד (<bdi dir="ltr">10–30</bdi> דק' אימון)</span><i class="" style="width:50.0%"></i><b>2$</b></div></div>
+<p class="src">שכירות <bdi dir="ltr">1.4–4$</bdi> לשעה <span class="cv">משני</span>; לחדר <bdi dir="ltr">0.5–2$</bdi> <span class="cv e">הערכה</span>. GitHub Actions בלי GPU: RunPod, Lambda או Modal.</p>
+<div class="box g"><b>יעד לשלב 2 (אביב 2027):</b> שיעור הצלחה בניסיון הראשון 70% בתערוכות של אחרים, ו‑85% עם בקשת השלמה <span class="cv e">הערכה</span>.</div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 17</span></div></section><section class="page "><div class="head"><div><div class="k">10 · מוצר</div><h2>מה בונים, ובאיזה סדר</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+
+<p class="lead">המחקר על אנלוגים מצביע על מנגנונים עם ראיות. המחלקה מתרגמת אותם לרשימת עבודה, לפי מה שמחזיר אנשים כל שבוע.</p>
+<table class="tight xs"><tr><th>עדיפות</th><th>פיצ'ר</th><th>מנגנון והראיה</th><th>מדד</th></tr>
+<tr><td class="n">P0</td><td>הרשמה, העלאה ועריכה לאמן ולגלריה; רשומת זכויות</td><td>בלי זה אין מוצר</td><td>הפעלת אמן</td></tr>
+<tr><td class="n">P0</td><td>עמודי שיתוף עם תצוגה מקדימה (תערוכה, אמן, עבודה)</td><td>כל השיתוף עובר בוואטסאפ (90%+ <span class="cv">משני</span>)</td><td>כניסות מקישור</td></tr>
+<tr><td class="n">P0</td><td>הזמנה לפתיחה: אישור הגעה בלי אפליקציה ובלי חשבון, תזכורת</td><td>Partiful: +400% בשנה <span class="cv e">הערכה</span></td><td>אישורי הגעה, הגעה בפועל</td></tr>
+<tr><td class="n">P0</td><td>"פתיחות השבוע" בעיר ובשכונה, עם מפה</td><td>ArtRabbit, Artips, Tokyo Art Beat</td><td>מבקרים שבועיים</td></tr>
+<tr><td class="m">P1</td><td>התראה: "אמן/גלריה שאתם עוקבים אחריהם פותחים"</td><td>Strava, מועדונים; Push אחרי הוספה למסך הבית</td><td>חזרה שבועית</td></tr>
+<tr><td class="m">P1</td><td>כרטיס שיתוף לתערוכה ולעבודה, עם קרדיט וקישור</td><td>Xiaohongshu, שיתופים מחדש באינסטגרם</td><td>שיתופים</td></tr>
+<tr><td class="m">P1</td><td>נתוני צפייה לגלריה ולאמן ("מי ראה את התערוכה")</td><td>Untappd: העסק משלם על נתונים</td><td>המרה לתשלום</td></tr>
+<tr><td class="m">P1</td><td>מסך צילום מודרך + בדיקת כיסוי</td><td>Zillow, RoomPlan; הכשל שלנו</td><td>הצלחה בניסיון ראשון</td></tr>
+<tr><td>P2</td><td>"התערוכות שלי": יומן ביקורים, עבודות שנשמרו, רשימות</td><td>Letterboxd: Diary + Lists</td><td>ביקורים מתועדים</td></tr>
+<tr><td>P2</td><td>"השנה שלך באמנות", חינם, לשיתוף</td><td>Wrapped: 500M שיתופים ביום <span class="cv v">מאומת</span>; Strava שגבתה ספגה כעס</td><td>שיתופים בדצמבר</td></tr>
+<tr><td>P2</td><td>קליף סטודיו יומי בבית</td><td>DailyArt</td><td>פתיחות יומיות</td></tr>
+<tr><td>P3</td><td>עברית מלאה ו‑RTL</td><td>החלטה עסקית</td><td>—</td></tr>
+<tr><td>P3</td><td>Capacitor וחנויות</td><td>רק כשיש ערך ילידי</td><td>—</td></tr></table>
+<div class="box r"><b>מה לא בונים עכשיו:</b> צ'אט, תגובות, מכירה ותשלום ליצירות, NFT, AI שכותב לאמנים, פיד אלגוריתמי. כולם אפשריים בהמשך, ואף אחד לא נדרש כדי לגלות אם הפיילוט עובד.</div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 18</span></div></section><section class="page "><div class="head"><div><div class="k">11 · מפת דרכים</div><h2>ארבעה שלבים, כל אחד עם תנאי יציאה הנדסיים</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+
+<table class="tight xs"><tr><th>שלב</th><th>מה בונים</th><th>תנאי יציאה הנדסיים</th></tr>
+<tr><td><b>0 · מוכנות</b><br><span class="k">נוב'–דצמ' 2026</span></td><td>Supabase: חשבונות, הרשאות, העלאות ל‑R2, רשומת זכויות · הצד של האמן מחובר לשרת · דמו מוסר או מסומן · עמודי שיתוף סטטיים · תמונות רספונסיביות, הסיור מתחת לתקציב · תיקון התקרה + בדיקה · PostHog ו‑Sentry · מדיניות פרטיות ותנאים</td><td>אמן חדש נרשם ומעלה תערוכה בלי מפתח · קישור בוואטסאפ מציג תמונה ושם · החדר נראה תוך ~10 ש' ב‑4G · בדיקות RLS עוברות · כל הבדיקות בשרת ירוקות</td></tr>
+<tr><td><b>1 · גרעין</b><br><span class="k">ינו'–מרץ 2027</span></td><td>הזמנות לפתיחות · "פתיחות השבוע" · נתוני צפייה · מסך צילום מודרך (גרסה 1) · QR לכל תערוכה</td><td>אפס קריסות שדווחו בשבוע · 3 סיורים של אחרים נבנו · התראות עובדות על אייפון אמיתי</td></tr>
+<tr><td><b>2 · צילום ושיא</b><br><span class="k">אפר'–אוג' 2027</span></td><td>MapAnything/VGGT ובדיקת כיסוי בשרת · GPU שכור · Splat לחדר (ניסוי) · כיסוי צבע טרי · חבילה לתערוכות בוגרים</td><td>הצלחה בניסיון ראשון 70% · עלות לחדר מתחת ל‑2$ · סיור Splat עובר את בדיקת הטלפון</td></tr>
+<tr><td><b><bdi dir="ltr">3–4</bdi> · שותפות והרחבה</b><br><span class="k">ספט' <bdi dir="ltr">2027–2028</bdi></span></td><td>יומן ביקורים · "השנה שלך באמנות" · עברית · Capacitor אם יש ערך ילידי · מנוע הצילום כ‑API לשני לקוחות בחו"ל · ספק מפה עם מפתח</td><td>האפליקציה עוברת סעיף 4.2 · מנוע הצילום רץ ללקוח חיצוני בלי מעורבות שלנו</td></tr></table>
+<div class="cols"><div class="box"><h4>קצב עבודה</h4><p class="sm">שחרור קטן בכל פעם, כל אחד עובר את הבדיקה האוטומטית בטלפון, ונבדק בעין בגודל אייפון. כל שינוי בסיור נבנה ונבדק בשרת. "גמור" = עובד בטלפון, לא במחשב.</p></div>
+<div class="box"><h4>מתואם עם הדוח העסקי</h4><p class="sm">אותם שלבים ואותם תאריכים: התנאים לפני פנייה = תנאי היציאה של שלב 0. הפנייה לאמנים בינואר 2027 רק אם כולם ירוקים.</p></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 19</span></div></section><section class="page "><div class="head"><div><div class="k">12 · מדידה</div><h2>מה מודדים, מהיום הראשון</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+
+<div class="two"><div>
+<h3>אירועים (PostHog)</h3>
+<table class="tight xs"><tr><th>אירוע</th><th>למה</th></tr>
+<tr><td class="ltr">open (source: link / qr / home)</td><td>מאיפה מגיעים</td></tr>
+<tr><td class="ltr">exhibition_view, artist_view</td><td>מה מעניין</td></tr>
+<tr><td class="ltr">follow / unfollow</td><td>הפעלה</td></tr>
+<tr><td class="ltr">rsvp, reminder_open, attend</td><td>לולאת הפתיחה</td></tr>
+<tr><td class="ltr">tour_enter, tour_time, works_seen</td><td>האם הסיור מחזיק</td></tr>
+<tr><td class="ltr">tour_fail (reason)</td><td>קריסות, זיכרון, רשת</td></tr>
+<tr><td class="ltr">share (kind)</td><td>לולאת ההפצה</td></tr>
+<tr><td class="ltr">install_prompt, installed, push_ok</td><td>משפך ההתקנה</td></tr>
+<tr><td class="ltr">artist_signup, upload, capture_start, capture_ok</td><td>הצד הקשה</td></tr>
+<tr><td class="ltr">space_built (ok / fail, reason)</td><td>הצלחת הצינור</td></tr></table></div>
+<div><h3>מדד הצפון</h3>
+<div class="box g"><b>מבקרים שבועיים שצפו בתערוכה נוכחית.</b> משלב את שני הצדדים: יש תערוכה עדכנית (היצע), ויש מי שבא לראות אותה (ביקוש).</div>
 <h3>המשפך</h3>
-<div class="steps sm">
-<div class="step"><div>הגיע (קישור, QR, חיפוש)</div></div>
-<div class="step"><div>ראה תערוכה או אמן</div></div>
-<div class="step"><div>נכנס לסיור, או צפה ב‑3 עבודות ומעלה</div></div>
-<div class="step"><div>עקב אחרי אמן</div></div>
-<div class="step"><div>חזר תוך 30 יום</div></div></div></div>
-<div><h3>אירועים למדידה (PostHog)</h3>
-<table class="sm"><tr><th>אירוע</th><th>למה</th></tr>
-<tr><td class="ltr">tour_enter / tour_time</td><td>האם הסיור מחזיק</td></tr>
-<tr><td class="ltr">tour_mode (walk / works / photos)</td><td>איך אנשים מסתובבים</td></tr>
-<tr><td class="ltr">follow / unfollow</td><td>החזון עצמו</td></tr>
-<tr><td class="ltr">log_open / log_complete</td><td>יומן הסטודיו</td></tr>
-<tr><td class="ltr">show_save / calendar_add</td><td>כוונה להגיע</td></tr>
-<tr><td class="ltr">map_place / near_me</td><td>שימוש במפה</td></tr>
-<tr><td class="ltr">artist_signup / upload / capture_start</td><td>הצד הקשה</td></tr>
-<tr><td class="ltr">space_built (ok / fail, reason)</td><td>הצלחה בניסיון ראשון</td></tr>
-<tr><td class="ltr">error (Sentry)</td><td>יציבות</td></tr></table></div></div>
-<div class="box"><b>פרטיות במדידה:</b> בלי מיקום מדויק, בלי לשמור את "קרוב אליי", וכתובת IP מקוצרת. מדידה אנונימית למבקרים שלא נרשמו. בהתאם לתיקון 13 (דוח הייעוץ, פרק 9).</div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 12</span></div></section><section class="page "><div class="head"><div><div class="k">11 · הצוות</div><h2>מי עושה מה, היום ואחר כך</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<div class="steps"><div class="step"><div>הגיע (קישור, QR, חיפוש)</div></div><div class="step"><div>ראה תערוכה או אמן</div></div><div class="step"><div>עקב, או אישר הגעה</div></div><div class="step"><div>הוסיף למסך הבית ואישר התראות</div></div><div class="step"><div>חזר בשבוע שאחרי</div></div></div>
+<div class="box"><b>פרטיות במדידה:</b> בלי מיקום מדויק, בלי כתובת IP מלאה, מזהה אנונימי למי שלא נרשם, ובהתאם לתיקון 13.</div></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 20</span></div></section><section class="page "><div class="head"><div><div class="k">13 · צוות</div><h2>מי עושה מה, היום ואחר כך</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
-<table><tr><th style="width:22%">תפקיד</th><th>מה עושה</th><th>היום</th><th>מתי לגייס</th></tr>
-<tr><td><b>מייסד ומנהל מוצר</b></td><td>חזון, קשר עם אמנים וגלריות, החלטות</td><td>אלעד</td><td>-</td></tr>
-<tr><td><b>הנדסה</b> (אפליקציה, תלת‑ממד, תשתית)</td><td>פיתוח, בדיקות אוטומטיות, תפעול</td><td>Claude</td><td>מהנדס/ת אחרי גיוס, לשמירת ידע ותורנות</td></tr>
-<tr><td><b>QA</b></td><td>בדיקות אוטומטיות בשרת ובטלפון</td><td>Claude + אלעד באייפון</td><td>בודקי בטא מהקהילה</td></tr>
-<tr><td><b>מעצב/ת מוצר</b></td><td>סקירת חוויה, מותג, שם</td><td>Claude + אלעד</td><td>פרילנס לשבועיים, בשלב היסודות (שם ומותג)</td></tr>
-<tr><td><b>קהילה ועולם האמנות</b></td><td>גלריות, אמנים, פתיחות, משוב</td><td>אלעד</td><td>חצי משרה, בבטא הסגורה</td></tr>
-<tr><td><b>לכידה</b></td><td>צילום תערוכות בפיילוט</td><td>אלעד</td><td>צלם/ת לפי תערוכה, בבטא הסגורה</td></tr>
-<tr><td><b>משפטי</b></td><td>תנאים, פרטיות, זכויות, שם</td><td>-</td><td>עו"ד, חבילה חד‑פעמית לפני הבטא</td></tr>
-<tr><td><b>צמיחה ותוכן</b></td><td>רשתות, עיתונות, השקה</td><td>-</td><td>בבטא הציבורית</td></tr></table>
-<div class="box yel"><b>הסיכון הכי גדול בצוות:</b> הכול עובר דרך אדם אחד. ההמלצה: שותף או שותפה מעולם האמנות (מנהל גלריה, אוצרת), גם בחלקיות משרה. בעולם הזה, אמון נבנה דרך אנשים.</div>
-<h3>איך עובדים</h3>
-<ul><li><b>ספרינט של שבוע:</b> ביום ראשון בוחרים 3 דברים, ובחמישי משחררים.</li>
-<li><b>יומן החלטות:</b> כל החלטה גדולה נכתבת בפרויקט, כמו CLAUDE.md, כדי שגם בעוד שנה יהיה ברור למה.</li>
-<li><b>משוב מהשטח:</b> כל צילום מסך מאמן או מבקר הופך לבאג או לבדיקה אוטומטית. כך עבדנו עם באג הרצפה.</li></ul><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 13</span></div></section><section class="page "><div class="head"><div><div class="k">12 · 30 / 60 / 90</div><h2>מה קורה מחר בבוקר</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<table class="tight xs"><tr><th>תפקיד</th><th>מה עושה</th><th>היום</th><th>מתי להוסיף אדם</th></tr>
+<tr><td><b>מייסד ומנהל מוצר</b></td><td>חזון, קשר עם אמנים וגלריות, החלטות</td><td>המייסד</td><td>—</td></tr>
+<tr><td><b>הנדסה</b></td><td>אפליקציה, תלת‑ממד, תשתית</td><td>Claude</td><td>מהנדס/ת במשרה חלקית אחרי תנופה, לשמירת ידע ותורנות</td></tr>
+<tr><td><b>QA</b></td><td>בדיקות אוטומטיות בשרת ובטלפון</td><td>Claude + המייסד על אייפון</td><td>בודקי בטא מהקהילה</td></tr>
+<tr><td><b>עיצוב</b></td><td>חוויה, מותג, שם</td><td>Claude + המייסד</td><td>פרילנס לשבועיים, בשלב היסודות (שם ומותג)</td></tr>
+<tr><td><b>קהילה ועולם האמנות</b></td><td>גלריות, אמנים, פתיחות, משוב</td><td>המייסד</td><td>חצי משרה בבטא הסגורה</td></tr>
+<tr><td><b>צילום</b></td><td>צילום תערוכות בפיילוט</td><td>המייסד</td><td>צלם/ת לפי תערוכה, כשירות בתשלום מלא</td></tr>
+<tr><td><b>משפטי</b></td><td>תנאים, פרטיות, זכויות, שם</td><td>—</td><td>עו"ד, חבילה חד‑פעמית לפני הבטא</td></tr>
+<tr><td><b>אבטחה</b></td><td>סקירה חיצונית</td><td>—</td><td>לפני השקה ציבורית</td></tr></table>
+<div class="cols"><div class="box yel"><b>הסיכון הגדול בצוות:</b> הכול עובר דרך אדם אחד. ההגנה: שערים אוטומטיים שלא תלויים בזיכרון של אף אחד, ו‑CLAUDE.md שבו כל החלטה וכל לקח נכתבים. כך גם בעוד שנה יהיה ברור למה.</div>
+<div><h3>איך עובדים</h3><ul class="sm"><li><b>"גמור" = עובד בטלפון:</b> בדיקה מלאה, מבט בעין בגודל אייפון, ומעקב אחרי הבדיקה בשרת עד הסוף.</li>
+<li><b>כל באג שמגיע מהשטח מוסיף בדיקה</b>, ומוכיחים שהיא תופסת על ידי החזרת הבאג. כך נוסף השבוע השער של המפה.</li>
+<li><b>יומן החלטות</b> בפרויקט.</li><li><b>משוב מהשטח:</b> כל צילום של אמן או מבקר שהופך לבאג הופך לבדיקה.</li></ul></div></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 21</span></div></section><section class="page "><div class="head"><div><div class="k">14 · 90 יום</div><h2>מה קורה מחר בבוקר</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
-<div class="cols3"><div class="card"><div class="k">ימים 1–30</div><h4>יסודות</h4><ul class="sm"><li>החלטה על שם, ובדיקת דומיין וסימן מסחר</li><li>Supabase: חשבונות, מסד נתונים, אחסון</li><li>הצד של האמן מחובר לשרת</li><li>העלאות מהטלפון ותור בנייה</li><li>מדיניות פרטיות, תנאי שימוש, אישור זכויות</li><li>PostHog ו‑Sentry</li><li>ספק מפה עם מפתח</li><li>דף נחיתה ורשימת המתנה</li></ul></div>
-<div class="card"><div class="k">ימים 31–60</div><h4>בטא סגורה</h4><ul class="sm"><li>10 אמנים ו‑3–5 גלריות מוזמנים</li><li>צילום 10 התערוכות הראשונות</li><li>מסך צילום מודרך, גרסה 1</li><li>שמירה, יומן, "הייתי שם"</li><li>QR לפתיחה והטמעה באתר גלריה</li><li>מייל שבועי לעוקבים</li><li>סקירת מדדים כל שבוע</li></ul></div>
-<div class="card"><div class="k">ימים 61–90</div><h4>לקראת השקה</h4><ul class="sm"><li>Capacitor: התראות, מצלמה, שיתוף</li><li>הגשה ל‑App Store ול‑Google Play</li><li>"אמנים קרובים" ורשת גישה מהירה</li><li>Studio Pro (בלי תשלום עדיין: רשימת מעוניינים)</li><li>עברית לממשק, לפי החלטה</li><li>סיכום פיילוט מול היעדים</li></ul></div></div>
+<div class="cols3">
+<div class="card"><span class="k">ימים <bdi dir="ltr">1–30</bdi></span><h4>יסודות</h4><ul class="xs"><li>תיקון תקרת Ritual + בדיקה</li><li>Supabase: חשבונות, הרשאות, RLS ובדיקות</li><li>העלאות ל‑R2, קידוד מחדש, מחיקת EXIF</li><li>הצד של האמן מחובר לשרת</li><li>החלטה על הדמו, ויישום</li><li>תמונות רספונסיביות בעמודים ובסיור</li></ul></div>
+<div class="card"><span class="k">ימים <bdi dir="ltr">31–60</bdi></span><h4>שיתוף ומדידה</h4><ul class="xs"><li>עמודי שיתוף סטטיים עם תצוגה מקדימה</li><li>הזמנה לפתיחה עם אישור הגעה</li><li>PostHog ו‑Sentry, האירועים מהעמוד הקודם</li><li>תקציב משקל וזמן בבדיקת הסיור</li><li>מסך צילום מודרך, גרסה 1</li><li>באנר התקנה אחרי ערך</li></ul></div>
+<div class="card"><span class="k">ימים <bdi dir="ltr">61–90</bdi></span><h4>לקראת גרעין</h4><ul class="xs"><li>3 סיורים ניסיוניים בגלריות של אחרים</li><li>"פתיחות השבוע"</li><li>נתוני צפייה לגלריה</li><li>בדיקה על אייפון ואנדרואיד אמיתיים</li><li>פרטיות, תנאים, הצהרת נגישות</li><li>שער: 12 התנאים</li></ul></div></div>
 <h3>החלטות שמחכות לך</h3>
-<table><tr><th>החלטה</th><th>המלצת המחלקה</th></tr>
-<tr><td>אפליקציית ווב או חנויות?</td><td>ווב לבטא, Capacitor לחנויות בבטא הציבורית</td></tr>
-<tr><td>Supabase או Firebase?</td><td>Supabase: נתונים יחסיים (אמן, עבודה, תערוכה), מחיר צפוי, אפשר לארח לבד</td></tr>
-<tr><td>שפת ממשק</td><td>אנגלית + עברית מהבטא הציבורית; לפיילוט, לפי מה שהאמנים יגידו</td></tr>
-<tr><td>הדגמה</td><td>להשאיר כ"דוגמה" במסך האמן, להוריד מהבית לפני הבטא</td></tr>
-<tr><td>תקציב חודשי לתשתיות</td><td>עד ‎$50 בבטא; לבדוק שוב בבטא הציבורית</td></tr></table>
-<div class="quote">המוצר לא צריך עוד פיצ'רים כדי לצאת לפיילוט. הוא צריך יסודות. אחרי שיש יסודות, האמנים יגידו לנו מה הפיצ'ר הבא.</div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 14</span></div></section><section class="page "><div class="head"><div><div class="k">נספח</div><h2>מקורות</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
+<table class="tight"><tr><th>החלטה</th><th>המלצת המחלקה</th></tr>
+<tr><td>תוכן הדמו</td><td>להסיר מהאפליקציה הציבורית ולשמור כ"מצב הדגמה" נפרד</td></tr>
+<tr><td>שפה</td><td>אנגלית עכשיו; עברית מלאה לפני השקה ציבורית, לפי מה שהאמנים יגידו בראיונות</td></tr>
+<tr><td>Supabase או Firebase</td><td>Supabase: נתונים יחסיים, מחיר צפוי, אפשר לארח לבד</td></tr>
+<tr><td>ספק מפה לפני השקה</td><td>MapTiler או Stadia, עם מפתח והגבלת דומיין</td></tr>
+<tr><td>אפליקציה בחנויות</td><td>לא לפני שלב 3; ואז Capacitor, ומכירה בווב</td></tr>
+<tr><td>תקציב תשתית</td><td>עד 50$ בחודש בבטא; תקרות ואזעקות</td></tr></table>
+<div class="quote">המוצר לא צריך עוד פיצ'רים כדי לצאת לפיילוט. הוא צריך הרשמה, קישור שנראה טוב בוואטסאפ, סיור שנטען מהר, וצילום שמצליח בפעם הראשונה. אחרי זה, האמנים יגידו לנו מה הפיצ'ר הבא.</div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 22</span></div></section><section class="page "><div class="head"><div><div class="k">נספח</div><h2>מקורות, והתאמה לדוח העסקי</h2></div><div class="dept">מחלקת פיתוח מוצר</div></div>
 
-<p class="src" style="font-size:9pt;line-height:1.7">שימור: Phiture, Mobile Growth Stack (2025–2026); Business of Apps, דרך Braze; Getstream; AppsFlyer, 2025 App Retention Benchmarks.<br>
-כלכלת אפליקציות: RevenueCat, State of Subscription Apps 2026, דרך Subscription Insider.<br>
-אפליקציות ווב באייפון: MagicBell, PWA iOS Limitations (2026); Toimi; Synthetixis; WebsCraft על Push באייפון.<br>
-App Store, סעיף 4.2: פורומי Apple Developer; פורום Ionic; MobiLoud.<br>
-Capacitor ו‑React Native: buildmvpfast (2026); Capgo.<br>
-Supabase ו‑Firebase: makerkit; dev.to; weweb (2026).<br>
-PostHog: מחירון ומדריכים לסטארטאפים (2026).<br>
-Gaussian Splatting: Utsubo guide (2026); UploadVR; Radiance Fields.<br>
-השקה ורשימות המתנה: Flowjam, First 1,000 Waitlist Signups (2026); SEM Nexus; VMobify; LaunchList.<br>
-צוות: First Round Review, When to Hire Your First PM; Amplify Partners; NextView.<br>
-נתוני המוצר: המאגר eladamsalemart/eladamsalem.github.io, ענף studio (28.10.2026): studio/app, studio/app/space/pipeline, data/spaces/*.status.json.</p>
-<div class="box g" style="margin-top:8mm"><h4>איך שני הדוחות משתלבים</h4><table class="sm"><tr><th>שבועות</th><th>ייעוץ עסקי</th><th>פיתוח מוצר</th></tr>
-<tr><td>1–4</td><td>שיחות עומק, שם, תמחור לבדיקה</td><td>יסודות: חשבונות, העלאות, פרטיות, מדידה</td></tr>
-<tr><td>5–10</td><td>פיילוט עם 3–5 גלריות ו‑10 אמנים, צילום על ידינו</td><td>בטא סגורה, מסך צילום מודרך</td></tr>
-<tr><td>11–13</td><td>בדיקת מחיר, החלטה: ממשיכים, משנים או עוצרים</td><td>Capacitor, הגשה לחנויות</td></tr>
-<tr><td>14–20</td><td>שותפויות, רגע השקה</td><td>בטא ציבורית בישראל</td></tr></table></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 15</span></div></section></body></html>
+<p class="xs"><b>עולם האפליקציות:</b> Sensor Tower State of Mobile 2026 (דרך The Batch); Appfigures; RevenueCat State of Subscription Apps 2026; Braze/AppsFlyer; StatCounter Israel 8/2026.<br>
+<b>ווב וחנויות:</b> WebKit blog (Push, Badging, Storage policy); Apple App Review Guidelines 3.1.1, 3.1.3(a), 4.2; Apple Developer Forums; Oyez (25‑1311); SplitMetrics; PkgPulse.<br>
+<b>תשתית:</b> JetAdmin (Supabase 2026); Cloudflare R2 ו‑Stream pricing; AgentDeals (PostHog); Sentry.<br>
+<b>אבטחה:</b> Veracode 2025; Tenable CVE‑2025‑48757; Superblocks.<br>
+<b>ביצועים:</b> WebKit Bugzilla 289601; three.js forum; PlayCanvas forum.<br>
+<b>צילום:</b> GitHub: facebookresearch/vggt, facebookresearch/map‑anything, nerfstudio‑project/gsplat, sparkjsdev/spark; ScanCode LicenseDB (Inria); HF apple/Sharp; PlayCanvas streaming; ar‑go; Radiance Fields; mkhr.co.jp; LighthouseGS, PanoPlane (arXiv); ISPRS 2026; Magnopus; Apple RoomPlan; Zillow Capture Guide 2023; Spheron.<br>
+<b>אנלוגים:</b> The Ringer, Wikipedia (Letterboxd); TechCrunch (Wrapped 2025); NBC/CNBC (Partiful); AppBrain, 9to5Mac (DailyArt); road.cc (Strava); Republic (Are.na).<br>
+<b>הבדיקה המעשית:</b> מדידות שלנו, 28.10.2026: Playwright, axe‑core, Lighthouse, 149 מסלולים; <span class="ltr">research_notes/app_audit.md</span>.<br>
+<b>הכול, עם קישור לכל נתון:</b> <span class="ltr">studio/design/reports/reports/מחקר עומק Open Studio.md</span> ותיקיית <span class="ltr">research_notes/</span> בענף studio.</p>
+<div class="box g"><h3 style="margin-top:0">איך שני הדוחות משתלבים</h3>
+<table class="tight"><tr><th>זמן</th><th>ייעוץ עסקי</th><th>פיתוח מוצר</th></tr>
+<tr><td>נוב'–דצמ' 2026</td><td>ראיונות וסקר שטח; עו"ד: שם וטיוטות; עוסק מורשה</td><td>הרשמה ו‑backend; דמו; עמודי שיתוף; משקל הסיור; התקרה</td></tr>
+<tr><td>ינו'–מרץ 2027</td><td>גרעין בקריית המלאכה; <bdi dir="ltr">3–5</bdi> סיורי קונסיירז' בתשלום</td><td>הזמנות לפתיחות; "פתיחות השבוע"; נתוני צפייה; צילום מודרך</td></tr>
+<tr><td>אפר'–אוג' 2027</td><td>חברה ותנופה; צבע טרי; תערוכות בוגרים</td><td>MapAnything/VGGT; בדיקת כיסוי; GPU</td></tr>
+<tr><td>ספט' <bdi dir="ltr">2027–2028</bdi></td><td>שותפות עירונית; ירושלים; פיילוט בחו"ל</td><td>יומן ביקורים; "השנה שלך"; עברית; Capacitor אם צריך</td></tr></table></div><div class="foot"><span>Open Studio · מחלקת פיתוח מוצר</span><span>אוקטובר 2026 · עמוד 23</span></div></section></body></html>
