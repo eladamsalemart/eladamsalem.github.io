@@ -1,0 +1,42 @@
+# Open Studio art map: what's on today at Israel's art places (exhibitions with their dates, openings, gallery
+# talks), read from each place's own website (studio/app/artmap/sources.tsv). Daily, and by hand.
+# Writes studio/app/data/art/exhibitions.json and exhibitions.health.json on the studio branch.
+name: "Art map: exhibitions"
+
+on:
+  schedule:
+    - cron: '23 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: art-map-data
+  cancel-in-progress: false
+
+jobs:
+  exhibitions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Read what's on
+        run: python3 studio/app/artmap/exhibitions.py
+      - name: Commit to studio
+        run: |
+          git config user.name "open-studio"
+          git config user.email "open-studio@users.noreply.github.com"
+          git add studio/app/data/art/exhibitions.json studio/app/data/art/exhibitions.health.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Art map: what's on, $(date -u +%Y-%m-%d)"
+          for i in 1 2 3; do
+            git pull --rebase origin studio && git push origin HEAD:studio && exit 0
+            sleep 5
+          done
+          exit 1

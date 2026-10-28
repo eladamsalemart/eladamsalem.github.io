@@ -211,6 +211,43 @@ def height_of(b):
     return None
 
 
+# --- Wikidata: art museums and art galleries in Israel, with coordinates (CC0) --------------------------------
+WD_QUERY = '''SELECT ?item ?he ?en ?coord ?kind ?site WHERE {
+  VALUES (?type ?kind) { (wd:Q207694 "museum") (wd:Q1007870 "gallery") }
+  ?item wdt:P31/wdt:P279* ?type ; wdt:P17 wd:Q801 ; wdt:P625 ?coord .
+  FILTER NOT EXISTS { ?item wdt:P576 ?gone } FILTER NOT EXISTS { ?item wdt:P3999 ?closed }
+  OPTIONAL { ?item rdfs:label ?he FILTER(lang(?he)="he") }
+  OPTIONAL { ?item rdfs:label ?en FILTER(lang(?en)="en") }
+  OPTIONAL { ?item wdt:P856 ?site }
+}'''
+
+
+def read_wikidata():
+    u = 'https://query.wikidata.org/sparql?' + urllib.parse.urlencode({'query': WD_QUERY})
+    try:
+        req = urllib.request.Request(u, headers={'User-Agent': UA, 'Accept': 'application/sparql-results+json'})
+        with urllib.request.urlopen(req, timeout=120) as r:
+            rows = json.load(r)['results']['bindings']
+    except Exception as e:
+        print('wikidata:', e, file=sys.stderr)
+        return []
+    out = {}
+    for b in rows:
+        g = lambda k: b.get(k, {}).get('value', '')
+        m = re.match(r'Point\(([-\d.]+) ([-\d.]+)\)', g('coord'))
+        if not m:
+            continue
+        at = (float(m.group(2)), float(m.group(1)))
+        qid = g('item').rsplit('/', 1)[-1]
+        if not in_israel(*at) or qid in out and out[qid]['kind'] == 'museum':
+            continue
+        he, en = g('he'), g('en')
+        out[qid] = {'osm': f'wikidata/{qid}', 'at': at, 'kind': g('kind'), 'wd': True, 'tagged': True,
+                    'tags': {k: v for k, v in (('name', he or en), ('name:he', he), ('name:en', en), ('website', g('site'))) if v}}
+    print(f'wikidata: {len(out)} art museums and galleries', file=sys.stderr)
+    return list(out.values())
+
+
 # --- Nominatim, for curated places OpenStreetMap does not tag ------------------------------------------------
 _last = [0.0]
 
@@ -263,6 +300,10 @@ def slug(s):
 def match_seed(seed, cands):
     keys = {norm(n) for n in [seed['he'], seed['en'], *seed['aliases']] if len(norm(n)) >= 2}
     hits = [c for c in cands if any(norm(n) in keys for n in names_of(c['tags']))]
+    if not hits:                                     # "CCA Tel Aviv" in "CCA Tel Aviv-Yafo": one name inside the other
+        def inside(a, b):
+            return len(a) >= 5 and re.search(r'(^|\s)' + re.escape(a) + r'(\s|$)', b)
+        hits = [c for c in cands if c['tagged'] and any(inside(k, norm(n)) or inside(norm(n), k) for n in names_of(c['tags']) for k in keys)]
     if not hits:
         return None
     ref = city_at(seed['city'])
@@ -270,7 +311,7 @@ def match_seed(seed, cands):
         hits = [c for c in hits if km(c['at'], ref) < 25] or []
     if not hits:
         return None
-    return sorted(hits, key=lambda c: (not c['tagged'], km(c['at'], ref) if ref else 0))[0]
+    return sorted(hits, key=lambda c: (not c['tagged'], bool(c.get('wd')), km(c['at'], ref) if ref else 0))[0]
 
 
 def find_seed_nominatim(seed):
@@ -297,6 +338,8 @@ def main():
 
     seeds = load_seeds()
     cands = read_osm(pbf, seeds)
+    wd = read_wikidata()
+    cands += wd
     today = dt.date.today().isoformat()
     places, log, used = [], [], set()
 
@@ -313,24 +356,31 @@ def main():
                        'city': s['city'] or c['tags'].get('addr:city', ''), 'at': [round(c['at'][0], 6), round(c['at'][1], 6)],
                        'osm': c['osm'], 'website': c['tags'].get('website') or c['tags'].get('contact:website', ''),
                        'address': ' '.join(x for x in [c['tags'].get('addr:street', ''), c['tags'].get('addr:housenumber', '')] if x),
-                       'sources': [s['src'], 'osm']})
+                       'sources': [s['src'], 'wikidata' if c.get('wd') else 'osm']})
 
     left_out = {}
     for c in cands:
         if c['osm'] in used or not c['tagged']:
             continue
         kind, why = classify(c['tags'])
+        if c.get('wd'):
+            kind, why = (None, 'name says not art') if NOT_ART.search(' '.join(names_of(c['tags']))) and c['kind'] == 'museum' and not re.search(r'אמנות|art', ' '.join(names_of(c['tags'])), re.I) \
+                else ('museum' if c['kind'] == 'museum' else 'commercial', 'wikidata')
+        elif kind and kind != 'museum':
+            kind, why = None, f'{kind} only on OpenStreetMap, not curated (galleries there include framers and decor shops)'
         if not kind:
             left_out[why] = left_out.get(why, 0) + 1
             continue
         t = c['tags']
-        if any(km(c['at'], p['at']) < 0.04 and norm(t.get('name', '')) == norm(p['name_he'] or p['name']) for p in places):
+        nm = {norm(n) for n in names_of(t)}
+        if any(km(c['at'], p['at']) < 0.005 or (km(c['at'], p['at']) < 0.3 and nm & {norm(p['name']), norm(p['name_he'])}) for p in places):
             continue
         places.append({'id': slug(t.get('name:en') or t.get('name')) or c['osm'].replace('/', '-'), 'name': t.get('name:en') or t.get('name'),
                        'name_he': t.get('name:he') or (t.get('name') if re.search(r'[֐-׿]', t.get('name', '')) else ''),
                        'kind': kind, 'tier': 'listed', 'city': t.get('addr:city', ''), 'at': [round(c['at'][0], 6), round(c['at'][1], 6)],
                        'osm': c['osm'], 'website': t.get('website') or t.get('contact:website', ''),
-                       'address': ' '.join(x for x in [t.get('addr:street', ''), t.get('addr:housenumber', '')] if x), 'sources': ['osm']})
+                       'address': ' '.join(x for x in [t.get('addr:street', ''), t.get('addr:housenumber', '')] if x),
+                       'sources': ['wikidata' if c.get('wd') else 'osm']})
 
     # ids unique
     seen = {}
