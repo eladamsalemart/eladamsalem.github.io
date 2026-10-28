@@ -1,0 +1,282 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>Open Studio · דוח ייעוץ עסקי</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&family=Figtree:wght@700&family=IBM+Plex+Mono:wght@500&display=swap"><style>@page{size:A4;margin:0}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Assistant',sans-serif;color:#1B1A17;font-size:11.6pt;line-height:1.52;background:#fff}
+.page{width:210mm;height:297mm;padding:15mm 15mm 13mm;position:relative;overflow:hidden;page-break-after:always;background:#fff}
+.page.paper{background:#EFE9DD}.page.ink{background:#1B1A17;color:#F6F1E7}
+h1{font-family:'Frank Ruhl Libre',serif;font-weight:500;font-size:34pt;line-height:1.05;margin:0 0 4mm}
+h2{font-family:'Frank Ruhl Libre',serif;font-weight:500;font-size:24pt;line-height:1.12;margin:0}
+h3{font-size:13pt;margin:5mm 0 1.6mm}
+h4{font-size:11.6pt;margin:2.5mm 0 .8mm}
+p{margin:1.2mm 0}ul,ol{margin:1mm 0;padding-right:5mm}li{margin:.7mm 0}
+.k{font-family:'IBM Plex Mono',monospace;font-size:8.6pt;letter-spacing:.12em;color:#5E594F;text-transform:uppercase}
+.ink .k{color:#BDB6A8}
+.head{border-bottom:1.5px solid #1B1A17;padding-bottom:2.5mm;margin-bottom:4.5mm;display:flex;justify-content:space-between;align-items:flex-end;gap:6mm}
+.head .dept{font-family:'IBM Plex Mono',monospace;font-size:7pt;color:#8F877A;letter-spacing:.08em;white-space:nowrap}
+.foot{position:absolute;bottom:6mm;left:15mm;right:15mm;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:6.8pt;color:#8F877A}
+.lead{font-size:13.6pt;line-height:1.45}
+.big{font-family:'Frank Ruhl Libre',serif;font-size:17pt;line-height:1.35}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:7mm}.cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm}
+.box{background:#EFE9DD;padding:3mm 4mm;margin:2.5mm 0}.box.g{background:#E3EDE7}.box.r{background:#F4E4DD}.box.yel{background:#F3EBD3}
+.box h4:first-child,.box h3:first-child{margin-top:0}
+.card{border:1px solid #CFC7B6;padding:3mm 3.5mm}
+.num{font-family:'Frank Ruhl Libre',serif;font-size:30pt;line-height:1;color:#2F6B4F}
+.stat{display:grid;gap:.5mm}.stat span{font-size:9.8pt;color:#5E594F}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin:3mm 0}
+table{width:100%;border-collapse:collapse;font-size:10pt;margin:2.5mm 0}
+th,td{border-bottom:1px solid #CFC7B6;padding:2mm 1.6mm;text-align:right;vertical-align:top}
+th{font-weight:700;border-bottom:1.5px solid #1B1A17;font-size:9.8pt}
+td.c,th.c{text-align:center}
+.y{color:#2F6B4F;font-weight:700}.n{color:#A3503F;font-weight:700}.m{color:#8F7340;font-weight:700}
+.tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:8.2pt;padding:.3mm 1.6mm;border:1px solid #1B1A17;margin-left:1mm}
+.tag.g{border-color:#2F6B4F;color:#2F6B4F}.tag.r{border-color:#A3503F;color:#A3503F}.tag.y{border-color:#8F7340;color:#8F7340}
+.ltr{direction:ltr;unicode-bidi:embed}
+.src{font-size:8.2pt;color:#5E594F}
+.est{font-size:8.4pt;color:#8F7340}
+.bars{display:grid;gap:1.6mm;margin:2mm 0}
+.bar{display:grid;grid-template-columns:52mm 1fr 18mm;align-items:center;gap:2.5mm;font-size:10pt}
+.bar i{display:block;height:6mm;background:#2F6B4F;border-radius:0 1mm 1mm 0}
+.bar i.l{background:#9DB8A8}.bar b{font-weight:600;text-align:left;direction:ltr}
+.quote{border-right:3px solid #2F6B4F;padding:1.5mm 5mm;margin:4mm 0;font-family:'Frank Ruhl Libre',serif;font-size:15pt;line-height:1.4}
+.steps{counter-reset:s;display:grid;gap:3mm}
+.step{display:grid;grid-template-columns:9mm 1fr;gap:2mm;align-items:start}
+.step:before{counter-increment:s;content:counter(s);font-family:'Frank Ruhl Libre',serif;font-size:19pt;color:#2F6B4F;line-height:1}
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm}
+.role{border:1px solid #CFC7B6;padding:3mm 3.5mm;font-size:9.8pt}.role b{display:block;font-size:11pt}
+.map{position:relative;height:96mm;border:1px solid #CFC7B6;background:#FBF8F2;margin:2mm 0}
+.map .ax{position:absolute;font-family:'IBM Plex Mono',monospace;font-size:6.8pt;color:#5E594F}
+.map .dot{position:absolute;transform:translate(50%,-50%);font-size:9.6pt;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:1.2mm}
+.map .dot:before{content:"";width:3mm;height:3mm;border-radius:50%;background:#8F877A;display:block}
+.map .dot.us:before{background:#2F6B4F;width:4.2mm;height:4.2mm}
+.map .dot.us{color:#2F6B4F;font-size:9pt}
+.cover h1{font-size:40pt;margin-top:30mm}
+.cover .logo{display:flex;align-items:center;gap:2.5mm;direction:ltr;justify-content:flex-end;font-family:'Figtree',sans-serif;font-weight:700;font-size:15pt}
+.toc li{margin:1.4mm 0;font-size:10.5pt}
+.tl{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:2px solid #1B1A17;margin:3mm 0}
+.tl>div{padding:3mm 3mm 0;border-left:1px dashed #CFC7B6;font-size:10pt}.tl>div:last-child{border-left:0}
+.tl b{display:block;font-size:11.4pt;margin-bottom:1mm}.tl .k{display:block;margin-bottom:1mm}
+.sm{font-size:10.4pt}</style></head><body><section class="page paper cover"><div class="logo"><svg viewBox="0 0 132 132" width="30" height="30"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg><span>Open Studio</span></div>
+<div class="k" style="margin-top:28mm">דוח ייעוץ עסקי · מסמך מס' 1</div>
+<h1>מהאב‑טיפוס לעסק</h1>
+<p class="big" style="max-width:150mm">מה Open Studio צריכה להיות כעסק, למי היא מוכרת, כמה זה שווה, ומה עושים ב‑90 הימים הקרובים, לפני שפונים לאמנים.</p>
+<div style="margin-top:22mm" class="roles">
+<div class="role"><b>שותף אחראי</b>ניסוח ההמלצה וההחלטות</div>
+<div class="role"><b>מנהלת פרויקט</b>תוכנית 90 יום, מדדים</div>
+<div class="role"><b>אנליסט שוק</b>שוק, מתחרים, תמחור</div>
+<div class="role"><b>אנליסט כלכלי</b>מודל הכנסות, תרחישים</div>
+<div class="role"><b>אסטרטגיית צמיחה</b>יציאה לשוק, "התנעה קרה"</div>
+<div class="role"><b>בדיקה משפטית ראשונית</b>זכויות, פרטיות, שם</div></div>
+<p class="src" style="position:absolute;bottom:16mm;right:15mm;left:15mm">נכתב על ידי Claude בכובע של מחלקת ייעוץ עסקי, על בסיס המוצר הקיים, מחקר שוק ונתונים פומביים (אוקטובר 2026). מספרים ללא מקור מסומנים "אומדן" ונועדו לבדיקה. הפרק המשפטי הוא מיפוי ראשוני, לא ייעוץ משפטי.</p></section><section class="page "><div class="head"><div><div class="k">תקציר מנהלים</div><h2>ההמלצה, בעמוד אחד</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<div class="quote">לבנות את Open Studio קודם כ"סטודיו" לאמנים ולגלריות, שירות שמשאיר כל תערוכה חיה ומטיילת אחרי שנסגרה, ולתת לקהל להגיע דרכם. לא להתחיל כאפליקציית צרכנים שמחפשת קהל.</div>
+<h3>חמישה דברים שמצאנו</h3>
+<div class="steps">
+<div class="step"><div><b>יש לנו ייחוד אמיתי.</b> אף שחקן לא משלב מעקב אחרי אמנים בסגנון ספוטיפיי עם סיור בתערוכה האמיתית. כלי הסיורים (Kunstmatrix, Artsteps, MyGallery3D) בונים חדרים מתבנית; ArtRabbit מוצאת תערוכות אבל אין בה סיור.</div></div>
+<div class="step"><div><b>הצד הקשה הוא האמנים והגלריות.</b> הקהל יבוא אחריהם. לכן הם צריכים לקבל ערך ביום הראשון, גם כשאף אחד עוד לא משתמש באפליקציה: תיעוד וסיור שלא נעלמים כשהתערוכה יורדת.</div></div>
+<div class="step"><div><b>צוואר הבקבוק הוא החומר, לא הטכנולוגיה.</b> מתוך שלוש התערוכות האמיתיות של אלעד, רק Ritual הפכה לסיור. בשתיים האחרות לא היו מספיק צילומים (8 מ‑15 עבודות נמצאו, 44% מהקירות). לפני שיווק צריך לפתור את הלכידה.</div></div>
+<div class="step"><div><b>ישראל היא מעבדה, לא השוק.</b> בתרחיש הבסיס, שנה ראשונה בישראל מביאה עשרות אלפי שקלים. השווי האמיתי מגיע מקהל בקנה מידה בינלאומי. ישראל היא המקום להוכיח שזה עובד.</div></div>
+<div class="step"><div><b>המודל: הקהל חינם, האמנים והגלריות משלמים על הסטודיו והסיורים.</b> הכנסות מהקהל (שותפויות, מכירות) רק אחרי שיש קהל. השוק כבר משלם על זה: צלם לתיעוד תערוכה עולה ‎$400–1,500, ו‑ArtRabbit גובה מאמנים ‎$10 לחודש.</div></div></div>
+<div class="box g"><h4>מה עושים ב‑90 הימים הקרובים</h4><ul>
+<li><b>שבועות 1–4:</b> 12–15 שיחות עומק שקטות עם אמנים וגלריות (מחקר, לא שיווק), החלטה על שם ומותג, ותשתית חשבונות במוצר.</li>
+<li><b>שבועות 5–10:</b> פיילוט "סטודיו" עם 3–5 גלריות ו‑10 אמנים בתל אביב‑יפו. אנחנו מצלמים בעצמנו (שירות קונסיירז'), ומודדים כמה סיורים מצליחים בניסיון ראשון.</li>
+<li><b>שבועות 11–13:</b> בדיקת מחיר אמיתית: 3 גלריות משלמות, ו‑30% מהמבקרים עוקבים אחרי אמן.</li></ul></div><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 2</span></div></section><section class="page "><div class="head"><div><div class="k">1 · המצב היום</div><h2>איפה Open Studio עומדת</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<p class="lead">יש מוצר חזק בצד החוויה והטכנולוגיה, ואין עדיין שום דבר מהצד העסקי: לא משתמשים, לא לקוחות, לא הכנסות. זה בסדר לשלב הזה, אבל זה אומר שכל ההנחות העסקיות עדיין לא נבדקו.</p>
+<div class="stats">
+<div class="stat"><div class="num">1</div><span>סיור חי של תערוכה אמיתית (Ritual), מתוך 3 שנוסו</span></div>
+<div class="stat"><div class="num">28</div><span>בדיקות איכות אוטומטיות לכל סיור לפני פרסום</span></div>
+<div class="stat"><div class="num">6</div><span>מסכים מרכזיים: בית, אמנים, תערוכות, מפה, חיפוש, הסטודיו</span></div>
+<div class="stat"><div class="num">0</div><span>משתמשים, אמנים משלמים וגלריות שותפות</span></div></div>
+<table><tr><th style="width:25%">חוזקות</th><th style="width:25%">חולשות</th><th style="width:25%">הזדמנויות</th><th style="width:25%">איומים</th></tr>
+<tr><td>סיור שנבנה מצילומי ההצבה: חדר אמיתי, לא תבנית<br>חוויה נקייה ומוכרת (מודל ספוטיפיי)<br>המייסד הוא אמן: מבין את הצרכים ומכיר את הקהילה<br>עלות פיתוח ותפעול נמוכה מאוד</td>
+<td>אין חשבונות, אין שרת: הצד של האמן שמור בדפדפן בלבד<br>הלכידה נכשלת כשאין מספיק צילומים<br>מייסד יחיד: זמן וקשב מוגבלים<br>השם תפוס בשוק (ראה פרק 9)</td>
+<td>תערוכות נעלמות אחרי 4–6 שבועות, ואין לזה פתרון טוב<br>41% מקהל האמנות החזותית בני 16–34<br>35% מהאספנים קנו דרך קישור באינסטגרם<br>תערוכות בוגרים: הרבה אמנים, חלל אחד, זמן קצר</td>
+<td>Matterport ו‑Kunstmatrix מציעים "תאום דיגיטלי" לגלריות<br>אמנים עם הכנסה נמוכה: קשה לגבות<br>גלריות שומרות על הקהל שלהן<br>זכויות יוצרים על צילומי הצבה</td></tr></table>
+<p class="src">מקורות: Audience Agency (באמצעות Frieze), Art Basel ו‑UBS, Survey of Global Collecting 2025; נתוני המוצר מתוך המאגר (studio/app/data/spaces).</p><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 3</span></div></section><section class="page "><div class="head"><div><div class="k">2 · השוק</div><h2>כמה גדול המגרש</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<h3>התמונה העולמית</h3>
+<div class="stats">
+<div class="stat"><div class="num">‎$59.6B</div><span>שוק האמנות העולמי 2025 (‎+4%)</span></div>
+<div class="stat"><div class="num">‎$9.2B</div><span>מכירות אונליין, 15% מהשוק (‎−11%)</span></div>
+<div class="stat"><div class="num">41%</div><span>מקהל האמנות החזותית בני 16–34 (מול 13% באמנויות אחרות)</span></div>
+<div class="stat"><div class="num">1.6M</div><span>מבקרים בשנה ב‑ArtRabbit, אחרי כ‑15 שנה</span></div></div>
+<p>המסקנה: הכסף בשוק האמנות זורם דרך גלריות ומכירות, והמכירות אונליין דווקא ירדו. הקהל הצעיר כבר מגיע לתערוכות, אבל אין לו "בית" דיגיטלי שמחבר אותו לאמנים. זו לא הזדמנות של מכירת יצירות, אלא של <b>תשומת לב וחיבור</b>, ומשם, בהמשך, גם מכירות.</p>
+<h3>ישראל, במספרים (עם אומדנים)</h3>
+<table><tr><th>מה</th><th>אומדן</th><th>על סמך</th></tr>
+<tr><td>חללי תצוגה פעילים (גלריות מסחריות, שיתופיות, עירוניות, תערוכות מתחלפות במוזיאונים)</td><td>150–250 <span class="est">אומדן</span></td><td>היכרות עם הסצנה; לבדוק מול אינדקסים של גלריות</td></tr>
+<tr><td>תערוכות בשנה</td><td>750–2,000 <span class="est">אומדן</span></td><td>5–8 תערוכות לחלל בשנה</td></tr>
+<tr><td>אמנים חזותיים פעילים מקצועית</td><td>3,000–6,000 <span class="est">אומדן</span></td><td>לבדוק מול איגוד האמנים ובתי ספר לאמנות</td></tr>
+<tr><td>קהל של אירוע אמנות גדול</td><td>30,000–40,000</td><td>Fresh Paint, כל שנה בתל אביב</td></tr></table>
+<h3>כמה זה שווה בישראל, בשנה הראשונה</h3>
+<div class="bars"><div class="bar"><span>אם כל התערוכות משלמות (TAM)</span><i class="" style="width:100.0%"></i><b>1180K ₪</b></div><div class="bar"><span>תל אביב, ירושלים, חיפה (SAM)</span><i class="" style="width:39.8%"></i><b>470K ₪</b></div><div class="bar"><span>פיילוט ראלי, שנה 1 (SOM)</span><i class="" style="width:6.4%"></i><b>75K ₪</b></div></div>
+<p class="est">אומדן: TAM = כ‑2,000 תערוכות × ₪590 לסיור. SAM = כ‑40% מהן בשלוש הערים. SOM = 15 גלריות × 4 תערוכות × ₪590, ועוד 150 אמנים × ₪29 × 9 חודשים. כל המספרים לבדיקה בפיילוט.</p>
+<p><b>המשמעות:</b> גם אם נכבוש את כל ישראל, מדובר בעסק של מיליון שקל בשנה בערך. ישראל טובה להוכחה ולבניית מקרי הצלחה. הצמיחה האמיתית תבוא מעיר בינלאומית שנייה ומקהל.</p>
+<p class="src">מקורות: Art Basel ו‑UBS Art Market Report 2026; Audience Agency; ArtRabbit, דף Partnerships (אפריל 2025); Fresh Paint ו‑Times of Israel.</p><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 4</span></div></section><section class="page "><div class="head"><div><div class="k">3 · הלקוחות</div><h2>למי אנחנו פותרים מה</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<p class="lead">בשוק דו‑צדדי יש שני סוגי משתמשים: מי שיוצר את התוכן (אמנים וגלריות, "הצד הקשה") ומי שצורך אותו (הקהל). לכל אחד "עבודה" שהוא שוכר אותנו לעשות.</p>
+<div class="cols">
+<div class="card"><div class="k">צד קשה · משלם</div><h4>האמנית המקצועית</h4><p><b>העבודה:</b> "שהתערוכה שלי לא תיעלם אחרי חודש, ושאנשים שלא הגיעו יראו אותה כמו שהיא."</p><p><b>היום:</b> אינסטגרם (שטוח, נבלע בפיד), אתר אישי, צלם לפעמים.</p><p><b>כאב:</b> ההכנסה ממכירות נמוכה. בסקר בבריטניה, 56% מהאמנים הרוויחו פחות מ‑£5,000 ממכירות בשנה.</p><p><b>מחיר:</b> נמוך, ורק כשהערך ברור.</p></div>
+<div class="card"><div class="k">צד קשה · משלם</div><h4>הגלריה</h4><p><b>העבודה:</b> "להגיע לאספנים מחוץ לעיר, לתעד כל תערוכה, ולבנות ארכיון."</p><p><b>היום:</b> כבר משלמת לצלם ‎$400–1,500 לתערוכה, ניוזלטר, אינסטגרם.</p><p><b>כאב:</b> התיעוד נשאר בתיקייה. אין דרך "להכניס" מישהו לחדר.</p><p><b>מחיר:</b> בינוני. משלמת על מה שמחליף הוצאה קיימת.</p></div>
+<div class="card"><div class="k">צד קל · חינם</div><h4>אוהבת האמנות</h4><p><b>העבודה:</b> "לדעת מה חדש אצל האמנים שאני אוהבת, ולמצוא מה שווה לראות הערב."</p><p><b>היום:</b> אינסטגרם, חברים, ניוזלטרים של גלריות.</p><p><b>כאב:</b> מפוזר. מפספסת פתיחות. לא תמיד יכולה להגיע.</p><p><b>מחיר:</b> אפס. משלמת בתשומת לב.</p></div>
+<div class="card"><div class="k">שותף · משלם בעקיפין</div><h4>עירייה, בית ספר, אירוע</h4><p><b>העבודה:</b> "להנגיש את סצנת האמנות של העיר, ולהראות את הבוגרים לעולם."</p><p><b>היום:</b> לוחות אירועים, עלוני תערוכות בוגרים.</p><p><b>הזדמנות:</b> ArtRabbit מוכרת "שותפות עיר" לרשויות. תערוכות בוגרים (שנקר, בצלאל, המדרשה) מכנסות עשרות אמנים בחלל אחד.</p></div></div>
+<div class="box yel"><b>תובנה:</b> תערוכות הבוגרים הן נקודת הכניסה הכי חזקה שמצאנו. עשרות אמנים צעירים בבת אחת, חלל אחד שנבנה פעם אחת, תערוכה של שבוע‑שבועיים שמשפחות וחברים מחו"ל רוצים לראות, ובית ספר שמחפש להתבלט. אלעד עצמו בוגר שנקר.</div>
+<p class="src">מקור: Artists' Livelihoods Report (בריטניה, 2025); צילום תערוכה: מחירונים של צלמי תיעוד; ArtRabbit, דף Partnerships.</p><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 5</span></div></section><section class="page "><div class="head"><div><div class="k">4 · התחרות</div><h2>איפה אנחנו עומדים מול כולם</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<div class="map">
+<div class="ax" style="top:2mm;right:50%;transform:translateX(50%)">↑ קהל שעוקב (רשת)</div>
+<div class="ax" style="bottom:2mm;right:50%;transform:translateX(50%)">↓ כלי בלבד</div>
+<div class="ax" style="top:50%;right:2mm">התערוכה האמיתית →</div>
+<div class="ax" style="top:50%;left:2mm">← חדר מתבנית</div>
+<div style="position:absolute;top:0;bottom:0;right:50%;border-right:1px dashed #CFC7B6"></div>
+<div style="position:absolute;right:0;left:0;top:50%;border-top:1px dashed #CFC7B6"></div>
+<div class="dot us" style="right:22%;top:18%">Open Studio</div>
+<div class="dot" style="right:40%;top:22%">ArtRabbit</div>
+<div class="dot" style="right:60%;top:30%">Artsteps</div>
+<div class="dot" style="right:74%;top:70%">Kunstmatrix</div>
+<div class="dot" style="right:82%;top:58%">MyGallery3D</div>
+<div class="dot" style="right:67%;top:84%">Arte</div>
+<div class="dot" style="right:24%;top:76%">Matterport</div>
+<div class="dot" style="right:30%;top:40%">Artland</div></div>
+<h3>מחירי השוק היום</h3>
+<table><tr><th>שחקן</th><th>למי</th><th>מחיר</th></tr>
+<tr><td class="ltr">ArtRabbit</td><td>אמנים / ארגונים</td><td>אמן: חינם, ‎$10 לחודש (‎$99 לשנה) · ארגון: חינם, ‎$35 לחודש, Premium מ‑‎$2,300</td></tr>
+<tr><td class="ltr">Kunstmatrix</td><td>אמנים, גלריות</td><td>‎$12 / ‎$30 / ‎$60 לחודש (5 / 10 / 50 תערוכות ציבוריות); "תאום דיגיטלי" של חלל לפי הצעת מחיר</td></tr>
+<tr><td class="ltr">MyGallery3D</td><td>אמנים שמוכרים אונליין</td><td>‎$12.99 / ‎$18.99 / ‎$24.99 לחודש לגלריה (25 / 50 / 100 עבודות) + PRO ‎$9.99</td></tr>
+<tr><td class="ltr">Matterport</td><td>נדל"ן, מבנים</td><td>‎$9.99–309 לחודש לפי מספר חללים; סריקה מקצועית מ‑‎$350 <span class="est">מקור משני</span></td></tr>
+<tr><td class="ltr">Artsy</td><td>גלריות</td><td>מנוי + עמלה; היסטורית ‎$375–1,400 לחודש <span class="est">נתון 2015</span></td></tr>
+<tr><td>צלם תיעוד</td><td>גלריות, אמנים</td><td>‎$400–1,500 לתערוכה</td></tr></table>
+<div class="box g"><b>המיצוב שלנו, במשפט:</b> לאמנים ולגלריות שהתערוכות שלהם נעלמות כשהן יורדות, Open Studio היא הסטודיו שהופך כל תערוכה אמיתית לחדר שאפשר להיכנס אליו מכל מקום, ובונה סביב האמן קהל שעוקב. בניגוד לכלי תלת‑ממד, זה החדר האמיתי. בניגוד לאינסטגרם, העבודה במרכז.</div>
+<p class="src">מקורות: דפי המחירים של ArtRabbit, Kunstmatrix ו‑MyGallery3D (נבדקו ב‑28.10.2026); Matterport: The Future 3D; Artsy: Fortune 2015. Artland ממוקמת לפי סקירות 2018–2020.</p><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 6</span></div></section><section class="page "><div class="head"><div><div class="k">5 · מודל עסקי</div><h2>חמש דרכים להרוויח, ומה אנחנו ממליצים</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<table><tr><th style="width:22%">מודל</th><th>איך זה עובד</th><th class="c">התאמה לחזון</th><th class="c">מהירות הכנסה</th><th class="c">קנה מידה</th><th class="c">המלצה</th></tr>
+<tr><td><b>א. סיור לתערוכה</b> (גלריות)</td><td>תשלום לכל תערוכה: סיור, ארכיון, הטמעה באתר הגלריה</td><td class="c y">גבוהה</td><td class="c y">מהירה</td><td class="c m">בינוני</td><td class="c"><span class="tag g">עכשיו</span></td></tr>
+<tr><td><b>ב. מנוי סטודיו</b> (אמנים)</td><td>חינם לפרופיל; Pro בתשלום: סיור לתערוכה שלי, יומן סטודיו, נתונים, קישורים פרטיים</td><td class="c y">גבוהה</td><td class="c m">בינונית</td><td class="c y">גבוה</td><td class="c"><span class="tag g">עכשיו</span></td></tr>
+<tr><td><b>ג. שותפויות</b></td><td>עיריות, בתי ספר לאמנות, אירועים (Fresh Paint), מותגים: חסות לתוכן ולמפה</td><td class="c y">גבוהה</td><td class="c m">בינונית</td><td class="c m">בינוני</td><td class="c"><span class="tag y">שנה 2</span></td></tr>
+<tr><td><b>ד. עמלה ממכירות</b></td><td>"קנה את העבודה" מתוך הסיור או עמוד היצירה, עמלה של 10–20%</td><td class="c m">בינונית</td><td class="c n">איטית</td><td class="c y">גבוה</td><td class="c"><span class="tag y">אחרי קהל</span></td></tr>
+<tr><td><b>ה. פרימיום לקהל / פרסום</b></td><td>תשלום מהקהל או מודעות</td><td class="c n">נמוכה</td><td class="c n">איטית</td><td class="c m">בינוני</td><td class="c"><span class="tag r">לא</span></td></tr></table>
+<h3>למה א + ב קודם</h3>
+<ul><li><b>ערך ביום הראשון, בלי קהל:</b> הסיור והארכיון שווים משהו גם כשיש אפס משתמשים. זה הפתרון ל"התנעה הקרה": קודם הכלי, אחר כך הרשת.</li>
+<li><b>מחליף הוצאה קיימת:</b> גלריה כבר משלמת על תיעוד. אנחנו לא מבקשים תקציב חדש, אלא שדרוג של הוצאה קיימת.</li>
+<li><b>כל סיור הוא ערוץ שיווק:</b> הגלריה והאמן משתפים את הקישור. כל שיתוף מביא קהל.</li></ul>
+<h3>למה לא פרסום</h3>
+<p>החוויה הנקייה היא היתרון הכי מורגש מול המתחרים, שנפתחים בחלונות קופצים ובפרסומות. פרסום ישבור את זה, ולא יכניס כסף משמעותי לפני מאות אלפי משתמשים.</p>
+<div class="box"><b>על מכירות (ד):</b> 35% מהאספנים קנו דרך קישור באינסטגרם, אז הכיוון אמיתי. אבל מכירה דורשת אמון, משלוח, החזרות ושירות. מומלץ להתחיל בכפתור "פנייה לאמן או לגלריה" (ליד, בלי עסקה), ולמדוד כמה פניות נוצרות.</div>
+<p class="src">מקור על אספנים: Art Basel ו‑UBS, Survey of Global Collecting 2025.</p><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 7</span></div></section><section class="page "><div class="head"><div><div class="k">6 · תמחור וכלכלת יחידה</div><h2>כמה לגבות, וכמה זה עולה לנו</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<h3>מחירון מוצע לבדיקה</h3>
+<table><tr><th>תוכנית</th><th>מה כולל</th><th>מחיר מוצע</th><th>עוגן בשוק</th></tr>
+<tr><td><b>קהל</b></td><td>הכול: מעקב, תערוכות, מפה, סיורים</td><td>חינם, תמיד</td><td>ספוטיפיי, ArtRabbit</td></tr>
+<tr><td><b>Studio</b> לאמן</td><td>פרופיל, עבודות, עוקבים, תערוכות</td><td>חינם</td><td>ArtRabbit Starter</td></tr>
+<tr><td><b>Studio Pro</b> לאמן</td><td>יומן סטודיו (וידאו, סטורי), נתוני צפייה, קישור פרטי לאספנים, סיור אחד בשנה כלול</td><td>₪29 לחודש / ₪290 לשנה</td><td>ArtRabbit ‎$10; MyGallery3D ‎$13–25</td></tr>
+<tr><td><b>סיור לתערוכה</b></td><td>סיור תלת‑ממד, ארכיון קבוע, הטמעה באתר, קוד QR לפתיחה</td><td>₪590 לתערוכה</td><td>צלם ‎$400–1,500</td></tr>
+<tr><td><b>Gallery</b></td><td>סיורים ללא הגבלה, ארכיון, עמוד גלריה, קידום פתיחות</td><td>₪390 לחודש</td><td>ArtRabbit Pro ‎$35; Kunstmatrix ‎$30–60</td></tr>
+<tr><td><b>שותפי השקה</b></td><td>3 תערוכות ראשונות חינם, בתמורה למשוב, הסכמה לפרסם ולוגו</td><td>₪0</td><td>פיילוט</td></tr></table>
+<p class="est">איך בודקים: בשיחות העומק נשאל "מאיזה מחיר זה יקר מדי? זול מדי עד שזה חשוד?" (שיטת Van Westendorp). בפיילוט נציע לשתי קבוצות גלריות שני מחירים (₪390 ו‑₪690 לתערוכה) ונמדוד הסכמה.</p>
+<h3>כלכלת סיור אחד (היום מול היעד)</h3>
+<table><tr><th>רכיב</th><th>היום (פיילוט)</th><th>יעד (שנה 2)</th></tr>
+<tr><td>הכנסה</td><td>₪590</td><td>₪590</td></tr>
+<tr><td>מחשוב (בנייה ובדיקה, כ‑25 דקות לסיור)</td><td>כ‑₪0 (כלול כיום)<span class="est"> אומדן</span></td><td>₪10–30 בענן<span class="est"> אומדן</span></td></tr>
+<tr><td>אחסון והגשה (כ‑100–250MB לסיור)</td><td>כ‑₪0</td><td>₪3–10 לחודש<span class="est"> אומדן</span></td></tr>
+<tr><td>זמן אדם: צילום, ליווי, בדיקה</td><td>2–4 שעות (₪300–600)</td><td>פחות מ‑20 דקות (₪50)</td></tr>
+<tr><td><b>תרומה לסיור</b></td><td><b>כמעט אפס, ואפילו הפסד</b></td><td><b>₪500+ (כ‑85%)</b></td></tr></table>
+<div class="box r"><b>המשמעות:</b> בשלב הפיילוט כל סיור מפסיד, כי אנחנו מצלמים ומלווים בעצמנו. זה מכוון: כך לומדים מה צריך לאוטומט. העסק נהיה בריא כשהאמן או הגלריה מצלמים לבד עם הנחיה בתוך האפליקציה, והסיור מצליח בניסיון הראשון. לכן "שיעור הצלחה בניסיון ראשון" הוא המדד העסקי הכי חשוב בשנה הראשונה.</div><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 8</span></div></section><section class="page "><div class="head"><div><div class="k">7 · יציאה לשוק</div><h2>איך מתניעים רשת מאפס</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<p class="lead">לפי Andrew Chen ("The Cold Start Problem"), כל רשת מתחילה מ"רשת אטומית": הקבוצה הקטנה ביותר שמספיקה כדי שכולם יישארו. אצל טינדר זה היה קמפוס אחד. אצלנו זו <b>עיר אחת בעונה אחת</b>.</p>
+<h3>הרשת האטומית של Open Studio</h3>
+<div class="cols3"><div class="card"><div class="num">15</div>גלריות ושיתופיות בתל אביב‑יפו, באזור הליכה אחד (פלורנטין, יפו, דרום העיר)</div>
+<div class="card"><div class="num">40</div>אמנים שמציגים בהן בעונה, כל אחד עם קהל אינסטגרם משלו</div>
+<div class="card"><div class="num">1,000</div>מבקרים שעוקבים אחרי לפחות אמן אחד וחוזרים</div></div>
+<h3>שלבים</h3>
+<div class="steps">
+<div class="step"><div><b>קודם הצד הקשה, עם ערך בלי רשת.</b> גלריות ואמנים מקבלים סיור וארכיון, גם אם אף אחד עוד לא משתמש באפליקציה.</div></div>
+<div class="step"><div><b>עבודה ידנית בהתחלה ("פלינטסטונינג").</b> בעונה הראשונה אנחנו מצלמים את התערוכות בעצמנו: וידאו הליכה של 2 דקות בטלפון. כך החומר טוב, והאמן לא צריך לעשות כלום.</div></div>
+<div class="step"><div><b>כל סיור מביא קהל.</b> הגלריה מטמיעה את הסיור באתר, תולה קוד QR בפתיחה ("תיכנסו שוב מהבית"), והאמן משתף. קבוצת האמנים בעונה מביאה את העוקבים הראשונים.</div></div>
+<div class="step"><div><b>רגע השקה ציבורי.</b> Fresh Paint (30–40 אלף מבקרים) או תערוכות הבוגרים בקיץ: "כל התערוכה, מהטלפון".</div></div>
+<div class="step"><div><b>שכפול.</b> רק כשהרשת בתל אביב מחזיקה את עצמה: ירושלים (מוסררה, בית האמנים), חיפה, ואז עיר בינלאומית אחת (למשל ברלין או לונדון, שם ArtRabbit חזקה).</div></div></div>
+<div class="box g"><h4>שלושה ערוצים שלא עולים כסף ושייכים רק לנו</h4><ul>
+<li><b>הטמעת סיור באתרי גלריות:</b> כל גלריה הופכת לשלט חוצות.</li>
+<li><b>תוכן אוטומטי מכל סיור:</b> הסיור יכול לייצר בעצמו סרטון "הליכה בתערוכה ב‑15 שניות" לאינסטגרם ולטיקטוק. סרטוני התהליך באמני ההדגמה כבר נוצרים אוטומטית, כך שהמנגנון קיים.</li>
+<li><b>בתי ספר לאמנות:</b> תערוכות בוגרים הן עשרות אמנים בבת אחת, עם קהל משפחות וחברים.</li></ul></div><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 9</span></div></section><section class="page "><div class="head"><div><div class="k">8 · תרחישים</div><h2>18 החודשים הקרובים, בשלוש גרסאות</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<table><tr><th>מה מודדים</th><th class="c">פסימי</th><th class="c">בסיס</th><th class="c">אופטימי</th></tr>
+<tr><td>גלריות פעילות (חודש 18)</td><td class="c">8</td><td class="c">30</td><td class="c">80</td></tr>
+<tr><td>אמנים עם פרופיל מלא</td><td class="c">60</td><td class="c">300</td><td class="c">1,200</td></tr>
+<tr><td>סיורים חיים</td><td class="c">25</td><td class="c">150</td><td class="c">500</td></tr>
+<tr><td>הצלחה בניסיון ראשון</td><td class="c">40%</td><td class="c">75%</td><td class="c">90%</td></tr>
+<tr><td>משתמשים פעילים בחודש</td><td class="c">1,500</td><td class="c">12,000</td><td class="c">60,000</td></tr>
+<tr><td>הכנסה שנתית בקצב (חודש 18)</td><td class="c">₪40K</td><td class="c">₪300K</td><td class="c">₪1.2M</td></tr>
+<tr><td>ערים</td><td class="c">תל אביב</td><td class="c">3 בישראל</td><td class="c">3 + אחת בחו"ל</td></tr></table>
+<p class="est">כל המספרים בטבלה הם אומדן ומיועדים לתכנון בלבד. המנוע של כל תרחיש: כמה גלריות מצטרפות בחודש, כמה סיורים מצליחים בניסיון ראשון, וכמה מבקרים עוקבים אחרי אמן.</p>
+<h3>"מה יקרה אם…"</h3>
+<table><tr><th style="width:36%">תרחיש</th><th>מה עושים</th></tr>
+<tr><td>גלריה אומרת "יש לנו כבר צלם"</td><td>מצוין: משתמשים בתמונות שלו ובוידאו של 2 דקות שהוא מצלם. אנחנו לא מתחרים בצלם, אנחנו הופכים את העבודה שלו לחדר.</td></tr>
+<tr><td>אמנים רוצים, אבל לא יכולים לשלם</td><td>Studio נשאר חינם. סיורים לאמנים ממומנים דרך שותפים (בית ספר, עירייה, קרן) או כלולים ב‑Pro.</td></tr>
+<tr><td>הקהל נכנס, אבל לא עוקב</td><td>לבדוק את הרגע אחרי הסיור: "עקוב אחרי האמן" כצעד הבא הטבעי, והתראה על התערוכה הבאה שלו.</td></tr>
+<tr><td>הסיור נכשל (חסרים צילומים)</td><td>הסטטוס כבר מסביר מה חסר. עוברים לוידאו מודרך, ובפיילוט חוזרים לצלם בעצמנו.</td></tr>
+<tr><td>Matterport או Kunstmatrix מתחרים על גלריה</td><td>הם מוכרים כלי. אנחנו מוכרים כלי וגם קהל שעוקב, וזה לא ניתן להעתקה מהר.</td></tr>
+<tr><td>צלם או אמן מתלוננים על זכויות</td><td>הסכמה מפורשת בהעלאה, הורדה מהירה (תוך 48 שעות), ותיעוד של מי אישר.</td></tr>
+<tr><td>זה עובד, ויש ביקוש מחו"ל</td><td>לא לרוץ: לבחור עיר אחת, עם שותף מקומי (בית ספר או אירוע), ולשכפל את הנוסחה של תל אביב.</td></tr></table><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 10</span></div></section><section class="page "><div class="head"><div><div class="k">9 · סיכונים, זכויות ושם</div><h2>מה יכול להפיל אותנו</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<table><tr><th>סיכון</th><th class="c">סבירות</th><th class="c">השפעה</th><th>מה עושים</th></tr>
+<tr><td>הלכידה לא מצליחה בלי ליווי שלנו</td><td class="c n">גבוהה</td><td class="c n">גבוהה</td><td>הנחיית צילום בתוך האפליקציה, בדיקה בזמן הצילום, שירות צילום בפיילוט</td></tr>
+<tr><td>אמנים וגלריות לא משלמים</td><td class="c m">בינונית</td><td class="c n">גבוהה</td><td>להתחיל ממה שמחליף הוצאה (תיעוד), לבדוק מחיר מוקדם</td></tr>
+<tr><td>הקהל לא חוזר (שימור נמוך)</td><td class="c m">בינונית</td><td class="c n">גבוהה</td><td>התראות על פתיחות של אמנים שעוקבים אחריהם, תוכן חדש מהסטודיו</td></tr>
+<tr><td>מייסד יחיד, קשב מפוצל</td><td class="c n">גבוהה</td><td class="c m">בינונית</td><td>להגדיר שותף אמנותי או קהילתי; לתת לקוד ולאוטומציה לעשות את העבודה הכבדה</td></tr>
+<tr><td>זכויות יוצרים</td><td class="c m">בינונית</td><td class="c m">בינונית</td><td>הסכמה בכל העלאה, תנאי שימוש, נוהל הורדה</td></tr>
+<tr><td>תלות בתשתית חינמית (GitHub)</td><td class="c m">בינונית</td><td class="c m">בינונית</td><td>מעבר לתשתית משלנו לפני השקה (ראה דוח הפיתוח)</td></tr></table>
+<h3>זכויות יוצרים: שלוש שכבות</h3>
+<p>צילום הצבה כולל לפחות שתי שכבות זכויות: של האמן ביצירות, ושל הצלם בתמונה. לפעמים יש גם שלישית: תנאי הגלריה או המוסד. הדרך הבטוחה: אישור כתוב בעת ההעלאה ("אני האמן או הגלריה, ויש לי זכות לפרסם את התמונות האלה"), רישום של מי אישר ומתי, וכפתור "בקשת הסרה" זמין. חוק זכות יוצרים הישראלי (2007) כולל שימוש הוגן, אבל לא כדאי לבנות עליו מודל עסקי. <span class="est">לבדוק עם עו"ד קניין רוחני.</span></p>
+<h3>פרטיות: תיקון 13</h3>
+<p>תיקון 13 לחוק הגנת הפרטיות נכנס לתוקף ב‑14 באוגוסט 2025. הוא דורש שקיפות מלאה (מה נאסף ולמה), הסכמה ספציפית, ובמקרים מסוימים ממונה הגנת פרטיות. נתוני מיקום מדויקים (המפה, "קרוב אליי") מקבלים יחס מחמיר. המלצה: לאסוף מיקום רק על המכשיר ולא לשמור אותו, ולכתוב מדיניות פרטיות לפני הבטא. <span class="est">ספי הרישום משתנים בין מקורות; לבדוק מול הרשות להגנת הפרטיות.</span></p>
+<div class="box r"><h4>השם: החלטה דחופה</h4><p>"Open Studio" הוא צירוף נפוץ. ב‑App Store לבדה יש "Open Studio Jazz", ולפחות ארבע אפליקציות "Open Studios" של אירועי אמנות (Cambridge, Santa Cruz ועוד). זה מקשה על רישום סימן מסחר ועל חיפוש בחנויות. האפשרויות: (1) שם ייחודי חדש; (2) צירוף מובחן, כמו "Open Studio · Rooms"; (3) להשאיר ולהשקיע בדומיין ובמיתוג חזק. להחליט לפני הבטא: אחר כך זה יקר.</p></div>
+<p class="src">מקורות: IAPP ו‑BigID על תיקון 13; MoMA ו‑Staatliche Museen zu Berlin על זכויות בצילומי הצבה; חיפוש App Store (28.10.2026).</p><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 11</span></div></section><section class="page "><div class="head"><div><div class="k">10 · מימון ומדדים</div><h2>מאיפה הכסף, ואיך יודעים שזה עובד</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<div class="cols"><div>
+<h3>מימון: לא לגייס לפני ראיות</h3>
+<p>עלויות התפעול היום קרובות לאפס, ולכן אין סיבה לגייס עכשיו. גיוס לפני שיש נתוני שימוש ותשלום יעלה ביוקר: הרבה אחוזים תמורת מעט כסף.</p>
+<table><tr><th>מקור</th><th>מתי</th><th>הערה</th></tr>
+<tr><td>הון עצמי, בצמצום</td><td>עכשיו</td><td>כ‑₪500–1,500 לחודש לתשתיות <span class="est">אומדן</span></td></tr>
+<tr><td>רשות החדשנות, "תנופה"</td><td>אחרי הפיילוט</td><td>בסביבות ₪200K, עד 85% מההוצאות. המספרים משתנים בין מקורות, לבדוק בקול הקורא</td></tr>
+<tr><td>מפעל הפיס, המועצה לתרבות ולאמנות</td><td>לפרויקטים</td><td>מענקים לפרויקטים באמנות; לחבר לתערוכות בוגרים או לסדרה</td></tr>
+<tr><td>עיריות (אגפי תרבות)</td><td>שנה 2</td><td>"שותפות עיר": לוח אמנות עירוני</td></tr>
+<tr><td>אנג'לים מעולם האמנות והטק</td><td>אחרי 3–6 חודשים של נתונים</td><td>להראות שימור, סיורים שהצליחו וגלריות משלמות</td></tr></table></div>
+<div><h3>מדד הצפון</h3>
+<div class="box g"><b>מבקרים שעוקבים וחוזרים:</b> מספר המבקרים בשבוע שנכנסו לעמוד של אמן שהם עוקבים אחריו, או לסיור. זה מודד את החזון עצמו: אנשים שמתחברים לאמנים.</div>
+<h3>מדדי הפיילוט (שבוע 13)</h3>
+<table><tr><th>מדד</th><th>יעד</th></tr>
+<tr><td>גלריות שותפות</td><td>3–5</td></tr><tr><td>אמנים עם פרופיל מלא</td><td>40</td></tr>
+<tr><td>סיורים חיים</td><td>15</td></tr><tr><td>הצלחה בניסיון ראשון</td><td>70%+</td></tr>
+<tr><td>מבקרים</td><td>1,000</td></tr><tr><td>מבקרים שעוקבים אחרי אמן אחד לפחות</td><td>30%+</td></tr>
+<tr><td>שימור אחרי 30 יום</td><td>10%+ (ממוצע אפליקציות לייפסטייל כ‑6%)</td></tr>
+<tr><td>גלריות שמסכימות לשלם</td><td>3</td></tr></table></div></div>
+<p class="src">מקורות: Pertama Partners על "תנופה" (2026); מועצת הפיס לתרבות ולאמנות, קולות קוראים קודמים; שימור: Getstream ו‑Phiture (2025–2026).</p><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 12</span></div></section><section class="page "><div class="head"><div><div class="k">11 · 90 הימים הקרובים</div><h2>תוכנית עבודה והחלטות שמחכות לך</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<div class="tl"><div><span class="k">שבועות 1–2</span><b>להקשיב</b>12–15 שיחות עומק עם אמנים, גלריות ובית ספר אחד. מראים את Ritual ושואלים, לא מוכרים.</div>
+<div><span class="k">שבועות 3–4</span><b>להחליט</b>שם ומותג, תמחור לבדיקה, בחירת 3–5 גלריות שותפות. במקביל: תשתית חשבונות (דוח הפיתוח).</div>
+<div><span class="k">שבועות 5–10</span><b>פיילוט</b>מצלמים 15 תערוכות בעצמנו. האמנים מעלים פרופילים. QR בפתיחות. מדידה שבועית.</div>
+<div><span class="k">שבועות 11–13</span><b>לבדוק כסף</b>הצעת מחיר אמיתית לגלריות, Studio Pro לאמנים, וסיכום פיילוט: ממשיכים, משנים או עוצרים.</div></div>
+<h3>מה שואלים בשיחות העומק (מדריך קצר)</h3>
+<ul class="sm"><li>ספרי על התערוכה האחרונה שלך: מה קרה לה אחרי שירדה? איפה התיעוד היום?</li>
+<li>מי לא הגיע וחבל לך שלא? מה עשית כדי שיראו?</li>
+<li>(אחרי Ritual) מה הרגשת? למי היית שולחת את זה ראשון?</li>
+<li>מה זה מחליף אצלך? כמה הוצאת על תיעוד ועל קידום בתערוכה האחרונה?</li>
+<li>מאיזה מחיר זה יקר מדי? זול מדי עד שזה חשוד?</li></ul>
+<h3>החלטות שמחכות לך</h3>
+<table><tr><th>החלטה</th><th>ההמלצה שלנו</th></tr>
+<tr><td>על מי מתמקדים קודם</td><td>גלריות ואמנים (הצד הקשה), עם הקהל כתוצאה</td></tr>
+<tr><td>עיר ועונה ראשונה</td><td>תל אביב‑יפו, עונת חורף‑אביב, עם Fresh Paint או תערוכות בוגרים כרגע השקה</td></tr>
+<tr><td>שם ומותג</td><td>להחליט לפני הבטא (פרק 9)</td></tr>
+<tr><td>שפה</td><td>ממשק באנגלית לחזון הבינלאומי, תוכן בעברית ובאנגלית; לשקול ממשק עברי לפיילוט</td></tr>
+<tr><td>תקציב לשירות צילום בפיילוט</td><td>זמן אלעד, ואולי צלם בתשלום לפי תערוכה</td></tr>
+<tr><td>שותף</td><td>לחפש שותף אמנותי או קהילתי (מנהל גלריה, אוצרת) בחלק מהזמן</td></tr>
+<tr><td>ישות משפטית</td><td>עוסק כרגע; חברה בע"מ לפני גיוס או חוזים גדולים</td></tr></table>
+<div class="box"><b>מה לא לעשות עכשיו:</b> לא לגייס, לא לשלם על פרסום ממומן, לא לבנות מכירות או תשלומים לפני שיש פניות, לא לפתוח עיר שנייה לפני שהרשת הראשונה מחזיקה, ולא להוסיף תכונות לפני שהפיילוט מראה מה חסר.</div><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 13</span></div></section><section class="page "><div class="head"><div><div class="k">נספח · הערה של היועץ</div><h2>על "קודם למצות את הפיתוח, ואז לפנות לאמנים"</h2></div><div class="dept">מחלקת ייעוץ עסקי</div></div>
+
+<p class="lead">ביקשת להגיע למיצוי של הרעיון והפיתוח לפני שפונים לאמנים. יועץ טוב צריך להגיד גם את מה שלא נוח לשמוע.</p>
+<div class="cols"><div class="box g"><h4>מה נכון בגישה הזו</h4><ul><li>הרושם הראשון חשוב: אמן שיראה מוצר שבור לא יחזור.</li><li>עדיף לחשוב על התרחישים לפני שמשקיעים בשיווק.</li><li>יש לך כבר מה להראות: Ritual עובד, והחוויה נקייה.</li></ul></div>
+<div class="box r"><h4>איפה היא מסוכנת</h4><ul><li>כל יום פיתוח בלי משוב הוא הימור על הנחות. הבעיה הכי גדולה שמצאנו (לכידה) התגלתה רק כשניסינו חומר אמיתי.</li><li>"מיצוי" אף פעם לא נגמר. תמיד יש עוד פיצ'ר.</li><li>אמנים יכולים לגלות לנו מה הם מוכנים לעשות ולשלם, ואת זה אי אפשר לבנות במקומם.</li></ul></div></div>
+<h3>הפשרה שאנחנו ממליצים עליה</h3>
+<p><b>להפריד בין "לשווק" לבין "להקשיב".</b> לא פונים לאמנים כדי למכור או כדי להשיק, אלא מקיימים 12–15 שיחות שקטות כמחקר: "אני בונה משהו, אשמח לשמוע איך את מתעדת את התערוכות שלך". זה לא שיווק. זה חלק מהפיתוח, והוא חוסך חודשים של בנייה בכיוון הלא נכון.</p>
+<p>במקביל, דוח הפיתוח מגדיר את רשימת "חייב לפני שמשהו אמיתי עולה" (חשבונות, העלאות, הסכמות, מדידה), כך שכשהפיילוט מתחיל, המוצר מוכן לאנשים אמיתיים.</p>
+<div class="quote">המוצר מוכן לשיחה. הוא עוד לא מוכן להשקה. ההבדל בין השניים הוא בדיוק מה שהשיחות האלה יגלו.</div>
+<h3>מקורות עיקריים</h3>
+<p class="src">Art Basel & UBS Art Market Report 2026 (Arts Economics); Art Basel & UBS Survey of Global Collecting 2025; Audience Agency, דרך Frieze; Artists' Livelihoods Report (2025); Andrew Chen, The Cold Start Problem (2021), וסיכום Lenny's Newsletter; דפי מחירים: ArtRabbit, Kunstmatrix, MyGallery3D (28.10.2026); Matterport, דרך The Future 3D; Artsy, דרך Fortune 2015 ו‑Multiples; Smartify, דרך Techleap ו‑CORDIS; Fresh Paint ו‑Times of Israel; Pertama Partners על "תנופה"; IAPP ו‑BigID על תיקון 13; RevenueCat State of Subscription Apps 2026; Getstream ו‑Phiture על שימור; חיפוש App Store, iTunes Search API.</p><div class="foot"><span>Open Studio · מחלקת ייעוץ עסקי</span><span>אוקטובר 2026 · עמוד 14</span></div></section></body></html>
