@@ -22,3 +22,7 @@ to a tour or the viewer is done:
    the tour back (`INSPECT_BLOCK=<pattern>` makes images fail to arrive on the phone).
 4. Push, then follow the server's "Studio spaces" run to the end: the tour is done when the server's own
    inspection passes it, not when the local one does.
+
+5. The app itself is checked before it publishes (`studio/app/check_app.py`, in the "Open Studio app" workflow).
+   A screenshot taken with an outside service stubbed out (map tiles, fonts) proves nothing about that service:
+   the map once showed only "API KEY REQUIRED" watermarks on phones while local shots, with stubbed tiles, looked right.

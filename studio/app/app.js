@@ -479,9 +479,12 @@ function mapPage(focus) {
       : `<details class="wl-item info" data-at="${x.at.join(',')}"><summary><span class="ph" aria-hidden="true">${esc(x.l.name.slice(0, 1))}</span><span><b>${esc(x.l.show)}</b><span class="m">${esc(x.l.name)} · ${esc(x.l.what)}</span><span class="g">${esc(away(x.d))} · Not on Open Studio yet</span></span></summary>
           <div class="wl-info"><span>${esc(x.l.address)}</span><span>${esc(x.l.hours)}</span><span>Until ${esc(dm(x.l.end))}</span><span class="m">Their details only, as they list them: no works or tour here yet.</span></div></details>`).join('')}</div>
     ${walk ? `<a class="wl-far" href="#/exhibition/${walk.slug}/space"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg><span><b>Can't make it?</b> Walk ${esc(walk.title)} from home, in 3D.</span></a>` : ''}
-    <p class="wl-credit">Map © OpenStreetMap contributors © CARTO</p>
+    <p class="wl-credit">Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</p>
   </div>`;
 }
+
+// the base map: OpenStreetMap's own tiles, softened to the page's paper tone in CSS (.wl-map .tiles img)
+const TILES = (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
 
 // a small map of tiles (no library): drag to move, + and − to zoom; pins for the shows and the galleries
 function drawMap(el) {
@@ -500,14 +503,13 @@ function drawMap(el) {
   }
   el.innerHTML = '<div class="tiles"></div><div class="pins"></div><div class="zoom-b"><button type="button" aria-label="Zoom in">+</button><button type="button" aria-label="Zoom out">−</button></div>';
   const tiles = el.querySelector('.tiles'), pins = el.querySelector('.pins');
-  const dpr = devicePixelRatio > 1.5 ? '@2x' : '';
   function paint() {
     const W = el.clientWidth, H = el.clientHeight, [cx, cy] = proj(c, z), x0 = cx - W / 2, y0 = cy - H / 2, n = 2 ** z;
     let html = '';
     for (let ty = Math.floor(y0 / T); ty <= Math.floor((y0 + H) / T); ty++) for (let tx = Math.floor(x0 / T); tx <= Math.floor((x0 + W) / T); tx++) {
       if (ty < 0 || ty >= n) continue;
-      const sub = 'abcd'[(tx + ty) & 3], wx = ((tx % n) + n) % n;
-      html += `<img alt="" draggable="false" src="https://${sub}.basemaps.cartocdn.com/light_all/${z}/${wx}/${ty}${dpr}.png" style="left:${tx * T - x0}px;top:${ty * T - y0}px" onerror="this.remove()">`;
+      const wx = ((tx % n) + n) % n;
+      html += `<img alt="" draggable="false" src="${TILES(z, wx, ty)}" style="left:${tx * T - x0}px;top:${ty * T - y0}px" onerror="this.remove()">`;
     }
     tiles.innerHTML = html;
     const pin = (at, cls, label, href, thumb) => { const [x, y] = proj(at, z); return `<a class="pin ${cls}" ${href ? `href="${href}"` : 'tabindex="-1"'} style="left:${x - x0}px;top:${y - y0}px">${thumb ? im(thumb, '', 'loading="eager"', '10vw') : ''}${label ? `<span>${esc(label)}</span>` : ''}</a>`; };
@@ -577,6 +579,9 @@ function render() {
   tabs.querySelectorAll('a').forEach(a => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }
   app.innerHTML = html;
+  // each page its own title (the tab, history and a shared link say where it goes)
+  const h = app.querySelector('h1, h2'), name = h && h.textContent.replace(/\s+/g, ' ').trim();
+  document.title = name && tab !== 'home' ? `${name} · Open Studio` : 'Open Studio';
   window.scrollTo(0, 0);
   wire();
   const sm = hash.match(/^#\/exhibition\/([^/]+)\/space$/);

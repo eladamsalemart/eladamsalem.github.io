@@ -55,6 +55,8 @@ jobs:
           python3 /tmp/studio/studio/app/thumbs.py media open-studio
           # a new cache name with every version, so an installed app drops what it kept from the last one
           sed -i "s/const VERSION = '[^']*'/const VERSION = 'open-studio-$(git -C /tmp/studio rev-parse --short HEAD)'/" open-studio/sw.js
+      - name: Check what phones will fetch (the map's tiles really are a map)
+        run: python3 /tmp/studio/studio/app/check_app.py /tmp/studio/studio/app/app.js
       - name: Commit and push to main
         run: |
           git config user.name "open-studio"
