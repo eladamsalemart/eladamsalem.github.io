@@ -14,10 +14,10 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for model in openai/gpt-4.1-mini openai/gpt-4o-mini; do
-            echo "== $model"
-            curl -sS -D - -X POST https://models.github.ai/inference/chat/completions \
-              -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -H "Accept: application/json" \
-              -d "{\"model\":\"$model\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with the JSON {\\\"ok\\\": true}\"}],\"response_format\":{\"type\":\"json_object\"}}" | head -c 1500
+          body='{"model":"openai/gpt-4.1-mini","messages":[{"role":"user","content":"Say hi"}]}'
+          for url in https://models.github.ai/inference/chat/completions https://models.github.ai/orgs/eladamsalemart/inference/chat/completions https://models.inference.ai.azure.com/chat/completions https://models.github.ai/catalog/models; do
+            echo "== $url"
+            if [[ $url == *catalog* ]]; then curl -sS -D - "$url" -H "Authorization: Bearer $TOKEN" | head -c 800; else
+            curl -sS -D - -X POST "$url" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -H "Accept: application/json" -H "X-GitHub-Api-Version: 2022-11-28" -d "$body" | head -c 800; fi
             echo
           done
