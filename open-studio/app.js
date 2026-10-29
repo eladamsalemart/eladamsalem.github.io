@@ -438,94 +438,35 @@ function showsPage() {
   </div>`;
 }
 
-// --- Map: "On the walls" — what's on near you, or near a place you pick ----------------------------------
-let mapFilter = 'now', mapFocus = null;
+// --- Map: Israel's art places in 3D, and what's on in each (artmap.js; loaded when the map opens) -------------
 const PLACE_KEY = 'os-place';
 function myPlace() {
   try { const p = JSON.parse(localStorage.getItem(PLACE_KEY)); if (p && p.at) return p; } catch {}
   return { name: 'Tel Aviv', at: M.places['Tel Aviv'] || [32.0809, 34.7806] };
 }
-function km(a, b) {
-  const r = Math.PI / 180, dl = (b[0] - a[0]) * r, dn = (b[1] - a[1]) * r;
-  const h = Math.sin(dl / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dn / 2) ** 2;
-  return 12742 * Math.asin(Math.sqrt(h));
-}
-const away = d => d < 2.5 ? `${Math.max(1, Math.round(d * 12.5))} min walk` : `${d < 10 ? d.toFixed(1) : Math.round(d)} km`;
-function mapItems() {
-  const me = myPlace().at, now = Date.now();
-  const keep = (start, end, evs) => mapFilter === 'all' ? end > now
-    : mapFilter === 'now' ? start <= now && end > now
-    : mapFilter === 'openings' ? evs.some(v => +v.at > now - 3 * 3600000 && +v.at - now < 7 * DAY)
-    : start <= now && end > now && end - now < 7 * DAY;
-  const shows = M.exhibitions.filter(e => e.at && keep(e.start, e.end, e.events)).map(e => ({ kind: 'show', e, at: e.at, d: km(me, e.at) }));
-  const lists = M.listings.filter(l => keep(l.start, l.end, l.events)).map(l => ({ kind: 'listing', l, at: l.at, d: km(me, l.at) }));
-  return [...shows, ...lists].sort((a, b) => a.d - b.d);
-}
+let mapFocus = null;
 function mapPage(focus) {
-  mapFocus = focus ? M.exhibitions.find(e => e.slug === focus) || null : null;
-  if (mapFocus) mapFilter = 'all';                      // (a show asked for by name shows, whenever it's on)
-  const p = myPlace(), items = mapItems();
-  const walk = M.exhibitions.find(e => e.space);
-  return `<div class="wrap gut wl">
-    <div class="wl-top"><span class="wl-mark">${LOGO.split('<span>')[0]}</span>
-      <label class="wl-place"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
-        <select id="placeSel" aria-label="Where">${['Near me', ...Object.keys(M.places)].map(n => `<option ${n === p.name ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label></div>
-    <h1 class="wl-h">On the walls <em>${{ now: 'now', openings: 'this week', closing: 'closing soon', all: 'now and next' }[mapFilter]}</em>, near ${p.name === 'Near me' ? 'you' : esc(p.name)}</h1>
-    <div class="wl-map" id="map" role="application" aria-label="Map of shows near ${esc(p.name)}"></div>
-    <div class="wl-chips" role="group" aria-label="Show">${[['now', 'Open now'], ['openings', 'Openings'], ['closing', 'Closing soon'], ['all', 'All']].map(([k, t]) => `<button type="button" data-mf="${k}" aria-pressed="${mapFilter === k}">${t}</button>`).join('')}</div>
-    <h2 class="wl-h2">${items.length ? `${items.length} ${items.length === 1 ? 'place' : 'places'} · nearest first` : 'Nothing here for now'}</h2>
-    <div class="wl-list">${items.map(x => x.kind === 'show'
-      ? `<a class="wl-item${x.e === mapFocus ? ' on' : ''}" href="#/exhibition/${x.e.slug}" data-at="${x.at.join(',')}">${im(x.e.images[0], '', '', '30vw')}<span><b>${esc(x.e.title)}</b><span class="m">${esc(byOf(x.e))} · ${esc(x.e.venue)}</span><span class="g">${esc(when(x.e))} · ${esc(away(x.d))}</span></span><i aria-hidden="true">→</i></a>`
-      : `<details class="wl-item info" data-at="${x.at.join(',')}"><summary><span class="ph" aria-hidden="true">${esc(x.l.name.slice(0, 1))}</span><span><b>${esc(x.l.show)}</b><span class="m">${esc(x.l.name)} · ${esc(x.l.what)}</span><span class="g">${esc(away(x.d))} · Not on Open Studio yet</span></span></summary>
-          <div class="wl-info"><span>${esc(x.l.address)}</span><span>${esc(x.l.hours)}</span><span>Until ${esc(dm(x.l.end))}</span><span class="m">Their details only, as they list them: no works or tour here yet.</span></div></details>`).join('')}</div>
-    ${walk ? `<a class="wl-far" href="#/exhibition/${walk.slug}/space"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg><span><b>Can't make it?</b> Walk ${esc(walk.title)} from home, in 3D.</span></a>` : ''}
-    <p class="wl-credit">Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</p>
+  // a place by its id, or an Open Studio show by its slug (its place is chosen once the map has loaded)
+  const show = focus && M.exhibitions.find(e => e.slug === focus);
+  mapFocus = show ? `os-${show.slug}` : focus || null;
+  return `<div class="am">
+    <div class="am-stage"><div class="am-map" role="application" aria-label="Map of Israel's art places, in 3D"></div>
+      <div class="am-top"><a class="am-mark" href="#/" aria-label="Open Studio, home">${LOGO.split('<span>')[0]}</a>
+        <label class="am-city"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <select id="amCity" aria-label="Where"><option>${esc(myPlace().name)}</option></select></label>
+        <button type="button" class="am-tilt" id="amTilt" aria-label="3D or flat">2D</button></div></div>
+    <div class="am-sheet"><p class="am-empty">Loading the art map…</p></div>
   </div>`;
 }
-
-// the base map: OpenStreetMap's own tiles, softened to the page's paper tone in CSS (.wl-map .tiles img)
-const TILES = (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
-
-// a small map of tiles (no library): drag to move, + and − to zoom; pins for the shows and the galleries
-function drawMap(el) {
-  const p = myPlace(), items = mapItems();
-  let z = 14, c = mapFocus && mapFocus.at ? mapFocus.at : p.at;
-  const T = 256, proj = ([la, lo], zz) => { const s = T * 2 ** zz, x = (lo + 180) / 360 * s, r = la * Math.PI / 180; return [x, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * s]; };
-  const unproj = ([x, y], zz) => { const s = T * 2 ** zz, lo = x / s * 360 - 180, n = Math.PI - 2 * Math.PI * y / s; return [180 / Math.PI * Math.atan(Math.sinh(n)), lo]; };
-  if (!mapFocus) {                                     // fit where you are and the nearest places (within 10 km)
-    const pts = [p.at, ...items.filter(x => x.d < 10).slice(0, 6).map(x => x.at)];
-    for (z = 15; z > 9; z--) {
-      const xy = pts.map(q => proj(q, z)), xs = xy.map(q => q[0]), ys = xy.map(q => q[1]);
-      if (Math.max(...xs) - Math.min(...xs) < el.clientWidth - 120 && Math.max(...ys) - Math.min(...ys) < el.clientHeight - 70) {
-        c = unproj([(Math.max(...xs) + Math.min(...xs)) / 2, (Math.max(...ys) + Math.min(...ys)) / 2], z); break;
-      }
-    }
-  }
-  el.innerHTML = '<div class="tiles"></div><div class="pins"></div><div class="zoom-b"><button type="button" aria-label="Zoom in">+</button><button type="button" aria-label="Zoom out">−</button></div>';
-  const tiles = el.querySelector('.tiles'), pins = el.querySelector('.pins');
-  function paint() {
-    const W = el.clientWidth, H = el.clientHeight, [cx, cy] = proj(c, z), x0 = cx - W / 2, y0 = cy - H / 2, n = 2 ** z;
-    let html = '';
-    for (let ty = Math.floor(y0 / T); ty <= Math.floor((y0 + H) / T); ty++) for (let tx = Math.floor(x0 / T); tx <= Math.floor((x0 + W) / T); tx++) {
-      if (ty < 0 || ty >= n) continue;
-      const wx = ((tx % n) + n) % n;
-      html += `<img alt="" draggable="false" src="${TILES(z, wx, ty)}" style="left:${tx * T - x0}px;top:${ty * T - y0}px" onerror="this.remove()">`;
-    }
-    tiles.innerHTML = html;
-    const pin = (at, cls, label, href, thumb) => { const [x, y] = proj(at, z); return `<a class="pin ${cls}" ${href ? `href="${href}"` : 'tabindex="-1"'} style="left:${x - x0}px;top:${y - y0}px">${thumb ? im(thumb, '', 'loading="eager"', '10vw') : ''}${label ? `<span>${esc(label)}</span>` : ''}</a>`; };
-    pins.innerHTML = pin(p.at, 'me', '', null)
-      + items.map(x => x.kind === 'show' ? pin(x.at, `show${x.e === mapFocus ? ' focus' : ''}${isOn(x.e) ? ' open' : ''}`, x.e.title, `#/exhibition/${x.e.slug}`, x.e.images[0])
-        : pin(x.at, 'info', x.l.name, null)).join('');
-  }
-  paint();
-  let drag = null;
-  el.addEventListener('pointerdown', e => { if (e.target.closest('.zoom-b,.pin')) return; drag = { x: e.clientX, y: e.clientY, c: proj(c, z) }; el.setPointerCapture(e.pointerId); });
-  el.addEventListener('pointermove', e => { if (!drag) return; c = unproj([drag.c[0] - (e.clientX - drag.x), drag.c[1] - (e.clientY - drag.y)], z); paint(); });
-  el.addEventListener('pointerup', () => { drag = null; });
-  const [zin, zout] = el.querySelectorAll('.zoom-b button');
-  zin.onclick = () => { z = Math.min(17, z + 1); paint(); };
-  zout.onclick = () => { z = Math.max(8, z - 1); paint(); };
-  el.addEventListener('dblclick', () => { z = Math.min(17, z + 1); paint(); });
+let artMap = null;
+function openArtMap(el) {
+  import('./artmap.js').then(m => m.mountArtMap(el, {
+    M, focus: mapFocus, here: myPlace,
+    setHere: p => { try { localStorage.setItem(PLACE_KEY, JSON.stringify(p)); } catch {} },
+  })).then(() => { artMap = el.__map || null; }).catch(e => {
+    console.error(e);
+    el.querySelector('.am-sheet').innerHTML = '<p class="am-empty">The map couldn\u2019t load. Check the connection and open it again.</p>';
+  });
 }
 
 const notFound = () => `<div class="wrap gut loading"><p>This page doesn't exist. <a href="#/">Back to Home</a></p></div>`;
@@ -537,6 +478,7 @@ const routes = [
   [/^#\/artists$/, () => artistsPage(), 'artists'],
   [/^#\/shows$/, () => showsPage(), 'shows'],
   [/^#\/(map|places)$/, () => mapPage(), 'map'],
+  [/^#\/map\/place\/([^/]+)$/, m => mapPage(decodeURIComponent(m[1])), 'map'],
   [/^#\/map\/([^/]+)$/, m => mapPage(m[1]), 'map'],
   [/^#\/place\/([^/]+)$/, m => placePage(m[1]), 'map'],
   [/^#\/artist\/([^/]+)$/, m => artistPage(m[1]), 'artists'],
@@ -569,15 +511,16 @@ function render() {
   const top = tab === 'home' || tab === 'search' || tab === 'shows' || tab === 'map' || hash === '#/artists';
   // the shows on now have the look of an opening night; the map, of walls in daylight
   const ex = hash.match(/^#\/exhibition\/([^/]+)$/), exOn = ex && M.exhibitions.find(e => e.slug === ex[1]);
-  const look = tab === 'shows' || (exOn && status(exOn) !== 'past') ? 'night' : tab === 'map' ? 'walls' : '';
+  const look = tab === 'shows' || (exOn && status(exOn) !== 'past') ? 'night' : tab === 'map' ? 'atlas' : '';
   if (look) document.body.dataset.look = look; else delete document.body.dataset.look;
-  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = look === 'night' ? '#0E0E10' : look === 'walls' ? '#E8E6E1' : m.media.includes('dark') ? '#171613' : '#EFE9DD'; });
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = look === 'night' ? '#0E0E10' : look === 'atlas' ? '#F3EEE5' : m.media.includes('dark') ? '#171613' : '#EFE9DD'; });
   document.querySelector('.bar').hidden = top;
   if (!top) document.querySelector('.bar .wrap').innerHTML = `<button type="button" class="back" id="backBtn" style="border:0;background:none;cursor:pointer;padding:0"><span aria-hidden="true">←</span> Back</button><a class="brand" href="#/" aria-label="Open Studio, home">${LOGO}</a>`;
   const tabs = document.querySelector('.tabs');
   tabs.hidden = false; document.body.classList.add('has-tabs');
   tabs.querySelectorAll('a').forEach(a => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }
+  if (artMap) { artMap.remove(); artMap = null; }           // (a WebGL map gives its context back when left)
   app.innerHTML = html;
   // each page its own title (the tab, history and a shared link say where it goes)
   const h = app.querySelector('h1, h2'), name = h && h.textContent.replace(/\s+/g, ' ').trim();
@@ -623,17 +566,9 @@ function wire() {
   const rerender = () => { const y = scrollY; render(true); scrollTo(0, y); };
   document.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { showsKind = b.dataset.kind; rerender(); });
   document.querySelectorAll('[data-day]').forEach(b => b.onclick = () => { showsDay = +b.dataset.day; rerender(); });
-  document.querySelectorAll('[data-mf]').forEach(b => b.onclick = () => { mapFilter = b.dataset.mf; rerender(); });
   document.querySelectorAll('[data-log]').forEach(b => b.onclick = () => { const [s, i] = b.dataset.log.split(':'); openLog(s, +i); });
-  const sel = document.getElementById('placeSel');
-  if (sel) sel.onchange = () => {
-    const save = p => { try { localStorage.setItem(PLACE_KEY, JSON.stringify(p)); } catch {} rerender(); };
-    if (sel.value !== 'Near me') return save({ name: sel.value, at: M.places[sel.value] });
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(g => save({ name: 'Near me', at: [g.coords.latitude, g.coords.longitude] }), () => { sel.value = myPlace().name; }, { timeout: 10000, maximumAge: 600000 });
-  };
-  const mapEl = document.getElementById('map');
-  if (mapEl) drawMap(mapEl);
+  const am = document.querySelector('.am');
+  if (am) openArtMap(am);
   // a list that opens five more at a time
   document.querySelectorAll('[data-more]').forEach(b => b.onclick = () => {
     const rest = [...b.parentNode.querySelectorAll('[data-more-list] > [hidden]')];
