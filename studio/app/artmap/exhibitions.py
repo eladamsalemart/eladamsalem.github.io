@@ -361,7 +361,8 @@ def auto_read(place, today):
                     if urlparse(h).netloc.replace('www.', '') == host and not PAST.search(unquote(h)) and score(t, h)
                     and h.split('#')[0].rstrip('/') != home.split('#')[0].rstrip('/')}.items(), key=lambda x: -x[1])
     found, evs = extract(lines, today)
-    found = merge(found, model_read(place, home, lines, today))
+    if not found:                                         # the model reads only what the rules couldn't
+        found = model_read(place, home, lines, today)
     if cands and allowed(cands[0][0]):
         q = open_page(cands[0][0])
         try:
@@ -369,7 +370,7 @@ def auto_read(place, today):
         finally:
             q.close()
         f2, e2 = extract(more, today)
-        found = merge(merge(found, f2), model_read(place, cands[0][0], more, today))
+        found = merge(found, f2 or model_read(place, cands[0][0], more, today))
         evs += e2
     return found, evs, 'ok' if found or evs else 'nothing found'
 
@@ -510,7 +511,8 @@ def model_read(place, url, lines, today):
         start, end = sure(x.get('start')), sure(x.get('end'))
         if end and end < today or start and start > today + dt.timedelta(days=60) or not (x.get('on_now') or start or end):
             continue
-        out.append({'title': t, 'artists': [a for a in x.get('artists', []) if a and a in text][:12],
+        t, named = split_artist(t)
+        out.append({'title': t, 'artists': ([a for a in x.get('artists', []) if a and a in text] or named)[:12],
                     'start': start.isoformat() if start else None, 'end': end.isoformat() if end else None, 'by': 'model'})
     return out
 
@@ -523,9 +525,17 @@ def save_model_cache(today):
 
 
 def merge(found, more):
-    """Shows from two readings of a site, once each (by title)."""
-    seen = {re.sub(r'\W+', '', x['title']).lower() for x in found}
-    return found + [x for x in more if re.sub(r'\W+', '', x['title']).lower() not in seen]
+    """Shows from two readings of a site, once each: a title is the same show when one holds the other
+    ("תאי בקרה" and 'אורית חופשי | "תאי בקרה"')."""
+    key = lambda t: re.sub(r'\W+', '', t).lower()
+    seen = [key(x['title']) for x in found]
+    out = list(found)
+    for x in more:
+        k = key(x['title'])
+        if k and not any(k == s or (len(s) > 3 and s in k) or (len(k) > 3 and k in s) for s in seen):
+            seen.append(k)
+            out.append(x)
+    return out
 
 
 def close_browser():
@@ -662,8 +672,8 @@ def main():
                 h['read'] = 'browser'
             except Exception as e:
                 h['browser'] = type(e).__name__
-        if not a.offline and s['place'] in places:
-            found = merge(found, model_read(places[s['place']], s['url'], lines, today))
+        if not found and not a.offline and s['place'] in places:
+            found = model_read(places[s['place']], s['url'], lines, today)
         for x in found:
             x.update(place=s['place'], url=s['url'], source=s['id'],
                      id=f"{s['place']}:{re.sub(r'[^0-9a-zא-ת]+', '-', x['title'].lower())[:50]}")
