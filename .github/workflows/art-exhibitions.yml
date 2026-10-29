@@ -18,7 +18,7 @@ concurrency:
 jobs:
   exhibitions:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,6 +26,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - name: A browser, for the sites that build their pages in it
+        run: |
+          pip install playwright==1.64.1
+          python3 -m playwright install --with-deps chromium
       - name: Read what's on
         run: python3 studio/app/artmap/exhibitions.py
       - name: Commit to studio
