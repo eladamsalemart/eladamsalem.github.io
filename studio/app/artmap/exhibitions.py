@@ -39,7 +39,8 @@ NAV = re.compile(r'^(תערוכות|תערוכה נוכחית|תערוכות נ�
 
 D = r'(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?'
 # words that sit next to a date but are not a show's name
-NOT_TITLE = re.compile(r'^(?:ה?תערוכ(?:ה|ות)(?: נוכחי(?:ת|ות)| ננעלת| נפתחת)?|the exhibition|exhibitions?|current(?: exhibitions?)?|now(?: on)?|on view|'
+NOT_TITLE = re.compile(r'^ה?תערוכה (?:מוצגת|נפתחת|ננעלת|תיפתח|תינעל|פתוחה)\b|'
+                       r'^(?:ה?תערוכ(?:ה|ות)(?: נוכחי(?:ת|ות)| ננעלת| נפתחת)?|the exhibition|exhibitions?|current(?: exhibitions?)?|now(?: on)?|on view|showroom|gallery|home|'
                        r'search|menu|dates?|תאריכים|תאריך|מועד|שעות(?: פתיחה)?|כתובת|address|more|לפרטים|קראו עוד|read more)\s*:?$|'
                        r'^(?:about|contact|support us|newsletter|join|shop|תמכו בנו|צרו קשר|אודות|הצטרפו|חנות)\s*$|'
                        r'^(?:(?:אירוע |טקס )?פתיחה|פתיחת|נעילה|שיח גלריה|שיח אמן|opening|closing|gallery talk|בהשתתפות|משתתפים|with|עם)\b|'
@@ -539,6 +540,7 @@ def main():
             and (x['end'] >= today.isoformat() if x['end'] else x.get('last_seen', x.get('first_seen', '')) >= fortnight)
             and x['id'] not in {y['id'] for y in shows}]
     shows += kept
+    shows = [x for x in shows if not NOT_TITLE.search(x['title'])]     # yesterday's too, read before a rule was added
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({'updated': today.isoformat(), 'shows': shows, 'events': events},
                               ensure_ascii=False, separators=(',', ':')))
