@@ -375,17 +375,17 @@ def auto_read(place, today):
 
 
 # --- a language model reads a page, for sites no rule reads well ------------------------------------------------
-# Free by default: GitHub Models, which the daily workflow calls with its own GITHUB_TOKEN (no key, no billing; a
-# free daily quota, so at most FREE_CALLS requests a day and pages sent in parts that fit its per-request size).
+# Free by default: an open model (OLLAMA_MODEL, e.g. qwen2.5) run by Ollama on the workflow's own machine: no account,
+# no key, no bill; slower, so pages go in parts, the lines near dates first, within a time budget (FREE_MINUTES).
 # With ANTHROPIC_API_KEY set (a GitHub secret) Claude reads instead. Each page's text is sent once: the answer is kept against the
 # text's hash (cache/model.json), so a page that hasn't changed since yesterday costs nothing. Every show the model
 # returns is checked against the page: its title must be on it, and so must any date it gives.
 MODEL = os.environ.get('ART_MODEL', 'claude-opus-5-5')
-FREE_MODEL = os.environ.get('ART_FREE_MODEL', 'openai/gpt-4.1-mini')
-FREE_URL = 'https://models.github.ai/inference/chat/completions'
-FREE_CALLS = int(os.environ.get('ART_FREE_CALLS', '120'))
-FREE_PART = 9000                                             # characters of page per request (the free tier's size limit)
-_free = {'calls': 0, 'off': ''}
+FREE_MODEL = os.environ.get('OLLAMA_MODEL', '')
+FREE_URL = os.environ.get('OLLAMA_URL', 'http://127.0.0.1:11434') + '/api/chat'
+FREE_MINUTES = float(os.environ.get('FREE_MINUTES', '70'))
+FREE_PART = 5000                                             # characters of page per request (a small model's comfortable size)
+_free = {'calls': 0, 'off': '', 'since': 0.0, 'secs': 0.0}
 CACHE = HERE / 'cache' / 'model.json'
 _cache = {}
 SCHEMA = {
@@ -413,12 +413,12 @@ otherwise null. If the page lists no such exhibition, return an empty list.
 
 
 def free_model(place, url, text, today):
-    """GitHub Models (OpenAI-compatible chat completions) with the workflow's token. The page goes in parts small
-    enough for the free tier; the shows of all parts together. None when the service is off or the quota is spent."""
-    tok = os.environ.get('GITHUB_MODELS_TOKEN')
-    if not tok or _free['off']:
+    """The open model on this machine (Ollama), the page in parts: the lines near a date or the word exhibition first.
+    The shows of all parts together; None when the model is off or the time budget is spent."""
+    if not FREE_MODEL or _free['off']:
         return None
-    # the page's lines that matter first: those near a date or the word exhibition; then the rest, in order
+    if not _free['since']:
+        _free['since'] = time.time()
     ls = text.split('\n')
     near = set()
     for i, l in enumerate(ls):
@@ -431,51 +431,34 @@ def free_model(place, url, text, today):
             parts.append(cur)
             cur = ''
         cur += l + '\n'
-    parts = (parts + [cur])[:3]                              # three parts at most: past that it's an archive
+    parts = (parts + [cur])[:2]                              # two parts at most: past that it's an archive
     shows = []
     for part in parts:
-        if _free['calls'] >= FREE_CALLS:
-            _free['off'] = f'daily budget of {FREE_CALLS} used'
+        if time.time() - _free['since'] > FREE_MINUTES * 60:
+            _free['off'] = f'time budget of {FREE_MINUTES:g} minutes used'
             return shows or None
-        body = {'model': FREE_MODEL, 'temperature': 0,
-                'messages': [{'role': 'system', 'content': 'You extract art exhibitions from web page text. Answer with JSON only: {"shows": [{"title", "artists", "start", "end", "on_now"}]}.'},
-                             {'role': 'user', 'content': PROMPT.format(name=place.get('name', ''), today=today.isoformat(), url=url, text=part)}],
-                'response_format': {'type': 'json_schema', 'json_schema': {'name': 'shows', 'strict': True, 'schema': SCHEMA}}}
-        for attempt in range(3):
-            _free['calls'] += 1
-            req = urllib.request.Request(FREE_URL, data=json.dumps(body).encode(), method='POST', headers={
-                'Authorization': f'Bearer {tok}', 'Content-Type': 'application/json', 'Accept': 'application/json'})
-            try:
-                with urllib.request.urlopen(req, timeout=90) as r:
-                    j = json.load(r)
-                break
-            except urllib.error.HTTPError as e:
-                msg = e.read().decode('utf-8', 'ignore')[:200]
-                if e.code == 400 and 'response_format' in body and body['response_format']['type'] == 'json_schema':
-                    body['response_format'] = {'type': 'json_object'}        # a model without schemas: plain JSON
-                    continue
-                if e.code == 429 and 'day' not in msg.lower() and attempt < 2:
-                    time.sleep(int(e.headers.get('retry-after') or 20))       # the per-minute limit: wait and go on
-                    continue
-                _free['off'] = f'{e.code}: {msg}'
-                print(f'free model: {url}: {_free["off"]}', file=sys.stderr)
-                return shows or None
-            except Exception as e:
-                print(f'free model: {url}: {type(e).__name__}', file=sys.stderr)
-                return shows or None
-        else:
-            return shows or None
+        body = {'model': FREE_MODEL, 'stream': False, 'format': SCHEMA, 'options': {'temperature': 0, 'num_ctx': 8192},
+                'messages': [{'role': 'user', 'content': PROMPT.format(name=place.get('name', ''), today=today.isoformat(), url=url, text=part)}]}
+        req = urllib.request.Request(FREE_URL, data=json.dumps(body).encode(), method='POST', headers={'Content-Type': 'application/json'})
+        t0 = time.time()
+        _free['calls'] += 1
         try:
-            shows += json.loads(j['choices'][0]['message']['content']).get('shows', [])
-        except (ValueError, KeyError, IndexError, TypeError):
-            pass
-        time.sleep(4)                                         # well inside the per-minute limit
+            with urllib.request.urlopen(req, timeout=600) as r:
+                j = json.load(r)
+            shows += json.loads(j['message']['content']).get('shows', [])
+        except (ValueError, KeyError, TypeError) as e:
+            print(f'free model: {url}: an answer not in the shape asked ({type(e).__name__})', file=sys.stderr)
+        except Exception as e:
+            _free['off'] = f'{type(e).__name__}: {e}'[:200]
+            print(f'free model: {url}: {_free["off"]}', file=sys.stderr)
+            return shows or None
+        _free['secs'] += time.time() - t0
     return shows
 
 
 def model_read(place, url, lines, today):
     """Shows on a page, read by a language model, each one checked against the page. [] when no model is at hand."""
-    if not lines or not (os.environ.get('ANTHROPIC_API_KEY') or os.environ.get('GITHUB_MODELS_TOKEN')):
+    if not lines or not (os.environ.get('ANTHROPIC_API_KEY') or FREE_MODEL):
         return []
     import hashlib
     text = '\n'.join(lines)
@@ -629,13 +612,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--offline', help='read saved pages (<id>.html) from this folder instead of the web')
     ap.add_argument('--today')
+    ap.add_argument('--only', help='these sources only (comma-separated ids), for a trial')
+    ap.add_argument('--dry', action='store_true', help='print what was found; write nothing')
     ap.add_argument('--no-browser', action='store_true', help="don't read pages in a browser when the plain page has nothing")
     a = ap.parse_args()
     today = dt.date.fromisoformat(a.today) if a.today else dt.date.today()
     places = {p['id']: p for p in json.loads((APP / 'data' / 'art' / 'places.json').read_text())['places']} \
         if (APP / 'data' / 'art' / 'places.json').exists() else {}
     shows, events, health = [], [], []
+    only = set(a.only.split(',')) if a.only else None
     for s in load_sources():
+        if only is not None and s['id'] not in only:
+            continue
         h = {'source': s['id'], 'place': s['place'], 'url': s['url']}
         if places and s['place'] not in places:
             h['status'] = 'place not on the map'
@@ -688,7 +676,7 @@ def main():
         print(f"{s['id']:<24} {h['status']:<14} {len(found)} shows, {len(evs)} events", file=sys.stderr)
 
     # every other place on the map with a website of its own
-    if places and not a.offline and not a.no_browser:
+    if places and not a.offline and not a.no_browser and only is None:
         done = {s['place'] for s in load_sources()}
         for p in sorted((p for p in places.values() if p.get('website') and p['id'] not in done), key=lambda p: p['id']):
             h = {'source': f"site:{p['id']}", 'place': p['id'], 'url': p['website'], 'auto': True}
@@ -709,10 +697,11 @@ def main():
 
     close_browser()
     save_model_cache(today)
-    if os.environ.get('GITHUB_MODELS_TOKEN') and not os.environ.get('ANTHROPIC_API_KEY'):
-        health.append({'source': 'model', 'model': FREE_MODEL, 'calls': _free['calls'], 'status': _free['off'] or 'ok'})
-        print(f"free model ({FREE_MODEL}): {_free['calls']} calls{'; stopped: ' + _free['off'] if _free['off'] else ''}", file=sys.stderr)
-    if places and not a.offline:
+    if FREE_MODEL and not os.environ.get('ANTHROPIC_API_KEY'):
+        health.append({'source': 'model', 'model': FREE_MODEL, 'calls': _free['calls'], 'seconds': round(_free['secs']), 'status': _free['off'] or 'ok'})
+        print(f"free model ({FREE_MODEL}): {_free['calls']} calls, {_free['secs'] / max(1, _free['calls']):.0f} s each"
+              f"{'; stopped: ' + _free['off'] if _free['off'] else ''}", file=sys.stderr)
+    if places and not a.offline and only is None:
         try:
             named = []
             mk = makore_events(places, today, shows=named)
@@ -744,6 +733,11 @@ def main():
     shows += kept
     shows = [x for x in shows if not NOT_TITLE.search(x['title'])]     # yesterday's too, read before a rule was added
     OUT.parent.mkdir(parents=True, exist_ok=True)
+    if a.dry:
+        for x in shows:
+            print(f"{x['source']:<22} {x.get('by', 'rule'):<6} {x['title'][:60]} | {x.get('start')} – {x.get('end')}")
+        print(json.dumps([h for h in health if h['source'] == 'model'], ensure_ascii=False))
+        return
     OUT.write_text(json.dumps({'updated': today.isoformat(), 'shows': shows, 'events': events},
                               ensure_ascii=False, separators=(',', ':')))
     HEALTH.write_text(json.dumps({'updated': today.isoformat(), 'sources': health}, ensure_ascii=False, indent=1))
