@@ -338,7 +338,7 @@ export async function mountArtMap(root, ctx) {
 
   function card(p) {
     const c = KINDS[p.kind].c, dist = km(me.at, p.at);
-    const show = s => `<li><b dir="auto">${s.href ? `<a href="${esc(s.href)}">${esc(s.title)}</a>` : esc(s.title)}</b>${s.artists.length ? `<span dir="auto">${esc(s.artists.join(', '))}</span>` : ''}<span class="am-m">${s.start && +s.start > Date.now() ? `From ${esc(dm(s.start))}` : ''}${s.end ? `${s.start && +s.start > Date.now() ? ' · ' : ''}Until ${esc(dm(s.end))}` : ''}${s.os ? ' · On Open Studio' : ''}${s.space ? ' · <b>Walk it in 3D</b>' : ''}</span></li>`;
+    const show = s => `<li><b dir="auto">${s.href ? `<a href="${esc(s.href)}">${esc(s.title)}</a>` : esc(s.title)}</b>${s.artists.length ? `<span dir="auto">${esc(s.artists.join(', '))}</span>` : ''}<span class="am-m">${s.start && +s.start > Date.now() ? `From ${esc(dm(s.start))}` : ''}${s.end ? `${s.start && +s.start > Date.now() ? ' · ' : ''}Until ${esc(dm(s.end))}` : ''}${s.os ? ' · On Open Studio' : ''}${s.source === 'makore' && !s.end ? ' · named in a tour or talk listed this month' : ''}${s.space ? ' · <b>Walk it in 3D</b>' : ''}</span></li>`;
     const theirs = appArtists(p, M).sort((a, b) => b.followed - a.followed);
     return `<article class="am-card" style="--c:${c}">
       <div class="am-card-top"><span class="am-kind"><i></i>${esc(KINDS[p.kind].one)}${p.tier === 'listed' ? ' · listed on OpenStreetMap' : ''}</span><button type="button" class="am-x" aria-label="Close">×</button></div>
