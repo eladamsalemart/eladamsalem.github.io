@@ -360,6 +360,7 @@ def auto_read(place, today):
                     if urlparse(h).netloc.replace('www.', '') == host and not PAST.search(unquote(h)) and score(t, h)
                     and h.split('#')[0].rstrip('/') != home.split('#')[0].rstrip('/')}.items(), key=lambda x: -x[1])
     found, evs = extract(lines, today)
+    found = merge(found, model_read(place, home, lines, today))
     if cands and allowed(cands[0][0]):
         q = open_page(cands[0][0])
         try:
@@ -367,10 +368,106 @@ def auto_read(place, today):
         finally:
             q.close()
         f2, e2 = extract(more, today)
-        titles = {x['title'] for x in found}
-        found += [x for x in f2 if x['title'] not in titles]
+        found = merge(merge(found, f2), model_read(place, cands[0][0], more, today))
         evs += e2
     return found, evs, 'ok' if found or evs else 'nothing found'
+
+
+# --- a language model reads a page, for sites no rule reads well ------------------------------------------------
+# Runs when ANTHROPIC_API_KEY is set (a GitHub secret). Each page's text is sent once: the answer is kept against the
+# text's hash (cache/model.json), so a page that hasn't changed since yesterday costs nothing. Every show the model
+# returns is checked against the page: its title must be on it, and so must any date it gives.
+MODEL = os.environ.get('ART_MODEL', 'claude-opus-5-5')
+CACHE = HERE / 'cache' / 'model.json'
+_cache = {}
+SCHEMA = {
+    'type': 'object', 'additionalProperties': False, 'required': ['shows'],
+    'properties': {'shows': {'type': 'array', 'items': {
+        'type': 'object', 'additionalProperties': False,
+        'required': ['title', 'artists', 'start', 'end', 'on_now'],
+        'properties': {
+            'title': {'type': 'string', 'description': "the exhibition's title exactly as written on the page"},
+            'artists': {'type': 'array', 'items': {'type': 'string'}, 'description': 'artists named for it on the page'},
+            'start': {'type': ['string', 'null'], 'description': 'YYYY-MM-DD, only if the page gives it'},
+            'end': {'type': ['string', 'null'], 'description': 'YYYY-MM-DD, only if the page gives it'},
+            'on_now': {'type': 'boolean', 'description': 'the page presents it as on now (current), not past'},
+        }}}},
+}
+PROMPT = """This is the text of a page from the website of {name}, an art venue in Israel. Today is {today}.
+List the art exhibitions this venue shows that are on now or open within the next 60 days, as the page presents them.
+Leave out past exhibitions, permanent collection displays, workshops, courses, tours, talks, concerts, films and shop items.
+Write each title exactly as on the page (Hebrew stays Hebrew). Give start and end dates only when the page states them;
+otherwise null. If the page lists no such exhibition, return an empty list.
+
+<page url="{url}">
+{text}
+</page>"""
+
+
+def model_read(place, url, lines, today):
+    """Shows on a page, read by a language model, each one checked against the page. [] without a key."""
+    if not os.environ.get('ANTHROPIC_API_KEY') or not lines:
+        return []
+    import hashlib
+    text = '\n'.join(lines)
+    if len(text) > 60000:                                 # a page's visible text is rarely past this; the rest is menus
+        text = text[:60000]
+    key = hashlib.sha256((MODEL + url + text).encode()).hexdigest()
+    if not _cache and CACHE.exists():
+        _cache.update(json.loads(CACHE.read_text()))
+    if key in _cache:
+        got = _cache[key]['shows']
+    else:
+        import anthropic
+        client = anthropic.Anthropic()
+        try:
+            r = client.beta.messages.create(
+                model=MODEL, max_tokens=8000,
+                betas=['server-side-fallback-2026-07-01'], fallbacks='default',
+                output_config={'effort': 'low', 'format': {'type': 'json_schema', 'schema': SCHEMA}},
+                messages=[{'role': 'user', 'content': PROMPT.format(name=place.get('name', ''), today=today.isoformat(), url=url, text=text)}])
+        except anthropic.APIStatusError as e:
+            print(f'model: {url}: {e.status_code}', file=sys.stderr)
+            return []
+        except anthropic.APIConnectionError:
+            print(f'model: {url}: no connection', file=sys.stderr)
+            return []
+        if r.stop_reason != 'end_turn':
+            print(f'model: {url}: stopped ({r.stop_reason})', file=sys.stderr)
+            return []
+        got = json.loads(next(b.text for b in r.content if b.type == 'text'))['shows']
+        _cache[key] = {'day': today.isoformat(), 'shows': got}
+    flat = re.sub(r'\s+', ' ', numeric_dates(text)).lower()
+    out = []
+    for x in got:
+        t = clean_title(x.get('title', ''))
+        if not t or len(t) > 110 or NOT_TITLE.search(t) or NOT_SHOW.search(t) or re.sub(r'\s+', ' ', t).lower() not in re.sub(r'\s+', ' ', text).lower():
+            continue                                         # a title the page doesn't carry is not taken
+        def sure(d):                                         # a date the page doesn't carry is dropped
+            try:
+                v = dt.date.fromisoformat(d) if d else None
+            except ValueError:
+                return None
+            return v if v and re.search(rf'(?<!\d)0?{v.day}[./]0?{v.month}(?!\d)', flat) else None
+        start, end = sure(x.get('start')), sure(x.get('end'))
+        if end and end < today or start and start > today + dt.timedelta(days=60) or not (x.get('on_now') or start or end):
+            continue
+        out.append({'title': t, 'artists': [a for a in x.get('artists', []) if a and a in text][:12],
+                    'start': start.isoformat() if start else None, 'end': end.isoformat() if end else None, 'by': 'model'})
+    return out
+
+
+def save_model_cache(today):
+    if _cache:
+        keep = {k: v for k, v in _cache.items() if v['day'] >= (today - dt.timedelta(days=45)).isoformat()}
+        CACHE.parent.mkdir(exist_ok=True)
+        CACHE.write_text(json.dumps(keep, ensure_ascii=False, separators=(',', ':')))
+
+
+def merge(found, more):
+    """Shows from two readings of a site, once each (by title)."""
+    seen = {re.sub(r'\W+', '', x['title']).lower() for x in found}
+    return found + [x for x in more if re.sub(r'\W+', '', x['title']).lower() not in seen]
 
 
 def close_browser():
@@ -384,8 +481,15 @@ MAKORE = 'https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9
 KEEP_EVENT = re.compile(r'פתיחת? (ה)?תערוכ|שיח גלריה|שיח אמן|מפגש עם האמנ|opening', re.I)
 
 
-def makore_events(places, today, pages=6):
-    """Events at known places: openings and gallery talks only (tours, workshops and entry tickets left out)."""
+# a show named in a listing's tour, talk or opening ('סיור בתערוכה "התנועה"', 'תערוכה: מעבר לשדה הראייה')
+NAMED = re.compile(r'(?:בתערוכה|בתערוכת|תערוכה|תערוכת|exhibition)\s*:?\s*["“”״„\'‘’]([^"“”״„\'‘’]{3,80})["“”״„\'‘’]|'
+                   r'^(?:פתיחת\s+)?תערוכה\s*:\s*(.{3,80}?)(?:\s+[-–|]\s+.*)?$', re.I)
+
+
+def makore_events(places, today, pages=15, shows=None):
+    """Events at known places: openings and gallery talks only (tours, workshops and entry tickets left out).
+    Shows named in any of the listing's items at those places go to `shows` (on now: the place runs a tour or talk in
+    it in the coming weeks; an opening ahead: it opens that day)."""
     sys.path.insert(0, str(HERE))
     from places import norm
     keys = []
@@ -412,13 +516,23 @@ def makore_events(places, today, pages=6):
                 for it in g.get('itemListElement', []) if g.get('@type') == 'ItemList' else []:
                     e = it.get('item', {})
                     title, loc = e.get('name', ''), norm((e.get('location') or {}).get('name', ''))
-                    if not KEEP_EVENT.search(title) or not loc:
+                    if not loc:
                         continue
                     place = next((pid for k, pid in keys if re.search(r'(^|\s)' + re.escape(k) + r'(\s|$)', loc)), None)
                     when = (e.get('startDate') or '')[:16]
                     if not place or not when:
                         continue
                     d = dt.datetime.fromisoformat(when.replace('Z', '')) + dt.timedelta(hours=2)    # UTC to Israel (roughly)
+                    m = NAMED.search(title.strip())
+                    if shows is not None and m and today - dt.timedelta(days=1) <= d.date() <= today + dt.timedelta(days=30):
+                        t = clean_title(m.group(1) or m.group(2))
+                        if t and not NOT_TITLE.search(t) and not NOT_SHOW.search(t):
+                            opening = re.search(r'פתיחת|פתיחה|opening', title, re.I) and d.date() > today
+                            shows.append({'title': t, 'artists': [], 'start': d.date().isoformat() if opening else None, 'end': None,
+                                          'place': place, 'url': e.get('url', ''), 'source': 'makore',
+                                          'id': f"{place}:{re.sub(r'[^0-9a-zא-ת]+', '-', t.lower())[:50]}"})
+                    if not KEEP_EVENT.search(title):
+                        continue
                     if not (today <= d.date() <= today + dt.timedelta(days=45)) or (place, title, d.date()) in seen:
                         continue
                     seen.add((place, title, d.date()))
@@ -485,6 +599,8 @@ def main():
                 h['read'] = 'browser'
             except Exception as e:
                 h['browser'] = type(e).__name__
+        if not a.offline and s['place'] in places:
+            found = merge(found, model_read(places[s['place']], s['url'], lines, today))
         for x in found:
             x.update(place=s['place'], url=s['url'], source=s['id'],
                      id=f"{s['place']}:{re.sub(r'[^0-9a-zא-ת]+', '-', x['title'].lower())[:50]}")
@@ -517,12 +633,20 @@ def main():
             print(f"{h['source']:<40} {h['status']:<14} {len(found)} shows", file=sys.stderr)
 
     close_browser()
+    save_model_cache(today)
     if places and not a.offline:
         try:
-            mk = makore_events(places, today)
+            named = []
+            mk = makore_events(places, today, shows=named)
             events += mk
+            have = {(x['place'], re.sub(r'\W+', '', x['title']).lower()) for x in shows}
+            for x in named:                                  # a show the place's own site already gave is not repeated
+                k = (x['place'], re.sub(r'\W+', '', x['title']).lower())
+                if k not in have and not any(k[1] in h[1] or h[1] in k[1] for h in have if h[0] == k[0]):
+                    have.add(k)
+                    shows.append(x)
             health.append({'source': 'makore', 'place': '(many)', 'url': MAKORE, 'status': 'ok' if mk else 'nothing found', 'events': len(mk)})
-            print(f'makore                   {len(mk)} openings and talks at places on the map', file=sys.stderr)
+            print(f'makore                   {len(mk)} openings and talks, {len(named)} shows named, at places on the map', file=sys.stderr)
         except Exception as e:
             health.append({'source': 'makore', 'status': f'failed: {type(e).__name__}'})
 
