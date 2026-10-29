@@ -26,13 +26,24 @@ def main():
     rel = a.release or sorted(r[0] for r in con.execute(
         "SELECT DISTINCT regexp_extract(file, 'release/([^/]+)/', 1) FROM glob('s3://overturemaps-us-west-2/release/*/theme=places/type=place/*')").fetchall())[-1]
     x0, y0, x1, y1 = map(float, a.bbox.split(','))
+    src = f"read_parquet('s3://overturemaps-us-west-2/release/{rel}/theme=places/type=place/*', hive_partitioning=1)"
+    # Overture renames its category fields now and then (categories, then taxonomy / basic_category): use what's there
+    cols = {r[0]: r[1] for r in con.execute(f'DESCRIBE SELECT * FROM {src}').fetchall()}
+    print('columns:', ', '.join(f'{k} {v[:60]}' for k, v in cols.items() if k not in ('geometry', 'bbox')))
+    if 'categories' in cols:
+        prim, alt = 'categories.primary', 'coalesce(categories.alternate, [])'
+    elif 'taxonomy' in cols:
+        prim = 'taxonomy.primary'
+        alt = 'coalesce(taxonomy.alternates, [])' if 'alternates' in cols['taxonomy'] else 'coalesce(taxonomy.hierarchy, [])'
+    else:
+        prim, alt = 'basic_category', '[]'
     rows = con.execute(f"""
-        SELECT id, names.primary, categories.primary, categories.alternate, websites, socials, confidence,
+        SELECT id, names.primary, {prim}, {alt}, websites, socials, confidence,
                ST_Y(geometry), ST_X(geometry), addresses[1].country
-        FROM read_parquet('s3://overturemaps-us-west-2/release/{rel}/theme=places/type=place/*', hive_partitioning=1)
+        FROM {src}
         WHERE bbox.xmin BETWEEN {x0} AND {x1} AND bbox.ymin BETWEEN {y0} AND {y1}
-          AND (categories.primary IN ({','.join(repr(c) for c in ART)})
-               OR list_has_any(coalesce(categories.alternate, []), {ART!r}))""").fetchall()
+          AND ({prim} IN ({','.join(repr(c) for c in ART)}) OR list_has_any({alt}, {ART!r})
+               {"OR basic_category IN ('art_gallery','museum','art_museum')" if 'basic_category' in cols else ''})""").fetchall()
     keys = ['id', 'name', 'cat', 'alt', 'websites', 'socials', 'confidence', 'lat', 'lon', 'country']
     places = [dict(zip(keys, r)) for r in rows if (r[9] or a.country) == a.country]
     core = [p for p in places if p['cat'] in ('art_gallery', 'art_museum', 'contemporary_art_museum', 'modern_art_museum', 'art_space')
