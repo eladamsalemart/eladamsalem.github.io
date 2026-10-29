@@ -261,7 +261,7 @@ export async function mountArtMap(root, ctx) {
     return `<article class="am-card" style="--c:${c}">
       <div class="am-card-top"><span class="am-kind"><i></i>${esc(KINDS[p.kind].one)}${p.tier === 'listed' ? ' · listed on OpenStreetMap' : ''}</span><button type="button" class="am-x" aria-label="Close">×</button></div>
       <h2 dir="auto">${esc(p.name)}</h2>${p.name_he && p.name_he !== p.name ? `<p class="am-he" dir="rtl">${esc(p.name_he)}</p>` : ''}
-      <p class="am-m"><bdi>${[p.address, p.city].filter(Boolean).map(esc).join(', ')}</bdi>${p.address || p.city ? ' · ' : ''}${esc(away(dist))}${p.approx ? ' · approximate location' : ''}</p>
+      <p class="am-m">${[p.address, p.city].filter(Boolean).map(x => `<bdi>${esc(x)}</bdi>`).join(', ')}${p.address || p.city ? ' · ' : ''}${esc(away(dist))}${p.approx ? ' · approximate location' : ''}</p>
       <div class="am-actions"><button type="button" class="am-follow" aria-pressed="${follow.has(p.id)}">${follow.has(p.id) ? 'Following' : 'Follow'}</button>
         ${p.website ? `<a href="${esc(p.website)}" target="_blank" rel="noopener">Website ↗</a>` : ''}
         <a href="https://www.google.com/maps/search/?api=1&query=${p.at[0]},${p.at[1]}" target="_blank" rel="noopener">Directions ↗</a></div>
