@@ -17,6 +17,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Overture's art places, Israel and two reference countries
+        continue-on-error: true
         run: |
           pip install duckdb==2.0.0
           python3 studio/app/artmap/survey.py --country IL --bbox 34.2,29.45,35.9,33.35
