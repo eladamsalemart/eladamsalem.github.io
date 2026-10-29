@@ -39,7 +39,8 @@ jobs:
           git worktree add /tmp/studio origin/studio
           src=/tmp/studio/studio/app
           rm -rf open-studio && mkdir -p open-studio/space open-studio/data/spaces
-          cp $src/index.html $src/app.js $src/artist.js $src/sw.js $src/manifest.webmanifest open-studio/
+          cp $src/index.html $src/app.js $src/artist.js $src/artmap.js $src/sw.js $src/manifest.webmanifest open-studio/
+          cp -r $src/vendor open-studio/
           cp -r $src/icons open-studio/
           cp -r $src/data/demo open-studio/data/
           cp $src/data/spaces/*.status.json open-studio/data/spaces/ 2>/dev/null || true
@@ -56,8 +57,8 @@ jobs:
           python3 /tmp/studio/studio/app/thumbs.py media open-studio
           # a new cache name with every version, so an installed app drops what it kept from the last one
           sed -i "s/const VERSION = '[^']*'/const VERSION = 'open-studio-$(git -C /tmp/studio rev-parse --short HEAD)'/" open-studio/sw.js
-      - name: Check what phones will fetch (the map's tiles really are a map)
-        run: python3 /tmp/studio/studio/app/check_app.py /tmp/studio/studio/app/app.js
+      - name: Check what phones will fetch (the map's tiles really are a map) and the art map's data
+        run: python3 /tmp/studio/studio/app/check_app.py /tmp/studio/studio/app
       - name: Commit and push to main
         run: |
           git config user.name "open-studio"
