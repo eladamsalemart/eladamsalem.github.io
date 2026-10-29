@@ -1,0 +1,23 @@
+# One request to GitHub Models with the workflow's token: what comes back (status, headers, body). By hand only.
+name: "Probe: GitHub Models"
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  models: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ask once
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for model in openai/gpt-4.1-mini openai/gpt-4o-mini; do
+            echo "== $model"
+            curl -sS -D - -X POST https://models.github.ai/inference/chat/completions \
+              -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -H "Accept: application/json" \
+              -d "{\"model\":\"$model\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with the JSON {\\\"ok\\\": true}\"}],\"response_format\":{\"type\":\"json_object\"}}" | head -c 1500
+            echo
+          done
