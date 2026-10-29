@@ -41,7 +41,10 @@ D = r'(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?'
 # words that sit next to a date but are not a show's name
 NOT_TITLE = re.compile(r'^(?:ה?תערוכ(?:ה|ות)(?: נוכחי(?:ת|ות)| ננעלת| נפתחת)?|the exhibition|exhibitions?|current(?: exhibitions?)?|now(?: on)?|on view|'
                        r'search|menu|dates?|תאריכים|תאריך|מועד|שעות(?: פתיחה)?|כתובת|address|more|לפרטים|קראו עוד|read more)\s*:?$|'
-                       r'^(?:פתיחה|פתיחת|נעילה|שיח גלריה|שיח אמן|opening|closing|gallery talk)\b|כתובת:|\d+,\s*\S+.*\.$', re.I)
+                       r'^(?:about|contact|support us|newsletter|join|shop|תמכו בנו|צרו קשר|אודות|הצטרפו|חנות)\s*$|'
+                       r'^(?:(?:אירוע |טקס )?פתיחה|פתיחת|נעילה|שיח גלריה|שיח אמן|opening|closing|gallery talk|בהשתתפות|משתתפים|with|עם)\b|'
+                       r'^(?:עוזר(?:ת)? )?(?:אוצר|אוצרת|אוצרות|אוצרים|curator|curated|assistant curator|עיצוב|צילום|photo)|'
+                       r'כתובת:|\d+,\s*[^,]+\.?$', re.I)
 
 
 # dates written in words, in English and Hebrew ("Jul 31 – Oct 31, 2026", "8 באוקטובר 2026"): turned into numbers
