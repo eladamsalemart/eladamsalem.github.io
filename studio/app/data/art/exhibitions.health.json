@@ -1,0 +1,134 @@
+{
+ "updated": "2026-10-29",
+ "sources": [
+  {
+   "source": "haifa-museum",
+   "place": "haifa-museum-of-art",
+   "url": "https://www.hma.org.il/",
+   "status": "ok",
+   "shows": 5,
+   "events": 2
+  },
+  {
+   "source": "tikotin",
+   "place": "tikotin-museum-of-japanese-art",
+   "url": "https://www.tmja.org.il/",
+   "status": "ok",
+   "shows": 1,
+   "events": 0
+  },
+  {
+   "source": "negev-museum",
+   "place": "negev-museum-of-art",
+   "url": "https://www.negev-museum.org.il/",
+   "status": "ok",
+   "shows": 3,
+   "events": 0
+  },
+  {
+   "source": "petach-tikva",
+   "place": "petach-tikva-museum-of-art",
+   "url": "https://www.petachtikvamuseum.com/he/",
+   "status": "ok",
+   "shows": 6,
+   "events": 0
+  },
+  {
+   "source": "artists-house-tlv",
+   "place": "tel-aviv-artists-house",
+   "url": "https://www.artistshouse.org.il/",
+   "status": "ok",
+   "shows": 7,
+   "events": 0
+  },
+  {
+   "source": "cca",
+   "place": "cca-tel-aviv",
+   "url": "https://www.cca.org.il/exhibitions",
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "gutman",
+   "place": "nahum-gutman-museum-of-art",
+   "url": "https://www.gutmanmuseum.co.il/",
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "rubin",
+   "place": "rubin-museum",
+   "url": "https://www.rubinmuseum.org.il/",
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "ilana-goor",
+   "place": "ilana-goor-museum",
+   "url": "https://www.ilanagoormuseum.org/",
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "design-holon",
+   "place": "design-museum-holon",
+   "url": "https://www.dmh.org.il/",
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "ashdod",
+   "place": "ashdod-art-museum",
+   "url": "https://www.ashdodartmuseum.org.il/",
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "israel-museum",
+   "place": "israel-museum",
+   "url": "https://www.imj.org.il/he/exhibitions",
+   "status": "unreachable: URLError"
+  },
+  {
+   "source": "tama",
+   "place": "tel-aviv-museum-of-art",
+   "url": "https://www.tamuseum.org.il/he/exhibitions/",
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "ein-harod",
+   "place": "mishkan-museum-of-art-ein-harod",
+   "url": "https://www.museumeinharod.org.il/",
+   "status": "unreachable: HTTPError"
+  },
+  {
+   "source": "ramat-gan",
+   "place": "ramat-gan-museum-of-israeli-art",
+   "url": "https://www.rgmuseum.org.il/",
+   "status": "unreachable: URLError"
+  },
+  {
+   "source": "jerusalem-artists-house",
+   "place": "jerusalem-artists-house",
+   "url": "https://www.art.org.il/",
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "makore",
+   "place": "(many)",
+   "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
+   "status": "ok",
+   "events": 6
+  }
+ ]
+}
