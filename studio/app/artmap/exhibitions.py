@@ -38,6 +38,46 @@ NAV = re.compile(r'^(תערוכות|תערוכה נוכחית|תערוכות נ�
                  r'אירועים מיוחדים|הרצאות|קורסים|ילדים ומשפחה|קולנוע|>|<|חדשות|exhibitions|current|more|read more)\s*/?$', re.I)
 
 D = r'(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?'
+# words that sit next to a date but are not a show's name
+NOT_TITLE = re.compile(r'^(?:ה?תערוכ(?:ה|ות)(?: נוכחי(?:ת|ות)| ננעלת| נפתחת)?|the exhibition|exhibitions?|current(?: exhibitions?)?|now(?: on)?|on view|'
+                       r'search|menu|dates?|תאריכים|תאריך|מועד|שעות(?: פתיחה)?|כתובת|address|more|לפרטים|קראו עוד|read more)\s*:?$|'
+                       r'^(?:פתיחה|פתיחת|נעילה|שיח גלריה|שיח אמן|opening|closing|gallery talk)\b|כתובת:|\d+,\s*\S+.*\.$', re.I)
+
+
+# dates written in words, in English and Hebrew ("Jul 31 – Oct 31, 2026", "8 באוקטובר 2026"): turned into numbers
+MONTHS = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6, 'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+          'ינואר': 1, 'פברואר': 2, 'מרץ': 3, 'מרס': 3, 'אפריל': 4, 'מאי': 5, 'יוני': 6, 'יולי': 7, 'אוגוסט': 8, 'ספטמבר': 9,
+          'אוקטובר': 10, 'נובמבר': 11, 'דצמבר': 12}
+MON = r'(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec|' \
+      r'[בל]?(?:ינואר|פברואר|מרץ|מרס|אפריל|מאי|יוני|יולי|אוגוסט|ספטמבר|אוקטובר|נובמבר|דצמבר))\.?'
+
+
+def month(w):
+    w = w.lower().rstrip('.')
+    w = w[1:] if w[:1] in 'בל' and w[1:] in MONTHS else w
+    return MONTHS.get(w) or MONTHS.get(w[:3])
+
+
+fd = lambda d, m, y: f"{d}.{m}" + (f".{y}" if y else "")
+
+
+def numeric_dates(line):
+    """'Jul 31 – Oct 31, 2026' → '31.7.2026 – 31.10.2026'; '8–21 November 2026' → '8.11.2026 – 21.11.2026'."""
+    if not re.search(MON, line, re.I):
+        return line
+    years = re.findall(r'\b(20\d\d)\b', line)
+    y = years[-1] if years else ''
+    # "8–21 November 2026": the first day takes the second's month
+    line = re.sub(r'\b(\d{1,2})\s*[-–—]\s*(\d{1,2})\s+' + MON + r'(?:,?\s*(20\d\d))?',
+                  lambda m: f"{fd(m[1], month(m[3]), m[4] or y)} – {fd(m[2], month(m[3]), m[4] or y)}", line, flags=re.I)
+    # "Nov 8 – 21, 2026"
+    line = re.sub(MON + r'\s+(\d{1,2})\s*[-–—]\s*(\d{1,2})(?:,?\s*(20\d\d))?\b',
+                  lambda m: f"{fd(m[2], month(m[1]), m[4] or y)} – {fd(m[3], month(m[1]), m[4] or y)}", line, flags=re.I)
+    line = re.sub(r'\b(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?' + MON + r'(?:,?\s*(20\d\d))?',
+                  lambda m: fd(m[1], month(m[2]), m[3] or y), line, flags=re.I)
+    line = re.sub(MON + r'\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s*(20\d\d))?\b',
+                  lambda m: fd(m[2], month(m[1]), m[3] or y), line, flags=re.I)
+    return line
 
 
 def ymd(d, m, y, ref):
@@ -101,6 +141,7 @@ def extract_colon_list(lines, today):
 def extract(lines, today):
     """Exhibitions and events in a page's lines: [{title, artists, start, end}] and [{title, at}]."""
     shows, events = [], []
+    lines = [numeric_dates(x) for x in lines]
     for i, line in enumerate(lines):
         if len(line) > 140:
             continue
@@ -114,11 +155,20 @@ def extract(lines, today):
         elif close:
             end = ymd(*close.groups()[:3], today)
             start = ymd(*opens.groups()[:3], today) if opens else None
-        # the title: the nearest line above that is not navigation, a date or a curator
+        # the title: on the date's own line before it ("Summertime — Jul 31 – Oct 31"), else the nearest line above
+        # that is not navigation, a date or a curator
         title = None
+        m0 = rng or close
+        pre = clean_title(line[:m0.start()]).strip(' —–-|,(') if m0 else ''
+        pre = '' if re.fullmatch(r'(?:(?:יום\s+)?(?:ראשון|שני|שלישי|רביעי|חמישי|שישי|שבת|א|ב|ג|ד|ה|ו)\'?|mon|tue|wed|thu|fri|sat|sun)'
+                                 r'[a-z]*\.?,?\s*(?:\d{1,2}:\d{2})?', pre, re.I) else pre
+        if len(pre) >= 3 and not NOT_TITLE.search(pre) and not re.fullmatch(r'[\d./\s,:-]+', pre) and not re.search(r'(?:ננעלת|נעילה|נועלת|closes|until|עד|פתיחה|opening)\s*$', pre, re.I):
+            title = pre
         for j in range(i - 1, max(-1, i - 4), -1):
+            if title:
+                break
             c = clean_title(lines[j])
-            if not c or NAV.match(c) or re.fullmatch(r'[\d./\s,:-]+', c) or re.match(r'^(אוצר|אוצרת|curator|צילום)', c, re.I):
+            if not c or NAV.match(c) or NOT_TITLE.search(c) or re.fullmatch(r'[\d./\s,:-]+', c) or re.match(r'^(אוצר|אוצרת|curator|צילום)', c, re.I):
                 continue
             title = c
             break
@@ -274,6 +324,51 @@ def render_links(url, pattern):
     return out
 
 
+CURRENT = re.compile(r'current|on.?view|now.?showing|נוכחי|עכשיו|מוצג', re.I)
+LISTS = re.compile(r'exhibition|תערוכ', re.I)
+PAST = re.compile(r'past|archive|previous|עבר|ארכיון|catalog|press|shop|artists?/', re.I)
+
+
+def auto_read(place, today):
+    """What's on at a place that has no source of its own: its website as a browser shows it, the home page and the
+    page it links to for what's on now (else for exhibitions). Only shows with dates are kept: a place's site
+    without dates says nothing sure about today."""
+    site = re.sub(r'^http://', 'https://', place['website'].strip())
+    if not site.startswith('http'):
+        site = 'https://' + site
+    if not allowed(site):
+        return [], [], 'robots.txt says no'
+    try:
+        pg = open_page(site)
+    except Exception:
+        if not place['website'].startswith('http://'):
+            raise
+        pg = open_page(place['website'])                # a site still only on http
+    try:
+        lines = [re.sub(r'\s+', ' ', x).strip() for x in pg.inner_text('body').split('\n') if x.strip()]
+        links = pg.eval_on_selector_all('a', 'as => as.map(a => [a.innerText.trim().slice(0, 60), a.href])')
+        home = pg.url
+    finally:
+        pg.close()
+    host = urlparse(home).netloc.replace('www.', '')
+    score = lambda t, h: (3 if CURRENT.search(t) or CURRENT.search(h) else 1 if LISTS.search(t) or LISTS.search(urlparse(h).path) else 0)
+    cands = sorted({h.split('#')[0]: score(t, h) for t, h in links
+                    if urlparse(h).netloc.replace('www.', '') == host and not PAST.search(unquote(h)) and score(t, h)
+                    and h.split('#')[0].rstrip('/') != home.split('#')[0].rstrip('/')}.items(), key=lambda x: -x[1])
+    found, evs = extract(lines, today)
+    if cands and allowed(cands[0][0]):
+        q = open_page(cands[0][0])
+        try:
+            more = [re.sub(r'\s+', ' ', x).strip() for x in q.inner_text('body').split('\n') if x.strip()]
+        finally:
+            q.close()
+        f2, e2 = extract(more, today)
+        titles = {x['title'] for x in found}
+        found += [x for x in f2 if x['title'] not in titles]
+        evs += e2
+    return found, evs, 'ok' if found or evs else 'nothing found'
+
+
 def close_browser():
     if _browser:
         _browser[1].close()
@@ -396,6 +491,26 @@ def main():
         h.update(status='ok' if found or evs else 'nothing found' if page or 'read' in h else 'unreachable', shows=len(found), events=len(evs))
         health.append(h)
         print(f"{s['id']:<24} {h['status']:<14} {len(found)} shows, {len(evs)} events", file=sys.stderr)
+
+    # every other place on the map with a website of its own
+    if places and not a.offline and not a.no_browser:
+        done = {s['place'] for s in load_sources()}
+        for p in sorted((p for p in places.values() if p.get('website') and p['id'] not in done), key=lambda p: p['id']):
+            h = {'source': f"site:{p['id']}", 'place': p['id'], 'url': p['website'], 'auto': True}
+            try:
+                found, evs, h['status'] = auto_read(p, today)
+            except Exception as e:
+                found, evs, h['status'] = [], [], f'unreachable: {type(e).__name__}'
+            for x in found:
+                x.update(place=p['id'], url=p['website'], source=h['source'],
+                         id=f"{p['id']}:{re.sub(r'[^0-9a-zא-ת]+', '-', x['title'].lower())[:50]}")
+            for x in evs:
+                x.update(place=p['id'], url=p['website'], source=h['source'])
+            shows += found
+            events += evs
+            h.update(shows=len(found), events=len(evs))
+            health.append(h)
+            print(f"{h['source']:<40} {h['status']:<14} {len(found)} shows", file=sys.stderr)
 
     close_browser()
     if places and not a.offline:
