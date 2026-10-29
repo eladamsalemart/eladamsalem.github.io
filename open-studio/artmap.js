@@ -42,9 +42,10 @@ let data = null;
 async function loadData() {
   if (data) return data;
   const get = u => fetch(u, { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
-  const [p, x] = await Promise.all([get('data/art/places.json'), get('data/art/exhibitions.json')]);
+  const [p, x, h] = await Promise.all([get('data/art/places.json'), get('data/art/exhibitions.json'), get('data/art/exhibitions.health.json')]);
   data = { places: (p && p.places || []).filter(q => q.status !== 'closed'), updated: p && p.updated,
-    shows: x && x.shows || [], events: x && x.events || [], showsUpdated: x && x.updated };
+    shows: x && x.shows || [], events: x && x.events || [], showsUpdated: x && x.updated,
+    read: new Map((h && h.sources || []).filter(r => r.place).map(r => [r.place, r.status || ''])) };
   return data;
 }
 
@@ -326,6 +327,15 @@ export async function mountArtMap(root, ctx) {
       ${tonight.length ? `<section class="am-sec"><h2>Tonight, near you</h2>${tonight.map(({ e, x }) => `<button type="button" class="am-ev" data-place="${esc(x.p.id)}" style="--c:${KINDS[x.p.kind].c}"><span class="am-date"><b>${esc(e.time || '·')}</b></span><span class="am-rt"><b dir="auto">${esc(e.title)}</b><span class="am-m"><bdi>${esc(x.p.name)}</bdi> · ${esc(away(x.d))}</span></span></button>`).join('')}</section>` : ''}`;
   }
 
+  // why a place shows nothing: said plainly, from this morning's read of its site
+  function whyEmpty(p) {
+    const st = d.read.get(p.id) || '', when = d.showsUpdated ? dm(day(d.showsUpdated)) : 'today';
+    if (!p.website && !st) return 'No website for this place on the map yet, so there\u2019s nothing to read what\u2019s on from.';
+    if (st.startsWith('unreachable')) return `Their site didn\u2019t answer when we read it (${esc(when)}). We try again every morning.`;
+    if (st === 'robots.txt says no') return 'Their site asks not to be read automatically, so what\u2019s on is on their site itself.';
+    return `Their site lists no exhibition with dates for now (read ${esc(when)}).`;
+  }
+
   function card(p) {
     const c = KINDS[p.kind].c, dist = km(me.at, p.at);
     const show = s => `<li><b dir="auto">${s.href ? `<a href="${esc(s.href)}">${esc(s.title)}</a>` : esc(s.title)}</b>${s.artists.length ? `<span dir="auto">${esc(s.artists.join(', '))}</span>` : ''}<span class="am-m">${s.start && +s.start > Date.now() ? `From ${esc(dm(s.start))}` : ''}${s.end ? `${s.start && +s.start > Date.now() ? ' · ' : ''}Until ${esc(dm(s.end))}` : ''}${s.os ? ' · On Open Studio' : ''}${s.space ? ' · <b>Walk it in 3D</b>' : ''}</span></li>`;
@@ -341,7 +351,7 @@ export async function mountArtMap(root, ctx) {
       ${p.on.length ? `<h3>On now</h3><ul class="am-shows">${p.on.map(show).join('')}</ul>` : ''}
       ${p.next.length ? `<h3>Coming up</h3><ul class="am-shows">${p.next.map(show).join('')}</ul>` : ''}
       ${p.soonEvents.length ? `<h3>Talks and openings</h3><ul class="am-shows">${p.soonEvents.map(e => `<li><b dir="auto">${esc(e.title)}</b><span class="am-m">${esc(dm(e.at))}${e.time ? ` · ${esc(e.time)}` : ''}</span></li>`).join('')}</ul>` : ''}
-      ${!p.shows.length && !p.soonEvents.length ? `<p class="am-empty">Nothing listed here yet. ${p.website ? 'Their own site has what’s on.' : ''}</p>` : ''}
+      ${!p.shows.length && !p.soonEvents.length ? `<p class="am-empty">${whyEmpty(p)}</p>` : ''}
       ${p.shows.some(s => s.url) ? `<p class="am-src">From the place's own site, read ${esc(d.showsUpdated ? dm(day(d.showsUpdated)) : 'today')}.</p>` : ''}
     </article>`;
   }

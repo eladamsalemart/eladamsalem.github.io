@@ -30,7 +30,7 @@
    "place": "petach-tikva-museum-of-art",
    "url": "https://www.petachtikvamuseum.com/he/",
    "status": "ok",
-   "shows": 6,
+   "shows": 1,
    "events": 0
   },
   {
@@ -141,11 +141,515 @@
    "events": 0
   },
   {
+   "source": "site:alfred-institute",
+   "place": "alfred-institute",
+   "url": "https://www.alfredinstitute.org/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:alon-segev-gallery",
+   "place": "alon-segev-gallery",
+   "url": "http://www.alonsegev.com/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:art-shelter-gallery",
+   "place": "art-shelter-gallery",
+   "url": "https://asg.org.il/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:artport",
+   "place": "artport",
+   "url": "http://www.artportlv.org/",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:artspace-tel-aviv",
+   "place": "artspace-tel-aviv",
+   "url": "https://www.artspacetlv.org/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:atelier-shemi",
+   "place": "atelier-shemi",
+   "url": "https://ateliershemi.wordpress.com/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:bauhaus-center-tel-aviv",
+   "place": "bauhaus-center-tel-aviv",
+   "url": "http://www.bauhaus-center.com/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:beeri-gallery",
+   "place": "beeri-gallery",
+   "url": "https://gallerybeeri.co.il/",
+   "auto": true,
+   "status": "ok",
+   "shows": 2,
+   "events": 0
+  },
+  {
+   "source": "site:beit-avi-chai",
+   "place": "beit-avi-chai",
+   "url": "https://www.bac.org.il",
+   "auto": true,
+   "status": "ok",
+   "shows": 2,
+   "events": 0
+  },
+  {
+   "source": "site:beit-benyamini",
+   "place": "beit-benyamini",
+   "url": "http://www.benyaminiceramics.org/",
+   "auto": true,
+   "status": "ok",
+   "shows": 2,
+   "events": 0
+  },
+  {
+   "source": "site:beit-castel",
+   "place": "beit-castel",
+   "url": "https://he.beitcastel.com/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:beit-hagefen",
+   "place": "beit-hagefen",
+   "url": "https://www.beit-hagefen.com/",
+   "auto": true,
+   "status": "ok",
+   "shows": 1,
+   "events": 0
+  },
+  {
+   "source": "site:bet-ot-ha-motsar-ha-yerushalmi",
+   "place": "bet-ot-ha-motsar-ha-yerushalmi",
+   "url": "http://www.art-jerusalem.co.il/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:beth-meirov",
+   "place": "beth-meirov",
+   "url": "https://www.holon.muni.il/HolonCity/Lists/List/CustomDispForm.aspx?ID=170",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:braverman-gallery",
+   "place": "braverman-gallery",
+   "url": "https://bravermangallery.com/",
+   "auto": true,
+   "status": "ok",
+   "shows": 2,
+   "events": 0
+  },
+  {
+   "source": "site:chelouche-gallery",
+   "place": "chelouche-gallery",
+   "url": "https://chelouchegallery.com/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:chelouche-gallery-2",
+   "place": "chelouche-gallery-2",
+   "url": "https://chelouchegallery.com/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:dvir-gallery",
+   "place": "dvir-gallery",
+   "url": "http://www.dvirgallery.com",
+   "auto": true,
+   "status": "ok",
+   "shows": 1,
+   "events": 0
+  },
+  {
+   "source": "site:ein-hod-art-gallery",
+   "place": "ein-hod-art-gallery",
+   "url": "https://www.ein-hod.org/גלריית-האמנים/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:galeryah-periskop",
+   "place": "galeryah-periskop",
+   "url": "https://www.periscopedesigngallery.com/",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:gordon-gallery",
+   "place": "gordon-gallery",
+   "url": "http://www.gordongallery.co.il",
+   "auto": true,
+   "status": "ok",
+   "shows": 4,
+   "events": 0
+  },
+  {
+   "source": "site:hamidrasha-gallery",
+   "place": "hamidrasha-gallery",
+   "url": "https://www.beitberl.ac.il/academic/faculties/art/exhbitions_galleries/hayarkun",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:hanina-gallery",
+   "place": "hanina-gallery",
+   "url": "https://www.hanina.org/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:hecht-museum",
+   "place": "hecht-museum",
+   "url": "http://mushecht.haifa.ac.il",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:hezi-cohen-gallery",
+   "place": "hezi-cohen-gallery",
+   "url": "https://hezicohengallery.co.il/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:institut-francais-tel-aviv",
+   "place": "institut-francais-tel-aviv",
+   "url": "https://institutfrancais-israel.com/he/tel-aviv/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:israeli-center-for-digital-art",
+   "place": "israeli-center-for-digital-art",
+   "url": "https://cda.org.il/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:janco-dada-museum",
+   "place": "janco-dada-museum",
+   "url": "https://www.jancodada.co.il/en/",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:jerusalem-print-workshop",
+   "place": "jerusalem-print-workshop",
+   "url": "http://www.jerusalemprintworkshop.org",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:kabri-gallery",
+   "place": "kabri-gallery",
+   "url": "http://www.cabrigallery.org.il",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:kubia",
+   "place": "kubia",
+   "url": "https://www.chefchaouenjrs.com",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:kupferman-collection-house",
+   "place": "kupferman-collection-house",
+   "url": "https://kupferman-collection.co.il",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:mamuta-art-and-research-center",
+   "place": "mamuta-art-and-research-center",
+   "url": "https://mamuta.org/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:maya-gallery",
+   "place": "maya-gallery",
+   "url": "https://www.mayagallerytlv.com/",
+   "auto": true,
+   "status": "ok",
+   "shows": 1,
+   "events": 0
+  },
+  {
+   "source": "site:meyerhoff-art-education-center",
+   "place": "meyerhoff-art-education-center",
+   "url": "http://www.tamuseum.org.il/master/he/education-lobby",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:municipal-art-gallery-rishon-lezion",
+   "place": "municipal-art-gallery-rishon-lezion",
+   "url": "https://bl-gallery.co.il/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:museum-for-islamic-art-2",
+   "place": "museum-for-islamic-art-2",
+   "url": "https://www.islamicart.co.il/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:museum-of-italian-jewish-art",
+   "place": "museum-of-italian-jewish-art",
+   "url": "http://www.ijamuseum.org",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:museum-on-the-seam",
+   "place": "museum-on-the-seam",
+   "url": "https://www.mots.org.il/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:noga-gallery-of-contemporary-art",
+   "place": "noga-gallery-of-contemporary-art",
+   "url": "http://www.nogagallery.com",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:nora-gallery",
+   "place": "nora-gallery",
+   "url": "http://linludesign.wix.com/noragallery",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:p8-gallery",
+   "place": "p8-gallery",
+   "url": "https://www.p8gallery.net/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:pan-homo-art-gallery",
+   "place": "pan-homo-art-gallery",
+   "url": "https://www.panartgallery.com",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:photohouse",
+   "place": "photohouse",
+   "url": "http://www.thephotohouse.co.il",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:rockefeller-museum",
+   "place": "rockefeller-museum",
+   "url": "https://www.imj.org.il/en/wings/archaeology/rockefeller-archaeological-museum",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:rosenfeld-gallery",
+   "place": "rosenfeld-gallery",
+   "url": "https://rg.co.il",
+   "auto": true,
+   "status": "ok",
+   "shows": 1,
+   "events": 0
+  },
+  {
+   "source": "site:sommer-contemporary-art",
+   "place": "sommer-contemporary-art",
+   "url": "https://www.sommergallery.com/",
+   "auto": true,
+   "status": "ok",
+   "shows": 1,
+   "events": 0
+  },
+  {
+   "source": "site:sommer-contemporary-art-2",
+   "place": "sommer-contemporary-art-2",
+   "url": "http://www.sommergallery.com",
+   "auto": true,
+   "status": "ok",
+   "shows": 1,
+   "events": 0
+  },
+  {
+   "source": "site:the-edmond-de-rothschild-center",
+   "place": "the-edmond-de-rothschild-center",
+   "url": "http://edrcenter.com/",
+   "auto": true,
+   "status": "ok",
+   "shows": 1,
+   "events": 0
+  },
+  {
+   "source": "site:ticho-house",
+   "place": "ticho-house",
+   "url": "https://www.imj.org.il/en/wings/arts/ticho-house/",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:umm-el-fahem-art-gallery",
+   "place": "umm-el-fahem-art-gallery",
+   "url": "http://ummelfahemgallery.org/",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:wikidata-Q115089736",
+   "place": "wikidata-Q115089736",
+   "url": "https://www.kehilatayim.org.il/%D7%94%D7%92%D7%9C%D7%A8%D7%99%D7%94-%D7%94%D7%A2%D7%99%D7%A8%D7%95%D7%A0%D7%99%D7%AA-%D7%9E%D7%9B%D7%95%D7%9F-%D7%94%D7%9E%D7%99%D7%9D/",
+   "auto": true,
+   "status": "unreachable: Error",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:wikidata-Q118342557",
+   "place": "wikidata-Q118342557",
+   "url": "https://www.mariegallery.co.il/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:wikidata-Q135407831",
+   "place": "wikidata-Q135407831",
+   "url": "https://tivon-lib.co.il/gallery/",
+   "auto": true,
+   "status": "ok",
+   "shows": 1,
+   "events": 0
+  },
+  {
+   "source": "site:wikidata-Q20859376",
+   "place": "wikidata-Q20859376",
+   "url": "http://www.beitajerusalem.com",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
+   "source": "site:zuzu-gallery",
+   "place": "zuzu-gallery",
+   "url": "https://www.zuzugallery.com/",
+   "auto": true,
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
+  },
+  {
    "source": "makore",
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 6
+   "events": 5
   }
  ]
 }
