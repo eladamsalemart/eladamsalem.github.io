@@ -99,8 +99,8 @@
    "source": "israel-museum",
    "place": "israel-museum",
    "url": "https://www.imj.org.il/he/exhibitions",
-   "browser": "Error",
-   "status": "unreachable",
+   "read": "browser",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
