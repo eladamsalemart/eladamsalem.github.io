@@ -44,23 +44,26 @@
   {
    "source": "cca",
    "place": "cca-tel-aviv",
-   "url": "https://www.cca.org.il/exhibitions",
-   "status": "nothing found",
-   "shows": 0,
+   "url": "https://www.cca.org.il/exhibitions-hebrew",
+   "read": "browser",
+   "status": "ok",
+   "shows": 5,
    "events": 0
   },
   {
    "source": "gutman",
    "place": "nahum-gutman-museum-of-art",
-   "url": "https://www.gutmanmuseum.co.il/",
-   "status": "nothing found",
-   "shows": 0,
+   "url": "https://www.gutmanmuseum.co.il/exhibitions/",
+   "read": "browser",
+   "status": "ok",
+   "shows": 3,
    "events": 0
   },
   {
    "source": "rubin",
    "place": "rubin-museum",
    "url": "https://www.rubinmuseum.org.il/",
+   "read": "browser",
    "status": "nothing found",
    "shows": 0,
    "events": 0
@@ -69,6 +72,7 @@
    "source": "ilana-goor",
    "place": "ilana-goor-museum",
    "url": "https://www.ilanagoormuseum.org/",
+   "read": "browser",
    "status": "nothing found",
    "shows": 0,
    "events": 0
@@ -76,51 +80,64 @@
   {
    "source": "design-holon",
    "place": "design-museum-holon",
-   "url": "https://www.dmh.org.il/",
-   "status": "nothing found",
-   "shows": 0,
+   "url": "https://www.dmh.org.il/exhibition_cat/current-exhibitions/",
+   "read": "browser",
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
    "source": "ashdod",
    "place": "ashdod-art-museum",
    "url": "https://www.ashdodartmuseum.org.il/",
-   "status": "nothing found",
-   "shows": 0,
+   "read": "browser",
+   "status": "ok",
+   "shows": 3,
    "events": 0
   },
   {
    "source": "israel-museum",
    "place": "israel-museum",
    "url": "https://www.imj.org.il/he/exhibitions",
-   "status": "unreachable: URLError"
+   "browser": "Error",
+   "status": "unreachable",
+   "shows": 0,
+   "events": 0
   },
   {
    "source": "tama",
    "place": "tel-aviv-museum-of-art",
    "url": "https://www.tamuseum.org.il/he/exhibitions/",
-   "status": "nothing found",
-   "shows": 0,
+   "read": "browser",
+   "status": "ok",
+   "shows": 11,
    "events": 0
   },
   {
    "source": "ein-harod",
    "place": "mishkan-museum-of-art-ein-harod",
    "url": "https://www.museumeinharod.org.il/",
-   "status": "unreachable: HTTPError"
+   "read": "browser",
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
   },
   {
    "source": "ramat-gan",
    "place": "ramat-gan-museum-of-israeli-art",
    "url": "https://www.rgmuseum.org.il/",
-   "status": "unreachable: URLError"
+   "browser": "Error",
+   "status": "unreachable",
+   "shows": 0,
+   "events": 0
   },
   {
    "source": "jerusalem-artists-house",
    "place": "jerusalem-artists-house",
-   "url": "https://www.art.org.il/",
-   "status": "nothing found",
-   "shows": 0,
+   "url": "https://art.org.il/%d7%aa%d7%a2%d7%a8%d7%95%d7%9b%d7%95%d7%aa-%d7%a8%d7%a6%d7%95%d7%aa/",
+   "read": "browser",
+   "status": "ok",
+   "shows": 3,
    "events": 0
   },
   {

@@ -13,6 +13,9 @@ export const KINDS = {
 };
 const TILES = 'https://tiles.openfreemap.org/planet';
 const GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
+// walking, cycling and driving directions: OSRM on OpenStreetMap's data, run by FOSSGIS (no key; fair use)
+const ROUTER = 'https://routing.openstreetmap.de';
+const MODES = { foot: { label: 'Walk', path: 'routed-foot' }, bike: { label: 'Cycle', path: 'routed-bike' }, car: { label: 'Drive', path: 'routed-car' } };
 const FOLLOW_KEY = 'os-follow-places';
 const DAY = 864e5;
 
@@ -55,6 +58,54 @@ const km = (a, b) => {
 };
 const away = d => d < 1.2 ? `${Math.max(1, Math.round(d * 12.5))} min walk` : `${d < 10 ? d.toFixed(1) : Math.round(d)} km`;
 const day = s => s ? new Date(s + 'T12:00:00') : null;
+const metres = m => m < 950 ? `${Math.max(10, Math.round(m / 10) * 10)} m` : `${(m / 1000).toFixed(m < 9500 ? 1 : 0)} km`;
+const mins = sec => sec < 3600 ? `${Math.max(1, Math.round(sec / 60))} min` : `${Math.floor(sec / 3600)} h ${Math.round(sec % 3600 / 60)} min`;
+const clock = t => new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+// metres east and north of a point, near enough for a city's distances
+const flat = (o, q) => [(q[1] - o[1]) * 111320 * Math.cos(o[0] * Math.PI / 180), (q[0] - o[0]) * 110540];
+const bearingOf = (a, b) => { const [x, y] = flat(a, b); return (Math.atan2(x, y) * 180 / Math.PI + 360) % 360; };
+// [lat, lon] points in Google's encoded polyline format (precision 5), as OSRM reads them
+function polyline(pts) {
+  let out = '', pl = 0, pn = 0;
+  for (const [lat, lon] of pts) {
+    const a = Math.round(lat * 1e5), b = Math.round(lon * 1e5);
+    for (let d of [a - pl, b - pn]) {
+      d = d < 0 ? ~(d << 1) : d << 1;
+      while (d >= 0x20) { out += String.fromCharCode((0x20 | (d & 0x1f)) + 63); d >>= 5; }
+      out += String.fromCharCode(d + 63);
+    }
+    pl = a; pn = b;
+  }
+  return out;
+}
+// a circle on the ground as a polygon (the accuracy of a phone's fix)
+function disc([lat, lon], r, n = 48) {
+  const ring = [];
+  for (let i = 0; i <= n; i++) {
+    const a = i / n * Math.PI * 2;
+    ring.push([lon + r * Math.sin(a) / (111320 * Math.cos(lat * Math.PI / 180)), lat + r * Math.cos(a) / 110540]);
+  }
+  return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } };
+}
+// an OSRM step, said in words
+const TURN = { left: 'Turn left', right: 'Turn right', 'slight left': 'Bear left', 'slight right': 'Bear right', 'sharp left': 'Turn sharp left',
+  'sharp right': 'Turn sharp right', straight: 'Continue straight', uturn: 'Make a U-turn' };
+const COMPASS = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
+function say(st, dest) {
+  const m = st.maneuver, on = st.name ? ` onto <bdi>${esc(st.name)}</bdi>` : '';
+  if (m.type === 'depart') return `Head ${COMPASS[Math.round(m.bearing_after / 45) % 8]}${st.name ? ` on <bdi>${esc(st.name)}</bdi>` : ''}`;
+  if (m.type === 'arrive') return `Arrive at <bdi>${esc(dest)}</bdi>`;
+  if (m.type === 'roundabout' || m.type === 'rotary') return `At the roundabout, take exit ${m.exit || 1}${on}`;
+  if (m.type === 'continue' || m.type === 'new name') return m.modifier && m.modifier !== 'straight' ? `${TURN[m.modifier] || 'Continue'}${on}` : `Continue${on}`;
+  return `${TURN[m.modifier] || 'Continue'}${on}`;
+}
+const TURN_DEG = { uturn: 180, 'sharp right': 135, right: 90, 'slight right': 45, straight: 0, 'slight left': -45, left: -90, 'sharp left': -135 };
+const arrow = st => {
+  const m = st.maneuver;
+  if (m.type === 'arrive') return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z" fill="currentColor"/><circle cx="12" cy="10" r="2.6" fill="var(--nav)"/></svg>';
+  const deg = m.type === 'depart' ? 0 : TURN_DEG[m.modifier] ?? 0;
+  return `<svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(${deg}deg)"><path d="M12 3 5 11h4.5v10h5V11H19z" fill="currentColor"/></svg>`;
+};
 const dm = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 // the artists you follow in the app (app.js keeps them under os-following, by slug)
 function followedArtists(M) {
@@ -203,6 +254,8 @@ export async function mountArtMap(root, ctx) {
   const kinds = new Set(Object.keys(KINDS));
   const follow = following();
   let me = here(), sel = focus ? places.find(p => p.id === focus) || null : null;
+  let live = null, watch = null, tracking = false, compass = null, area = '', lastPaintAt = null;
+  let trip = null;                                     // directions: {dest, mode, route, coords, cum, steps, done, nav, off}
   if (!sel && focus && focus.startsWith('os-')) sel = places.find(p => p.shows.some(s => s.href === `#/exhibition/${focus.slice(3)}`)) || null;
 
   const sheet = root.querySelector('.am-sheet'), mapEl = root.querySelector('.am-map');
@@ -242,16 +295,35 @@ export async function mountArtMap(root, ctx) {
     const count = k => places.filter(p => p.kind === k).length;
     const nOn = places.filter(p => p.on.length).reduce((s, p) => s + p.on.length, 0);
     return `<header class="am-head">
-        <p class="k">The art map · Israel</p>
-        <h1 class="am-title">${esc(me.name === 'Near me' ? 'Around you' : me.name)}</h1>
+        <p class="k">${live ? '<i class="am-livedot"></i>Live · where you are' : 'The art map · Israel'}</p>
+        <h1 class="am-title" dir="auto">${esc(live ? area || 'Around you' : me.name === 'Near me' ? 'Around you' : me.name)}</h1>
         <p class="am-sum"><b>${places.length}</b> art spaces <span>·</span> <b>${nOn}</b> shows on${d.showsUpdated ? ` <span>·</span> updated ${esc(dm(day(d.showsUpdated)))}` : ''}</p>
       </header>
       <div class="am-kinds" role="group" aria-label="Kinds of places">${Object.entries(KINDS).map(([k, v]) => `<button type="button" data-kind="${k}" aria-pressed="${kinds.has(k)}" style="--c:${v.c}"><i></i>${esc(v.label)} <span>${count(k)}</span></button>`).join('')}</div>
+      <div class="am-live">${live ? around() : ''}</div>
       ${followed.length ? `<section class="am-sec"><h2>Places you follow</h2>${followed.map(row).join('')}</section>` : ''}
-      <section class="am-sec"><h2>On now${me.name === 'Near me' ? ' near you' : ''}</h2>${onNow.length ? onNow.slice(0, 12).map(row).join('') : '<p class="am-empty">Nothing listed yet for these places. We read their own sites every morning.</p>'}</section>
+      <section class="am-sec"><h2>${live ? 'On now, further out' : `On now${me.name === 'Near me' ? ' near you' : ''}`}</h2>${onNow.filter(x => !live || x.d >= WALK).length ? onNow.filter(x => !live || x.d >= WALK).slice(0, 12).map(row).join('') : '<p class="am-empty">Nothing listed yet for these places. We read their own sites every morning.</p>'}</section>
       ${evs.length ? `<section class="am-sec"><h2>Openings and talks</h2>${evs.map(({ e, x }) => `<button type="button" class="am-ev" data-place="${esc(x.p.id)}" style="--c:${KINDS[x.p.kind].c}"><span class="am-date"><b>${e.at.getDate()}</b>${esc(e.at.toLocaleDateString('en-GB', { month: 'short' }))}</span><span class="am-rt"><b dir="auto">${esc(e.title)}</b><span class="am-m">${esc(x.p.name)}${e.time ? ` · ${esc(e.time)}` : ''}</span></span></button>`).join('')}</section>` : ''}
       <section class="am-sec"><h2>More art spaces</h2><div data-more-list>${quiet.map((x, i) => i < 8 ? row(x) : row(x).replace('<button', '<button hidden')).join('')}</div>${quiet.length > 8 ? '<button type="button" class="am-more" data-more>Show more</button>' : ''}</section>
       <p class="am-credit">Places: Open Studio's art-world list and <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, checked monthly. What's on: read each morning from the places' own websites. Map: OpenFreeMap, OpenMapTiles, OpenStreetMap.</p>`;
+  }
+
+  // where you are, live: the place you're standing in, and every show on within a walk, nearest first
+  const WALK = 1.6;
+  function around() {
+    const all = near(), here = all[0] && all[0].d < 0.06 ? all[0] : null;
+    const shows = all.filter(x => x.d < WALK && x !== here).flatMap(x => x.p.on.map(s => ({ s, x })));
+    const tonight = all.filter(x => x.d < WALK).flatMap(x => x.p.soonEvents.filter(e => e.at && e.at.toDateString() === new Date().toDateString()).map(e => ({ e, x })));
+    const spaces = all.filter(x => x.d < WALK).length;
+    const showRow = ({ s, x }) => `<button type="button" class="am-row am-show" data-place="${esc(x.p.id)}" style="--c:${KINDS[x.p.kind].c}">
+      <span class="am-glyph">${glyph(KINDS[x.p.kind].c)}</span>
+      <span class="am-rt"><b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span class="am-art" dir="auto">${esc(s.artists.join(', '))}</span>` : ''}<span class="am-m"><bdi>${esc(x.p.name)}</bdi> · ${esc(away(x.d))}${s.end ? ` · until ${esc(dm(s.end))}` : ''}</span></span></button>`;
+    return `${here ? `<section class="am-here" style="--c:${KINDS[here.p.kind].c}"><p class="am-k2">You're at</p><h2 dir="auto">${esc(here.p.name)}</h2>
+        ${here.p.on.length ? `<ul class="am-shows">${here.p.on.map(s => `<li><b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span dir="auto">${esc(s.artists.join(', '))}</span>` : ''}${s.end ? `<span class="am-m">Until ${esc(dm(s.end))}</span>` : ''}</li>`).join('')}</ul>` : '<p class="am-empty">Nothing listed here today.</p>'}
+        <button type="button" class="am-more" data-place="${esc(here.p.id)}">About this place</button></section>` : ''}
+      <section class="am-sec"><h2>${here ? 'Also on around you' : 'On around you now'}</h2>${shows.length ? shows.slice(0, 14).map(showRow).join('')
+        : `<p class="am-empty">${spaces ? `${spaces} art space${spaces > 1 ? 's' : ''} within a walk, with nothing listed on today.` : 'No art spaces within a walk of here. The nearest are below.'}</p>`}</section>
+      ${tonight.length ? `<section class="am-sec"><h2>Tonight, near you</h2>${tonight.map(({ e, x }) => `<button type="button" class="am-ev" data-place="${esc(x.p.id)}" style="--c:${KINDS[x.p.kind].c}"><span class="am-date"><b>${esc(e.time || '·')}</b></span><span class="am-rt"><b dir="auto">${esc(e.title)}</b><span class="am-m"><bdi>${esc(x.p.name)}</bdi> · ${esc(away(x.d))}</span></span></button>`).join('')}</section>` : ''}`;
   }
 
   function card(p) {
@@ -264,7 +336,7 @@ export async function mountArtMap(root, ctx) {
       <p class="am-m">${[p.address, p.city].filter(Boolean).map(x => `<bdi>${esc(x)}</bdi>`).join(', ')}${p.address || p.city ? ' · ' : ''}${esc(away(dist))}${p.approx ? ' · approximate location' : ''}</p>
       <div class="am-actions"><button type="button" class="am-follow" aria-pressed="${follow.has(p.id)}">${follow.has(p.id) ? 'Following' : 'Follow'}</button>
         ${p.website ? `<a href="${esc(p.website)}" target="_blank" rel="noopener">Website ↗</a>` : ''}
-        <a href="https://www.google.com/maps/search/?api=1&query=${p.at[0]},${p.at[1]}" target="_blank" rel="noopener">Directions ↗</a></div>
+        <button type="button" class="am-go">Directions</button></div>
       ${theirs.length ? `<p class="am-yours">${theirs.map(a => `<a href="#/artist/${esc(a.slug)}">${esc(a.name)}</a>${a.followed ? ' <b>· you follow</b>' : ''}`).join(', ')}: on Open Studio, showing here</p>` : ''}
       ${p.on.length ? `<h3>On now</h3><ul class="am-shows">${p.on.map(show).join('')}</ul>` : ''}
       ${p.next.length ? `<h3>Coming up</h3><ul class="am-shows">${p.next.map(show).join('')}</ul>` : ''}
@@ -274,8 +346,30 @@ export async function mountArtMap(root, ctx) {
     </article>`;
   }
 
+  function tripPanel() {
+    const t = trip, p = t.dest, c = KINDS[p.kind].c;
+    const modes = `<div class="am-modes" role="group" aria-label="How to get there">${Object.entries(MODES).map(([k, v]) => `<button type="button" data-mode="${k}" aria-pressed="${t.mode === k}">${v.label}</button>`).join('')}</div>`;
+    if (t.error) return `<article class="am-card am-trip" style="--c:${c}"><div class="am-card-top"><span class="am-kind"><i></i>Directions</span><button type="button" class="am-x" data-end aria-label="Close">×</button></div>
+      <h2 dir="auto">${esc(p.name)}</h2>${modes}<p class="am-empty">${esc(t.error)}</p></article>`;
+    if (!t.route) return `<article class="am-card am-trip" style="--c:${c}"><div class="am-card-top"><span class="am-kind"><i></i>Directions</span><button type="button" class="am-x" data-end aria-label="Close">×</button></div>
+      <h2 dir="auto">${esc(p.name)}</h2>${modes}<p class="am-empty">Finding the way…</p></article>`;
+    const left = t.nav ? t.left : t.route.distance, secs = t.route.duration * (left / Math.max(1, t.route.distance));
+    const on = p.on.length ? `<h3>On at ${esc(p.name)}</h3><ul class="am-shows">${p.on.map(s => `<li><b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span dir="auto">${esc(s.artists.join(', '))}</span>` : ''}${s.end ? `<span class="am-m">Until ${esc(dm(s.end))}</span>` : ''}</li>`).join('')}</ul>` : '';
+    if (t.done) return `<article class="am-card am-trip" style="--c:${c}"><p class="am-k2">You've arrived</p><h2 dir="auto">${esc(p.name)}</h2>${on || '<p class="am-empty">Nothing listed here today.</p>'}
+      <div class="am-actions"><button type="button" class="am-follow" data-end>Done</button></div></article>`;
+    return `<article class="am-card am-trip" style="--c:${c}">
+      <div class="am-card-top"><span class="am-kind"><i></i>${t.nav ? 'On the way to' : 'Directions to'}</span><button type="button" class="am-x" data-end aria-label="End">×</button></div>
+      <h2 dir="auto">${esc(p.name)}</h2>
+      <p class="am-eta"><b>${esc(mins(secs))}</b> <span>${esc(metres(left))} · arrive ${esc(clock(Date.now() + secs * 1000))}</span></p>
+      ${t.nav ? '' : modes}
+      <div class="am-actions">${t.nav ? '<button type="button" class="am-follow" data-end>End</button><button type="button" data-recentre>Re-centre</button>' : '<button type="button" class="am-follow" data-start>Start</button>'}</div>
+      ${t.nav ? '' : `<details class="am-steps"><summary>${t.steps.length} steps</summary><ol>${t.steps.map(st => `<li><i>${arrow(st)}</i><span>${say(st, p.name)}<small>${st.distance ? esc(metres(st.distance)) : ''}</small></span></li>`).join('')}</ol></details>`}
+      ${on}
+      <p class="am-src">Directions from OpenStreetMap (OSRM, FOSSGIS). Check the way as you go.</p></article>`;
+  }
+
   function paint() {
-    sheet.innerHTML = sel ? card(sel) : list();
+    sheet.innerHTML = trip ? tripPanel() : sel ? card(sel) : list();
     wireSheet();
   }
 
@@ -286,10 +380,12 @@ export async function mountArtMap(root, ctx) {
     if (!gl.supported || gl.supported({ failIfMajorPerformanceCaveat: false }) !== false) {
       const start = sel ? sel.at : district(me.at);
       map = new gl.Map({ container: mapEl, style: style(), center: [start[1], start[0]], zoom: sel ? 16.4 : 15.1,
-        pitch: 58, bearing: -24, maxPitch: 72, attributionControl: { compact: true }, dragRotate: true, pitchWithRotate: true });
+        pitch: 58, bearing: -24, maxPitch: 72, attributionControl: false, dragRotate: true, pitchWithRotate: true });
+      map.addControl(new gl.AttributionControl({ compact: true }), 'bottom-left');
       map.touchZoomRotate.enableRotation();
       map.on('error', e => console.warn('art map:', e.error && (e.error.message || e.error.status), e.sourceId || ''));
       root.__map = map;
+      window.__artTrip = () => trip;                  // for the phone test that walks a route
     }
   } catch (e) { console.warn('art map: no 3D map', e); }
   if (!map) mapEl.innerHTML = '<p class="am-nomap">The 3D map needs WebGL, which this browser has turned off. The places are all listed below.</p>';
@@ -329,11 +425,23 @@ export async function mountArtMap(root, ctx) {
       'text-field': ['get', 'label'], 'text-font': ['Noto Sans Bold'], 'text-size': 12, 'text-anchor': 'top', 'text-offset': [0, 0.9],
       'text-max-width': 9, 'symbol-sort-key': ['case', ['get', 'on'], 0, 1], 'text-optional': true },
       paint: { 'text-color': '#1B1A17', 'text-halo-color': 'rgba(255,253,248,.95)', 'text-halo-width': 1.8 } });
+    // you, and the way to a place
+    map.addSource('route', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    map.addLayer({ id: 'route-case', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 12, 6, 18, 16] } }, 'art-wash');
+    map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': '#1E6FFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 12, 3.5, 18, 10] } }, 'art-wash');
+    map.addSource('me-acc', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    map.addLayer({ id: 'me-acc', type: 'fill', source: 'me-acc', paint: { 'fill-color': '#1E6FFF', 'fill-opacity': 0.12 } }, 'art-wash');
+    map.addLayer({ id: 'me-acc-edge', type: 'line', source: 'me-acc', paint: { 'line-color': '#1E6FFF', 'line-opacity': 0.35, 'line-width': 1 } }, 'art-wash');
+    if (live) drawMe();
+    if (trip && trip.route) drawRoute();
     if (sel) { map.setFeatureState({ source: 'art', id: sel.id }, { sel: true }); map.setFilter('art-ring', ['==', ['get', 'id'], sel.id]); }
     const attrib = root.querySelector('.maplibregl-ctrl-attrib');
     if (attrib) attrib.classList.remove('maplibregl-compact-show');
     const hit = e => (map.queryRenderedFeatures(e.point, { layers: ['art-3d', 'art-dot', 'art-label'] })[0] || {}).properties;
     map.on('click', e => { const f = hit(e); if (f) choose(f.id); });
+    map.on('dragstart', () => setTracking(false));
     ['art-3d', 'art-dot'].forEach(l => {
       map.on('mouseenter', l, () => { map.getCanvas().style.cursor = 'pointer'; });
       map.on('mouseleave', l, () => { map.getCanvas().style.cursor = ''; });
@@ -347,6 +455,8 @@ export async function mountArtMap(root, ctx) {
   }
 
   function choose(id) {
+    if (trip && trip.nav) return;
+    if (trip) endTrip(false);
     if (map && sel) map.setFeatureState({ source: 'art', id: sel.id }, { sel: false });
     sel = id ? places.find(p => p.id === id) || null : null;
     if (map && map.getLayer('art-ring')) map.setFilter('art-ring', ['==', ['get', 'id'], sel ? sel.id : '']);
@@ -372,6 +482,14 @@ export async function mountArtMap(root, ctx) {
       if (follow.has(sel.id)) follow.delete(sel.id); else follow.add(sel.id);
       setFollowing(follow); paint();
     };
+    const go = sheet.querySelector('.am-go');
+    if (go) go.onclick = () => plan(sel, km(live ? live.at : me.at, sel.at) < 2.5 ? 'foot' : 'car');
+    sheet.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => plan(trip.dest, b.dataset.mode));
+    sheet.querySelectorAll('[data-end]').forEach(b => b.onclick = () => endTrip(true));
+    const st = sheet.querySelector('[data-start]');
+    if (st) st.onclick = startNav;
+    const rc = sheet.querySelector('[data-recentre]');
+    if (rc) rc.onclick = () => { setTracking(true); follow$(true); };
     const more = sheet.querySelector('[data-more]');
     if (more) more.onclick = () => {
       const rest = [...sheet.querySelectorAll('[data-more-list] > [hidden]')];
@@ -380,12 +498,254 @@ export async function mountArtMap(root, ctx) {
     };
   }
 
+  // --- where you are, live --------------------------------------------------------------------------------
+  const locate$ = root.querySelector('#amLocate'), nav$ = root.querySelector('.am-nav'), am = root.querySelector('.am') || root;
+  let meMarker = null;
+  function drawMe() {
+    if (!map || !live) return;
+    if (!meMarker && window.maplibregl) {
+      const el = document.createElement('div');
+      el.className = 'am-me';
+      el.innerHTML = '<i class="am-me-cone"></i><i class="am-me-pulse"></i><i class="am-me-dot"></i>';
+      meMarker = new window.maplibregl.Marker({ element: el, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat([live.at[1], live.at[0]]).addTo(map);
+    }
+    if (meMarker) {
+      meMarker.setLngLat([live.at[1], live.at[0]]);
+      const hd = heading();
+      meMarker.getElement().classList.toggle('dir', hd != null);
+      if (hd != null) meMarker.setRotation(hd);
+    }
+    const src = map.getSource('me-acc');
+    if (src) src.setData(live.acc > 12 ? disc(live.at, Math.min(live.acc, 2000)) : { type: 'FeatureCollection', features: [] });
+  }
+  // which way you face: the compass when the phone has one, else the way you're moving
+  const heading = () => compass != null ? compass : live && live.heading != null && live.speed > 0.6 ? live.heading : null;
+  function setTracking(on) {
+    tracking = on;
+    if (locate$) locate$.dataset.state = !live && !watch ? 'off' : on ? 'on' : 'idle';
+  }
+  function follow$(fly) {
+    if (!map || !live || !tracking) return;
+    if (trip && trip.nav) return navCamera();
+    const o = { center: [live.at[1], live.at[0]], duration: fly ? 1400 : 800 };
+    if (fly) Object.assign(o, { zoom: Math.max(map.getZoom(), 16.2), pitch: 55 });
+    fly ? map.flyTo(o) : map.easeTo(o);
+  }
+  // the neighbourhood you're in, from the map's own place names
+  function areaName() {
+    if (!map || !live) return '';
+    try {
+      const fs = map.querySourceFeatures('omt', { sourceLayer: 'place' })
+        .filter(f => ['neighbourhood', 'quarter', 'suburb', 'town', 'city', 'village'].includes(f.properties.class));
+      let best = null;
+      for (const f of fs) {
+        const [lon, lat] = f.geometry.coordinates, d = km(live.at, [lat, lon]) * ({ neighbourhood: 1, quarter: 1, suburb: 1.6, village: 2, town: 3, city: 4 }[f.properties.class] || 4);
+        if (!best || d < best.d) best = { d, f };
+      }
+      const pr = best && best.f.properties;
+      // "The New North - South part": the neighbourhood, without the part of it
+      return pr ? (pr['name:en'] || pr.name_en || pr['name:latin'] || pr.name || '').split(/\s+[-–]\s+/)[0] : '';
+    } catch { return ''; }
+  }
+  function onFix(g) {
+    if (!root.isConnected) return stopLocate();
+    const first = !live;
+    live = { at: [g.coords.latitude, g.coords.longitude], acc: g.coords.accuracy || 50, heading: g.coords.heading, speed: g.coords.speed || 0, t: g.timestamp };
+    me = { name: 'Near me', at: live.at };
+    if (first) { setHere(me); setTracking(true); if (sel$) sel$.value = 'Near me'; }
+    drawMe();
+    if (trip && trip.nav) return progress();
+    if (tracking) follow$(first);
+    // the list below the map follows you: redrawn when you've moved a little (and on the first fix)
+    if (!trip && !sel && (first || !lastPaintAt || km(lastPaintAt, live.at) > 0.025)) {
+      lastPaintAt = live.at;
+      const name = areaName();
+      if (first || name !== area) { area = name; paint(); } else { const box = sheet.querySelector('.am-live'); if (box) { box.innerHTML = around(); wireSheet(); } }
+      if (first && map) map.once('idle', () => { const n = areaName(); if (n && n !== area && !trip && !sel) { area = n; paint(); } });
+    }
+  }
+  function onFixError(e) {
+    if (!live) {
+      setTracking(false); watch = null; if (locate$) locate$.dataset.state = 'off';
+      toast(e && e.code === 1 ? 'Location is off for this site. Allow it in your browser’s settings to see what’s on around you.' : 'Couldn’t find where you are just now.');
+    }
+  }
+  function onCompass(e) {
+    const h = e.webkitCompassHeading != null ? e.webkitCompassHeading : e.absolute && e.alpha != null ? 360 - e.alpha : null;
+    if (h == null) return;
+    compass = h; if (live) drawMe();
+  }
+  function startLocate() {
+    if (!navigator.geolocation) return toast('This browser can’t tell where you are.');
+    if (watch == null) {
+      if (locate$) locate$.dataset.state = 'wait';
+      watch = navigator.geolocation.watchPosition(onFix, onFixError, { enableHighAccuracy: true, maximumAge: 4000, timeout: 20000 });
+      // the compass (iPhone asks first, and only from a tap)
+      try {
+        const D = window.DeviceOrientationEvent;
+        if (D && typeof D.requestPermission === 'function') D.requestPermission().then(r => { if (r === 'granted') addEventListener('deviceorientation', onCompass); }).catch(() => {});
+        else if (D) addEventListener('deviceorientationabsolute', onCompass);
+      } catch {}
+    } else { setTracking(true); follow$(true); }
+  }
+  function stopLocate() {
+    if (watch != null) navigator.geolocation.clearWatch(watch);
+    watch = null;
+    removeEventListener('deviceorientation', onCompass); removeEventListener('deviceorientationabsolute', onCompass);
+    releaseWake();
+  }
+  if (locate$) locate$.onclick = startLocate;
+  if (map) map.on('remove', stopLocate);
+  // a phone that already allowed this site its location shows you at once
+  try { navigator.permissions && navigator.permissions.query({ name: 'geolocation' }).then(r => { if (r.state === 'granted' && !focus) startLocate(); }).catch(() => {}); } catch {}
+
+  function toast(msg) {
+    let t = root.querySelector('.am-toast');
+    if (!t) { t = document.createElement('p'); t.className = 'am-toast'; t.setAttribute('role', 'status'); root.querySelector('.am-stage').append(t); }
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(t._h); t._h = setTimeout(() => { t.hidden = true; }, 5200);
+  }
+
+  // --- the way there, inside the app -----------------------------------------------------------------------
+  async function plan(dest, mode) {
+    if (!dest) return;
+    if (!live) {                                         // directions start from where you are
+      startLocate();
+      trip = { dest, mode, route: null, error: '' };
+      paint(); window.scrollTo({ top: 0, behavior: 'smooth' });
+      const t0 = Date.now();
+      await new Promise(ok => { const h = setInterval(() => { if (live || Date.now() - t0 > 20000 || watch == null) { clearInterval(h); ok(); } }, 250); });
+      if (!trip || trip.dest !== dest) return;
+      if (!live) { trip.error = 'Directions start from where you are: allow this site your location, then try again.'; return paint(); }
+    }
+    trip = { dest, mode, route: null, error: '' };
+    if (map && sel) map.setFeatureState({ source: 'art', id: sel.id }, { sel: false });
+    paint();
+    const r = await route(live.at, dest.at, mode);
+    if (!trip || trip.dest !== dest || trip.mode !== mode) return;
+    if (!r) { trip.error = 'Couldn’t find a way there just now. Try again in a moment.'; return paint(); }
+    Object.assign(trip, r, { left: r.route.distance });
+    drawRoute(); fitRoute(); paint();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  async function route(from, to, mode) {
+    // the two points as an encoded polyline (no ';' in the address, which some networks' filters refuse)
+    const u = `${ROUTER}/${MODES[mode].path}/route/v1/driving/polyline(${encodeURIComponent(polyline([from, to]))})?overview=full&geometries=geojson&steps=true`;
+    try {
+      const j = await fetch(u).then(r => r.ok ? r.json() : null);
+      const rt = j && j.code === 'Ok' && j.routes[0];
+      if (!rt) return null;
+      const coords = rt.geometry.coordinates.map(([x, y]) => [y, x]);   // [lat, lon]
+      const cum = [0];
+      for (let i = 1; i < coords.length; i++) cum.push(cum[i - 1] + km(coords[i - 1], coords[i]) * 1000);
+      // where along the line each step starts
+      const steps = rt.legs[0].steps;
+      let k = 0;
+      for (const st of steps) {
+        const at = [st.maneuver.location[1], st.maneuver.location[0]];
+        let best = k;
+        for (let i = k; i < coords.length; i++) if (km(coords[i], at) < km(coords[best], at)) best = i; else if (km(coords[i], at) > 0.3 && i > best + 3) break;
+        st.at = cum[best]; k = best;
+      }
+      return { route: rt, coords, cum, steps, total: cum[cum.length - 1] };
+    } catch { return null; }
+  }
+  function drawRoute() {
+    if (!map || !map.getSource('route') || !trip || !trip.route) return;
+    const walk = trip.mode !== 'car';
+    map.setPaintProperty('route-line', 'line-dasharray', walk ? [0.01, 2] : [1, 0]);
+    map.setLayoutProperty('route-line', 'line-cap', 'round');
+    map.setPaintProperty('route-case', 'line-opacity', walk ? 0 : 1);
+    map.getSource('route').setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: trip.coords.map(([a, b]) => [b, a]) } });
+  }
+  function fitRoute() {
+    if (!map || !trip || !trip.coords) return;
+    const xs = trip.coords.map(c => c[1]), ys = trip.coords.map(c => c[0]);
+    map.fitBounds([[Math.min(...xs), Math.min(...ys)], [Math.max(...xs), Math.max(...ys)]], { padding: { top: 90, bottom: 60, left: 50, right: 50 }, pitch: 40, bearing: 0, duration: 1200, maxZoom: 17 });
+  }
+  let wake = null;
+  const releaseWake = () => { try { wake && wake.release(); } catch {} wake = null; };
+  function startNav() {
+    if (!trip || !trip.route) return;
+    trip.nav = true; trip.off = 0; trip.pos = 0;
+    am.classList.add('navigating');
+    try { navigator.wakeLock && navigator.wakeLock.request('screen').then(w => { wake = w; }).catch(() => {}); } catch {}
+    setTracking(true);
+    if (map) setTimeout(() => map.resize(), 350);
+    progress(); paint();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  // where you are along the way: the nearest point of the line, never far behind the last one
+  function progress() {
+    const t = trip;
+    if (!t || !t.nav || !live) return;
+    let best = { d: Infinity, along: t.pos };
+    for (let i = 1; i < t.coords.length; i++) {
+      if (t.cum[i] < t.pos - 60) continue;
+      const a = t.coords[i - 1], b = t.coords[i], [bx, by] = flat(a, b), [px, py] = flat(a, live.at);
+      const L = bx * bx + by * by, u = L ? Math.max(0, Math.min(1, (px * bx + py * by) / L)) : 0;
+      const d = Math.hypot(px - u * bx, py - u * by);
+      if (d < best.d) best = { d, along: t.cum[i - 1] + u * Math.sqrt(L), i };
+      if (t.cum[i - 1] > t.pos + 400 && best.d < 25) break;
+    }
+    t.pos = Math.max(t.pos, best.along);
+    t.left = Math.max(0, t.total - t.pos);
+    const dest = km(live.at, t.dest.at) * 1000;
+    if (dest < 30 || t.left < 15) return arrive();
+    // off the way twice running: find a new one from here
+    t.off = best.d > Math.max(35, Math.min(live.acc, 80)) ? t.off + 1 : 0;
+    if (t.off >= 2 && !t.rerouting && Date.now() - (t.rerouted || 0) > 8000) {
+      t.rerouting = true; t.rerouted = Date.now();
+      route(live.at, t.dest.at, t.mode).then(r => {
+        if (trip !== t) return;
+        t.rerouting = false;
+        if (r) { Object.assign(t, r, { pos: 0, off: 0, left: r.route.distance }); drawRoute(); progress(); }
+      });
+    }
+    t.dir = bearingOf(t.coords[Math.max(0, (best.i || 1) - 1)], t.coords[Math.min(t.coords.length - 1, (best.i || 1) + 1)]);
+    banner(); navCamera();
+    const eta = sheet.querySelector('.am-eta');
+    if (eta) { const secs = t.route.duration * (t.left / Math.max(1, t.route.distance)); eta.innerHTML = `<b>${esc(mins(secs))}</b> <span>${esc(metres(t.left))} · arrive ${esc(clock(Date.now() + secs * 1000))}</span>`; }
+  }
+  function banner() {
+    const t = trip;
+    if (!nav$) return;
+    const next = t.steps.find(st => st.at > t.pos + 5) || t.steps[t.steps.length - 1];
+    nav$.hidden = false;
+    nav$.innerHTML = `<i>${arrow(next)}</i><span><b>${esc(metres(Math.max(0, next.at - t.pos)))}</b>${say(next, t.dest.name)}</span>`;
+  }
+  function navCamera() {
+    if (!map || !live || !tracking) return;
+    const hd = trip.dir != null ? trip.dir : heading() || map.getBearing();
+    map.easeTo({ center: [live.at[1], live.at[0]], bearing: hd, pitch: 60, zoom: trip.mode === 'car' ? 16.6 : 17.6, duration: 900,
+      padding: { top: Math.round(mapEl.clientHeight * 0.38), bottom: 0, left: 0, right: 0 } });
+  }
+  function arrive() {
+    trip.done = true; trip.nav = false;
+    am.classList.remove('navigating'); releaseWake();
+    if (nav$) nav$.hidden = true;
+    if (map) { map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 }); map.easeTo({ center: [trip.dest.at[1], trip.dest.at[0]], zoom: 17.2, pitch: 62, duration: 1400 }); setTimeout(() => map.resize(), 350); }
+    paint();
+  }
+  function endTrip(back) {
+    const dest = trip && trip.dest;
+    trip = null;
+    am.classList.remove('navigating'); releaseWake();
+    if (nav$) nav$.hidden = true;
+    if (map) {
+      map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
+      if (map.getSource('route')) map.getSource('route').setData({ type: 'FeatureCollection', features: [] });
+      setTimeout(() => map.resize(), 350);
+    }
+    if (back && dest) { sel = null; choose(dest.id); } else if (back) paint();
+  }
+
   sel$.onchange = () => {
     const go = p => { me = p; setHere(p); choose(null); const c = district(p.at); if (map) map.flyTo({ center: [c[1], c[0]], zoom: 15.1, pitch: 58, duration: 1800 }); };
-    if (sel$.value !== 'Near me') return go({ name: sel$.value, at: cities.find(c => c.name === sel$.value).at });
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(g => go({ name: 'Near me', at: [g.coords.latitude, g.coords.longitude] }),
-      () => { sel$.value = me.name; }, { timeout: 10000, maximumAge: 600000 });
+    if (sel$.value !== 'Near me') { stopLocate(); live = null; setTracking(false); if (meMarker) { meMarker.remove(); meMarker = null; }
+      if (map && map.getSource('me-acc')) map.getSource('me-acc').setData({ type: 'FeatureCollection', features: [] });
+      return go({ name: sel$.value, at: cities.find(c => c.name === sel$.value).at }); }
+    startLocate();
   };
   const tilt = root.querySelector('#amTilt');
   tilt.onclick = () => {
