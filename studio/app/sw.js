@@ -23,6 +23,8 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   // videos are asked for in pieces (a phone plays them as they arrive): straight from the network
   if (/\.(mp4|webm|mov)$/i.test(url.pathname)) return;
+  // the map's tiles: the browser's own cache keeps them; hundreds of tiles don't belong in the app's
+  if (url.hostname === 'tiles.openfreemap.org') return;
   const lasting = /\.(png|jpe?g|webp|avif|gif|svg|woff2?|ttf)$/i.test(url.pathname)
     || url.hostname === 'cdn.jsdelivr.net' || url.hostname === 'fonts.gstatic.com';
   if (lasting) {

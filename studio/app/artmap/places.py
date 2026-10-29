@@ -290,10 +290,11 @@ def load_seeds():
     for line in (HERE / 'seeds.tsv').read_text(encoding='utf-8').splitlines():
         if not line.strip() or line.startswith('#'):
             continue
-        kind, he, en, city, aliases, src = (line.split('\t') + [''] * 6)[:6]
+        kind, he, en, city, aliases, src, where = (line.split('\t') + [''] * 7)[:7]
         status = 'closed' if src.endswith(':closed') else 'open'
         seeds.append({'id': slug(en or he), 'kind': kind, 'he': he, 'en': en, 'city': city,
-                      'aliases': [a for a in aliases.split(';') if a], 'src': src.split(':')[0], 'status': status})
+                      'aliases': [a for a in aliases.split(';') if a], 'src': src.split(':')[0], 'status': status,
+                      'where': where.lstrip('~').strip(), 'approx': where.startswith('~')})
     return seeds
 
 
@@ -335,6 +336,22 @@ def find_seed_nominatim(seed):
     return None
 
 
+def find_seed_address(seed):
+    """A curated place the street map doesn't name, found by the address researched for it (seeds.tsv's last column).
+    '~' marks an address known only to the street or the village: the place is drawn there, but no building is
+    taken for it."""
+    if not seed['where']:
+        return None
+    ref = city_at(seed['city'])
+    for r in nominatim(seed['where']):
+        at = (float(r['lat']), float(r['lon']))
+        if ref and km(at, ref) > 25:
+            continue
+        return {'osm': f"{r['osm_type']}/{r['osm_id']}", 'at': at, 'tags': {}, 'tagged': False,
+                'approx': seed['approx'] or r.get('type') not in ('house', 'building') and r.get('category') not in ('amenity', 'tourism', 'building')}
+    return None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--pbf', help='an Israel OpenStreetMap extract (downloaded from Geofabrik when missing)')
@@ -356,7 +373,7 @@ def main():
         if s['status'] == 'closed':
             log.append(f"- closed (curated): {s['en']}")
             continue
-        c = match_seed(s, cands) or (None if a.no_nominatim else find_seed_nominatim(s))
+        c = match_seed(s, cands) or (None if a.no_nominatim else find_seed_nominatim(s) or find_seed_address(s))
         if not c:
             log.append(f"- not found on the map: {s['en']} ({s['city']})")
             continue
@@ -365,7 +382,11 @@ def main():
                        'city': s['city'] or c['tags'].get('addr:city', ''), 'at': [round(c['at'][0], 6), round(c['at'][1], 6)],
                        'osm': c['osm'], 'website': c['tags'].get('website') or c['tags'].get('contact:website', ''),
                        'address': ' '.join(x for x in [c['tags'].get('addr:street', ''), c['tags'].get('addr:housenumber', '')] if x),
-                       'sources': [s['src'], 'wikidata' if c.get('wd') else 'osm']})
+                       'sources': [s['src'], 'address' if 'approx' in c else 'wikidata' if c.get('wd') else 'osm']})
+        if 'approx' in c:
+            places[-1]['address'] = s['where']
+            if c['approx']:
+                places[-1]['approx'] = True
 
     left_out = {}
     for c in cands:
@@ -402,7 +423,7 @@ def main():
 
     buildings = read_buildings(pbf, [tuple(p['at']) for p in places])
     for p in places:
-        b = building_for(tuple(p['at']), buildings)
+        b = None if p.get('approx') else building_for(tuple(p['at']), buildings)
         p['building'] = {'ring': b['ring'], 'h': height_of(b), 'osm': b['osm']} if b else None
 
     # month to month
