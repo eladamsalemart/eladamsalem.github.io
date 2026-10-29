@@ -227,7 +227,7 @@
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
    "status": "ok",
-   "shows": 2,
+   "shows": 1,
    "events": 0
   },
   {
@@ -352,7 +352,7 @@
    "place": "hecht-museum",
    "url": "http://mushecht.haifa.ac.il",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -550,8 +550,8 @@
    "place": "rosenfeld-gallery",
    "url": "https://rg.co.il",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -649,7 +649,7 @@
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 5
+   "events": 21
   }
  ]
 }
