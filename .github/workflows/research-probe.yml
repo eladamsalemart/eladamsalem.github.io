@@ -1,0 +1,32 @@
+# Measurements for the global art map plan, by hand: Overture's art places in a country; the size of a country's
+# offline map (a Protomaps extract).
+name: "Probe: global art map"
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Overture's art places, Israel and two reference countries
+        run: |
+          pip install duckdb==2.0.0
+          python3 studio/app/artmap/survey.py --country IL --bbox 34.2,29.45,35.9,33.35
+          python3 studio/app/artmap/survey.py --country PT --bbox -9.6,36.9,-6.1,42.2 | head -6
+          python3 studio/app/artmap/survey.py --country NL --bbox 3.3,50.7,7.3,53.6 | head -6
+      - name: Israel's offline map, as one file
+        run: |
+          url=$(curl -s https://api.github.com/repos/protomaps/go-pmtiles/releases/latest | python3 -c "import json,sys;print([a['browser_download_url'] for a in json.load(sys.stdin)['assets'] if 'Linux_x86_64' in a['name']][0])")
+          curl -sL "$url" | tar xz pmtiles
+          for d in 0 1 2 3; do day=$(date -u -d "-$d day" +%Y%m%d); if curl -sfI https://build.protomaps.com/$day.pmtiles >/dev/null; then break; fi; done
+          ./pmtiles extract https://build.protomaps.com/$day.pmtiles il.pmtiles --bbox=34.2,29.45,35.9,33.35
+          ./pmtiles extract https://build.protomaps.com/$day.pmtiles il13.pmtiles --bbox=34.2,29.45,35.9,33.35 --maxzoom=13
+          ls -la il.pmtiles il13.pmtiles
