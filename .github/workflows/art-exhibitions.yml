@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  models: read          # GitHub Models, free: a language model reads each place's page
 
 concurrency:
   group: art-map-data
@@ -31,8 +32,9 @@ jobs:
           pip install playwright==1.64.1 anthropic==2.3.0
           python3 -m playwright install --with-deps chromium
       - name: Read what's on
-        # with the key, a language model also reads each page (each page once until it changes; see exhibitions.py)
+        # a language model also reads each page, free through GitHub Models (Claude instead if the key is set); each page once until it changes
         env:
+          GITHUB_MODELS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python3 studio/app/artmap/exhibitions.py
       - name: Commit to studio
