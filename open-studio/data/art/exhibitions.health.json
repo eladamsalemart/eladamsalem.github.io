@@ -209,7 +209,7 @@
    "url": "https://gallerybeeri.co.il/",
    "auto": true,
    "status": "ok",
-   "shows": 2,
+   "shows": 1,
    "events": 0
   },
   {
@@ -218,7 +218,7 @@
    "url": "https://www.bac.org.il",
    "auto": true,
    "status": "ok",
-   "shows": 2,
+   "shows": 1,
    "events": 0
   },
   {
@@ -442,8 +442,8 @@
    "place": "maya-gallery",
    "url": "https://www.mayagallerytlv.com/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
