@@ -7,7 +7,7 @@
    "url": "https://www.hma.org.il/",
    "status": "ok",
    "shows": 5,
-   "events": 2
+   "events": 0
   },
   {
    "source": "tikotin",
@@ -30,7 +30,7 @@
    "place": "petach-tikva-museum-of-art",
    "url": "https://www.petachtikvamuseum.com/he/",
    "status": "ok",
-   "shows": 1,
+   "shows": 6,
    "events": 0
   },
   {
@@ -99,8 +99,8 @@
    "source": "israel-museum",
    "place": "israel-museum",
    "url": "https://www.imj.org.il/he/exhibitions",
-   "browser": "Error",
-   "status": "unreachable",
+   "read": "browser",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -262,7 +262,7 @@
    "place": "beth-meirov",
    "url": "https://www.holon.muni.il/HolonCity/Lists/List/CustomDispForm.aspx?ID=170",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -334,7 +334,7 @@
    "place": "hamidrasha-gallery",
    "url": "https://www.beitberl.ac.il/academic/faculties/art/exhbitions_galleries/hayarkun",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -388,7 +388,7 @@
    "place": "janco-dada-museum",
    "url": "https://www.jancodada.co.il/en/",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -541,7 +541,7 @@
    "place": "rockefeller-museum",
    "url": "https://www.imj.org.il/en/wings/archaeology/rockefeller-archaeological-museum",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -586,7 +586,7 @@
    "place": "ticho-house",
    "url": "https://www.imj.org.il/en/wings/arts/ticho-house/",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -595,7 +595,7 @@
    "place": "umm-el-fahem-art-gallery",
    "url": "http://ummelfahemgallery.org/",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -604,7 +604,7 @@
    "place": "wikidata-Q115089736",
    "url": "https://www.kehilatayim.org.il/%D7%94%D7%92%D7%9C%D7%A8%D7%99%D7%94-%D7%94%D7%A2%D7%99%D7%A8%D7%95%D7%A0%D7%99%D7%AA-%D7%9E%D7%9B%D7%95%D7%9F-%D7%94%D7%9E%D7%99%D7%9D/",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -622,8 +622,8 @@
    "place": "wikidata-Q135407831",
    "url": "https://tivon-lib.co.il/gallery/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
