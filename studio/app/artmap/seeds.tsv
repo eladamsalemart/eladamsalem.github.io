@@ -8,7 +8,7 @@ museum	מוזיאון פתח תקווה לאמנות	Petach Tikva Museum of Art	
 museum	מוזיאון אשדוד לאמנות	Ashdod Art Museum	Ashdod	מוזאון אשדוד לאמנות;Ashdod Museum of Art	known
 museum	מוזיאון בת ים לאמנות עכשווית	MoBY - Museums of Bat Yam	Bat Yam	מוזיאוני בת ים;MoBY;רשת מוזיאוני בת ים	moc2022
 museum	מוזיאון רמת גן לאמנות ישראלית	Ramat Gan Museum of Israeli Art	Ramat Gan	מוזיאון רמת גן	known
-museum	משכן לאמנות עין חרוד	Mishkan Museum of Art, Ein Harod	Ein Harod	משכן לאמנות, עין חרוד;המשכן לאמנות	known
+museum	משכן לאמנות עין חרוד	Mishkan Museum of Art, Ein Harod	Ein Harod	משכן לאמנות, עין חרוד	known
 museum	מוזיאון ינקו דאדא	Janco Dada Museum	Ein Hod	מוזיאון ינקו-דאדא	known
 museum	מוזיאון טיקוטין לאמנות יפנית	Tikotin Museum of Japanese Art	Haifa	מוזיאון טיקוטין	known
 museum	מוזיאון רובין	Rubin Museum	Tel Aviv	בית ראובן;מוזיאון ראובן רובין	known
@@ -26,7 +26,7 @@ museum	מוזיאון בית אורי ורמי נחושתן	Beit Uri and Rami Ne
 museum	בית אוסף קופפרמן	Kupferman Collection House	Lohamei HaGeta'ot	בית קופפרמן	moc2022
 museum	מוזיאון בר דוד	Bar David Museum	Bar'am	מוזיאון בר-דוד	known
 museum	מוזיאון הכט	Hecht Museum	Haifa		known
-public	המרכז לאמנות עכשווית	CCA Tel Aviv	Tel Aviv	Center for Contemporary Art;CCA;המרכז לאמנות עכשווית תל אביב	moc2022
+public	המרכז לאמנות עכשווית	CCA Tel Aviv	Tel Aviv	Center for Contemporary Art;CCA Tel Aviv-Yafo;CCA תל אביב-יפו;המרכז לאמנות עכשווית תל אביב	moc2022
 public	מרכז בנימיני לקרמיקה עכשווית	Benyamini Contemporary Ceramics Center	Tel Aviv	בנימיני;מרכז בנימיני	moc2022
 public	מקום לאמנות	Artspace Tel Aviv	Tel Aviv	מקום לאמנות בקריית המלאכה;Makom LeOmanut	moc2022
 public	סדנאות האמנים בתל אביב	Tel Aviv Artists' Studios	Tel Aviv	סדנאות האמנים תל אביב;Artists' Studios Tel Aviv	moc2022
@@ -77,7 +77,6 @@ public	הגלריה לאמנות רמת השרון	Ramat HaSharon Art Gallery	Ra
 public	הגלריה העירונית כפר סבא	Kfar Saba Municipal Gallery	Kfar Saba	הגלריה העירונית לאמנות כפר סבא	moc2022
 public	בית המשאבות	Beit HaMashevot	Tel Aviv		known
 public	ארטפורט	Artport	Tel Aviv	Artport Tel Aviv	known
-public	בית בנימיני	Beit Benyamini	Tel Aviv		known
 public	גלריה לאמנות אוניברסיטת חיפה	University of Haifa Art Gallery	Haifa	הגלריה לאמנות אוניברסיטת חיפה	known
 public	פירמידה מרכז לאמנות עכשווית	Pyramida Center for Contemporary Art	Haifa	פירמידה	known
 public	בית הגפן	Beit Hagefen	Haifa	בית הגפן גלריה	known

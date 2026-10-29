@@ -36,8 +36,9 @@ UA = 'OpenStudio-artmap/1.0 (+https://eladamsalem.com/open-studio/)'
 KINDS = ['museum', 'public', 'artist-run', 'academy', 'commercial', 'centre']
 
 # --- names --------------------------------------------------------------------------------------------------
-GENERIC = ['גלריה לאמנות', 'גלריה לאומנות', 'גלריית', 'גלריה', 'מוזיאון', 'מוזאון', 'לאמנות', 'לאומנות', 'עכשווית',
-           'gallery', 'galerie', 'museum', 'of art', 'art', 'contemporary', 'the ', 'center', 'centre', 'for', 'מרכז']
+GENERIC = ['גלריה לאמנות', 'גלריה לאומנות', 'הגלריה', 'גלריית', 'גלריה', 'המוזיאון', 'מוזיאון', 'מוזאון', 'לאמנות', 'לאומנות', 'עכשווית',
+           'gallery', 'galerie', 'museum', 'of art', 'art', 'contemporary', 'the ', 'center', 'centre', 'for', 'of', 'המרכז', 'מרכז']
+CITY = re.compile(r'(^|\s)(ב?תל אביב|יפו|ירושלים|בירושלים|חיפה|בחיפה|tel aviv|yafo|jaffa|jerusalem|haifa)(?=\s|$)')
 
 
 def norm(s):
@@ -302,12 +303,16 @@ def slug(s):
 
 
 def match_seed(seed, cands):
-    keys = {norm(n) for n in [seed['he'], seed['en'], *seed['aliases']] if len(norm(n)) >= 2}
-    hits = [c for c in cands if any(norm(n) in keys for n in names_of(c['tags']))]
-    if not hits:                                     # "CCA Tel Aviv" in "CCA Tel Aviv-Yafo": one name inside the other
-        def inside(a, b):
-            return len(a) >= 5 and re.search(r'(^|\s)' + re.escape(a) + r'(\s|$)', b)
-        hits = [c for c in cands if c['tagged'] and any(inside(k, norm(n)) or inside(norm(n), k) for n in names_of(c['tags']) for k in keys)]
+    keys = {k for k in (norm(n) for n in [seed['he'], seed['en'], *seed['aliases']])
+            if len(k) >= 2 and CITY.sub(' ', k).strip() and k not in ('ישראל', 'israel')}
+    plain = lambda n: re.sub(r'\s+', ' ', re.sub(r'["\'״׳`’‘\-–—,.()/:|]', ' ', unicodedata.normalize('NFKC', n or '').lower())).strip()
+    full = {plain(n) for n in [seed['he'], seed['en'], *seed['aliases']] if n}
+    hits = [c for c in cands if any(norm(n) in keys or plain(n) in full for n in names_of(c['tags']))]
+    if not hits:                                     # "CCA Tel Aviv" in "CCA Tel Aviv-Yafo": the seed's name inside another
+        def inside(a, b):                            # (a town's name alone never makes two places the same)
+            a, b = CITY.sub(' ', a).strip(), CITY.sub(' ', b).strip()
+            return (len(a.split()) >= 2 or len(a) >= 8) and b and re.search(r'(^|\s)' + re.escape(a) + r'(\s|$)', b)
+        hits = [c for c in cands if c['tagged'] and any(inside(k, norm(n)) for n in names_of(c['tags']) for k in keys)]
     if not hits:
         return None
     ref = city_at(seed['city'])
@@ -369,7 +374,7 @@ def main():
         kind, why = classify(c['tags'])
         if c.get('wd'):
             kind, why = (None, 'name says not art') if NOT_ART.search(' '.join(names_of(c['tags']))) and c['kind'] == 'museum' and not re.search(r'אמנות|art', ' '.join(names_of(c['tags'])), re.I) \
-                else ('museum' if c['kind'] == 'museum' else 'commercial', 'wikidata')
+                else ('commercial' if re.search(r'גלרי|gallery|galer', ' '.join(names_of(c['tags'])), re.I) or c['kind'] != 'museum' else 'museum', 'wikidata')
         elif kind and kind != 'museum':
             kind, why = None, f'{kind} only on OpenStreetMap, not curated (galleries there include framers and decor shops)'
         if not kind:
@@ -377,7 +382,7 @@ def main():
             continue
         t = c['tags']
         nm = {norm(n) for n in names_of(t)}
-        if any(km(c['at'], p['at']) < 0.005 or (km(c['at'], p['at']) < 0.3 and nm & {norm(p['name']), norm(p['name_he'])}) for p in places):
+        if any(km(c['at'], p['at']) < 0.005 or (km(c['at'], p['at']) < 1 and nm & {norm(p['name']), norm(p['name_he'])}) for p in places):
             continue
         places.append({'id': slug(t.get('name:en') or t.get('name')) or c['osm'].replace('/', '-'), 'name': t.get('name:en') or t.get('name'),
                        'name_he': t.get('name:he') or (t.get('name') if re.search(r'[֐-׿]', t.get('name', '')) else ''),
@@ -401,7 +406,10 @@ def main():
         p['building'] = {'ring': b['ring'], 'h': height_of(b), 'osm': b['osm']} if b else None
 
     # month to month
-    prev = {p['id']: p for p in json.loads(OUT.read_text())['places']} if OUT.exists() else {}
+    old = json.loads(OUT.read_text()) if OUT.exists() else {'places': [], 'updated': ''}
+    rerun = old.get('updated', '')[:7] == today[:7]   # this month's earlier run: what it found says nothing about closing
+    base = old.get('baseline', []) if rerun else old['places']
+    prev = {p['id']: p for p in base}
     now = {p['id'] for p in places}
     for p in places:
         old = prev.get(p['id'])
@@ -419,8 +427,9 @@ def main():
 
     places.sort(key=lambda p: (KINDS.index(p['kind']), p['tier'] != 'curated', p['name']))
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps({'updated': today, 'source': 'OpenStreetMap contributors (ODbL); curated list (seeds.tsv)',
-                               'places': places}, ensure_ascii=False, separators=(',', ':')))
+    OUT.write_text(json.dumps({'updated': today, 'source': 'OpenStreetMap contributors (ODbL); Wikidata (CC0); curated list (seeds.tsv)',
+                               'places': places, 'baseline': [{k: p[k] for k in ('id', 'name', 'first_seen', 'status') if k in p} for p in base]},
+                              ensure_ascii=False, separators=(',', ':')))
     by = {k: sum(p['kind'] == k for p in places) for k in KINDS}
     CHANGES.write_text(f"# Art places, {today}\n\n{len(places)} places: " + ', '.join(f'{k} {v}' for k, v in by.items())
                        + f"; curated {sum(p['tier'] == 'curated' for p in places)}, with a building {sum(bool(p.get('building')) for p in places)}\n\n"
