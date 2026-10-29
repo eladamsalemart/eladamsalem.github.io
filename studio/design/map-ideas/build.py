@@ -32,6 +32,8 @@ ok_src = [h for h in health if h.get('status') == 'ok']
 shows_n, events_n = len(ex['shows']), len(ex['events'])
 places_with = len({s['place'] for s in ex['shows']})
 not_found = changes.count('not found on the map')
+by_addr = sum('address' in p['sources'] for p in places)
+approx = sum(bool(p.get('approx')) for p in places)
 left = {}
 for line in changes.split('## Left out')[1].splitlines()[1:] if '## Left out' in changes else []:
     if line.startswith('- ') and ':' in line:
@@ -95,14 +97,14 @@ P.append(('הסינון', 'מה נחשב "מרחב אמנות", ומה לא', f'
 <div><h3>מה על המפה</h3>
 {bars([(KH[k], v) for k, v in by.items() if v], '', max(by.values()))}
 <p class="src">{n} מקומות; {cur} מהרשימה המאוצרת, {n - cur} מ‑Wikidata ו‑OSM. {blt} עם בניין.</p>
-<div class="box yel"><b>מה עוד חסר:</b> {not_found} מקומות מהרשימה המאוצרת לא נמצאו עדיין בשטח (אין להם סימון ב‑OSM או ב‑Wikidata). הם רשומים בדוח השינויים. הפתרון: להוסיף להם כתובת ברשימה, או שהגלריה תירשם בעצמה באפליקציה.</div>
+<div class="box yel"><b>מה עוד חסר:</b> {not_found} מקומות מהרשימה המאוצרת לא נמצאו עדיין בשטח (אין להם סימון ב‑OSM או ב‑Wikidata). הם רשומים בדוח השינויים. ל‑{by_addr} מקומות כאלה מצאתי הלילה כתובת במקורות פתוחים (Time Out, דפי סיור, אתרי המקומות) והם כבר במפה; {approx} מהם במיקום משוער (קיבוץ או רחוב בלי מספר בית), והכרטיס שלהם אומר זאת. לשאר: להוסיף כתובת ברשימה, או שהגלריה תירשם בעצמה באפליקציה.</div>
 <div class="box"><b>הגדרות שנבחרו בכוונה:</b> אמנות חזותית בלבד; מוזיאונים היסטוריים, מדע, צבא ומורשת בחוץ; גם מוזיאון לאמנות יהודית בפנים, כי הוא מוזיאון לאמנות.</div></div></div>''', ''))
 
 P.append(('העדכונים', 'המקומות כל חודש, התערוכות כל בוקר', f'''
 <div class="cols"><div>
 <h3>מקומות: "Art map: places", ב‑1 לכל חודש</h3>
 <ol class="sm"><li>מוריד את מפת ישראל העדכנית של OpenStreetMap (Geofabrik) ושואל את Wikidata.</li>
-<li>מוצא כל מקום מהרשימה המאוצרת, ואם אין, שואל את Nominatim לפי השם והעיר.</li>
+<li>מוצא כל מקום מהרשימה המאוצרת, ואם אין, שואל את Nominatim לפי השם והעיר, ואם גם זה לא, לפי הכתובת שנחקרה עבורו.</li>
 <li>מסנן את שאר המועמדים לפי הכללים, ומאתר לכל מקום את הבניין שבו הוא עומד: קווי המתאר והגובה.</li>
 <li>משווה לחודש הקודם. <b>מקום חדש</b> מסומן כחדש. <b>מקום שלא נמצא</b> נשאר חודש אחד כ"לא מאומת", ובחודש שאחריו יורד. מקום שסומן "סגור" ברשימה יורד מיד (למשל אלפרד, 2026).</li>
 <li>כותב דוח שינויים (places.changes.md) ושומר בענף studio; האפליקציה מתפרסמת מחדש.</li></ol>

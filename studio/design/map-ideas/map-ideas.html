@@ -1,0 +1,163 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>Open Studio · מפת האמנות</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&family=Figtree:wght@700&family=IBM+Plex+Mono:wght@500&display=swap"><style>@page{size:A4;margin:0}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Assistant',sans-serif;color:#1B1A17;font-size:11.6pt;line-height:1.52;background:#fff}
+.page{width:210mm;height:297mm;padding:15mm 15mm 13mm;position:relative;overflow:hidden;page-break-after:always;background:#fff}
+.page.paper{background:#EFE9DD}.page.ink{background:#1B1A17;color:#F6F1E7}
+h1{font-family:'Frank Ruhl Libre',serif;font-weight:500;font-size:34pt;line-height:1.05;margin:0 0 4mm}
+h2{font-family:'Frank Ruhl Libre',serif;font-weight:500;font-size:24pt;line-height:1.12;margin:0}
+h3{font-size:13pt;margin:5mm 0 1.6mm}
+h4{font-size:11.6pt;margin:2.5mm 0 .8mm}
+p{margin:1.2mm 0}ul,ol{margin:1mm 0;padding-right:5mm}li{margin:.7mm 0}
+.k{font-family:'IBM Plex Mono',monospace;font-size:8.6pt;letter-spacing:.12em;color:#5E594F;text-transform:uppercase}
+.ink .k{color:#BDB6A8}
+.head{border-bottom:1.5px solid #1B1A17;padding-bottom:2.5mm;margin-bottom:4.5mm;display:flex;justify-content:space-between;align-items:flex-end;gap:6mm}
+.head .dept{font-family:'IBM Plex Mono',monospace;font-size:7pt;color:#8F877A;letter-spacing:.08em;white-space:nowrap}
+.foot{position:absolute;bottom:6mm;left:15mm;right:15mm;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:6.8pt;color:#8F877A}
+.lead{font-size:13.6pt;line-height:1.45}
+.big{font-family:'Frank Ruhl Libre',serif;font-size:17pt;line-height:1.35}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:7mm}.cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm}
+.box{background:#EFE9DD;padding:3mm 4mm;margin:2.5mm 0}.box.g{background:#E3EDE7}.box.r{background:#F4E4DD}.box.yel{background:#F3EBD3}
+.box h4:first-child,.box h3:first-child{margin-top:0}
+.card{border:1px solid #CFC7B6;padding:3mm 3.5mm}
+.num{font-family:'Frank Ruhl Libre',serif;font-size:30pt;line-height:1;color:#2F6B4F}
+.stat{display:grid;gap:.5mm}.stat span{font-size:9.8pt;color:#5E594F}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin:3mm 0}
+table{width:100%;border-collapse:collapse;font-size:10pt;margin:2.5mm 0}
+th,td{border-bottom:1px solid #CFC7B6;padding:2mm 1.6mm;text-align:right;vertical-align:top}
+th{font-weight:700;border-bottom:1.5px solid #1B1A17;font-size:9.8pt}
+td.c,th.c{text-align:center}
+.y{color:#2F6B4F;font-weight:700}.n{color:#A3503F;font-weight:700}.m{color:#8F7340;font-weight:700}
+.tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:8.2pt;padding:.3mm 1.6mm;border:1px solid #1B1A17;margin-left:1mm}
+.tag.g{border-color:#2F6B4F;color:#2F6B4F}.tag.r{border-color:#A3503F;color:#A3503F}.tag.y{border-color:#8F7340;color:#8F7340}
+.ltr{direction:ltr;unicode-bidi:embed}
+.src{font-size:8.2pt;color:#5E594F}
+.est{font-size:8.4pt;color:#8F7340}
+.bars{display:grid;gap:1.6mm;margin:2mm 0}
+.bar{display:grid;grid-template-columns:52mm 1fr 18mm;align-items:center;gap:2.5mm;font-size:10pt}
+.bar i{display:block;height:6mm;background:#2F6B4F;border-radius:0 1mm 1mm 0}
+.bar i.l{background:#9DB8A8}.bar b{font-weight:600;text-align:left;direction:ltr}
+.quote{border-right:3px solid #2F6B4F;padding:1.5mm 5mm;margin:4mm 0;font-family:'Frank Ruhl Libre',serif;font-size:15pt;line-height:1.4}
+.steps{counter-reset:s;display:grid;gap:3mm}
+.step{display:grid;grid-template-columns:9mm 1fr;gap:2mm;align-items:start}
+.step:before{counter-increment:s;content:counter(s);font-family:'Frank Ruhl Libre',serif;font-size:19pt;color:#2F6B4F;line-height:1}
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm}
+.role{border:1px solid #CFC7B6;padding:3mm 3.5mm;font-size:9.8pt}.role b{display:block;font-size:11pt}
+.map{position:relative;height:96mm;border:1px solid #CFC7B6;background:#FBF8F2;margin:2mm 0}
+.map .ax{position:absolute;font-family:'IBM Plex Mono',monospace;font-size:6.8pt;color:#5E594F}
+.map .dot{position:absolute;transform:translate(50%,-50%);font-size:9.6pt;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:1.2mm}
+.map .dot:before{content:"";width:3mm;height:3mm;border-radius:50%;background:#8F877A;display:block}
+.map .dot.us:before{background:#2F6B4F;width:4.2mm;height:4.2mm}
+.map .dot.us{color:#2F6B4F;font-size:9pt}
+.cover h1{font-size:40pt;margin-top:30mm}
+.cover .logo{display:flex;align-items:center;gap:2.5mm;direction:ltr;justify-content:flex-end;font-family:'Figtree',sans-serif;font-weight:700;font-size:15pt}
+.toc li{margin:1.4mm 0;font-size:10.5pt}
+.tl{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:2px solid #1B1A17;margin:3mm 0}
+.tl>div{padding:3mm 3mm 0;border-left:1px dashed #CFC7B6;font-size:10pt}.tl>div:last-child{border-left:0}
+.tl b{display:block;font-size:11.4pt;margin-bottom:1mm}.tl .k{display:block;margin-bottom:1mm}
+.sm{font-size:10.4pt}
+.xs{font-size:9.4pt;line-height:1.45}
+.cv{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:6.6pt;letter-spacing:.02em;padding:0 1.1mm;border:1px solid #8F877A;color:#5E594F;margin-right:1mm;vertical-align:1px;white-space:nowrap}
+.cv.v{border-color:#2F6B4F;color:#2F6B4F}.cv.e{border-color:#8F7340;color:#8F7340}
+.phones{display:flex;gap:3mm;justify-content:flex-start;margin:2.5mm 0}
+.phones figure{margin:0;flex:1;text-align:center}.phones img{width:100%;border:1px solid #CFC7B6;border-radius:2.5mm;display:block}
+.phones figcaption{font-size:8.6pt;color:#5E594F;margin-top:1mm}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:8.4pt;direction:ltr;text-align:left;background:#1B1A17;color:#F6F1E7;padding:2.5mm 3.5mm;white-space:pre-wrap;line-height:1.5}
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:6mm;align-items:start}
+.chk li{list-style:none;position:relative}.chk{padding-right:5mm}.chk li:before{content:"☐";position:absolute;right:-5mm;color:#2F6B4F}
+table.tight td,table.tight th{padding:1.3mm 1.4mm}</style></head><body><section class="page paper cover"><div class="logo"><svg viewBox="0 0 132 132" width="30" height="30"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg><span>Open Studio</span></div>
+<div class="k" style="margin-top:22mm">מסמך עבודה · לילה אחד · <bdi dir="ltr">28–29.10.2026</bdi></div>
+<h1>מפת האמנות<br>של ישראל</h1>
+<p class="big" style="max-width:155mm">מה ביקשת, איך יצאתי לדרך, מה נבנה הלילה ועובד באפליקציה, איך נקבע מה נחשב "מרחב אמנות", איך המפה מתעדכנת כל חודש והתערוכות כל יום, ורעיונות לעיצוב הסקשן ולעיצוב המבנים בתוך המפה.</p>
+<div style="margin-top:14mm;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4mm"><div class="card"><div class="num" style="color:#2F4FD0">132</div><span class="sm">מרחבי אמנות על המפה</span></div><div class="card"><div class="num" style="color:#E2553B">104</div><span class="sm">עם הבניין שלהם בתלת‑ממד</span></div><div class="card"><div class="num" style="color:#1C9C86">22</div><span class="sm">תערוכות שנקראו היום מאתרי המקומות</span></div></div>
+<p class="src" style="position:absolute;bottom:16mm;right:15mm;left:15mm">נכתב על ידי Claude. כל המספרים במסמך נקראים מהנתונים שהמפה עצמה משתמשת בהם (data/art), ברגע בניית המסמך.</p></section><section class="page "><div class="head"><div><div class="k">מה ביקשת</div><h2>הבקשה, ומה נבנה מולה</h2></div><div class="dept">מפת האמנות</div></div>
+
+<table class="tight"><tr><th>ביקשת</th><th>מה נבנה</th><th>מצב</th></tr>
+<tr><td>עיצוב נקי, אלגנטי, צבעוני ואמנותי לסקשן המפה, בלי הכותרת והכיתוב הקודמים</td><td>מפה תלת‑ממדית על כל המסך בגווני נייר, צבע לכל סוג מקום, "כתמי צבע" סביב מקומות עם תערוכה, וגיליון רך מתחת עם שם העיר בגופן סריף, מספרים ורשימה</td><td class="y">באפליקציה</td></tr>
+<tr><td>חיבור המפה לכל מרחבי התרבות באמנות בישראל, עם סינון מדויק ולא "סתם מוזיאונים"</td><td>132 מקומות משלושה מקורות (רשימה מאוצרת מעולם האמנות, Wikidata, OpenStreetMap), עם כללי סינון כתובים; 308 מועמדים נפסלו, כל אחד עם הסיבה</td><td class="y">באפליקציה</td></tr>
+<tr><td>כל מבנה בתלת‑ממד, "מגניב ומיוחד"</td><td>הבניין האמיתי של כל מקום מ‑OpenStreetMap (104 מתוך 132), מורם בצבע הסוג שלו מעל עיר חיוורת ונמוכה; כמה גלריות באותו בניין נערמות כקומות צבעוניות</td><td class="y">באפליקציה</td></tr>
+<tr><td>עדכון המקומות פעם בחודש (חדשים, נסגרים)</td><td>עבודה אוטומטית בשרת ב‑1 לכל חודש; מקום חדש מסומן, מקום שנעלם מסומן "לא מאומת" חודש אחד ואז יורד; דוח שינויים</td><td class="y">רץ</td></tr>
+<tr><td>עדכון יומי של התערוכות</td><td>עבודה אוטומטית כל בוקר שקוראת את אתרי המקומות עצמם, ופתיחות ושיחי גלריה מלוח אירועים ציבורי; דוח בריאות לכל מקור</td><td class="y">רץ</td></tr>
+<tr><td>לראות במפה מה מוצג</td><td>בכל מקום: "On now", "Coming up", "Talks and openings", עם תאריכים וקישור למקור</td><td class="y">באפליקציה</td></tr>
+<tr><td>בעתיד: לעקוב אחרי גלריות ומוסדות</td><td>כפתור Follow בכל מקום, ו"Places you follow" בראש הרשימה (נשמר בטלפון; יעבור לחשבון כשיהיה)</td><td class="m">גרסה ראשונה</td></tr>
+<tr><td>בעתיד: לראות אילו אמנים באפליקציה מציגים, ואם אתה עוקב אחריהם</td><td>התאמה בין שמות האמנים בתערוכות לאמני Open Studio; "you follow" בולט. ייכנס לפעולה מלאה כשלאמנים יהיה גם שם בעברית בפרופיל</td><td class="m">תשתית מוכנה</td></tr>
+<tr><td>PDF עם רעיונות עיצוב ומה נעשה</td><td>המסמך הזה</td><td class="y">כאן</td></tr></table><div class="foot"><span>Open Studio · מפת האמנות</span><span>29.10.2026 · עמוד 2</span></div></section><section class="page "><div class="head"><div><div class="k">הסקשן החדש</div><h2>מה רואים עכשיו באפליקציה</h2></div><div class="dept">מפת האמנות</div></div>
+
+<div class="cols3"><figure style="margin:0"><img src="shots/app-map.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src>פתיחה: רובע האמנות הקרוב, בזווית תלת‑ממד</figcaption></figure><figure style="margin:0"><img src="shots/app-card.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src>מקום נבחר: טבעת בצבעו, וכרטיס עם מה שמוצג</figcaption></figure><figure style="margin:0"><img src="shots/app-list.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src>הגיליון: עיר, מספרים, סוגים, "On now"</figcaption></figure></div>
+<div class="cols" style="margin-top:4mm"><div>
+<h3>מה השתנה בעיצוב</h3>
+<ul class="sm"><li><b>בלי הכותרת הגדולה.</b> במקום "On the walls now, near Tel Aviv" יש שם עיר שקט בסריף, ושורת מספרים: כמה מרחבים, כמה תערוכות, מתי עודכן.</li>
+<li><b>המפה היא היצירה.</b> נייר חם, ים בטורקיז רך, פארקים במרווה. העיר עצמה בתבליט חיוור ונמוך (40% מגובהה), ומקומות האמנות עולים ממנה בצבע.</li>
+<li><b>שישה צבעים, שש משפחות.</b> כחול אולטרמרין למוזיאונים, ורמיליון לגלריות ציבוריות, אוקר לגלריות, ירוק‑ויררידיאן למרחבי אמנים, סגול לבתי ספר, ורוד למרכזי אמנות.</li>
+<li><b>כתמי צבע</b> סביב כל מקום, חזקים יותר כשיש בו תערוכה עכשיו: מבט אחד על העיר מראה איפה האמנות חיה השבוע.</li></ul></div>
+<div><h3>איך משתמשים</h3>
+<ul class="sm"><li>המפה נפתחת מעל רובע האמנות הצפוף ביותר שקרוב אליך.</li><li>נגיעה בבניין: המצלמה מסתובבת אליו לאט, טבעת בצבעו על הקרקע, והגיליון הופך לכרטיס המקום.</li>
+<li>שבבי הסוגים מסננים גם את המפה וגם את הרשימה. נגיעה ראשונה בוחרת סוג אחד.</li><li>כפתור 2D/3D, ובחירת עיר או "Near me".</li>
+<li>קישור ישיר לכל מקום (‎#/map/place/…) לשיתוף בוואטסאפ.</li></ul></div></div><div class="foot"><span>Open Studio · מפת האמנות</span><span>29.10.2026 · עמוד 3</span></div></section><section class="page "><div class="head"><div><div class="k">הסינון</div><h2>מה נחשב "מרחב אמנות", ומה לא</h2></div><div class="dept">מפת האמנות</div></div>
+
+<p class="lead">ב‑OpenStreetMap "גלריה" היא גם מסגרייה, חנות לעיצוב הבית או סטודיו לצילומי פספורט, ו"מרכז אמנויות" הוא לרוב היכל תרבות. לכן הכלל הוא: <b>קודם עולם האמנות, אחר כך המפה.</b></p>
+<div class="cols"><div>
+<h3>שלוש שכבות</h3>
+<ol class="sm"><li><b>רשימה מאוצרת (117 מקומות).</b> מוזיאונים לאמנות; 61 הגלריות הציבוריות שמשרד התרבות תומך בהן (הרשימה של איגוד האמנים, 2022) <span class="cv v">מאומת</span>; גלריות מסחריות ושיתופיות; גלריות של בתי ספר לאמנות; מרכזי אמנות. מקום מהרשימה מוצג רק כשנמצא בשטח, עם כתובת וקואורדינטות.</li>
+<li><b>Wikidata.</b> "מוזיאון לאמנות" או "גלריה לאמנות" בישראל, עם קואורדינטות, שלא נסגר. (70 מקומות נשענים עליו.)</li>
+<li><b>OpenStreetMap.</b> רק מוזיאונים שמסומנים כמוזיאון לאמנות או ששמם אומר אמנות. גלריות ומרכזים מ‑OSM נכנסים רק אם הם ברשימה המאוצרת.</li></ol>
+<h3>מה נפסל, ולמה</h3>
+<table class="tight xs"><tr><th>סיבה</th><th class="c">כמה</th></tr><tr><td>museum (untyped), not art</td><td class="c">130</td></tr><tr><td>name says not art</td><td class="c">57</td></tr><tr><td>arts centre without art in its name</td><td class="c">31</td></tr><tr><td>studio or art shop (shown only if curated)</td><td class="c">26</td></tr><tr><td>public only on OpenStreetMap, not curated (galleries there include framers and decor shops)</td><td class="c">22</td></tr><tr><td>centre only on OpenStreetMap, not curated (galleries there include framers and decor shops)</td><td class="c">16</td></tr><tr><td>museum (history), not art</td><td class="c">15</td></tr><tr><td>museum (open_air), not art</td><td class="c">8</td></tr></table></div>
+<div><h3>מה על המפה</h3>
+<div class="bars"><div class="bar"><span>מוזיאונים לאמנות</span><i class="" style="width:100.0%"></i><b>52</b></div><div class="bar"><span>גלריות ציבוריות</span><i class="" style="width:76.9%"></i><b>40</b></div><div class="bar"><span>גלריות</span><i class="" style="width:69.2%"></i><b>36</b></div><div class="bar"><span>מרחבים של אמנים</span><i class="" style="width:1.9%"></i><b>1</b></div><div class="bar"><span>גלריות של בתי ספר לאמנות</span><i class="" style="width:3.8%"></i><b>2</b></div><div class="bar"><span>מרכזי אמנות</span><i class="" style="width:1.9%"></i><b>1</b></div></div>
+<p class="src">132 מקומות; 80 מהרשימה המאוצרת, 52 מ‑Wikidata ו‑OSM. 104 עם בניין.</p>
+<div class="box yel"><b>מה עוד חסר:</b> 37 מקומות מהרשימה המאוצרת לא נמצאו עדיין בשטח (אין להם סימון ב‑OSM או ב‑Wikidata). הם רשומים בדוח השינויים. ל‑14 מקומות כאלה מצאתי הלילה כתובת במקורות פתוחים (Time Out, דפי סיור, אתרי המקומות) והם כבר במפה; 9 מהם במיקום משוער (קיבוץ או רחוב בלי מספר בית), והכרטיס שלהם אומר זאת. לשאר: להוסיף כתובת ברשימה, או שהגלריה תירשם בעצמה באפליקציה.</div>
+<div class="box"><b>הגדרות שנבחרו בכוונה:</b> אמנות חזותית בלבד; מוזיאונים היסטוריים, מדע, צבא ומורשת בחוץ; גם מוזיאון לאמנות יהודית בפנים, כי הוא מוזיאון לאמנות.</div></div></div><div class="foot"><span>Open Studio · מפת האמנות</span><span>29.10.2026 · עמוד 4</span></div></section><section class="page "><div class="head"><div><div class="k">העדכונים</div><h2>המקומות כל חודש, התערוכות כל בוקר</h2></div><div class="dept">מפת האמנות</div></div>
+
+<div class="cols"><div>
+<h3>מקומות: "Art map: places", ב‑1 לכל חודש</h3>
+<ol class="sm"><li>מוריד את מפת ישראל העדכנית של OpenStreetMap (Geofabrik) ושואל את Wikidata.</li>
+<li>מוצא כל מקום מהרשימה המאוצרת, ואם אין, שואל את Nominatim לפי השם והעיר, ואם גם זה לא, לפי הכתובת שנחקרה עבורו.</li>
+<li>מסנן את שאר המועמדים לפי הכללים, ומאתר לכל מקום את הבניין שבו הוא עומד: קווי המתאר והגובה.</li>
+<li>משווה לחודש הקודם. <b>מקום חדש</b> מסומן כחדש. <b>מקום שלא נמצא</b> נשאר חודש אחד כ"לא מאומת", ובחודש שאחריו יורד. מקום שסומן "סגור" ברשימה יורד מיד (למשל אלפרד, 2026).</li>
+<li>כותב דוח שינויים (places.changes.md) ושומר בענף studio; האפליקציה מתפרסמת מחדש.</li></ol>
+<h3>תערוכות: "Art map: exhibitions", כל בוקר ב‑05:23</h3>
+<ol class="sm"><li>קורא את העמוד שבו כל מקום מפרסם מה מוצג אצלו (sources.tsv).</li>
+<li>קורא אחד שמתאים לרוב האתרים: כותרת ואחריה טווח תאריכים, או "ננעלת בתאריך", או "פתיחה || נעילה". קורסים, הרצאות, סדנאות והקרנות נשארים בחוץ; פתיחות ושיחי גלריה נשמרים כאירועים.</li>
+<li>פתיחות ושיחי גלריה גם מלוח האירועים הציבורי "מה קורה", רק במקומות שעל המפה.</li>
+<li>תערוכה שנקראה פעם לא נעלמת כשאתר נופל ליום: היא נשארת עד תאריך הסיום.</li></ol></div>
+<div><h3>מה נקרא הבוקר</h3>
+<table class="tight xs"><tr><th>מקור</th><th class="c">תערוכות</th><th class="c">אירועים</th><th>מצב</th></tr><tr><td>haifa-museum</td><td class="c">5</td><td class="c">2</td><td>ok</td></tr><tr><td>tikotin</td><td class="c">1</td><td class="c">0</td><td>ok</td></tr><tr><td>negev-museum</td><td class="c">3</td><td class="c">0</td><td>ok</td></tr><tr><td>petach-tikva</td><td class="c">6</td><td class="c">0</td><td>ok</td></tr><tr><td>artists-house-tlv</td><td class="c">7</td><td class="c">0</td><td>ok</td></tr><tr><td>cca</td><td class="c">0</td><td class="c">0</td><td>nothing found</td></tr><tr><td>gutman</td><td class="c">0</td><td class="c">0</td><td>nothing found</td></tr><tr><td>rubin</td><td class="c">0</td><td class="c">0</td><td>nothing found</td></tr><tr><td>ilana-goor</td><td class="c">0</td><td class="c">0</td><td>nothing found</td></tr><tr><td>design-holon</td><td class="c">0</td><td class="c">0</td><td>nothing found</td></tr><tr><td>ashdod</td><td class="c">0</td><td class="c">0</td><td>nothing found</td></tr><tr><td>israel-museum</td><td class="c"></td><td class="c"></td><td>unreachable: URLError</td></tr><tr><td>tama</td><td class="c">0</td><td class="c">0</td><td>nothing found</td></tr><tr><td>ein-harod</td><td class="c"></td><td class="c"></td><td>unreachable: HTTPError</td></tr><tr><td>ramat-gan</td><td class="c"></td><td class="c"></td><td>unreachable: URLError</td></tr><tr><td>jerusalem-artists-house</td><td class="c">0</td><td class="c">0</td><td>nothing found</td></tr><tr><td>makore</td><td class="c"></td><td class="c">6</td><td>ok</td></tr></table>
+<p class="src">22 תערוכות ב‑5 מקומות, 8 אירועים. 6 מתוך 17 מקורות נקראו.</p>
+<div class="box"><b>נימוס ברשת:</b> robots.txt נשמר, בקשה אחת לאתר כל כמה שניות, זהות גלויה, ונשמרות רק עובדות: שם, אמנים, תאריכים וקישור חזרה. בלי טקסטים ובלי תמונות.</div>
+<div class="box yel"><b>ערב רב:</b> מדריך התערוכות שלהם הוא המקור הטוב ביותר, אבל קובץ ה‑robots שלהם חוסם במפורש בוטים של בינה מלאכותית, כולל ClaudeBot. לכן לא קראנו ממנו אוטומטית. ההמלצה: לפנות אליהם לשותפות (הזנה משותפת), כמו שהדוח העסקי הציע.</div></div></div><div class="foot"><span>Open Studio · מפת האמנות</span><span>29.10.2026 · עמוד 5</span></div></section><section class="page "><div class="head"><div><div class="k">רעיונות לסקשן</div><h2>חמש דרכים לצייר את מפת האמנות</h2></div><div class="dept">מפת האמנות</div></div>
+
+<div class="cols3"><figure style="margin:0"><img src="shots/idea-atlas.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src><b>1. אטלס (נבחר):</b> נייר, תבליט חיוור, אמנות בצבע. רגוע ביום, מתאים לכל העיר.</figcaption></figure><figure style="margin:0"><img src="shots/idea-night.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src><b>2. ערב פתיחה:</b> מפה כהה, המקומות כפנסים; מתאים ללשונית Shows ולערבים.</figcaption></figure><figure style="margin:0"><img src="shots/idea-wash.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src><b>3. צבעי מים:</b> בלי בניינים, רק כתמי צבע על נייר; כמו מפה מצוירת ביד.</figcaption></figure></div>
+<div class="cols" style="margin-top:3mm"><figure style="margin:0"><img src="shots/idea-model.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src><b>4. דגם אדריכלי:</b> העיר כדגם לבן מגבס, אור מהצד, האמנות כאבני צבע. פוסטר.</figcaption></figure><figure style="margin:0"><img src="shots/idea-cards.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src><b>5. כרטיסים על המפה:</b> מפה מלאה וכרטיסים שגוללים הצידה; כמו מפות של אפליקציות טיולים.</figcaption></figure></div>
+<p class="sm" style="margin-top:3mm"><b>המלצה:</b> אטלס כברירת מחדל (נקי, קריא, מכבד את האמנות), ו"ערב פתיחה" אוטומטית אחרי 18:00 בימים שיש בהם פתיחות. צבעי מים מתאים לשיתוף ולתמונת "השנה שלך באמנות".</p><div class="foot"><span>Open Studio · מפת האמנות</span><span>29.10.2026 · עמוד 6</span></div></section><section class="page "><div class="head"><div><div class="k">רעיונות למבנים</div><h2>איך בניין יכול לספר מה קורה בתוכו</h2></div><div class="dept">מפת האמנות</div></div>
+
+<div class="cols3"><figure style="margin:0"><img src="shots/b-kind.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src><b>צבע לפי סוג</b> (באפליקציה): כל משפחה בצבע משלה.</figcaption></figure><figure style="margin:0"><img src="shots/b-floors.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src><b>קומות</b> (באפליקציה): כמה גלריות באותו בניין נערמות כקומות צבעוניות.</figcaption></figure><figure style="margin:0"><img src="shots/b-activity.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src><b>גובה לפי פעילות:</b> כל תערוכה מוסיפה קומה; מבט אחד מראה איפה קורה הכי הרבה.</figcaption></figure></div>
+<div class="cols3" style="margin-top:3mm"><figure style="margin:0"><img src="shots/b-lantern.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src><b>פנס:</b> בלילה, מקום פתוח זוהר; פתיחה הערב פועמת.</figcaption></figure><figure style="margin:0"><img src="shots/b-ghost.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src><b>רוח:</b> מקום שסגור זמנית (מוזיאון הרצליה בשיפוץ) נשאר במקומו, שקוף ואפור.</figcaption></figure><figure style="margin:0"><img src="shots/b-artwork.png" style="width:100%;display:block;border:1px solid #CFC7B6;border-radius:2mm"><figcaption class=src><b>עטוף ביצירה:</b> הבניין לובש את היצירה מהתערוכה שבתוכו.</figcaption></figure></div>
+<p class="sm" style="margin-top:3mm">עוד רעיונות שלא צוירו: <b>גגות בצבעי התערוכה</b> (פלטת הצבעים של היצירות מחולצת אוטומטית); <b>טבעות פתיחה</b> שמתרחבות סביב מקום שיש בו פתיחה הערב; <b>דגמים מיוחדים</b> לבניינים אייקוניים (המשולשים של מוזיאון תל אביב, הביתנים של מוזיאון ישראל); <b>שביל</b> שמחבר את המקומות של סיור גלריות ערב.</p><div class="foot"><span>Open Studio · מפת האמנות</span><span>29.10.2026 · עמוד 7</span></div></section><section class="page "><div class="head"><div><div class="k">איכות</div><h2>איך בדקתי את עצמי</h2></div><div class="dept">מפת האמנות</div></div>
+
+<div class="cols"><div>
+<h3>בדיקות שרצות לפני כל פרסום</h3>
+<ul class="chk sm"><li>המפה: אריח וקטורי מעל מרכז תל אביב חייב להגיע ולהכיל בניינים, רחובות ומים; האותיות בעברית ובלטינית חייבות להגיע.</li>
+<li>הנתונים: לפחות 40 מקומות, כולם בישראל, מסוג מוכר, כל אחד פעם אחת, וכל תערוכה שייכת למקום שעל המפה.</li>
+<li>הוכחה: החזרתי בכוונה כתובת מפה שגויה, והבדיקה עצרה את הפרסום.</li></ul>
+<h3>מה בדקתי בעין</h3>
+<ul class="sm"><li>הכול בגודל אייפון (390×844), בלי להחליף שום שירות חיצוני בתחליף: אריחים, גופנים ונתונים אמיתיים.</li>
+<li>מקום נבחר, רשימה, סינון, מעבר עיר, 2D/3D, קישור ישיר למקום.</li>
+<li>שמות בעברית: תוסף RTL של המפה, ושמות תערוכות בעברית בתוך טקסט באנגלית.</li></ul></div>
+<div><h3>מה תיקנתי בדרך</h3>
+<ul class="sm"><li>המפה יצאה ריקה: הסגנון של ספריית המפה דרס את גובה המיכל. תוקן.</li>
+<li>תוסף העברית לא נטען (כתובת יחסית בתוך Worker, וגרסה לא תואמת). תוקן.</li>
+<li>"בית האמנים" התאים לבית אמנים אחר במרחק 20 ק"מ. כינויים כלליים הוסרו, והתאמה נעשית רק בתוך העיר.</li>
+<li>OSM הכניס מסגרייה וחנות לעיצוב הבית כ"גלריות". הכלל שונה: גלריה מ‑OSM רק אם היא מאוצרת.</li>
+<li>הרצה בשרת נתקעה על Nominatim. נוספו זמן המתנה קצר ועצירה אחרי שלוש תקלות.</li></ul>
+<div class="box yel"><b>מה לא בדקתי:</b> Safari על אייפון אמיתי (הבדיקה ב‑Chromium שמדמה אייפון). כדאי לפתוח את המפה בטלפון שלך ולספר לי איך זה מרגיש.</div></div></div><div class="foot"><span>Open Studio · מפת האמנות</span><span>29.10.2026 · עמוד 8</span></div></section><section class="page "><div class="head"><div><div class="k">מה הלאה</div><h2>הצעדים הבאים, ומה מחכה להחלטה שלך</h2></div><div class="dept">מפת האמנות</div></div>
+
+<table class="tight"><tr><th>צעד</th><th>למה</th></tr>
+<tr><td>להשלים כתובות ל‑37 המקומות המאוצרים שלא נמצאו</td><td>רוב הגלריות המסחריות בתל אביב לא מסומנות ב‑OSM; עם כתובת הן ייכנסו בהרצה הבאה</td></tr>
+<tr><td>להוסיף קוראים לאתרים שעוד לא נקראים (מוזיאון תל אביב, CCA, גוטמן, אשדוד…)</td><td>חלקם בונים את העמוד ב‑JavaScript; צריך קורא לכל אחד, או API</td></tr>
+<tr><td>שותפות עם ערב רב</td><td>הזנה מסודרת של כל הפתיחות, ברשות</td></tr>
+<tr><td>הגלריה מעדכנת בעצמה</td><td>בשלב ההרשמה (הדוח המוצרי): גלריה מוסיפה תערוכה בשתי דקות, והיא על המפה</td></tr>
+<tr><td>שם בעברית לכל אמן בפרופיל</td><td>כדי ש"אמנים שאתה עוקב אחריהם מציגים כאן" יעבוד גם בתערוכות מאתרים בעברית</td></tr>
+<tr><td>Follow לחשבון</td><td>היום נשמר בטלפון; עם חשבונות יעבור בין מכשירים ויאפשר התראה על פתיחה</td></tr>
+<tr><td>ספק אריחים עם מפתח לפני השקה ציבורית</td><td>OpenFreeMap חינמי ובלי מגבלה מוצהרת, אבל כדאי חלופה מוכנה</td></tr></table>
+<h3>החלטות שלך</h3>
+<ol><li>איזה עיצוב לסקשן: להשאיר אטלס, או לשלב "ערב פתיחה" בערבים?</li><li>אילו רעיונות למבנים לפתח: גובה לפי פעילות? עטוף ביצירה?</li><li>האם להציג גם מקומות שרק ב‑Wikidata (גלריות שאולי נסגרו), או רק מאוצרים?</li></ol><div class="foot"><span>Open Studio · מפת האמנות</span><span>29.10.2026 · עמוד 9</span></div></section></body></html>
