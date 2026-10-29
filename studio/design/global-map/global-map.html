@@ -1,0 +1,221 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>מפת האמנות של העולם, בחינם</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&family=Figtree:wght@700&family=IBM+Plex+Mono:wght@500&display=swap"><style>@page{size:A4;margin:0}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Assistant',sans-serif;color:#1B1A17;font-size:11.6pt;line-height:1.52;background:#fff}
+.page{width:210mm;height:297mm;padding:15mm 15mm 13mm;position:relative;overflow:hidden;page-break-after:always;background:#fff}
+.page.paper{background:#EFE9DD}.page.ink{background:#1B1A17;color:#F6F1E7}
+h1{font-family:'Frank Ruhl Libre',serif;font-weight:500;font-size:34pt;line-height:1.05;margin:0 0 4mm}
+h2{font-family:'Frank Ruhl Libre',serif;font-weight:500;font-size:24pt;line-height:1.12;margin:0}
+h3{font-size:13pt;margin:5mm 0 1.6mm}
+h4{font-size:11.6pt;margin:2.5mm 0 .8mm}
+p{margin:1.2mm 0}ul,ol{margin:1mm 0;padding-right:5mm}li{margin:.7mm 0}
+.k{font-family:'IBM Plex Mono',monospace;font-size:8.6pt;letter-spacing:.12em;color:#5E594F;text-transform:uppercase}
+.ink .k{color:#BDB6A8}
+.head{border-bottom:1.5px solid #1B1A17;padding-bottom:2.5mm;margin-bottom:4.5mm;display:flex;justify-content:space-between;align-items:flex-end;gap:6mm}
+.head .dept{font-family:'IBM Plex Mono',monospace;font-size:7pt;color:#8F877A;letter-spacing:.08em;white-space:nowrap}
+.foot{position:absolute;bottom:6mm;left:15mm;right:15mm;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:6.8pt;color:#8F877A}
+.lead{font-size:13.6pt;line-height:1.45}
+.big{font-family:'Frank Ruhl Libre',serif;font-size:17pt;line-height:1.35}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:7mm}.cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm}
+.box{background:#EFE9DD;padding:3mm 4mm;margin:2.5mm 0}.box.g{background:#E3EDE7}.box.r{background:#F4E4DD}.box.yel{background:#F3EBD3}
+.box h4:first-child,.box h3:first-child{margin-top:0}
+.card{border:1px solid #CFC7B6;padding:3mm 3.5mm}
+.num{font-family:'Frank Ruhl Libre',serif;font-size:30pt;line-height:1;color:#2F6B4F}
+.stat{display:grid;gap:.5mm}.stat span{font-size:9.8pt;color:#5E594F}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin:3mm 0}
+table{width:100%;border-collapse:collapse;font-size:10pt;margin:2.5mm 0}
+th,td{border-bottom:1px solid #CFC7B6;padding:2mm 1.6mm;text-align:right;vertical-align:top}
+th{font-weight:700;border-bottom:1.5px solid #1B1A17;font-size:9.8pt}
+td.c,th.c{text-align:center}
+.y{color:#2F6B4F;font-weight:700}.n{color:#A3503F;font-weight:700}.m{color:#8F7340;font-weight:700}
+.tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:8.2pt;padding:.3mm 1.6mm;border:1px solid #1B1A17;margin-left:1mm}
+.tag.g{border-color:#2F6B4F;color:#2F6B4F}.tag.r{border-color:#A3503F;color:#A3503F}.tag.y{border-color:#8F7340;color:#8F7340}
+.ltr{direction:ltr;unicode-bidi:embed}
+.src{font-size:8.2pt;color:#5E594F}
+.est{font-size:8.4pt;color:#8F7340}
+.bars{display:grid;gap:1.6mm;margin:2mm 0}
+.bar{display:grid;grid-template-columns:52mm 1fr 18mm;align-items:center;gap:2.5mm;font-size:10pt}
+.bar i{display:block;height:6mm;background:#2F6B4F;border-radius:0 1mm 1mm 0}
+.bar i.l{background:#9DB8A8}.bar b{font-weight:600;text-align:left;direction:ltr}
+.quote{border-right:3px solid #2F6B4F;padding:1.5mm 5mm;margin:4mm 0;font-family:'Frank Ruhl Libre',serif;font-size:15pt;line-height:1.4}
+.steps{counter-reset:s;display:grid;gap:3mm}
+.step{display:grid;grid-template-columns:9mm 1fr;gap:2mm;align-items:start}
+.step:before{counter-increment:s;content:counter(s);font-family:'Frank Ruhl Libre',serif;font-size:19pt;color:#2F6B4F;line-height:1}
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm}
+.role{border:1px solid #CFC7B6;padding:3mm 3.5mm;font-size:9.8pt}.role b{display:block;font-size:11pt}
+.map{position:relative;height:96mm;border:1px solid #CFC7B6;background:#FBF8F2;margin:2mm 0}
+.map .ax{position:absolute;font-family:'IBM Plex Mono',monospace;font-size:6.8pt;color:#5E594F}
+.map .dot{position:absolute;transform:translate(50%,-50%);font-size:9.6pt;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:1.2mm}
+.map .dot:before{content:"";width:3mm;height:3mm;border-radius:50%;background:#8F877A;display:block}
+.map .dot.us:before{background:#2F6B4F;width:4.2mm;height:4.2mm}
+.map .dot.us{color:#2F6B4F;font-size:9pt}
+.cover h1{font-size:40pt;margin-top:30mm}
+.cover .logo{display:flex;align-items:center;gap:2.5mm;direction:ltr;justify-content:flex-end;font-family:'Figtree',sans-serif;font-weight:700;font-size:15pt}
+.toc li{margin:1.4mm 0;font-size:10.5pt}
+.tl{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:2px solid #1B1A17;margin:3mm 0}
+.tl>div{padding:3mm 3mm 0;border-left:1px dashed #CFC7B6;font-size:10pt}.tl>div:last-child{border-left:0}
+.tl b{display:block;font-size:11.4pt;margin-bottom:1mm}.tl .k{display:block;margin-bottom:1mm}
+.sm{font-size:10.4pt}
+.xs{font-size:9.4pt;line-height:1.45}
+.cv{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:6.6pt;letter-spacing:.02em;padding:0 1.1mm;border:1px solid #8F877A;color:#5E594F;margin-right:1mm;vertical-align:1px;white-space:nowrap}
+.cv.v{border-color:#2F6B4F;color:#2F6B4F}.cv.e{border-color:#8F7340;color:#8F7340}
+.phones{display:flex;gap:3mm;justify-content:flex-start;margin:2.5mm 0}
+.phones figure{margin:0;flex:1;text-align:center}.phones img{width:100%;border:1px solid #CFC7B6;border-radius:2.5mm;display:block}
+.phones figcaption{font-size:8.6pt;color:#5E594F;margin-top:1mm}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:8.4pt;direction:ltr;text-align:left;background:#1B1A17;color:#F6F1E7;padding:2.5mm 3.5mm;white-space:pre-wrap;line-height:1.5}
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:6mm;align-items:start}
+.chk li{list-style:none;position:relative}.chk{padding-right:5mm}.chk li:before{content:"☐";position:absolute;right:-5mm;color:#2F6B4F}
+table.tight td,table.tight th{padding:1.3mm 1.4mm}</style></head><body><section class="page paper cover"><div class="logo"><svg viewBox="0 0 132 132" width="30" height="30"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg><span>Open Studio</span></div>
+<div class="k" style="margin-top:20mm">מחקר ותוכנית · אוקטובר 2026</div>
+<h1>מפת האמנות<br>של העולם, בחינם</h1>
+<p class="big" style="max-width:160mm">איך לדעת, בכל מדינה, אילו מוסדות אמנות קיימים ומה מוצג בהם היום, בלי לשלם על זה. מתחילים בישראל ומדייקים עד הסוף, ובונים כך שאותו מנגנון יעבוד בכל מקום.</p>
+<div style="margin-top:12mm;display:grid;grid-template-columns:repeat(3,1fr);gap:4mm">
+<div class="card"><div class="num">0 ₪</div><span class="sm">עלות חודשית בתוכנית המוצעת</span></div>
+<div class="card"><div class="num">43/44</div><span class="sm">אתרי מוסדות בישראל שיש להם לפחות ערוץ אחד שאפשר לקרוא בצורה מסודרת</span></div>
+<div class="card"><div class="num">181MB</div><span class="sm">מפת ישראל המלאה להורדה, כקובץ אחד (44MB בפירוט נמוך יותר)</span></div></div>
+<p class="src" style="position:absolute;bottom:16mm;right:15mm;left:15mm">נכתב על ידי Claude. כל מספר מסומן: <span class="cv v">מאומת</span> נמדד או נבדק בעצמי, <span class="cv">משני</span> ממקור כתוב, <span class="cv e">הערכה</span> חישוב או ניסיון שעוד לא נבדק בשטח.</p></section><section class="page "><div class="head"><div><div class="k">בשורה אחת</div><h2>התשובה, לפני הפרטים</h2></div><div class="dept">מפת האמנות בעולם</div></div>
+
+<p class="lead">אין מקור אחד בעולם שיודע מה מוצג בכל גלריה היום. אבל לכל מוסד יש <b>ערוץ אחד לפחות</b> שבו הוא מפרסם את זה בעצמו: ממשק של האתר, פיד, ניוזלטר, אינסטגרם. התוכנית היא לקרוא <b>כל מוסד מהערוץ הכי מדויק שיש לו</b>, להצליב, ולסמן כמה אנחנו בטוחים.</p>
+<div class="cols" style="margin-top:4mm"><div class="box g"><h3>פעם בחודש: "מי קיים"</h3>
+<p class="sm">רשימת המוסדות בכל מדינה נבנית מחדש משלוש מפות פתוחות (Overture, OpenStreetMap, Wikidata) ומרשימה מאוצרת לכל מדינה. מסננים מה שאינו אמנות, מוצאים לכל מוסד את האתר והרשתות שלו, ומשווים לחודש הקודם: חדש נכנס, נסגר יוצא.</p></div>
+<div class="box g"><h3>כל יום: "מה מוצג"</h3>
+<p class="sm">לכל מוסד יש "מתכון קריאה" שנקבע בבדיקה החודשית: הממשק של האתר שלו, הפיד, הניוזלטר שלו שנשלח אלינו, עמוד התערוכות, ורק כשאין אחר: מודל שפה פתוח שקורא את העמוד. תערוכה שמאושרת בשני ערוצים מסומנת "מאומתת".</p></div></div>
+<h3>למה זה בחינם</h3>
+<table class="tight sm"><tr><th>מה</th><th>איפה זה רץ</th><th>המגבלה</th></tr>
+<tr><td>העבודה החודשית והיומית</td><td>GitHub Actions, במאגר ציבורי <span class="cv">משני</span></td><td>חינם ללא הגבלת דקות; עד 6 שעות לריצה</td></tr>
+<tr><td>מודל השפה</td><td>מודל פתוח (Qwen) שרץ על אותו שרת, בלי חשבון ובלי מפתח <span class="cv v">מאומת</span></td><td>איטי: כ‑80 שניות לעמוד; לכן רק לעמודים שאין להם ערוץ מסודר</td></tr>
+<tr><td>המפה והנתונים להורדה</td><td>GitHub Releases או Cloudflare R2 <span class="cv">משני</span></td><td>R2: עד 10GB בחינם, בלי תשלום על הורדות</td></tr>
+<tr><td>מפת הרקע והניווט</td><td>OpenFreeMap ו‑OSRM של OpenStreetMap <span class="cv v">מאומת</span></td><td>שימוש הוגן; בהיקף עולמי גדול נצטרך שרת משלנו (חינמי בקוד פתוח)</td></tr></table>
+<div class="box yel"><b>מה זה דורש ממך:</b> ארבע פעולות קטנות, בעמוד "מה צריך ממך": לאשר הרצת המודל הפתוח, לפתוח כתובת מייל לאפליקציה בשביל ניוזלטרים, (בהמשך) חשבון אינסטגרם עסקי לאפליקציה, ולשלוח מייל לערב רב. אף אחת מהן לא עולה כסף.</div><div class="foot"><span>Open Studio · מפת האמנות בעולם</span><span>אוקטובר 2026 · עמוד 2</span></div></section><section class="page "><div class="head"><div><div class="k">הארכיטקטורה</div><h2>איך זה עובד, מתחילתו ועד הטלפון</h2></div><div class="dept">מפת האמנות בעולם</div></div>
+
+<h3>1. פעם בחודש, לכל מדינה</h3>
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:2.5mm;margin:2mm 0"><div class="card" style="background:#E3EDE7;border-color:#E3EDE7"><b class="sm">מפות פתוחות</b><div class="xs">Overture · OpenStreetMap · Wikidata</div></div><div class="card" style="background:#E3EDE7;border-color:#E3EDE7"><b class="sm">רשימה מאוצרת</b><div class="xs">משרדי תרבות, איגודי מוזיאונים, רשימות גלריות</div></div><div class="card" style="background:#EFE9DD;border-color:#EFE9DD"><b class="sm">סינון</b><div class="xs">אמנות חזותית בלבד; ציון ביטחון לכל מקום</div></div><div class="card" style="background:#EFE9DD;border-color:#EFE9DD"><b class="sm">פרופיל לכל מוסד</b><div class="xs">אתר · פיד · ממשק · ניוזלטר · אינסטגרם</div></div><div class="card" style="background:#F3EBD3;border-color:#F3EBD3"><b class="sm">השוואה</b><div class="xs">חדש / לא מאומת / נסגר + דוח</div></div></div>
+<h3>2. כל בוקר, לכל מוסד</h3>
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:2.5mm;margin:2mm 0"><div class="card" style="background:#E3EDE7;border-color:#E3EDE7"><b class="sm">ערוץ מסודר</b><div class="xs">ממשק האתר (WordPress), RSS, יומן</div></div><div class="card" style="background:#E3EDE7;border-color:#E3EDE7"><b class="sm">ניוזלטר</b><div class="xs">מיילים שהמוסד שולח אלינו</div></div><div class="card" style="background:#EFE9DD;border-color:#EFE9DD"><b class="sm">עמוד התערוכות</b><div class="xs">קורא לפי כללים, בדפדפן אמיתי</div></div><div class="card" style="background:#EFE9DD;border-color:#EFE9DD"><b class="sm">מודל פתוח</b><div class="xs">רק מה שהכללים לא הצליחו</div></div><div class="card" style="background:#F3EBD3;border-color:#F3EBD3"><b class="sm">הצלבה</b><div class="xs">שני ערוצים = מאומת; תאריך חייב להופיע במקור</div></div></div>
+<h3>3. בטלפון</h3>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2.5mm;margin:2mm 0"><div class="card" style="background:#E3EDE7;border-color:#E3EDE7"><b class="sm">"הורד את ישראל"</b><div class="xs">מפה (<bdi dir="ltr">44–181M</bdi>B) + מוסדות + תערוכות</div></div><div class="card" style="background:#EFE9DD;border-color:#EFE9DD"><b class="sm">עובד בלי רשת</b><div class="xs">מפה, כרטיסים, ניווט ממה שנשמר</div></div><div class="card" style="background:#F3EBD3;border-color:#F3EBD3"><b class="sm">עדכון יומי קטן</b><div class="xs">רק מה שהשתנה, עשרות KB</div></div></div>
+<div class="cols" style="margin-top:3mm"><div class="box"><b>למה כך:</b> כל שכבה זולה ואמינה יותר מזו שאחריה. ממשק של אתר נותן כותרת ותאריכים בלי ניחוש; מודל שפה הוא הגיבוי היקר והאיטי, ולכן הוא אחרון.</div>
+<div class="box"><b>אותו קוד לכל מדינה:</b> המדינה היא פרמטר. ישראל היא הראשונה; כל מדינה חדשה היא רשימה מאוצרת ותיבת דואר, לא מערכת חדשה.</div></div><div class="foot"><span>Open Studio · מפת האמנות בעולם</span><span>אוקטובר 2026 · עמוד 3</span></div></section><section class="page "><div class="head"><div><div class="k">החודשי</div><h2>מאיפה יודעים אילו מוסדות קיימים</h2></div><div class="dept">מפת האמנות בעולם</div></div>
+
+<table class="tight xs"><tr><th>מקור</th><th>מה נותן</th><th>ישראל</th><th>רישיון</th><th>מה צריך</th></tr>
+<tr><td><b>Overture Maps</b> (Meta, Microsoft, Amazon ועוד)</td><td>מקומות בכל העולם, מתעדכן כל חודש, עם קטגוריה, אתר, טלפון ורשתות</td><td>1,949 מוסדות תרבות ואמנות; 1,019 מסומנים גלריה או מוזיאון לאמנות; ל‑69% יש אתר <span class="cv v">מאומת</span></td><td>CDLA‑Permissive 2.0 <span class="cv">משני</span></td><td>כלום: נקרא ישירות מהמאגר הציבורי שלהם (נבנה: survey.py)</td></tr>
+<tr><td><b>OpenStreetMap</b></td><td>מיקום מדויק ואת הבניין עצמו (קווי מתאר וגובה) לתלת‑ממד</td><td>כבר בשימוש: 104 מתוך 132 עם בניין <span class="cv v">מאומת</span></td><td>ODbL (ייחוס)</td><td>כלום</td></tr>
+<tr><td><b>Wikidata</b></td><td>מוזיאונים וגלריות לאמנות, קישורים, תאריך סגירה</td><td>כבר בשימוש <span class="cv v">מאומת</span></td><td>CC0</td><td>כלום</td></tr>
+<tr><td><b>Foursquare Open Places</b></td><td>עוד 100M+ מקומות בעולם, עם קטגוריות מפורטות</td><td>לא נבדק עדיין</td><td>Apache 2.0 <span class="cv">משני</span></td><td>הרשמה חינמית להורדה</td></tr>
+<tr><td><b>רשימות מאוצרות</b></td><td>מי באמת בעולם האמנות: משרד התרבות, איגוד המוזיאונים, איגוד האמנים, אמנים מקומיים</td><td>116 מקומות ברשימה שלנו <span class="cv v">מאומת</span></td><td>עובדות</td><td>מחקר חד‑פעמי לכל מדינה; עדכון בדוח החודשי</td></tr></table>
+<div class="cols"><div><h3>מה הסינון צריך לעשות</h3>
+<p class="sm">Overture מסמן כ"גלריה" גם סטודיו לקרמיקה, מסגרייה וחנות יודאיקה. בבדיקה של 25 הראשונים בישראל: בערך מחציתם אינם מרחבי אמנות <span class="cv v">מאומת</span>. לכן כל מקום מקבל ציון:</p>
+<ul class="sm"><li>ברשימה המאוצרת, או ב‑Wikidata כמוזיאון/גלריה לאמנות: <b>בפנים</b>.</li>
+<li>באתר שלו יש עמוד "תערוכות" עם תאריכים: <b>בפנים</b> (הבדיקה החודשית מוצאת זאת לבד).</li>
+<li>בשם או באתר "מסגור", "סדנה", "חנות", "יודאיקה", "קורס": <b>בחוץ</b>.</li>
+<li>השאר: <b>מועמד</b> בדוח החודשי, להחלטה (שלך, או של הגלריה כשתירשם).</li></ul></div>
+<div><h3>פרופיל לכל מוסד</h3>
+<p class="sm">הבדיקה החודשית גם קובעת לכל מוסד <b>איך לקרוא אותו מחר</b>: האם יש לאתר ממשק WordPress עם סוג תוכן "תערוכות", פיד RSS, טופס הרשמה לניוזלטר, קישור לאינסטגרם. זה נשמר כ"מתכון" שהעבודה היומית משתמשת בו.</p>
+<div class="box"><b>בעולם:</b> בהולנד Overture מכיר 4,311 גלריות ומוזיאונים לאמנות, ל‑87% מהם אתר <span class="cv v">מאומת</span>. אותו מנגנון מתאים לכל מדינה; מה שמשתנה הוא הרשימה המאוצרת והשפה של כללי הסינון.</div></div></div><div class="foot"><span>Open Studio · מפת האמנות בעולם</span><span>אוקטובר 2026 · עמוד 4</span></div></section><section class="page "><div class="head"><div><div class="k">היומי</div><h2>מאיפה יודעים מה מוצג היום</h2></div><div class="dept">מפת האמנות בעולם</div></div>
+
+<p class="sm">בדקתי את 64 האתרים של המוסדות שעל המפה בישראל (44 ענו מכאן): מה כל אתר חושף. לפי זה נבנה סדר הערוצים, מהמדויק לגיבוי.</p>
+<table class="tight xs"><tr><th>ערוץ</th><th class="c">מתוך 44 אתרים</th><th>מה נותן</th><th>מה צריך</th></tr><tr><td><b>ממשק האתר (WordPress REST)</b> <span class="cv v">מאומת</span></td><td class="c">23 (52%)</td><td>רשימת התערוכות כנתונים: כותרת, קישור, לעתים תאריכים</td><td>כלום</td></tr><tr><td><b>פיד RSS / Atom</b> <span class="cv v">מאומת</span></td><td class="c">22 (50%)</td><td>פרסומים חדשים של המוסד, כולל פתיחות</td><td>כלום</td></tr><tr><td><b>ניוזלטר</b> <span class="cv v">מאומת</span></td><td class="c">29 (66%)</td><td>הזמנות לפתיחה, תאריכים, אמנים, ישר מהמוסד</td><td>כתובת מייל לאפליקציה</td></tr><tr><td><b>אינסטגרם (הממשק הרשמי)</b> <span class="cv">משני</span></td><td class="c">35 (80%)</td><td>פוסטים של פתיחות וסיורים, עם תאריך</td><td>חשבון אינסטגרם עסקי + אפליקציית Meta (חינם)</td></tr><tr><td><b>עמוד התערוכות (כללים)</b> <span class="cv v">מאומת</span></td><td class="c">—</td><td>מה שכבר רץ היום: 73 תערוכות ב‑24 מקומות</td><td>כלום</td></tr><tr><td><b>מודל שפה פתוח</b> <span class="cv v">מאומת</span></td><td class="c">—</td><td>כל עמוד שהכללים לא קראו; נבדק על 5 מוזיאונים, בלי טעויות</td><td>אישור שלך להתקנה בשרת</td></tr></table>
+<div class="cols"><div><h3>מה גיליתי</h3>
+<ul class="sm"><li><b>WordPress הוא מכרה זהב.</b> 23 מהאתרים חושפים את הממשק הרשמי של WordPress, ורבים מהם עם סוג תוכן "exhibition" (בית האמנים ת"א, רוזנפלד, גלריה בארי, בית האמנים ירושלים, הכט, צ'לושה, חזי כהן). זה ממשק שהאתר עצמו מפרסם, בלי לנחש מבנה של עמוד <span class="cv v">מאומת</span>.</li>
+<li><b>אף אתר לא מסמן את התערוכות כ"נתונים מובנים"</b> (Schema.org Event) <span class="cv v">מאומת</span>. אז אי אפשר להסתמך על זה כמו בעולם המסעדות.</li>
+<li><b>30 מתוך 44 (68%) יש ממשק או פיד</b>, ו‑43 מתוך 44 ערוץ כלשהו <span class="cv v">מאומת</span>.</li></ul></div>
+<div><h3>מקורות מרכזים</h3>
+<ul class="sm"><li><b>"מה קורה" (Makore):</b> מותר לקריאה; ממנו כבר יש 21 פתיחות ושיחות ו‑17 שמות תערוכות <span class="cv v">מאומת</span>.</li>
+<li><b>ערב רב:</b> המקור הטוב ביותר בישראל, וחוסם במפורש בוטים של בינה מלאכותית <span class="cv v">מאומת</span>. הדרך: שותפות, הזנה משותפת.</li>
+<li><b>Time Out:</b> מאחורי חומת Cloudflare; לא עוקפים <span class="cv v">מאומת</span>.</li>
+<li><b>בעולם:</b> e‑flux שולח הודעות במייל על תערוכות במוסדות <span class="cv">משני</span>; ArtRabbit (רשימות מהקהילה, בלי ממשק פתוח) <span class="cv">משני</span>; ממשק Artsy נסגר <span class="cv">משני</span>.</li></ul></div></div><div class="foot"><span>Open Studio · מפת האמנות בעולם</span><span>אוקטובר 2026 · עמוד 5</span></div></section><section class="page "><div class="head"><div><div class="k">ניוזלטרים ואינסטגרם</div><h2>שני הערוצים שהמוסדות עצמם הכי משתמשים בהם</h2></div><div class="dept">מפת האמנות בעולם</div></div>
+
+<div class="cols"><div><h3>ניוזלטרים: תיבת דואר לאפליקציה</h3>
+<p class="sm">29 מתוך 44 אתרים מציעים הרשמה לניוזלטר <span class="cv v">מאומת</span>. מוסד ששולח הזמנה לפתיחה מספר בדיוק מה שאנחנו צריכים: שם, אמנים, תאריך, שעה. והוא שולח את זה <b>אלינו, מרצונו</b>: אין שאלה של גלישה אוטומטית.</p>
+<div class="steps sm"><div class="step"><div>פותחים כתובת מייל לאפליקציה (למשל Gmail, חינם).</div></div>
+<div class="step"><div>נרשמים לניוזלטר של כל מוסד שיש לו (חד‑פעמי; אני יכול להכין את הרשימה עם הקישורים).</div></div>
+<div class="step"><div>העבודה היומית קוראת את התיבה (IMAP, עם "סיסמת אפליקציה"), מזהה מאיזה מוסד המייל, ומוציאה ממנו תערוכות ופתיחות בכללים, ובמודל רק אם צריך.</div></div></div>
+<div class="box"><b>בעולם:</b> אותה תיבה עובדת לכל מדינה. אפשר גם Cloudflare Email Routing (חינם) עם כתובת לכל מדינה <span class="cv">משני</span>.</div></div>
+<div><h3>אינסטגרם: רק בדרך הרשמית</h3>
+<p class="sm">35 מתוך 44 אתרים מקשרים לאינסטגרם <span class="cv v">מאומת</span>, ולגלריות קטנות זה לעתים הערוץ היחיד. קריאה אוטומטית של אינסטגרם בלי רשות אסורה בתנאים שלהם ונחסמת.</p>
+<p class="sm">הדרך הרשמית והחינמית: ממשק <b>Business Discovery</b> של Meta. הוא מחזיר נתונים ופוסטים ציבוריים של חשבונות עסקיים ויוצרים אחרים, דרך חשבון אינסטגרם עסקי של האפליקציה עצמה <span class="cv">משני</span>.</p>
+<ul class="sm"><li>צריך: חשבון אינסטגרם עסקי ל‑Open Studio, דף פייסבוק מקושר, ואפליקציית מפתחים של Meta. הכול חינם.</li>
+<li>לבדוק בהקמה: אם נדרש אישור של Meta ("App Review"), וכמה קריאות בשעה מותרות (מקור משני מדבר על כ‑200) <span class="cv e">הערכה</span>.</li>
+<li>מה נשמר: רק העובדה (תערוכה, תאריך, קישור לפוסט). לא תמונות ולא טקסטים.</li></ul>
+<div class="box yel"><b>ההמלצה:</b> שלב 2, אחרי שהניוזלטרים והממשקים רצים. זה הערוץ הכי עשיר לגלריות הקטנות, אבל גם התלוי ביותר בצד שלישי.</div></div></div><div class="foot"><span>Open Studio · מפת האמנות בעולם</span><span>אוקטובר 2026 · עמוד 6</span></div></section><section class="page "><div class="head"><div><div class="k">מודלי שפה בחינם</div><h2>מה נבדק, מה עובד, ומה לא</h2></div><div class="dept">מפת האמנות בעולם</div></div>
+
+<table class="tight xs"><tr><th>אפשרות</th><th>עלות</th><th>מה נדרש</th><th>מה מצאתי</th></tr>
+<tr><td><b>מודל פתוח על השרת של GitHub</b> (Ollama + Qwen 2.5)</td><td class="y">0</td><td>אישור שלך להתקין את Ollama בעבודה היומית</td><td>נבדק על 5 מוזיאונים: 7B מצא כותרות, אמנים ותאריכי נעילה נכון, בלי המצאות; 84 שניות לעמוד. 3B: 39 שניות, בלי תאריכים <span class="cv v">מאומת</span></td></tr>
+<tr><td><b>Gemini, שכבה חינמית</b> (Google)</td><td class="y">0</td><td>מפתח מ‑Google AI Studio, בלי כרטיס אשראי <span class="cv">משני</span></td><td>מהיר; מכסה יומית (מקורות משניים: כ‑15 בדקה וכ‑1,500 ביום ל‑Flash, משתנה) <span class="cv">משני</span>. בשכבה החינמית Google עשויה להשתמש בנתונים לשיפור השירות <span class="cv e">הערכה</span></td></tr>
+<tr><td><b>GitHub Models</b></td><td>0</td><td>כלום</td><td class="n">לא עובד: כל כתובת עונה "OK" בלי מודל מאחוריה <span class="cv v">מאומת</span></td></tr>
+<tr><td><b>Claude</b> (Anthropic)</td><td class="n"><bdi dir="ltr">15–30$</bdi> לחודש</td><td>מפתח וכרטיס אשראי</td><td>הכי מדויק; מוכן בקוד, כבוי. רלוונטי כשיהיה תקציב</td></tr></table>
+<div class="cols"><div><h3>איך המודל לא ממציא</h3>
+<ul class="sm"><li>כותרת שלא מופיעה בעמוד <b>נזרקת</b>.</li><li>תאריך שלא מופיע בעמוד <b>נמחק</b>.</li><li>אמן שלא מופיע בעמוד <b>נמחק</b>.</li><li>תערוכה שנגמרה <b>נזרקת</b>.</li>
+<li>עמוד שלא השתנה לא נשלח שוב (התשובה נשמרת).</li></ul>
+<p class="sm">הבדיקות האלה נבדקו עם תשובה מזויפת שכללה המצאות: כולן נתפסו <span class="cv v">מאומת</span>.</p></div>
+<div><h3>למה מודל פתוח ולא Gemini</h3>
+<p class="sm">אין חשבון, אין מפתח, אין מכסה שיכולה להשתנות, ואין נתונים שיוצאים לצד שלישי. המחיר: איטיות. כ‑80 שניות לעמוד, ובתקציב של 3 שעות ביום זה כ‑130 עמודים <span class="cv e">הערכה</span>. מספיק לישראל, כי המודל רץ רק על עמודים שאין להם ממשק, פיד או כללים שעובדים, ועמוד שלא השתנה לא נקרא שוב.</p>
+<div class="box yel"><b>מה עצר:</b> התקנת Ollama מריצה בכל בוקר סקריפט התקנה מהאינטרנט, ומערכת ההרשאות בסשן עצרה את זה עד שתאשר. חלופה בטוחה יותר: הגרסה הרשמית שלהם כקונטיינר נעול לגרסה.</div></div></div><div class="foot"><span>Open Studio · מפת האמנות בעולם</span><span>אוקטובר 2026 · עמוד 7</span></div></section><section class="page "><div class="head"><div><div class="k">אמינות</div><h2>איך יודעים שמה שבמפה נכון היום</h2></div><div class="dept">מפת האמנות בעולם</div></div>
+
+<div class="cols"><div><h3>שלוש רמות לכל תערוכה</h3>
+<table class="tight sm"><tr><th>רמה</th><th>מתי</th><th>מה רואים באפליקציה</th></tr>
+<tr><td class="y">מאומתת</td><td>ממשק, פיד או ניוזלטר של המוסד; או שני ערוצים מסכימים</td><td>תערוכה רגילה, עם תאריכים</td></tr>
+<tr><td class="m">סבירה</td><td>ערוץ אחד: עמוד האתר, מודל, אינסטגרם</td><td>"לפי האתר של המוסד, נקרא היום"</td></tr>
+<tr><td class="n">רמז</td><td>שם בלבד מסיור או משיחה ב"מה קורה"</td><td>"הוזכרה בסיור החודש"</td></tr></table>
+<h3>מה כבר קיים</h3>
+<ul class="sm"><li>דוח בריאות יומי לכל מקור (נקרא / לא ענה / אין תאריכים).</li><li>תערוכה לא נעלמת כשאתר נופל ליום.</li><li>הכרטיס אומר למה אין תערוכות כשאין.</li><li>בדיקה לפני כל פרסום של האפליקציה: מפה, ניווט, נתונים.</li></ul></div>
+<div><h3>מה נוסיף</h3>
+<ul class="sm"><li><b>הצלבה:</b> אותה תערוכה משני ערוצים מקבלת רמה גבוהה.</li><li><b>תיקון מהשטח:</b> כפתור "משהו לא נכון?" בכרטיס, שנכנס לדוח.</li>
+<li><b>המוסד עצמו:</b> טופס חינמי שבו גלריה מוסיפה או מתקנת תערוכה, ואחרי אימות פעם אחת היא מקור "מאומת" קבוע.</li>
+<li><b>יעד מדיד:</b> בכל דוח יומי, כמה מהמוסדות במפה מציגים תערוכה עם תאריכים. היום: 24 מתוך 132.</li></ul>
+<div class="box"><b>חוק ומוסר:</b> נשמרות רק עובדות (שם, אמנים, תאריכים, קישור), שאינן מוגנות כשלעצמן <span class="cv e">הערכה</span>. robots.txt מכובד, אינסטגרם רק דרך הממשק הרשמי, תמונות רק ברשות. בית משפט בפתח תקווה (2013) ראה בפרסום RSS רשות לשימוש עם ייחוס <span class="cv">משני</span>. תיקון 13 לחוק הגנת הפרטיות (2025) מחמיר על מידע אישי <span class="cv">משני</span>: אנחנו שומרים מידע של מוסדות, לא של אנשים.</div></div></div><div class="foot"><span>Open Studio · מפת האמנות בעולם</span><span>אוקטובר 2026 · עמוד 8</span></div></section><section class="page "><div class="head"><div><div class="k">מפה להורדה</div><h2>"טס לישראל? הורד את ישראל"</h2></div><div class="dept">מפת האמנות בעולם</div></div>
+
+<div class="cols"><div><h3>מה המשתמש מקבל</h3>
+<p class="sm">כפתור "הורד מדינה". בהורדה: מפת הרקע של המדינה (קובץ אחד), כל המוסדות עם הבניינים שלהם, והתערוכות. מכאן האפליקציה עובדת גם בלי רשת. כשיש רשת, נטען רק העדכון היומי.</p>
+<table class="tight sm"><tr><th>חלק</th><th>גודל לישראל</th></tr>
+<tr><td>מפה מלאה (עד רמת בניין, זום 15)</td><td>181 MB <span class="cv v">מאומת</span></td></tr>
+<tr><td>מפה בפירוט נמוך (זום 13)</td><td>44 MB <span class="cv v">מאומת</span></td></tr>
+<tr><td>מוסדות + בניינים</td><td>כ‑70 KB <span class="cv v">מאומת</span></td></tr>
+<tr><td>תערוכות, עדכון יומי</td><td>עשרות KB <span class="cv v">מאומת</span></td></tr></table>
+<p class="sm">הצעה: ברירת מחדל 44MB לכל המדינה, ופירוט מלא רק לערים שיש בהן אמנות (תל אביב, ירושלים, חיפה) <span class="cv e">הערכה</span>.</p></div>
+<div><h3>איך זה בנוי</h3>
+<ul class="sm"><li><b>PMTiles:</b> כל המפה של מדינה בקובץ אחד, נחתך מהבנייה היומית הפתוחה של Protomaps בפקודה אחת. מדדתי את זה על ישראל <span class="cv v">מאומת</span>.</li>
+<li><b>אחסון חינם:</b> GitHub Releases (קבצים עד 2GB, במאגר ציבורי), או Cloudflare R2: 10GB בחינם, הורדות בלי תשלום <span class="cv">משני</span>. ישראל + 30 מדינות בגודל דומה נכנסות.</li>
+<li><b>בטלפון:</b> הקובץ נשמר באחסון של הדפדפן (OPFS). MapLibre, שכבר מצייר את המפה שלנו, קורא PMTiles ישירות.</li>
+<li><b>עדכון חודשי:</b> המפה של מדינה מתעדכנת פעם בחודש, עם רשימת המוסדות.</li></ul>
+<div class="box yel"><b>לבדוק:</b> באייפון, Safari מגביל אחסון לאתרים שלא הותקנו כאפליקציה; אחרי "הוסף למסך הבית" המגבלה גבוהה יותר <span class="cv e">הערכה</span>. לבדוק על מכשיר אמיתי לפני שמבטיחים.</div></div></div><div class="foot"><span>Open Studio · מפת האמנות בעולם</span><span>אוקטובר 2026 · עמוד 9</span></div></section><section class="page "><div class="head"><div><div class="k">בעולם</div><h2>איך מגיעים מכאן לכל מדינה</h2></div><div class="dept">מפת האמנות בעולם</div></div>
+
+<div class="tl"><div><span class="k">שלב 1 · חודש</span><b>ישראל עד הסוף</b>ממשקי WordPress ו‑RSS, תיבת ניוזלטרים, מודל פתוח, השלמת אתרים למוסדות שאין להם. יעד: רוב המוסדות הפעילים עם תערוכה מתוארכת <span class="cv e">הערכה</span>.</div>
+<div><span class="k">שלב 2</span><b>אינסטגרם + המוסדות עצמם</b>Business Discovery; טופס לגלריות; שותפות עם ערב רב.</div>
+<div><span class="k">שלב 3</span><b>5 ערי אמנות</b>למשל לונדון, ברלין, ניו יורק, פריז, ליסבון: Overture + רשימה מאוצרת + אותו מנגנון.</div>
+<div><span class="k">שלב 4</span><b>מדינה אחרי מדינה</b>"הורד מדינה"; כל מדינה היא רשימה ותיבת דואר.</div></div>
+<div class="cols" style="margin-top:4mm"><div><h3>מה משתנה ממדינה למדינה</h3>
+<ul class="sm"><li>הרשימה המאוצרת: גוף רשמי בכל מדינה (משרד התרבות, איגוד מוזיאונים, איגוד גלריות).</li><li>שפה: מילות סינון ("galerie", "Kunsthalle"), פורמט תאריכים, שמות חודשים.</li><li>מקורות מרכזים מקומיים (בכל עיר אמנות יש "ערב רב" משלה).</li></ul>
+<h3>מה לא משתנה</h3><ul class="sm"><li>הקוד, סדר הערוצים, הבדיקות, האפליקציה.</li></ul></div>
+<div><h3>גבולות החינם</h3>
+<table class="tight xs"><tr><th>משאב</th><th>מתי זה נגמר</th><th>מה אז</th></tr>
+<tr><td>זמן מודל (3 שעות ביום לכל ריצה)</td><td>כשרוב העמודים במדינה צריכים מודל</td><td>ריצה נפרדת לכל מדינה, במקביל <span class="cv e">הערכה</span></td></tr>
+<tr><td>ניווט (OSRM ציבורי)</td><td>בשימוש של אלפי משתמשים</td><td>שרת OSRM משלנו (קוד פתוח), או מוגבל לאזור</td></tr>
+<tr><td>אחסון מפות (10GB ב‑R2)</td><td>כ‑50 מדינות</td><td>GitHub Releases (אין מגבלת גודל כוללת ידועה) <span class="cv e">הערכה</span></td></tr></table></div></div><div class="foot"><span>Open Studio · מפת האמנות בעולם</span><span>אוקטובר 2026 · עמוד 10</span></div></section><section class="page "><div class="head"><div><div class="k">מה צריך ממך</div><h2>ארבע פעולות, אף אחת לא עולה כסף</h2></div><div class="dept">מפת האמנות בעולם</div></div>
+
+<div class="steps"><div class="step"><div><b>לאשר את המודל הפתוח בעבודה היומית.</b> התקנת Ollama (רצוי כקונטיינר נעול לגרסה) והרצת Qwen 2.5 על השרת של GitHub. בלי זה, המודל לא רץ. בצ'אט: "מאשר את Ollama", והתרה בהרשאות הסשן.</div></div>
+<div class="step"><div><b>לפתוח כתובת מייל לאפליקציה</b> (למשל artmap.openstudio@gmail.com), להפעיל אימות דו‑שלבי ו"סיסמת אפליקציה", ולשמור אותה ב‑GitHub כסוד בשם <span class="ltr">ART_MAIL_PASSWORD</span>. אכין את רשימת הניוזלטרים עם הקישורים, ותירשם (או נרשום ביחד).</div></div>
+<div class="step"><div><b>(שלב 2) חשבון אינסטגרם עסקי ל‑Open Studio</b> עם דף פייסבוק, ואפליקציית מפתחים של Meta. אדריך צעד אחר צעד כשנגיע לזה.</div></div>
+<div class="step"><div><b>מייל לערב רב.</b> הצעת שותפות: הם המדריך הטוב בארץ; אנחנו מביאים מפה, ניווט וקהל. אכין טיוטה.</div></div></div>
+<h3>מה אני עושה בלי לחכות</h3>
+<ul class="sm"><li>קורא ממשקי WordPress ופידי RSS של המוסדות (כבר עכשיו, בלי שום אישור).</li><li>משלב את Overture בבדיקה החודשית, עם ציון ביטחון וסינון.</li>
+<li>משלים אתרים למוסדות שאין להם, ומסמן "מתכון קריאה" לכל מוסד.</li><li>שלוש רמות ביטחון לתערוכה באפליקציה.</li></ul>
+<div class="box g"><b>היעד:</b> בכל בוקר, דוח אחד שאומר כמה מהמוסדות במפה מציגים היום תערוכה עם תאריכים, ומאיזה ערוץ זה הגיע. ישראל קודם, עד שהמספר הזה גבוה ויציב.</div><div class="foot"><span>Open Studio · מפת האמנות בעולם</span><span>אוקטובר 2026 · עמוד 11</span></div></section><section class="page "><div class="head"><div><div class="k">מקורות</div><h2>מה נמדד ומאיפה</h2></div><div class="dept">מפת האמנות בעולם</div></div>
+
+<h3>נמדד בעצמי (29.10.2026)</h3>
+<ul class="xs"><li>64 אתרי המוסדות שעל המפה; 44 ענו: ממשק WordPress 23, RSS 22, ניוזלטר 29, אינסטגרם 35, פייסבוק 38, Schema.org Event 0.</li>
+<li>Overture Maps, גרסה 2026‑10‑21.0, דרך survey.py על השרת של GitHub: ישראל 1,949 / 1,019; הולנד 10,234 / 4,311.</li>
+<li>Protomaps, הבנייה היומית, נחתכה לגבולות ישראל: 181,004,820 בתים (זום 15), 44,459,077 (זום 13).</li>
+<li>Qwen 2.5 3B ו‑7B דרך Ollama על מכונת GitHub Actions רגילה: 5 מוזיאונים, 39 ו‑84 שניות לעמוד.</li>
+<li>GitHub Models: models.github.ai עונה "OK" לכל בקשה (שלוש כתובות).</li>
+<li>ערב רב: robots.txt חוסם את ClaudeBot. Time Out: אתגר Cloudflare. "מה קורה": מותר.</li>
+<li>הנתונים של המפה היום: 132 מוסדות, 64 עם אתר, 73 תערוכות ב‑24 מוסדות.</li></ul>
+<h3>מקורות כתובים</h3>
+<ul class="xs"><li>Overture Maps Places: Google Earth Engine catalog; DVRPC data catalog (רישיון CDLA‑Permissive 2.0, עדכון חודשי).</li>
+<li>Foursquare Open Source Places: foursquare.com/resources/blog (Apache 2.0).</li>
+<li>Cloudflare R2 pricing: developers.cloudflare.com/r2/pricing. Cloudflare Email Routing limits: developers.cloudflare.com/email-routing/limits.</li>
+<li>GitHub Actions billing: docs.github.com, "How use of GitHub Actions is measured"; github.blog changelog 2025‑12‑16.</li>
+<li>Instagram Business Discovery: developers.facebook.com/documentation/instagram-platform.</li>
+<li>Gemini API rate limits: ai.google.dev/gemini-api/docs/rate-limits; מדריכים משניים 2026.</li>
+<li>Artsy public API retirement: developers.artsy.net. ArtRabbit: artrabbit.com/about. e‑flux: e-flux.com.</li>
+<li>Israel, RSS ruling 2013: plagiarismtoday.com; Amendment 13: law.ungovr.org/ai/il.</li>
+<li>Protomaps / PMTiles: wiki.openstreetmap.org/wiki/PMTiles; docs.protomaps.com.</li></ul><div class="foot"><span>Open Studio · מפת האמנות בעולם</span><span>אוקטובר 2026 · עמוד 12</span></div></section></body></html>
