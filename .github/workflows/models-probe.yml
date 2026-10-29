@@ -22,6 +22,8 @@ jobs:
       - name: Ollama
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
+          (ollama serve > /tmp/ollama.log 2>&1 &)
+          until curl -s http://127.0.0.1:11434/api/version; do sleep 1; done
           for m in ${{ inputs.models }}; do ollama pull $m; done
       - name: Read a few places with each model
         run: |
