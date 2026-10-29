@@ -1,36 +1,22 @@
 # Art places, 2026-10-29
 
-118 places: museum 49, public 29, artist-run 1, academy 2, commercial 36, centre 1; curated 66, with a building 99
+132 places: museum 52, public 40, artist-run 1, academy 2, commercial 36, centre 1; curated 80, with a building 104
 
 ## Notes
-- not found on the map: Wilfrid Israel Museum (HaZorea)
-- not found on the map: Beit Uri and Rami Nehushtan Museum (Ashdot Ya'akov)
-- not found on the map: Bar David Museum (Bar'am)
-- not found on the map: Benyamini Contemporary Ceramics Center (Tel Aviv)
-- not found on the map: Tel Aviv Artists' Studios (Tel Aviv)
-- not found on the map: Jerusalem Artists' Studios (Jerusalem)
 - not found on the map: HaMekarer (Jerusalem)
 - not found on the map: Footnote Center for Art (Tel Aviv)
 - not found on the map: Toar (Tel Aviv)
 - not found on the map: Vitrer Ceramics Center (Tel Aviv)
 - not found on the map: Neve Schechter Gallery (Tel Aviv)
-- not found on the map: Be'eri Gallery (Be'eri)
 - not found on the map: Be'eri Gallery Tel Aviv (Tel Aviv)
 - not found on the map: Rehovot Municipal Gallery (Rehovot)
-- not found on the map: Rishon LeZion Municipal Art Gallery (Rishon LeZion)
-- not found on the map: Architect's House Gallery (Jaffa)
 - not found on the map: Center for Visual Arts Tel Aviv (Tel Aviv)
 - not found on the map: Studio of Her Own (Jerusalem)
-- not found on the map: Sapir College Gallery (Sderot)
 - not found on the map: Modiin Artists House (Modi'in)
-- not found on the map: Dana Gallery (Yad Mordechai)
-- not found on the map: Hankin House (Kfar Yehoshua)
 - not found on the map: Indie Photography Group (Tel Aviv)
 - not found on the map: Gallery Binyamin (Tel Aviv)
-- not found on the map: Musrara (Jerusalem)
 - not found on the map: Beit HaYotzer Afula (Afula)
 - not found on the map: Barer Arts Center (Ma'alot-Tarshiha)
-- not found on the map: Kiryat Tiv'on Art Gallery (Kiryat Tiv'on)
 - not found on the map: Ramat HaSharon Art Gallery (Ramat HaSharon)
 - not found on the map: Beit HaMashevot (Tel Aviv)
 - not found on the map: Ahad Ha'am 9 Gallery (Tel Aviv)
