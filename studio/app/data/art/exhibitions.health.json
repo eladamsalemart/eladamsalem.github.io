@@ -352,7 +352,7 @@
    "place": "hecht-museum",
    "url": "http://mushecht.haifa.ac.il",
    "auto": true,
-   "status": "unreachable: TimeoutError",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -388,7 +388,7 @@
    "place": "janco-dada-museum",
    "url": "https://www.jancodada.co.il/en/",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: Error",
    "shows": 0,
    "events": 0
   },
@@ -487,8 +487,8 @@
    "place": "museum-on-the-seam",
    "url": "https://www.mots.org.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 2,
    "events": 0
   },
   {
@@ -643,6 +643,12 @@
    "status": "nothing found",
    "shows": 0,
    "events": 0
+  },
+  {
+   "source": "model",
+   "model": "openai/gpt-4.1-mini",
+   "calls": 97,
+   "status": "ok"
   },
   {
    "source": "makore",
