@@ -454,7 +454,9 @@ function mapPage(focus) {
       <div class="am-top"><a class="am-mark" href="#/" aria-label="Open Studio, home">${LOGO.split('<span>')[0]}</a>
         <label class="am-city"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
           <select id="amCity" aria-label="Where"><option>${esc(myPlace().name)}</option></select></label>
-        <button type="button" class="am-tilt" id="amTilt" aria-label="3D or flat">2D</button></div></div>
+        <button type="button" class="am-tilt" id="amTilt" aria-label="3D or flat">2D</button></div>
+      <div class="am-nav" role="status" aria-live="polite" hidden></div>
+      <button type="button" class="am-locate" id="amLocate" data-state="off" aria-label="Show where I am"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3 3 10.5l7.6 2.9L13.5 21z" fill="currentColor"/></svg></button></div>
     <div class="am-sheet"><p class="am-empty">Loading the art map…</p></div>
   </div>`;
 }

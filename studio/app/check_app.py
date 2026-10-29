@@ -4,7 +4,8 @@ and the art map's own data must hold together.
 The map once showed only "API KEY REQUIRED" watermarks: the tile service still answered 200 with a valid picture,
 just not a map. So the map's tiles are fetched from the address artmap.js uses and looked into: a vector tile over
 central Tel Aviv must carry buildings and streets, and the fonts must cover Hebrew. The art places must be in
-Israel, of a known kind, each once; the shows must belong to places on the map.
+Israel, of a known kind, each once; the shows must belong to places on the map. Directions come from a public router:
+a walk, a ride and a drive across Tel Aviv must come back as ways along the streets.
 
 Run: python3 studio/app/check_app.py [path/to/studio/app]     (exits 1 and says why when a check fails)
 """
@@ -70,6 +71,29 @@ def map_tiles():
             ok(f'map: {what} letters ({len(g) // 1024} KB)')
 
 
+def directions():
+    """Directions are drawn in the app from the router artmap.js names: a walk and a drive across Tel Aviv must come back
+    as a way along streets, step by step (the points sent as an encoded polyline, as the app sends them)."""
+    src = (APP / 'artmap.js').read_text(encoding='utf-8')
+    router = const(src, 'ROUTER')
+    if not router:
+        return fail('directions: no ROUTER address in artmap.js')
+    line = urllib.parse.quote('sdsbEonfsEk~CcwA', safe='')          # Kiryat HaMelacha to the Tel Aviv Museum of Art
+    for path in re.findall(r"path: '([^']+)'", src):
+        url = f'{router}/{path}/route/v1/driving/polyline({line})?overview=full&geometries=geojson&steps=true'
+        try:
+            j = json.loads(get(url))
+            r = j['routes'][0]
+            steps, pts = len(r['legs'][0]['steps']), len(r['geometry']['coordinates'])
+        except Exception as e:
+            fail(f'directions: {path} gave no way ({e})')
+            continue
+        if j.get('code') != 'Ok' or steps < 3 or pts < 10 or not 1500 < r['distance'] < 12000:
+            fail(f'directions: {path} is not a way through the city ({steps} steps, {pts} points, {r.get("distance")} m)')
+        else:
+            ok(f'directions: {path}, {r["distance"] / 1000:.1f} km in {steps} steps')
+
+
 def vendor():
     for f in ('maplibre-gl.js', 'maplibre-gl.css', 'mapbox-gl-rtl-text.js'):
         p = APP / 'vendor' / 'maplibre' / f
@@ -107,6 +131,7 @@ def art_data():
 
 if __name__ == '__main__':
     map_tiles()
+    directions()
     vendor()
     art_data()
     sys.exit(1 if failed else 0)

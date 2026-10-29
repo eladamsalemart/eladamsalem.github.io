@@ -16,13 +16,14 @@ import argparse
 import datetime as dt
 import html
 import json
+import os
 import re
 import sys
 import time
 import urllib.request
 import urllib.robotparser
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 HERE = Path(__file__).resolve().parent
 APP = HERE.parent
@@ -65,7 +66,7 @@ def text_lines(page):
 
 
 def clean_title(s):
-    s = re.sub(r'\s*/\s*$', '', s).strip(' -–|·:')
+    s = re.sub(r'\s*/\s*$', '', s).strip(' -–|·:←→')
     s = re.sub(r'^(תערוכה נוכחית|תערוכה|exhibition)\s*[:|]\s*', '', s, flags=re.I)
     return s.strip()
 
@@ -104,7 +105,7 @@ def extract(lines, today):
         if len(line) > 140:
             continue
         rng = re.search(D + r'\s*(?:-|–|—|עד)\s*(?:\S+,\s*)?' + D, line)
-        close = re.search(r'(?:ננעלת|נעילה|נועלת|closes|until)\D{0,20}' + D, line, re.I)
+        close = re.search(r'(?:ננעלת|נעילה|נועלת|closes|until|^עד)\D{0,20}' + D, line, re.I)
         opens = re.search(r'(?:פתיחה|opening)\D{0,6}' + D, line, re.I)
         one = re.search(r'(?:^|\s|,)' + D + r'(?:,\s*(\d{1,2}:\d{2}))?\s*$', line)
         start = end = None
@@ -122,6 +123,12 @@ def extract(lines, today):
             title = c
             break
         if not title or len(title) < 2 or len(title) > 110:
+            continue
+        if not end and opens and re.fullmatch(r'(?:פתיחה|opening)\D{0,6}' + D + r'\s*', line, re.I) and not NOT_SHOW.search(title):
+            start = ymd(*opens.groups()[:3], today)
+            if start and today < start <= today + dt.timedelta(days=120):
+                t, artists = split_artist(title)
+                shows.append({'title': t, 'artists': artists, 'start': start.isoformat(), 'end': None})
             continue
         if end:
             if NOT_SHOW.search(title) or (start and (end - start).days > 1100) or end < today - dt.timedelta(days=1):
@@ -175,6 +182,102 @@ def fetch(url):
     req = urllib.request.Request(url, headers={'User-Agent': UA, 'Accept-Language': 'he,en'})
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read().decode('utf-8', 'ignore')
+
+
+# --- a page that builds itself in the browser (most museums' sites now): read as a visitor's browser shows it ---
+_browser = []
+
+
+def render(url):
+    """The page's text once a real browser has run it (Playwright's Chromium), one line per line on the screen.
+    Links whose text the page cuts short ("…") are given their whole title from the link itself."""
+    pg = open_page(url)
+    try:
+        text = pg.inner_text('body')
+        cut = pg.eval_on_selector_all('a', "as => as.flatMap(a => a.innerText.split('\\n').filter(t => /…\\s*←?$/.test(t.trim())).map(t => [t.trim(), a.href]))")
+    finally:
+        pg.close()
+    # a title the list cuts short ("…"): its whole name from the show's own page
+    full = {}
+    for t, href in cut[:12]:
+        try:
+            q = open_page(href)
+            h1 = q.eval_on_selector('h1', 'e => e.innerText.trim()') if q.query_selector('h1') else ''
+            q.close()
+            if h1 and h1.startswith(t.rstrip('… ←')[:12]):
+                full[t.rstrip('… ←')] = h1.split('\n')[0]
+        except Exception:
+            pass
+    lines = [re.sub(r'\s+', ' ', x).strip() for x in text.split('\n') if x.strip()]
+    return [full.get(x.rstrip('… ←'), x) for x in lines]
+
+
+def open_page(url):
+    """A page in the browser, loaded and given a moment to build itself (five seconds between pages of a site)."""
+    from playwright.sync_api import sync_playwright        # installed in the workflow; optional elsewhere
+    if not _browser:
+        import glob
+        pw = sync_playwright().start()
+        exe = sorted(glob.glob('/opt/pw-browsers/chromium-*/chrome-linux*/chrome'))
+        _browser.append(pw)
+        _browser.append(pw.chromium.launch(executable_path=exe[-1] if exe and not os.environ.get('CI') else None))
+    host = urlparse(url).netloc
+    wait = 5 - (time.time() - _last.get(host, 0))
+    if wait > 0:
+        time.sleep(wait)
+    _last[host] = time.time()
+    pg = _browser[1].new_page(user_agent=UA, locale='he-IL')
+    try:
+        pg.goto(url, wait_until='load', timeout=45000)
+        try:
+            pg.wait_for_load_state('networkidle', timeout=8000)
+        except Exception:
+            pass
+        pg.wait_for_timeout(1500)
+    except Exception:
+        pg.close()
+        raise
+    return pg
+
+
+def render_links(url, pattern):
+    """The shows on a page that lists what's on now, one link each (links whose path matches pattern): each show's
+    title from a heading in or around its link (else the link's first line), its artists from the link's next line."""
+    pg = open_page(url)
+    try:
+        items = pg.eval_on_selector_all('a', '''as => as.map(a => {
+          const h = a.querySelector('h1,h2,h3,h4,h5');
+          let box = a, head = h && h.innerText;
+          for (let i = 0; !head && i < 4 && box.parentElement; i++) { box = box.parentElement; const x = box.querySelector('h1,h2,h3,h4,h5'); if (x && box.querySelectorAll('a[href]').length <= 4) head = x.innerText; }
+          return { href: a.href, text: a.innerText.trim(), head: (head || '').trim() };
+        })''')
+    finally:
+        pg.close()
+    out, seen = [], set()
+    for it in items:
+        path = unquote(urlparse(it['href']).path)
+        if not re.search(pattern, path) or it['href'] in seen:
+            continue
+        seen.add(it['href'])
+        lines = [x.strip() for x in it['text'].split('\n') if x.strip()]
+        generic = not lines or re.fullmatch(r'[←→<> ]*(קראו עוד|קרא עוד|לפרטים|read more|more)[←→<> ]*', lines[0], re.I)
+        head = [x.strip() for x in it['head'].split('\n') if x.strip()]
+        if head and len(head) > 1 and not lines[1:2]:
+            lines = head
+        title = clean_title(head[0] if head else '' if generic else lines[0])
+        if not title:
+            title = re.sub(r'[-_]+', ' ', path.rstrip('/').split('/')[-1]).replace(' :', ':').strip().capitalize()
+        if NOT_SHOW.search(title) or len(title) > 110:
+            continue
+        artists = [a.strip() for a in lines[1].split(',')][:12] if len(lines) > 1 and not generic and len(lines[1]) < 160 and title != clean_title(lines[1]) else []
+        out.append({'title': title, 'artists': artists, 'start': None, 'end': None})
+    return out
+
+
+def close_browser():
+    if _browser:
+        _browser[1].close()
+        _browser[0].stop()
 
 
 # --- openings and gallery talks from a public events listing (מה קורה), at places on the map ------------------
@@ -238,6 +341,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--offline', help='read saved pages (<id>.html) from this folder instead of the web')
     ap.add_argument('--today')
+    ap.add_argument('--no-browser', action='store_true', help="don't read pages in a browser when the plain page has nothing")
     a = ap.parse_args()
     today = dt.date.fromisoformat(a.today) if a.today else dt.date.today()
     places = {p['id']: p for p in json.loads((APP / 'data' / 'art' / 'places.json').read_text())['places']} \
@@ -259,13 +363,29 @@ def main():
             else:
                 page = fetch(s['url'])
         except Exception as e:
-            h['status'] = f'unreachable: {type(e).__name__}'
-            health.append(h)
-            continue
+            if a.offline or a.no_browser:
+                h['status'] = f'unreachable: {type(e).__name__}'
+                health.append(h)
+                continue
+            page = ''                                    # some sites turn away plain requests but not a browser
         lines = text_lines(page)
         found, evs = extract(lines, today)
         if s['mode'] == 'colon-list':
             found = extract_colon_list(lines, today)
+        if s['mode'].startswith('links:') and not a.offline and not a.no_browser:
+            try:
+                found, h['read'] = render_links(s['url'], s['mode'][6:]), 'browser'
+            except Exception as e:
+                h['browser'] = type(e).__name__
+        elif not found and not a.offline and not a.no_browser:
+            # nothing in the page as sent: many sites build it in the browser, so read it as a browser shows it
+            try:
+                lines = render(s['url'])
+                found, evs2 = extract(lines, today)
+                evs = evs or evs2
+                h['read'] = 'browser'
+            except Exception as e:
+                h['browser'] = type(e).__name__
         for x in found:
             x.update(place=s['place'], url=s['url'], source=s['id'],
                      id=f"{s['place']}:{re.sub(r'[^0-9a-zא-ת]+', '-', x['title'].lower())[:50]}")
@@ -273,10 +393,11 @@ def main():
             x.update(place=s['place'], url=s['url'], source=s['id'])
         shows += found
         events += evs
-        h.update(status='ok' if found or evs else 'nothing found', shows=len(found), events=len(evs))
+        h.update(status='ok' if found or evs else 'nothing found' if page or 'read' in h else 'unreachable', shows=len(found), events=len(evs))
         health.append(h)
         print(f"{s['id']:<24} {h['status']:<14} {len(found)} shows, {len(evs)} events", file=sys.stderr)
 
+    close_browser()
     if places and not a.offline:
         try:
             mk = makore_events(places, today)
@@ -292,7 +413,12 @@ def main():
     first = {x['id']: x.get('first_seen') for x in prev['shows']}
     for x in shows:
         x['first_seen'] = first.get(x['id']) or today.isoformat()
-    kept = [x for x in prev['shows'] if x['source'] not in ok_sources and x['end'] >= today.isoformat()
+        x['last_seen'] = today.isoformat()
+    # a source that failed today keeps yesterday's shows: until their end, or (a show listed with no dates, as "on
+    # now") for two weeks after it was last seen
+    fortnight = (today - dt.timedelta(days=14)).isoformat()
+    kept = [x for x in prev['shows'] if x['source'] not in ok_sources
+            and (x['end'] >= today.isoformat() if x['end'] else x.get('last_seen', x.get('first_seen', '')) >= fortnight)
             and x['id'] not in {y['id'] for y in shows}]
     shows += kept
     OUT.parent.mkdir(parents=True, exist_ok=True)
