@@ -21,6 +21,7 @@ import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import urllib.robotparser
 from pathlib import Path
@@ -329,6 +330,117 @@ def render_links(url, pattern):
     return out
 
 
+# --- a site's own structured channels: its WordPress interface and its RSS feed ---------------------------------
+SHOWISH = re.compile(r'exhib|תערוכ|show', re.I)
+
+
+def dates_in(text, today):
+    """(start, end) from a show's own text: a range, else a closing date, else an opening date."""
+    t = numeric_dates(re.sub(r'\s+', ' ', text))
+    # "05.11.2026 19:00 - שבת 28.11.2026 19:00": a time after a date and a weekday before one are allowed
+    m = re.search(D + r'(?:,?\s+\d{1,2}:\d{2})?\s*(?:-|–|—|עד)\s*(?:יום\s+)?(?:[^\s\d]+,?\s+)?' + D, t)
+    if m:
+        return ymd(*m.groups()[:3], today), ymd(*m.groups()[3:6], today)
+    c = re.search(r'(?:ננעלת|נעילה|נועלת|closes|closing|until|^עד|\sעד)\D{0,20}' + D, t, re.I)
+    o = re.search(r'(?:פתיחה|opening|נפתחת|opens)\D{0,20}' + D, t, re.I)
+    return (ymd(*o.groups()[:3], today) if o else None), (ymd(*c.groups()[:3], today) if c else None)
+
+
+def html_text(h):
+    return '\n'.join(text_lines(h or ''))
+
+
+def wp_read(place, base, today):
+    """Shows from the site's WordPress interface (/wp-json): its content type for exhibitions, newest first. Each
+    entry's dates from its title and text; an entry without dates goes to the model (when there is one)."""
+    types = json.loads(fetch(base + '/wp-json/wp/v2/types'))
+    rest = [t.get('rest_base') or k for k, t in types.items() if SHOWISH.search(k + ' ' + str(t.get('name', '')) + ' ' + str(t.get('rest_base', '')))]
+    if not rest:
+        return None
+    out, pages = [], 0
+    for rb in rest[:2]:
+        items = json.loads(fetch(f'{base}/wp-json/wp/v2/{rb}?per_page=15&orderby=date&order=desc&_fields=date,modified,link,title,content,excerpt,acf'))
+        for it in items if isinstance(items, list) else []:
+            title = clean_title(html.unescape(re.sub(r'<[^>]+>', '', (it.get('title') or {}).get('rendered', ''))))
+            body = html_text((it.get('content') or {}).get('rendered', '')) + '\n' + html_text((it.get('excerpt') or {}).get('rendered', ''))
+            acf = it.get('acf') if isinstance(it.get('acf'), dict) else {}
+            body += '\n' + ' '.join(str(v) for v in acf.values() if isinstance(v, (str, int)))
+            if not title or NOT_SHOW.search(title):
+                continue
+            start, end = dates_in(title + '\n' + body[:4000], today)
+            if not start and not end and it.get('link') and pages < 6 and allowed(it['link']):
+                pages += 1                                       # the dates are on the show's own page: read it,
+                try:                                             # near its title
+                    ls = text_lines(fetch(it['link']))
+                    key = re.sub(r'\W+', '', title)[:12]
+                    at = next((i for i, l in enumerate(ls) if key and key in re.sub(r'\W+', '', l)), 0)
+                    near = ls[at:at + 30]
+                    start, end = dates_in('\n'.join(near), today)
+                    body = '\n'.join(near) + '\n' + body
+                except Exception:
+                    pass
+            if not start and not end:
+                got = model_read(place, it.get('link', base), [title] + body.split('\n')[:80], today)
+                out += [dict(x, url=it.get('link', '')) for x in got[:1]]
+                continue
+            if end and end < today or start and start > today + dt.timedelta(days=120) or (start and end and (end - start).days > 1100):
+                continue
+            t, artists = split_artist(title)
+            out.append({'title': t, 'artists': artists, 'start': start.isoformat() if start else None,
+                        'end': end.isoformat() if end else None, 'url': it.get('link', ''), 'by': 'wordpress'})
+    return out
+
+
+def rss_read(place, feed, today):
+    """Shows announced in the site's RSS/Atom feed (items about an exhibition or an opening, with dates)."""
+    x = fetch(feed)
+    items = re.findall(r'<(item|entry)\b.*?</\1>', x, re.S)
+    out = []
+    for it in items[:30]:
+        get = lambda tag: html.unescape(re.sub(r'<!\[CDATA\[|\]\]>', '', (re.search(rf'<{tag}\b[^>]*>(.*?)</{tag}>', it, re.S) or [None, ''])[1]))
+        title = clean_title(re.sub(r'<[^>]+>', '', get('title')))
+        link = get('link') or (re.search(r'<link[^>]+href="([^"]+)"', it) or [None, ''])[1]
+        body = html_text(get('content:encoded') or get('description') or get('content') or get('summary'))
+        if not title or not SHOWISH.search(title + ' ' + body[:600]) or NOT_SHOW.search(title):
+            continue
+        start, end = dates_in(title + '\n' + body[:3000], today)
+        if not start and not end or end and end < today or start and start > today + dt.timedelta(days=120):
+            continue
+        t, artists = split_artist(re.sub(r'^(?:פתיחת\s+)?תערוכה\s*:?\s*', '', title))
+        out.append({'title': t, 'artists': artists, 'start': start.isoformat() if start else None,
+                    'end': end.isoformat() if end else None, 'url': link.strip(), 'by': 'rss'})
+    return out
+
+
+def channels_read(place, today):
+    """A place's own structured channels, before its pages: (shows, which channel)."""
+    site = re.sub(r'^http://', 'https://', (place.get('website') or '').strip())
+    if not site.startswith('http'):
+        return [], ''
+    base = f'{urlparse(site).scheme}://{urlparse(site).netloc}'
+    try:
+        if allowed(base + '/wp-json/'):
+            got = wp_read(place, base, today)
+            if got:
+                return got, 'wordpress'
+    except Exception:
+        pass
+    try:
+        if allowed(site):
+            home = fetch(site)
+            m = re.search(r'<link[^>]+type="application/(?:rss|atom)\+xml"[^>]+href="([^"]+)"', home) or \
+                re.search(r'<link[^>]+href="([^"]+)"[^>]+type="application/(?:rss|atom)\+xml"', home)
+            if m and 'comments' not in m.group(1):
+                feed = urllib.parse.urljoin(site, html.unescape(m.group(1)))
+                if allowed(feed):
+                    got = rss_read(place, feed, today)
+                    if got:
+                        return got, 'rss'
+    except Exception:
+        pass
+    return [], ''
+
+
 CURRENT = re.compile(r'current|on.?view|now.?showing|נוכחי|עכשיו|מוצג', re.I)
 LISTS = re.compile(r'exhibition|תערוכ', re.I)
 PAST = re.compile(r'past|archive|previous|עבר|ארכיון|catalog|press|shop|artists?/', re.I)
@@ -361,6 +473,8 @@ def auto_read(place, today):
                     if urlparse(h).netloc.replace('www.', '') == host and not PAST.search(unquote(h)) and score(t, h)
                     and h.split('#')[0].rstrip('/') != home.split('#')[0].rstrip('/')}.items(), key=lambda x: -x[1])
     found, evs = extract(lines, today)
+    ch, via = channels_read(place, today)                 # the site's own WordPress interface or RSS feed first
+    found = merge(ch, found)
     if not found:                                         # the model reads only what the rules couldn't
         found = model_read(place, home, lines, today)
     if cands and allowed(cands[0][0]):
@@ -672,6 +786,10 @@ def main():
                 h['read'] = 'browser'
             except Exception as e:
                 h['browser'] = type(e).__name__
+        if not a.offline and not a.no_browser and s['place'] in places:
+            ch, via = channels_read(places[s['place']], today)
+            if ch:
+                found, h['via'] = merge(ch, found), via
         if not found and not a.offline and s['place'] in places:
             found = model_read(places[s['place']], s['url'], lines, today)
         for x in found:

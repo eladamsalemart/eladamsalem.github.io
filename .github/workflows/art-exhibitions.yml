@@ -10,7 +10,6 @@ on:
 
 permissions:
   contents: write
-  models: read          # GitHub Models, free: a language model reads each place's page
 
 concurrency:
   group: art-map-data
@@ -19,7 +18,7 @@ concurrency:
 jobs:
   exhibitions:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,10 +30,17 @@ jobs:
         run: |
           pip install playwright==1.64.1 anthropic==2.3.0
           python3 -m playwright install --with-deps chromium
+      - name: An open model on this machine (free), for the pages the rules can't read
+        # Ollama's own image, pinned to a version and its digest; the model is Qwen 2.5 7B
+        run: |
+          docker run -d --name ollama -p 11434:11434 ollama/ollama:0.40.13@sha256:b2f0122c476bc9fe7ce679d8bb4bd555351e25e2554eefb156f61cb0a89cf429
+          until curl -s http://127.0.0.1:11434/api/version; do sleep 1; done
+          docker exec ollama ollama pull qwen2.5:7b
       - name: Read what's on
-        # a language model also reads each page, free through GitHub Models (Claude instead if the key is set); each page once until it changes
+        # an open model reads the pages the rules can't (free, on this machine; Claude instead if the key is set); each page once until it changes
         env:
-          GITHUB_MODELS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OLLAMA_MODEL: qwen2.5:7b
+          FREE_MINUTES: '180'
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python3 studio/app/artmap/exhibitions.py
       - name: Commit to studio
