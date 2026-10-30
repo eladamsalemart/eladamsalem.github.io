@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-29",
+ "updated": "2026-10-30",
  "sources": [
   {
    "source": "haifa-museum",
@@ -37,8 +37,9 @@
    "source": "artists-house-tlv",
    "place": "tel-aviv-artists-house",
    "url": "https://www.artistshouse.org.il/",
+   "via": "wordpress",
    "status": "ok",
-   "shows": 7,
+   "shows": 15,
    "events": 0
   },
   {
@@ -73,8 +74,8 @@
    "place": "ilana-goor-museum",
    "url": "https://www.ilanagoormuseum.org/",
    "read": "browser",
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 2,
    "events": 0
   },
   {
@@ -136,8 +137,9 @@
    "place": "jerusalem-artists-house",
    "url": "https://art.org.il/%d7%aa%d7%a2%d7%a8%d7%95%d7%9b%d7%95%d7%aa-%d7%a8%d7%a6%d7%95%d7%aa/",
    "read": "browser",
+   "via": "wordpress",
    "status": "ok",
-   "shows": 3,
+   "shows": 10,
    "events": 0
   },
   {
@@ -145,8 +147,8 @@
    "place": "alfred-institute",
    "url": "https://www.alfredinstitute.org/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -163,8 +165,8 @@
    "place": "art-shelter-gallery",
    "url": "https://asg.org.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 2,
    "events": 0
   },
   {
@@ -181,8 +183,8 @@
    "place": "artspace-tel-aviv",
    "url": "https://www.artspacetlv.org/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 3,
    "events": 0
   },
   {
@@ -190,8 +192,8 @@
    "place": "atelier-shemi",
    "url": "https://ateliershemi.wordpress.com/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -209,7 +211,7 @@
    "url": "https://gallerybeeri.co.il/",
    "auto": true,
    "status": "ok",
-   "shows": 1,
+   "shows": 9,
    "events": 0
   },
   {
@@ -218,7 +220,7 @@
    "url": "https://www.bac.org.il",
    "auto": true,
    "status": "ok",
-   "shows": 1,
+   "shows": 2,
    "events": 0
   },
   {
@@ -227,7 +229,7 @@
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
    "status": "ok",
-   "shows": 1,
+   "shows": 4,
    "events": 0
   },
   {
@@ -272,7 +274,7 @@
    "url": "https://bravermangallery.com/",
    "auto": true,
    "status": "ok",
-   "shows": 2,
+   "shows": 6,
    "events": 0
   },
   {
@@ -307,8 +309,8 @@
    "place": "ein-hod-art-gallery",
    "url": "https://www.ein-hod.org/גלריית-האמנים/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 12,
    "events": 0
   },
   {
@@ -326,7 +328,7 @@
    "url": "http://www.gordongallery.co.il",
    "auto": true,
    "status": "ok",
-   "shows": 4,
+   "shows": 6,
    "events": 0
   },
   {
@@ -343,8 +345,8 @@
    "place": "hanina-gallery",
    "url": "https://www.hanina.org/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -352,8 +354,8 @@
    "place": "hecht-museum",
    "url": "http://mushecht.haifa.ac.il",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 3,
    "events": 0
   },
   {
@@ -361,8 +363,8 @@
    "place": "hezi-cohen-gallery",
    "url": "https://hezicohengallery.co.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -379,8 +381,8 @@
    "place": "israeli-center-for-digital-art",
    "url": "https://cda.org.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 2,
    "events": 0
   },
   {
@@ -388,7 +390,7 @@
    "place": "janco-dada-museum",
    "url": "https://www.jancodada.co.il/en/",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -397,8 +399,8 @@
    "place": "jerusalem-print-workshop",
    "url": "http://www.jerusalemprintworkshop.org",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -424,8 +426,8 @@
    "place": "kupferman-collection-house",
    "url": "https://kupferman-collection.co.il",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 3,
    "events": 0
   },
   {
@@ -433,8 +435,8 @@
    "place": "mamuta-art-and-research-center",
    "url": "https://mamuta.org/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 8,
    "events": 0
   },
   {
@@ -442,8 +444,8 @@
    "place": "maya-gallery",
    "url": "https://www.mayagallerytlv.com/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 7,
    "events": 0
   },
   {
@@ -496,8 +498,8 @@
    "place": "noga-gallery-of-contemporary-art",
    "url": "http://www.nogagallery.com",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -550,8 +552,8 @@
    "place": "rosenfeld-gallery",
    "url": "https://rg.co.il",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 3,
    "events": 0
   },
   {
@@ -631,8 +633,8 @@
    "place": "wikidata-Q20859376",
    "url": "http://www.beitajerusalem.com",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 2,
    "events": 0
   },
   {
@@ -646,9 +648,10 @@
   },
   {
    "source": "model",
-   "model": "openai/gpt-4.1-mini",
-   "calls": 97,
-   "status": "ok"
+   "model": "qwen2.5:7b",
+   "calls": 132,
+   "seconds": 5112,
+   "status": "TimeoutError: timed out"
   },
   {
    "source": "makore",
