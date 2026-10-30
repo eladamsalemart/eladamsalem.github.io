@@ -1,0 +1,140 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>Open Studio · הצעדים הבאים</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&family=Figtree:wght@700&family=IBM+Plex+Mono:wght@500&display=swap"><style>@page{size:A4;margin:0}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Assistant',sans-serif;color:#1B1A17;font-size:11.6pt;line-height:1.52;background:#fff}
+.page{width:210mm;height:297mm;padding:15mm 15mm 13mm;position:relative;overflow:hidden;page-break-after:always;background:#fff}
+.page.paper{background:#EFE9DD}.page.ink{background:#1B1A17;color:#F6F1E7}
+h1{font-family:'Frank Ruhl Libre',serif;font-weight:500;font-size:34pt;line-height:1.05;margin:0 0 4mm}
+h2{font-family:'Frank Ruhl Libre',serif;font-weight:500;font-size:24pt;line-height:1.12;margin:0}
+h3{font-size:13pt;margin:5mm 0 1.6mm}
+h4{font-size:11.6pt;margin:2.5mm 0 .8mm}
+p{margin:1.2mm 0}ul,ol{margin:1mm 0;padding-right:5mm}li{margin:.7mm 0}
+.k{font-family:'IBM Plex Mono',monospace;font-size:8.6pt;letter-spacing:.12em;color:#5E594F;text-transform:uppercase}
+.ink .k{color:#BDB6A8}
+.head{border-bottom:1.5px solid #1B1A17;padding-bottom:2.5mm;margin-bottom:4.5mm;display:flex;justify-content:space-between;align-items:flex-end;gap:6mm}
+.head .dept{font-family:'IBM Plex Mono',monospace;font-size:7pt;color:#8F877A;letter-spacing:.08em;white-space:nowrap}
+.foot{position:absolute;bottom:6mm;left:15mm;right:15mm;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:6.8pt;color:#8F877A}
+.lead{font-size:13.6pt;line-height:1.45}
+.big{font-family:'Frank Ruhl Libre',serif;font-size:17pt;line-height:1.35}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:7mm}.cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm}
+.box{background:#EFE9DD;padding:3mm 4mm;margin:2.5mm 0}.box.g{background:#E3EDE7}.box.r{background:#F4E4DD}.box.yel{background:#F3EBD3}
+.box h4:first-child,.box h3:first-child{margin-top:0}
+.card{border:1px solid #CFC7B6;padding:3mm 3.5mm}
+.num{font-family:'Frank Ruhl Libre',serif;font-size:30pt;line-height:1;color:#2F6B4F}
+.stat{display:grid;gap:.5mm}.stat span{font-size:9.8pt;color:#5E594F}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin:3mm 0}
+table{width:100%;border-collapse:collapse;font-size:10pt;margin:2.5mm 0}
+th,td{border-bottom:1px solid #CFC7B6;padding:2mm 1.6mm;text-align:right;vertical-align:top}
+th{font-weight:700;border-bottom:1.5px solid #1B1A17;font-size:9.8pt}
+td.c,th.c{text-align:center}
+.y{color:#2F6B4F;font-weight:700}.n{color:#A3503F;font-weight:700}.m{color:#8F7340;font-weight:700}
+.tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:8.2pt;padding:.3mm 1.6mm;border:1px solid #1B1A17;margin-left:1mm}
+.tag.g{border-color:#2F6B4F;color:#2F6B4F}.tag.r{border-color:#A3503F;color:#A3503F}.tag.y{border-color:#8F7340;color:#8F7340}
+.ltr{direction:ltr;unicode-bidi:embed}
+.src{font-size:8.2pt;color:#5E594F}
+.est{font-size:8.4pt;color:#8F7340}
+.bars{display:grid;gap:1.6mm;margin:2mm 0}
+.bar{display:grid;grid-template-columns:52mm 1fr 18mm;align-items:center;gap:2.5mm;font-size:10pt}
+.bar i{display:block;height:6mm;background:#2F6B4F;border-radius:0 1mm 1mm 0}
+.bar i.l{background:#9DB8A8}.bar b{font-weight:600;text-align:left;direction:ltr}
+.quote{border-right:3px solid #2F6B4F;padding:1.5mm 5mm;margin:4mm 0;font-family:'Frank Ruhl Libre',serif;font-size:15pt;line-height:1.4}
+.steps{counter-reset:s;display:grid;gap:3mm}
+.step{display:grid;grid-template-columns:9mm 1fr;gap:2mm;align-items:start}
+.step:before{counter-increment:s;content:counter(s);font-family:'Frank Ruhl Libre',serif;font-size:19pt;color:#2F6B4F;line-height:1}
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm}
+.role{border:1px solid #CFC7B6;padding:3mm 3.5mm;font-size:9.8pt}.role b{display:block;font-size:11pt}
+.map{position:relative;height:96mm;border:1px solid #CFC7B6;background:#FBF8F2;margin:2mm 0}
+.map .ax{position:absolute;font-family:'IBM Plex Mono',monospace;font-size:6.8pt;color:#5E594F}
+.map .dot{position:absolute;transform:translate(50%,-50%);font-size:9.6pt;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:1.2mm}
+.map .dot:before{content:"";width:3mm;height:3mm;border-radius:50%;background:#8F877A;display:block}
+.map .dot.us:before{background:#2F6B4F;width:4.2mm;height:4.2mm}
+.map .dot.us{color:#2F6B4F;font-size:9pt}
+.cover h1{font-size:40pt;margin-top:30mm}
+.cover .logo{display:flex;align-items:center;gap:2.5mm;direction:ltr;justify-content:flex-end;font-family:'Figtree',sans-serif;font-weight:700;font-size:15pt}
+.toc li{margin:1.4mm 0;font-size:10.5pt}
+.tl{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:2px solid #1B1A17;margin:3mm 0}
+.tl>div{padding:3mm 3mm 0;border-left:1px dashed #CFC7B6;font-size:10pt}.tl>div:last-child{border-left:0}
+.tl b{display:block;font-size:11.4pt;margin-bottom:1mm}.tl .k{display:block;margin-bottom:1mm}
+.sm{font-size:10.4pt}
+.xs{font-size:9.4pt;line-height:1.45}
+.cv{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:6.6pt;letter-spacing:.02em;padding:0 1.1mm;border:1px solid #8F877A;color:#5E594F;margin-right:1mm;vertical-align:1px;white-space:nowrap}
+.cv.v{border-color:#2F6B4F;color:#2F6B4F}.cv.e{border-color:#8F7340;color:#8F7340}
+.phones{display:flex;gap:3mm;justify-content:flex-start;margin:2.5mm 0}
+.phones figure{margin:0;flex:1;text-align:center}.phones img{width:100%;border:1px solid #CFC7B6;border-radius:2.5mm;display:block}
+.phones figcaption{font-size:8.6pt;color:#5E594F;margin-top:1mm}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:8.4pt;direction:ltr;text-align:left;background:#1B1A17;color:#F6F1E7;padding:2.5mm 3.5mm;white-space:pre-wrap;line-height:1.5}
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:6mm;align-items:start}
+.chk li{list-style:none;position:relative}.chk{padding-right:5mm}.chk li:before{content:"☐";position:absolute;right:-5mm;color:#2F6B4F}
+table.tight td,table.tight th{padding:1.3mm 1.4mm}</style></head><body><section class="page paper cover"><div class="logo"><svg viewBox="0 0 132 132" width="30" height="30"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg><span>Open Studio</span></div>
+<div class="k" style="margin-top:22mm">סיכום שבוע · 30.10.2026</div>
+<h1>מה עושים מכאן</h1>
+<p class="big" style="max-width:160mm">שלושה דוחות השבוע: ייעוץ עסקי, פיתוח המוצר, ומפת האמנות בזמן אמת. כאן הם מצטמצמים לשני דפי עבודה: מה אתה עושה, ומה אני עושה מיום ראשון, לפי הסדר. ובסוף: מה מותר להציג מאמנות של אחרים.</p>
+<div style="margin-top:12mm;display:grid;grid-template-columns:repeat(3,1fr);gap:4mm">
+<div class="card"><div class="num">12</div><span class="sm">משימות שלך, רובן קצרות; ארבע מהן החלטות</span></div>
+<div class="card"><div class="num">4</div><span class="sm">שבועות עבודה שלי, כל אחד עם תנאי "גמור" שנבדק בטלפון</span></div>
+<div class="card"><div class="num">ינו׳ 27</div><span class="sm">הפנייה הראשונה לאמנים, רק אם כל התנאים ירוקים</span></div></div>
+<p class="src" style="position:absolute;bottom:16mm;right:15mm;left:15mm">נכתב על ידי Claude. מבוסס על: דוח ייעוץ עסקי (מהדורה 2), דוח פיתוח מוצר (מהדורה 2), מפת האמנות של ישראל, ומפת האמנות של העולם בחינם.</p></section><section class="page "><div class="head"><div><div class="k">בעמוד אחד</div><h2>מה שלושת הדוחות אומרים יחד</h2></div><div class="dept">הצעדים הבאים</div></div>
+
+<div class="cols3">
+<div class="box"><h3>עסקי</h3><p class="sm">הסיור התלת־ממדי מבדל אותך, אבל לא הוא שיביא משתמשים. מה שיביא: <b>קישור לפתיחה בוואטסאפ</b> ו<b>עדכון שבועי שמכסה את רוב מה שנפתח ברובע אחד</b>. ישראל היא מגרש ההוכחה. מתחילים בקריית המלאכה, עם <bdi dir="ltr">20–30</bdi> אמנים ו־<bdi dir="ltr">5–10</bdi> גלריות, ורק כשכל 12 התנאים מתקיימים.</p></div>
+<div class="box"><h3>מוצר</h3><p class="sm">הבסיס חזק. חסר מה שהופך הדגמה למוצר: <b>הרשמה אמיתית</b>, <b>הפרדה בין הדמו לאמיתי</b>, <b>קישור שנראה טוב בוואטסאפ</b>, <b>סיור שנטען מהר</b>, וצילום שמצליח בפעם הראשונה. בלי פיצ'רים חדשים עד הפיילוט.</p></div>
+<div class="box"><h3>מפה בזמן אמת</h3><p class="sm">132 מוסדות בישראל, 73 תערוכות ב־24 מהם, הכול בחינם. מהיום נקראים גם ממשקי האתרים (WordPress), פידים ומודל שפה פתוח. הבא בתור: <b>ניוזלטרים</b> ו<b>אינסטגרם</b> (מחכים לחשבונות שלך) ו<b>Overture</b> לרשימת המוסדות.</p></div></div>
+<div class="quote">שלוש הוכחות בשנה הקרובה: שרשת צפופה נוצרת ברובע אחד; שגלריה משלמת על תיעוד; ושהצינור בונה חדר אמין מהתמונות של מישהו אחר.</div>
+<h3>מה לא עושים עכשיו</h3>
+<p class="sm">לא פונים לאמנים עם דמו. לא ממתגים לפני חיפוש שם. לא משלמים על פרסום. לא שולחים צלם על חשבוננו. לא מתפזרים על כל הארץ. לא מוסיפים צ'אט, מכירה או פיד אלגוריתמי.</p>
+<h3>לוח הזמנים מהדוחות</h3>
+<div class="tl"><div><span class="k">נוב׳–דצמ׳ 2026</span><b>מוכנות</b>הרשמה, דמו, קישורים, משקל הסיור, משפט, ראיונות</div>
+<div><span class="k">ינו׳–מרץ 2027</span><b>גרעין</b>קריית המלאכה, <bdi dir="ltr">3–5</bdi> סיורים בתשלום, "פתיחות השבוע"</div>
+<div><span class="k">אפר׳–אוג׳ 2027</span><b>עונת שיא</b>תערוכות בוגרים, מנוע צילום חדש</div>
+<div><span class="k">ספט׳ 2027 →</span><b>עירייה והרחבה</b>האירוע העירוני, ירושלים, חו"ל</div></div><div class="foot"><span>Open Studio · הצעדים הבאים</span><span>30.10.2026 · עמוד 2</span></div></section><section class="page "><div class="head"><div><div class="k">המשימות שלך</div><h2>דף משימות: מה אתה עושה, ומתי</h2></div><div class="dept">הצעדים הבאים</div></div>
+
+<table class="tight sm"><tr><th style="width:5mm"></th><th>משימה</th><th>מה בדיוק</th><th>זמן</th><th>מתי</th></tr>
+<tr><td>☐</td><td><b>החלטה: הדמו</b></td><td>להסיר את העולם הבדיוני מהאפליקציה הציבורית, או לסמן אותו בכל מסך כ"הדגמה". ההמלצה: להסיר, ולשמור "מצב הדגמה" נפרד. זו גם הסיבה שאתה רואה עכשיו תערוכות "רצות" באפליקציה: הן של אמני הדמו.</td><td>דקה</td><td>השבוע</td></tr><tr><td>☐</td><td><b>לפתוח מייל לאפליקציה</b></td><td>Gmail חדש (למשל artmap.openstudio@gmail.com), אימות דו־שלבי, "סיסמת אפליקציה", ושמירתה ב־GitHub כסוד ART_MAIL_PASSWORD. אז אחבר את קריאת הניוזלטרים.</td><td>20 דק׳</td><td>השבוע</td></tr><tr><td>☐</td><td><b>חשבון Supabase</b></td><td>חשבון חינמי ב־supabase.com ופרויקט חדש; לשלוח לי את כתובת הפרויקט ולשמור את המפתח כסוד ב־GitHub. בלי זה אין הרשמה אמיתית.</td><td>15 דק׳</td><td>השבוע</td></tr><tr><td>☐</td><td><b>לבחור: Supabase או Firebase</b></td><td>ההמלצה: Supabase (נתונים יחסיים, מחיר צפוי, אפשר לארח לבד).</td><td>דקה</td><td>השבוע</td></tr><tr><td>☐</td><td><b>עורך דין: שם וטיוטות</b></td><td>חיפוש ראשוני על השם Open Studio; טיוטות רישיון אמן, רישיון צלם, הסכם גלריה, תנאי שימוש ופרטיות.</td><td>פגישה</td><td>נובמבר</td></tr><tr><td>☐</td><td><b>עוסק מורשה</b></td><td>כדי שגלריה תוכל לקבל חשבונית מס על פיילוט בתשלום.</td><td>שעה</td><td>נובמבר</td></tr><tr><td>☐</td><td><b>15 ראיונות</b></td><td>רשימה של 15 אמנים וגלריסטים מקריית המלאכה; תבנית הראיון בדוח העסקי (עמ׳ 11).</td><td>רשימה: שעה</td><td>נובמבר</td></tr><tr><td>☐</td><td><b>בדיקה על אייפון אמיתי</b></td><td>לפתוח את המפה, ללחוץ על כפתור המיקום (לאשר מיקום ומצפן), ללכת קצת עם ניווט, ולספר לי מה עבד ומה לא.</td><td>20 דק׳</td><td>השבוע</td></tr><tr><td>☐</td><td><b>חשבון אינסטגרם עסקי + Meta</b></td><td>אינסטגרם עסקי ל־Open Studio, דף פייסבוק מקושר, ואפליקציית מפתחים של Meta. אדריך צעד אחר צעד.</td><td>שעה</td><td>כשתתפנה</td></tr><tr><td>☐</td><td><b>מייל לערב רב</b></td><td>הצעת שותפות. אכין טיוטה; אתה שולח.</td><td>10 דק׳</td><td>כשתתפנה</td></tr><tr><td>☐</td><td><b>החלטה: שפה</b></td><td>אנגלית עכשיו, עברית מלאה לפני השקה ציבורית, לפי מה שהאמנים יגידו בראיונות.</td><td>דקה</td><td>דצמבר</td></tr><tr><td>☐</td><td><b>לקרוא ולסמן</b></td><td>לעבור על ארבעת הדוחות, ולסמן לי מה לדייק. כל הערה נכנסת לרשימה שלי.</td><td>ערב</td><td>שוטף</td></tr></table>
+<div class="box g"><b>כבר עשית:</b> אישרת את המודל הפתוח בעבודה היומית (רץ מהיום, בחינם).</div>
+<p class="src">כל משימה שכתוב בה "סוד ב־GitHub": מאגר eladamsalem.github.io ← Settings ← Secrets and variables ← Actions ← New repository secret. לעולם לא בצ'אט.</p><div class="foot"><span>Open Studio · הצעדים הבאים</span><span>30.10.2026 · עמוד 3</span></div></section><section class="page "><div class="head"><div><div class="k">המשימות שלי</div><h2>מיום ראשון, לפי הסדר</h2></div><div class="dept">הצעדים הבאים</div></div>
+
+<p class="sm">כל משימה נגמרת רק כשהיא עובדת בטלפון ועוברת את הבדיקות בשרת. בכל יום אעדכן אותך בקצרה מה נגמר ומה נתקע. משימה שמחכה לך (חשבון, החלטה) לא עוצרת את השאר: אני עובר לבאה בתור.</p>
+<h3>שבוע 1 · יסודות ואמון</h3><table class="tight xs"><tr><th style="width:5mm"></th><th style="width:44mm">משימה</th><th>מה</th></tr><tr><td>☐</td><td><b>תיקון תקרת Ritual</b></td><td>התקרה השטוחה בתמונות יוצאת משופעת ומפוספסת; תיקון, ובדיקה שהייתה תופסת, עם הוכחה לפי CLAUDE.md</td></tr><tr><td>☐</td><td><b>הדמו: הסרה או סימון</b></td><td>לפי ההחלטה שלך; "מצב הדגמה" נפרד</td></tr><tr><td>☐</td><td><b>קישורים לוואטסאפ</b></td><td>עמוד HTML סטטי לכל תערוכה, אמן ועבודה, עם תמונה ושם (Open Graph); נבנה בזמן הפרסום</td></tr><tr><td>☐</td><td><b>Overture במפה</b></td><td>בבדיקה החודשית: מועמדים חדשים עם ציון ביטחון, והשלמת אתרים למוסדות שאין להם</td></tr></table><p class="xs"><b>גמור כש:</b> קישור בוואטסאפ מציג תמונה ושם; אין תוכן בדיוני שנראה אמיתי; הבדיקה בשרת ירוקה</p><h3>שבוע 2 · הרשמה</h3><table class="tight xs"><tr><th style="width:5mm"></th><th style="width:44mm">משימה</th><th>מה</th></tr><tr><td>☐</td><td><b>Supabase</b></td><td>חשבונות, הרשאות (RLS) ובדיקות שלהן; העלאות ל־R2 עם קידוד מחדש ומחיקת EXIF</td></tr><tr><td>☐</td><td><b>הצד של האמן מחובר לשרת</b></td><td>אמן נרשם, מעלה עבודות ותערוכה ועורך, בלי מפתח</td></tr><tr><td>☐</td><td><b>רשומת זכויות</b></td><td>לכל עבודה: מי היוצר, מי הצלם, איזה רישיון ניתן</td></tr></table><p class="xs"><b>גמור כש:</b> אמן חדש נרשם ומעלה תערוכה בלי עזרה, בטלפון</p><h3>שבוע 3 · מהירות ומדידה</h3><table class="tight xs"><tr><th style="width:5mm"></th><th style="width:44mm">משימה</th><th>מה</th></tr><tr><td>☐</td><td><b>סיור קל</b></td><td>תמונות רספונסיביות, טעינה הדרגתית; החדר נראה תוך ~10 שניות ב־4G; תקציב משקל בבדיקה</td></tr><tr><td>☐</td><td><b>מדידה</b></td><td>PostHog ו־Sentry, עם האירועים מהדוח</td></tr><tr><td>☐</td><td><b>מפה: ניוזלטרים</b></td><td>קריאת התיבה של האפליקציה (אם המייל מוכן); שלוש רמות ביטחון לתערוכה</td></tr></table><p class="xs"><b>גמור כש:</b> סיור עובר את תקציב הטלפון; אירועים נמדדים</p><h3>שבוע 4 · לקראת גרעין</h3><table class="tight xs"><tr><th style="width:5mm"></th><th style="width:44mm">משימה</th><th>מה</th></tr><tr><td>☐</td><td><b>הזמנה לפתיחה</b></td><td>אישור הגעה בלי אפליקציה ובלי חשבון, ותזכורת</td></tr><tr><td>☐</td><td><b>"פתיחות השבוע"</b></td><td>בעיר ובשכונה, מהמפה</td></tr><tr><td>☐</td><td><b>מסך צילום מודרך, גרסה 1</b></td><td>פרוטוקול צילום ובדיקת כיסוי</td></tr><tr><td>☐</td><td><b>אינסטגרם</b></td><td>אם החשבון מוכן: Business Discovery במפה</td></tr></table><p class="xs"><b>גמור כש:</b> בדיקה על אייפון ואנדרואיד אמיתיים; רשימת 12 התנאים מתעדכנת</p><div class="foot"><span>Open Studio · הצעדים הבאים</span><span>30.10.2026 · עמוד 4</span></div></section><section class="page "><div class="head"><div><div class="k">המשימות שלי</div><h2>ובמקביל, כל הזמן</h2></div><div class="dept">הצעדים הבאים</div></div>
+
+<div class="cols"><div><h3>המפה בזמן אמת</h3>
+<ul class="sm"><li>לעקוב אחרי הריצה היומית: דוח בריאות, תיקון קוראים שנשברו.</li><li>היעד: יותר מוסדות עם תערוכה מתוארכת בכל שבוע (היום: 24 מתוך 132).</li>
+<li>להשלים אתרים ומתכוני קריאה למוסדות; למחוק אתרים שגויים (Kubia).</li><li>להכין את "הורד מדינה" (מפה של 44 עד 181 מגה בטלפון), אחרי בדיקה על אייפון.</li></ul>
+<h3>בדיקות ואמינות</h3>
+<ul class="sm"><li>כל שינוי בסיור: בנייה ובדיקה בשרת עד הסוף.</li><li>כל באג שמגיע אליך: תיקון, ובדיקה שהייתה תופסת אותו.</li><li>נגישות: פוקוס, הכרזת עמוד, יעדי מגע של 44px.</li></ul></div>
+<div><h3>לא נכנס עד הפיילוט</h3>
+<ul class="sm"><li>צ'אט, תגובות, מכירה ותשלום ליצירות.</li><li>פיד אלגוריתמי, AI שכותב לאמנים.</li><li>אפליקציה בחנויות (Capacitor): רק בשלב 3.</li></ul>
+<h3>איך תעקוב</h3>
+<ul class="sm"><li>סיכום קצר בעברית בסוף כל יום עבודה.</li><li>בסוף כל שבוע: מה עבר את תנאי ה"גמור", עם צילומי מסך מהטלפון.</li><li>כל שאלה שדורשת אותך תגיע מרוכזת, לא בטפטוף.</li></ul>
+<div class="box yel"><b>התלות העיקרית בך:</b> Supabase (שבוע 2) והמייל (שבוע 3). אם הם לא מוכנים, שבוע 2 מתחלף עם 3, ונמשיך בלי לחכות.</div></div></div><div class="foot"><span>Open Studio · הצעדים הבאים</span><span>30.10.2026 · עמוד 5</span></div></section><section class="page "><div class="head"><div><div class="k">משפטי</div><h2>מה מותר להציג מאמנות של אחרים</h2></div><div class="dept">הצעדים הבאים</div></div>
+
+<p class="lead">להציג יצירה באפליקציה זה <b>להעתיק</b> אותה (לשמור תמונה שלה) ו<b>להעמיד אותה לרשות הציבור</b>. שתי הפעולות שמורות לבעל הזכויות. לכן השאלה הראשונה תמיד: <b>האם היצירה עוד מוגנת?</b></p>
+<div class="cols"><div><h3>הכלל: 70 שנה אחרי מות האמן</h3>
+<p class="sm">בישראל, כמו באירופה, יצירת אמנות מוגנת כל חיי האמן ועוד 70 שנה, עד סוף השנה הקלנדרית <span class="cv">משני</span>. אחר כך היא <b>נחלת הכלל</b>, ומותר להשתמש בה בלי רשות ובלי תשלום, גם מסחרית.</p>
+<table class="tight xs"><tr><th>אמן</th><th class="c">נפטר</th><th>בישראל ובאירופה</th></tr>
+<tr><td>וינסנט ואן גוך</td><td class="c">1890</td><td class="y">נחלת הכלל</td></tr><tr><td>קלוד מונה</td><td class="c">1926</td><td class="y">נחלת הכלל</td></tr><tr><td>גוסטב קלימט</td><td class="c">1918</td><td class="y">נחלת הכלל</td></tr><tr><td>אנרי מאטיס</td><td class="c">1954</td><td class="y">נחלת הכלל מ־2025</td></tr><tr><td>ראובן רובין</td><td class="c">1974</td><td class="n">מוגן עד סוף 2044</td></tr><tr><td>פבלו פיקאסו</td><td class="c">1973</td><td class="n">מוגן עד סוף 2043</td></tr><tr><td>נחום גוטמן</td><td class="c">1980</td><td class="n">מוגן עד סוף 2050</td></tr><tr><td>מארק שאגאל</td><td class="c">1985</td><td class="n">מוגן עד סוף 2055</td></tr><tr><td>סלבדור דאלי</td><td class="c">1989</td><td class="n">מוגן עד סוף 2059</td></tr></table>
+<p class="est">חישוב לפי הכלל (70 שנה אחרי שנת המוות) <span class="cv e">הערכה</span>. בארה"ב הכלל שונה ותלוי בשנת הפרסום. לגבי פיקאסו, מקורות אומרים שבארצות עם 50 שנה בלבד הוא כבר חופשי, אבל לא בישראל ובאירופה <span class="cv">משני</span>.</p></div>
+<div><h3>שלוש מלכודות גם ביצירה חופשית</h3>
+<ol class="sm"><li><b>התצלום של הציור.</b> ציור של ואן גוך חופשי, אבל לצלם שצילם אותו עשויות להיות זכויות. באירופה, צילום נאמן של יצירה חזותית חופשית אינו מוגן (סעיף 14 בדירקטיבה של 2019) <span class="cv">משני</span>; בארה"ב, פסק Bridgeman (1999) <span class="cv">משני</span>. בישראל לא מצאתי פסיקה ברורה <span class="cv e">הערכה</span>. <b>הפתרון:</b> תמונות מתוכניות "גישה פתוחה" של מוזיאונים, תחת CC0: המטרופוליטן (כ־492 אלף), שיקגו (50 אלף+), הגלריה הלאומית בוושינגטון, הרייקסמוזיאום <span class="cv">משני</span>.</li>
+<li><b>זכות מוסרית.</b> קרדיט לאמן, ולא לעוות או לחתוך את היצירה באופן שפוגע בה. גם ביצירה חופשית זה הנוהג הנכון.</li>
+<li><b>שם כמותג.</b> "פיקאסו" הוא גם סימן מסחרי של היורשים. מותר לכתוב שעבודה היא של פיקאסו; אסור למתג בשמו מוצר או פיצ'ר <span class="cv e">הערכה</span>.</li></ol>
+<h3>ואמנים חיים, או שמתו לפני פחות מ־70 שנה?</h3>
+<p class="sm">צריך <b>רישיון</b>: מהאמן (או היורשים) ומהצלם. אין בחוק חריג שמכסה הצגה שיטתית באפליקציה. "חופש הפנורמה" (סעיף 23) חל רק על פיסול ואדריכלות שמוצבים דרך קבע במקום ציבורי, לא על תערוכה זמנית. שימוש הוגן (סעיף 19) נבחן מקרה למקרה, ומטרה מסחרית פועלת נגדנו <span class="cv">משני</span>.</p></div></div><div class="foot"><span>Open Studio · הצעדים הבאים</span><span>30.10.2026 · עמוד 6</span></div></section><section class="page "><div class="head"><div><div class="k">משפטי</div><h2>מה זה אומר לאפליקציה, בפועל</h2></div><div class="dept">הצעדים הבאים</div></div>
+
+<table class="tight sm"><tr><th>מה באפליקציה</th><th>מותר?</th><th>איך</th></tr>
+<tr><td>יצירות של ואן גוך, מונה, קלימט, מאטיס</td><td class="y">כן</td><td>תמונה מגישה פתוחה של מוזיאון (CC0), עם קרדיט לאמן ולמוזיאון</td></tr>
+<tr><td>יצירות של פיקאסו, שאגאל, דאלי, רובין, גוטמן</td><td class="n">לא, בלי רישיון</td><td>רישיון מהיורשים או מהגוף שמנהל את הזכויות שלהם; בדרך כלל בתשלום</td></tr>
+<tr><td>יצירות של אמני Open Studio</td><td class="y">כן, ברישיון</td><td>רישיון אמן בהרשמה (לא בלעדי, עולמי, ניתן לביטול, "לא לאימון AI"), ורישיון מהצלם</td></tr>
+<tr><td>סיור תלת־ממדי בתערוכה של גלריה</td><td class="m">ברישיון</td><td>הסכם גלריה + רישיון מכל אמן בתערוכה + מהצלם; אישור אמן לפני פרסום</td></tr>
+<tr><td>מפת התערוכות: שם, אמנים, תאריכים, קישור</td><td class="y">כן</td><td>עובדות, לא יצירות. בלי תמונות ובלי טקסטים של המוסד</td></tr>
+<tr><td>תמונת הזמנה לפתיחה ששלחה גלריה</td><td class="m">לרוב כן, בהקשר</td><td>חומרי עיתונות נשלחים לפרסום; עדיף אישור כללי מהגלריה בהסכם</td></tr>
+<tr><td>פסל ציבורי ברחוב (מנשה קדישמן בכיכר)</td><td class="y">צילום כן</td><td>סעיף 23: יצירה שמוצבת דרך קבע במקום ציבורי <span class="cv">משני</span></td></tr></table>
+<div class="cols"><div><h3>רעיון שנובע מזה</h3>
+<p class="sm">במקום הדמו הבדיוני: <b>"יצירה מהאוסף של העולם"</b>. יצירות קלאסיות מנחלת הכלל, מתמונות CC0 של מוזיאונים, עם קרדיט מלא. זה תוכן אמיתי, חוקי וחינמי, שממלא את האפליקציה עד שיגיעו האמנים. אפשר גם לקשר אותו ל"היום לפני X שנים" או לתערוכות קשורות במפה.</p></div>
+<div><div class="box yel"><b>לא חוות דעת משפטית.</b> זה סיכום מחקר. לפני השקה: עורך דין לזכויות יוצרים, במיוחד לשלוש שאלות: צילומי יצירות חופשיות בישראל; רישיון אמן לתלת־ממד; וחומרי עיתונות של גלריות.</div>
+<p class="src">מקורות: חוק זכות יוצרים, התשס"ח־2007 (נוסח עדכני); Communia ו־European Copyright Society על סעיף 14 לדירקטיבה 2019/790; Bridgeman v. Corel (S.D.N.Y. 1999); metmuseum.org/openaccess; api.artic.edu; nga.gov open access; infojustice.org על החריגים בישראל; דוח הייעוץ העסקי, פרק 9.</p></div></div><div class="foot"><span>Open Studio · הצעדים הבאים</span><span>30.10.2026 · עמוד 7</span></div></section><section class="page "><div class="head"><div><div class="k">לסיום</div><h2>על מה כדאי לך להתעכב בקריאה</h2></div><div class="dept">הצעדים הבאים</div></div>
+
+<ul class="sm"><li><b>הדמו.</b> זו ההחלטה שמשפיעה הכי הרבה על מה שאמן יראה בפעם הראשונה. כרגע אמני הדמו והתערוכות שלהם נראים אמיתיים.</li>
+<li><b>12 התנאים לפני פנייה</b> (דוח עסקי, עמ׳ 13): האם הם נכונים בעיניך, ואם חסר אחד.</li>
+<li><b>המחיר</b> (390/590/890 ש"ח לסיור): האם זה נשמע לך נכון מול הגלריות שאתה מכיר.</li>
+<li><b>מפת האמנות:</b> מה חשוב לך יותר, כיסוי של כל הארץ או דיוק מלא בקריית המלאכה קודם.</li>
+<li><b>"יצירה מהאוסף של העולם":</b> האם זה מתאים לרוח של Open Studio, או שהאפליקציה צריכה להישאר רק לאמנים חיים.</li></ul>
+<div class="box g"><b>מה קורה ביום ראשון:</b> אני מתחיל בשבוע 1 (תקרת Ritual, הדמו לפי ההחלטה שלך, קישורים לוואטסאפ, Overture), ומעדכן בסוף היום.</div><div class="foot"><span>Open Studio · הצעדים הבאים</span><span>30.10.2026 · עמוד 8</span></div></section></body></html>
