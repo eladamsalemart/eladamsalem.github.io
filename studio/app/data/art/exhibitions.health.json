@@ -282,8 +282,8 @@
    "place": "chelouche-gallery",
    "url": "https://chelouchegallery.com/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 10,
    "events": 0
   },
   {
@@ -291,8 +291,8 @@
    "place": "chelouche-gallery-2",
    "url": "https://chelouchegallery.com/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 10,
    "events": 0
   },
   {
@@ -390,7 +390,7 @@
    "place": "janco-dada-museum",
    "url": "https://www.jancodada.co.il/en/",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -462,8 +462,8 @@
    "place": "municipal-art-gallery-rishon-lezion",
    "url": "https://bl-gallery.co.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 3,
    "events": 0
   },
   {
@@ -649,8 +649,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 132,
-   "seconds": 5112,
+   "calls": 44,
+   "seconds": 1264,
    "status": "TimeoutError: timed out"
   },
   {
