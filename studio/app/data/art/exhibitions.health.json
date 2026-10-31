@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30",
+ "updated": "2026-10-31",
  "sources": [
   {
    "source": "haifa-museum",
@@ -282,8 +282,8 @@
    "place": "chelouche-gallery",
    "url": "https://chelouchegallery.com/",
    "auto": true,
-   "status": "ok",
-   "shows": 10,
+   "status": "unreachable: Error",
+   "shows": 0,
    "events": 0
   },
   {
@@ -291,8 +291,8 @@
    "place": "chelouche-gallery-2",
    "url": "https://chelouchegallery.com/",
    "auto": true,
-   "status": "ok",
-   "shows": 10,
+   "status": "unreachable: Error",
+   "shows": 0,
    "events": 0
   },
   {
@@ -354,8 +354,8 @@
    "place": "hecht-museum",
    "url": "http://mushecht.haifa.ac.il",
    "auto": true,
-   "status": "ok",
-   "shows": 3,
+   "status": "unreachable: Error",
+   "shows": 0,
    "events": 0
   },
   {
@@ -390,8 +390,8 @@
    "place": "janco-dada-museum",
    "url": "https://www.jancodada.co.il/en/",
    "auto": true,
-   "status": "unreachable: TimeoutError",
-   "shows": 0,
+   "status": "ok",
+   "shows": 9,
    "events": 0
   },
   {
@@ -453,8 +453,8 @@
    "place": "meyerhoff-art-education-center",
    "url": "http://www.tamuseum.org.il/master/he/education-lobby",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 4,
    "events": 0
   },
   {
@@ -462,8 +462,8 @@
    "place": "municipal-art-gallery-rishon-lezion",
    "url": "https://bl-gallery.co.il/",
    "auto": true,
-   "status": "ok",
-   "shows": 3,
+   "status": "unreachable: Error",
+   "shows": 0,
    "events": 0
   },
   {
@@ -553,7 +553,7 @@
    "url": "https://rg.co.il",
    "auto": true,
    "status": "ok",
-   "shows": 3,
+   "shows": 4,
    "events": 0
   },
   {
@@ -580,7 +580,7 @@
    "url": "http://edrcenter.com/",
    "auto": true,
    "status": "ok",
-   "shows": 1,
+   "shows": 2,
    "events": 0
   },
   {
@@ -597,8 +597,8 @@
    "place": "umm-el-fahem-art-gallery",
    "url": "http://ummelfahemgallery.org/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 5,
    "events": 0
   },
   {
@@ -615,8 +615,8 @@
    "place": "wikidata-Q118342557",
    "url": "https://www.mariegallery.co.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 2,
    "events": 0
   },
   {
@@ -624,8 +624,8 @@
    "place": "wikidata-Q135407831",
    "url": "https://tivon-lib.co.il/gallery/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 2,
    "events": 0
   },
   {
@@ -634,7 +634,7 @@
    "url": "http://www.beitajerusalem.com",
    "auto": true,
    "status": "ok",
-   "shows": 2,
+   "shows": 7,
    "events": 0
   },
   {
@@ -649,16 +649,16 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 44,
-   "seconds": 1264,
-   "status": "TimeoutError: timed out"
+   "calls": 54,
+   "seconds": 2812,
+   "status": "ok"
   },
   {
    "source": "makore",
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 21
+   "events": 22
   }
  ]
 }
