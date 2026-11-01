@@ -134,7 +134,7 @@
  "mailer_notifications_password_changed_enabled": false,
  "mailer_notifications_phone_changed_enabled": false,
  "mailer_otp_exp": 3600,
- "mailer_otp_length": 8,
+ "mailer_otp_length": 6,
  "mailer_secure_email_change_enabled": true,
  "mailer_subjects_confirmation": "Confirm your email address",
  "mailer_subjects_custom_contents": {
