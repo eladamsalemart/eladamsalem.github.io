@@ -205,14 +205,14 @@ def main():
             if prev.get('status') in ('signed up', 'already subscribed', 'confirmed') or str(prev.get('status', '')).startswith('same list as'):
                 print(f"{p['id']:<44} {prev['status']} (on {prev.get('day')})")
                 continue
-            same = next((k for k, v in done.items() if v.get('status') in ('signed up', 'already subscribed', 'sent (no answer seen)')
+            same = next((k for k, v in done.items() if k != p['id'] and v.get('status') in ('signed up', 'already subscribed', 'sent (no answer seen)')
                          and v.get('day') == today and v.get('page') and v['page'].split('#')[0] in {p['website'].split('#')[0]}), None)
             sign = a.sign_up
             r = look(ctx, p['website'], False) if same else look(ctx, p['website'], sign)
             if not any(not f['why_not'] for f in r.get('fields', [])) and r.get('links'):
                 site = urlparse(r.get('url', p['website'])).netloc.replace('www.', '')
                 link = next((h for h in r['links'] if urlparse(h).netloc.replace('www.', '') == site), r['links'][0])
-                twin = next((k for k, v in done.items() if v.get('day') == today and v.get('status') in ('signed up', 'already subscribed', 'sent (no answer seen)')
+                twin = next((k for k, v in done.items() if k != p['id'] and v.get('day') == today and v.get('status') in ('signed up', 'already subscribed', 'sent (no answer seen)')
                              and (v.get('page') or '').split('#')[0] == link.split('#')[0]), None)
                 r2 = look(ctx, link, sign and not twin)
                 if twin:
