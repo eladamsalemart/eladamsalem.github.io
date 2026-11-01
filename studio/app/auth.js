@@ -36,21 +36,29 @@ export function client() {
   return ready;
 }
 
-// coming back from an email link or a provider (?code=...): finish signing in, then on to the next step
+// coming back from the email's link (?token_hash=...: works in any browser, on any device) or from a provider
+// (?code=...: in the browser that asked): finish signing in, then on to the next step
 export async function finishReturn() {
   const q = new URLSearchParams(location.search);
-  if (!q.has('code') && !q.has('error_description')) return false;
-  const err = q.get('error_description');
-  let next = '#/welcome';
+  if (!q.has('code') && !q.has('token_hash') && !q.has('error_description')) return false;
+  let err = q.get('error_description');
   if (!err) {
     try {
       const c = await client();
-      const { data } = await c.auth.getSession();        // the client trades the code for a session as it starts
-      if (data.session) { keep(data.session.user); next = account().role ? '#/' : '#/welcome/role'; }
+      if (q.has('token_hash')) {
+        const { data, error } = await c.auth.verifyOtp({ token_hash: q.get('token_hash'), type: q.get('type') || 'email' });
+        if (error) throw error;
+        if (data.session) keep(data.session.user);
+      } else {
+        const { data } = await c.auth.getSession();      // the client trades the code for a session as it starts
+        if (data.session) keep(data.session.user);
+      }
     } catch (e) { console.warn(e); }
+    if (!account()) err = 'That link was already used, or a newer email replaced it. Type the code from your latest email, or ask for a new one.';
   }
+  const next = account() ? (account().role ? '#/' : '#/welcome/role') : '#/welcome/email';
   history.replaceState(null, '', APP_URL() + next);
-  if (err || !account()) sessionStorage.setItem('os-auth-error', err || 'That link has expired or was already used. Ask for a new one.');
+  if (err) sessionStorage.setItem('os-auth-error', err);
   return true;
 }
 
