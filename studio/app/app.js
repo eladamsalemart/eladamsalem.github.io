@@ -253,7 +253,7 @@ function home() {
     <section class="shelf"><h2>Exhibitions</h2><div class="covers">${M.exhibitions.map(e => `<a href="#/exhibition/${e.slug}">${im(e.images[0], '')}<div><b>${esc(e.title)}</b><div class="m">${esc([e.year, e.artist.name].join(' · '))}</div></div></a>`).join('')}</div></section>
     <section class="shelf"><h2>Latest works</h2><div class="covers works">${M.works.slice(0, 10).map(workCover).join('')}</div></section>
     <section class="shelf"><h2>By location</h2><div class="places">${M.cities.map(cityCard).join('')}</div></section>
-    <a class="for-artists" href="#/studio"><span class="k">For artists</span><b>Open your studio</b><span class="m">Your works at their real size, your shows as rooms anyone can walk through.</span><span aria-hidden="true">→</span></a>
+    <a class="for-artists" href="#/studio"><b>Open your studio</b><span class="m">For artists: your works at their real size, your shows as rooms anyone can walk through.</span><span aria-hidden="true">→</span></a>
   </div>`;
 }
 
@@ -318,7 +318,7 @@ function artistPage(slug) {
   const hero = a.hero || (last && last.images[0]) || (works[0] && works[0].image);
   return `
   <section class="hero">${im(hero, last ? `Installation view, ${last.title}` : a.name, 'loading="eager"', '100vw')}
-    <div class="ov gut"><div class="wrap"><div class="k">${esc(a.label)}</div><h1>${esc(a.name)}</h1></div></div></section>
+    <div class="ov gut"><div class="wrap"><h1>${esc(a.name)}</h1><div class="k">${esc(a.label)}</div></div></div></section>
   <div class="wrap gut">
     <div class="btns" style="padding-block:18px 0"><button type="button" class="btn ${followed ? 'g' : 'f'}" data-follow="${esc(a.slug)}" aria-pressed="${followed}">${followed ? 'Following' : 'Follow'}</button>${own ? '<a class="btn g" href="#/about">About & CV</a>' : ''}</div>
     <p class="statement">${esc(curly(a.statement))}</p>
@@ -329,7 +329,7 @@ function artistPage(slug) {
         <span class="lk">${p.kind === 'video' ? '▶ Video' : 'Story'} · ${esc(ago(p.at))}</span>
         <span class="lt">${esc(p.text)}</span>
         ${p.work ? `<span class="lw">${im(p.work.image, '', '', '10vw')}${esc(p.work.title)}</span>` : ''}</button>`).join('')}</div></section>` : ''}
-    ${live ? `<section class="sec"><div class="k"><span class="dot"></span>&nbsp; ${esc(when(live))}</div>
+    ${live ? `<section class="sec"><h2 class="live-h"><span class="dot" aria-hidden="true"></span>${esc(when(live))}</h2>
       <a class="onview" href="#/exhibition/${live.slug}">${im(live.images[0], '')}<div><h3>${esc(live.title)}</h3>
       <div class="m">${esc(live.kind === 'online' ? 'Online exhibition' : [live.venue, live.city].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
     <section class="sec"><div class="sec-h"><h2>Latest works</h2><a class="more" href="${own ? '#/works' : `#/artist/${a.slug}/works`}">All ${works.length} →</a></div>
@@ -348,7 +348,7 @@ function archive(year, a = M.artist) {
   const years = [...new Set(mine.map(w => w.year))];
   const list = year ? mine.filter(w => w.year === year) : mine;
   return `<div class="wrap gut">
-    <div class="ex-head"><div class="k">${esc(a.name)} · Archive</div><h1>Works</h1><div class="m">${list.length} ${list.length === 1 ? 'work' : 'works'}${year ? ` from ${esc(year)}` : ''}</div></div>
+    <div class="ex-head"><h1>Works</h1><div class="k">${esc(a.name)} · Archive</div><div class="m">${list.length} ${list.length === 1 ? 'work' : 'works'}${year ? ` from ${esc(year)}` : ''}</div></div>
     <div class="chips" style="padding-block:18px 28px"><a class="chip" href="${base}" ${!year ? 'aria-current="page"' : ''}>All</a>${years.map(y => `<a class="chip" href="${base}/${y}" ${y === year ? 'aria-current="page"' : ''}>${esc(y)}</a>`).join('')}</div>
     <div class="grid">${list.map(w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image, w.title)}</div><div class="c"><b>${esc(w.title)}</b><div class="m">${esc(metaLine(w))}</div></div></a>`).join('')}</div>
   </div>`;
@@ -360,8 +360,8 @@ function exhibition(slug) {
   return `<div class="wrap gut">
     <div class="album">
       ${im(e.images[0], `Installation view of ${e.title}`, 'class="cover" loading="eager"', '100vw')}
-      <div class="k">${status(e) === 'past' ? 'Exhibition' : `<span class="dot"></span>&nbsp; ${esc(when(e))}`} · ${e.kind === 'online' ? 'Online' : esc(e.city || e.year)}</div>
       <h1>${esc(e.title)}</h1>
+      <div class="k">${status(e) === 'past' ? 'Exhibition' : `<span class="dot"></span>&nbsp; ${esc(when(e))}`} · ${e.kind === 'online' ? 'Online' : esc(e.city || e.year)}</div>
       <div class="bys">${(e.artists || [e.artist]).map(a => `<a class="by" href="#/artist/${a.slug}">${im(a.portrait, '')}${esc(a.name)}</a>`).join('')}</div>
       <div class="m">${esc([e.dates, e.kind === 'online' ? 'An online exhibition' : e.venue].filter(Boolean).join(' · '))}${e.curator ? ` · Curated by ${esc(e.curator)}` : ''}</div>
       ${status(e) !== 'past' && (e.address || e.hours) ? `<div class="visit">${e.address ? `<a href="#/map/${e.slug}"><b>${esc(e.venue)}</b><span>${esc(e.address)}</span></a>` : ''}${e.hours ? `<span>${esc(e.hours)}</span>` : ''}</div>` : ''}
@@ -389,7 +389,7 @@ function work(slug) {
       <div class="label"><b>${esc(w.title)}</b><span>${esc(w.artist.name)}, ${esc(w.year)}</span><span>${esc(w.medium)}</span>${w.size ? `<span class="s">${esc(w.size)}</span>` : ''}</div>
       <div class="btns"><button type="button" class="btn f" data-zoom="${esc(src(w.image))}">Zoom</button>${w.pairs.length ? '<button type="button" class="btn g" id="scaleBtn" aria-expanded="false">At scale</button>' : ''}</div>
       <div class="scale" id="scale" hidden></div>
-      ${ex ? `<a class="onview" href="#/exhibition/${ex.slug}">${im(ex.images[0], '')}<div><div class="k">From the exhibition</div><h3>${esc(ex.title)}</h3><div class="m">${esc(place(ex))}</div></div></a>` : ''}
+      ${ex ? `<a class="onview" href="#/exhibition/${ex.slug}">${im(ex.images[0], '')}<div><h3>${esc(ex.title)}</h3><div class="m">From the exhibition · ${esc(place(ex))}</div></div></a>` : ''}
     </div>
     <nav class="pn" aria-label="More works">${prev ? `<a href="#/work/${prev.slug}">← ${esc(prev.title)}</a>` : '<span></span>'}${next ? `<a href="#/work/${next.slug}">${esc(next.title)} →</a>` : '<span></span>'}</nav>
   </div>`;
@@ -419,7 +419,7 @@ function object(slug) {
   const o = M.objects.find(x => x.slug === slug);
   if (!o) return notFound();
   return `<div class="wrap gut">
-    <div class="ex-head"><div class="k">Object · ${esc(M.artist.name)}</div><h1>${esc(o.title)}</h1><div class="m">${esc(o.meta)}</div></div>
+    <div class="ex-head"><h1>${esc(o.title)}</h1><div class="k">Object · ${esc(M.artist.name)}</div><div class="m">${esc(o.meta)}</div></div>
     <section class="sec" style="border-top:0"><div class="prose">${o.text.map(p => `<p>${esc(p)}</p>`).join('')}</div></section>
     <div class="views">${o.images.map((p, i) => `<button type="button" data-zoom="${esc(src(p))}" aria-label="View ${i + 1}">${im(p, `${o.title}, view ${i + 1}`)}</button>`).join('')}</div>
   </div>`;
@@ -430,7 +430,7 @@ function about() {
   const groups = [...new Set(cv.map(c => c.group))];
   return `<div class="wrap gut"><div class="about">
     <div style="display:grid;gap:10px">${im(s.about_portrait, s.about_caption || 'Portrait')}<div class="k">${esc(s.about_caption)}</div></div>
-    <div class="ex-head" style="padding:0"><div class="k">About</div><h1>${esc(M.artist.name)}</h1></div>
+    <div class="ex-head" style="padding:0"><h1>${esc(M.artist.name)}</h1><div class="k">About</div></div>
     <div class="prose">${(s.about_text || '').split(/\n\s*\n/).map(p => `<p>${esc(p)}</p>`).join('')}<p style="color:var(--muted)">${esc(s.about_credit)}</p></div>
     <div class="cv">${groups.map(g => `<div><h3>${esc(g)}</h3><dl>${cv.filter(c => c.group === g).map(c => `<dt>${esc(c.year)}</dt><dd>${esc(c.title)}${c.venue ? `<br><span>${esc(c.venue)}</span>` : ''}</dd>`).join('')}</dl></div>`).join('')}</div>
     <div class="contact"><div class="k">Contact</div><span class="addr">${esc(s.email)}</span><a href="${esc(s.instagram)}" target="_blank" rel="noopener">Instagram</a></div>
@@ -476,7 +476,7 @@ function placePage(slug) {
   if (!c) return notFound();
   const shows = M.exhibitions.filter(e => e.city === c.name), artists = M.artists.filter(a => a.city === c.name);
   return `<div class="wrap gut">
-    <div class="ex-head"><div class="k">Place · ${esc(c.country)}</div><h1>${esc(c.name)}</h1></div>
+    <div class="ex-head"><h1>${esc(c.name)}</h1><div class="k">Place · ${esc(c.country)}</div></div>
     ${artists.length ? `<section class="shelf"><h2>Artists based here</h2><div class="people">${artists.map(a => person(a)).join('')}</div></section>` : ''}
     ${shows.length ? `<section class="shelf"><h2>Exhibitions here</h2><div class="covers">${shows.map(e => cover(e)).join('')}</div></section>` : ''}
   </div>`;
@@ -517,7 +517,7 @@ function showsPage() {
     <div class="nx-h"><h1>Shows</h1><div class="seg" role="group" aria-label="Which shows">${[['all', 'All'], ['rooms', 'In a room'], ['online', 'Online']].map(([k, t]) => `<button type="button" data-kind="${k}" aria-pressed="${showsKind === k}">${t}</button>`).join('')}</div></div>
     ${hero ? `<a class="nx-hero" href="#/exhibition/${hero.slug}">${im(hero.images[0], `${hero.title}`, 'loading="eager"', '100vw')}
       <span class="nx-live"><i></i>${esc(tonight && tonight.show === hero ? `${tonight.what} ${dayName(tonight.at) === 'Tonight' ? 'tonight' : dayName(tonight.at).toLowerCase()} · ${hm(tonight.at)}` : when(hero))}</span>
-      <span class="nx-ov"><span class="k">${esc(byOf(hero))}${hero.venue && hero.kind !== 'online' ? ` · ${esc(hero.venue)}` : ''}</span><b>${esc(hero.title)}</b>
+      <span class="nx-ov"><b>${esc(hero.title)}</b><span class="k">${esc(byOf(hero))}${hero.venue && hero.kind !== 'online' ? ` · ${esc(hero.venue)}` : ''}</span>
       <span class="m">${hero.works.length} works · ${esc(hero.kind === 'online' ? 'online' : hero.city)}</span>
       <span class="nx-cta">${hero.kind === 'online' || hero.space ? 'Walk in now' : 'See the show'}</span></span></a>` : ''}
     <section class="nx-sec"><div class="nx-sh"><h2>This week</h2></div>
