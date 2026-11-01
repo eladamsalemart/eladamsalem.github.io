@@ -1,6 +1,7 @@
 # Open Studio: publish the app from the studio branch to eladamsalem.com/open-studio/, where it installs
 # on any phone (Add to Home Screen). Only that folder on main is written; the rest of the site is not touched.
-# Runs when the app changes on studio, and after the spaces are rebuilt.
+# Runs when the app changes on studio, after the spaces are rebuilt, and after the art map's daily and monthly reads
+# (their commits, made with the workflow's own token, start no workflow by themselves).
 name: Open Studio app
 
 on:
@@ -10,7 +11,7 @@ on:
       - 'studio/app/**'
       - '!studio/app/space/pipeline/**'
   workflow_run:
-    workflows: [Studio spaces]
+    workflows: [Studio spaces, "Art map: exhibitions", "Art map: places"]
     types: [completed]
   workflow_dispatch:
 
