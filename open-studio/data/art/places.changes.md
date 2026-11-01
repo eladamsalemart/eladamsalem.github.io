@@ -1,6 +1,9 @@
-# Art places, 2026-10-29
+# Art places, 2026-11-01
 
-132 places: museum 52, public 40, artist-run 1, academy 2, commercial 36, centre 1; curated 80, with a building 104
+133 places: museum 53, public 40, artist-run 1, academy 2, commercial 36, centre 1; curated 80, with a building 105
+
+## New
+- Beit Ryback Museum
 
 ## Notes
 - not found on the map: HaMekarer (Jerusalem)
@@ -40,16 +43,19 @@
 - not found on the map: Light Boxes Gallery (Jaffa)
 - not found on the map: Mazal Dagim Gallery (Jaffa)
 - not found on the map: HaBayit BeHerzl (Tel Aviv)
+- unconfirmed (not found this month): Artist's House
 
 ## Left out of OpenStreetMap candidates
-- museum (untyped), not art: 130
+- museum (untyped), not art: 129
 - name says not art: 57
 - arts centre without art in its name: 31
-- studio or art shop (shown only if curated): 26
-- public only on OpenStreetMap, not curated (galleries there include framers and decor shops): 22
+- studio or art shop (shown only if curated): 27
+- public only on OpenStreetMap, not curated (galleries there include framers and decor shops): 26
 - centre only on OpenStreetMap, not curated (galleries there include framers and decor shops): 16
 - museum (history), not art: 15
 - museum (open_air), not art: 8
 - museum (military), not art: 1
 - a shop: 1
+- museum (ethnography), not art: 1
+- museum (archaeological), not art: 1
 - museum (local_history), not art: 1
