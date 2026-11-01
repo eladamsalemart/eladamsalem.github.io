@@ -165,6 +165,19 @@ function setFollow(slug, on) {
   try { localStorage.setItem(FOLLOW_KEY, JSON.stringify([...f])); } catch {}
 }
 
+// what this phone opened last (artists, exhibitions, their 3D spaces, works, places on the art map), newest first:
+// Home's quick tiles, as Spotify's
+const RECENT_KEY = 'os-recent';
+function recent() { try { const r = JSON.parse(localStorage.getItem(RECENT_KEY)); if (Array.isArray(r)) return r; } catch {} return []; }
+function remember(item) {
+  const r = [item, ...recent().filter(x => !(x.k === item.k && x.id === item.id))].slice(0, 16);
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(r)); } catch {}
+}
+function rememberHash(hash) {
+  const m = hash.match(/^#\/(artist|exhibition|work|place)\/([^/]+)(\/space)?$/);
+  if (m) remember({ k: m[3] ? 'space' : m[1], id: decodeURIComponent(m[2]), t: Date.now() });
+}
+
 // --- helpers ---------------------------------------------------------------
 let M;
 const src = p => M.media[p] || p;
@@ -190,10 +203,41 @@ const workCover = w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image,
 const person = (a, fresh) => `<a class="person${fresh ? ' fresh' : ''}" href="#/artist/${a.slug}">${im(a.portrait, a.name)}<div><b>${esc(a.name)}</b><div class="m">${esc(a.discipline)}</div></div></a>`;
 
 // --- views -----------------------------------------------------------------
+// a quick tile: a picture (or the place's colour), the name, and what it is
+function quickTile(r) {
+  const tile = (href, pic, name, kind) => `<a class="qt" href="${href}">${pic}<span><b>${esc(name)}</b><i>${esc(kind)}</i></span></a>`;
+  if (r.k === 'artist') { const a = M.artists.find(x => x.slug === r.id); return a && tile(`#/artist/${a.slug}`, im(a.portrait, '', '', '64px'), a.name, 'Artist'); }
+  if (r.k === 'exhibition' || r.k === 'space') {
+    const e = M.exhibitions.find(x => x.slug === r.id);
+    if (!e) return null;
+    return r.k === 'space' && e.space ? tile(`#/exhibition/${e.slug}/space`, `<span class="qt-im">${im(e.images[0], '', '', '64px')}<em>3D</em></span>`, e.title, 'Walk in 3D')
+      : tile(`#/exhibition/${e.slug}`, im(e.images[0], '', '', '64px'), e.title, status(e) === 'on' ? 'On now' : status(e) === 'soon' ? 'Coming up' : 'Exhibition');
+  }
+  if (r.k === 'work') { const w = M.works.find(x => x.slug === r.id); return w && tile(`#/work/${w.slug}`, im(w.image, '', '', '64px'), w.title, w.artist.name); }
+  if (r.k === 'place') { const c = M.cities.find(x => x.slug === r.id); return c && tile(`#/place/${c.slug}`, '<span class="qt-sw" style="--c:#2F6B4F"></span>', c.name, 'City'); }
+  if (r.k === 'artplace') return tile(`#/map/place/${encodeURIComponent(r.id)}`, `<span class="qt-sw" style="--c:${esc(r.c || '#2F4FD0')}"></span>`, r.name || 'Art space', 'On the art map');
+  if (r.k === 'map') return tile('#/map', '<span class="qt-sw map"></span>', 'Art near you', 'The art map');
+  return null;
+}
+function quickTiles() {
+  const seen = new Set(), out = [];
+  const add = r => { const key = r.k + ':' + r.id; if (seen.has(key) || out.length >= 8) return; const h = quickTile(r); if (h) { seen.add(key); out.push(h); } };
+  recent().forEach(add);
+  // to start with (or to fill up): the artists followed, what's on, a room to walk in, the map
+  const now = M.exhibitions.filter(e => isOn(e)), walk = M.exhibitions.find(e => e.space);
+  add({ k: 'map', id: 'map' });
+  following().forEach(id => add({ k: 'artist', id }));
+  now.forEach(e => add({ k: 'exhibition', id: e.slug }));
+  if (walk) add({ k: 'space', id: walk.slug });
+  M.works.forEach(w => add({ k: 'work', id: w.slug }));
+  return out.length >= 4 ? `<nav class="quick" aria-label="Jump back in">${out.join('')}</nav>` : '';
+}
+
 function home() {
   const live = M.exhibitions.find(e => isOn(e) && e.kind !== 'online') || M.exhibitions[0];
   return `<div class="wrap gut">
     <div class="home-h"><h1 class="brand-h">${LOGO}</h1><span class="tag">No. 01 · Prototype</span></div>
+    ${quickTiles()}
     ${live ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
       <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"', '100vw')}
         <div class="ov"><div class="k">${esc(live.artist.name)}</div><h2>${esc(live.title)}</h2><div class="m">${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
@@ -465,6 +509,7 @@ function openArtMap(el) {
   import('./artmap.js').then(m => m.mountArtMap(el, {
     M, focus: mapFocus, here: myPlace,
     setHere: p => { try { localStorage.setItem(PLACE_KEY, JSON.stringify(p)); } catch {} },
+    remember: p => remember({ k: 'artplace', id: p.id, name: p.name, c: p.c, t: Date.now() }),
   })).then(() => { artMap = el.__map || null; }).catch(e => {
     console.error(e);
     el.querySelector('.am-sheet').innerHTML = '<p class="am-empty">The map couldn\u2019t load. Check the connection and open it again.</p>';
@@ -524,6 +569,7 @@ function render() {
   if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }
   if (artMap) { artMap.remove(); artMap = null; }           // (a WebGL map gives its context back when left)
   app.innerHTML = html;
+  rememberHash(hash);
   // each page its own title (the tab, history and a shared link say where it goes)
   const h = app.querySelector('h1, h2'), name = h && h.textContent.replace(/\s+/g, ' ').trim();
   document.title = name && tab !== 'home' ? `${name} · Open Studio` : 'Open Studio';

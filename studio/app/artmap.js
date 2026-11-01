@@ -258,6 +258,7 @@ export async function mountArtMap(root, ctx) {
   let live = null, watch = null, tracking = false, compass = null, area = '', lastPaintAt = null;
   let trip = null;                                     // directions: {dest, mode, route, coords, cum, steps, done, nav, off}
   if (!sel && focus && focus.startsWith('os-')) sel = places.find(p => p.shows.some(s => s.href === `#/exhibition/${focus.slice(3)}`)) || null;
+  if (sel && ctx.remember) ctx.remember({ id: sel.id, name: sel.name, c: KINDS[sel.kind].c });   // opened from a link
 
   const sheet = root.querySelector('.am-sheet'), mapEl = root.querySelector('.am-map');
   const cities = Object.entries(places.reduce((m, p) => { if (p.city) (m[p.city] = m[p.city] || []).push(p.at); return m; }, {}))
@@ -472,6 +473,7 @@ export async function mountArtMap(root, ctx) {
     if (map && map.getLayer('art-ring')) map.setFilter('art-ring', ['==', ['get', 'id'], sel ? sel.id : '']);
     if (map && sel) { map.setFeatureState({ source: 'art', id: sel.id }, { sel: true }); orbit(); }
     history.replaceState(null, '', sel ? `#/map/place/${encodeURIComponent(sel.id)}` : '#/map');
+    if (sel && ctx.remember) ctx.remember({ id: sel.id, name: sel.name, c: KINDS[sel.kind].c });
     paint();
     if (sel) root.querySelector('.am-sheet').scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
