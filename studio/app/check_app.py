@@ -94,6 +94,27 @@ def directions():
             ok(f'directions: {path}, {r["distance"] / 1000:.1f} km in {steps} steps')
 
 
+def sign_in():
+    """The way in (auth.js) asks the Supabase project it names, with its publishable key: the project must answer, take
+    the key, and have signing up by email open (Google, Apple and Facebook are added there as each is connected)."""
+    src = (APP / 'auth.js').read_text(encoding='utf-8')
+    base, key = const(src, 'SUPABASE'), const(src, 'KEY')
+    if not base or not key:
+        return fail('sign-in: no SUPABASE or KEY in auth.js')
+    if not (APP / 'vendor' / 'supabase' / 'supabase.js').exists() or (APP / 'vendor' / 'supabase' / 'supabase.js').stat().st_size < 50000:
+        return fail('sign-in: vendor/supabase/supabase.js is missing')
+    try:
+        req = urllib.request.Request(f'{base}/auth/v1/settings', headers={'User-Agent': UA, 'apikey': key})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            j = json.loads(r.read())
+    except Exception as e:
+        return fail(f'sign-in: the Supabase project did not answer with the app\'s key ({e})')
+    on = [k for k, v in (j.get('external') or {}).items() if v]
+    if 'email' not in on or j.get('disable_signup'):
+        return fail(f'sign-in: signing up by email is closed in the Supabase project (on: {", ".join(on) or "nothing"})')
+    ok(f'sign-in: Supabase answers; open for {", ".join(on)}')
+
+
 def vendor():
     for f in ('maplibre-gl.js', 'maplibre-gl.css', 'mapbox-gl-rtl-text.js'):
         p = APP / 'vendor' / 'maplibre' / f
@@ -133,5 +154,6 @@ if __name__ == '__main__':
     map_tiles()
     directions()
     vendor()
+    sign_in()
     art_data()
     sys.exit(1 if failed else 0)
