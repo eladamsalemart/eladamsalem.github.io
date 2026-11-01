@@ -40,7 +40,7 @@ jobs:
           git worktree add /tmp/studio origin/studio
           src=/tmp/studio/studio/app
           rm -rf open-studio && mkdir -p open-studio/space open-studio/data/spaces
-          cp $src/index.html $src/app.js $src/artist.js $src/artmap.js $src/sw.js $src/manifest.webmanifest open-studio/
+          cp $src/index.html $src/app.js $src/artist.js $src/artmap.js $src/auth.js $src/sw.js $src/manifest.webmanifest open-studio/
           cp -r $src/vendor open-studio/
           cp -r $src/icons open-studio/
           cp -r $src/data/demo open-studio/data/
@@ -58,6 +58,26 @@ jobs:
           python3 /tmp/studio/studio/app/thumbs.py media open-studio
           # a new cache name with every version, so an installed app drops what it kept from the last one
           sed -i "s/const VERSION = '[^']*'/const VERSION = 'open-studio-$(git -C /tmp/studio rev-parse --short HEAD)'/" open-studio/sw.js
+      - name: Every file the app loads is published (a script left out of the copy above fails here, not on a phone)
+        run: |
+          python3 - <<'PY'
+          import re, sys
+          from pathlib import Path
+          out = Path('open-studio'); missing = []
+          for f in ('app.js', 'artmap.js', 'auth.js', 'artist.js', 'index.html', 'sw.js'):
+              if not (out / f).exists():
+                  continue                                  # (one that's missing is named by what loads it)
+              src = (out / f).read_text(encoding='utf-8')
+              for ref in re.findall(r"import\(\s*'\./([^']+)'\s*\)|src\s*=\s*['\"]((?:vendor|space|icons)/[^'\"]+)['\"]|s\.src = '([^']+)'", src):
+                  ref = next(r for r in ref if r)
+                  if not (out / ref).exists():
+                      missing.append(f'{f} loads {ref}')
+          for ref in re.findall(r"'([\w./-]+\.js)'", (out / 'sw.js').read_text()):
+              if not (out / ref).exists():
+                  missing.append(f'sw.js keeps {ref}')
+          print('\n'.join(missing) or 'every file the app loads is here')
+          sys.exit(1 if missing else 0)
+          PY
       - name: Check what phones will fetch (the map's tiles really are a map) and the art map's data
         run: python3 /tmp/studio/studio/app/check_app.py /tmp/studio/studio/app
       - name: Commit and push to main
