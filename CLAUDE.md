@@ -26,3 +26,14 @@ to a tour or the viewer is done:
 5. The app itself is checked before it publishes (`studio/app/check_app.py`, in the "Open Studio app" workflow).
    A screenshot taken with an outside service stubbed out (map tiles, fonts) proves nothing about that service:
    the map once showed only "API KEY REQUIRED" watermarks on phones while local shots, with stubbed tiles, looked right.
+
+## Design
+
+- For any UI work, use the design skills in `.claude/skills` (sources in `.claude/skills/SOURCES.md`): `impeccable`
+  (shape, critique, audit, polish; the app is mostly an Operate surface, exhibitions and tours are Experience),
+  `design-taste-frontend` (taste-skill; its app run for app screens), and Emil Kowalski's (`emil-design-eng`, and the
+  animation skills: `animate`, `review-animations`, `improve-animations`, `animation-performance`).
+- Keep the app's own world: Studio Paper, the atlas map, the opening-night look. A skill's advice never replaces it
+  without the owner's word.
+- Look at it with Playwright as an iPhone (the `playwright` MCP in `.mcp.json`, or a script), and check it with the
+  owner in Figma when a design is to be agreed first (Figma connector, from claude.ai).
