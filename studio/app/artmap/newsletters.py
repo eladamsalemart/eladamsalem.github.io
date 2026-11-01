@@ -26,6 +26,7 @@ EMAIL = 'ooopenstudio@gmail.com'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36'
 KW = r'newsletter|ניוזלטר|ניוזלטר|דיוור|רשימת (?:ה)?תפוצה|עדכונים|subscribe|sign ?up|הרשמ|הירשמ|הצטרפ|mailing list|stay (?:in touch|updated)|keep in touch'
 THANKS = re.compile(r'thank|thanks|תודה|נרשמת|נרשמתם|הרשמתך|ההרשמה (?:בוצעה|התקבלה|הושלמה)|success|subscribed|almost finished|confirm|אישור|check your (?:e-?mail|inbox)', re.I)
+HUMAN = re.compile(r"confirm you'?re (?:a )?human|verify you are human|i'?m not a robot|captcha|אני לא רובוט", re.I)
 ALREADY = re.compile(r'already (?:subscribed|a (?:list )?member)|כבר רשומ', re.I)
 
 # in the page: every email field, with what's around it and what its form asks for
@@ -61,7 +62,11 @@ SCAN = r"""(kw) => {
   const captcha = !!document.querySelector('iframe[src*=recaptcha], iframe[src*=hcaptcha], iframe[src*=turnstile], .g-recaptcha, .h-captcha, .cf-turnstile');
   const links = [...document.querySelectorAll('a[href]')].filter(a => (KW.test(a.innerText || '') && (a.innerText || '').length < 60) || /newsletter|subscribe|ניוזלטר|דיוור/i.test(decodeURIComponent(a.href)))
     .map(a => a.href).filter(h => /^https?:/.test(h) && !/facebook|instagram|twitter|x\.com|youtube|whatsapp|wa\.me|linkedin|tiktok/i.test(h));
-  return { fields: out, captcha, links: [...new Set(links)].slice(0, 6), title: document.title };
+  // the address the place publishes, for asking by mail where there is no form
+  const mails = [...document.querySelectorAll('a[href^="mailto:" i]')].map(a => decodeURIComponent(a.getAttribute('href').slice(7)).split('?')[0].trim())
+    .concat((document.body.innerText.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g) || []))
+    .map(m => m.toLowerCase().replace(/[.,;:]+$/, '')).filter(m => !/example|sentry|wixpress|\.(png|jpe?g|gif|webp)$/.test(m));
+  return { fields: out, captcha, links: [...new Set(links)].slice(0, 6), title: document.title, mails: [...new Set(mails)].slice(0, 4) };
 }"""
 
 
@@ -125,12 +130,17 @@ def fill(page, f):
     before = page.evaluate('document.body.innerText')
     btn = box.locator('button:visible, input[type=submit]:visible, [role=button]:visible')
     if btn.count():
-        btn.last.click(timeout=8000)
+        try:
+            btn.last.click(timeout=8000)
+        except Exception:                                 # covered (a cookie bar, a chat button): press it from the page
+            btn.last.evaluate('b => b.click()')
     else:
         email.press('Enter')
     page.wait_for_timeout(6000)
     after = page.evaluate('document.body.innerText')
     new = after.replace(before, '') if before in after else after
+    if HUMAN.search(new):
+        return 'captcha', new
     if ALREADY.search(new):
         return 'already subscribed', new
     if THANKS.search(new) or (email.count() and not email.input_value()) or not email.count():
@@ -170,6 +180,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--sign-up', action='store_true')
     ap.add_argument('--only', help='these places only (comma-separated ids)')
+    ap.add_argument('--again', action='store_true', help='with --only: try those places again, whatever happened before')
     a = ap.parse_args()
     from playwright.sync_api import sync_playwright
     sys.path.insert(0, str(HERE))
@@ -190,7 +201,7 @@ def main():
         b = pw.chromium.launch(executable_path=os.environ.get('PW_CHROMIUM') or None)
         ctx = b.new_context(viewport={'width': 1280, 'height': 900}, locale='he-IL', user_agent=UA)
         for p in places:
-            prev = done.get(p['id'], {})
+            prev = {} if a.again and a.only else done.get(p['id'], {})
             if prev.get('status') in ('signed up', 'already subscribed', 'confirmed') or str(prev.get('status', '')).startswith('same list as'):
                 print(f"{p['id']:<44} {prev['status']} (on {prev.get('day')})")
                 continue
@@ -220,6 +231,8 @@ def main():
                 rec['said'] = r['said']
             if r.get('links'):
                 rec['links'] = r['links'][:3]
+            if r.get('mails'):
+                rec['contact'] = r['mails']
             if ok:
                 rec['form'] = {'text': ok[0]['text'][:160], 'inputs': [f"{x['type']}:{x['name']}{'*' if x['req'] else ''}" for x in ok[0]['inputs'] if x['vis']]}
             done[p['id']] = rec
