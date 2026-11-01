@@ -476,6 +476,7 @@ def auto_read(place, today):
     try:
         lines = [re.sub(r'\s+', ' ', x).strip() for x in pg.inner_text('body').split('\n') if x.strip()]
         links = pg.eval_on_selector_all('a', 'as => as.map(a => [a.innerText.trim().slice(0, 60), a.href])')
+        note_socials(place['id'], [h for _, h in links])
         home = pg.url
     finally:
         pg.close()
@@ -844,6 +845,54 @@ def mail_read(places, today):
     return shows, events, h
 
 
+# --- the places' own Instagram and Facebook, from the links on their sites (a place's card links to them) ------------
+SOCIAL = {}
+SOCIAL_RE = {
+    'instagram': re.compile(r'^https?://(?:www\.)?instagram\.com/([A-Za-z0-9_.]{2,30})/?(?:[?#].*)?$', re.I),
+    'facebook': re.compile(r'^https?://(?:www\.|he-il\.|he\.|m\.|en-gb\.)?facebook\.com/(profile\.php\?id=\d+|(?!sharer|share|dialog|plugins|tr/|events/|groups/|watch|login)[A-Za-z0-9_.\-%]{2,80})/?(?:[?#].*)?$', re.I),
+}
+NOT_HANDLE = {'p', 'reel', 'reels', 'stories', 'explore', 'accounts', 'home.php', 'login', 'about', 'legal', 'help', 'privacy', 'policies'}
+
+
+def note_socials(pid, hrefs):
+    """The first Instagram and Facebook page a place's site links to (not a share button, a post or a reel)."""
+    got = SOCIAL.setdefault(pid, {})
+    for h in hrefs:
+        for k, rx in SOCIAL_RE.items():
+            m = rx.match((h or '').strip())
+            if m and k not in got and m.group(1).lower().rstrip('/') not in NOT_HANDLE:
+                got[k] = f'https://www.{k}.com/{m.group(1)}'
+    return got
+
+
+def hrefs_in(page):
+    return [html.unescape(h) for h in re.findall(r'href=["\']([^"\']+)', page or '')]
+
+
+def links_only(places, today, dry):
+    """Each place's own site, home page only, for its Instagram and Facebook; kept with yesterday's."""
+    for p in sorted((p for p in places.values() if p.get('website')), key=lambda p: p['id']):
+        site = p['website'].strip()
+        try:
+            note_socials(p['id'], hrefs_in(fetch(site if site.startswith('http') else 'https://' + site)))
+        except Exception:
+            pass
+        if not SOCIAL.get(p['id']):                       # nothing in the page as sent: the site builds it in a browser
+            try:
+                pg = open_page(site)
+                note_socials(p['id'], pg.eval_on_selector_all('a', 'as => as.map(a => a.href)'))
+                pg.close()
+            except Exception:
+                pass
+        print(f"{p['id']:<44} {' '.join(SOCIAL.get(p['id'], {}).values()) or '-'}", file=sys.stderr)
+    close_browser()
+    if dry:
+        return
+    prev = json.loads(OUT.read_text()) if OUT.exists() else {}
+    prev['links'] = {**prev.get('links', {}), **{k: v for k, v in SOCIAL.items() if v}}
+    OUT.write_text(json.dumps(prev, ensure_ascii=False, separators=(',', ':')))
+
+
 def load_sources():
     out = []
     for line in (HERE / 'sources.tsv').read_text(encoding='utf-8').splitlines():
@@ -861,12 +910,22 @@ def main():
     ap.add_argument('--dry', action='store_true', help='print what was found; write nothing')
     ap.add_argument('--no-browser', action='store_true', help="don't read pages in a browser when the plain page has nothing")
     ap.add_argument('--mail-only', action='store_true', help='read the newsletters only, and keep every other source as it was')
+    ap.add_argument('--links-only', action='store_true', help="read the places' sites for their Instagram and Facebook only")
     a = ap.parse_args()
     today = dt.date.fromisoformat(a.today) if a.today else dt.date.today()
     places = {p['id']: p for p in json.loads((APP / 'data' / 'art' / 'places.json').read_text())['places']} \
         if (APP / 'data' / 'art' / 'places.json').exists() else {}
     shows, events, health = [], [], []
     only = set(a.only.split(',')) if a.only else None
+    try:                                                  # a curated place's own site, before the monthly map has it
+        from places import load_seeds
+        for sd in load_seeds():
+            if sd['site'] and sd['id'] in places and not places[sd['id']].get('website'):
+                places[sd['id']]['website'] = sd['site']
+    except Exception as e:
+        print(f'seeds: {e}', file=sys.stderr)
+    if a.links_only:
+        return links_only(places, today, a.dry)
     if a.mail_only:
         return mail_only(places, today, a.dry)
     for s in load_sources():
@@ -892,6 +951,7 @@ def main():
                 health.append(h)
                 continue
             page = ''                                    # some sites turn away plain requests but not a browser
+        note_socials(s['place'], hrefs_in(page))
         lines = text_lines(page)
         found, evs = extract(lines, today)
         if s['mode'] == 'colon-list':
@@ -1005,7 +1065,8 @@ def main():
             print(f"{x['source']:<22} {x.get('by', 'rule'):<6} {x['title'][:60]} | {x.get('start')} – {x.get('end')}")
         print(json.dumps([h for h in health if h['source'] == 'model'], ensure_ascii=False))
         return
-    OUT.write_text(json.dumps({'updated': today.isoformat(), 'shows': shows, 'events': events},
+    links = {**prev.get('links', {}), **{k: v for k, v in SOCIAL.items() if v}}
+    OUT.write_text(json.dumps({'updated': today.isoformat(), 'shows': shows, 'events': events, 'links': links},
                               ensure_ascii=False, separators=(',', ':')))
     HEALTH.write_text(json.dumps({'updated': today.isoformat(), 'sources': health}, ensure_ascii=False, indent=1))
     print(f'{len(shows)} shows ({len(kept)} kept from earlier reads), {len(events)} events; '
@@ -1038,7 +1099,7 @@ def mail_only(places, today, dry):
             per.setdefault(x['place'], []).append(x)
             keep.append(x)
     evs = [e for e in prev.get('events', []) if not str(e.get('source', '')).startswith('mail:')] + events
-    OUT.write_text(json.dumps({'updated': prev.get('updated', today.isoformat()), 'shows': keep, 'events': evs},
+    OUT.write_text(json.dumps({'updated': prev.get('updated', today.isoformat()), 'shows': keep, 'events': evs, 'links': prev.get('links', {})},
                               ensure_ascii=False, separators=(',', ':')))
 
 
