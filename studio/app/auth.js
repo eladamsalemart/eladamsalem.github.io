@@ -168,6 +168,15 @@ let pending = { email: '' };
 try { pending = JSON.parse(sessionStorage.getItem('os-pending')) || pending; } catch {}
 const savePending = () => { try { sessionStorage.setItem('os-pending', JSON.stringify(pending)); } catch {} };
 const say = e => (e && e.message || String(e || '')).replace(/^AuthApiError:\s*/, '');
+// what went wrong sending the email, in words a person can act on (Supabase's own mail sends a few an hour, for the
+// whole app; a person may ask again after a minute)
+const sendTrouble = e => {
+  const m = say(e), code = e && (e.code || e.error_code) || '';
+  if (code === 'over_email_send_rate_limit' || /email rate limit/i.test(m)) return 'Sign-up emails are paused for now: too many went out in the last hour. Try again later.';
+  if (/seconds|too many/i.test(m)) return 'An email just went to this address. Wait a minute, then ask again.';
+  if (/not authorized|not allowed/i.test(m)) return 'Emails can\u2019t go to this address yet. Try the address you opened Supabase with.';
+  return m || 'The email didn\u2019t go. Try again.';
+};
 
 export async function screen(hash, app, go) {
   const u = account();
@@ -222,7 +231,7 @@ function wire(app, go) {
         pending = { email, at: Date.now() }; savePending();
         go('#/welcome/sent');
       } catch (e) {
-        app.innerHTML = emailForm(email, /rate|seconds|too many/i.test(say(e)) ? 'Too many emails just now. Wait a minute and try again.' : say(e) || 'The email didn’t go. Try again.');
+        app.innerHTML = emailForm(email, sendTrouble(e));
         wire(app, go);
       }
     };
@@ -251,7 +260,7 @@ function wire(app, go) {
       rs.disabled = true; rs.textContent = 'Sending…';
       try { const c = await client(); const { error } = await c.auth.signInWithOtp({ email: pending.email, options: { emailRedirectTo: APP_URL() } }); if (error) throw error;
         pending.at = Date.now(); savePending(); rs.innerHTML = 'Sent. Send again in <span>60</span> s'; tick();
-      } catch (e) { rs.disabled = false; rs.textContent = /rate|seconds/i.test(say(e)) ? 'Wait a minute, then try again' : 'Didn’t go. Try again'; }
+      } catch (e) { rs.disabled = false; rs.textContent = sendTrouble(e); }
     };
   }
   app.querySelectorAll('[data-role]').forEach(b => b.onclick = async () => {
