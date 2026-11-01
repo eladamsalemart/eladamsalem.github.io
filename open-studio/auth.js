@@ -114,10 +114,10 @@ function sent(email, err) {
     <a class="wl-back" href="#/welcome/email">← Use another email</a>
     <div class="wl-env" aria-hidden="true">${ICONS.email}</div>
     <h1>Check your email</h1>
-    <p class="wl-lede">We sent a link to <b>${esc(email)}</b>. Open it on this phone, or type the 6-digit code from the email here.</p>
+    <p class="wl-lede">We sent a link to <b>${esc(email)}</b>. Open it on this phone, or type the code from the email here.</p>
     <form class="wl-form" id="wlCode" novalidate>
       <label for="wl-code">Code from the email</label>
-      <input id="wl-code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="8" placeholder="123456">
+      <input id="wl-code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="8" placeholder="12345678">
       ${err ? `<p class="wl-err" role="alert">${esc(err)}</p>` : ''}
       <button type="submit" class="wl-go">Continue</button>
     </form>
@@ -242,7 +242,7 @@ function wire(app, go) {
     cf.onsubmit = async ev => {
       ev.preventDefault();
       const token = input.value.replace(/\D/g, '');
-      if (token.length < 6) { app.innerHTML = sent(pending.email, 'The code has 6 digits.'); return wire(app, go); }
+      if (token.length < 6) { app.innerHTML = sent(pending.email, 'Type the whole code from the email.'); return wire(app, go); }
       const b = cf.querySelector('button'); busy(b, true, 'Checking…');
       try {
         const c = await client();
