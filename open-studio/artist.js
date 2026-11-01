@@ -285,7 +285,7 @@ function profile() {
 function preview() {
   const a = S.artist;
   return `<div class="st-preview-bar gut"><span class="tag">Preview: your page, as visitors see it</span><a class="more" href="#/studio">Back to studio</a></div>
-  <section class="hero">${a.cover || (S.works[0] && S.works[0].image) ? `<img src="${esc(a.cover || S.works[0].image)}" alt="">` : ''}<div class="ov gut"><div class="wrap"><div class="k">${esc([a.discipline, a.city].filter(Boolean).join(' · '))}</div><h1>${esc(a.name)}</h1></div></div></section>
+  <section class="hero">${a.cover || (S.works[0] && S.works[0].image) ? `<img src="${esc(a.cover || S.works[0].image)}" alt="">` : ''}<div class="ov gut"><div class="wrap"><h1>${esc(a.name)}</h1><div class="k">${esc([a.discipline, a.city].filter(Boolean).join(' · '))}</div></div></div></section>
   <div class="wrap gut">
     ${a.statement ? `<p class="statement">“${esc(a.statement)}”</p>` : ''}
     <section class="sec"><div class="sec-h"><h2>Works</h2></div>

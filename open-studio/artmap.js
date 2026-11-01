@@ -297,8 +297,8 @@ export async function mountArtMap(root, ctx) {
     const count = k => places.filter(p => p.kind === k).length;
     const nOn = places.filter(p => p.on.length).reduce((s, p) => s + p.on.length, 0);
     return `<header class="am-head">
-        <p class="k">${live ? '<i class="am-livedot"></i>Live · where you are' : 'The art map · Israel'}</p>
         <h1 class="am-title" dir="auto">${esc(live ? area || 'Around you' : me.name === 'Near me' ? 'Around you' : me.name)}</h1>
+        ${live ? '<p class="k am-here-k"><i class="am-livedot"></i>Live · where you are</p>' : ''}
         <p class="am-sum"><b>${places.length}</b> art spaces <span>·</span> <b>${nOn}</b> shows on${d.showsUpdated ? ` <span>·</span> updated ${esc(dm(day(d.showsUpdated)))}` : ''}</p>
       </header>
       <div class="am-kinds" role="group" aria-label="Kinds of places">${Object.entries(KINDS).map(([k, v]) => `<button type="button" data-kind="${k}" aria-pressed="${kinds.has(k)}" style="--c:${v.c}"><i></i>${esc(v.label)} <span>${count(k)}</span></button>`).join('')}</div>
