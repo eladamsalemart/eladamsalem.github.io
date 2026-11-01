@@ -55,8 +55,8 @@ GitHub secrets or the environment's settings. Report briefly, in Hebrew.
   Set: Site URL `https://eladamsalem.com/open-studio/`, redirect `https://eladamsalem.com/open-studio/**`, custom SMTP
   through the app's Gmail, 30 emails an hour, the code (`{{ .Token }}`, 6 digits) in Confirm signup and Magic Link.
   Both sign-in emails are Open Studio's own (the code in the subject, a token_hash link that works in any browser).
-  Email sign-in proved end to end on 1.11, on the live site, by link and by code. Google, Apple, Facebook: not connected yet (need the owner's developer
-  accounts); Instagram login doesn't exist for apps.
+  Email sign-in proved end to end on 1.11, on the live site, by link and by code. Google, Apple: wired, waiting for the owner's Google Cloud client and Apple Developer key (secrets above); Facebook: not
+  connected; Instagram login doesn't exist for apps.
 - The app's mailbox ooopenstudio@gmail.com: the Gmail connector (drafts, reading, labels). It is subscribed to
   galleries' newsletters (`studio/app/artmap/newsletters.json`); the daily read takes their openings and shows.
 - Figma file `eLDsgYWEfoqx49oFQJ53c1` (Studio Paper variables and text styles, Home components, Home screen).
@@ -68,8 +68,13 @@ and "Art map: places", or by hand); its copy step names every file, and a check 
 that wasn't copied. "Art map: exhibitions" daily (sites, newsletters, Makore; parts by hand: `mail`, `links`).
 "Art map: places" monthly. "Art map: newsletters" by hand (sign up, `only` to retry). "Studio spaces": 3D tours.
 
-**The app now** — a new visitor signs up (`#/welcome`, `auth.js`), chooses artist or art lover (kept on the account,
-user metadata `role`); an artist sees "Your studio is being built", an art lover the app. Shared links (show, artist,
+**The app now** — a new visitor signs up (`#/welcome`, `auth.js`): with email (a 6-digit code), then a details step
+(`#/welcome/details`: first and last name, age, country, gender), or with Google/Apple (the name comes from the account,
+no details step). Then artist or art lover; an artist sees "Your studio is being built", an art lover the app. Each
+account has a row in `public.profiles` (RLS: own row only; a trigger on `auth.users` creates it and fills the name from
+Google/Apple). Google and Apple buttons show only when Supabase has them on: the "Supabase settings" workflow switches
+them on when the GitHub secrets `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` and `APPLE_SERVICES_ID`/`APPLE_TEAM_ID`/
+`APPLE_KEY_ID`/`APPLE_P8` exist (it re-applies monthly: Apple's secret lives six months). Shared links (show, artist,
 work, place) open without an account; `?guest` and `?inspect` skip the gate for checks.
 
 **Open** — the owner chooses a direction for the way in and Home from ten (`studio/design/home-ten/`, PDF there;

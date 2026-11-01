@@ -5,6 +5,11 @@ SUPABASE_ACCESS_TOKEN; this runs in the "Supabase settings" workflow).
     python3 studio/supabase/settings.py apply   # set what auth.json says, then show
 
 auth.json holds only what Open Studio sets on purpose; everything else stays as Supabase has it.
+
+Sign-in with Google and Apple is switched on by apply when their GitHub secrets exist:
+    GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET            (Google Cloud: an OAuth client, "Web application")
+    APPLE_SERVICES_ID, APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_P8   (Apple Developer: a Services ID and a Sign in with Apple key)
+Apple's secret is a token signed with the key that lives at most six months, so the workflow re-applies monthly.
 """
 import json
 import os
@@ -46,9 +51,40 @@ def show():
           f"code length: {cfg.get('mailer_otp_length')}\nsign-up open: {not cfg.get('disable_signup')}")
 
 
+def env(k):
+    return os.environ.get(k, '').strip()
+
+
+def apple_secret(team, services, key_id, p8):
+    """Apple's client secret: an ES256 token signed with the Sign in with Apple key, good for 180 days."""
+    import time
+    import jwt                                                  # pyjwt[crypto], installed by the workflow
+    now = int(time.time())
+    return jwt.encode({'iss': team, 'iat': now, 'exp': now + 180 * 86400, 'aud': 'https://appleid.apple.com',
+                       'sub': services}, p8.replace('\\n', '\n'), algorithm='ES256', headers={'kid': key_id})
+
+
+def providers():
+    out = {}
+    if env('GOOGLE_CLIENT_ID') and env('GOOGLE_CLIENT_SECRET'):
+        out.update(external_google_enabled=True, external_google_client_id=env('GOOGLE_CLIENT_ID'),
+                   external_google_secret=env('GOOGLE_CLIENT_SECRET'))
+        print('Google: on')
+    apple = [env(k) for k in ('APPLE_SERVICES_ID', 'APPLE_TEAM_ID', 'APPLE_KEY_ID', 'APPLE_P8')]
+    if all(apple):
+        services, team, key_id, p8 = apple
+        out.update(external_apple_enabled=True, external_apple_client_id=services,
+                   external_apple_secret=apple_secret(team, services, key_id, p8))
+        print('Apple: on (secret renewed for 180 days)')
+    elif any(apple):
+        print('Apple: some of APPLE_SERVICES_ID, APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_P8 are missing; left as it is')
+    return out
+
+
 def apply():
     want = json.loads((HERE / 'auth.json').read_text())
     want = {k: v for k, v in want.items() if not k.startswith('_')}
+    want.update(providers())
     if not want:
         print('auth.json sets nothing.')
     else:

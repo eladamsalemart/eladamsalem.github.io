@@ -417,6 +417,20 @@ main .wl-email,main .wl-go{background:var(--ink);color:var(--wall)}
 .wl-form label{font-size:14px;font-weight:600}
 .wl-form input{min-height:54px;padding:0 16px;border:1.5px solid var(--line);border-radius:14px;background:var(--paper);color:var(--ink);font:500 18px var(--sans);width:100%}
 .wl-form input:focus{outline:none;border-color:var(--ink)}
+.wl-details{gap:14px}
+.wl-details label,.wl-gender legend{display:block;margin-bottom:6px}
+.wl-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.wl-two>span{min-width:0}
+.wl-details .wl-two:nth-of-type(2){grid-template-columns:88px minmax(0,1fr)}
+.wl-form select{min-height:54px;padding:0 40px 0 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23888' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 14px center;color:var(--ink);font:500 17px var(--sans);width:100%;appearance:none;-webkit-appearance:none;text-overflow:ellipsis}
+.wl-form select:focus{outline:none;border-color:var(--ink)}
+.wl-gender{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.wl-gender legend{font-size:14px;font-weight:600;padding:0;width:100%}
+.wl-gender label{margin:0;position:relative}
+.wl-gender input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
+.wl-gender span{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1.5px solid var(--line);border-radius:999px;font:500 15px var(--sans);cursor:pointer;transition:background .16s,color .16s,border-color .16s}
+.wl-gender input:checked+span{background:var(--ink);color:var(--wall);border-color:var(--ink)}
+.wl-gender input:focus-visible+span{outline:2px solid var(--ink);outline-offset:2px}
 #wl-code{letter-spacing:.3em;font-variant-numeric:tabular-nums;font-size:22px}
 .wl-link{background:none;border:0;color:var(--ink);font:600 15px var(--sans);text-decoration:underline;text-underline-offset:3px;min-height:44px;cursor:pointer}
 .wl-link:disabled{color:var(--muted);text-decoration:none;cursor:default}

@@ -617,6 +617,7 @@ function render() {
   if (!shared) {
     const me = signedIn();
     if (!me) { location.replace('#/welcome'); return; }
+    if (me.details === false) { location.replace('#/welcome/details'); return; }
     if (!me.role) { location.replace('#/welcome/role'); return; }
     if (me.role === 'artist' && !sessionStorage.getItem('os-browse')) { location.replace('#/welcome/artist'); return; }
   }
@@ -769,6 +770,12 @@ document.addEventListener('click', e => { const t = e.target.closest('[data-zoom
 
 const returning = /[?&](code|token_hash|error_description)=/.test(location.search) ? import('./auth.js').then(m => m.finishReturn()).catch(() => {}) : Promise.resolve();
 Promise.all([loadData(), returning]).then(([d]) => { M = buildModel(d); render(); window.addEventListener('hashchange', render); })
+  .then(() => {
+    if (!signedIn() || /[?&](inspect|guest)(=|&|$)/.test(location.search)) return;
+    import('./auth.js').then(m => m.refresh()).then(next => {
+      if (next && next !== '#/' && !location.hash.startsWith('#/welcome') && !/^#\/(exhibition|artist|work|map\/place|place|object|studio)\b/.test(location.hash)) location.replace(next);
+    }).catch(() => {});
+  })
   .catch(() => { app.innerHTML = `<div class="wrap gut loading"><p>The content couldn't be loaded. Refresh to try again.</p></div>`; });
 
 // Installed on a phone (Add to Home Screen) the app works offline and picks up every update on the next open
