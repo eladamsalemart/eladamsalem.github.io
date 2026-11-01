@@ -84,6 +84,8 @@ def safe(f, captcha):
         return 'asks to choose'
     if len([x for x in ins if x['type'] not in ('checkbox', 'radio')]) > 4:
         return 'a long form'
+    if re.search(r'needs a storage option', f['text'], re.I):
+        return "the site's own form is broken"
     return ''
 
 
@@ -105,6 +107,17 @@ def fill(page, f):
             req = x.get_attribute('required') is not None or x.get_attribute('aria-required') == 'true'
             near = (x.evaluate("e => (e.closest('label') || e.parentElement || {}).innerText || ''") or '')
             if req or re.search(r'agree|consent|מאשר|מסכים|מסכימ|לקבל|newsletter|ניוזלטר|דיוור|עדכונים|terms|תקנון|privacy|פרטיות', near, re.I):
+                try:
+                    x.check(timeout=3000)
+                except Exception:
+                    x.evaluate('e => { e.checked = true; e.dispatchEvent(new Event("change", {bubbles: true})); }')
+    # a list that asks what to send: exhibitions and events (openings, talks)
+    boxes = box.locator('input[type=checkbox]:visible')
+    if boxes.count() and not any(boxes.nth(i).is_checked() for i in range(boxes.count())) or boxes.count() > 2:
+        for i in range(boxes.count()):
+            x = boxes.nth(i)
+            near = x.evaluate("e => (e.closest('label') || e.parentElement || {}).innerText || ''") or ''
+            if not x.is_checked() and re.search(r'תערוכ|exhibition|אירוע|events?\b|openings?|פתיח', near, re.I) and not re.search(r'ילדים|משפח|kids|family', near, re.I):
                 try:
                     x.check(timeout=3000)
                 except Exception:
@@ -178,19 +191,27 @@ def main():
         ctx = b.new_context(viewport={'width': 1280, 'height': 900}, locale='he-IL', user_agent=UA)
         for p in places:
             prev = done.get(p['id'], {})
-            if prev.get('status') in ('signed up', 'already subscribed', 'confirmed'):
+            if prev.get('status') in ('signed up', 'already subscribed', 'confirmed') or str(prev.get('status', '')).startswith('same list as'):
                 print(f"{p['id']:<44} {prev['status']} (on {prev.get('day')})")
                 continue
+            same = next((k for k, v in done.items() if v.get('status') in ('signed up', 'already subscribed', 'sent (no answer seen)')
+                         and v.get('day') == today and v.get('page') and v['page'].split('#')[0] in {p['website'].split('#')[0]}), None)
             sign = a.sign_up
-            r = look(ctx, p['website'], sign)
+            r = look(ctx, p['website'], False) if same else look(ctx, p['website'], sign)
             if not any(not f['why_not'] for f in r.get('fields', [])) and r.get('links'):
                 site = urlparse(r.get('url', p['website'])).netloc.replace('www.', '')
                 link = next((h for h in r['links'] if urlparse(h).netloc.replace('www.', '') == site), r['links'][0])
-                r2 = look(ctx, link, sign)
+                twin = next((k for k, v in done.items() if v.get('day') == today and v.get('status') in ('signed up', 'already subscribed', 'sent (no answer seen)')
+                             and (v.get('page') or '').split('#')[0] == link.split('#')[0]), None)
+                r2 = look(ctx, link, sign and not twin)
+                if twin:
+                    r2['result'] = f'same list as {twin}'
                 r2['from'] = 'link'
                 if any(not f['why_not'] for f in r2.get('fields', [])) or not r.get('fields'):
                     r = r2
             ok = [f for f in r.get('fields', []) if not f['why_not']]
+            if same and not r.get('result'):
+                r['result'] = f'same list as {same}'
             status = r.get('result') or ('can sign up' if ok else r.get('error') and 'site unreachable'
                                          or next((f['why_not'] for f in r.get('fields', []) if f['newsletter']), None)
                                          or ('a newsletter link, no form' if r.get('links') else 'no newsletter found'))
