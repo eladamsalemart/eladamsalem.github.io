@@ -37,3 +37,39 @@ to a tour or the viewer is done:
   without the owner's word.
 - Look at it with Playwright as an iPhone (the `playwright` MCP in `.mcp.json`, or a script), and check it with the
   owner in Figma when a design is to be agreed first (Figma connector, from claude.ai).
+
+## Where things stand (keep this up to date: every new session starts from it)
+
+**Working with the owner.** A startup; the owner's time goes to the product. Do what the tools allow without asking
+(the owner said so); ask only for what needs their own login or money. Never ask for a key in the chat: secrets go in
+GitHub secrets or the environment's settings. Report briefly, in Hebrew.
+
+**Accounts and what reaches them from a session**
+- GitHub `eladamsalemart/eladamsalem.github.io`: code on `studio`, the live site on `main` (eladamsalem.com/open-studio/).
+  Workflows that run on a schedule or by hand are read from `main`: a change to one goes to both branches.
+- Supabase project `open studio`, ref `hlpzqeosdavfuzjgpwhy` (region ap-northeast-2), publishable key in
+  `studio/app/auth.js`. The Supabase connector reaches the database, SQL, migrations, logs and edge functions; the
+  sign-in settings (URL configuration, SMTP, email templates, providers) only through the dashboard.
+  Set: Site URL `https://eladamsalem.com/open-studio/`, redirect `https://eladamsalem.com/open-studio/**`, custom SMTP
+  through the app's Gmail, 30 emails an hour, the code (`{{ .Token }}`, 8 digits) in Confirm signup and Magic Link.
+  Email sign-in proved end to end on 1.11. Google, Apple, Facebook: not connected yet (need the owner's developer
+  accounts); Instagram login doesn't exist for apps.
+- The app's mailbox ooopenstudio@gmail.com: the Gmail connector (drafts, reading, labels). It is subscribed to
+  galleries' newsletters (`studio/app/artmap/newsletters.json`); the daily read takes their openings and shows.
+- Figma file `eLDsgYWEfoqx49oFQJ53c1` (Studio Paper variables and text styles, Home components, Home screen).
+- GitHub secrets: `ART_MAIL_PASSWORD` (Gmail app password, for the daily read), `SUPABASE_SECRET_KEY`,
+  `ANTHROPIC_API_KEY` (empty: the free model, Ollama, reads instead).
+
+**Workflows** — "Open Studio app" publishes `studio/app` to the site (after a push there, after "Art map: exhibitions"
+and "Art map: places", or by hand); its copy step names every file, and a check fails it when the app loads one
+that wasn't copied. "Art map: exhibitions" daily (sites, newsletters, Makore; parts by hand: `mail`, `links`).
+"Art map: places" monthly. "Art map: newsletters" by hand (sign up, `only` to retry). "Studio spaces": 3D tours.
+
+**The app now** — a new visitor signs up (`#/welcome`, `auth.js`), chooses artist or art lover (kept on the account,
+user metadata `role`); an artist sees "Your studio is being built", an art lover the app. Shared links (show, artist,
+work, place) open without an account; `?guest` and `?inspect` skip the gate for checks.
+
+**Open** — the owner chooses a Home direction (`studio/design/home-concepts/`, PDF there; recommended: the wall),
+then it is built; the artists' platform; Google/Apple/Facebook sign-in; the owner signs up by hand to the 13
+newsletters behind a CAPTCHA (list in `newsletters.json`, status `captcha`/`asks for a phone`); the Ritual ceiling
+(task #34 in the old list).
