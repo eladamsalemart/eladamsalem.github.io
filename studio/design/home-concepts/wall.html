@@ -1,0 +1,59 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Home: the wall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Hebrew:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--ground:#ccd9b5;--ink:#1B1A17;--serif:"Fraunces",Georgia,serif;--sans:"IBM Plex Sans","IBM Plex Sans Hebrew",system-ui,sans-serif}
+html,body{background:var(--ground);color:var(--ink);font:16px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
+body{max-width:430px;margin:0 auto;padding-bottom:86px}
+img{display:block;width:100%;height:100%;object-fit:cover}
+a{color:inherit;text-decoration:none}
+.top{display:flex;justify-content:space-between;align-items:center;padding:18px 16px 0}
+.brand{display:flex;align-items:center;gap:9px;font:700 22px/1 "Figtree",var(--sans);letter-spacing:-.01em}
+.brand .mark{width:28px;height:28px}
+[dir=rtl],.he{font-family:"IBM Plex Sans Hebrew",var(--sans)}
+.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,430px);display:grid;grid-template-columns:repeat(5,1fr);background:var(--ground);padding:8px 0 22px;z-index:5}
+.tabs a{display:grid;justify-items:center;gap:3px;font-size:11px;color:color-mix(in srgb,var(--ink) 62%,transparent)}
+.tabs a.on{color:var(--ink);font-weight:600}.tabs svg{width:24px;height:24px}
+
+h1{font:400 40px/1 var(--serif);letter-spacing:-.02em;padding:22px 16px 4px}
+.sub{padding:0 16px;font-size:15px;color:color-mix(in srgb,var(--ink) 72%,transparent)}
+.salon{padding:30px 0 10px;display:grid;gap:18px;justify-items:center}
+.salon .row{display:flex;gap:16px;align-items:center}
+.salon figure{background:#ddd;box-shadow:0 1px 1px rgba(0,0,0,.18),0 10px 18px -12px rgba(0,0,0,.45)}
+.cap{margin:14px 16px 0;padding:12px 14px;background:#FFFDF8;display:grid;gap:2px;width:fit-content;max-width:300px;font-size:13px;line-height:1.35}
+.cap b{font-weight:600}.cap span{color:#5E594F}
+h2{font:400 26px/1.1 var(--serif);letter-spacing:-.01em;padding:40px 16px 14px}
+.labels{display:flex;gap:10px;overflow-x:auto;padding:0 16px;scrollbar-width:none}
+.label{flex:0 0 150px;background:#FFFDF8;padding:12px 12px 14px;display:grid;gap:2px;font-size:13px;line-height:1.35;color:#1B1A17}
+.label b{font:400 19px/1.15 var(--serif)}.label span{color:#5E594F}.label .ago{font-size:12px}
+.label em{font-style:normal;font-weight:600;color:#467722;margin-top:8px}
+.doors{display:flex;gap:14px;overflow-x:auto;padding:0 16px;scrollbar-width:none}
+.door{flex:0 0 168px;display:grid;gap:3px;font-size:14px}
+.arch{height:210px;border-radius:84px 84px 0 0;overflow:hidden;margin-bottom:8px;background:#ccc}
+.door b{font:400 21px/1.1 var(--serif)}.door span{color:color-mix(in srgb,var(--ink) 70%,transparent)}
+.st{display:flex;align-items:center;gap:7px;font-weight:600;font-size:13px}
+.door .st{color:var(--ink)}
+.st i{width:7px;height:7px;border-radius:50%;background:#2F6B4F;box-shadow:0 0 0 3px color-mix(in srgb,#2F6B4F 22%,transparent)}
+.people{display:flex;gap:18px;padding:0 16px;overflow-x:auto}
+.who{flex:0 0 104px;display:grid;justify-items:start;gap:2px;font-size:13px}
+.face{width:72px;height:72px;border-radius:50%;overflow:hidden;margin-bottom:8px}
+.who b{font-weight:600}.who span{color:color-mix(in srgb,var(--ink) 70%,transparent);line-height:1.3}
+.nears{display:grid;gap:4px;padding:0 16px}
+.near{display:grid;grid-template-columns:30px minmax(0,1fr);gap:4px 12px;align-items:center;padding:10px 0}
+.near>span:nth-child(2){display:grid;gap:1px}.near b{font-weight:600;font-size:16px;text-align:left}.near span span{font-size:13px;color:color-mix(in srgb,var(--ink) 70%,transparent)}
+.near .st{grid-column:2}
+.arch-o{width:26px;height:34px;border-radius:13px 13px 0 0;background:var(--k);grid-row:span 2}
+
+</style></head><body><header class="top"><span class="brand"><svg class="mark" viewBox="0 0 132 132" aria-hidden="true"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg>Open Studio</span></header>
+<h1>Your wall</h1><p class="sub">New from the artists you follow, hung at their real sizes.</p>
+<section class="salon" aria-label="New works"><div class="row"><figure style="width:84px;height:105px"><img src="../../app/data/demo/works/late-pink.jpg" alt="Late Pink, Daniel Ostrovsky"></figure><figure style="width:94px;height:74px"><img src="../../../media/works/img-1196-edit-1791725179214.jpg" alt="Together, Elad Amsalem"></figure><figure style="width:74px;height:105px"><img src="../../app/data/demo/works/breath-i.jpg" alt="Breath I, Maya Haddad"></figure></div><div class="row"><figure style="width:68px;height:63px"><img src="../../../media/works/img-0965-1782983816627.jpg" alt="Sunflower, Elad Amsalem"></figure><figure style="width:105px;height:84px"><img src="../../app/data/demo/works/low-tide.jpg" alt="Low Tide, Lia Morén"></figure><figure style="width:126px;height:158px"><img src="../../app/data/demo/works/orchard-at-noon.jpg" alt="Orchard at Noon, Lia Morén"></figure></div></section>
+<p class="cap"><b>Elad Amsalem, Together, 2026</b><span>Oil on canvas, 90 × 70 cm. New this week. The wall takes its colour from it: it's the last work you looked at.</span></p>
+<h2>Where you were</h2><div class="labels"><a class="label"><b>Signal / Noise</b><span>Exhibition, online</span><span class="ago">2 min ago</span><em>Back to the fourth work</em></a><a class="label"><b>Together</b><span>Work · Elad Amsalem</span><span class="ago">1 hour ago</span><em>Look again</em></a><a class="label"><b>Ritual</b><span>A room in 3D</span><span class="ago">Yesterday</span><em>Walk back in</em></a></div>
+<h2>Your shows</h2><div class="doors"><a class="door"><span class="arch"><img src="../../app/data/demo/shows/low-tide-haifa-1.jpg" alt=""></span><b>Low Tide</b><span>Lia Morén</span>
+      <span class="st live"><i></i>Opening tonight · 20:00</span></a><a class="door"><span class="arch"><img src="../../app/data/demo/shows/ink-breath-1.jpg" alt=""></span><b>Ink, Breath</b><span>Maya Haddad</span>
+      <span class="st live"><i></i>Closes Wednesday</span></a><a class="door"><span class="arch"><img src="../../app/data/demo/shows/slow-colour-1.jpg" alt=""></span><b>Slow Colour</b><span>Daniel Ostrovsky</span>
+      <span class="st">Opens Tuesday · 19:00</span></a></div>
+<h2>Your artists</h2><div class="people"><a class="who"><span class="face"><img src="../../app/data/demo/people/lia-moren.jpg" alt=""></span><b>Lia Morén</b><span>Opens Low Tide tonight</span></a><a class="who"><span class="face"><img src="../../app/data/demo/people/maya-haddad.jpg" alt=""></span><b>Maya Haddad</b><span>Talk on Tuesday, 18:00</span></a><a class="who"><span class="face"><img src="../../../media/works/img-0502-1780925650921.jpg" alt=""></span><b>Elad Amsalem</b><span>2 new works</span></a></div>
+<h2>Open now around you</h2><div class="nears"><a class="near"><span class="arch-o" style="--k:#2F4FD0"></span><span><b dir="auto">שנת אפס</b><span>Tel Aviv Museum of Art · 9 min walk</span></span><span class="st live"><i></i>Closes Saturday</span></a><a class="near"><span class="arch-o" style="--k:#E2553B"></span><span><b dir="auto">אנדי, מת׳יו ורותי</b><span>CCA Tel Aviv · 1.9 km</span></span><span class="st live"><i></i>Until 13 Dec</span></a><a class="near"><span class="arch-o" style="--k:#E9A23B"></span><span><b dir="auto">Chronicles</b><span>Braverman Gallery · 3 km</span></span><span class="st live"><i></i>Closes Thursday</span></a><a class="near"><span class="arch-o" style="--k:#E2553B"></span><span><b dir="auto">Six new shows</b><span>Tel Aviv Artists' House · 2.2 km</span></span><span class="st live"><i></i>Open from Thursday</span></a></div><nav class="tabs"><a class=on><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Home</a><a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>Artists</a><a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="1"/><path d="M8 21h8M12 18v3"/><path d="m9 8 6 3-6 3z"/></svg>Shows</a><a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>Map</a><a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search</a></nav></body></html>
