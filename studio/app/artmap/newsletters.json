@@ -341,7 +341,7 @@
   "name": "Helena Rubinstein Pavilion",
   "site": "https://www.tamuseum.org.il/",
   "page": "https://telavivmuseum.activetrail.biz/newsletter_he",
-  "status": "failed: TimeoutError: Locator.click: Timeout 8000ms exceeded.",
+  "status": "sent (no answer seen)",
   "day": "2026-11-01",
   "form": {
    "text": "שילחו לי עדכונים בנושאים: תערוכות ואירועים פעילויות לכל המשפחה אירועים ופעילויות לקהל דובר אנגלית (In English) אירועים ופעילויות לקהל דובר ערבית (بالعربية) אירו",
@@ -440,9 +440,8 @@
   "name": "Museum for Islamic Art",
   "site": "https://www.islamicart.co.il/",
   "page": "https://www.islamicart.co.il/",
-  "status": "sent (no answer seen)",
+  "status": "same list as museum-for-islamic-art",
   "day": "2026-11-01",
-  "said": "عربي English אודות תערוכות חינוך אירועים קבוצות מורי דרך ביקור במוזיאון תרומות צור קשר המוזיאון לאמנות האסלאם ברוכים הבאים למוזיאון Slide 3 of 8. תערוכות קבע אוסף השעונים מבקרים יקרים, על מנת להבטיח את מקומכם בפעילויות המוזיאון השונות , יש לרכוש כרטיסים מראש באתר המוזיאון, אחרת ההשתתפות תהיה על בסיס",
   "form": {
    "text": "הרשמו לניוזלטר אני מסכים/ה לקבל חומר פרסומי",
    "inputs": [
@@ -515,7 +514,7 @@
   "name": "Tel Aviv Museum of Art",
   "site": "https://www.tamuseum.org.il",
   "page": "https://telavivmuseum.activetrail.biz/newsletter_he",
-  "status": "failed: TimeoutError: Locator.click: Timeout 8000ms exceeded.",
+  "status": "same list as helena-rubinstein-pavilion",
   "day": "2026-11-01",
   "form": {
    "text": "שילחו לי עדכונים בנושאים: תערוכות ואירועים פעילויות לכל המשפחה אירועים ופעילויות לקהל דובר אנגלית (In English) אירועים ופעילויות לקהל דובר ערבית (بالعربية) אירו",
@@ -575,10 +574,14 @@
   "name": "Beit Avi Chai",
   "site": "https://www.bac.org.il",
   "page": "https://www.bac.org.il/",
-  "status": "failed: TimeoutError: Locator.click: Timeout 8000ms exceeded.",
+  "status": "signed up",
   "day": "2026-11-01",
+  "said": "שִׂים לֵב: בְּאֲתָר זֶה מֻפְעֶלֶת מַעֲרֶכֶת נָגִישׁ בִּקְלִיק הַמְּסַיַּעַת לִנְגִישׁוּת הָאֲתָר. לְחַץ Control-F11 לְהַתְאָמַת הָאֲתָר לְעִוְורִים הַמִּשְׁתַּמְּשִׁים בְּתוֹכְנַת קוֹרֵא־מָסָךְ; לְחַץ Control-F10 לִפְתִיחַת תַּפְרִיט נְגִישׁוּת. נגישות לְחַץ אֶנְטֵר לְהַתְאָמַת הָאֲתָר לְעִוְורִים ה",
   "links": [
    "https://www.bac.org.il/newsletter"
+  ],
+  "contact": [
+   "info@bac.org.il"
   ],
   "form": {
    "text": "הירשמו לניוזלטר שלנו וקבלו עדכונים ישר למייל *כתובת דוא\"ל הרשמה",
@@ -713,9 +716,8 @@
   "name": "Artspace Tel Aviv",
   "site": "https://www.artspacetlv.org/",
   "page": "https://www.artspacetlv.org/",
-  "status": "sent (no answer seen)",
+  "status": "same list as artspace-tel-aviv",
   "day": "2026-11-01",
-  "said": "לדלג לתוכן הראשי חנות חנות סיורים shop tours Artspace Tel Aviv | עמותת 'מקום לאמנות' בקרית המלאכה home בית about אודות contact צור קשר Group tours תיאום סיורי קבוצות exhibitions תערוכות artists אמנים אירוע פתיחה ביום חמישי ה-22/10 תערוכות מציגות והאהבה חכתה רבקה גלעד אלמלא לילי כהן פרח-יה פריעת עולם",
   "form": {
    "text": "Sign up for our newsletter / להרשמה לניוזלטר subscribe הרשמה",
    "inputs": [
@@ -859,9 +861,11 @@
   "name": "Maya Gallery",
   "site": "https://www.mayagallerytlv.com/",
   "page": "https://www.mayagallerytlv.com/",
-  "status": "sent (no answer seen)",
+  "status": "same list as maya-gallery",
   "day": "2026-11-01",
-  "said": "לדלג לתוכן הראשי מאיה לומדת ועכשיו בזום… מאיה לומדת ועכשיו בזום… Maya Gallery Tel Aviv Jaffa EXHIBITIONS EVENTS ARTISTS PUBLICATIONS ABOUT CONTACT תמכו בנו 0 Current Exhibitions 09/10/2026-21/11/2026 קימה | אתי אברג׳יל אוצרת: רווית הררי אין אירועים כרגע buy Maya 3 years book ההדפסה הראשונה של הספר נ",
+  "contact": [
+   "mayagallery.tlv@gmail.com"
+  ],
   "form": {
    "text": "Subscribe to Our Newsletter Join",
    "inputs": [
@@ -934,6 +938,9 @@
   "said": "About Artists Exhibitions Art Fairs Stories Publications Store Viewing Room Search No products in the cart. Cart Chronicles September 22-November 5, 2026 News and Events Holiday Opening Hours, September 2026 Braverman Gallery is open as usual, except on the following dates: Saturday, September 26 (S",
   "links": [
    "https://bravermangallery.com/#elementor-action%3Aaction%3Dpopup%3Aopen%26settings%3DeyJpZCI6Ijk5OCIsInRvZ2dsZSI6ZmFsc2V9"
+  ],
+  "contact": [
+   "info@bravermangallery.com"
   ],
   "form": {
    "text": "NEWSLETTER Submit",
