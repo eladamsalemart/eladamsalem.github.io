@@ -44,7 +44,7 @@ D = r'(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?'
 NOT_TITLE = re.compile(r'^ה?תערוכה (?:מוצגת|נפתחת|ננעלת|תיפתח|תינעל|פתוחה)\b|'
                        r'^(?:ה?תערוכ(?:ה|ות)(?: נוכחי(?:ת|ות)| ננעלת| נפתחת)?|the exhibition|exhibitions?|current(?: exhibitions?)?|now(?: on)?|on view|showroom|gallery|home|'
                        r'search|menu|dates?|תאריכים|תאריך|מועד|שעות(?: פתיחה)?|כתובת|address|more|לפרטים|קראו עוד|read more)\s*:?$|'
-                       r'^(?:about|contact|support us|newsletter|join|shop|תמכו בנו|צרו קשר|אודות|הצטרפו|חנות)\s*$|'
+                       r'^(?:about|contact|support us|newsletter|join|shop|תמכו בנו|צרו קשר|אודות|הצטרפו|חנות)\s*$|^(?:עדכון|הודעה|update|news)\b|'
                        r'^(?:(?:אירוע |טקס )?פתיחה|פתיחת|נעילה|שיח גלריה|שיח אמן|opening|closing|gallery talk|בהשתתפות|משתתפים|with|עם)\b|'
                        r'^(?:עוזר(?:ת)? )?(?:אוצר|אוצרת|אוצרות|אוצרים|curator|curated|assistant curator|עיצוב|צילום|photo)|'
                        r'כתובת:|\d+,\s*[^,]+\.?$', re.I)
@@ -625,7 +625,17 @@ def model_read(place, url, lines, today):
         start, end = sure(x.get('start')), sure(x.get('end'))
         if end and end < today or start and start > today + dt.timedelta(days=60) or not (x.get('on_now') or start or end):
             continue
+        # a show with no date at all is taken only from a page that is itself "what's on now" (an archive page lists
+        # shows long closed); one that began over a year ago with no end is an old show
+        if not start and not end and not CURRENT.search(unquote(url)):
+            continue
+        # a start with no end is, as often as not, the date of a tour, a talk or a concert at the show: the model's
+        # shows count only with an end the page gives, or from a "what's on now" page
+        if not end and not CURRENT.search(unquote(url)):
+            continue
         t, named = split_artist(t)
+        if not start and not end and sum(1 for y in out if not y['start'] and not y['end']) >= 6:
+            continue
         out.append({'title': t, 'artists': ([a for a in x.get('artists', []) if a and a in text] or named)[:12],
                     'start': start.isoformat() if start else None, 'end': end.isoformat() if end else None, 'by': 'model'})
     return out
@@ -860,6 +870,14 @@ def main():
             and x['id'] not in {y['id'] for y in shows}]
     shows += kept
     shows = [x for x in shows if not NOT_TITLE.search(x['title'])]     # yesterday's too, read before a rule was added
+    rank = {'wordpress': 0, 'rss': 0, 'rule': 1, None: 1, 'model': 2}
+    per, keep = {}, []
+    for x in sorted(shows, key=lambda x: rank.get(x.get('by'), 1)):    # one show per title at each place
+        got = merge(per.get(x['place'], []), [x])
+        if len(got) > len(per.get(x['place'], [])):
+            per[x['place']] = got
+            keep.append(x)
+    shows = keep
     OUT.parent.mkdir(parents=True, exist_ok=True)
     if a.dry:
         for x in shows:
