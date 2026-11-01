@@ -48,16 +48,18 @@ GitHub secrets or the environment's settings. Report briefly, in Hebrew.
 - GitHub `eladamsalemart/eladamsalem.github.io`: code on `studio`, the live site on `main` (eladamsalem.com/open-studio/).
   Workflows that run on a schedule or by hand are read from `main`: a change to one goes to both branches.
 - Supabase project `open studio`, ref `hlpzqeosdavfuzjgpwhy` (region ap-northeast-2), publishable key in
-  `studio/app/auth.js`. The Supabase connector reaches the database, SQL, migrations, logs and edge functions; the
-  sign-in settings (URL configuration, SMTP, email templates, providers) only through the dashboard.
+  `studio/app/auth.js`. The Supabase connector reaches the database, SQL, migrations, logs and edge functions. The
+  sign-in settings (URLs, SMTP, email templates, providers, rate limits): the "Supabase settings" workflow, through
+  the management API (secret `SUPABASE_ACCESS_TOKEN`): set them in `studio/supabase/auth.json`, run it with `apply`;
+  `show` writes what is set now to `studio/supabase/auth.live.json` (no passwords or keys).
   Set: Site URL `https://eladamsalem.com/open-studio/`, redirect `https://eladamsalem.com/open-studio/**`, custom SMTP
-  through the app's Gmail, 30 emails an hour, the code (`{{ .Token }}`, 8 digits) in Confirm signup and Magic Link.
+  through the app's Gmail, 30 emails an hour, the code (`{{ .Token }}`, 6 digits) in Confirm signup and Magic Link.
   Email sign-in proved end to end on 1.11. Google, Apple, Facebook: not connected yet (need the owner's developer
   accounts); Instagram login doesn't exist for apps.
 - The app's mailbox ooopenstudio@gmail.com: the Gmail connector (drafts, reading, labels). It is subscribed to
   galleries' newsletters (`studio/app/artmap/newsletters.json`); the daily read takes their openings and shows.
 - Figma file `eLDsgYWEfoqx49oFQJ53c1` (Studio Paper variables and text styles, Home components, Home screen).
-- GitHub secrets: `ART_MAIL_PASSWORD` (Gmail app password, for the daily read), `SUPABASE_SECRET_KEY`,
+- GitHub secrets: `ART_MAIL_PASSWORD` (Gmail app password, for the daily read), `SUPABASE_SECRET_KEY`, `SUPABASE_ACCESS_TOKEN`,
   `ANTHROPIC_API_KEY` (empty: the free model, Ollama, reads instead).
 
 **Workflows** — "Open Studio app" publishes `studio/app` to the site (after a push there, after "Art map: exhibitions"
