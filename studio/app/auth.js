@@ -180,7 +180,7 @@ const say = e => (e && e.message || String(e || '')).replace(/^AuthApiError:\s*/
 // whole app; a person may ask again after a minute)
 const sendTrouble = e => {
   const m = say(e), code = e && (e.code || e.error_code) || '';
-  if (code === 'over_email_send_rate_limit' || /email rate limit/i.test(m)) return 'Sign-up emails are paused for now: too many went out in the last hour. Try again later.';
+  if (code === 'over_email_send_rate_limit' || /email rate limit/i.test(m)) return 'An email can go out once a minute. Wait a minute, then ask again (or use the code from the last email).';
   if (/seconds|too many/i.test(m)) return 'An email just went to this address. Wait a minute, then ask again.';
   if (/not authorized|not allowed/i.test(m)) return 'Emails can\u2019t go to this address yet. Try the address you opened Supabase with.';
   return m || 'The email didn\u2019t go. Try again.';
