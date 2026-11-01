@@ -11,7 +11,7 @@ on:
         type: boolean
         default: false
       only:
-        description: "These places only (comma-separated ids; empty for all)"
+        description: "These places only, tried again whatever happened before (comma-separated ids; empty for all)"
         type: string
         default: ''
 
@@ -40,7 +40,7 @@ jobs:
       - name: The places' newsletters
         env:
           ONLY: ${{ inputs.only }}
-        run: python3 studio/app/artmap/newsletters.py ${{ inputs.sign_up && '--sign-up' || '' }} ${ONLY:+--only "$ONLY"}
+        run: python3 studio/app/artmap/newsletters.py ${{ inputs.sign_up && '--sign-up' || '' }} ${ONLY:+--only "$ONLY" --again}
       - name: Commit to studio
         if: ${{ inputs.sign_up }}
         run: |
