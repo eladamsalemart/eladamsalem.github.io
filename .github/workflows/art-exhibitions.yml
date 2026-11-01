@@ -9,10 +9,11 @@ on:
     - cron: '23 2 * * *'
   workflow_dispatch:
     inputs:
-      mail_only:
-        description: "Read the newsletters only (a quick check of the mailbox); every other source stays as it was"
-        type: boolean
-        default: false
+      part:
+        description: "Only part of the read (empty: all of it). mail: the newsletters; links: the places' Instagram and Facebook"
+        type: choice
+        options: ['', 'mail', 'links']
+        default: ''
 
 permissions:
   contents: write
@@ -33,13 +34,13 @@ jobs:
         with:
           python-version: '3.13'
       - name: A browser, for the sites that build their pages in it
-        if: ${{ !inputs.mail_only }}
+        if: ${{ inputs.part != 'mail' }}
         run: |
           pip install playwright==1.64.1 anthropic==2.3.0
           python3 -m playwright install --with-deps chromium
       - name: An open model on this machine (free), for the pages the rules can't read
         # Ollama's own image, pinned to a version and its digest; the model is Qwen 2.5 7B
-        if: ${{ !inputs.mail_only }}
+        if: ${{ !inputs.part }}
         run: |
           docker run -d --name ollama -p 11434:11434 ollama/ollama:0.40.13@sha256:b2f0122c476bc9fe7ce679d8bb4bd555351e25e2554eefb156f61cb0a89cf429
           until curl -s http://127.0.0.1:11434/api/version; do sleep 1; done
@@ -53,7 +54,7 @@ jobs:
           # the app's mailbox, subscribed to the places' newsletters (an app password, never the account's own)
           ART_MAIL_USER: ooopenstudio@gmail.com
           ART_MAIL_PASSWORD: ${{ secrets.ART_MAIL_PASSWORD }}
-        run: python3 studio/app/artmap/exhibitions.py ${{ inputs.mail_only && '--mail-only' || '' }}
+        run: python3 studio/app/artmap/exhibitions.py ${{ inputs.part == 'mail' && '--mail-only' || inputs.part == 'links' && '--links-only' || '' }}
       - name: Commit to studio
         run: |
           git config user.name "open-studio"
