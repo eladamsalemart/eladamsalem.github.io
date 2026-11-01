@@ -44,7 +44,7 @@ async function loadData() {
   const get = u => fetch(u, { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
   const [p, x, h] = await Promise.all([get('data/art/places.json'), get('data/art/exhibitions.json'), get('data/art/exhibitions.health.json')]);
   data = { places: (p && p.places || []).filter(q => q.status !== 'closed'), updated: p && p.updated,
-    shows: x && x.shows || [], events: x && x.events || [], showsUpdated: x && x.updated,
+    shows: x && x.shows || [], events: x && x.events || [], links: x && x.links || {}, showsUpdated: x && x.updated,
     read: new Map((h && h.sources || []).filter(r => r.place).map(r => [r.place, r.status || ''])) };
   return data;
 }
@@ -108,6 +108,22 @@ const arrow = st => {
   return `<svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(${deg}deg)"><path d="M12 3 5 11h4.5v10h5V11H19z" fill="currentColor"/></svg>`;
 };
 const dm = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+const wdm = d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+const dmy = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+const daysTo = d => Math.round((new Date(d).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / DAY);
+// a show's run today: what to say first ("Closes Sat", "12 days left", "Just opened") and how far through it is
+function runOf(s) {
+  const left = s.end ? daysTo(s.end) : null, since = s.start ? -daysTo(s.start) : null;
+  const tag = left === 0 ? 'Last day today' : left === 1 ? 'Closes tomorrow' : left !== null && left <= 6 ? `Closes ${s.end.toLocaleDateString('en-GB', { weekday: 'short' })}`
+    : since === 0 ? 'Opened today' : since !== null && since <= 6 ? 'Just opened' : left !== null ? `${left} days left` : '';
+  const pct = left !== null && since !== null && left + since > 0 ? Math.round(100 * since / (since + left)) : null;
+  const range = s.start && s.end ? `${dm(s.start)} – ${dmy(s.end)}` : s.end ? `Until ${dmy(s.end)}` : s.start ? `Since ${dmy(s.start)}` : '';
+  return { left, since, tag, pct, range, soon: left !== null && left <= 6 };
+}
+const shortRun = s => { const r = runOf(s); return r.soon ? r.tag[0].toLowerCase() + r.tag.slice(1) : s.end ? `until ${dm(s.end)}` : ''; };
+// the shows on now, the most pressing first: closing this week, just opened, then by when they close; no dates last
+const byUrgency = (a, b) => { const x = runOf(a), y = runOf(b), k = r => r.soon ? 0 : r.since !== null && r.since <= 6 ? 1 : r.left !== null ? 2 : 3;
+  return k(x) - k(y) || (x.left ?? 1e9) - (y.left ?? 1e9); };
 // the artists you follow in the app (app.js keeps them under os-following, by slug)
 function followedArtists(M) {
   let slugs = [];
@@ -281,7 +297,7 @@ export async function mountArtMap(root, ctx) {
 
   function row({ p, d: dist }) {
     const c = KINDS[p.kind].c, s = p.on[0];
-    const what = s ? `<span class="am-on"><bdi>${esc(s.title)}</bdi>${p.on.length > 1 ? ` <i>and ${p.on.length - 1} more</i>` : ''}</span>`
+    const what = s ? `<span class="am-on${runOf(s).soon ? ' closing' : ''}"><bdi>${esc(s.title)}</bdi>${shortRun(s) ? `<i> · ${esc(shortRun(s))}</i>` : ''}${p.on.length > 1 ? ` <i>and ${p.on.length - 1} more</i>` : ''}</span>`
       : p.soonEvents[0] ? `<span class="am-on soft"><bdi>${esc(p.soonEvents[0].title)}</bdi></span>` : '';
     const yours = appArtists(p, M).filter(a => a.followed);
     return `<button type="button" class="am-row${p.tier === 'listed' ? ' listed' : ''}" data-place="${esc(p.id)}" style="--c:${c}">
@@ -319,7 +335,7 @@ export async function mountArtMap(root, ctx) {
     const spaces = all.filter(x => x.d < WALK).length;
     const showRow = ({ s, x }) => `<button type="button" class="am-row am-show" data-place="${esc(x.p.id)}" style="--c:${KINDS[x.p.kind].c}">
       <span class="am-glyph">${glyph(KINDS[x.p.kind].c)}</span>
-      <span class="am-rt"><b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span class="am-art" dir="auto">${esc(s.artists.join(', '))}</span>` : ''}<span class="am-m"><bdi>${esc(x.p.name)}</bdi> · ${esc(away(x.d))}${s.end ? ` · until ${esc(dm(s.end))}` : ''}</span></span></button>`;
+      <span class="am-rt"><b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span class="am-art" dir="auto">${esc(s.artists.join(', '))}</span>` : ''}<span class="am-m"><bdi>${esc(x.p.name)}</bdi> · ${esc(away(x.d))}</span>${shortRun(s) ? `<span class="am-when${runOf(s).soon ? ' closing' : ''}"><i></i>On now · ${esc(shortRun(s))}</span>` : ''}</span></button>`;
     return `${here ? `<section class="am-here" style="--c:${KINDS[here.p.kind].c}"><p class="am-k2">You're at</p><h2 dir="auto">${esc(here.p.name)}</h2>
         ${here.p.on.length ? `<ul class="am-shows">${here.p.on.map(s => `<li><b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span dir="auto">${esc(s.artists.join(', '))}</span>` : ''}${s.end ? `<span class="am-m">Until ${esc(dm(s.end))}</span>` : ''}</li>`).join('')}</ul>` : '<p class="am-empty">Nothing listed here today.</p>'}
         <button type="button" class="am-more" data-place="${esc(here.p.id)}">About this place</button></section>` : ''}
@@ -339,18 +355,45 @@ export async function mountArtMap(root, ctx) {
 
   function card(p) {
     const c = KINDS[p.kind].c, dist = km(me.at, p.at);
-    const show = s => `<li><b dir="auto">${s.href ? `<a href="${esc(s.href)}">${esc(s.title)}</a>` : esc(s.title)}</b>${s.artists.length ? `<span dir="auto">${esc(s.artists.join(', '))}</span>` : ''}<span class="am-m">${s.start && +s.start > Date.now() ? `From ${esc(dm(s.start))}` : ''}${s.end ? `${s.start && +s.start > Date.now() ? ' · ' : ''}Until ${esc(dm(s.end))}` : ''}${s.os ? ' · On Open Studio' : ''}${s.source === 'makore' && !s.end ? ' · named in a tour or talk listed this month' : ''}${s.space ? ' · <b>Walk it in 3D</b>' : ''}</span></li>`;
+    const evOf = s => p.soonEvents.filter(e => s.title.length > 2 && e.title.includes(s.title.replace(/^["“]|["”]$/g, '')));
+    const more = s => {
+      const r = runOf(s), evs = evOf(s);
+      const rows = [s.start && [+s.start > Date.now() ? 'Opens' : 'Opened', `${wdm(s.start)} ${s.start.getFullYear()}${+s.start > Date.now() ? ` · in ${daysTo(s.start)} days` : r.since > 0 ? ` · ${r.since} days ago` : ''}`],
+        s.end && ['Closes', `${wdm(s.end)} ${s.end.getFullYear()}${r.left > 1 ? ` · in ${r.left} days` : ''}`],
+        !s.start && !s.end && ['Dates', 'Not given on their site: listed there as on now'],
+        s.artists.length && ['Artists', s.artists.join(', ')]].filter(Boolean);
+      return `<div class="am-detail"><dl>${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd dir="auto">${esc(v)}</dd></div>`).join('')}</dl>
+        ${evs.length ? `<ul class="am-evs">${evs.map(e => `<li><b>${esc(wdm(e.at))}${e.time ? ` · ${esc(e.time)}` : ''}</b><span dir="auto">${esc(e.title)}</span></li>`).join('')}</ul>` : ''}
+        <div class="am-dlinks">${s.href ? `<a href="${esc(s.href)}">${s.space ? 'Walk it in 3D' : 'Open on Open Studio'}</a>` : ''}${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">On their site ↗</a>` : ''}</div>
+        ${s.source === 'makore' && !s.end ? '<p class="am-src">Named in a tour or talk listed this month.</p>' : ''}</div>`;
+    };
+    const live = s => { const r = runOf(s); return `<li class="am-live${r.soon ? ' closing' : ''}"><details><summary>
+        <span class="am-live-k"><i class="am-pulse" aria-hidden="true"></i>On now${r.tag ? `<em>${esc(r.tag)}</em>` : ''}</span>
+        <b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span class="am-art" dir="auto">${esc(s.artists.join(', '))}</span>` : ''}
+        ${r.range ? `<span class="am-dates">${esc(r.range)}</span>` : ''}${r.pct !== null ? `<span class="am-run" style="--p:${r.pct}%" aria-hidden="true"><i></i></span>` : ''}
+      </summary>${more(s)}</details></li>`; };
+    const soon = s => `<li class="am-soon"><details><summary><span class="am-soon-k">Opens ${esc(wdm(s.start))} · in ${daysTo(s.start)} day${daysTo(s.start) === 1 ? '' : 's'}</span>
+        <b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span class="am-art" dir="auto">${esc(s.artists.join(', '))}</span>` : ''}</summary>${more(s)}</details></li>`;
+    const L = d.links[p.id] || {};
+    const ICON = {
+      site: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg>',
+      instagram: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".9" fill="currentColor" stroke="none"/></svg>',
+      facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.6-1.5h1.6V4.4a21 21 0 0 0-2.4-.1c-2.4 0-4 1.4-4 4.1v2.1H8.6v3h2.7V21"/></svg>',
+      share: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/></svg>',
+    };
+    const links = [p.website && ['site', p.website, 'Website'], L.instagram && ['instagram', L.instagram, 'Instagram'], L.facebook && ['facebook', L.facebook, 'Facebook']].filter(Boolean);
     const theirs = appArtists(p, M).sort((a, b) => b.followed - a.followed);
     return `<article class="am-card" style="--c:${c}">
       <div class="am-card-top"><span class="am-kind"><i></i>${esc(KINDS[p.kind].one)}${p.tier === 'listed' ? ' · listed on OpenStreetMap' : ''}</span><button type="button" class="am-x" aria-label="Close">×</button></div>
       <h2 dir="auto">${esc(p.name)}</h2>${p.name_he && p.name_he !== p.name ? `<p class="am-he" dir="rtl">${esc(p.name_he)}</p>` : ''}
       <p class="am-m">${[p.address, p.city].filter(Boolean).map(x => `<bdi>${esc(x)}</bdi>`).join(', ')}${p.address || p.city ? ' · ' : ''}${esc(away(dist))}${p.approx ? ' · approximate location' : ''}</p>
       <div class="am-actions"><button type="button" class="am-follow" aria-pressed="${follow.has(p.id)}">${follow.has(p.id) ? 'Following' : 'Follow'}</button>
-        ${p.website ? `<a href="${esc(p.website)}" target="_blank" rel="noopener">Website ↗</a>` : ''}
         <button type="button" class="am-go">Directions</button></div>
+      <div class="am-links">${links.map(([k, u, t]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${ICON[k]}<span>${t}</span></a>`).join('')}<button type="button" class="am-share">${ICON.share}<span>Share</span></button></div>
       ${theirs.length ? `<p class="am-yours">${theirs.map(a => `<a href="#/artist/${esc(a.slug)}">${esc(a.name)}</a>${a.followed ? ' <b>· you follow</b>' : ''}`).join(', ')}: on Open Studio, showing here</p>` : ''}
-      ${p.on.length ? `<h3>On now</h3><ul class="am-shows">${p.on.map(show).join('')}</ul>` : ''}
-      ${p.next.length ? `<h3>Coming up</h3><ul class="am-shows">${p.next.map(show).join('')}</ul>` : ''}
+      ${p.on.length ? (() => { const on = [...p.on].sort(byUrgency), top = on.slice(0, 4), rest = on.slice(4);
+        return `<ul class="am-lives">${top.map(live).join('')}</ul>${rest.length ? `<details class="am-morelive"><summary>${rest.length} more on now</summary><ul class="am-lives">${rest.map(live).join('')}</ul></details>` : ''}`; })() : ''}
+      ${p.next.length ? `<h3>Coming up</h3><ul class="am-shows am-soons">${p.next.map(soon).join('')}</ul>` : ''}
       ${p.soonEvents.length ? `<h3>Talks and openings</h3><ul class="am-shows">${p.soonEvents.map(e => `<li><b dir="auto">${esc(e.title)}</b><span class="am-m">${esc(dm(e.at))}${e.time ? ` · ${esc(e.time)}` : ''}</span></li>`).join('')}</ul>` : ''}
       ${!p.shows.length && !p.soonEvents.length ? `<p class="am-empty">${whyEmpty(p)}</p>` : ''}
       ${p.shows.some(s => s.url) ? `<p class="am-src">From the place's own site, read ${esc(d.showsUpdated ? dm(day(d.showsUpdated)) : 'today')}.</p>` : ''}
@@ -493,6 +536,15 @@ export async function mountArtMap(root, ctx) {
     if (f) f.onclick = () => {
       if (follow.has(sel.id)) follow.delete(sel.id); else follow.add(sel.id);
       setFollowing(follow); paint();
+    };
+    const sh = sheet.querySelector('.am-share');
+    if (sh) sh.onclick = async () => {
+      const url = `${location.origin}${location.pathname}#/map/place/${encodeURIComponent(sel.id)}`;
+      const on = sel.on[0] ? `On now: ${sel.on[0].title}` : '';
+      try {
+        if (navigator.share) await navigator.share({ title: sel.name, text: [sel.name, on].filter(Boolean).join(' · '), url });
+        else { await navigator.clipboard.writeText(url); toast('Link copied'); }
+      } catch (e) { if (e && e.name !== 'AbortError') toast('Couldn\u2019t share from here'); }
     };
     const go = sheet.querySelector('.am-go');
     if (go) go.onclick = () => plan(sel, km(live ? live.at : me.at, sel.at) < 2.5 ? 'foot' : 'car');
