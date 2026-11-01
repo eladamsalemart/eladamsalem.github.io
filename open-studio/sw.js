@@ -1,6 +1,6 @@
 // Open Studio offline support. Pages, scripts and data come from the network first, so every push
 // reaches the phone on the next open; images, space textures and libraries are kept once seen.
-const VERSION = 'open-studio-2c1f5c8';
+const VERSION = 'open-studio-3c83fab';
 const SHELL = ['./', 'index.html', 'app.js', 'artist.js', 'space/space.js', 'manifest.webmanifest', 'icons/icon-192.png'];
 
 self.addEventListener('install', e => {
@@ -27,6 +27,8 @@ self.addEventListener('fetch', e => {
   if (url.hostname === 'tiles.openfreemap.org') return;
   // directions are asked for afresh each time: never kept
   if (url.hostname === 'routing.openstreetmap.de') return;
+  // signing in: always the live answer, never kept
+  if (url.hostname.endsWith('.supabase.co')) return;
   const lasting = /\.(png|jpe?g|webp|avif|gif|svg|woff2?|ttf)$/i.test(url.pathname)
     || url.hostname === 'cdn.jsdelivr.net' || url.hostname === 'fonts.gstatic.com';
   if (lasting) {

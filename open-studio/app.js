@@ -242,7 +242,7 @@ function visitLog() {
 function home() {
   const live = M.exhibitions.find(e => isOn(e) && e.kind !== 'online') || M.exhibitions[0];
   return `<div class="wrap gut">
-    <div class="home-h"><h1 class="brand-h">${LOGO}</h1></div>
+    <div class="home-h"><h1 class="brand-h">${LOGO}</h1>${signedIn() ? `<a class="me" href="#/account" aria-label="Your account">${esc((signedIn().name || signedIn().email || '?')[0].toUpperCase())}</a>` : ''}</div>
     ${visitLog()}
     ${live ? `<section class="shelf"><h2 class="live-h"><span class="dot" aria-hidden="true"></span>On view now</h2>
       <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"', '100vw')}
@@ -592,11 +592,34 @@ const routes = [
   [/^#\/about$/, () => about()],
 ];
 
+// who is signed in on this phone (auth.js keeps it; read here at once, without loading the sign-in code)
+function signedIn() { try { const u = JSON.parse(localStorage.getItem('os-user')); return u && u.id ? u : null; } catch { return null; } }
+
 let prevHash = null, lastHash = null;
 function render() {
   const hash = location.hash || '#/';
   if (hash !== lastHash) { prevHash = lastHash; lastHash = hash; }
   document.querySelectorAll('.log-view').forEach(v => v.remove());       // (a studio log open over the page closes with it)
+  // the way in: signing up or in, and who you are here (auth.js), full screen, without the bar and tabs
+  if (hash.startsWith('#/welcome') || hash.startsWith('#/account')) {
+    if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }
+    if (artMap) { artMap.remove(); artMap = null; }
+    document.querySelector('.bar').hidden = true; document.querySelector('.tabs').hidden = true; document.body.classList.remove('has-tabs');
+    document.body.dataset.look = 'welcome';
+    const go = (h, same) => { if (same || h === location.hash) render(); else location.hash = h; };
+    import('./auth.js').then(m => m.screen(hash, app, go)).then(() => window.scrollTo(0, 0))
+      .catch(e => { console.error(e); app.innerHTML = '<div class="wrap gut loading"><p>Signing in couldn\u2019t load. Check the connection and try again.</p></div>'; });
+    return;
+  }
+  // the app is for people with an account; a link someone shared (a show, an artist, a work, a place) opens for anyone,
+  // and so do the inspection and the checks (?inspect, ?guest)
+  const shared = /^#\/(exhibition|artist|work|map\/place|place|object|studio)\b/.test(hash) || /[?&](inspect|guest)(=|&|$)/.test(location.search);
+  if (!shared) {
+    const me = signedIn();
+    if (!me) { location.replace('#/welcome'); return; }
+    if (!me.role) { location.replace('#/welcome/role'); return; }
+    if (me.role === 'artist' && !sessionStorage.getItem('os-browse')) { location.replace('#/welcome/artist'); return; }
+  }
   // the artist's side: its own screens, without the visitors' bar and tabs
   if (hash.startsWith('#/studio')) {
     if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }
@@ -744,7 +767,8 @@ function openZoom(url) {
 }
 document.addEventListener('click', e => { const t = e.target.closest('[data-zoom]'); if (t) openZoom(t.dataset.zoom); });
 
-loadData().then(d => { M = buildModel(d); render(); window.addEventListener('hashchange', render); })
+const returning = /[?&](code|error_description)=/.test(location.search) ? import('./auth.js').then(m => m.finishReturn()).catch(() => {}) : Promise.resolve();
+Promise.all([loadData(), returning]).then(([d]) => { M = buildModel(d); render(); window.addEventListener('hashchange', render); })
   .catch(() => { app.innerHTML = `<div class="wrap gut loading"><p>The content couldn't be loaded. Refresh to try again.</p></div>`; });
 
 // Installed on a phone (Add to Home Screen) the app works offline and picks up every update on the next open
