@@ -476,7 +476,7 @@ def auto_read(place, today):
     try:
         lines = [re.sub(r'\s+', ' ', x).strip() for x in pg.inner_text('body').split('\n') if x.strip()]
         links = pg.eval_on_selector_all('a', 'as => as.map(a => [a.innerText.trim().slice(0, 60), a.href])')
-        note_socials(place['id'], [h for _, h in links])
+        note_socials(place, [h for _, h in links])
         home = pg.url
     finally:
         pg.close()
@@ -851,16 +851,30 @@ SOCIAL_RE = {
     'instagram': re.compile(r'^https?://(?:www\.)?instagram\.com/([A-Za-z0-9_.]{2,30})/?(?:[?#].*)?$', re.I),
     'facebook': re.compile(r'^https?://(?:www\.|he-il\.|he\.|m\.|en-gb\.)?facebook\.com/(profile\.php\?id=\d+|(?!sharer|share|dialog|plugins|tr/|events/|groups/|watch|login)[A-Za-z0-9_.\-%]{2,80})/?(?:[?#].*)?$', re.I),
 }
-NOT_HANDLE = {'p', 'reel', 'reels', 'stories', 'explore', 'accounts', 'home.php', 'login', 'about', 'legal', 'help', 'privacy', 'policies'}
+NOT_HANDLE = {'p', 'reel', 'reels', 'stories', 'explore', 'accounts', 'home.php', 'profile.php', 'login', 'about', 'legal', 'help', 'privacy', 'policies'}
+NOT_WORD = {'www', 'org', 'com', 'net', 'co', 'il', 'ac', 'muni', 'gov', 'the', 'and', 'art', 'arts', 'gallery', 'museum', 'house', 'center', 'centre', 'of', 'for', 'tel', 'aviv'}
 
 
-def note_socials(pid, hrefs):
-    """The first Instagram and Facebook page a place's site links to (not a share button, a post or a reel)."""
-    got = SOCIAL.setdefault(pid, {})
+def theirs(handle, place):
+    """Whether an account is the place's own: its name shares a word with the place's name or site (a web designer's
+    credit in the footer does not). A Facebook page known only by its number is taken as it is."""
+    if handle.lower().startswith('profile.php?id='):
+        return True
+    h = re.sub(r'[^a-z]', '', handle.lower())
+    host_words = re.split(r'[.\-]', urlparse(place.get('website') or '').netloc.lower())
+    words = {w for w in re.findall(r'[a-z]{3,}', (place.get('name') or '').lower()) + [w for w in host_words if len(w) >= 3] if w not in NOT_WORD}
+    from difflib import SequenceMatcher
+    long_run = lambda w: SequenceMatcher(None, h, w).find_longest_match(0, len(h), 0, len(w)).size >= 6
+    return any(w in h for w in words) or any(len(h) >= 4 and h in w for w in host_words) or any(long_run(w) for w in host_words if len(w) >= 6)
+
+
+def note_socials(place, hrefs):
+    """The first Instagram and Facebook page of its own a place's site links to (not a share button, a post or a reel)."""
+    got = SOCIAL.setdefault(place['id'], {})
     for h in hrefs:
         for k, rx in SOCIAL_RE.items():
             m = rx.match((h or '').strip())
-            if m and k not in got and m.group(1).lower().rstrip('/') not in NOT_HANDLE:
+            if m and k not in got and m.group(1).lower().rstrip('/') not in NOT_HANDLE and theirs(m.group(1), place):
                 got[k] = f'https://www.{k}.com/{m.group(1)}'
     return got
 
@@ -874,13 +888,13 @@ def links_only(places, today, dry):
     for p in sorted((p for p in places.values() if p.get('website')), key=lambda p: p['id']):
         site = p['website'].strip()
         try:
-            note_socials(p['id'], hrefs_in(fetch(site if site.startswith('http') else 'https://' + site)))
+            note_socials(p, hrefs_in(fetch(site if site.startswith('http') else 'https://' + site)))
         except Exception:
             pass
         if not SOCIAL.get(p['id']):                       # nothing in the page as sent: the site builds it in a browser
             try:
                 pg = open_page(site)
-                note_socials(p['id'], pg.eval_on_selector_all('a', 'as => as.map(a => a.href)'))
+                note_socials(p, pg.eval_on_selector_all('a', 'as => as.map(a => a.href)'))
                 pg.close()
             except Exception:
                 pass
@@ -889,7 +903,8 @@ def links_only(places, today, dry):
     if dry:
         return
     prev = json.loads(OUT.read_text()) if OUT.exists() else {}
-    prev['links'] = {**prev.get('links', {}), **{k: v for k, v in SOCIAL.items() if v}}
+    read = {p['id'] for p in places.values() if p.get('website')}       # a place read now: what it has now, nothing kept
+    prev['links'] = {**{k: v for k, v in prev.get('links', {}).items() if k not in read}, **{k: v for k, v in SOCIAL.items() if v}}
     OUT.write_text(json.dumps(prev, ensure_ascii=False, separators=(',', ':')))
 
 
@@ -951,7 +966,8 @@ def main():
                 health.append(h)
                 continue
             page = ''                                    # some sites turn away plain requests but not a browser
-        note_socials(s['place'], hrefs_in(page))
+        if s['place'] in places:
+            note_socials(places[s['place']], hrefs_in(page))
         lines = text_lines(page)
         found, evs = extract(lines, today)
         if s['mode'] == 'colon-list':
