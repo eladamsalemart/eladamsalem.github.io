@@ -299,6 +299,10 @@
   "day": "2026-11-01",
   "links": [
    "https://www.bardavid-museum.org.il/#newsletter"
+  ],
+  "contact": [
+   "info@bar-am.nuzeum",
+   "bar-david.info@baram.biz"
   ]
  },
  "beit-uri-and-rami-nehushtan-museum": {
@@ -306,14 +310,20 @@
   "site": "https://www.uri-rami-museum.co.il/",
   "page": "https://www.uri-rami-museum.co.il/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "uriandrami.museum@gmail.com"
+  ]
  },
  "design-museum-holon": {
   "name": "Design Museum Holon",
   "site": "https://www.dmh.org.il/",
   "page": "https://www.dmh.org.il/",
   "status": "captcha",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "event@mhc.org.il"
+  ]
  },
  "haifa-museum-of-art": {
   "name": "Haifa Museum of Art",
@@ -335,6 +345,10 @@
   "day": "2026-11-01",
   "links": [
    "https://mushecht.haifa.ac.il/"
+  ],
+  "contact": [
+   "hechtmus@univ.haifa.ac.il",
+   "hawad@univ.haifa.ac.il"
   ]
  },
  "helena-rubinstein-pavilion": {
@@ -370,6 +384,10 @@
   "links": [
    "https://www.herzliyamuseum.co.il/%d7%99%d7%93%d7%99%d7%93%d7%99-%d7%9e%d7%95%d7%96%d7%99%d7%90%d7%95%d7%9f-%d7%94%d7%a8%d7%a6%d7%9c%d7%99%d7%94/%d7%94%d7%a6%d7%98%d7%a8%d7%a4%d7%95-%d7%90%d7%9c%d7%99%d7%a0%d7%95/",
    "https://www.herzliyamuseum.co.il/#foonew"
+  ],
+  "contact": [
+   "info-museum@herzliya.muni.il",
+   "muzaoffice.museum@herzliya.muni.il"
   ]
  },
  "ilana-goor-museum": {
@@ -405,7 +423,10 @@
   "site": "https://kupferman-collection.co.il",
   "page": "https://kupferman-collection.co.il/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "kupferman@loh.org.il"
+  ]
  },
  "mane-katz-museum": {
   "name": "Mané-Katz Museum",
@@ -434,6 +455,9 @@
   "day": "2026-11-01",
   "links": [
    "https://moby.org.il/newsletter"
+  ],
+  "contact": [
+   "info@moby.org.il"
   ]
  },
  "museum-for-islamic-art": {
@@ -457,14 +481,23 @@
   "site": "https://www.mots.org.il/",
   "page": "https://www.mots.org.il/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "info@mots.org.il"
+  ]
  },
  "nahum-gutman-museum-of-art": {
   "name": "Nahum Gutman Museum of Art",
   "site": "https://www.gutmanmuseum.co.il/",
   "page": "https://www.gutmanmuseum.co.il/",
   "status": "captcha",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "nahum.gutman@gmail.com",
+   "events@gutmanmuseum.co.il",
+   "mngutman@gamil.com",
+   "info@gutmanmuseum.co.il"
+  ]
  },
  "negev-museum-of-art": {
   "name": "Negev Museum of Art",
@@ -569,7 +602,10 @@
   "site": "http://www.wilfrid.org.il/",
   "page": "https://www.wilfrid.org.il/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "info@wilfrid.org.il"
+  ]
  },
  "beit-avi-chai": {
   "name": "Beit Avi Chai",
@@ -596,21 +632,30 @@
   "site": "http://www.benyaminiceramics.org/",
   "page": "https://www.benyaminiceramics.org/",
   "status": "captcha",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "info@benyaminiceramics.org"
+  ]
  },
  "beit-castel": {
   "name": "Beit Castel",
   "site": "https://he.beitcastel.com/",
   "page": "https://he.beitcastel.com/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "beitcastelgallery@gmail.com"
+  ]
  },
  "bet-ot-ha-motsar-ha-yerushalmi": {
   "name": "Bet ot ha-motsar ha-Yerushalmi",
   "site": "http://www.art-jerusalem.co.il/",
   "page": "https://art-jerusalem.co.il/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "jsa@art-jerusalem.co.il"
+  ]
  },
  "beth-meirov": {
   "name": "Beth Meirov",
@@ -623,7 +668,7 @@
   "name": "Meyerhoff Art Education Center",
   "site": "http://www.tamuseum.org.il/master/he/education-lobby",
   "page": "https://telavivmuseum.activetrail.biz/newsletter_he",
-  "status": "failed: TimeoutError: Locator.click: Timeout 8000ms exceeded.",
+  "status": "same list as helena-rubinstein-pavilion",
   "day": "2026-11-01",
   "form": {
    "text": "שילחו לי עדכונים בנושאים: תערוכות ואירועים פעילויות לכל המשפחה אירועים ופעילויות לקהל דובר אנגלית (In English) אירועים ופעילויות לקהל דובר ערבית (بالعربية) אירו",
@@ -694,6 +739,9 @@
   "day": "2026-11-01",
   "links": [
    "https://edrcenter.com/"
+  ],
+  "contact": [
+   "edrcenter@edrf.org.il"
   ]
  },
  "wikidata-Q20859376": {
@@ -704,6 +752,9 @@
   "day": "2026-11-01",
   "links": [
    "https://beitajerusalem.com/events/3702/"
+  ],
+  "contact": [
+   "beitajerusalem@gmail.com"
   ]
  },
  "artport": {
@@ -740,7 +791,10 @@
   "site": "https://barburgallery.org/",
   "page": "https://barburgallery.org/cgi-sys/suspendedpage.cgi",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "webmaster@barburgallery.org"
+  ]
  },
  "beit-hagefen": {
   "name": "Beit Hagefen",
@@ -750,6 +804,10 @@
   "day": "2026-11-01",
   "links": [
    "https://beit-hagefen.com/pageID.aspx?SubMainPages_sectionId=34&lang=1"
+  ],
+  "contact": [
+   "aiman@bhagefen.org",
+   "info@bhagefen.org"
   ]
  },
  "benyamini-contemporary-ceramics-center": {
@@ -757,14 +815,29 @@
   "site": "http://www.benyaminiceramics.org/",
   "page": "https://www.benyaminiceramics.org/",
   "status": "captcha",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "info@benyaminiceramics.org"
+  ]
  },
  "cca-tel-aviv": {
   "name": "CCA Tel Aviv",
   "site": "https://www.cca.org.il",
   "page": "https://www.cca.org.il/",
-  "status": "no newsletter found",
-  "day": "2026-11-01"
+  "status": "sent (no answer seen)",
+  "day": "2026-11-01",
+  "contact": [
+   "info@cca.org.il",
+   "press@cca.org.il"
+  ],
+  "form": {
+   "text": "שם מלא / الاسم الكامل / Full name* מייל / البريد الإلكتروني / Email address* אני מאשר/ת לקבל בדוא\"ל עדכונים על תערוכות, אירועים ותכנים. ניתן לבטל את ההרשמה בכל ",
+   "inputs": [
+    "text:form-field-input-990cbee0-e915-44d3-61de-f0208e21c6ef-comp-mofk9n4m-*",
+    "email:form-field-input-fa3b0aad-f2fe-47df-ee69-6441506710df-comp-mofk9n4m-*",
+    "checkbox:checkbox-7*"
+   ]
+  }
  },
  "genia-schreiber-university-art-gallery": {
   "name": "Genia Schreiber University Art Gallery",
@@ -796,6 +869,9 @@
   "status": "captcha",
   "day": "2026-11-01",
   "said": "Verification Please confirm you're human.",
+  "contact": [
+   "haninanew@gmail.com"
+  ],
   "form": {
    "text": "הצטרפו לרשימת תפוצה שלח",
    "inputs": [
@@ -811,6 +887,9 @@
   "day": "2026-11-01",
   "links": [
    "https://hansen.co.il/%d7%94%d7%a8%d7%a9%d7%9e%d7%95-%d7%9c%d7%90%d7%aa%d7%a8/"
+  ],
+  "contact": [
+   "hansen@ranwolf.co.il"
   ]
  },
  "israeli-center-for-digital-art": {
@@ -821,6 +900,10 @@
   "day": "2026-11-01",
   "links": [
    "https://cda.org.il/updates/"
+  ],
+  "contact": [
+   "event@mhc.org.il",
+   "info@digitalartlab.org.il"
   ]
  },
  "jerusalem-artists-house": {
@@ -890,14 +973,20 @@
   "site": "https://www.p8gallery.net/",
   "page": "https://www.p8gallery.net/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "gallery.p8@gmail.com"
+  ]
  },
  "rishon-lezion-municipal-art-gallery": {
   "name": "Rishon LeZion Municipal Art Gallery",
   "site": "https://bl-gallery.co.il/",
   "page": "https://bl-gallery.co.il/",
   "status": "hidden",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "bl@hironit.co.il"
+  ]
  },
  "tel-aviv-artists-house": {
   "name": "Tel Aviv Artists' House",
@@ -911,7 +1000,10 @@
   "site": "https://www.alfredinstitute.org/",
   "page": "https://www.alfredinstitute.org/#welcome",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "alfred.hecht@gmail.com"
+  ]
  },
  "hamidrasha-gallery": {
   "name": "HaMidrasha Gallery",
@@ -930,7 +1022,10 @@
   "site": "http://www.alonsegev.com/",
   "page": "https://www.alonsegev.com/",
   "status": "the site's own form is broken",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "info@alonsegev.com"
+  ]
  },
  "braverman-gallery": {
   "name": "Braverman Gallery",
@@ -958,7 +1053,10 @@
   "site": "https://chelouchegallery.com/",
   "page": "https://chelouchegallery.com/",
   "status": "asks for a phone",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "info@chelouchegallery.com"
+  ]
  },
  "dvir-gallery": {
   "name": "Dvir Gallery",
@@ -985,14 +1083,20 @@
   "site": "http://www.gordongallery.co.il",
   "page": "https://www.gordongallery.co.il/",
   "status": "captcha",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "office@gordongallery.co.il"
+  ]
  },
  "hezi-cohen-gallery": {
   "name": "Hezi Cohen Gallery",
   "site": "https://hezicohengallery.co.il/",
   "page": "https://hezicohengallery.co.il/",
   "status": "hidden",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "info@hezicohengallery.com"
+  ]
  },
  "noga-gallery-of-contemporary-art": {
   "name": "Noga Gallery of Contemporary Art",
@@ -1006,7 +1110,11 @@
   "site": "https://rg.co.il",
   "page": "https://rg.co.il/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "rg@rg.co.il",
+   "ayalzakin@gmail.com"
+  ]
  },
  "sommer-contemporary-art": {
   "name": "Sommer Contemporary Art",
@@ -1027,7 +1135,10 @@
   "site": "https://asg.org.il/",
   "page": "https://asg.org.il/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "info@artsheltergallery.com"
+  ]
  },
  "bauhaus-center-tel-aviv": {
   "name": "Bauhaus Center Tel Aviv",
@@ -1055,7 +1166,10 @@
   "site": "https://chelouchegallery.com/",
   "page": "https://chelouchegallery.com/",
   "status": "asks for a phone",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "info@chelouchegallery.com"
+  ]
  },
  "ein-hod-art-gallery": {
   "name": "Ein Hod Art Gallery",
@@ -1065,6 +1179,9 @@
   "day": "2026-11-01",
   "links": [
    "https://www.ein-hod.org/%d7%90%d7%99%d7%a8%d7%95%d7%a2%d7%99%d7%9d-%d7%95%d7%a2%d7%99%d7%93%d7%9b%d7%95%d7%a0%d7%99%d7%9d/"
+  ],
+  "contact": [
+   "einhodaguda@gmail.com"
   ]
  },
  "galeryah-periskop": {
@@ -1086,7 +1203,10 @@
   "site": "https://bl-gallery.co.il/",
   "page": "https://bl-gallery.co.il/",
   "status": "hidden",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "bl@hironit.co.il"
+  ]
  },
  "nora-gallery": {
   "name": "Nora Gallery",
@@ -1109,6 +1229,9 @@
   "status": "captcha",
   "day": "2026-11-01",
   "said": "Protected by hCaptcha Privacy Terms",
+  "contact": [
+   "info@thephotohouse.co.il"
+  ],
   "form": {
    "text": "ניוזלטר",
    "inputs": [
@@ -1121,21 +1244,33 @@
   "site": "https://www.zuzugallery.com/",
   "page": "https://www.zuzugallery.com/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "info@zuzugallery.com"
+  ]
  },
  "wikidata-Q118342557": {
   "name": "גלריה מרי",
   "site": "https://www.mariegallery.co.il/",
   "page": "https://www.mariegallery.co.il/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "mariegallery.jlm@gmail.com"
+  ]
  },
  "wikidata-Q135407831": {
   "name": "הגלריה לאמנות ישראלית בקריית טבעון",
   "site": "https://tivon-lib.co.il/gallery/",
   "page": "https://tivon-lib.co.il/gallery/",
   "status": "no newsletter found",
-  "day": "2026-11-01"
+  "day": "2026-11-01",
+  "contact": [
+   "managment@tivon-lib.co.il",
+   "m-library@tivon-lib.co.il",
+   "valleycinematheque@gmail.com",
+   "tivonartgallery@gmail.com"
+  ]
  },
  "wikidata-Q115089736": {
   "name": "מכון המים - הגלריה העירונית גבעתיים",
