@@ -203,41 +203,47 @@ const workCover = w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image,
 const person = (a, fresh) => `<a class="person${fresh ? ' fresh' : ''}" href="#/artist/${a.slug}">${im(a.portrait, a.name)}<div><b>${esc(a.name)}</b><div class="m">${esc(a.discipline)}</div></div></a>`;
 
 // --- views -----------------------------------------------------------------
-// a quick tile: a picture (or the place's colour), the name, and what it is
-function quickTile(r) {
-  const tile = (href, pic, name, kind) => `<a class="qt" href="${href}">${pic}<span><b>${esc(name)}</b><i>${esc(kind)}</i></span></a>`;
-  if (r.k === 'artist') { const a = M.artists.find(x => x.slug === r.id); return a && tile(`#/artist/${a.slug}`, im(a.portrait, '', '', '64px'), a.name, 'Artist'); }
+// what was opened last, as a visitor's log: the last thing large, with its way back in; two more below it.
+// A first visit has no log, so it gets a place to start instead (the map, a room to walk in), never a made-up history
+function logItem(r) {
+  const it = (href, pic, name, kind, act) => ({ href, pic, name, kind, act });
+  if (r.k === 'artist') { const a = M.artists.find(x => x.slug === r.id); return a && it(`#/artist/${a.slug}`, im(a.portrait, '', '', '96px'), a.name, 'Artist', 'Open'); }
   if (r.k === 'exhibition' || r.k === 'space') {
     const e = M.exhibitions.find(x => x.slug === r.id);
     if (!e) return null;
-    return r.k === 'space' && e.space ? tile(`#/exhibition/${e.slug}/space`, `<span class="qt-im">${im(e.images[0], '', '', '64px')}<em>3D</em></span>`, e.title, 'Walk in 3D')
-      : tile(`#/exhibition/${e.slug}`, im(e.images[0], '', '', '64px'), e.title, status(e) === 'on' ? 'On now' : status(e) === 'soon' ? 'Coming up' : 'Exhibition');
+    return r.k === 'space' && e.space ? it(`#/exhibition/${e.slug}/space`, im(e.images[0], '', '', '96px'), e.title, 'Walking it in 3D', 'Walk back in')
+      : it(`#/exhibition/${e.slug}`, im(e.images[0], '', '', '96px'), e.title, status(e) === 'on' ? 'Exhibition · on now' : status(e) === 'soon' ? 'Exhibition · coming up' : 'Exhibition', 'Continue');
   }
-  if (r.k === 'work') { const w = M.works.find(x => x.slug === r.id); return w && tile(`#/work/${w.slug}`, im(w.image, '', '', '64px'), w.title, w.artist.name); }
-  if (r.k === 'place') { const c = M.cities.find(x => x.slug === r.id); return c && tile(`#/place/${c.slug}`, '<span class="qt-sw" style="--c:#2F6B4F"></span>', c.name, 'City'); }
-  if (r.k === 'artplace') return tile(`#/map/place/${encodeURIComponent(r.id)}`, `<span class="qt-sw" style="--c:${esc(r.c || '#2F4FD0')}"></span>`, r.name || 'Art space', 'On the art map');
-  if (r.k === 'map') return tile('#/map', '<span class="qt-sw map"></span>', 'Art near you', 'The art map');
+  if (r.k === 'work') { const w = M.works.find(x => x.slug === r.id); return w && it(`#/work/${w.slug}`, im(w.image, '', '', '96px'), w.title, `Work · ${w.artist.name}`, 'Look again'); }
+  if (r.k === 'place') { const c = M.cities.find(x => x.slug === r.id); return c && it(`#/place/${c.slug}`, '<span class="lg-sw"></span>', c.name, 'City', 'Open'); }
+  if (r.k === 'artplace') return it(`#/map/place/${encodeURIComponent(r.id)}`, `<span class="lg-sw pin" style="--c:${esc(r.c || '#2F4FD0')}"></span>`, r.name || 'Art space', 'On the art map', 'Show on the map');
+  if (r.k === 'map') return it('#/map', '<span class="lg-sw map"></span>', 'Art near you', 'The art map, live', 'Open the map');
   return null;
 }
-function quickTiles() {
-  const seen = new Set(), out = [];
-  const add = r => { const key = r.k + ':' + r.id; if (seen.has(key) || out.length >= 8) return; const h = quickTile(r); if (h) { seen.add(key); out.push(h); } };
-  recent().forEach(add);
-  // to start with (or to fill up): the artists followed, what's on, a room to walk in, the map
-  const now = M.exhibitions.filter(e => isOn(e)), walk = M.exhibitions.find(e => e.space);
-  add({ k: 'map', id: 'map' });
-  following().forEach(id => add({ k: 'artist', id }));
-  now.forEach(e => add({ k: 'exhibition', id: e.slug }));
-  if (walk) add({ k: 'space', id: walk.slug });
-  M.works.forEach(w => add({ k: 'work', id: w.slug }));
-  return out.length >= 4 ? `<nav class="quick" aria-label="Jump back in">${out.join('')}</nav>` : '';
+function visitLog() {
+  const seen = new Set(), items = [];
+  for (const r of recent()) {
+    const key = r.k + ':' + r.id; if (seen.has(key)) continue;
+    const x = logItem(r); if (x) { seen.add(key); items.push({ ...x, t: r.t }); }
+    if (items.length === 3) break;
+  }
+  const row = x => `<a class="lg-row" href="${x.href}">${x.pic}<span><b>${esc(x.name)}</b><i>${esc(x.kind)}${x.t ? ` · ${esc(ago(x.t))}` : ''}</i></span></a>`;
+  if (!items.length) {
+    const walk = M.exhibitions.find(e => e.space);
+    const start = [logItem({ k: 'map' }), walk && logItem({ k: 'space', id: walk.slug })].filter(Boolean);
+    return `<section class="visits"><h2>Start here</h2>${start.map(row).join('')}</section>`;
+  }
+  const [first, ...rest] = items;
+  return `<section class="visits"><h2>Pick up where you left off</h2>
+    <a class="lg-first" href="${first.href}">${first.pic}<span><b>${esc(first.name)}</b><i>${esc(first.kind)}${first.t ? ` · ${esc(ago(first.t))}` : ''}</i><em>${esc(first.act)} <span aria-hidden="true">→</span></em></span></a>
+    ${rest.map(row).join('')}</section>`;
 }
 
 function home() {
   const live = M.exhibitions.find(e => isOn(e) && e.kind !== 'online') || M.exhibitions[0];
   return `<div class="wrap gut">
     <div class="home-h"><h1 class="brand-h">${LOGO}</h1><span class="tag">No. 01 · Prototype</span></div>
-    ${quickTiles()}
+    ${visitLog()}
     ${live ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
       <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"', '100vw')}
         <div class="ov"><div class="k">${esc(live.artist.name)}</div><h2>${esc(live.title)}</h2><div class="m">${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
