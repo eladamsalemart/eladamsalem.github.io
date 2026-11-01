@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31",
+ "updated": "2026-11-01",
  "sources": [
   {
    "source": "haifa-museum",
@@ -354,7 +354,7 @@
    "place": "hecht-museum",
    "url": "http://mushecht.haifa.ac.il",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -649,8 +649,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 54,
-   "seconds": 2812,
+   "calls": 4,
+   "seconds": 78,
    "status": "ok"
   },
   {
