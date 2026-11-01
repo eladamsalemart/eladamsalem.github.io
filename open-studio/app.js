@@ -242,11 +242,12 @@ function visitLog() {
 function home() {
   const live = M.exhibitions.find(e => isOn(e) && e.kind !== 'online') || M.exhibitions[0];
   return `<div class="wrap gut">
-    <div class="home-h"><h1 class="brand-h">${LOGO}</h1><span class="tag">No. 01 · Prototype</span></div>
+    <div class="home-h"><h1 class="brand-h">${LOGO}</h1></div>
     ${visitLog()}
-    ${live ? `<section class="shelf"><div class="k"><span class="dot"></span>&nbsp; On view now</div>
+    ${live ? `<section class="shelf"><h2 class="live-h"><span class="dot" aria-hidden="true"></span>On view now</h2>
       <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"', '100vw')}
-        <div class="ov"><div class="k">${esc(live.artist.name)}</div><h2>${esc(live.title)}</h2><div class="m">${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
+        <div class="ov"><h3>${esc(live.title)}</h3><div class="m"><b>${esc(live.artist.name)}</b> · ${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
+    <section class="shelf week" id="hmWeek" hidden></section>
     <section class="shelf"><h2>Artists</h2><div class="people">${M.artists.map(a => person(a)).join('')}
       <span class="person" aria-label="More artists are coming"><span class="ring" aria-hidden="true">+</span><div class="m">More artists<br>coming soon</div></span></div></section>
     <section class="shelf"><h2>Exhibitions</h2><div class="covers">${M.exhibitions.map(e => `<a href="#/exhibition/${e.slug}">${im(e.images[0], '')}<div><b>${esc(e.title)}</b><div class="m">${esc([e.year, e.artist.name].join(' · '))}</div></div></a>`).join('')}</div></section>
@@ -254,6 +255,51 @@ function home() {
     <section class="shelf"><h2>By location</h2><div class="places">${M.cities.map(cityCard).join('')}</div></section>
     <a class="for-artists" href="#/studio"><span class="k">For artists</span><b>Open your studio</b><span class="m">Your works at their real size, your shows as rooms anyone can walk through.</span><span aria-hidden="true">→</span></a>
   </div>`;
+}
+
+// This week across the country: the art map's openings and talks (read daily from the places' own sites) with
+// Open Studio's own; filled in after Home is on screen, below the fold, so nothing above it moves.
+const HE_QUOTED = /["“”״]([^"“”״]{2,60})["“”״]/;
+function weekWhat(t) { return /פתיח|opening/i.test(t) ? 'Opening' : /שיח|talk|הרצא|lecture|tour|סיור/i.test(t) ? 'Gallery talk' : 'Event'; }
+function weekTitle(t, what) {
+  t = t.replace(/[\u{1F300}-\u{1FAFF}☀-➿]️?/gu, '').replace(/^\s*opening\s*:\s*/i, '').trim();
+  if (what === 'Opening') { const q = t.match(HE_QUOTED); if (q) return q[1].trim(); }
+  return t.replace(/^שיח גלריה( בתערוכה)?\s*[|:]\s*/, '');
+}
+async function fillWeek(box) {
+  const get = u => fetch(u).then(r => r.ok ? r.json() : null).catch(() => null);
+  const [pl, ex] = await Promise.all([get('data/art/places.json'), get('data/art/exhibitions.json')]);
+  const t0 = +today(), end = t0 + 7 * DAY, rows = [];
+  const byId = new Map((pl && pl.places || []).map(p => [p.id, p]));
+  const at = (d, hhmm) => { const x = new Date(d + 'T00:00'); if (hhmm) { const [h, m] = hhmm.split(':'); x.setHours(+h, +m); } return x; };
+  for (const e of M.exhibitions) for (const v of e.events || []) if (+v.at >= Date.now() - 3 * 3600000 && +v.at < end)
+    rows.push({ at: new Date(v.at), time: hm(v.at), title: e.title, what: v.what, where: [e.kind === 'online' ? 'Online' : e.venue && e.venue.split(' — ')[0], e.kind === 'online' ? '' : e.city].filter(Boolean).join(', '), href: `#/exhibition/${e.slug}`, own: true });
+  const seen = new Set();
+  for (const v of ex && ex.events || []) {
+    const p = byId.get(v.place), d = at(v.date, v.time); if (!p || +d < t0 || +d >= end) continue;
+    const what = weekWhat(v.title), title = weekTitle(v.title, what);
+    seen.add(`${p.id}|${v.date}|${title}`);
+    rows.push({ at: d, time: v.time || '', title, what, where: [p.name, p.city].filter(Boolean).join(", "), href: `#/map/place/${encodeURIComponent(p.id)}` });
+  }
+  const opening = new Map();   // shows that open this week, one row a place and day
+  for (const sh of ex && ex.shows || []) {
+    const p = byId.get(sh.place); if (!p || !sh.start) continue;
+    const d = at(sh.start); if (+d < t0 || +d >= end || seen.has(`${p.id}|${sh.start}|${sh.title}`)) continue;
+    const k = p.id + sh.start; (opening.get(k) || opening.set(k, { d, p, titles: [] }).get(k)).titles.push(sh.title);
+  }
+  for (const { d, p, titles } of opening.values())
+    rows.push({ at: d, time: '', title: titles.length > 1 ? `${titles.length} new shows` : titles[0], what: 'Opens', where: [p.name, p.city].filter(Boolean).join(", "), href: `#/map/place/${encodeURIComponent(p.id)}` });
+  if (!rows.length) return;
+  // openings before talks; then by day
+  const rank = r => /^Open/.test(r.what) ? 0 : 1;
+  rows.sort((a, b) => rank(a) - rank(b) || a.at - b.at);
+  const own = rows.filter(r => r.own).slice(0, 2), pick = [...own, ...rows.filter(r => !r.own)].slice(0, 5).sort((a, b) => a.at - b.at);
+  const label = d => { const n = Math.round((new Date(d).setHours(0, 0, 0, 0) - t0) / DAY); return n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : d.toLocaleDateString('en-GB', { weekday: 'short' }); };
+  box.innerHTML = `<h2>This week</h2><ol class="wk">${pick.map((r, i) => `<li><a href="${r.href}"${label(r.at) === 'Today' ? ' class="now"' : ''}>
+      <span class="wk-d">${i && pick[i - 1].at.toDateString() === r.at.toDateString() ? '' : `<b>${r.at.getDate()}</b>${esc(label(r.at))}`}</span>
+      <span class="wk-b"><b dir="auto">${esc(r.title)}</b><span>${esc([r.what, r.time].filter(Boolean).join(' · '))}</span><span dir="auto">${esc(r.where)}</span></span></a></li>`).join('')}</ol>
+    <a class="wk-all" href="#/map">${rows.length > pick.length ? `${rows.length - pick.length} more this week, on the art map` : 'All of it on the art map'}</a>`;
+  box.hidden = false;
 }
 
 function cityCard(c) {
@@ -623,6 +669,8 @@ function wire() {
   document.querySelectorAll('[data-log]').forEach(b => b.onclick = () => { const [s, i] = b.dataset.log.split(':'); openLog(s, +i); });
   const am = document.querySelector('.am');
   if (am) openArtMap(am);
+  const wk = document.getElementById('hmWeek');
+  if (wk) fillWeek(wk);
   // a list that opens five more at a time
   document.querySelectorAll('[data-more]').forEach(b => b.onclick = () => {
     const rest = [...b.parentNode.querySelectorAll('[data-more-list] > [hidden]')];
