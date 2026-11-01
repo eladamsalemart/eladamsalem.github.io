@@ -13,12 +13,38 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 export function account() {
   try { const u = JSON.parse(localStorage.getItem(USER_KEY)); return u && u.id ? u : null; } catch { return null; }
 }
-function keep(user) {
+function keep(user, extra = {}) {
   try {
-    if (!user) localStorage.removeItem(USER_KEY);
-    else localStorage.setItem(USER_KEY, JSON.stringify({ id: user.id, email: user.email || '', role: (user.user_metadata || {}).role || '',
-      name: (user.user_metadata || {}).full_name || (user.user_metadata || {}).name || '' }));
+    if (!user) return localStorage.removeItem(USER_KEY);
+    const was = account(), same = was && was.id === user.id ? was : {}, meta = user.user_metadata || {};
+    localStorage.setItem(USER_KEY, JSON.stringify({ id: user.id, email: user.email || '', provider: (user.app_metadata || {}).provider || 'email',
+      role: extra.role ?? same.role ?? meta.role ?? '', name: extra.name || same.name || meta.full_name || meta.name || '',
+      details: extra.details ?? same.details }));
   } catch {}
+}
+
+// where a person goes once signed in: their details (email accounts; Google and Apple give the names), then
+// who they are here, then the app. The profile row is theirs alone (row-level security in Supabase).
+async function nextStep(c, user) {
+  let p = null;
+  try { const { data } = await c.from('profiles').select('*').eq('id', user.id).maybeSingle(); p = data; } catch (e) { console.warn(e); }
+  const provider = (user.app_metadata || {}).provider || 'email';
+  const details = provider !== 'email' || !!(p && p.first_name && p.last_name && p.age && p.country && p.gender);
+  const role = (p && p.role) || (user.user_metadata || {}).role || '';
+  keep(user, { details, role, name: p ? [p.first_name, p.last_name].filter(Boolean).join(' ') : '' });
+  profile = p;
+  return !details ? '#/welcome/details' : role ? '#/' : '#/welcome/role';
+}
+let profile = null;
+
+// on opening the app, signed in: is anything still missing (an account from before the details step)?
+export async function refresh() {
+  try {
+    const c = await client();
+    const { data } = await c.auth.getSession();
+    if (!data.session) { keep(null); return '#/welcome'; }
+    return await nextStep(c, data.session.user);
+  } catch (e) { console.warn(e); return null; }
 }
 
 let ready = null;
@@ -41,22 +67,23 @@ export function client() {
 export async function finishReturn() {
   const q = new URLSearchParams(location.search);
   if (!q.has('code') && !q.has('token_hash') && !q.has('error_description')) return false;
-  let err = q.get('error_description');
+  let err = q.get('error_description'), next = '#/welcome/email';
   if (!err) {
     try {
       const c = await client();
+      let user = null;
       if (q.has('token_hash')) {
         const { data, error } = await c.auth.verifyOtp({ token_hash: q.get('token_hash'), type: q.get('type') || 'email' });
         if (error) throw error;
-        if (data.session) keep(data.session.user);
+        user = data.user;
       } else {
         const { data } = await c.auth.getSession();      // the client trades the code for a session as it starts
-        if (data.session) keep(data.session.user);
+        user = data.session && data.session.user;
       }
+      if (user) { keep(user); next = await nextStep(c, user); }
     } catch (e) { console.warn(e); }
     if (!account()) err = 'That link was already used, or a newer email replaced it. Type the code from your latest email, or ask for a new one.';
-  }
-  const next = account() ? (account().role ? '#/' : '#/welcome/role') : '#/welcome/email';
+  } else next = '#/welcome';
   history.replaceState(null, '', APP_URL() + next);
   if (err) sessionStorage.setItem('os-auth-error', err);
   return true;
@@ -90,18 +117,14 @@ function shell(inner, cls = '') {
 
 function welcome(on, err) {
   const art = ART[new Date().getDate() % ART.length];
-  const btn = (k, label) => {
-    const live = k === 'email' || on[k];
-    return `<button type="button" class="wl-btn wl-${k}" data-provider="${k}"${live ? '' : ' disabled aria-describedby="wl-soon"'}>${ICONS[k]}<span>${label}</span>${live ? '' : '<i>Soon</i>'}</button>`;
-  };
+  const btn = (k, label) => k === 'email' || on[k] ? `<button type="button" class="wl-btn wl-${k}" data-provider="${k}">${ICONS[k]}<span>${label}</span></button>` : '';
   return shell(`
     <header class="wl-brand">${LOGO_MARK}<span>Open Studio</span></header>
     <figure class="wl-arch"><img src="${art}" alt=""></figure>
     <h1>Art, on view now</h1>
     <p class="wl-lede">The shows on today, the artists behind them, and their works at their real size.</p>
     ${err ? `<p class="wl-err" role="alert">${esc(err)}</p>` : ''}
-    <div class="wl-btns">${btn('google', 'Continue with Google')}${btn('apple', 'Continue with Apple')}${btn('facebook', 'Continue with Facebook')}${btn('email', 'Continue with email')}</div>
-    <p class="wl-fine" id="wl-soon">${['google', 'apple', 'facebook'].some(k => !on[k]) ? 'Google, Apple and Facebook are being connected. Email works now.' : ''}</p>`, 'wl-welcome');
+    <div class="wl-btns">${btn('apple', 'Continue with Apple')}${btn('google', 'Continue with Google')}${btn('email', 'Continue with email')}</div>`, 'wl-welcome');
 }
 
 function emailForm(prefill, err) {
@@ -130,6 +153,31 @@ function sent(email, err) {
       <button type="submit" class="wl-go">Continue</button>
     </form>
     <button type="button" class="wl-link" id="wlResend" disabled>Send again in <span>60</span> s</button>`, 'wl-step');
+}
+
+// every country, by its two-letter code (ISO 3166-1); its name in English from the phone's own list
+const COUNTRIES = ('AF AX AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BR IO BN BG BF BI CV KH CM CA KY CF TD CL CN CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT VA HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR XK KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB US UY UZ VU VE VN VG VI WF EH YE ZM ZW').split(' ');
+const GENDERS = [['woman', 'Woman'], ['man', 'Man'], ['non-binary', 'Non-binary'], ['prefer-not', 'Prefer not to say']];
+function countryOptions(chosen) {
+  let names; try { names = new Intl.DisplayNames(['en'], { type: 'region' }); } catch { names = { of: c => c }; }
+  const list = COUNTRIES.map(c => [c, names.of(c) || c]).sort((a, b) => a[1].localeCompare(b[1]));
+  const opt = ([c, n]) => `<option value="${c}"${c === chosen ? ' selected' : ''}>${esc(n)}</option>`;
+  return opt(['IL', names.of('IL') || 'Israel']) + '<option disabled>──────────</option>' + list.filter(([c]) => c !== 'IL').map(opt).join('');
+}
+function details(p, err) {
+  p = p || {};
+  return shell(`
+    <h1>A little about you</h1>
+    <p class="wl-lede">So the artists and shows you see are the right ones. Only you can see this.</p>
+    <form class="wl-form wl-details" id="wlDetails" novalidate>
+      <div class="wl-two"><span><label for="wl-first">First name</label><input id="wl-first" name="first" autocomplete="given-name" value="${esc(p.first_name || '')}" required></span>
+        <span><label for="wl-last">Last name</label><input id="wl-last" name="last" autocomplete="family-name" value="${esc(p.last_name || '')}" required></span></div>
+      <div class="wl-two"><span><label for="wl-age">Age</label><input id="wl-age" name="age" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="${esc(p.age || '')}" required></span>
+        <span><label for="wl-country">Country you live in</label><select id="wl-country" name="country" autocomplete="country">${countryOptions(p.country || 'IL')}</select></span></div>
+      <fieldset class="wl-gender"><legend>Gender</legend>${GENDERS.map(([v, t]) => `<label><input type="radio" name="gender" value="${v}"${p.gender === v ? ' checked' : ''}><span>${t}</span></label>`).join('')}</fieldset>
+      ${err ? `<p class="wl-err" role="alert">${esc(err)}</p>` : ''}
+      <button type="submit" class="wl-go">Continue</button>
+    </form>`, 'wl-step');
 }
 
 function role(u) {
@@ -164,8 +212,9 @@ function accountPage(u) {
   return shell(`
     <a class="wl-back" href="#/">← Home</a>
     <h1>Your account</h1>
-    <dl class="wl-dl"><div><dt>Email</dt><dd>${esc(u.email || '—')}</dd></div><div><dt>Here as</dt><dd>${u.role === 'artist' ? 'An artist' : 'An art lover'}</dd></div></dl>
+    <dl class="wl-dl">${u.name ? `<div><dt>Name</dt><dd>${esc(u.name)}</dd></div>` : ''}<div><dt>Email</dt><dd>${esc(u.email || '—')}</dd></div><div><dt>Here as</dt><dd>${u.role === 'artist' ? 'An artist' : 'An art lover'}</dd></div></dl>
     <div class="wl-btns">
+      <a class="wl-link" href="#/welcome/details">Change your details</a>
       <button type="button" class="wl-link" data-role="${u.role === 'artist' ? 'lover' : 'artist'}">${u.role === 'artist' ? 'I’m here as an art lover' : 'I make art'}</button>
       <button type="button" class="wl-go wl-out" data-signout>Sign out</button>
     </div>`, 'wl-step');
@@ -195,6 +244,13 @@ export async function screen(hash, app, go) {
     app.innerHTML = accountPage(u);
   } else if (step === 'email') app.innerHTML = emailForm(pending.email, err);
   else if (step === 'sent') { if (!pending.email) return go('#/welcome/email'); app.innerHTML = sent(pending.email, err); }
+  else if (step === 'details') {
+    if (!u) return go('#/welcome');
+    app.innerHTML = details(profile, err);
+    if (!profile) client().then(c => c.from('profiles').select('*').eq('id', u.id).maybeSingle()).then(({ data }) => {
+      if (data && location.hash === '#/welcome/details' && !app.querySelector('#wl-first').value) { profile = data; app.innerHTML = details(data); wire(app, go); }
+    }).catch(() => {});
+  }
   else if (step === 'role') { if (!u) return go('#/welcome'); app.innerHTML = role(u); }
   else if (step === 'artist') app.innerHTML = artistSoon(u);
   else {
@@ -257,7 +313,7 @@ function wire(app, go) {
         const { data, error } = await c.auth.verifyOtp({ email: pending.email, token, type: 'email' });
         if (error) throw error;
         keep(data.user);
-        go(account().role ? '#/' : '#/welcome/role');
+        go(await nextStep(c, data.user));
       } catch (e) { app.innerHTML = sent(pending.email, 'That code didn’t work. Check it, or ask for a new one.'); wire(app, go); }
     };
     const rs = app.querySelector('#wlResend');
@@ -271,6 +327,26 @@ function wire(app, go) {
       } catch (e) { rs.disabled = false; rs.textContent = sendTrouble(e); }
     };
   }
+  const df = app.querySelector('#wlDetails');
+  if (df) df.onsubmit = async ev => {
+    ev.preventDefault();
+    const f = new FormData(df), v = k => String(f.get(k) || '').trim();
+    const p = { first_name: v('first'), last_name: v('last'), age: parseInt(v('age'), 10), country: v('country'), gender: v('gender') };
+    const bad = !p.first_name || !p.last_name ? 'Your first and last name, please.' : !(p.age >= 13 && p.age <= 120) ? 'Your age in years (13 or over).'
+      : !p.gender ? 'Choose one under Gender (Prefer not to say is fine).' : '';
+    if (bad) { app.innerHTML = details(p, bad); return wire(app, go); }
+    const b = df.querySelector('.wl-go'); busy(b, true, 'Saving…');
+    try {
+      const c = await client(), u = account();
+      const { error } = await c.from('profiles').upsert({ id: u.id, ...p });
+      if (error) throw error;
+      await c.auth.updateUser({ data: { full_name: `${p.first_name} ${p.last_name}` } }).catch(() => {});
+      profile = { ...(profile || {}), ...p };
+      const { data } = await c.auth.getUser();
+      keep(data.user || { id: u.id, email: u.email }, { details: true, name: `${p.first_name} ${p.last_name}` });
+      go(account().role ? '#/' : '#/welcome/role');
+    } catch (e) { console.warn(e); app.innerHTML = details(p, 'That didn\u2019t save. Check the connection and try again.'); wire(app, go); }
+  };
   app.querySelectorAll('[data-role]').forEach(b => b.onclick = async () => {
     const r = b.dataset.role;
     b.setAttribute('aria-busy', 'true'); app.querySelectorAll('[data-role]').forEach(x => { x.disabled = true; });
@@ -279,7 +355,8 @@ function wire(app, go) {
       const c = await client();
       const { data, error } = await c.auth.updateUser({ data: { role: r } });
       if (error) throw error;
-      keep(data.user);
+      await c.from('profiles').upsert({ id: data.user.id, role: r });
+      keep(data.user, { role: r });
     } catch (e) {                                          // kept on the phone meanwhile; saved to the account next time
       console.warn(e);
       try { localStorage.setItem(USER_KEY, JSON.stringify({ ...u, role: r })); } catch {}
