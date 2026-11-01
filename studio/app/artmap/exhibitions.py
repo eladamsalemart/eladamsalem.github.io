@@ -165,16 +165,21 @@ def extract(lines, today):
         # that is not navigation, a date or a curator
         title = None
         m0 = rng or close
+        # an opening or a talk on one date ("שיח גלריה | אור ראשון 19.11"): its own words are its title, though they
+        # are never a show's
+        ev_line = bool(one and not m0 and EVENT.search(line))
+        if ev_line:
+            m0 = one
         pre = clean_title(line[:m0.start()]).strip(' —–-|,(') if m0 else ''
         pre = '' if re.fullmatch(r'(?:(?:יום\s+)?(?:ראשון|שני|שלישי|רביעי|חמישי|שישי|שבת|א|ב|ג|ד|ה|ו)\'?|mon|tue|wed|thu|fri|sat|sun)'
                                  r'[a-z]*\.?,?\s*(?:\d{1,2}:\d{2})?', pre, re.I) else pre
-        if len(pre) >= 3 and not NOT_TITLE.search(pre) and not re.fullmatch(r'[\d./\s,:-]+', pre) and not re.search(r'(?:ננעלת|נעילה|נועלת|closes|until|עד|פתיחה|opening)\s*$', pre, re.I):
+        if len(pre) >= 3 and (ev_line or not NOT_TITLE.search(pre)) and not re.fullmatch(r'[\d./\s,:-]+', pre) and not re.search(r'(?:ננעלת|נעילה|נועלת|closes|until|עד|פתיחה|opening)\s*$', pre, re.I):
             title = pre
         for j in range(i - 1, max(-1, i - 4), -1):
             if title:
                 break
             c = clean_title(lines[j])
-            if not c or NAV.match(c) or NOT_TITLE.search(c) or re.fullmatch(r'[\d./\s,:-]+', c) or re.match(r'^(אוצר|אוצרת|curator|צילום)', c, re.I):
+            if not c or NAV.match(c) or (NOT_TITLE.search(c) and not (one and not (rng or close) and EVENT.search(c))) or re.fullmatch(r'[\d./\s,:-]+', c) or re.match(r'^(אוצר|אוצרת|curator|צילום)', c, re.I):
                 continue
             title = c
             break
@@ -194,6 +199,13 @@ def extract(lines, today):
             t, artists = split_artist(title)
             shows.append({'title': t, 'artists': artists, 'start': start.isoformat() if start else None, 'end': end.isoformat()})
         elif one and EVENT.search(title):
+            # "פתיחת התערוכה: 12.11" names no show: it is the opening of the show named above it
+            if re.fullmatch(r'\W*(?:פתיחת? (?:ה)?תערוכה|פתיחה(?: חגיגית)?|שיח גלריה|שיח אמן|opening|gallery talk)\W*', title, re.I):
+                above = next((c for c in (clean_title(x) for x in lines[max(0, i - 4):i][::-1])
+                              if c and not NAV.match(c) and not NOT_TITLE.search(c) and not re.search(D, c) and len(c) <= 80), None)
+                if not above:
+                    continue
+                title = f'{title.strip(" :")} "{above}"'
             at = ymd(*one.groups()[:3], today)
             if at and today <= at <= today + dt.timedelta(days=60):
                 events.append({'title': title, 'date': at.isoformat(), 'time': one.group(4) or ''})
@@ -733,6 +745,105 @@ def makore_events(places, today, pages=15, shows=None):
     return out
 
 
+# --- newsletters: the places' own mail to the app's mailbox ---------------------------------------------------------
+# Galleries announce openings and new shows by newsletter before (or instead of) their websites. The app's mailbox
+# (ART_MAIL_USER, a Gmail address subscribed to them) is read over IMAP with an app password (ART_MAIL_PASSWORD, a
+# GitHub secret); each message is matched to a place on the map by the sender's domain or, failing that, by the
+# place's own website among its links, and read with the same rules (and model) as a page. Nothing is marked read.
+MAIL_USER = os.environ.get('ART_MAIL_USER', 'ooopenstudio@gmail.com')
+MAIL_DAYS, MAIL_MAX = 90, 400
+SKIP_SENDERS = re.compile(r'(^|\.)(google\.com|gmail\.com|accounts\.google|github\.com|anthropic\.com|supabase\.(com|io)|facebookmail\.com|instagram\.com)$', re.I)
+
+
+def host(url):
+    h = urlparse(url if '//' in url else 'http://' + url).netloc.lower().split(':')[0]
+    return h[4:] if h.startswith('www.') else h
+
+
+def mail_message(raw):
+    """(sender domain, subject, html or text, link hosts) of one raw message."""
+    import email
+    from email import policy
+    from email.utils import parseaddr
+    m = email.message_from_bytes(raw, policy=policy.default)
+    sender = parseaddr(str(m.get('From', '')))[1].lower()
+    dom = sender.rsplit('@', 1)[-1]
+    part = m.get_body(preferencelist=('html', 'plain'))
+    body = part.get_content() if part else ''
+    if part and part.get_content_type() == 'text/plain':
+        body = '<pre>' + body.replace('&', '&amp;').replace('<', '&lt;') + '</pre>'
+    hosts = [host(u) for u in re.findall(r'href=["\'](https?://[^"\'#]+)', body)]
+    return dom, str(m.get('Subject', '')), body, hosts
+
+
+def mail_place(dom, hosts, by_host):
+    """The place a message is from: its sender's domain, else the place whose own site its links point to most."""
+    for h in (dom, '.'.join(dom.split('.')[-2:]), '.'.join(dom.split('.')[-3:])):
+        if h in by_host:
+            return by_host[h]
+    from collections import Counter
+    for h, _ in Counter(h for h in hosts if h in by_host).most_common(1):
+        return by_host[h]
+    return None
+
+
+def mail_read(places, today):
+    """Shows and events from the newsletters in the app's mailbox. ([], [], health) when there is no password."""
+    pw = os.environ.get('ART_MAIL_PASSWORD', '').replace(' ', '')
+    h = {'source': 'mail', 'place': '(many)', 'url': 'mailto:' + MAIL_USER}
+    if not pw:
+        h['status'] = 'no mailbox (ART_MAIL_PASSWORD not set)'
+        return [], [], h
+    import imaplib
+    by_host = {}
+    for p in places.values():
+        if p.get('website'):
+            by_host.setdefault(host(p['website']), p['id'])
+    shows, events, matched, unmatched = [], [], 0, 0
+    try:
+        box = imaplib.IMAP4_SSL('imap.gmail.com', timeout=60)
+        box.login(MAIL_USER, pw)
+    except Exception as e:
+        h['status'] = f'login failed: {type(e).__name__}'
+        return [], [], h
+    try:
+        box.select('INBOX', readonly=True)
+        since = (today - dt.timedelta(days=MAIL_DAYS)).strftime('%d-%b-%Y')
+        _, data = box.search(None, f'(SINCE {since})')
+        ids = data[0].split()[-MAIL_MAX:]
+        for i in ids:
+            _, msg = box.fetch(i, '(BODY.PEEK[])')
+            raw = next((x[1] for x in msg if isinstance(x, tuple)), b'')
+            dom, subject, body, hosts = mail_message(raw)
+            if SKIP_SENDERS.search(dom):
+                continue
+            pid = mail_place(dom, hosts, by_host)
+            if not pid:
+                unmatched += 1
+                continue
+            matched += 1
+            lines = [subject] + text_lines(body)
+            found, evs = extract(lines, today)
+            if not found:
+                found = model_read(places[pid], f'mail:{pid}:{subject[:60]}', lines, today)
+            src = f'mail:{pid}'
+            for x in found:
+                x.setdefault('by', 'mail')
+                x.update(place=pid, url=places[pid]['website'], source=src,
+                         id=f"{pid}:{re.sub(r'[^0-9a-zא-ת]+', '-', x['title'].lower())[:50]}")
+            for x in evs:
+                x.update(place=pid, url=places[pid]['website'], source=src)
+            shows = merge(shows, found) if found else shows
+            events += [e for e in evs if (e['place'], e['title'], e['date']) not in {(y['place'], y['title'], y['date']) for y in events}]
+    finally:
+        try:
+            box.logout()
+        except Exception:
+            pass
+    h.update(status='ok', messages=len(ids), matched=matched, unmatched=unmatched, shows=len(shows), events=len(events))
+    return shows, events, h
+
+
 def load_sources():
     out = []
     for line in (HERE / 'sources.tsv').read_text(encoding='utf-8').splitlines():
@@ -749,12 +860,15 @@ def main():
     ap.add_argument('--only', help='these sources only (comma-separated ids), for a trial')
     ap.add_argument('--dry', action='store_true', help='print what was found; write nothing')
     ap.add_argument('--no-browser', action='store_true', help="don't read pages in a browser when the plain page has nothing")
+    ap.add_argument('--mail-only', action='store_true', help='read the newsletters only, and keep every other source as it was')
     a = ap.parse_args()
     today = dt.date.fromisoformat(a.today) if a.today else dt.date.today()
     places = {p['id']: p for p in json.loads((APP / 'data' / 'art' / 'places.json').read_text())['places']} \
         if (APP / 'data' / 'art' / 'places.json').exists() else {}
     shows, events, health = [], [], []
     only = set(a.only.split(',')) if a.only else None
+    if a.mail_only:
+        return mail_only(places, today, a.dry)
     for s in load_sources():
         if only is not None and s['id'] not in only:
             continue
@@ -833,6 +947,13 @@ def main():
             health.append(h)
             print(f"{h['source']:<40} {h['status']:<14} {len(found)} shows", file=sys.stderr)
 
+    if places and not a.offline and only is None:
+        ms, me, mh = mail_read(places, today)
+        shows, events = shows + ms, events + me
+        health.append(mh)
+        if mh.get('status') == 'ok':                     # every place heard from by mail counts as read today
+            health += [{'source': src, 'place': src[5:], 'status': 'ok', 'mail': True} for src in sorted({x['source'] for x in ms})]
+        print(f"mail                     {mh['status']}: {mh.get('matched', 0)} from places on the map, {len(ms)} shows, {len(me)} events", file=sys.stderr)
     close_browser()
     save_model_cache(today)
     if FREE_MODEL and not os.environ.get('ANTHROPIC_API_KEY'):
@@ -870,7 +991,7 @@ def main():
             and x['id'] not in {y['id'] for y in shows}]
     shows += kept
     shows = [x for x in shows if not NOT_TITLE.search(x['title'])]     # yesterday's too, read before a rule was added
-    rank = {'wordpress': 0, 'rss': 0, 'rule': 1, None: 1, 'model': 2}
+    rank = {'wordpress': 0, 'rss': 0, 'mail': 0, 'rule': 1, None: 1, 'model': 2}
     per, keep = {}, []
     for x in sorted(shows, key=lambda x: rank.get(x.get('by'), 1)):    # one show per title at each place
         got = merge(per.get(x['place'], []), [x])
@@ -889,6 +1010,36 @@ def main():
     HEALTH.write_text(json.dumps({'updated': today.isoformat(), 'sources': health}, ensure_ascii=False, indent=1))
     print(f'{len(shows)} shows ({len(kept)} kept from earlier reads), {len(events)} events; '
           f'{len(ok_sources)}/{len(health)} sources read', file=sys.stderr)
+
+
+
+def mail_only(places, today, dry):
+    shows, events, h = mail_read(places, today)
+    print(f"mail: {h['status']}; {h.get('messages', 0)} messages, {h.get('matched', 0)} from places on the map, "
+          f"{h.get('unmatched', 0)} not, {len(shows)} shows, {len(events)} events", file=sys.stderr)
+    save_model_cache(today)
+    if dry or h['status'] != 'ok':
+        for x in shows:
+            print(f"{x['source']:<34} {x['title'][:60]} | {x.get('start')} – {x.get('end')}")
+        for x in events:
+            print(f"{x['source']:<34} {x['date']} {x.get('time', '')} {x['title'][:60]}")
+        return
+    prev = json.loads(OUT.read_text()) if OUT.exists() else {'shows': [], 'events': []}
+    first = {x['id']: x.get('first_seen') for x in prev['shows']}
+    for x in shows:
+        x['first_seen'] = first.get(x['id']) or today.isoformat()
+        x['last_seen'] = today.isoformat()
+    keep = [x for x in prev['shows'] if not x['source'].startswith('mail:')]
+    per = {}
+    for x in keep:
+        per.setdefault(x['place'], []).append(x)
+    for x in shows:                                     # a show the place's site already gave is not repeated
+        if len(merge(per.get(x['place'], []), [x])) > len(per.get(x['place'], [])):
+            per.setdefault(x['place'], []).append(x)
+            keep.append(x)
+    evs = [e for e in prev.get('events', []) if not str(e.get('source', '')).startswith('mail:')] + events
+    OUT.write_text(json.dumps({'updated': prev.get('updated', today.isoformat()), 'shows': keep, 'events': evs},
+                              ensure_ascii=False, separators=(',', ':')))
 
 
 if __name__ == '__main__':
