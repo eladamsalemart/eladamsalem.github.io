@@ -54,7 +54,8 @@ GitHub secrets or the environment's settings. Report briefly, in Hebrew.
   `show` writes what is set now to `studio/supabase/auth.live.json` (no passwords or keys).
   Set: Site URL `https://eladamsalem.com/open-studio/`, redirect `https://eladamsalem.com/open-studio/**`, custom SMTP
   through the app's Gmail, 30 emails an hour, the code (`{{ .Token }}`, 6 digits) in Confirm signup and Magic Link.
-  Email sign-in proved end to end on 1.11. Google, Apple, Facebook: not connected yet (need the owner's developer
+  Both sign-in emails are Open Studio's own (the code in the subject, a token_hash link that works in any browser).
+  Email sign-in proved end to end on 1.11, on the live site, by link and by code. Google, Apple, Facebook: not connected yet (need the owner's developer
   accounts); Instagram login doesn't exist for apps.
 - The app's mailbox ooopenstudio@gmail.com: the Gmail connector (drafts, reading, labels). It is subscribed to
   galleries' newsletters (`studio/app/artmap/newsletters.json`); the daily read takes their openings and shows.
@@ -71,7 +72,8 @@ that wasn't copied. "Art map: exhibitions" daily (sites, newsletters, Makore; pa
 user metadata `role`); an artist sees "Your studio is being built", an art lover the app. Shared links (show, artist,
 work, place) open without an account; `?guest` and `?inspect` skip the gate for checks.
 
-**Open** — the owner chooses a Home direction (`studio/design/home-concepts/`, PDF there; recommended: the wall),
-then it is built; the artists' platform; Google/Apple/Facebook sign-in; the owner signs up by hand to the 13
+**Open** — the owner chooses a direction for the way in and Home from ten (`studio/design/home-ten/`, PDF there;
+recommended: the wall label, the day, the constellation; the earlier three in `home-concepts/` were turned down),
+then it is built across the app's energy (the owner likes the artist page, the map, exhibitions and tours as they are); the artists' platform; Google/Apple/Facebook sign-in; the owner signs up by hand to the 13
 newsletters behind a CAPTCHA (list in `newsletters.json`, status `captcha`/`asks for a phone`); the Ritual ceiling
 (task #34 in the old list).
