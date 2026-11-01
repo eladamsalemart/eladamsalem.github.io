@@ -533,8 +533,61 @@ main .am-actions .am-follow[aria-pressed="true"]{background:var(--paper);color:v
 .am-shows li{display:grid;gap:2px;padding:12px 0 12px 18px;border-top:1px solid var(--line);position:relative}
 main .am-shows li:before{content:"";position:absolute;left:0;top:19px;width:8px;height:8px;border-radius:50% !important;background:var(--c)}
 .am-shows b{font-size:16px;font-weight:600}.am-shows a{color:inherit}
-main .am-yours{background:var(--paper);border-inline-start:3px solid var(--c);padding:10px 12px;border-radius:0 12px 12px 0 !important;font-size:14px;margin:12px 0 0}
+main .am-yours{background:color-mix(in srgb,var(--c) 9%,var(--paper));padding:10px 12px;border-radius:12px !important;font-size:14px;margin:12px 0 0}
 .am-src{font-size:11px;color:var(--muted);margin-top:16px}
+/* the place's own links */
+.am-links{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px}
+main .am-links>*{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 13px 0 11px;border:1px solid var(--line);border-radius:999px !important;background:transparent;color:var(--ink);font:500 13px var(--sans);text-decoration:none;cursor:pointer}
+.am-links svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.am-links>*:active{background:var(--paper)}
+/* a show on now: its own card, live */
+.am-lives{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:10px}
+main .am-live{background:color-mix(in srgb,var(--c) 10%,var(--paper));border:1px solid color-mix(in srgb,var(--c) 32%,transparent);border-radius:16px !important}
+.am-live summary,.am-soon summary{list-style:none;cursor:pointer;display:grid;gap:4px;position:relative;padding-inline-end:28px}
+.am-live summary{padding:14px 44px 14px 16px}
+.am-live summary::-webkit-details-marker,.am-soon summary::-webkit-details-marker{display:none}
+.am-live summary:after,.am-soon summary:after{content:"";position:absolute;right:18px;top:20px;width:8px;height:8px;border:solid var(--muted);border-width:0 1.6px 1.6px 0;transform:rotate(45deg);transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.am-soon summary:after{right:4px}
+details[open]>summary:after{transform:rotate(-135deg);top:24px}
+.am-live-k{display:flex;align-items:center;gap:8px;font:600 12px var(--sans);letter-spacing:.02em;color:var(--dot)}
+.am-live-k em{font-style:normal;font-weight:500;color:var(--ink)}
+.am-live-k em:before{content:"·";margin-inline-end:8px;color:var(--muted)}
+.am-live.closing .am-live-k em{font-weight:700}
+main .am-pulse{width:8px;height:8px;border-radius:50% !important;background:var(--dot);box-shadow:0 0 0 0 color-mix(in srgb,var(--dot) 55%,transparent);animation:amPulse 2.2s cubic-bezier(.2,.8,.2,1) infinite}
+@keyframes amPulse{70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){main .am-pulse{animation:none}}
+.am-live b{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.12}
+.am-live summary>*,.am-soon summary>*,.am-detail dd{text-align:left}
+.am-morelive{margin-top:10px}
+.am-morelive>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;min-height:44px;font:600 14px var(--sans);color:var(--ink)}
+.am-morelive>summary::-webkit-details-marker{display:none}
+.am-morelive>summary:after{content:"";width:7px;height:7px;border:solid var(--muted);border-width:0 1.6px 1.6px 0;transform:rotate(45deg) translateY(-2px)}
+.am-morelive[open]>summary:after{transform:rotate(-135deg)}
+.am-art{font-size:14px;color:var(--muted)}
+.am-dates{font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:2px}
+main .am-run{display:block;height:3px;border-radius:3px !important;background:color-mix(in srgb,var(--c) 20%,transparent);margin-top:6px;overflow:hidden}
+main .am-run i{display:block;height:100%;width:var(--p);background:var(--c);border-radius:3px !important}
+.am-detail{padding:0 16px 14px;display:grid;gap:10px}
+.am-soon .am-detail{padding:2px 0 12px}
+.am-detail dl{margin:0;display:grid;gap:6px;padding-top:12px;border-top:1px solid color-mix(in srgb,var(--c) 22%,transparent)}
+.am-soon .am-detail dl{border-top-color:var(--line)}
+.am-detail dl div{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;font-size:14px}
+.am-detail dt{color:var(--muted)}.am-detail dd{margin:0;color:var(--ink)}
+.am-evs{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.am-evs li{display:grid;gap:1px;font-size:14px}.am-evs b{font-size:12px;font-weight:600;color:var(--dot)}
+.am-dlinks{display:flex;gap:16px;flex-wrap:wrap}
+.am-dlinks a{font:600 14px var(--sans);color:var(--ink);text-underline-offset:3px}
+/* a show still to open: quiet */
+.am-soons li.am-soon{padding:12px 0 0 0}
+main .am-soons li.am-soon:before{display:none}
+.am-soon-k{font:500 12px var(--sans);color:var(--muted);font-variant-numeric:tabular-nums}
+.am-soon b{font-size:16px;font-weight:600;color:color-mix(in srgb,var(--ink) 80%,transparent)}
+/* on now, in the lists */
+.am-on i{font-style:normal;color:var(--muted)}
+.am-on.closing i:first-of-type{color:var(--ink);font-weight:600}
+.am-when{display:flex;align-items:center;gap:6px;font:600 12px var(--sans);color:var(--dot);margin-top:2px}
+main .am-when i{width:6px;height:6px;border-radius:50% !important;background:var(--dot)}
+.am-when.closing{color:var(--ink)}
 .am-yours-row{font-size:12px;font-weight:600;color:var(--c)}
 .am-yours a{color:inherit;font-weight:600}
 .am .maplibregl-ctrl-attrib{font-size:10px}
