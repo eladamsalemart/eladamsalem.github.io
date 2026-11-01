@@ -159,11 +159,20 @@ def main():
     ap.add_argument('--only', help='these places only (comma-separated ids)')
     a = ap.parse_args()
     from playwright.sync_api import sync_playwright
-    places = [p for p in json.loads((APP / 'data' / 'art' / 'places.json').read_text())['places'] if p.get('website') and p.get('status') != 'closed']
+    sys.path.insert(0, str(HERE))
+    from places import load_seeds                         # a curated place's own site, before the monthly map has it
+    seed_site = {s['id']: s['site'] for s in load_seeds() if s['site']}
+    every = [p for p in json.loads((APP / 'data' / 'art' / 'places.json').read_text())['places'] if p.get('status') != 'closed']
+    for p in every:
+        p['website'] = p.get('website') or seed_site.get(p['id'], '')
     if a.only:
-        places = [p for p in places if p['id'] in a.only.split(',')]
+        every = [p for p in every if p['id'] in a.only.split(',')]
+    places = [p for p in every if p['website']]
     done = json.loads(OUT.read_text()) if OUT.exists() else {}
     today = dt.date.today().isoformat()
+    for p in every:
+        if not p['website'] and p['id'] not in done:
+            done[p['id']] = {'name': p['name'], 'site': '', 'status': 'no website', 'day': today}
     with sync_playwright() as pw:
         b = pw.chromium.launch(executable_path=os.environ.get('PW_CHROMIUM') or None)
         ctx = b.new_context(viewport={'width': 1280, 'height': 900}, locale='he-IL', user_agent=UA)

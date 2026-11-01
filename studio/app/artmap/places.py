@@ -290,11 +290,11 @@ def load_seeds():
     for line in (HERE / 'seeds.tsv').read_text(encoding='utf-8').splitlines():
         if not line.strip() or line.startswith('#'):
             continue
-        kind, he, en, city, aliases, src, where = (line.split('\t') + [''] * 7)[:7]
+        kind, he, en, city, aliases, src, where, site = (line.split('\t') + [''] * 8)[:8]
         status = 'closed' if src.endswith(':closed') else 'open'
         seeds.append({'id': slug(en or he), 'kind': kind, 'he': he, 'en': en, 'city': city,
                       'aliases': [a for a in aliases.split(';') if a], 'src': src.split(':')[0], 'status': status,
-                      'where': where.lstrip('~').strip(), 'approx': where.startswith('~')})
+                      'where': where.lstrip('~').strip(), 'approx': where.startswith('~'), 'site': site.strip()})
     return seeds
 
 
@@ -380,7 +380,7 @@ def main():
         used.add(c['osm'])
         places.append({'id': s['id'], 'name': s['en'], 'name_he': s['he'], 'kind': s['kind'], 'tier': 'curated',
                        'city': s['city'] or c['tags'].get('addr:city', ''), 'at': [round(c['at'][0], 6), round(c['at'][1], 6)],
-                       'osm': c['osm'], 'website': c['tags'].get('website') or c['tags'].get('contact:website', ''),
+                       'osm': c['osm'], 'website': s['site'] or c['tags'].get('website') or c['tags'].get('contact:website', ''),
                        'address': ' '.join(x for x in [c['tags'].get('addr:street', ''), c['tags'].get('addr:housenumber', '')] if x),
                        'sources': [s['src'], 'address' if 'approx' in c else 'wikidata' if c.get('wd') else 'osm']})
         if 'approx' in c:
