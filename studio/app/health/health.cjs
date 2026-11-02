@@ -91,12 +91,14 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
       return [...new Set(out)];
     });
     await p.screenshot({ path: path.join(out, `${name.replace(/\W+/g, '-').toLowerCase()}.png`) });
+    const hiccup = new Set();                   // (an image whose only fault was that hiccup isn't broken twice over)
     for (const [st, url] of retry) {
       await new Promise(r => setTimeout(r, 4000));
       const again = await fetch(url, { headers: { Range: 'bytes=0-1023' } }).then(r => r.status).catch(() => 0);
-      if (again >= 200 && again < 400) note(name, `the host answered ${st} once for ${url.slice(-60)}, then ${again}`);
+      if (again >= 200 && again < 400) { note(name, `the host answered ${st} once for ${url.slice(-60)}, then ${again}`); hiccup.add(url); }
       else bad.push([`${st}, again ${again || 'no answer'}`, url]);
     }
+    look.broken = look.broken.filter(u => ![...hiccup].some(h => h.endsWith(u)));
     const row = { name, hash, ready_ms: ready, errors: errs, requests: bad, tiny, ...look };
     report.pages.push(row);
     if (errs.length) fail(name, `script errors: ${errs.slice(0, 3).join(' | ')}`);
