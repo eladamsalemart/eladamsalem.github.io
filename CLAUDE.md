@@ -82,7 +82,9 @@ work, place) open without an account; `?guest` and `?inspect` skip the gate for 
 artist's hand, and asked for Home as a sky of what they used last (near), with who and what they haven't met further
 out (pinch to step back), a live tour you can step into on Home, then the map, shows on now, your artists; pastels.
 Four working directions: `studio/design/home-sky/` (shared engine `sky.js`, page `home.js`), live at
-eladamsalem.com/open-studio-lab/home/ (a copy on `main`, folder `open-studio-lab/home`), PDF there; recommended: the
-daylight sky with tracing paper's hand. The owner picks one, then it is built across the app's energy (the owner likes the artist page, the map, exhibitions and tours as they are); the artists' platform; publishing the Google consent screen (Branding, then Audience, Publish app); the owner signs up by hand to the 13
+eladamsalem.com/open-studio-lab/home/ (a copy on `main`, folder `open-studio-lab/home`), PDF there. The owner chose the
+daylight sky with tracing paper's pencil, and no Wander (gestures live on Home): that is `day.html` (`day.js`, `day.css`),
+with three variations (`day-graphite`, `day-watercolour`, `day-paper`), page `daylight.html`, PDF
+`open-studio-daylight-by-hand.pdf`. The owner picks one, then it is built across the app's energy (the owner likes the artist page, the map, exhibitions and tours as they are); the artists' platform; publishing the Google consent screen (Branding, then Audience, Publish app); the owner signs up by hand to the 13
 newsletters behind a CAPTCHA (list in `newsletters.json`, status `captcha`/`asks for a phone`); the Ritual ceiling
 (task #34 in the old list).
