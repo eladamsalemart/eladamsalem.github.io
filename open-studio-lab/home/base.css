@@ -1,0 +1,141 @@
+/* Structure shared by the four directions. Each page sets the tokens: ground, ink, the pastels, the hand. */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.5 var(--sans);-webkit-font-smoothing:antialiased;min-height:100svh}
+::selection{background:var(--sel);color:var(--ink)}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:6px}
+#app{max-width:520px;margin:0 auto;overflow-x:clip;padding-bottom:calc(84px + env(safe-area-inset-bottom));position:relative}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hand{font-family:var(--hand);color:var(--hand-ink);font-size:var(--hand-size,20px);line-height:1.15;font-weight:var(--hand-weight,500)}
+
+/* header floats over the sky */
+.top{position:absolute;z-index:20;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 18px 0}
+.brand{display:flex;align-items:center;gap:8px;text-decoration:none;font:700 17px/1 'Figtree',var(--sans);letter-spacing:-.01em}
+.brand svg{width:26px;height:26px}
+.day{margin-left:auto;font-size:13px;color:var(--muted)}
+.me{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font:600 13px var(--sans);background:var(--me-bg);color:var(--me-ink)}
+
+/* the sky: first thing on Home */
+.hero{position:relative;height:calc(100svh - 132px);min-height:560px;max-height:820px;overflow:hidden;background:var(--sky)}
+.hello{position:absolute;z-index:12;left:18px;right:18px;top:calc(56px + env(safe-area-inset-top));pointer-events:none}
+.hello h1{font:400 var(--h1-size,34px)/1.02 var(--display);letter-spacing:-.015em;margin:0;max-width:13ch;text-wrap:balance;color:var(--title-ink,var(--ink))}
+.hello .hand{margin:6px 0 0 2px}
+.skybox{position:absolute;inset:0;z-index:1}
+.sky{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.sky-g{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.sky-stars{position:absolute;inset:0}
+.tie{fill:none;stroke:var(--tie);stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
+.tie.maybe{stroke:var(--tie-maybe,var(--tie));stroke-dasharray:.008 .022;stroke-dashoffset:0}
+.star{position:absolute;left:0;top:0;width:0;height:0;padding:0;border:0;background:none;cursor:pointer;will-change:transform,opacity;-webkit-tap-highlight-color:transparent}
+.star>*{position:absolute;left:0;top:0}
+.star .lab{transition:opacity .35s ease;text-shadow:0 0 8px var(--halo,rgba(255,255,255,.85)),0 0 2px var(--halo,rgba(255,255,255,.85))}
+.star:not(.big):not(.on) .lab .hand{display:none}
+.star.small .lab{opacity:0}
+.star.r1:not(.on) .lab small,.star.r1:not(.on) .lab .hand,.star.r2:not(.on) .lab small,.star.r2:not(.on) .lab .hand{display:none}
+.star.r2:not(.big):not(.on) .lab{opacity:0}
+.star{transition:filter .4s ease}
+.star.dim{filter:saturate(.5) opacity(.45)}
+.sky.far-view .star.r2 .lab{opacity:1!important;transform-origin:50% 0;scale:calc(var(--inv) * .78)}
+.sky.far-view .star.r0 .lab,.sky.far-view .star.r1 .lab{opacity:.0}
+.sky.far-view .star.r2.dim .lab{opacity:0!important}
+.star.dim .lab{opacity:0}
+.skybox.full{position:fixed;inset:0;z-index:60;background:var(--sky)}
+.hero.wandering .hello{opacity:0}
+.hello{transition:opacity .4s ease}
+.hero.picking .hello{opacity:0}
+.sky-ui{position:absolute;z-index:14;left:18px;right:14px;bottom:16px;display:flex;align-items:center;gap:10px}
+.hero.wandering .sky-ui{position:fixed;z-index:62;bottom:calc(18px + env(safe-area-inset-bottom));max-width:488px;margin:0 auto}
+.hint{font-size:13px;color:var(--muted)}
+.wander{margin-left:auto;display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 16px 0 13px;border-radius:999px;border:1px solid var(--line);background:var(--chip);cursor:pointer;font-weight:600;font-size:14px;box-shadow:0 6px 18px -10px var(--shade)}
+.wander svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.legend{position:relative;z-index:13;margin:10px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
+.legend li{display:flex;align-items:center;gap:5px}
+.lg{width:9px;height:9px;border-radius:50%;display:inline-block}
+
+/* the star you chose */
+.pick{position:absolute;z-index:15;left:12px;right:12px;bottom:70px;display:flex;align-items:center;gap:12px;padding:10px 10px 10px 10px;border-radius:20px;background:var(--card);box-shadow:0 14px 34px -16px var(--shade);border:1px solid var(--line);animation:up .45s cubic-bezier(.2,.8,.2,1)}
+.hero.wandering .pick{position:fixed;z-index:63;bottom:calc(76px + env(safe-area-inset-bottom));max-width:496px;margin:0 auto}
+.pick[hidden]{display:none}
+.pick>img,.pick>.dot{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none}
+.pick>div{min-width:0;display:grid;gap:1px;flex:1}
+.pick .k{font-size:12px;color:var(--muted)}
+.pick b{font:500 19px/1.15 var(--display);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick div>span:not(.k):not(.hand){font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick .hand{font-size:18px}
+.pick .go{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:0;background:var(--ink);color:var(--ground);font-weight:600;font-size:14px;display:inline-flex;align-items:center;text-decoration:none;cursor:pointer}
+.pick .x{position:absolute;top:-10px;right:-6px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:18px;line-height:1}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* sections */
+section:not(.hero){padding:0 18px;margin-top:44px}
+.sec-h{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.sec-h h2{font:400 var(--h2-size,28px)/1.05 var(--display);letter-spacing:-.01em;margin:0}
+.sec-h .side{margin-left:auto;text-align:right;max-width:13ch;font-size:18px}
+.more{margin-left:auto;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:4px;min-height:44px;display:inline-flex;align-items:center}
+
+/* the room you can walk into */
+.tour{position:relative;height:440px;overflow:hidden;background:var(--card);isolation:isolate}
+.tour[data-shape=arch]{border-radius:999px 999px 26px 26px}
+.tour[data-shape=rect]{border-radius:24px}
+.tour[data-shape=disc]{height:auto;aspect-ratio:1;border-radius:50%}
+.tour[data-shape=cut]{border-radius:22px 30px 18px 34px / 30px 20px 34px 22px}
+.tour iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;opacity:0;transition:opacity .8s ease}
+.tour.ready iframe{opacity:1}
+.tour-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.livepill{position:absolute;z-index:3;top:16px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:var(--card);font-size:13px;font-weight:600;box-shadow:0 6px 16px -10px var(--shade)}
+.tour[data-shape=rect] .livepill,.tour[data-shape=cut] .livepill{left:14px;transform:none}
+.livepill i{width:8px;height:8px;border-radius:50%;background:var(--live);box-shadow:0 0 0 0 var(--live);animation:pulse 2.2s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--live) 55%,transparent)}100%{box-shadow:0 0 0 10px transparent}}
+.tour-cap{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:44px 18px 18px;background:linear-gradient(to top,rgba(20,18,24,.62),transparent);color:#fff;display:grid;gap:2px}
+.tour[data-shape=disc] .tour-cap{text-align:center;padding-bottom:64px}
+.tour-cap b{font:500 26px/1.05 var(--display)}
+.tour-cap span{font-size:14px;opacity:.9}
+.step{position:absolute;z-index:4;right:16px;bottom:18px;min-height:44px;padding:0 18px;border-radius:999px;border:0;background:var(--card);color:var(--ink);font-weight:600;font-size:15px;cursor:pointer;box-shadow:0 8px 20px -10px rgba(0,0,0,.45)}
+.tour[data-shape=disc] .step{right:50%;transform:translateX(50%);bottom:14px}
+.tour.inside{position:fixed;inset:0;z-index:80;height:100dvh!important;width:100%!important;aspect-ratio:auto!important;border-radius:0!important;max-width:none;margin:0!important;box-shadow:none!important}
+.tour.inside iframe{pointer-events:auto;opacity:1}
+.tour.inside .step,.tour.inside .livepill,.tour.inside .tour-cap,.tour.inside .tour-poster{display:none}
+.tour-x{position:absolute;z-index:5;top:calc(12px + env(safe-area-inset-top));left:12px;min-height:44px;padding:0 16px;border-radius:999px;border:0;background:var(--card);color:var(--ink);font-weight:600;cursor:pointer;box-shadow:0 8px 20px -10px rgba(0,0,0,.45)}
+.tour-x[hidden]{display:none}
+
+/* your artists */
+.ppl{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.ppl li{display:grid;grid-template-columns:64px 1fr;grid-template-rows:auto auto auto;column-gap:14px;align-items:center;padding:10px 0}
+.ppl img{grid-row:1/4;width:64px;height:64px;border-radius:50%;object-fit:cover}
+.ppl b{font:500 20px/1.1 var(--display)}
+.ppl .what{font-size:13px;color:var(--muted)}
+.ppl .now{font-size:19px}
+
+/* their shows */
+.shows{list-style:none;margin:0 -18px;padding:0 18px 6px;display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.shows::-webkit-scrollbar{display:none}
+.shows li{flex:0 0 72%;scroll-snap-align:start;display:grid;gap:10px}
+.shows img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:var(--card)}
+.shows div{display:grid;gap:1px}
+.shows .when{font-size:13px;font-weight:600;color:var(--accent-ink)}
+.shows b{font:500 21px/1.1 var(--display)}
+.shows span:not(.when){font-size:14px;color:var(--muted)}
+.shows .m{font-size:13px}
+
+/* on now near you */
+.map{position:relative;display:block;overflow:hidden;border-radius:22px}
+.map img{display:block;width:100%;aspect-ratio:780/694;object-fit:cover}
+.map span{position:absolute;right:12px;bottom:12px;min-height:40px;display:inline-flex;align-items:center;padding:0 16px;border-radius:999px;background:var(--card);font-weight:600;font-size:14px;box-shadow:0 8px 20px -12px var(--shade)}
+.list{list-style:none;margin:8px 0 0;padding:0}
+.list li a{display:grid;gap:1px;padding:14px 0;border-bottom:1px solid var(--line);text-decoration:none}
+.list b{font:500 19px/1.2 var(--display)}
+.list b[dir=rtl]{font-family:'IBM Plex Sans Hebrew',var(--sans);font-weight:600;font-size:17px;text-align:right}
+.list span{font-size:14px;color:var(--muted)}
+.list .m{font-size:13px}
+.end{text-align:center;margin:40px 0 8px;font-size:22px}
+
+/* tab bar, as in the app */
+.tabs{position:fixed;z-index:40;left:0;right:0;bottom:0;display:flex;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--ground) 94%,transparent);border-top:1px solid var(--line);max-width:520px;margin:0 auto}
+.tabs a{display:grid;justify-items:center;gap:3px;min-width:56px;min-height:44px;font-size:11px;text-decoration:none;color:var(--muted)}
+.tabs a[aria-current]{color:var(--ink);font-weight:600}
+.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+@media (prefers-reduced-motion:reduce){.pick{animation:none}.livepill i{animation:none}.tour iframe{transition:none}}

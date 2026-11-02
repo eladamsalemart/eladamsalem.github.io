@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>The mobile · Open Studio Home</title>
+<meta name="theme-color" content="#EEF1E8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light+Two&family=Figtree:wght@700&family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Sans+Hebrew:wght@600&display=swap">
+<link rel="stylesheet" href="base.css">
+<style>
+/* C · The mobile: your art world hangs from you like a mobile, drawing in space. Ink wire arms, each balancing what
+   you touched last; your artists hang under them; further back, other mobiles you haven't met yet. It sways on its
+   own; drag turns it, pinch steps back to the others. */
+:root{--h1-size:32px;--ground:#F3F4EE;--ink:#262B45;--muted:#5D6276;--line:#DCDFD3;--card:#FFFFFF;--chip:rgba(255,255,255,.84);--shade:rgba(38,43,69,.38);--sel:#F4B5A6;
+  --display:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;--hand:'Shadows Into Light Two',cursive;--hand-ink:#3B4A8C;--hand-size:20px;--hand-weight:400;
+  --tie:#262B45;--live:#E0604B;--accent-ink:#B4452F;--me-bg:#F7D98A;--me-ink:#262B45;
+  --coral:#F4A898;--sky:#A9CDEA;--butter:#F6D881;--lilac:#C8B9EE;--mint:#B4DEC3;--halo:rgba(240,243,236,.95);
+  --wall:linear-gradient(180deg,#E9F0E4 0%,#F2EEE6 55%,#F7E5E0 100%)}
+.hero{background:var(--wall)}
+.skybox.full{background:var(--wall)}
+.hero::after{content:"";position:absolute;inset:auto 0 0 0;height:70px;background:linear-gradient(to bottom,transparent,var(--ground));pointer-events:none;z-index:11}
+.sky-ui,.pick{z-index:16}
+.wire{fill:none;stroke:var(--tie);stroke-linecap:round}
+.wire.far{stroke:#7D8299}
+.hook{fill:none;stroke:var(--tie);stroke-width:1.6}
+.star .st{width:var(--d);height:var(--d);transform:translate(-50%,-50%);border-radius:50%;display:block;background:var(--c) center/cover no-repeat;box-shadow:0 0 0 4px var(--c),0 12px 22px -12px var(--shade)}
+.star.has-img .st{box-shadow:0 0 0 4px var(--c),0 12px 22px -12px var(--shade)}
+.star.r0 .st{--d:62px}.star.r1 .st{--d:40px}.star.r2 .st{--d:30px}
+.star.r1:not(.has-img) .st,.star.r2:not(.has-img) .st{box-shadow:0 10px 20px -12px var(--shade)}
+.star.r2 .st{box-shadow:0 0 0 3px var(--c)}
+.k-artist{--c:var(--coral)}.k-show{--c:var(--sky)}.k-tour{--c:var(--lilac)}.k-place{--c:var(--butter)}.k-work{--c:var(--mint)}
+.star .lab{width:132px;transform:translate(calc(var(--d,40px)/2 + 12px),-50%);text-align:left;display:grid;pointer-events:none}
+.star .lab b{font:500 14px/1.15 var(--display);color:var(--ink)}
+.star .lab small{display:none;font-size:11.5px;color:var(--muted)}
+.star.on .lab small{display:block}
+.star .lab .hand{font-size:18px;line-height:1.05}
+.star.r1 .lab b{font-size:13px}
+.star.east .lab{transform:translate(calc(-100% - var(--d,40px)/2 - 12px),-50%);text-align:right}
+.star.r0:not(.on):not([data-id=signal]):not([data-id=lia]) .lab .hand{display:none}
+.star.k-you .me{transform:translate(-50%,-100%);font:400 26px/1 var(--hand);color:var(--ink);padding-bottom:4px}
+.pick .dot{background:var(--c)}
+.lg-artist{background:var(--coral)}.lg-show{background:var(--sky)}.lg-tour{background:var(--lilac)}.lg-place{background:var(--butter)}
+.tour[data-shape=disc]{box-shadow:0 0 0 10px var(--butter),0 30px 50px -30px var(--shade);margin:10px 8px}
+.ppl img{box-shadow:0 0 0 4px var(--coral)}
+.ppl li:nth-child(2) img{box-shadow:0 0 0 4px var(--sky)}
+.ppl li:nth-child(3) img{box-shadow:0 0 0 4px var(--butter)}
+.shows img{border-radius:50% 50% 14px 14px / 34% 34% 14px 14px}
+.map{border-radius:28px}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script type="module">
+import { home } from './home.js';
+
+// The mobile, as Calder built them: a wire from the hook, a bar that turns on it, and at each end either a disc
+// or the next bar. Units: a phone 390 wide; y down.
+const arm = (len, end) => ({ len, end });
+const bar = (...arms) => ({ arms });
+const hang = (id, drop, under) => ({ id, drop, under });
+const B5 = { drop: 58, bar: bar(arm(52, hang('together', 60)), arm(62, hang('maya', 58, hang('ink', 62)))) };
+const B4 = { drop: 60, bar: bar(arm(62, hang('harbour', 62)), arm(70, B5)) };
+const B3 = { drop: 60, bar: bar(arm(74, hang('ritual', 64, hang('elad', 66))), arm(80, B4)) };
+const B2 = { drop: 62, bar: bar(arm(84, hang('lia', 66, hang('lowtide', 66))), arm(90, B3)) };
+const MAIN = { at: [-30, -178, 0], drop: 40, bar: bar(arm(104, hang('signal', 64, hang('tomer', 68))), arm(86, B2)) };
+const FAR = [
+  { at: [-380, -230, 430], drop: 50, bar: bar(arm(130, hang('noa', 70, hang('patch', 70))), arm(110, { drop: 60, bar: bar(arm(80, hang('near', 70, hang('gordon', 60))), arm(90, hang('chron', 90))) })) },
+  { at: [380, -210, 520], drop: 50, bar: bar(arm(120, hang('daniel', 70, hang('slow', 70))), arm(120, { drop: 60, bar: bar(arm(90, hang('nature', 70, hang('bfa', 60))), arm(80, hang('dotan', 80, hang('tama', 60)))) })) },
+  { at: [0, -300, 820], drop: 60, bar: bar(arm(150, hang('minerva', 90)), arm(140, hang('brosh', 70, hang('cca', 60)))) },
+];
+
+let segs = [];
+function build(m, t, by, far, k = 0) {
+  const [hx, hy, hz] = m.at; const top = [hx, hy, hz];
+  if (!far) { const you = by.you; you.x = hx; you.y = hy - 6; you.z = hz; }
+  segs.push([[hx, hy - (far ? 120 : 34), hz], top, 'hook', far]);
+  const go = (pt, node, depth) => {
+    const pv = [pt[0], pt[1] + node.drop, pt[2]];
+    segs.push([pt, pv, 'drop', far]);
+    // each bar turns on its wire: slowly, a little differently from the one above it
+    const th = (depth * 1.7 + k) + Math.sin(t * (0.22 + depth * 0.05) + depth * 2.1 + k) * (0.55 + depth * 0.1) + t * 0.06 * (depth % 2 ? -1 : 1);
+    node.bar.arms.forEach((a, i) => {
+      const ang = th + (i ? 0 : Math.PI), end = [pv[0] + Math.cos(ang) * a.len, pv[1] + (i ? 4 : -4), pv[2] + Math.sin(ang) * a.len];
+      segs.push([pv, end, 'arm', far]);
+      if (a.end.bar) go(end, a.end, depth + 1);
+      else { let at = end, h = a.end; while (h) { const s = by[h.id]; const p = [at[0], at[1] + h.drop, at[2]]; segs.push([at, p, 'drop', far, s]); if (s) { s.x = p[0]; s.y = p[1]; s.z = p[2]; } at = [p[0], p[1] + (s && s.ring === 0 ? 31 : s && s.ring === 1 ? 20 : 15), p[2]]; h = h.under; } }
+    });
+  };
+  go(top, m, 0);
+}
+const place = (t, st, by) => { segs = []; build(MAIN, t, by, false); FAR.forEach((m, i) => build(m, t * .8, by, true, i * 2.3 + 1)); };
+
+const NS = 'http://www.w3.org/2000/svg';
+let pool = [];
+const node = s => s.kind === 'you' ? `<span class="me">you</span>`
+  : `<span class="st"${s.img ? ` style="background-image:url(${s.img})"` : ''}></span><span class="lab"><b${/[֐-׿]/.test(s.name) ? ' dir="rtl"' : ''}>${s.name}</b>${s.sub ? `<small>${s.sub}</small>` : ''}${s.note ? `<span class="hand">${s.note}</span>` : ''}</span>`;
+
+home({
+  tourShape: 'disc',
+  copy: { title: 'Your mobile', hand: 'everything you touched this week, in balance', hint: 'Drag to turn it · pinch to step back', live: 'Walk in now', end: 'it keeps turning while you’re away' },
+  sky: {
+    cam: { D: 600, pitch: -0.04 }, F: 600, cy: 0.5, limits: { yaw: 0.9, pitch: 0.35, Dmin: 320, Dmax: 1700 }, farFrom: 600, fogStart: 80, fogRange: 1500, minOp: .12, labelAt: .7, bigAt: .86, maxScale: 1.3, drift: 0, pickLift: 90, bow: 0,
+    layout: (st, by) => place(0, st, by),
+    tick: place,
+    node,
+    extra(g, project, cam, t) {
+      while (pool.length < segs.length) { const p = document.createElementNS(NS, 'path'); g.append(p); pool.push(p); }
+      pool.forEach((p, i) => {
+        const sg = segs[i]; if (!sg) { p.setAttribute('d', ''); return; }
+        const [a, b, kind, far] = sg, A = project({ x: a[0], y: a[1], z: a[2] }), B = project({ x: b[0], y: b[1], z: b[2] });
+        if (A.behind || B.behind) { p.setAttribute('d', ''); return; }
+        // the arms are bent wire, a little bowed; the drops hang straight
+        const bend = kind === 'arm' ? Math.min(14, Math.hypot(B.x - A.x, B.y - A.y) * .12) : 0;
+        p.setAttribute('d', `M${A.x.toFixed(1)} ${A.y.toFixed(1)} Q${((A.x + B.x) / 2).toFixed(1)} ${((A.y + B.y) / 2 - bend).toFixed(1)} ${B.x.toFixed(1)} ${B.y.toFixed(1)}`);
+        p.setAttribute('class', `wire${far ? ' far' : ''}`);
+        p.style.strokeWidth = Math.max(.5, Math.min(A.k, B.k) * (kind === 'arm' ? 1.9 : 1.1)).toFixed(2);
+        p.style.opacity = far ? Math.max(.12, Math.min(1, (cam.D - 520) / 500)).toFixed(2) : '1';
+      });
+    },
+    ties: [],
+  },
+});
+</script>
+</body>
+</html>

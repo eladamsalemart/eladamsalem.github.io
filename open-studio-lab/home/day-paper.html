@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Daylight, in cut paper · Open Studio Home</title>
+<meta name="theme-color" content="#F9D9C9">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reenie+Beanie&family=Waiting+for+the+Sunrise&family=Figtree:wght@700&family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Sans+Hebrew:wght@600&display=swap">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="day.css">
+<style>
+/* Variation 3 · Cut paper: the same daylight sky, made with scissors. Each star is a piece of pastel paper, cut by
+   hand, laid over the sky with its own small shadow; the ties are sewn through in thread; paper hills at the foot
+   of the sky. Notes stay in pencil. The page below is paper too: works pinned on in slightly crooked pieces. */
+:root{--tie:#3D4177}
+.sky-ties{filter:none}
+.tie{stroke-dasharray:.006 .008;stroke-dashoffset:0}
+.tie.used{stroke-dasharray:.006 .008}
+.star .wash{display:none}
+.star .cut{width:calc(var(--d) * 1.62);height:calc(var(--d) * 1.62);transform:translate(-50%,-50%) rotate(var(--rot));overflow:visible;filter:drop-shadow(0 5px 6px rgba(60,50,110,.22))}
+.star .cut path{fill:var(--c)}
+.star .st{box-shadow:0 1px 3px rgba(60,50,110,.25)}
+.star .ring{display:none}
+.star.on .cut path{stroke:#fff;stroke-width:3}
+.hills{position:absolute;left:0;right:0;bottom:0;height:150px;z-index:0;pointer-events:none;overflow:visible}
+.hills path{filter:drop-shadow(0 -3px 4px rgba(60,50,110,.12))}
+.cloud{position:absolute;z-index:0;filter:drop-shadow(0 6px 6px rgba(60,50,110,.12));pointer-events:none}
+.cloud path{fill:#fff;opacity:.75}
+.sky-ui{z-index:16}
+.hero::after{display:none}
+.sketch-arch{display:none}
+.tour[data-shape=arch]{box-shadow:0 0 0 7px #fff,0 18px 30px -16px var(--shade);transform:rotate(-1deg)}
+.ppl img{box-shadow:0 0 0 4px #fff,0 6px 12px -6px var(--shade);border-radius:46% 54% 50% 50% / 52% 48% 52% 48%}
+.ppl li::before{display:none}
+.shows img{border-radius:3px;box-shadow:0 0 0 6px #fff,0 12px 20px -12px var(--shade);transform:rotate(var(--r,1deg))}
+.shows li:nth-child(2) img{--r:-1.5deg}.shows li:nth-child(3) img{--r:.8deg}
+.shows{padding-top:8px}
+.map{box-shadow:0 0 0 7px #fff,0 14px 24px -14px var(--shade);transform:rotate(.6deg);margin:6px 6px 0}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script type="module">
+import { day, ring, label, you } from './day.js';
+import { rnd } from './sky.js';
+const seed = s => s.id.length * 7 + s.id.charCodeAt(0);
+// a shape cut freehand: a round that wanders, never a circle
+const cut = i => {
+  const n = 12, P = Array.from({ length: n }, (_, k) => { const t = k / n * Math.PI * 2, r = 45 + rnd(i * 13 + k) * 6; return [50 + Math.cos(t) * r, 50 + Math.sin(t) * r]; });
+  const mid = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2], f = v => v.toFixed(1);
+  let d = `M${mid(P[n - 1], P[0]).map(f).join(' ')}`;                      // through the midpoints, the points as handles: a hand-cut round
+  for (let k = 0; k < n; k++) { const m = mid(P[k], P[(k + 1) % n]); d += `Q${f(P[k][0])} ${f(P[k][1])} ${f(m[0])} ${f(m[1])}`; }
+  return `<svg class="cut" viewBox="0 0 100 100" style="--rot:${((rnd(i) - .5) * 30).toFixed(0)}deg" aria-hidden="true"><path d="${d}Z"/></svg>`; };
+const HILLS = `<svg class="hills" viewBox="0 0 390 150" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 70C60 40 110 60 160 52S260 20 310 44 380 50 390 46V150H0Z" fill="#D9D0F3"/>
+  <path d="M0 96C50 80 90 100 150 90S240 64 300 82 370 92 390 86V150H0Z" fill="#F4C3CF"/>
+  <path d="M0 122C70 108 120 126 190 116S300 100 390 114V150H0Z" fill="#F6F4FA"/></svg>`;
+const CLOUD = (x, y, w) => `<svg class="cloud" style="left:${x}%;top:${y}%;width:${w}px" viewBox="0 0 120 50" aria-hidden="true"><path d="M8 40C2 30 14 20 26 24 28 10 48 6 58 16 66 4 92 6 94 22 110 18 120 34 108 42Z"/></svg>`;
+day({
+  copy: { title: '', hand: 'cut out from where you were last' },
+  sketchArch: false,
+  node: s => s.kind === 'you' ? you : `${cut(seed(s))}<span class="st"${s.img ? ` style="background-image:url(${s.img})"` : ''}></span>${label(s)}`,
+  sky: { ink: 1.6 },
+  after(app) {
+    const hero = app.querySelector('.hero');
+    hero.insertAdjacentHTML('beforeend', HILLS);
+    hero.insertAdjacentHTML('afterbegin', CLOUD(62, 24, 110) + CLOUD(-4, 46, 90) + CLOUD(70, 70, 80));
+  },
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+# Art places, 2026-11-01
+
+133 places: museum 53, public 40, artist-run 1, academy 2, commercial 36, centre 1; curated 80, with a building 105
+
+## New
+- Beit Ryback Museum
+
+## Notes
+- not found on the map: HaMekarer (Jerusalem)
+- not found on the map: Footnote Center for Art (Tel Aviv)
+- not found on the map: Toar (Tel Aviv)
+- not found on the map: Vitrer Ceramics Center (Tel Aviv)
+- not found on the map: Neve Schechter Gallery (Tel Aviv)
+- not found on the map: Be'eri Gallery Tel Aviv (Tel Aviv)
+- not found on the map: Rehovot Municipal Gallery (Rehovot)
+- not found on the map: Center for Visual Arts Tel Aviv (Tel Aviv)
+- not found on the map: Studio of Her Own (Jerusalem)
+- not found on the map: Modiin Artists House (Modi'in)
+- not found on the map: Indie Photography Group (Tel Aviv)
+- not found on the map: Gallery Binyamin (Tel Aviv)
+- not found on the map: Beit HaYotzer Afula (Afula)
+- not found on the map: Barer Arts Center (Ma'alot-Tarshiha)
+- not found on the map: Ramat HaSharon Art Gallery (Ramat HaSharon)
+- not found on the map: Beit HaMashevot (Tel Aviv)
+- not found on the map: Ahad Ha'am 9 Gallery (Tel Aviv)
+- not found on the map: Nolobaz (Tel Aviv)
+- not found on the map: Shared Art Salon (Tel Aviv)
+- not found on the map: Cubia 6 (Tel Aviv)
+- not found on the map: Minshar Gallery (Tel Aviv)
+- not found on the map: Givon Art Gallery (Tel Aviv)
+- not found on the map: Zemack Contemporary Art (Tel Aviv)
+- not found on the map: Litvak Gallery (Tel Aviv)
+- not found on the map: Tavi Art Gallery (Tel Aviv)
+- not found on the map: Shulamit Gallery (Tel Aviv)
+- not found on the map: Raw Art Gallery (Tel Aviv)
+- not found on the map: Rothschild Fine Art (Tel Aviv)
+- not found on the map: Gal-On Art Space (Tel Aviv)
+- not found on the map: Frater Gallery (Tel Aviv)
+- not found on the map: Parezia (Tel Aviv)
+- not found on the map: Gallery Dov (Tel Aviv)
+- not found on the map: BY5 (Tel Aviv)
+- not found on the map: TA Tarbut Da Vinci (Tel Aviv)
+- not found on the map: Light Boxes Gallery (Jaffa)
+- not found on the map: Mazal Dagim Gallery (Jaffa)
+- not found on the map: HaBayit BeHerzl (Tel Aviv)
+- unconfirmed (not found this month): Artist's House
+
+## Left out of OpenStreetMap candidates
+- museum (untyped), not art: 129
+- name says not art: 57
+- arts centre without art in its name: 31
+- studio or art shop (shown only if curated): 27
+- public only on OpenStreetMap, not curated (galleries there include framers and decor shops): 26
+- centre only on OpenStreetMap, not curated (galleries there include framers and decor shops): 16
+- museum (history), not art: 15
+- museum (open_air), not art: 8
+- museum (military), not art: 1
+- a shop: 1
+- museum (ethnography), not art: 1
+- museum (archaeological), not art: 1
+- museum (local_history), not art: 1
