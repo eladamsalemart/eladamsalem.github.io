@@ -8,7 +8,7 @@ const heb = s => /[֐-׿]/.test(s) ? ' dir="rtl"' : '';
 
 // the pencil and the water: a little roughness on every drawn line, a soft bleed on every wash
 document.body.insertAdjacentHTML('afterbegin', `<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <filter id="pencil"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2"/></filter>
+  <filter id="pencil"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.2"/></filter>
   <filter id="wc" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="8" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="16"/></filter></svg>`);
 
 // a pencil circle, gone round a little more than once, never quite closed
@@ -50,7 +50,7 @@ export function day(v = {}) {
     legend: v.legend === false ? null : [['artist', 'Artists'], ['show', 'Shows'], ['tour', 'In 3D'], ['place', 'Places']],
     sky: {
       cam: { D: 560, pitch: 0 }, F: 560, cy: 0.57, limits: { yaw: 0.8, pitch: 0.45, Dmin: 300, Dmax: 1500 }, intro: 1.9, zoomEase: .05, farZoom: 1.9,
-      farFrom: 560, fogStart: 60, fogRange: 1500, minOp: .1, labelAt: 0.7, bigAt: 0.86, maxScale: 1.3, bow: 0.1, ink: 1.25, pickLift: 90,
+      farFrom: 560, fogStart: 60, fogRange: 1500, minOp: .1, labelAt: 0.7, bigAt: 0.86, maxScale: 1.3, bow: 0.1, ink: .8, pickLift: 90,
       layout: placeAll, node: v.node || node,
       extra(g, project, cam, t, size) { dust(g, project); if (v.extra) v.extra(g, project, cam, t, size); },
       ...v.sky,
