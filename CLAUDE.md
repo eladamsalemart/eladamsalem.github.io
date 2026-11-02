@@ -80,10 +80,16 @@ work, place) open without an account; `?guest` and `?inspect` skip the gate for 
 Home (2.11) is "Daylight, by hand", the owner's choice: a pastel sky that follows the hour, drawn over in a fine pencil
 (no title, no "you", no legend). Near stars: what this phone opened last (`os-recent`), tied as the trail you took;
 then your artists (`os-following`) and their shows; far out (pinch, or a double tap): artists and 3D rooms you haven't
-met and the shows on now near you (`data/art`). Under it: Walk in now (the real 3D tour in a frame of the app itself,
-`?guest#/exhibition/<slug>/space`, turning via `__spaceView.inspect`; Step inside takes the screen), your artists, their
+met and the shows on now near you (`data/art`). Under it: Walk in now (a short film of the room turning, `data/spaces/<slug>/preview.mp4|webm|jpg`, made by
+`space/preview.cjs` and by the Studio spaces workflow for a new or rebuilt room; Step inside opens the real room), your artists, their
 shows, On now near you (a drawn map of the nearest places with a show today). Code: `home()`/`mountHome()` in app.js,
 the engine `sky.js`, styles `.hs` in index.html. The design source and its variations: `studio/design/home-sky/`.
+Speed on a phone (2.11, the owner found Home very slow): measure with a 4x CPU slowdown before calling it done. A live
+WebGL room in a frame, a sky redrawn every frame at rest, and SVG filters (feTurbulence) on moving elements together
+gave 2 fps; now 60 (sky.js draws only while something moves, ties on a canvas, washes as one masked image).
+`check_home.cjs` opens Home as a phone in the publish workflow (stars, room, near you, no script error).
+Handwriting rule (the owner's): the pencil hand (`.lh`, 'Waiting for the Sunrise') marks only what is live now: a
+show on or opening, its last days, tonight's events, the studio's notes. Everything else stays in type.
 
 **Open** — Home: from the ten (`studio/design/home-ten/`) the owner liked the constellation (not its black) and the
 artist's hand, and asked for Home as a sky of what they used last (near), with who and what they haven't met further
