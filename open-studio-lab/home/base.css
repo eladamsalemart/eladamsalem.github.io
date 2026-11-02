@@ -92,7 +92,7 @@ section:not(.hero){padding:0 18px;margin-top:44px}
 .tour-cap span{font-size:14px;opacity:.9}
 .step{position:absolute;z-index:4;right:16px;bottom:18px;min-height:44px;padding:0 18px;border-radius:999px;border:0;background:var(--card);color:var(--ink);font-weight:600;font-size:15px;cursor:pointer;box-shadow:0 8px 20px -10px rgba(0,0,0,.45)}
 .tour[data-shape=disc] .step{right:50%;transform:translateX(50%);bottom:14px}
-.tour.inside{position:fixed;inset:0;z-index:80;height:100%;width:100%;aspect-ratio:auto;border-radius:0!important;max-width:none}
+.tour.inside{position:fixed;inset:0;z-index:80;height:100dvh!important;width:100%!important;aspect-ratio:auto!important;border-radius:0!important;max-width:none;margin:0!important;box-shadow:none!important}
 .tour.inside iframe{pointer-events:auto;opacity:1}
 .tour.inside .step,.tour.inside .livepill,.tour.inside .tour-cap,.tour.inside .tour-poster{display:none}
 .tour-x{position:absolute;z-index:5;top:calc(12px + env(safe-area-inset-top));left:12px;min-height:44px;padding:0 16px;border-radius:999px;border:0;background:var(--card);color:var(--ink);font-weight:600;cursor:pointer;box-shadow:0 8px 20px -10px rgba(0,0,0,.45)}

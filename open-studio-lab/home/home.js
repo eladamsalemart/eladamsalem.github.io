@@ -75,7 +75,7 @@ export function home(d) {
   const chrome = show => {
     const doc = frame.contentDocument; if (!doc) return;
     let st = doc.getElementById('home-hide'); if (!st) { st = doc.createElement('style'); st.id = 'home-hide'; doc.head.append(st); }
-    st.textContent = show ? '.sv-x{display:none!important}' : HIDE;
+    st.textContent = show ? '.sv-x,.sv-t{display:none!important}' : HIDE;
   };
   const turn = now => {
     if (!view || inside) return;
