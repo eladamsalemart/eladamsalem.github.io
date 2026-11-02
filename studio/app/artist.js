@@ -8,7 +8,8 @@
 
 const KEY = 'os-artist-v1';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const uid = () => Math.random().toString(36).slice(2, 9);
+// (the same kind of id the database uses, so a thing keeps its id when an artist's account saves it)
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2, 9));
 
 let S = null;                        // the signed-in artist's studio, or null
 let demo = null;                     // the demo artist, as shipped
@@ -18,7 +19,13 @@ function load() {
   try { S = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { S = null; }
   return S;
 }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { /* private window: kept for this visit */ } }
+function save() {
+  if (S && S.cloud) return cloud.save(S);                    // a real artist's account: kept in the database
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { /* private window: kept for this visit */ }
+}
+// a real artist's account (signed in, here as an artist): the studio is kept in Open Studio's database
+let cloud = null;
+const me = () => { try { const u = JSON.parse(localStorage.getItem('os-user')); return u && u.id ? u : null; } catch { return null; } };
 
 async function demoArtist() {
   if (!demo) demo = await fetch('data/demo/artist.json').then(r => r.json());
@@ -118,18 +125,15 @@ function readiness(ex, works) {
 
 // --- screens --------------------------------------------------------------------------------------------
 const head = (title, back) => `<div class="st-head">${back ? `<a class="back" href="${back}">← Back</a>` : '<span></span>'}<span class="tag">Open Studio for Artists</span></div><h1 class="st-h1">${esc(title)}</h1>`;
-const nav = cur => `<nav class="st-nav" aria-label="Studio">${[['', 'Home'], ['works', 'Works'], ['exhibitions', 'Exhibitions'], ['profile', 'Profile']].map(([k, t]) => `<a href="#/studio${k ? '/' + k : ''}" ${cur === k ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
+const nav = cur => `<nav class="st-nav" aria-label="Studio">${[['', 'Home'], ['works', 'Works'], ['import', 'Bring work in'], ['exhibitions', 'Exhibitions'], ['profile', 'Profile']].map(([k, t]) => `<a href="#/studio${k ? '/' + k : ''}" ${cur === k ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
 
 function signIn() {
   return `<div class="wrap gut st">
     <div class="st-head"><a class="back" href="#/">← Open Studio</a><span class="tag">For Artists</span></div>
     <div class="st-hero"><h1 class="st-h1">Your studio,<br>open to everyone.</h1>
       <p class="m">Your works at their real size, your exhibitions as albums, and the shows themselves as rooms anyone can walk through, built from your installation photos.</p></div>
-    <form class="st-form" id="signin">
-      <label>Email<input type="email" name="email" required autocomplete="email" placeholder="you@studio.com"></label>
-      <button class="btn f" type="submit">Send me a sign-in link</button>
-      <p class="m small">No password: we email a link that signs you in.</p>
-    </form>
+    <div class="btns"><a class="btn f" href="#/welcome">Sign in or join as an artist</a></div>
+    <p class="m small">With Google or your email (a code, no password). Then choose “I make art”.</p>
     <div class="st-or"><span>or look around first</span></div>
     <button class="btn g" type="button" id="demoIn">Open the demo studio</button>
     <p class="m small">A made-up artist with made-up works, to show how it all works.</p>
@@ -150,7 +154,10 @@ function home() {
     const n = ex.real ? ex.real.items.filter(([l]) => l === 'no').length : readiness(ex, S.works).blocking;
     if (n) todo.push([`${ex.title}: ${n} ${n === 1 ? 'thing' : 'things'} before a tour`, `#/studio/exhibition/${ex.id}`]);
   }
-  return `<div class="wrap gut st">${head(`Hello, ${S.artist.name.split(' ')[0]}`)}${nav('')}
+  const status = !S.cloud ? '' : S.status === 'approved' ? `<p class="st-status ok">Your page is live: <a href="#/artist/${esc(S.slug)}">see it as visitors do</a>.</p>`
+    : S.status === 'hidden' ? `<p class="st-status no">Your page is not shown at the moment.${S.note ? ' ' + esc(S.note) : ''}</p>`
+    : `<p class="st-status">Open Studio is looking at your page: it goes live once approved. Everything you add meanwhile will be there.${S.note ? ' ' + esc(S.note) : ''}</p>`;
+  return `<div class="wrap gut st">${head(`Hello, ${S.artist.name.split(' ')[0]}`)}${nav('')}${status}
     <div class="st-stats">
       <div><b>${S.works.length}</b><span>works</span></div>
       <div><b>${S.exhibitions.length}</b><span>exhibitions</span></div>
@@ -160,7 +167,7 @@ function home() {
       ${todo.length ? `<div class="list">${todo.map(([t, h]) => `<a class="st-todo" href="${h}">${esc(t)}<span aria-hidden="true">→</span></a>`).join('')}</div>` : '<p class="m">Nothing: everything is in order.</p>'}
     </section>
     <section class="sec"><div class="sec-h"><h2>Quick add</h2></div>
-      <div class="btns"><a class="btn f" href="#/studio/works/new">Add a work</a><a class="btn g" href="#/studio/exhibitions/new">Add an exhibition</a><a class="btn g" href="#/studio/virtual/new">Design a virtual exhibition</a><a class="btn g" href="#/studio/preview">See your page</a></div>
+      <div class="btns">${S.cloud ? '<a class="btn f" href="#/studio/import">Bring your work in</a><a class="btn g" href="#/studio/works/new">Add a work</a>' : '<a class="btn f" href="#/studio/works/new">Add a work</a><a class="btn g" href="#/studio/exhibitions/new">Add an exhibition</a>'}<a class="btn g" href="#/studio/virtual/new">Design a virtual exhibition</a><a class="btn g" href="#/studio/preview">See your page</a></div>
       <p class="m small">${ready} of ${S.works.length} works are ready for a walkable tour.</p>
     </section>
     <section class="sec"><button type="button" class="more" id="signOut">Sign out</button></section>
@@ -205,7 +212,7 @@ function workForm(id) {
 
 function exhibitions() {
   return `<div class="wrap gut st">${head('Exhibitions')}${nav('exhibitions')}
-    <div class="btns" style="padding-block:6px 18px"><a class="btn f" href="#/studio/exhibitions/new">Add an exhibition</a><a class="btn g" href="#/studio/virtual/new">Design a virtual one</a></div>
+    <div class="btns" style="padding-block:6px 18px">${S.cloud ? '' : '<a class="btn f" href="#/studio/exhibitions/new">Add an exhibition</a>'}<a class="btn ${S.cloud ? 'f' : 'g'}" href="#/studio/virtual/new">Design a virtual exhibition</a></div>
     ${(S.virtual || []).length ? `<section class="sec" style="padding-top:0"><div class="sec-h"><h2>Virtual</h2><span class="more">rooms that exist only here</span></div><div class="list">${S.virtual.map(v => `<a class="row" href="#/studio/virtual/${v.id}"><img src="${esc(thumbOf(v.works[0]))}" alt=""><div class="t"><div><b>${esc(v.title || 'Untitled')}</b></div><div class="m">${esc(roomName(v.room))} · ${v.works.length} works</div></div><span class="st-flag ok">Virtual</span></a>`).join('')}</div></section>` : ''}
     <div class="list">${S.exhibitions.map(ex => {
       return `<a class="row" href="#/studio/exhibition/${ex.id}"><img src="${esc(ex.cover || (ex.photos[0] || {}).src || '')}" alt=""><div class="t"><div><b>${esc(ex.title)}</b></div><div class="m">${esc([ex.venue, ex.year].filter(Boolean).join(' · '))}</div></div>
@@ -249,7 +256,9 @@ function designer(id) {
       <label>Hung at, centre (cm)<input name="centre" type="range" min="135" max="160" step="1" value="${+v.centre || 150}"><span class="m small" id="vxCentre">${+v.centre || 150} cm from the floor to the middle of each work</span></label>
       <label>About the exhibition<textarea name="text" rows="4">${esc(v.text)}</textarea></label>
       <div class="btns"><button class="btn f" type="button" id="vxWalk" ${v.works.length ? '' : 'disabled'}>Walk in</button><button class="btn g" type="submit">Save</button>${isNew ? '' : '<button class="btn g" type="button" id="vxDel">Delete</button>'}</div>
-      <p class="m small">In this demo the design stays on this phone. With artists' accounts, Publish will put it on your page and in Shows.</p>
+      ${S.cloud ? (v.id ? `<div class="btns"><button class="btn ${v.status === 'published' ? 'g' : 'f'}" type="button" id="vxPub">${v.status === 'published' ? 'Take it down' : 'Publish'}</button></div>
+        <p class="m small">${v.status === 'published' ? (S.status === 'approved' ? 'Published: on your page and in Shows.' : 'Published: it shows on your page and in Shows once your page is approved.') : 'A draft: only you see it.'}</p>` : '')
+        : '<p class="m small">In this demo the design stays on this phone. With an artist’s account, Publish puts it on your page and in Shows.</p>'}
     </form>
   </div>`;
 }
@@ -273,6 +282,92 @@ async function walkIn(v) {
   const made = await buildRoom({ title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre, works }, u => u);
   const view = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => made.revoke() });
   window.__spaceView = view;
+}
+
+// --- a real artist's first visit: their page, in a minute ---------------------------------------------------------------
+function setup(u) {
+  return `<div class="wrap gut st">${head('Your studio')}
+    <p class="m">Two steps to a page of your own: who you are, then your work, brought in from where it already is (your website, Instagram, a Drive folder or your phone). Open Studio looks at every new page before it goes live.</p>
+    <form class="st-form" id="setup">
+      <label>Your name, as an artist<input name="name" required value="${esc(u.name || '')}" autocomplete="name"></label>
+      <div class="st-row"><label>You make<input name="discipline" placeholder="Painting"></label><label>City<input name="city" placeholder="Tel Aviv"></label></div>
+      <div class="st-row"><label>Instagram<input name="instagram" placeholder="@yourname" autocapitalize="off"></label><label>Website<input name="link" type="url" placeholder="https://" inputmode="url"></label></div>
+      <p class="err m small" role="alert"></p>
+      <div class="btns"><button class="btn f" type="submit">Make my page</button></div>
+    </form>
+  </div>`;
+}
+
+// --- bringing work in: from a website, Instagram, a Drive folder, or the phone --------------------------------------
+let found = [];                         // what was found, waiting for the artist to choose
+function importer() {
+  if (!S.cloud) return `<div class="wrap gut st">${head('Bring work in')}${nav('import')}<p class="m">In the demo studio nothing is brought in. <a href="#/welcome">Join as an artist</a> to bring your own work from your website, Instagram, a Drive folder or your phone.</p></div>`;
+  const site = S.artist.link || '';
+  return `<div class="wrap gut st">${head('Bring work in')}${nav('import')}
+    <p class="m">From wherever your work already is. You choose what comes in, and fix titles and sizes after, in Works.</p>
+    <div class="im-ways">
+      <form class="st-card im-way" data-kind="site"><h2>Your website</h2><p class="m small">We look at the page and its gallery pages for your images and their titles.</p>
+        <label class="vh" for="imSite">Website address</label><input id="imSite" name="url" type="url" inputmode="url" placeholder="https://yourname.com" value="${esc(site)}" required>
+        <button class="btn f" type="submit">Find my work</button></form>
+      <div class="st-card im-way"><h2>Instagram</h2><p class="m small">Instagram lets you take your posts with you: in the app, <b>Settings → Accounts Centre → Your information and permissions → Download your information</b>, choose <b>Some of your information → Posts</b>, format <b>JSON</b>. Instagram emails you a file (.zip); choose it here.</p>
+        <label class="btn g"><input type="file" accept=".zip,application/zip" id="imZip" hidden>Choose the Instagram file</label></div>
+      <form class="st-card im-way" data-kind="drive"><h2>Google Drive</h2><p class="m small">A folder of images, shared as <b>Anyone with the link</b>. Paste its link.</p>
+        <label class="vh" for="imDrive">Drive folder link</label><input id="imDrive" name="url" inputmode="url" placeholder="https://drive.google.com/drive/folders/…" required>
+        <button class="btn f" type="submit">Find my work</button></form>
+      <div class="st-card im-way"><h2>From this phone</h2><p class="m small">Photos of your works, straight on, the whole work in the picture.</p>
+        <label class="btn g"><input type="file" accept="image/*" multiple id="imFiles" hidden>Choose photos</label></div>
+    </div>
+    <section class="sec" id="imFound" aria-live="polite">${foundList()}</section>
+  </div>`;
+}
+function foundList(msg = '') {
+  if (!found.length) return msg ? `<p class="m">${msg}</p>` : '';
+  const n = found.filter(x => x.on).length;
+  return `<div class="sec-h"><h2>Found ${found.length}</h2><button type="button" class="more" id="imAll">${n === found.length ? 'Choose none' : 'Choose all'}</button></div>${msg ? `<p class="m small">${msg}</p>` : ''}
+    <div class="im-grid">${found.map((x, i) => `<div class="im-item${x.on ? ' on' : ''}"><label><input type="checkbox" data-i="${i}" ${x.on ? 'checked' : ''}><img src="${esc(x.preview || x.thumb || x.image)}" alt="" loading="lazy" referrerpolicy="no-referrer"></label>
+      <input class="im-t" data-t="${i}" value="${esc(x.title || '')}" placeholder="Title" aria-label="Title"></div>`).join('')}</div>
+    <div class="btns im-go"><button class="btn f" type="button" id="imAdd" ${n ? '' : 'disabled'}>Bring in ${n} ${n === 1 ? 'work' : 'works'}</button></div>`;
+}
+function wireImport(app, go) {
+  const box = app.querySelector('#imFound'); if (!box) return;
+  const show = msg => { box.innerHTML = foundList(msg); wireFound(); };
+  const take = (items, from) => { found = items.map(x => ({ ...x, on: true, from })); show(items.length ? '' : 'Nothing found there.'); };
+  app.querySelectorAll('form.im-way').forEach(f => f.onsubmit = async e => {
+    e.preventDefault();
+    const b = f.querySelector('button'); b.disabled = true; b.textContent = 'Looking…'; show('');
+    try { const d = await cloud.find(f.dataset.kind, f.url.value.trim()); take(d.items, f.dataset.kind); }
+    catch (err) { show(esc(err.message)); }
+    b.disabled = false; b.textContent = 'Find my work';
+  });
+  const zip = app.querySelector('#imZip');
+  if (zip) zip.onchange = async () => { if (!zip.files[0]) return; show('Opening the Instagram file…'); try { take(await cloud.fromInstagramZip(zip.files[0]), 'instagram'); } catch (err) { show('That file couldn’t be read: choose the .zip Instagram sent (JSON format).'); } };
+  const files = app.querySelector('#imFiles');
+  if (files) files.onchange = () => take([...files.files].map(f => ({ title: f.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' '), blob: f, preview: URL.createObjectURL(f), source: 'phone' })), 'phone');
+  function wireFound() {
+    box.querySelectorAll('[data-i]').forEach(c => c.onchange = () => { found[+c.dataset.i].on = c.checked; c.closest('.im-item').classList.toggle('on', c.checked); const n = found.filter(x => x.on).length; const a = box.querySelector('#imAdd'); a.disabled = !n; a.textContent = `Bring in ${n} ${n === 1 ? 'work' : 'works'}`; });
+    box.querySelectorAll('[data-t]').forEach(t => t.oninput = () => { found[+t.dataset.t].title = t.value; });
+    const all = box.querySelector('#imAll'); if (all) all.onclick = () => { const on = found.some(x => !x.on); found.forEach(x => x.on = on); show(); };
+    const add = box.querySelector('#imAdd');
+    if (add) add.onclick = async () => {
+      const pick = found.filter(x => x.on); let done = 0, failed = 0;
+      add.disabled = true;
+      for (const x of pick) {
+        add.textContent = `Bringing in ${done + 1} of ${pick.length}…`;
+        try {
+          const blob = x.blob || await cloud.fetchImage(x.image);
+          const up = await cloud.upload(blob);
+          const [a, b] = String(x.size || '').match(/[\d.]+/g) || [];
+          S.works.push({ id: crypto.randomUUID(), title: (x.title || 'Untitled').trim(), year: x.year || '', medium: x.medium || '', width: a ? +a : '', height: b ? +b : '', depth: '',
+            image: up.image, thumb: up.thumb, source: x.from || x.source || '', framed: 'no', check: { W: up.w, H: up.h, long: Math.max(up.w, up.h), mean: 120, clipped: 0, sharp: 0.5, backdrop: false } });
+          done++;
+        } catch (e) { console.warn(e); failed++; }
+      }
+      await save();
+      found = [];
+      show(`${done} ${done === 1 ? 'work' : 'works'} brought in${failed ? `; ${failed} couldn’t be fetched` : ''}. <a href="#/studio/works">See them in Works</a>, and add their sizes: a virtual room hangs them at their real size.`);
+    };
+  }
+  wireFound();
 }
 
 // a live tour, to share anywhere: a link, and a frame for the artist's own website
@@ -381,7 +476,22 @@ function wire(app, go) {
   const ri = $('#realIn');
   if (ri) ri.onclick = async () => { S = await realArtist(model); save(); go('#/studio'); };
   const so = $('#signOut');
-  if (so) so.onclick = () => { try { localStorage.removeItem(KEY); } catch {} S = null; go('#/studio'); };
+  if (so) so.onclick = async () => {
+    if (S && S.cloud) { const { client } = await import('./auth.js'); await (await client()).auth.signOut(); S = null; go('#/welcome'); return; }
+    try { localStorage.removeItem(KEY); } catch {} S = null; go('#/studio');
+  };
+  // a new artist's page
+  const su = $('#setup');
+  if (su) su.onsubmit = async e => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(su)), b = su.querySelector('button[type=submit]');
+    b.disabled = true; b.textContent = 'Making your page…';
+    try { S = await cloud.create(f); go('#/studio/import'); }
+    catch (err) { b.disabled = false; b.textContent = 'Make my page'; su.querySelector('.err').textContent = err.message; }
+  };
+  wireImport(app, go);
+  const pub = $('#vxPub');
+  if (pub) pub.onclick = () => { const v = S.virtual.find(x => x.id === $('#vxForm').dataset.id); if (!v) return; v.status = v.status === 'published' ? 'draft' : 'published'; save(); go(`#/studio/virtual/${v.id}`, true); };
 
   const wf = $('#workForm');
   if (wf) {
@@ -515,7 +625,14 @@ async function realArtist(M) {
 
 export async function studio(hash, app, go, M) {
   model = M || null;
-  load();
+  // signed in as an artist: the studio is the account's own, in the database
+  const u = me();
+  if (u && u.role === 'artist' && !(S && S.cloud && S.uid === u.id)) {
+    cloud = cloud || await import('./studio-cloud.js');
+    app.innerHTML = '<div class="wrap gut st"><p class="m">Opening your studio…</p></div>';
+    try { S = await cloud.load(); if (S) S.uid = u.id; } catch (e) { console.error(e); S = null; }
+    if (!S) { app.innerHTML = setup(u); wire(app, go); return; }
+  } else if (!(u && u.role === 'artist')) load();
   const m = hash.replace(/^#\/studio\/?/, '');
   let html;
   if (!S) html = signIn();
@@ -529,6 +646,7 @@ export async function studio(hash, app, go, M) {
     ({ ROOMS, PAINTS } = await synth());
     html = m === 'exhibitions' ? exhibitions() : designer(m.slice(8));
   }
+  else if (m === 'import') html = importer();
   else if (m === 'profile') html = profile();
   else if (m === 'preview') html = preview();
   else html = home();

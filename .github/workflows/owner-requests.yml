@@ -1,0 +1,37 @@
+# Open Studio: what the owner asks for in the control room (#/admin → Ask for a change) becomes a GitHub issue
+# labelled "owner-request", which the nightly session takes up (studio/app/health/PLAYBOOK.md). Every hour.
+name: "Owner requests"
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  file:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Each open request becomes an issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          DB: https://hlpzqeosdavfuzjgpwhy.supabase.co/rest/v1/change_requests
+        run: |
+          gh label create owner-request --repo "$GITHUB_REPOSITORY" --color 5319E7 --description "Asked for by the owner in the control room" 2>/dev/null || true
+          curl -sf "$DB?status=eq.open&select=id,body,created_at&order=id" -H "apikey: $KEY" -H "Authorization: Bearer $KEY" > open.json
+          python3 - <<'PY'
+          import json, os, subprocess, urllib.request
+          for r in json.load(open('open.json')):
+              title = 'Owner: ' + ' '.join(r['body'].split())[:70]
+              body = f"{r['body']}\n\n---\nAsked in the control room on {r['created_at'][:10]} (request {r['id']}). Do it, check it on a phone, report to the owner in Hebrew; design, sign-in and data changes wait for their word."
+              url = subprocess.check_output(['gh', 'issue', 'create', '--repo', os.environ['GITHUB_REPOSITORY'], '--title', title, '--label', 'owner-request', '--body', body], text=True).strip()
+              n = int(url.rstrip('/').split('/')[-1])
+              req = urllib.request.Request(f"{os.environ['DB']}?id=eq.{r['id']}", method='PATCH', data=json.dumps({'status': 'filed', 'issue': n}).encode(),
+                                           headers={'apikey': os.environ['KEY'], 'Authorization': f"Bearer {os.environ['KEY']}", 'Content-Type': 'application/json'})
+              urllib.request.urlopen(req)
+              print('filed', r['id'], '→', url)
+          PY

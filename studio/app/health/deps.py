@@ -26,6 +26,9 @@ def pinned():
     else: out['maplibre-gl'] = '0.0.0'               # (a version that can't be read is reported, never skipped)
     m = re.search(r'version="(2\.\d+\.\d+)"', (APP / 'vendor/supabase/supabase.js').read_text())
     if m: out['@supabase/supabase-js'] = m.group(1)
+    jz = APP / 'vendor/jszip/jszip.min.js'
+    m = jz.exists() and re.search(r'JSZip v(\d+\.\d+\.\d+)', jz.read_text()[:400])
+    if m: out['jszip'] = m.group(1)
     for wf in (ROOT / '.github/workflows').glob('*.yml'):
         m = re.search(r'playwright@([\d.]+)', wf.read_text())
         if m: out['playwright'] = m.group(1)

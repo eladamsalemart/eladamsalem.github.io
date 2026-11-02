@@ -150,6 +150,24 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
     await ctx.close();
   }
 
+  // an artist Open Studio approves reaches the app (the database answered here with one made-up artist and work, so the
+  // check doesn't depend on who is approved today): listed under Artists, with a page of their own
+  if (!only || only.test('Approved artists')) {
+    const ctx = await b.newContext(phone), p = await ctx.newPage(), errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await ctx.route(/\/rest\/v1\/(artists|works|virtual_shows)\?/, r => { const u = r.request().url();
+      const body = /v1\/artists\?/.test(u) ? [{ id: 'hc-a', slug: 'health-check-artist', name: 'Health Check Artist', discipline: 'Painting', city: 'Acre' }]
+        : /v1\/works\?/.test(u) ? [{ id: 'hc-w', artist_id: 'hc-a', title: 'Harbour', year: '2026', width: 80, height: 60, image: 'data/demo/works/low-tide.jpg', position: 0 }] : [];
+      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) }); });
+    await p.goto(`${base}?guest#/artists`); await p.waitForTimeout(5000);
+    const listed = await p.evaluate(() => /Health Check Artist/.test(document.body.innerText));
+    await p.goto(`${base}?guest#/artist/health-check-artist`); await p.waitForTimeout(2500);
+    const page = await p.evaluate(() => (document.querySelector('h1') || {}).innerText || '');
+    if (!listed || !/Health Check Artist/.test(page)) fail('Approved artists', `an approved artist doesn't reach the app (listed: ${listed}, page: ${page || 'none'})`);
+    if (errs.length) fail('Approved artists', `script errors: ${errs.slice(0, 3).join(' | ')}`);
+    await ctx.close();
+  }
+
   // the way in: a new visitor (no account) lands on the welcome, with a way to sign in
   if (!only || only.test('Way in')) {
     const ctx = await b.newContext(phone), p = await ctx.newPage(), errs = [];

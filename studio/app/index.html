@@ -864,6 +864,28 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
 #vxFit.warn{color:var(--dot)}
 .vx-add summary{cursor:pointer;padding-block:12px;font-weight:600}
 .st-vx input[type=range]{width:100%;accent-color:var(--ink)}
+.st-status{padding:12px 14px;border-radius:12px;background:var(--card);margin:0 0 18px;font-size:15px}
+.st-status.ok{background:color-mix(in srgb,#2f7d4f 14%,transparent)}.st-status.no{background:color-mix(in srgb,var(--dot) 12%,transparent)}
+.im-ways{display:grid;gap:12px}
+.im-way h2{font-size:22px!important}
+.im-way input:not([type=file]){width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--wall);color:var(--ink);font:inherit}
+.im-way .btn{justify-self:start}
+.im-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+.im-item{display:grid;gap:4px;opacity:.45}.im-item.on{opacity:1}
+.im-item label{position:relative;display:block;cursor:pointer}
+.im-item img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block;background:var(--card)}
+.im-item input[type=checkbox]{position:absolute;top:6px;left:6px;width:22px;height:22px;accent-color:var(--ink)}
+.im-item .im-t{width:100%;box-sizing:border-box;font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--wall);color:var(--ink);min-height:36px}
+.im-go{position:sticky;bottom:12px;padding-top:12px}
+.adm-list{display:grid;gap:4px}
+.adm-thumbs{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}.adm-thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px}
+.adm-note{display:grid;gap:6px;font-size:13px}.adm-note input{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--wall);color:var(--ink);font:inherit}
+.adm-cols{display:grid;gap:10px;margin-top:14px}
+.adm-h3{font-size:13px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;margin:0}
+.adm-kv{display:flex;justify-content:space-between;font-size:15px;padding:4px 0;border-bottom:1px solid var(--line)}
+.adm-table{display:grid;font-size:14px}.adm-table>div{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
+.adm-table span{color:var(--muted,#777);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st .row.noimg{grid-template-columns:minmax(0,1fr) auto}
 </style>
 
 <!-- app:head-end -->

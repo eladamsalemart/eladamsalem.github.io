@@ -17,6 +17,14 @@ rules hold here (Hebrew to the owner, phone first, never loosen a check, follow 
 4. Read `studio/app/health/log.md`. **Nothing broken, nothing published since the last entry, and an improvement made
    less than 3 days ago: write one line in the log and stop.**
 
+## 1b. What the owner asked for
+
+Open issues labelled `owner-request` are the owner's own words, from the control room (#/admin → Ask for a change).
+Each is a task: do it this night if it is clear and small, check it on a phone like any change, say what you did on
+the issue and close it (mark the request done: `update change_requests set status='done' where issue=<n>` through the
+Supabase connector, if it is there). A request that changes the look, sign-in or data is the owner's word for it.
+One that is large or unclear: ask on the issue and in the report, in Hebrew.
+
 ## 2. Fix what is broken (always first)
 
 For each FAIL: find the cause (measure, don't guess), fix it, and prove it:

@@ -199,10 +199,11 @@ function artistSoon(u) {
     <header class="wl-brand">${LOGO_MARK}<span>Open Studio</span></header>
     <div class="wl-mid">
       <figure class="wl-arch wl-arch-sm wl-empty" aria-hidden="true"></figure>
-      <h1>Your studio is being built</h1>
-      <p class="wl-lede">The artists' side of Open Studio is what we make next. We'll write to ${u && u.email ? `<b>${esc(u.email)}</b>` : 'you'} the day it opens.</p>
+      <h1>Your studio is open</h1>
+      <p class="wl-lede">Make your page in a minute: bring your work in from your website, Instagram, a Drive folder or your phone, and design exhibitions in rooms that exist only here. Open Studio looks at every new page before it goes live.</p>
       <div class="wl-btns">
-        <a class="wl-go" href="#/" data-browse>Look around meanwhile</a>
+        <a class="wl-go" href="#/studio">Open your studio</a>
+        <a class="wl-link" href="#/" data-browse>Look around first</a>
         <button type="button" class="wl-link" data-role="lover">I'm here as an art lover</button>
         <button type="button" class="wl-link" data-signout>Sign out</button>
       </div>
@@ -216,7 +217,7 @@ function accountPage(u) {
     <dl class="wl-dl">${u.name ? `<div><dt>Name</dt><dd>${esc(u.name)}</dd></div>` : ''}<div><dt>Email</dt><dd>${esc(u.email || '—')}</dd></div><div><dt>Here as</dt><dd>${u.role === 'artist' ? 'An artist' : 'An art lover'}</dd></div></dl>
     <div class="wl-btns">
       <a class="wl-link" href="#/welcome/details">Change your details</a>
-      <button type="button" class="wl-link" data-role="${u.role === 'artist' ? 'lover' : 'artist'}">${u.role === 'artist' ? 'I’m here as an art lover' : 'I make art'}</button>
+      ${u.role === 'artist' ? '<a class="wl-go" href="#/studio">Your studio</a>' : ''}<button type="button" class="wl-link" data-role="${u.role === 'artist' ? 'lover' : 'artist'}">${u.role === 'artist' ? 'I’m here as an art lover' : 'I make art'}</button>
       <button type="button" class="wl-go wl-out" data-signout>Sign out</button>
       <a class="wl-link" href="privacy.html">Privacy, and deleting your account</a>
     </div>`, 'wl-step');

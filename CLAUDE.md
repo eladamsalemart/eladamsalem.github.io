@@ -115,6 +115,19 @@ finger and fails a miss). A new small control goes in that list.
 Handwriting rule (the owner's): the pencil hand (`.lh`, 'Waiting for the Sunrise') marks only what is live now: a
 show on or opening, its last days, tonight's events, the studio's notes. Everything else stays in type.
 
+**Artists, virtual exhibitions, the control room (2.11)** — An artist (role artist) has a studio at `#/studio`
+(artist.js; with an account its data is in Supabase through studio-cloud.js: tables `artists` (status pending/approved/
+hidden, only an admin changes it), `works`, `virtual_shows` (kind artist|curated, works as a snapshot), images in the
+public bucket `works/<uid>/`). Bring work in (`#/studio/import`): a website or a shared Drive folder (server function
+`import-media`, deployed by the "Supabase functions" workflow; reads Open Studio sites' content/works.json, WordPress,
+Squarespace, Shopify, Wix), the Instagram export zip (read in the browser, vendor/jszip), the phone's photos.
+Virtual exhibitions: rooms drawn in the browser around the works (space/synth.js: White Cube, Long Hall, The Vault;
+paints); the demo shows are in data/virtual.json (films in data/spaces/<slug>/). The owner's control room `#/admin`
+(admin.js; `public.admins`: eladamsalem1@ and ooopenstudio@): approve artists, people, curated exhibitions (published
+ones show in the app like any show), Ask for a change (`change_requests` → the hourly "Owner requests" workflow →
+an `owner-request` issue the nightly session takes up), health. Tested end to end with the app's mailbox (sign in by
+the emailed code via the Gmail connector); clean the test data afterwards.
+
 **Open** — Home: from the ten (`studio/design/home-ten/`) the owner liked the constellation (not its black) and the
 artist's hand, and asked for Home as a sky of what they used last (near), with who and what they haven't met further
 out (pinch to step back), a live tour you can step into on Home, then the map, shows on now, your artists; pastels.
