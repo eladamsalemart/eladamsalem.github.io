@@ -2,6 +2,13 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-02 (night, late): artists, virtual exhibitions, the control room (built in the main session)
+
+- New to watch: virtual and curated shows and rooms, the studio's design screen, approved artists reaching the app
+  (health.cjs); jszip (deps.py); the "Supabase functions" and "Owner requests" workflows; owner-request issues
+  (PLAYBOOK 1b). Every check passes locally and on the server's publish.
+- Fixed on the way: the app waited for the database before opening (+0.5 s on every page): now it opens at once.
+
 ## 2026-11-02 (night, later): every control is big enough for a finger (the owner approved)
 
 - The touch area of every small control (map card buttons, kinds, follow, segments, chips, links in headings, the
