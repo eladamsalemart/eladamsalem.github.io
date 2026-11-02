@@ -77,6 +77,13 @@ Google/Apple). Google and Apple buttons show only when Supabase has them on: the
 them on when the GitHub secrets `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` and `APPLE_SERVICES_ID`/`APPLE_TEAM_ID`/
 `APPLE_KEY_ID`/`APPLE_P8` exist (it re-applies monthly: Apple's secret lives six months). Shared links (show, artist,
 work, place) open without an account; `?guest` and `?inspect` skip the gate for checks.
+Home (2.11) is "Daylight, by hand", the owner's choice: a pastel sky that follows the hour, drawn over in a fine pencil
+(no title, no "you", no legend). Near stars: what this phone opened last (`os-recent`), tied as the trail you took;
+then your artists (`os-following`) and their shows; far out (pinch, or a double tap): artists and 3D rooms you haven't
+met and the shows on now near you (`data/art`). Under it: Walk in now (the real 3D tour in a frame of the app itself,
+`?guest#/exhibition/<slug>/space`, turning via `__spaceView.inspect`; Step inside takes the screen), your artists, their
+shows, On now near you (a drawn map of the nearest places with a show today). Code: `home()`/`mountHome()` in app.js,
+the engine `sky.js`, styles `.hs` in index.html. The design source and its variations: `studio/design/home-sky/`.
 
 **Open** — Home: from the ten (`studio/design/home-ten/`) the owner liked the constellation (not its black) and the
 artist's hand, and asked for Home as a sky of what they used last (near), with who and what they haven't met further
@@ -85,6 +92,6 @@ Four working directions: `studio/design/home-sky/` (shared engine `sky.js`, page
 eladamsalem.com/open-studio-lab/home/ (a copy on `main`, folder `open-studio-lab/home`), PDF there. The owner chose the
 daylight sky with tracing paper's pencil, and no Wander (gestures live on Home): that is `day.html` (`day.js`, `day.css`),
 with three variations (`day-graphite`, `day-watercolour`, `day-paper`), page `daylight.html`, PDF
-`open-studio-daylight-by-hand.pdf`. The owner picks one, then it is built across the app's energy (the owner likes the artist page, the map, exhibitions and tours as they are); the artists' platform; publishing the Google consent screen (Branding, then Audience, Publish app); the owner signs up by hand to the 13
+`open-studio-daylight-by-hand.pdf`. Home is built (see The app now); next: carry its look across the app's energy (the owner likes the artist page, the map, exhibitions and tours as they are); the artists' platform; publishing the Google consent screen (Branding, then Audience, Publish app); the owner signs up by hand to the 13
 newsletters behind a CAPTCHA (list in `newsletters.json`, status `captcha`/`asks for a phone`); the Ritual ceiling
 (task #34 in the old list).
