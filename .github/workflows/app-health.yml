@@ -74,12 +74,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          mkdir -p "$RUNNER_TEMP/health"
           gh label create app-health --color D93F0B --description "Found by the App health check" 2>/dev/null || true
           open=$(gh issue list --label app-health --state open --json number -q '.[0].number')
-          if [ "${{ steps.look.outputs.broken }}" = "1" ]; then
+          broken="${{ steps.look.outputs.broken }}"
+          # the checks could not run at all (the browser didn't install, the site didn't answer): that is no all-clear
+          if [ -z "$broken" ]; then broken=1; printf '# App health could not run its checks\n\nSee the run: %s\n' "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > "$RUNNER_TEMP/health/issue.md"; fi
+          if [ "$broken" = "1" ]; then
             if [ -n "$open" ]; then gh issue comment "$open" --body-file "$RUNNER_TEMP/health/issue.md"
             else gh issue create --title "App health: something is broken" --label app-health --body-file "$RUNNER_TEMP/health/issue.md"; fi
             exit 1
-          elif [ -n "$open" ]; then
+          elif [ "$broken" = "0" ] && [ -n "$open" ]; then
             gh issue close "$open" --comment "All checks pass again. $(head -c 3000 "$RUNNER_TEMP/health/issue.md")"
           fi
