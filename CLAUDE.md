@@ -87,7 +87,12 @@ the engine `sky.js`, styles `.hs` in index.html. The design source and its varia
 Speed on a phone (2.11, the owner found Home very slow): measure with a 4x CPU slowdown before calling it done. A live
 WebGL room in a frame, a sky redrawn every frame at rest, and SVG filters (feTurbulence) on moving elements together
 gave 2 fps; now 60 (sky.js draws only while something moves, ties on a canvas, washes as one masked image).
-`check_home.cjs` opens Home as a phone in the publish workflow (stars, room, near you, no script error).
+`check_home.cjs` opens Home as a phone in the publish workflow (stars, room, near you, no script error, the film
+playing at ≥1000 px, no fade over another picture).
+The room's film (2.11, the owner's recording: blurry, flickering, too fast): never record from the live viewer (it
+adapts its resolution to the frame rate, and its canvas is held to a 430 px column). `preview.cjs` draws the room
+once, wide, then `preview_film.py` turns that one picture (1080x1440, 30 fps, 30 s, ≤3.5°/s, from rest) and writes
+preview.json; `check_app.py` fails a film under 1000 px, 36 dB, flicker over 6 or faster than 5°/s.
 Handwriting rule (the owner's): the pencil hand (`.lh`, 'Waiting for the Sunrise') marks only what is live now: a
 show on or opening, its last days, tonight's events, the studio's notes. Everything else stays in type.
 
