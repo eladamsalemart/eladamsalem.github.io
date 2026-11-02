@@ -146,6 +146,9 @@ const dayName = t => { const d = Math.round((new Date(t).setHours(0, 0, 0, 0) - 
 const hm = t => t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 const evWhen = ev => { const d = dayName(ev.at); return `${ev.what} ${d === 'Tonight' || d === 'Tomorrow' ? d.toLowerCase() : d} · ${hm(ev.at)}`; };
 const dm = t => t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+// what is happening now (a show open, an opening tonight, the last days, a note from the studio) is written by hand, as
+// on Home; everything else stays in type
+const lh = t => `<span class="lh">${esc(t)}</span>`;
 function when(e) {
   const st = status(e), left = Math.ceil((e.end - Date.now()) / DAY), ev = nextEvent(e);
   if (e.kind === 'online' && st === 'on') return left <= 7 ? `Online · closing in ${left} days` : 'Online now · open all the time';
@@ -199,7 +202,7 @@ const place = e => [e.city, e.dates || e.year].filter(Boolean).join(' · ');
 function workRow(w) {
   return `<a class="row" href="#/work/${w.slug}">${im(w.image, '')}<div class="t"><div><b>${esc(w.title)}</b></div><div class="m">${esc(metaLine(w))}</div></div><span></span></a>`;
 }
-const cover = (e, badge) => `<a href="#/exhibition/${e.slug}"><span class="cv-im">${im(e.images[0], '')}${badge || e.kind === 'online' ? `<i class="badge">${esc(badge || 'Online')}</i>` : ''}</span><div><b>${esc(e.title)}</b><div class="m">${esc(status(e) !== 'past' || e.space ? when(e) : [e.year, e.city].filter(Boolean).join(' · '))}</div><div class="m">${esc(byOf(e))}</div></div></a>`;
+const cover = (e, badge) => `<a href="#/exhibition/${e.slug}"><span class="cv-im">${im(e.images[0], '')}${badge || e.kind === 'online' ? `<i class="badge">${esc(badge || 'Online')}</i>` : ''}</span><div><b>${esc(e.title)}</b><div class="m">${status(e) !== 'past' ? lh(when(e)) : esc(e.space ? when(e) : [e.year, e.city].filter(Boolean).join(' · '))}</div><div class="m">${esc(byOf(e))}</div></div></a>`;
 const workCover = w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image, w.title)}</div><div><b>${esc(w.title)}</b><div class="m">${esc(w.artist.name)} · ${esc(w.year)}</div></div></a>`;
 // fresh: something new from the studio in the last two days (a ring round the picture)
 const person = (a, fresh) => `<a class="person${fresh ? ' fresh' : ''}" href="#/artist/${a.slug}">${im(a.portrait, a.name)}<div><b>${esc(a.name)}</b><div class="m">${esc(a.discipline)}</div></div></a>`;
@@ -293,11 +296,10 @@ function home() {
       <div class="hs-h"><h2 id="hsLive">Walk in now</h2><span class="hand side">you can walk in from here</span></div>
       <div class="tour-wrap"><div class="tour" data-slug="${esc(live.slug)}">
         ${im(live.images[0], '', 'class="tour-poster"', '100vw')}
-        <iframe title="${esc(live.title)}, a walkable 3D room" tabindex="-1" allow="xr-spatial-tracking; gyroscope; accelerometer"></iframe>
+        <video class="tour-film" muted loop playsinline preload="none" poster="data/spaces/${esc(live.slug)}/preview.jpg" aria-label="${esc(live.title)}: the room, turning slowly"><source src="data/spaces/${esc(live.slug)}/preview.mp4" type="video/mp4"><source src="data/spaces/${esc(live.slug)}/preview.webm" type="video/webm"></video>
         <span class="livepill"><i></i>${isOn(live) ? 'Live now' : 'In 3D'}</span>
         <div class="tour-cap"><b>${esc(live.title)}</b><span>${esc([byOf(live), live.city].filter(Boolean).join(' · '))}</span></div>
-        <button type="button" class="step">Step inside</button>
-        <button type="button" class="tour-x" hidden>← Back to Home</button>
+        <a class="step" href="#/exhibition/${esc(live.slug)}/space">Step inside</a>
       </div></div></section>` : ''}
     ${mine.length ? `<section class="hs-sec" aria-labelledby="hsArtists">
       <div class="hs-h"><h2 id="hsArtists">Your artists</h2><a class="hs-more" href="#/artists">All</a></div>
@@ -352,15 +354,16 @@ async function mountHome(root) {
   const { stars, ties, slot } = skyOf();
   const { sky } = await import('./sky.js');
   if (!box.isConnected) return;
-  let dust = null;
   const S = homeSky = sky(box, {
     stars, ties, node: skyStar,
     cam: { D: 560, pitch: 0 }, F: 560, cy: 0.535, limits: { yaw: 0.8, pitch: 0.45, Dmin: 300, Dmax: 1500 }, intro: 1.9, zoomEase: .05, farZoom: 1.9,
     farFrom: 560, fogStart: 60, fogRange: 1500, minOp: .1, labelAt: 0.7, bigAt: 0.86, maxScale: 1.3, bow: 0.1, ink: .8, pickLift: 90,
-    extra(g, project) {                                         // pale motes far out, so the sky has depth before you step back
-      if (!dust) { dust = MOTES.map(() => { const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); g.append(c); return c; }); g.classList.add('dust'); }
-      MOTES.forEach((m, i) => { const q = project(m), c = dust[i]; if (q.behind) { c.setAttribute('r', 0); return; }
-        c.setAttribute('cx', q.x.toFixed(1)); c.setAttribute('cy', q.y.toFixed(1)); c.setAttribute('r', Math.min(3, m.r * q.k).toFixed(2)); c.setAttribute('opacity', Math.min(.9, .25 + q.k * .6).toFixed(2)); });
+    inks: { tie: '#565B95', maybe: '#8F93C2' },
+    extra(ctx, project) {                                       // pale motes far out, so the sky has depth before you step back
+      ctx.fillStyle = '#fff';
+      for (const m of MOTES) { const q = project(m); if (q.behind) continue;
+        ctx.globalAlpha = Math.min(.9, .25 + q.k * .6); ctx.beginPath(); ctx.arc(q.x, q.y, Math.min(3, m.r * q.k), 0, 6.283); ctx.fill(); }
+      ctx.globalAlpha = 1;
     },
     onChoose(s) {
       hero.classList.toggle('picking', !!s);
@@ -385,8 +388,8 @@ async function mountHome(root) {
   fillNear(root.querySelector('#hsNear'));
 }
 
-// the room you can walk into, live on Home: the real 3D tour (the app itself, in a frame), turning slowly until you
-// step inside; inside, it takes the screen, and "Back to Home" gives Home back where it was
+// the room you can walk into, on Home: a short film of it turning (made from the room itself, space/preview.cjs), played
+// only while it is on screen; "Step inside" opens the real room. (A live room in a frame here made Home slow on a phone.)
 // the arch drawn round the room, in pencil, twice, not quite on its line
 function sketchArch(tour) {
   const w = tour.clientWidth, h = tour.clientHeight, r = w / 2; if (!w) return;
@@ -397,44 +400,12 @@ function sketchArch(tour) {
 function wireTour(root) {
   const tour = root.querySelector('.tour'); if (!tour) return;
   sketchArch(tour);
-  const frame = tour.querySelector('iframe'), slug = tour.dataset.slug;
-  let view = null, sweep = 0, t0 = 0, base = null, inside = false;
-  const HIDE = '.sv-top,.sv-modes,.sv-map,.sv-joy,.sv-hint,.sv-card,.sv-dot,.sv-loading,.install{display:none!important}';
-  const chrome = show => {
-    const doc = frame.contentDocument; if (!doc || !doc.head) return;
-    let st = doc.getElementById('home-hide'); if (!st) { st = doc.createElement('style'); st.id = 'home-hide'; doc.head.append(st); }
-    st.textContent = show ? '.sv-x,.sv-t,.install{display:none!important}' : HIDE;
-  };
-  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const turn = now => {
-    if (!view || inside || !tour.isConnected) return;
-    if (!t0) t0 = now;
-    const a = Math.sin((now - t0) / 1000 * 0.16) * 0.55, [lx, ly, lz] = base.look, [px, , pz] = base.pos, dx = lx - px, dz = lz - pz, ca = Math.cos(a), sa = Math.sin(a);
-    try { view.inspect.place(base.pos, [px + dx * ca - dz * sa, ly, pz + dx * sa + dz * ca]); } catch {}
-    sweep = requestAnimationFrame(turn);
-  };
-  const wait = (tries = 0) => {
-    if (!tour.isConnected) return;
-    const v = frame.contentWindow && frame.contentWindow.__spaceView;
-    if (!v || !v.inspect) return tries < 120 && setTimeout(() => wait(tries + 1), 400);
-    view = v; chrome(false);
-    setTimeout(() => { base = view.inspect.where(); tour.classList.add('ready'); if (!calm) sweep = requestAnimationFrame(turn); }, 900);
-  };
-  new IntersectionObserver(([e], io) => {
-    if (!e.isIntersecting) return; io.disconnect();
-    frame.src = `./?guest#/exhibition/${encodeURIComponent(slug)}/space`;
-    frame.addEventListener('load', () => { chrome(false); wait(); }, { once: true });
-  }, { rootMargin: '600px 0px' }).observe(tour);
-  const out = tour.querySelector('.tour-x');
-  tour.querySelector('.step').onclick = () => {
-    if (!view) { location.hash = `#/exhibition/${slug}/space`; return; }      // not ready yet: open the room itself
-    inside = true; cancelAnimationFrame(sweep); tour.classList.add('inside'); chrome(true);
-    frame.tabIndex = 0; out.hidden = false; document.documentElement.classList.add('lock'); setTimeout(() => frame.focus(), 50);
-  };
-  out.onclick = () => {
-    inside = false; tour.classList.remove('inside'); chrome(false); frame.tabIndex = -1; out.hidden = true; document.documentElement.classList.remove('lock');
-    if (view) { base = view.inspect.where(); t0 = 0; if (!calm) sweep = requestAnimationFrame(turn); }
-  };
+  const film = tour.querySelector('video');
+  film.addEventListener('playing', () => tour.classList.add('ready'), { once: true });
+  const last = [...film.querySelectorAll('source')].pop();
+  last.addEventListener('error', () => film.remove());                                 // no film yet: the photo stays
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { film.preload = 'metadata'; return; }
+  new IntersectionObserver(([e]) => { if (!film.isConnected) return; if (e.isIntersecting) film.play().catch(() => {}); else film.pause(); }, { threshold: .2 }).observe(tour);
 }
 
 // what's on near you: the nearest places with a show on today, drawn as a small pencil map round where you are
@@ -484,9 +455,9 @@ function artistPage(slug) {
       <div class="studio-log">${posts.map((p, i) => `<button type="button" class="log" data-log="${esc(a.slug)}:${i}">
         ${p.kind === 'video' ? `<video src="${esc(p.video)}" poster="${esc(p.poster)}" muted playsinline loop preload="none" aria-hidden="true"></video>` : im(p.frames[0], '', '', '40vw')}
         <span class="lk">${p.kind === 'video' ? '▶ Video' : 'Story'} · ${esc(ago(p.at))}</span>
-        <span class="lt">${esc(p.text)}</span>
+        <span class="lt lh">${esc(p.text)}</span>
         ${p.work ? `<span class="lw">${im(p.work.image, '', '', '10vw')}${esc(p.work.title)}</span>` : ''}</button>`).join('')}</div></section>` : ''}
-    ${live ? `<section class="sec"><h2 class="live-h"><span class="dot" aria-hidden="true"></span>${esc(when(live))}</h2>
+    ${live ? `<section class="sec"><h2 class="live-h"><span class="dot" aria-hidden="true"></span>${lh(when(live))}</h2>
       <a class="onview" href="#/exhibition/${live.slug}">${im(live.images[0], '')}<div><h3>${esc(live.title)}</h3>
       <div class="m">${esc(live.kind === 'online' ? 'Online exhibition' : [live.venue, live.city].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
     <section class="sec"><div class="sec-h"><h2>Latest works</h2><a class="more" href="${own ? '#/works' : `#/artist/${a.slug}/works`}">All ${works.length} →</a></div>
@@ -518,11 +489,11 @@ function exhibition(slug) {
     <div class="album">
       ${im(e.images[0], `Installation view of ${e.title}`, 'class="cover" loading="eager"', '100vw')}
       <h1>${esc(e.title)}</h1>
-      <div class="k">${status(e) === 'past' ? 'Exhibition' : `<span class="dot"></span>&nbsp; ${esc(when(e))}`} · ${e.kind === 'online' ? 'Online' : esc(e.city || e.year)}</div>
+      <div class="k">${status(e) === 'past' ? 'Exhibition' : `<span class="dot"></span>&nbsp; ${lh(when(e))}`} · ${e.kind === 'online' ? 'Online' : esc(e.city || e.year)}</div>
       <div class="bys">${(e.artists || [e.artist]).map(a => `<a class="by" href="#/artist/${a.slug}">${im(a.portrait, '')}${esc(a.name)}</a>`).join('')}</div>
       <div class="m">${esc([e.dates, e.kind === 'online' ? 'An online exhibition' : e.venue].filter(Boolean).join(' · '))}${e.curator ? ` · Curated by ${esc(e.curator)}` : ''}</div>
       ${status(e) !== 'past' && (e.address || e.hours) ? `<div class="visit">${e.address ? `<a href="#/map/${e.slug}"><b>${esc(e.venue)}</b><span>${esc(e.address)}</span></a>` : ''}${e.hours ? `<span>${esc(e.hours)}</span>` : ''}</div>` : ''}
-      ${e.events.filter(v => +v.at > Date.now() - 3 * 3600000).map(v => `<div class="event"><b>${esc(dayName(v.at))}</b><span>${esc(v.what)} · ${esc(hm(v.at))} · ${esc(v.at.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }))}</span></div>`).join('')}
+      ${e.events.filter(v => +v.at > Date.now() - 3 * 3600000).map(v => `<div class="event"><b>${esc(dayName(v.at))}</b><span>${lh(`${v.what} · ${hm(v.at)}`)} · ${esc(v.at.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }))}</span></div>`).join('')}
       ${e.space ? `<div class="btns"><a class="btn f" href="#/exhibition/${e.slug}/space">Enter the space</a></div><p class="m">${esc(e.space.source)}: a walkable 3D space in the room's own light, with every work at its measured size and place.</p>` : ''}
     </div>
     ${e.works.length ? `<section class="sec"><div class="sec-h"><h2>Works</h2><span class="more">${e.works.length} works</span></div>
@@ -648,7 +619,7 @@ function artistsPage() {
       const on = showsOf(a).find(e => status(e) !== 'past');
       return `<a class="artist-row" href="#/artist/${a.slug}">${im(a.portrait, a.name)}<span><b>${esc(a.name)}</b>
         <div class="m">${esc([a.discipline, a.city].filter(Boolean).join(' · '))}${fol.includes(a.slug) ? ' · Following' : ''}</div>
-        ${on ? `<div class="on">${esc(on.title)} · ${esc(when(on))}</div>` : ''}</span><span aria-hidden="true">→</span></a>`;
+        ${on ? `<div class="on">${esc(on.title)} · ${lh(when(on))}</div>` : ''}</span><span aria-hidden="true">→</span></a>`;
     }).join('')}</div>
   </div>`;
 }
@@ -669,18 +640,18 @@ function showsPage() {
   const rooms = on.filter(e => e.kind !== 'online' && e !== hero && !closing.includes(e)), online = on.filter(e => e.kind === 'online' && e !== hero);
   const walk = M.exhibitions.filter(e => e.space && pick(e));
   const card = e => `<a class="nx-show" href="#/exhibition/${e.slug}">${im(e.images[0], '', '', '45vw')}${e.kind === 'online' ? '<i class="badge">Online</i>' : ''}
-    <b>${esc(e.title)}</b><span>${esc(byOf(e))}</span><span class="nx-when">${esc(when(e))}${e.city ? ` · ${esc(e.city)}` : ''}</span></a>`;
+    <b>${esc(e.title)}</b><span>${esc(byOf(e))}</span><span class="nx-when">${status(e) !== 'past' ? lh(when(e)) : esc(when(e))}${e.city ? ` · ${esc(e.city)}` : ''}</span></a>`;
   return `<div class="wrap gut nx">
     <div class="nx-h"><h1>Shows</h1><div class="seg" role="group" aria-label="Which shows">${[['all', 'All'], ['rooms', 'In a room'], ['online', 'Online']].map(([k, t]) => `<button type="button" data-kind="${k}" aria-pressed="${showsKind === k}">${t}</button>`).join('')}</div></div>
     ${hero ? `<a class="nx-hero" href="#/exhibition/${hero.slug}">${im(hero.images[0], `${hero.title}`, 'loading="eager"', '100vw')}
-      <span class="nx-live"><i></i>${esc(tonight && tonight.show === hero ? `${tonight.what} ${dayName(tonight.at) === 'Tonight' ? 'tonight' : dayName(tonight.at).toLowerCase()} · ${hm(tonight.at)}` : when(hero))}</span>
+      <span class="nx-live"><i></i>${lh(tonight && tonight.show === hero ? `${tonight.what} ${dayName(tonight.at) === 'Tonight' ? 'tonight' : dayName(tonight.at).toLowerCase()} · ${hm(tonight.at)}` : when(hero))}</span>
       <span class="nx-ov"><b>${esc(hero.title)}</b><span class="k">${esc(byOf(hero))}${hero.venue && hero.kind !== 'online' ? ` · ${esc(hero.venue)}` : ''}</span>
       <span class="m">${hero.works.length} works · ${esc(hero.kind === 'online' ? 'online' : hero.city)}</span>
       <span class="nx-cta">${hero.kind === 'online' || hero.space ? 'Walk in now' : 'See the show'}</span></span></a>` : ''}
     <section class="nx-sec"><div class="nx-sh"><h2>This week</h2></div>
       <div class="nx-days" role="group" aria-label="Day">${days.map((d, i) => `<button type="button" data-day="${i}" aria-pressed="${i === showsDay}"><span>${i === 0 ? 'Today' : d.toLocaleDateString('en-GB', { weekday: 'short' })}</span><b>${d.getDate()}</b>${evs.some(v => Math.floor((new Date(v.at).setHours(0, 0, 0, 0) - today()) / DAY) === i) ? '<i></i>' : ''}</button>`).join('')}</div>
       <div class="nx-evs">${dayEvs.length ? dayEvs.map(v => v.show
-        ? `<a class="nx-ev" href="#/exhibition/${v.show.slug}">${im(v.show.images[0], '', '', '25vw')}<span><span class="nx-when">${esc(hm(v.at))} · ${esc(v.show.kind === 'online' ? 'Online' : v.show.city)}</span><b>${esc(v.show.title)}</b><span class="m">${esc(byOf(v.show))} · ${esc(v.what)}</span></span></a>`
+        ? `<a class="nx-ev" href="#/exhibition/${v.show.slug}">${im(v.show.images[0], '', '', '25vw')}<span><span class="nx-when">${lh(hm(v.at))} · ${esc(v.show.kind === 'online' ? 'Online' : v.show.city)}</span><b>${esc(v.show.title)}</b><span class="m">${esc(byOf(v.show))} · ${esc(v.what)}</span></span></a>`
         : `<a class="nx-ev info" href="#/map">${'<span class="ph" aria-hidden="true"></span>'}<span><span class="nx-when">${esc(hm(v.at))} · ${esc(v.listing.city)}</span><b>${esc(v.listing.show)}</b><span class="m">${esc(v.listing.name)} · ${esc(v.what)} · Not on Open Studio</span></span></a>`).join('')
         : '<p class="m">Nothing that day yet.</p>'}</div></section>
     ${rooms.length ? `<section class="nx-sec"><div class="nx-sh"><h2>On view now</h2><a class="more" href="#/map">On the map</a></div><div class="nx-grid">${rooms.map(card).join('')}</div></section>` : ''}
@@ -824,7 +795,7 @@ async function enterSpace(slug) {
     onClose: () => {
       openSpaceView = null;
       const page = `#/exhibition/${slug}`;
-      if (prevHash === page) history.back(); else location.replace(page);
+      if (prevHash === page || prevHash === '#/') history.back(); else location.replace(page);
     },
     onOpenWork: w => { location.hash = `#/work/${w.slug}`; },
   });

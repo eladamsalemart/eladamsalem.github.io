@@ -297,7 +297,7 @@ export async function mountArtMap(root, ctx) {
 
   function row({ p, d: dist }) {
     const c = KINDS[p.kind].c, s = p.on[0];
-    const what = s ? `<span class="am-on${runOf(s).soon ? ' closing' : ''}"><bdi>${esc(s.title)}</bdi>${shortRun(s) ? `<i> · ${esc(shortRun(s))}</i>` : ''}${p.on.length > 1 ? ` <i>and ${p.on.length - 1} more</i>` : ''}</span>`
+    const what = s ? `<span class="am-on${runOf(s).soon ? ' closing' : ''}"><bdi>${esc(s.title)}</bdi>${shortRun(s) ? `<i> · <span class="lh">${esc(shortRun(s))}</span></i>` : ''}${p.on.length > 1 ? ` <i>and ${p.on.length - 1} more</i>` : ''}</span>`
       : p.soonEvents[0] ? `<span class="am-on soft"><bdi>${esc(p.soonEvents[0].title)}</bdi></span>` : '';
     const yours = appArtists(p, M).filter(a => a.followed);
     return `<button type="button" class="am-row${p.tier === 'listed' ? ' listed' : ''}" data-place="${esc(p.id)}" style="--c:${c}">
@@ -335,7 +335,7 @@ export async function mountArtMap(root, ctx) {
     const spaces = all.filter(x => x.d < WALK).length;
     const showRow = ({ s, x }) => `<button type="button" class="am-row am-show" data-place="${esc(x.p.id)}" style="--c:${KINDS[x.p.kind].c}">
       <span class="am-glyph">${glyph(KINDS[x.p.kind].c)}</span>
-      <span class="am-rt"><b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span class="am-art" dir="auto">${esc(s.artists.join(', '))}</span>` : ''}<span class="am-m"><bdi>${esc(x.p.name)}</bdi> · ${esc(away(x.d))}</span>${shortRun(s) ? `<span class="am-when${runOf(s).soon ? ' closing' : ''}"><i></i>On now · ${esc(shortRun(s))}</span>` : ''}</span></button>`;
+      <span class="am-rt"><b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span class="am-art" dir="auto">${esc(s.artists.join(', '))}</span>` : ''}<span class="am-m"><bdi>${esc(x.p.name)}</bdi> · ${esc(away(x.d))}</span>${shortRun(s) ? `<span class="am-when${runOf(s).soon ? ' closing' : ''}"><i></i>On now · <span class="lh">${esc(shortRun(s))}</span></span>` : ''}</span></button>`;
     return `${here ? `<section class="am-here" style="--c:${KINDS[here.p.kind].c}"><p class="am-k2">You're at</p><h2 dir="auto">${esc(here.p.name)}</h2>
         ${here.p.on.length ? `<ul class="am-shows">${here.p.on.map(s => `<li><b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span dir="auto">${esc(s.artists.join(', '))}</span>` : ''}${s.end ? `<span class="am-m">Until ${esc(dm(s.end))}</span>` : ''}</li>`).join('')}</ul>` : '<p class="am-empty">Nothing listed here today.</p>'}
         <button type="button" class="am-more" data-place="${esc(here.p.id)}">About this place</button></section>` : ''}
@@ -368,11 +368,11 @@ export async function mountArtMap(root, ctx) {
         ${s.source === 'makore' && !s.end ? '<p class="am-src">Named in a tour or talk listed this month.</p>' : ''}</div>`;
     };
     const live = s => { const r = runOf(s); return `<li class="am-live${r.soon ? ' closing' : ''}"><details><summary>
-        <span class="am-live-k"><i class="am-pulse" aria-hidden="true"></i>On now${r.tag ? `<em>${esc(r.tag)}</em>` : ''}</span>
+        <span class="am-live-k"><i class="am-pulse" aria-hidden="true"></i>On now${r.tag ? `<em class="lh">${esc(r.tag)}</em>` : ''}</span>
         <b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span class="am-art" dir="auto">${esc(s.artists.join(', '))}</span>` : ''}
         ${r.range ? `<span class="am-dates">${esc(r.range)}</span>` : ''}${r.pct !== null ? `<span class="am-run" style="--p:${r.pct}%" aria-hidden="true"><i></i></span>` : ''}
       </summary>${more(s)}</details></li>`; };
-    const soon = s => `<li class="am-soon"><details><summary><span class="am-soon-k">Opens ${esc(wdm(s.start))} · in ${daysTo(s.start)} day${daysTo(s.start) === 1 ? '' : 's'}</span>
+    const soon = s => `<li class="am-soon"><details><summary><span class="am-soon-k">Opens ${esc(wdm(s.start))} · <span class="lh">in ${daysTo(s.start)} day${daysTo(s.start) === 1 ? '' : 's'}</span></span>
         <b dir="auto">${esc(s.title)}</b>${s.artists.length ? `<span class="am-art" dir="auto">${esc(s.artists.join(', '))}</span>` : ''}</summary>${more(s)}</details></li>`;
     const L = d.links[p.id] || {};
     const ICON = {

@@ -718,18 +718,14 @@ main .am-modes button[aria-pressed="true"]{background:var(--ink);color:#fff;bord
 .hs-hero.picking .hs-top{opacity:.35}
 .hs .skybox{position:absolute;inset:0;z-index:1}
 .hs .sky{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-.hs .sky-g{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.hs .sky-g{position:absolute;inset:0;width:100%;height:100%}
 .hs .sky-stars{position:absolute;inset:0}
-.hs .dust circle{fill:#fff}
-.hs .sky-ties{filter:url(#hsPencil)}
-.hs .tie{fill:none;stroke:var(--hs-tie);stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
-.hs .tie.maybe{stroke:var(--hs-tie-maybe);stroke-dasharray:.008 .022;stroke-dashoffset:0}
 .hs .star{position:absolute;left:0;top:0;width:0;height:0;padding:0;border:0;background:none;cursor:pointer;will-change:transform,opacity;-webkit-tap-highlight-color:transparent;transition:filter .4s ease}
 .hs .star>*{position:absolute;left:0;top:0}
 .hs .star.r0{--d:58px}.hs .star.r1{--d:42px}.hs .star.r2{--d:34px}.hs .star.real,.hs .star.k-place:not(.has-img){--d:11px}
 .hs .k-artist{--c:var(--hs-artist)}.hs .k-show{--c:var(--hs-show)}.hs .k-tour{--c:var(--hs-tour)}.hs .k-place{--c:var(--hs-place)}.hs .k-work{--c:var(--hs-work)}
-.hs .star .wash{width:calc(var(--d) * 2.2);height:calc(var(--d) * 1.85);transform:translate(-50%,-48%);border-radius:50%;
-  background:radial-gradient(closest-side,color-mix(in srgb,var(--c) 92%,transparent),color-mix(in srgb,var(--c) 50%,transparent) 58%,transparent);filter:url(#hsWash)}
+.hs .star .wash{width:calc(var(--d) * 2.2);height:calc(var(--d) * 1.85);transform:translate(-50%,-48%);background:var(--c);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 84'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='.95'/%3E%3Cstop offset='.58' stop-color='%23fff' stop-opacity='.5'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cfilter id='f' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.06' numOctaves='2' seed='8' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='14'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='50' cy='42' rx='44' ry='36' fill='url(%23g)' filter='url(%23f)'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 84'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='.95'/%3E%3Cstop offset='.58' stop-color='%23fff' stop-opacity='.5'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cfilter id='f' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.06' numOctaves='2' seed='8' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='14'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='50' cy='42' rx='44' ry='36' fill='url(%23g)' filter='url(%23f)'/%3E%3C/svg%3E") center/100% 100% no-repeat}
 .hs .star.real .wash,.hs .star.k-place:not(.has-img) .wash{width:44px;height:38px}
 .hs .star .sp{width:var(--d);height:var(--d);transform:translate(-50%,-50%);border-radius:50%;display:block;background:var(--c) center/cover no-repeat;box-shadow:0 0 0 3px #fff,0 12px 26px -12px var(--hs-shade)}
 .hs .star.real .sp,.hs .star.k-place:not(.has-img) .sp{box-shadow:0 0 0 2.5px rgba(255,255,255,.9)}
@@ -737,8 +733,7 @@ main .am-modes button[aria-pressed="true"]{background:var(--ink);color:#fff;bord
 .hs .star .ring path{fill:none;stroke:var(--hs-pencil);stroke-width:.75;stroke-linecap:round;opacity:.85}
 .hs .star.on .ring path{stroke:var(--hs-live);stroke-width:1.1;opacity:1}
 .hs .star.on .sp{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--c),0 16px 30px -12px var(--hs-shade)}
-.hs .star .lab{width:180px;transform:translate(-50%,calc(var(--d,34px)/2 + 10px));text-align:center;display:grid;pointer-events:none;transition:opacity .35s ease;
-  text-shadow:0 0 8px rgba(255,255,255,.9),0 0 2px rgba(255,255,255,.9)}
+.hs .star .lab{width:180px;transform:translate(-50%,calc(var(--d,34px)/2 + 10px));text-align:center;display:grid;pointer-events:none;transition:opacity .35s ease}
 .hs .star .lab b{font:500 14px/1.15 var(--serif);color:var(--hs-ink)}
 .hs .star .lab b[dir=rtl]{font:600 12.5px/1.2 'IBM Plex Sans Hebrew',var(--sans)}
 .hs .star .lab small{display:none;font-size:11.5px;color:var(--hs-muted)}
@@ -775,8 +770,8 @@ main .am-modes button[aria-pressed="true"]{background:var(--ink);color:#fff;bord
 .hs-more{margin-left:auto;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:4px;min-height:44px;display:inline-flex;align-items:center;color:inherit}
 .hs .tour-wrap{position:relative}
 .hs .tour{position:relative;height:470px;overflow:hidden;background:var(--card);isolation:isolate;border-radius:999px 999px 26px 26px}
-.hs .tour iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;opacity:0;transition:opacity .8s ease}
-.hs .tour.ready iframe{opacity:1}
+.hs .tour-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s ease}
+.hs .tour.ready .tour-film{opacity:1}
 .hs .tour-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .hs .livepill{position:absolute;z-index:3;top:16px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:#fff;color:var(--hs-ink);font-size:13px;font-weight:600;box-shadow:0 6px 16px -10px var(--hs-shade)}
 .hs .livepill i{width:8px;height:8px;border-radius:50%;background:var(--hs-live);animation:hsPulse 2.2s ease-out infinite}
@@ -784,11 +779,7 @@ main .am-modes button[aria-pressed="true"]{background:var(--ink);color:#fff;bord
 .hs .tour-cap{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:44px 18px 18px;background:linear-gradient(to top,rgba(20,18,24,.62),transparent);color:#fff;display:grid;gap:2px}
 .hs .tour-cap b{font:500 26px/1.05 var(--serif)}
 .hs .tour-cap span{font-size:14px;opacity:.9}
-.hs .step{position:absolute;z-index:4;right:16px;bottom:18px;min-height:44px;padding:0 18px;border-radius:999px;border:0;background:#fff;color:var(--hs-ink);font:600 15px var(--sans);cursor:pointer;box-shadow:0 8px 20px -10px rgba(0,0,0,.45)}
-.hs .tour.inside{position:fixed;inset:0;z-index:80;height:100dvh;width:100%;border-radius:0}
-.hs .tour.inside iframe{pointer-events:auto;opacity:1}
-.hs .tour.inside .step,.hs .tour.inside .livepill,.hs .tour.inside .tour-cap,.hs .tour.inside .tour-poster{display:none}
-.hs .tour-x{position:absolute;z-index:5;top:calc(12px + env(safe-area-inset-top));left:12px;min-height:44px;padding:0 16px;border-radius:999px;border:0;background:#fff;color:var(--hs-ink);font:600 15px var(--sans);cursor:pointer;box-shadow:0 8px 20px -10px rgba(0,0,0,.45)}
+.hs .step{position:absolute;z-index:4;right:16px;bottom:18px;min-height:44px;padding:0 18px;display:inline-flex;align-items:center;text-decoration:none;border-radius:999px;border:0;background:#fff;color:var(--hs-ink);font:600 15px var(--sans);cursor:pointer;box-shadow:0 8px 20px -10px rgba(0,0,0,.45)}
 .hs .sketch-arch{position:absolute;left:-9px;top:-9px;width:calc(100% + 16px);height:calc(100% + 15px);pointer-events:none;overflow:visible;z-index:2}
 .hs .sketch-arch path{fill:none;stroke:var(--hs-pencil);stroke-width:.7;stroke-linecap:round;filter:url(#hsPencil)}
 .hs .ppl{list-style:none;margin:0;padding:0;display:grid;isolation:isolate}
@@ -825,7 +816,22 @@ main .am-modes button[aria-pressed="true"]{background:var(--ink);color:#fff;bord
 .hs-list .m{font-size:13px}
 .hs-end{text-align:center;margin:40px 0 8px;font-size:23px!important}
 html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
-@media (prefers-reduced-motion:reduce){.hs .pick{animation:none}.hs .livepill i{animation:none}.hs .tour iframe{transition:none}}
+@media (prefers-reduced-motion:reduce){.hs .pick{animation:none}.hs .livepill i{animation:none}.hs .tour-film{transition:none}}
+
+/* what is happening now, in the pencil hand (as on Home): lh() in app.js, class "lh" on the map */
+:root{--lh-ink:#4C5290}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--lh-ink:#BFC3F4}}
+:root[data-theme="dark"]{--lh-ink:#BFC3F4}
+body[data-look="night"]{--lh-ink:#D8D3FF}
+.lh{font-family:'Waiting for the Sunrise',cursive!important;font-weight:400!important;font-style:normal!important;letter-spacing:0!important;text-transform:none!important;
+  font-size:1.32em;line-height:1.05;color:var(--lh-ink);font-variant:normal}
+.lt.lh{font-size:1.2em;line-height:1.1}
+.live-h .lh{font-size:1.18em}
+.k .lh,.nx-live .lh{font-size:1.7em;line-height:.9;vertical-align:-.08em}
+.nx-when .lh,.event .lh{font-size:1.5em}
+.log .lt.lh{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.55)}
+.closing .lh,.am-live.closing .lh{color:#B23E65}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .closing .lh{color:#F09AB6}}
 </style>
 
 <!-- app:head-end -->
