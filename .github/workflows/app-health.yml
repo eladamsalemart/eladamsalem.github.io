@@ -1,0 +1,85 @@
+# Open Studio: the app's health, on the live site, as a phone sees it (studio/app/health/). After every publish of the
+# app (each real change) and every three days. Something broken opens (or updates) a GitHub issue labelled
+# "app-health"; a clean run closes it. A scheduled Claude session reads the issue, fixes what is broken, proves the fix,
+# and takes one improvement at a time (studio/app/health/PLAYBOOK.md).
+name: "App health"
+
+on:
+  workflow_run:
+    workflows: ["Open Studio app"]
+    types: [completed]
+  schedule:
+    - cron: "23 1 */3 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: app-health
+  cancel-in-progress: false
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: A browser to look with
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw && npm install --no-save --no-package-lock playwright@1.49.1 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Wait for the published version to reach the site (its pages are cached for minutes)
+        if: github.event_name == 'workflow_run'
+        run: sleep 300
+      - name: Look at the app
+        id: look
+        env:
+          NODE_PATH: /tmp/pw/node_modules
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          mkdir -p "$RUNNER_TEMP/health"
+          node studio/app/health/health.cjs https://eladamsalem.com/open-studio/ "$RUNNER_TEMP/health"; pages=$?
+          node studio/app/check_home.cjs https://eladamsalem.com/open-studio/ > "$RUNNER_TEMP/health/home.txt"; home=$?
+          python3 studio/app/check_app.py > "$RUNNER_TEMP/health/app.txt"; app=$?
+          python3 studio/app/health/deps.py "$RUNNER_TEMP/health/deps.json" > "$RUNNER_TEMP/health/deps.txt"; deps=$?
+          cat "$RUNNER_TEMP/health/home.txt" "$RUNNER_TEMP/health/app.txt" "$RUNNER_TEMP/health/deps.txt"
+          {
+            cat "$RUNNER_TEMP/health/report.md"
+            echo; echo "## Home's own check"; echo '```'; cat "$RUNNER_TEMP/health/home.txt"; echo '```'
+            echo "## The app's check"; echo '```'; grep -v '^ok' "$RUNNER_TEMP/health/app.txt" || echo "all ok"; echo '```'
+            echo "## Libraries"; echo '```'; cat "$RUNNER_TEMP/health/deps.txt"; echo '```'
+            echo; echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (screenshots in its artifact)"
+          } > "$RUNNER_TEMP/health/issue.md"
+          if [ $pages -ne 0 ] || [ $home -ne 0 ] || [ $app -ne 0 ] || [ $deps -ne 0 ]; then echo "broken=1" >> "$GITHUB_OUTPUT"; else echo "broken=0" >> "$GITHUB_OUTPUT"; fi
+      - name: Keep the screenshots and reports for two weeks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-health
+          path: ${{ runner.temp }}/health
+          retention-days: 14
+      - name: Open or update the issue when something is broken; close it when all is well
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create app-health --color D93F0B --description "Found by the App health check" 2>/dev/null || true
+          open=$(gh issue list --label app-health --state open --json number -q '.[0].number')
+          if [ "${{ steps.look.outputs.broken }}" = "1" ]; then
+            if [ -n "$open" ]; then gh issue comment "$open" --body-file "$RUNNER_TEMP/health/issue.md"
+            else gh issue create --title "App health: something is broken" --label app-health --body-file "$RUNNER_TEMP/health/issue.md"; fi
+            exit 1
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "All checks pass again. $(head -c 3000 "$RUNNER_TEMP/health/issue.md")"
+          fi
