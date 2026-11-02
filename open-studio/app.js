@@ -515,7 +515,7 @@ function work(slug) {
   return `<div class="stage"><button type="button" data-zoom="${esc(src(w.image))}" aria-label="Zoom into ${esc(w.title)}">${im(w.image, w.title, 'loading="eager"', '100vw')}</button></div>
   <div class="wrap gut">
     <div class="work">
-      <div class="label"><b>${esc(w.title)}</b><span>${esc(w.artist.name)}, ${esc(w.year)}</span><span>${esc(w.medium)}</span>${w.size ? `<span class="s">${esc(w.size)}</span>` : ''}</div>
+      <div class="label"><h1>${esc(w.title)}</h1><span>${esc(w.artist.name)}, ${esc(w.year)}</span><span>${esc(w.medium)}</span>${w.size ? `<span class="s">${esc(w.size)}</span>` : ''}</div>
       <div class="btns"><button type="button" class="btn f" data-zoom="${esc(src(w.image))}">Zoom</button>${w.pairs.length ? '<button type="button" class="btn g" id="scaleBtn" aria-expanded="false">At scale</button>' : ''}</div>
       <div class="scale" id="scale" hidden></div>
       ${ex ? `<a class="onview" href="#/exhibition/${ex.slug}">${im(ex.images[0], '')}<div><h3>${esc(ex.title)}</h3><div class="m">From the exhibition · ${esc(place(ex))}</div></div></a>` : ''}
