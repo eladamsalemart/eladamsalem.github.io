@@ -124,7 +124,8 @@ function welcome(on, err) {
     <h1>Art, on view now</h1>
     <p class="wl-lede">The shows on today, the artists behind them, and their works at their real size.</p>
     ${err ? `<p class="wl-err" role="alert">${esc(err)}</p>` : ''}
-    <div class="wl-btns">${btn('apple', 'Continue with Apple')}${btn('google', 'Continue with Google')}${btn('email', 'Continue with email')}</div>`, 'wl-welcome');
+    <div class="wl-btns">${btn('apple', 'Continue with Apple')}${btn('google', 'Continue with Google')}${btn('email', 'Continue with email')}</div>
+    <p class="wl-fine">Only you see your details. <a href="privacy.html">Privacy</a></p>`, 'wl-welcome');
 }
 
 function emailForm(prefill, err) {
@@ -217,6 +218,7 @@ function accountPage(u) {
       <a class="wl-link" href="#/welcome/details">Change your details</a>
       <button type="button" class="wl-link" data-role="${u.role === 'artist' ? 'lover' : 'artist'}">${u.role === 'artist' ? 'I’m here as an art lover' : 'I make art'}</button>
       <button type="button" class="wl-go wl-out" data-signout>Sign out</button>
+      <a class="wl-link" href="privacy.html">Privacy, and deleting your account</a>
     </div>`, 'wl-step');
 }
 
