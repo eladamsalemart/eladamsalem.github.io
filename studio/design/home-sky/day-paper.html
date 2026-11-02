@@ -59,7 +59,7 @@ const HILLS = `<svg class="hills" viewBox="0 0 390 150" preserveAspectRatio="non
   <path d="M0 122C70 108 120 126 190 116S300 100 390 114V150H0Z" fill="#F6F4FA"/></svg>`;
 const CLOUD = (x, y, w) => `<svg class="cloud" style="left:${x}%;top:${y}%;width:${w}px" viewBox="0 0 120 50" aria-hidden="true"><path d="M8 40C2 30 14 20 26 24 28 10 48 6 58 16 66 4 92 6 94 22 110 18 120 34 108 42Z"/></svg>`;
 day({
-  copy: { title: 'Your sky, today', hand: 'cut out from where you were last' },
+  copy: { title: '', hand: 'cut out from where you were last' },
   sketchArch: false,
   node: s => s.kind === 'you' ? you : `${cut(seed(s))}<span class="st"${s.img ? ` style="background-image:url(${s.img})"` : ''}></span>${label(s)}`,
   sky: { ink: 1.6 },

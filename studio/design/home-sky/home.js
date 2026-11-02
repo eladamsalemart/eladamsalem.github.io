@@ -13,7 +13,7 @@ export function home(d) {
   app.innerHTML = `
     <header class="top"><a class="brand" href="./">${LOGO}<span>Open Studio</span></a><span class="day">Mon 2 Nov</span><span class="me" aria-label="Your account">N</span></header>
     <section class="hero" aria-label="Your art world">
-      <div class="hello"><h1>${c.title}</h1>${c.hand ? `<p class="hand">${c.hand}</p>` : ''}
+      <div class="hello">${c.title ? `<h1>${c.title}</h1>` : `<h1 class="vh">Your art world</h1>`}${c.hand ? `<p class="hand">${c.hand}</p>` : ''}
         ${d.legend ? `<ul class="legend" aria-label="What the marks mean">${d.legend.map(([k, t]) => `<li><i class="lg lg-${k}"></i>${t}</li>`).join('')}</ul>` : ''}</div>
       <div id="sky" class="skybox"></div>
       <div class="sky-ui"><span class="hint">${c.hint || 'Drag to turn · pinch to see further'}</span>
@@ -56,12 +56,13 @@ export function home(d) {
   const S = sky(app.querySelector('#sky'), {
     stars: STARS, ties: TIES, ...d.sky,
     onChoose(s) {
+      app.querySelector('.hero').classList.toggle('picking', !!s);
       if (!s) { pick.hidden = true; return; }
       const go = s.kind === 'tour' && s.id === 'ritual' ? `<button type="button" class="go" data-walk>Walk in</button>`
         : s.place ? `<a class="go" href="${APP}?guest#/map/place/${s.place}">On the map</a>` : '';
       pick.innerHTML = `${s.img ? `<img src="${s.img}" alt="">` : `<i class="dot k-${s.kind}"></i>`}<div><span class="k">${KIND[s.kind]}${s.ago ? ` · ${esc(s.ago)}` : ''}</span><b${he(s.name)}>${esc(s.name)}</b><span>${esc(s.sub)}</span>${s.note ? `<span class="hand">${esc(s.note)}</span>` : ''}</div>${go}<button type="button" class="x" aria-label="Close">×</button>`;
       pick.hidden = false;
-      pick.querySelector('.x').onclick = () => { pick.hidden = true; S.clear(); };
+      pick.querySelector('.x').onclick = () => { pick.hidden = true; S.clear(); app.querySelector('.hero').classList.remove('picking'); };
       const w = pick.querySelector('[data-walk]'); if (w) w.onclick = () => enter();
     },
   });

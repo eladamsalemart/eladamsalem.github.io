@@ -45,7 +45,7 @@ const heb = s => /[֐-׿]/.test(s) ? ' dir="rtl"' : '';
 const arrow = '<svg viewBox="0 0 18 16" aria-hidden="true"><path d="M15 14C11 12 7 9 4 3M4 3l-1 5M4 3l5 1"/></svg>';
 const seed = s => s.id.length * 7 + s.id.charCodeAt(0);
 day({
-  copy: { title: 'Your sky, today', hand: 'drawn from where you were last' },
+  copy: { title: '', hand: 'drawn from where you were last' },
   node: s => s.kind === 'you' ? you
     : `<span class="hatch"></span><span class="st"${s.img ? ` style="background-image:url(${s.img})"` : ''}></span>${s.ring === 0 ? ring(seed(s)) : ''}<span class="kd"></span><span class="lab"><b${heb(s.name)}>${s.name}</b>${s.sub ? `<small>${s.sub}</small>` : ''}${s.note ? `<span class="hand">${arrow}${s.note}</span>` : ''}</span>`,
   sky: { ink: 1.35 },
