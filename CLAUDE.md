@@ -55,8 +55,9 @@ GitHub secrets or the environment's settings. Report briefly, in Hebrew.
   Set: Site URL `https://eladamsalem.com/open-studio/`, redirect `https://eladamsalem.com/open-studio/**`, custom SMTP
   through the app's Gmail, 30 emails an hour, the code (`{{ .Token }}`, 6 digits) in Confirm signup and Magic Link.
   Both sign-in emails are Open Studio's own (the code in the subject, a token_hash link that works in any browser).
-  Email sign-in proved end to end on 1.11, on the live site, by link and by code. Google: wired, waiting for the owner to make the Google Cloud OAuth client and save GOOGLE_CLIENT_ID/SECRET
-  (then run "Supabase settings" apply and test it live). Apple: not wanted (the owner said Google is enough); Facebook: no; Instagram login doesn't exist for apps.
+  Email sign-in proved end to end on 1.11, on the live site, by link and by code. Google: on since 2.11 (Google Cloud project open-studio-513508, its client in GOOGLE_CLIENT_ID/SECRET; the
+  button reaches Google's sign-in). The consent screen was still in Testing (only test users) until its Branding page
+  (home page, privacy.html, authorized domains) is filled and the app published. Apple: not wanted (the owner said Google is enough); Facebook: no; Instagram login doesn't exist for apps.
 - The app's mailbox ooopenstudio@gmail.com: the Gmail connector (drafts, reading, labels). It is subscribed to
   galleries' newsletters (`studio/app/artmap/newsletters.json`); the daily read takes their openings and shows.
 - Figma file `eLDsgYWEfoqx49oFQJ53c1` (Studio Paper variables and text styles, Home components, Home screen).
@@ -79,6 +80,6 @@ work, place) open without an account; `?guest` and `?inspect` skip the gate for 
 
 **Open** — the owner chooses a direction for the way in and Home from ten (`studio/design/home-ten/`, PDF there;
 recommended: the wall label, the day, the constellation; the earlier three in `home-concepts/` were turned down),
-then it is built across the app's energy (the owner likes the artist page, the map, exhibitions and tours as they are); the artists' platform; Google sign-in (the owner makes the OAuth client); the owner signs up by hand to the 13
+then it is built across the app's energy (the owner likes the artist page, the map, exhibitions and tours as they are); the artists' platform; publishing the Google consent screen (Branding, then Audience, Publish app); the owner signs up by hand to the 13
 newsletters behind a CAPTCHA (list in `newsletters.json`, status `captcha`/`asks for a phone`); the Ritual ceiling
 (task #34 in the old list).
