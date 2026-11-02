@@ -8,6 +8,7 @@ a{color:inherit}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:6px}
 #app{max-width:520px;margin:0 auto;overflow-x:clip;padding-bottom:calc(84px + env(safe-area-inset-bottom));position:relative}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .hand{font-family:var(--hand);color:var(--hand-ink);font-size:var(--hand-size,20px);line-height:1.15;font-weight:var(--hand-weight,500)}
 
 /* header floats over the sky */
@@ -43,6 +44,8 @@ button{font:inherit;color:inherit}
 .star.dim .lab{opacity:0}
 .skybox.full{position:fixed;inset:0;z-index:60;background:var(--sky)}
 .hero.wandering .hello{opacity:0}
+.hello{transition:opacity .4s ease}
+.hero.picking .hello{opacity:0}
 .sky-ui{position:absolute;z-index:14;left:18px;right:14px;bottom:16px;display:flex;align-items:center;gap:10px}
 .hero.wandering .sky-ui{position:fixed;z-index:62;bottom:calc(18px + env(safe-area-inset-bottom));max-width:488px;margin:0 auto}
 .hint{font-size:13px;color:var(--muted)}

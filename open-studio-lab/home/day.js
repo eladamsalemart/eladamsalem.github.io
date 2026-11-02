@@ -1,6 +1,6 @@
 // Daylight sky, by hand: the page and the sky's marks, shared by the chosen direction and its variations.
 import { home } from './home.js';
-import { placeAll } from './data.js';
+import { placeAll, STARS, TIES } from './data.js';
 import { rnd } from './sky.js';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -42,15 +42,20 @@ const sketchArch = tour => {
   wrap.insertAdjacentHTML('beforeend', `<svg class="sketch-arch" viewBox="-9 -9 ${w + 16} ${h + 15}" aria-hidden="true"><path d="${path(-8, -9, 9)}"/><path d="${path(4, -3, 3)}" opacity=".5"/></svg>`);
 };
 
+// without a "you" in the middle: what you used last is drawn as the trail you took, in order
+const TRAIL = [['signal', 'lia', 'used'], ['lia', 'ritual', 'used'], ['ritual', 'harbour', 'used'], ['harbour', 'together', 'used'], ['maya', 'ritual', 'maybe'], ['elad', 'harbour', 'maybe']];
+const SKY_STARS = STARS.filter(s => s.kind !== 'you'), SKY_TIES = [...TRAIL, ...TIES.filter(t => !t.includes('you'))];
+
 export function day(v = {}) {
   hourSky(v.skies);
   home({
     tourShape: v.tourShape || 'arch', wander: false,
-    copy: { title: 'Your sky, today', hand: 'the closest stars are where you were last', hint: 'drag to turn · pinch or tap twice to go further', live: 'Walk in now', end: 'that’s your sky for today', ...v.copy },
+    copy: { title: '', hand: 'the closest stars are where you were last', hint: 'drag to turn · pinch or tap twice to go further', live: 'Walk in now', end: 'that’s your sky for today', ...v.copy },
     legend: v.legend === false ? null : [['artist', 'Artists'], ['show', 'Shows'], ['tour', 'In 3D'], ['place', 'Places']],
     sky: {
-      cam: { D: 560, pitch: 0 }, F: 560, cy: 0.57, limits: { yaw: 0.8, pitch: 0.45, Dmin: 300, Dmax: 1500 }, intro: 1.9, zoomEase: .05, farZoom: 1.9,
+      cam: { D: 560, pitch: 0 }, F: 560, cy: 0.535, limits: { yaw: 0.8, pitch: 0.45, Dmin: 300, Dmax: 1500 }, intro: 1.9, zoomEase: .05, farZoom: 1.9,
       farFrom: 560, fogStart: 60, fogRange: 1500, minOp: .1, labelAt: 0.7, bigAt: 0.86, maxScale: 1.3, bow: 0.1, ink: .8, pickLift: 90,
+      stars: v.you ? STARS : SKY_STARS, ties: v.you ? TIES : SKY_TIES,
       layout: placeAll, node: v.node || node,
       extra(g, project, cam, t, size) { dust(g, project); if (v.extra) v.extra(g, project, cam, t, size); },
       ...v.sky,
