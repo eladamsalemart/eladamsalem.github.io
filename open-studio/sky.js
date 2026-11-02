@@ -22,10 +22,10 @@ export function sky(el, o) {
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   el.classList.add('sky');
-  el.innerHTML = `<svg class="sky-g" aria-hidden="true"><g class="sky-extra"></g><g class="sky-ties"></g></svg><div class="sky-stars"></div>`;
-  const svg = el.querySelector('svg'), gx = el.querySelector('.sky-extra'), gt = el.querySelector('.sky-ties'), box = el.querySelector('.sky-stars');
-  const NS = 'http://www.w3.org/2000/svg';
-  const drawTie = t => { t.p = document.createElementNS(NS, 'path'); t.p.setAttribute('class', `tie ${t.how}`); t.p.setAttribute('pathLength', '1'); gt.append(t.p); };
+  el.innerHTML = `<canvas class="sky-g" aria-hidden="true"></canvas><div class="sky-stars"></div>`;
+  const cv = el.querySelector('canvas'), ctx = cv.getContext('2d'), box = el.querySelector('.sky-stars');
+  const ink = o.inks || { tie: '#565B95', maybe: '#8F93C2' };
+  const drawTie = () => {};
   const drawStar = s => {
     const d = document.createElement('button'); d.type = 'button';
     d.className = `star k-${s.kind} r${s.ring}${s.img ? ' has-img' : ''}${s.real ? ' real' : ''}`;
@@ -35,9 +35,9 @@ export function sky(el, o) {
   };
   ties.forEach(drawTie); stars.forEach(drawStar);
 
-  let W = 0, H = 0;
-  const size = () => { W = el.clientWidth; H = el.clientHeight; svg.setAttribute('viewBox', `0 0 ${W} ${H}`); };
-  new ResizeObserver(size).observe(el); size();
+  let W = 0, H = 0, DPR = 1;
+  const size = () => { W = el.clientWidth; H = el.clientHeight; DPR = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); wake(); };
+  new ResizeObserver(size).observe(el);
 
   function project(p, c = cam) {
     const cy = Math.cos(c.yaw), sy = Math.sin(c.yaw), cp = Math.cos(c.pitch), sp = Math.sin(c.pitch);
@@ -53,8 +53,8 @@ export function sky(el, o) {
     if (!drag) {
       cam.yaw += vyaw * dt; cam.pitch += vpitch * dt; vyaw *= 0.94 ** dt; vpitch *= 0.92 ** dt;
       if (track) { cam.yaw += (goal.yaw - cam.yaw) * 0.08 * dt; cam.pitch += (goal.pitch - cam.pitch) * 0.08 * dt; }
-      else if (!calm && now - idleSince > 2600 && Math.abs(vyaw) < 0.0004) {
-        if (lim.yaw === Infinity) cam.yaw += (o.drift ?? 0.0007) * dt;
+      else if (!calm && o.drift && now - idleSince > 2600 && Math.abs(vyaw) < 0.0004) {
+        if (lim.yaw === Infinity) cam.yaw += o.drift * dt;
         else { swayT += dt / 60; cam.yaw += (Math.sin(swayT * 0.35) * lim.yaw * 0.45 - cam.yaw) * 0.01 * dt; }
       }
     }
@@ -84,20 +84,35 @@ export function sky(el, o) {
       s.el.style.pointerEvents = s.op > 0.25 ? '' : 'none';
     }
     const grow = calm ? 1 : clamp((now - born - 300) / 1800, 0, 1);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.clearRect(0, 0, W, H);
+    if (o.extra) o.extra(ctx, project, cam, now / 1000, { W, H });
+    ctx.lineCap = 'round';
     for (const t of ties) {
       const a = t.a.q, b = t.b.q;
-      if (a.behind || b.behind) { t.p.style.opacity = 0; continue; }
-      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
-      const bow = t.bow * len * (o.bow ?? 0.12);
-      t.p.setAttribute('d', `M${a.x.toFixed(1)} ${a.y.toFixed(1)} Q${(mx - dy / len * bow).toFixed(1)} ${(my + dx / len * bow).toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`);
+      if (a.behind || b.behind) continue;
       const lit = !focus || !focus.id || t.a === focus || t.b === focus;
-      t.p.style.opacity = (Math.min(t.a.op, t.b.op) ** 2 * (t.how === 'maybe' ? 0.75 : 1) * (lit ? 1 : 0.25)).toFixed(3);
-      t.p.style.strokeWidth = clamp(Math.min(a.k, b.k) * (o.ink ?? 1.4), 0.5, 2.6).toFixed(2);
-      if (t.how !== 'maybe') t.p.style.strokeDashoffset = (1 - grow).toFixed(3);
+      const alpha = Math.min(t.a.op, t.b.op) ** 2 * (t.how === 'maybe' ? 0.75 : 1) * (lit ? 1 : 0.25);
+      if (alpha < 0.02) continue;
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+      const bow = t.bow * len * (o.bow ?? 0.12), cx = mx - dy / len * bow, cy = my + dx / len * bow;
+      const w = clamp(Math.min(a.k, b.k) * (o.ink ?? 1.4), 0.5, 2.6), maybe = t.how === 'maybe';
+      ctx.strokeStyle = maybe ? ink.maybe : ink.tie;
+      ctx.setLineDash(maybe ? [1.5, 4.5] : grow < 1 ? [len * 1.1 * grow, len * 2] : []);
+      for (const [off, wk, ak] of [[0, 1, .9], [0.7, .55, .35]]) {            // the line, and the pencil's second pass beside it
+        const ox = -dy / len * off, oy = dx / len * off;
+        ctx.globalAlpha = alpha * ak; ctx.lineWidth = w * wk;
+        ctx.beginPath(); ctx.moveTo(a.x + ox, a.y + oy); ctx.quadraticCurveTo(cx + ox * 1.6, cy + oy * 1.6, b.x + ox, b.y + oy); ctx.stroke();
+      }
     }
-    if (o.extra) o.extra(gx, project, cam, now / 1000, { W, H });
-    raf = running ? requestAnimationFrame(frame) : 0;
+    ctx.globalAlpha = 1; ctx.setLineDash([]);
+    // only while something moves: a touch, its glide, a zoom, a turn to a star, the opening; then the sky rests
+    const still = !drag && !pts.size && Math.abs(vyaw) < 1e-4 && Math.abs(vpitch) < 1e-4 && Math.abs(goal.D - cam.D) < 0.4
+      && Math.abs(goal.tx - cam.tx) < 0.3 && Math.abs(goal.ty - cam.ty) < 0.3 && Math.abs(goal.tz - cam.tz) < 0.3
+      && (!track || (Math.abs(goal.yaw - cam.yaw) < 1e-3 && Math.abs(goal.pitch - cam.pitch) < 1e-3)) && grow >= 1 && !o.tick
+      && (lim.yaw === Infinity || Math.abs(cam.yaw) <= lim.yaw + 1e-4) && (o.drift === undefined || o.drift === 0 || calm);
+    raf = running && !still ? requestAnimationFrame(frame) : 0;
   }
+  function wake() { if (running && !raf) { last = performance.now(); raf = requestAnimationFrame(frame); } }
 
   // --- gestures ---
   let drag = false, track = false, focus = null, focusNear = new Set(), raf = 0, running = false;
@@ -105,13 +120,13 @@ export function sky(el, o) {
   const full = () => el.classList.contains('full');
   el.style.touchAction = 'pan-y';
   el.addEventListener('pointerdown', e => {
-    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    wake(); pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pts.size === 1) { start = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.target.closest('.star')?.dataset.id }; moved = 0; drag = true; vyaw = vpitch = 0; track = false; }
     if (pts.size === 2) { const [p, q] = [...pts.values()]; pinch0 = Math.hypot(p.x - q.x, p.y - q.y); D0 = goal.D; mid0 = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2, tx: goal.tx, ty: goal.ty }; track = false; }
     try { el.setPointerCapture(e.pointerId); } catch {}
   });
   el.addEventListener('pointermove', e => {
-    const p = pts.get(e.pointerId); if (!p) return;
+    const p = pts.get(e.pointerId); if (!p) return; wake();
     const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; moved += Math.abs(dx) + Math.abs(dy);
     if (pts.size === 2) {
       const [a, b] = [...pts.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch0) goal.D = clamp(D0 * pinch0 / d, lim.Dmin, lim.Dmax);
@@ -132,7 +147,7 @@ export function sky(el, o) {
       if (tap && start.id) choose(by[start.id]);
       else if (tap && o.doubleTap !== false) {
         const now = performance.now();
-        if (now - lastTap < 420) { const home = o.cam?.D ?? 520; goal.D = goal.D > home * 1.2 ? home : home * (o.farZoom ?? 1.9); goal.tx = goal.ty = 0; lastTap = 0; o.onChoose && o.onChoose(null); focus = null; for (const x of stars) x.el.classList.remove('on'); }
+        if (now - lastTap < 420) { const home = o.cam?.D ?? 520; goal.D = goal.D > home * 1.2 ? home : home * (o.farZoom ?? 1.9); goal.tx = goal.ty = 0; lastTap = 0; o.onChoose && o.onChoose(null); focus = null; for (const x of stars) x.el.classList.remove('on'); wake(); }
         else lastTap = now;
       }
       start = null;
@@ -141,7 +156,7 @@ export function sky(el, o) {
   };
   for (const g of ['gesturestart', 'gesturechange']) el.addEventListener(g, e => e.preventDefault());   // Safari's own pinch would zoom the page
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', e => { pts.delete(e.pointerId); if (!pts.size) { drag = false; start = null; } });
-  el.addEventListener('wheel', e => { if (!full() && !e.ctrlKey) return; e.preventDefault(); goal.D = clamp(goal.D * (1 + e.deltaY * 0.0016), lim.Dmin, lim.Dmax); }, { passive: false });
+  el.addEventListener('wheel', e => { if (!full() && !e.ctrlKey) return; e.preventDefault(); goal.D = clamp(goal.D * (1 + e.deltaY * 0.0016), lim.Dmin, lim.Dmax); wake(); }, { passive: false });
   el.addEventListener('keydown', e => { const s = e.target.closest?.('.star'); if (s && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); choose(by[s.dataset.id]); } });
 
   function choose(s) {
@@ -150,23 +165,25 @@ export function sky(el, o) {
     else { goal.yaw = cam.yaw; goal.pitch = cam.pitch; const D1 = Math.min(goal.D, (o.cam?.D ?? 520) * 0.92), k1 = F / (D1 + s.z) * (W / 390); goal.tx = s.x * 0.75; goal.tz = 0; goal.ty = s.y + ((o.cy || 0.5) - (o.pickY ?? 0.34)) * H / k1; goal.D = D1; }
     focus = s; track = true; vyaw = 0; focusNear = new Set(ties.filter(t => t.a === s || t.b === s).map(t => t.a === s ? t.b : t.a));
     for (const x of stars) x.el.classList.toggle('on', x === s);
-    o.onChoose && o.onChoose(s);
+    o.onChoose && o.onChoose(s); wake();
   }
 
-  const io = new IntersectionObserver(([en]) => { const vis = en.isIntersecting; if (vis && !running) { running = true; last = performance.now(); raf = requestAnimationFrame(frame); } else if (!vis) running = false; });
+  const io = new IntersectionObserver(([en]) => { running = en.isIntersecting && !document.hidden; if (running) wake(); });
   io.observe(el);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) running = false; else if (!running) { running = true; last = performance.now(); raf = requestAnimationFrame(frame); } });
+  document.addEventListener('visibilitychange', () => { running = !document.hidden && el.isConnected; if (running) wake(); });
+  size();
 
   return {
     stars, by, cam, goal,
     // more stars (each with its x, y, z) and ties, after the sky is up
     add(more, moreTies = []) {
       for (const s of more) { if (by[s.id]) continue; const x = { x: 0, y: 0, z: 0, ...s }; by[x.id] = x; stars.push(x); drawStar(x); }
-      for (const t of moreTies) if (by[t[0]] && by[t[1]]) { const x = tie(t); ties.push(x); drawTie(x); x.p.style.strokeDashoffset = '0'; }
+      for (const t of moreTies) if (by[t[0]] && by[t[1]]) ties.push(tie(t));
+      wake();
     },
-    zoom(f) { goal.D = clamp(goal.D * f, lim.Dmin, lim.Dmax); },
+    zoom(f) { goal.D = clamp(goal.D * f, lim.Dmin, lim.Dmax); wake(); },
     reset() { goal.D = o.cam?.D ?? 520; goal.yaw = cam.yaw; goal.pitch = o.cam?.pitch ?? 0; focus = null; track = true; setTimeout(() => { track = false; }, 900); for (const x of stars) x.el.classList.remove('on'); },
-    clear() { focus = null; track = false; goal.tx = goal.ty = goal.tz = 0; goal.D = o.cam?.D ?? 520; for (const x of stars) x.el.classList.remove('on'); },
+    clear() { focus = null; track = false; goal.tx = goal.ty = goal.tz = 0; goal.D = o.cam?.D ?? 520; for (const x of stars) x.el.classList.remove('on'); wake(); },
     wander(on) { el.classList.toggle('full', on); el.style.touchAction = on ? 'none' : 'pan-y'; document.documentElement.classList.toggle('lock', on); goal.tx = goal.ty = goal.tz = 0; if (on) goal.D = Math.max(goal.D, (o.cam?.D ?? 520) * 1.35); else { goal.D = o.cam?.D ?? 520; goal.pitch = o.cam?.pitch ?? 0; } },
   };
 }
