@@ -2,6 +2,16 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-02 (night, later): every control is big enough for a finger (the owner approved)
+
+- The touch area of every small control (map card buttons, kinds, follow, segments, chips, links in headings, the
+  map's attribution) is now at least 44x44, drawn as an invisible ::after around it: nothing moves or changes look
+  except the Shows "All" segment (37 → 46 px wide; it had overlapped "On now" by 1 px).
+- The check: health.cjs now taps every control as a finger would (four points 21 px around its centre) and fails a
+  page where one is missed. Before: most pages failed; after: every page passes. Pixel test, rule off vs on, same
+  moment: 0 px on every page but Shows (the wider "All"); the place sheet differs only where the fixed tab bar lands
+  in a full-page shot, which differs on vs on as well.
+
 ## 2026-11-02 (night): the first nightly run, and the first improvement
 
 - Looked: no open `app-health` issue; the last runs of App health (#4), Open Studio app, Studio spaces and Art map:

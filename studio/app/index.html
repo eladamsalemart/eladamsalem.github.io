@@ -831,6 +831,18 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
 .log .lt.lh{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.55)}
 .closing .lh,.am-live.closing .lh{color:#B23E65}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .closing .lh{color:#F09AB6}}
+
+/* Touch: every control can be met by a finger, 44x44 at the least (Apple's size; WCAG's floor is 24), without changing
+   how it looks: a transparent area round its centre takes the touch. The gaps to the next control leave room for it
+   (measured). health.cjs taps each control at 21 px from its centre, on every page, and fails a miss. */
+:is(.hs-more, .seg button, .am-mark, .am-x, .am-kinds button, .am-follow, .am-go, .am-links a, .am-links button, .am-dlinks a,
+  .bar .brand, .sec-h a.more, .by, .visit a, .chip, .contact a){position:relative}
+:is(.hs-more, .seg button, .am-mark, .am-x, .am-kinds button, .am-follow, .am-go, .am-links a, .am-links button, .am-dlinks a,
+  .bar .brand, .sec-h a.more, .by, .visit a, .chip, .contact a, .maplibregl-ctrl-attrib-button)::after{
+  content:"";position:absolute;left:calc(50% - max(50%,22px));top:calc(50% - max(50%,22px));width:max(100%,44px);height:max(100%,44px);z-index:1;
+  background:none!important;border:0!important;box-shadow:none!important;pointer-events:auto}
+.seg button{min-width:46px}                    /* (side by side, no room round them: the one that changes how it looks, by a few px) */
+.am-kinds{padding-block:3px;margin-block:-3px}   /* (a sideways scroller clips what reaches past it: room inside, the same place outside) */
 </style>
 
 <!-- app:head-end -->

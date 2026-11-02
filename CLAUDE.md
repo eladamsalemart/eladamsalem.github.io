@@ -102,6 +102,8 @@ The room's film (2.11, the owner's recording: blurry, flickering, too fast): nev
 adapts its resolution to the frame rate, and its canvas is held to a 430 px column). `preview.cjs` draws the room
 once, wide, then `preview_film.py` turns that one picture (1080x1440, 30 fps, 30 s, ≤3.5°/s, from rest) and writes
 preview.json; `check_app.py` fails a film under 1000 px, 36 dB, flicker over 6 or faster than 5°/s.
+Touch: every control has at least a 44x44 touch area (invisible ::after in index.html; health.cjs taps each one as a
+finger and fails a miss). A new small control goes in that list.
 Handwriting rule (the owner's): the pencil hand (`.lh`, 'Waiting for the Sunrise') marks only what is live now: a
 show on or opening, its last days, tonight's events, the studio's notes. Everything else stays in type.
 

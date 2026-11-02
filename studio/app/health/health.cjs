@@ -32,6 +32,8 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
 
   for (const [name, hash] of PAGES) {
     const ctx = await b.newContext(phone), p = await ctx.newPage(), errs = [], bad = [];
+    // (the "Get Open Studio" install card is closed, as a visitor does once: it would sit over the page's lower controls)
+    await ctx.addInitScript(() => { try { localStorage.setItem('os-install-dismissed', '1'); } catch {} });
     // to prove the check: HEALTH_FAKE=<status>:<regex> answers the first matching request with that status (the
     // browser's only; the retry asks the real site)
     if (process.env.HEALTH_FAKE) { const [st, re] = process.env.HEALTH_FAKE.split(/:(.*)/s); let once = false;
@@ -55,10 +57,32 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
     const look = await p.evaluate(() => {
       const app = document.getElementById('app'), text = app ? app.innerText.trim() : '';
       const broken = [...document.images].filter(i => i.complete && i.currentSrc && i.naturalWidth === 0).map(i => i.currentSrc.slice(-80));
-      const small = [...document.querySelectorAll('a,button,[role=button]')].filter(e => { const r = e.getBoundingClientRect(); return r.width && r.height && (r.width < 30 || r.height < 30) && getComputedStyle(e).visibility !== 'hidden'; }).length;
+      const small = 0;
       const noAlt = [...document.images].filter(i => !i.hasAttribute('alt')).length;
       return { text: text.length, notFound: /doesn't exist|couldn't be loaded/i.test(text), wide: document.documentElement.scrollWidth, broken, small, noAlt,
         title: document.title, h: !!document.querySelector('h1,h2') };
+    });
+    // tap targets, felt as a finger feels them: a touch anywhere in the 44x44 square round a control's centre (Apple's
+    // size; WCAG's floor is 24) must land on that control. Measured where it is, so invisible margins count and a
+    // neighbour on top doesn't. A link inside a sentence is exempt (WCAG 2.5.8's inline exception). Shows' details
+    // are opened first, so what is inside them is measured as a visitor meets it.
+    const tiny = await p.evaluate(async () => {
+      document.querySelectorAll('details').forEach(d => { d.open = true; });
+      await new Promise(r => setTimeout(r, 300));
+      const R = 21, out = [];
+      const inline = e => getComputedStyle(e).display === 'inline' && e.parentElement && (e.parentElement.innerText || '').length > (e.innerText || '').length + 12;
+      for (const e of document.querySelectorAll('a[href],button,summary,[role=button]')) {
+        if (!e.checkVisibility || !e.checkVisibility({ visibilityProperty: true, opacityProperty: true })) continue;
+        if (e.closest('.sky-stars,.sv,.maplibregl-canvas-container,[aria-hidden=true]') || inline(e)) continue;
+        let r = e.getBoundingClientRect(); if (!r.width || !r.height) continue;
+        e.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' }); r = e.getBoundingClientRect();
+        if (r.left < 0 || r.right > innerWidth) continue;             // (wider than the screen in a sideways row: reached by scrolling)
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        const miss = [[cx - R, cy], [cx + R, cy], [cx, cy - R], [cx, cy + R]].filter(([x, y]) => { const h = document.elementFromPoint(x, y); return !h || (h !== e && !e.contains(h)); });
+        if (miss.length) out.push(`"${(e.innerText || e.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 30)}" ${Math.round(r.width)}x${Math.round(r.height)} <${e.tagName.toLowerCase()}${e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).join('.') : ''} in .${(e.parentElement.className || e.parentElement.tagName).toString().split(' ')[0]}>`);
+      }
+      scrollTo(0, 0);
+      return [...new Set(out)];
     });
     await p.screenshot({ path: path.join(out, `${name.replace(/\W+/g, '-').toLowerCase()}.png`) });
     for (const [st, url] of retry) {
@@ -67,7 +91,7 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
       if (again >= 200 && again < 400) note(name, `the host answered ${st} once for ${url.slice(-60)}, then ${again}`);
       else bad.push([`${st}, again ${again || 'no answer'}`, url]);
     }
-    const row = { name, hash, ready_ms: ready, errors: errs, requests: bad, ...look };
+    const row = { name, hash, ready_ms: ready, errors: errs, requests: bad, tiny, ...look };
     report.pages.push(row);
     if (errs.length) fail(name, `script errors: ${errs.slice(0, 3).join(' | ')}`);
     if (bad.length) fail(name, `${bad.length} failed requests: ${bad.slice(0, 3).map(([w, u]) => `${w} ${u.slice(0, 160)}`).join(' | ')}`);
@@ -76,7 +100,7 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
     if (look.text < 30 || look.notFound) fail(name, look.notFound ? 'the page says it does not exist or could not load' : 'the page is empty');
     if (!look.h) note(name, 'no heading (h1/h2) for screen readers');
     if (ready > 5000) note(name, `took ${(ready / 1000).toFixed(1)} s to show its content`);
-    if (look.small) note(name, `${look.small} tap targets smaller than 30 px`);
+    if (tiny.length) fail(name, `${tiny.length} controls a finger can miss (under 44x44 to touch): ${tiny.slice(0, 6).join(', ')}`);
     if (look.noAlt) note(name, `${look.noAlt} images without alt text`);
     await ctx.close();
   }
