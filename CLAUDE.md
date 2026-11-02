@@ -68,6 +68,14 @@ GitHub secrets or the environment's settings. Report briefly, in Hebrew.
 and "Art map: places", or by hand); its copy step names every file, and a check fails it when the app loads one
 that wasn't copied. "Art map: exhibitions" daily (sites, newsletters, Makore; parts by hand: `mail`, `links`).
 "Art map: places" monthly. "Art map: newsletters" by hand (sign up, `only` to retry). "Studio spaces": 3D tours.
+"App health" (2.11, the owner asked for a stage that checks, fixes and improves by itself): after every publish and every
+3 days it runs `studio/app/health/health.cjs` (every kind of page as an iPhone, Home's speed, the 3D room, the way in),
+`check_home.cjs`, `check_app.py` and `health/deps.py` (libraries: vulnerabilities fail, updates are notes) on the live
+site, and opens/updates a GitHub issue labelled `app-health` when something is broken. A scheduled task on the owner's
+account ("Open Studio: app health (fix and improve)", trig_01LbviSYZUirMYn8dfiza3FB, nightly 03:41 Israel time) starts a
+fresh session that follows `studio/app/health/PLAYBOOK.md` (fix first with proof, one improvement per 3 days, never
+design/sign-in/data/secrets without the owner) and writes `studio/app/health/log.md`. Before calling a serious change
+done, run health.cjs locally (`http://localhost:8765/studio/app/`) as well.
 
 **The app now** — a new visitor signs up (`#/welcome`, `auth.js`): with email (a 6-digit code), then a details step
 (`#/welcome/details`: first and last name, age, country, gender), or with Google/Apple (the name comes from the account,
