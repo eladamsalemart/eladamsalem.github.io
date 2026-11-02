@@ -17,7 +17,7 @@ export function home(d) {
         ${d.legend ? `<ul class="legend" aria-label="What the marks mean">${d.legend.map(([k, t]) => `<li><i class="lg lg-${k}"></i>${t}</li>`).join('')}</ul>` : ''}</div>
       <div id="sky" class="skybox"></div>
       <div class="sky-ui"><span class="hint">${c.hint || 'Drag to turn · pinch to see further'}</span>
-        <button type="button" class="wander" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Wander</span></button></div>
+        ${d.wander === false ? '' : `<button type="button" class="wander" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Wander</span></button>`}</div>
       <div class="pick" hidden aria-live="polite"></div>
     </section>
 
@@ -65,8 +65,9 @@ export function home(d) {
       const w = pick.querySelector('[data-walk]'); if (w) w.onclick = () => enter();
     },
   });
+  window.__sky = S;                                        // for the checks
   const wb = app.querySelector('.wander');
-  wb.onclick = () => { const on = wb.getAttribute('aria-pressed') !== 'true'; wb.setAttribute('aria-pressed', on); wb.querySelector('span').textContent = on ? 'Done' : 'Wander'; S.wander(on); app.querySelector('.hero').classList.toggle('wandering', on); };
+  if (wb) wb.onclick = () => { const on = wb.getAttribute('aria-pressed') !== 'true'; wb.setAttribute('aria-pressed', on); wb.querySelector('span').textContent = on ? 'Done' : 'Wander'; S.wander(on); app.querySelector('.hero').classList.toggle('wandering', on); };
 
   // --- the room you can walk into, live on Home: the real 3D tour, turning slowly until you step inside ---
   const tour = app.querySelector('.tour'), frame = tour.querySelector('iframe');

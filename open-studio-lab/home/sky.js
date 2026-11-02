@@ -13,8 +13,9 @@ export function sky(el, o) {
   const ties = o.ties.filter(([a, b]) => by[a] && by[b]).map(([a, b, how]) => ({ a: by[a], b: by[b], how, bow: (rnd(hash(a + b)) - 0.5) * 2 }));
 
   const cam = { yaw: 0, pitch: 0, D: 520, tx: 0, ty: 0, tz: 0, ...o.cam };
-  const lim = { Dmin: 220, Dmax: 1500, pitch: 0.75, yaw: Infinity, ...o.limits };
+  const lim = { Dmin: 220, Dmax: 1500, pitch: 0.75, yaw: Infinity, pan: 420, ...o.limits };
   const goal = { yaw: cam.yaw, pitch: cam.pitch, D: cam.D, tx: 0, ty: 0, tz: 0 };
+  if (o.intro && !matchMedia('(prefers-reduced-motion: reduce)').matches) { cam.D *= o.intro; cam.yaw -= 0.25; }
   const F = o.F || 520;
   let swayT = 0, vyaw = 0, vpitch = 0, last = performance.now(), idleSince = 0, drawn = 0, born = performance.now();
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -55,7 +56,7 @@ export function sky(el, o) {
         else { swayT += dt / 60; cam.yaw += (Math.sin(swayT * 0.35) * lim.yaw * 0.45 - cam.yaw) * 0.01 * dt; }
       }
     }
-    cam.D += (goal.D - cam.D) * 0.12 * dt;
+    cam.D += (goal.D - cam.D) * (o.zoomEase ?? 0.12) * dt;
     for (const k of ['tx', 'ty', 'tz']) cam[k] += (goal[k] - cam[k]) * 0.07 * dt;
     if (lim.yaw !== Infinity && !drag) { const over = cam.yaw - clamp(cam.yaw, -lim.yaw, lim.yaw); if (over) { cam.yaw -= over * 0.12 * dt; vyaw *= 0.6; } }
     if (lim.yaw !== Infinity && drag) cam.yaw = clamp(cam.yaw, -lim.yaw * 1.25, lim.yaw * 1.25);
@@ -98,19 +99,24 @@ export function sky(el, o) {
 
   // --- gestures ---
   let drag = false, track = false, focus = null, focusNear = new Set(), raf = 0, running = false;
-  const pts = new Map(); let start = null, pinch0 = 0, D0 = cam.D, moved = 0;
+  const pts = new Map(); let mid0 = null, lastTap = 0, start = null, pinch0 = 0, D0 = cam.D, moved = 0;
   const full = () => el.classList.contains('full');
   el.style.touchAction = 'pan-y';
   el.addEventListener('pointerdown', e => {
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pts.size === 1) { start = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.target.closest('.star')?.dataset.id }; moved = 0; drag = true; vyaw = vpitch = 0; track = false; }
-    if (pts.size === 2) { const [p, q] = [...pts.values()]; pinch0 = Math.hypot(p.x - q.x, p.y - q.y); D0 = goal.D; }
+    if (pts.size === 2) { const [p, q] = [...pts.values()]; pinch0 = Math.hypot(p.x - q.x, p.y - q.y); D0 = goal.D; mid0 = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2, tx: goal.tx, ty: goal.ty }; track = false; }
     try { el.setPointerCapture(e.pointerId); } catch {}
   });
   el.addEventListener('pointermove', e => {
     const p = pts.get(e.pointerId); if (!p) return;
     const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; moved += Math.abs(dx) + Math.abs(dy);
-    if (pts.size === 2) { const [a, b] = [...pts.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch0) goal.D = clamp(D0 * pinch0 / d, lim.Dmin, lim.Dmax); return; }
+    if (pts.size === 2) {
+      const [a, b] = [...pts.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch0) goal.D = clamp(D0 * pinch0 / d, lim.Dmin, lim.Dmax);
+      if (mid0) { const k = F / goal.D * (W / 390), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        goal.tx = clamp(mid0.tx - (mx - mid0.x) / k, -lim.pan, lim.pan); goal.ty = clamp(mid0.ty - (my - mid0.y) / k, -lim.pan * 1.4, lim.pan * 1.4); }
+      return;
+    }
     const turn = (o.turn ?? 0.0062);
     cam.yaw += dx * turn; vyaw = dx * turn * 0.9;
     if (full() || o.pitchAlways) { cam.pitch -= dy * turn * 0.8; vpitch = -dy * turn * 0.7; }
@@ -120,10 +126,16 @@ export function sky(el, o) {
     pts.delete(e.pointerId);
     if (pts.size === 0) {
       drag = false; idleSince = performance.now();
-      if (start && moved < 10 && performance.now() - start.t < 450 && start.id) choose(by[start.id]);
+      const tap = start && moved < 10 && performance.now() - start.t < 450;
+      if (tap && start.id) choose(by[start.id]);
+      else if (tap && o.doubleTap !== false) {
+        const now = performance.now();
+        if (now - lastTap < 420) { const home = o.cam?.D ?? 520; goal.D = goal.D > home * 1.2 ? home : home * (o.farZoom ?? 1.9); goal.tx = goal.ty = 0; lastTap = 0; o.onChoose && o.onChoose(null); focus = null; for (const x of stars) x.el.classList.remove('on'); }
+        else lastTap = now;
+      }
       start = null;
     }
-    if (pts.size < 2) pinch0 = 0;
+    if (pts.size < 2) { pinch0 = 0; mid0 = null; }
   };
   for (const g of ['gesturestart', 'gesturechange']) el.addEventListener(g, e => e.preventDefault());   // Safari's own pinch would zoom the page
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', e => { pts.delete(e.pointerId); if (!pts.size) { drag = false; start = null; } });

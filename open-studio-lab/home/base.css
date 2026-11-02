@@ -7,7 +7,7 @@ body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.5 var(--sans
 a{color:inherit}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:6px}
-#app{max-width:520px;margin:0 auto;padding-bottom:calc(84px + env(safe-area-inset-bottom));position:relative}
+#app{max-width:520px;margin:0 auto;overflow-x:clip;padding-bottom:calc(84px + env(safe-area-inset-bottom));position:relative}
 .hand{font-family:var(--hand);color:var(--hand-ink);font-size:var(--hand-size,20px);line-height:1.15;font-weight:var(--hand-weight,500)}
 
 /* header floats over the sky */

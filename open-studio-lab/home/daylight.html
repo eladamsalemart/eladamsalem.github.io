@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>שמי יום, ביד · Open Studio</title>
+<meta name="theme-color" content="#F5F3FA">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500&family=IBM+Plex+Sans+Hebrew:wght@400;500;600&family=Reenie+Beanie&display=swap">
+<style>
+:root{--bg:#F5F3FA;--panel:#FFFFFF;--ink:#262A4F;--soft:#5D6086;--line:#DEDBEC;--pencil:#4A4E7E;
+  --a:#F5B3C4;--b:#AEDCC4;--c:#C8BEF3;--d:#FADB8E;
+  --display:"Frank Ruhl Libre",Georgia,serif;--body:"IBM Plex Sans Hebrew",system-ui,sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 var(--body);-webkit-font-smoothing:antialiased}
+::selection{background:var(--a)}
+main{max-width:1180px;margin:0 auto;padding:40px max(18px,env(safe-area-inset-right)) 72px max(18px,env(safe-area-inset-left))}
+h1{font:500 clamp(36px,6vw,58px)/1.05 var(--display);margin:0}
+h1+.hand{margin-top:6px}
+.hand{font-family:"Reenie Beanie",cursive;color:var(--pencil);font-size:28px;line-height:1;direction:ltr;unicode-bidi:isolate}
+.intro{max-width:66ch;color:var(--soft);font-size:17px;margin:16px 0 0}
+.how{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0;padding:0;list-style:none}
+.how li{font-size:14px;padding:7px 13px;border-radius:999px;background:var(--panel);border:1px solid var(--line)}
+.how b{font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:20px;display:grid;gap:14px;min-width:0;border-top:8px solid var(--c)}
+.main{margin-top:32px}
+.phones{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:10px}
+.phones figure{margin:0;display:grid;gap:6px;justify-items:center}
+.phones img{width:100%;height:auto;border-radius:18px;border:6px solid #1d1d22;display:block;background:#eee}
+.phones figcaption{font-size:12.5px;color:var(--soft);text-align:center}
+.card h2{font:500 32px/1.1 var(--display);margin:4px 0 0}
+.card h2 span{font:500 14px var(--body);color:var(--soft);margin-inline-start:8px}
+.idea{margin:0;font-size:16.5px;max-width:70ch}
+.card h3{font-size:13.5px;font-weight:600;color:var(--soft);margin:2px 0 -6px}
+.card ul{margin:0;padding-inline-start:18px;display:grid;gap:3px;font-size:15px}
+.open{justify-self:start;display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border-radius:999px;background:var(--ink);color:#fff;text-decoration:none;font-weight:600}
+.open:focus-visible{outline:2px solid var(--pencil);outline-offset:3px}
+.sub{font:500 30px/1.15 var(--display);margin:52px 0 6px}
+.subp{color:var(--soft);margin:0 0 20px;max-width:66ch}
+.vars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+@media (max-width:980px){.vars{grid-template-columns:minmax(0,1fr)}.main .phones{--n:2}}
+.pick{margin-top:44px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:860px}
+.pick h2{font:500 28px/1.15 var(--display);margin:0 0 8px}
+.pick p{margin:0 0 10px}
+.note{color:var(--soft);font-size:14px;margin-top:26px;max-width:72ch}
+@page{size:A4;margin:12mm 12mm 14mm}
+@media print{body{background:#fff;font-size:12.5px}main{padding:0;max-width:none}h1{font-size:34px}.intro{font-size:13.5px}.how li{font-size:11.5px;padding:4px 10px}
+  .main{break-inside:avoid}.main .phones{--n:4}.vars{grid-template-columns:minmax(0,1fr);gap:0}.vars .card{break-before:page;break-inside:avoid}.vars .phones{width:80%;margin:0 auto}
+  .sub{break-before:page;margin-top:0}.pick{break-inside:avoid}.card ul{font-size:13px}.idea{font-size:14px}.open{min-height:34px;font-size:13px;padding:0 16px}}
+</style>
+</head>
+<body>
+<main>
+  <h1>שמי יום, ביד</h1>
+  <p class="hand">your sky, drawn over in pencil</p>
+  <p class="intro">חיברתי בין שמי יום לנייר שקוף: השמיים בפסטל שמשתנים לפי השעה, הכוכבים בצבע של מה שהם, ועליהם היד של מחברת הסקיצות. קווי עיפרון בין הכוכבים, עיגולי עיפרון סביב המקומות שהיית בהם לאחרונה, כתמי צבעי מים מאחורי כל כוכב, וכל ההערות בכתב עיפרון. בלי Wander: הכול קורה בעמוד הבית עצמו.</p>
+  <ul class="how" aria-label="איך זה זז">
+    <li><b>גרירה הצידה</b> מסובבת את השמיים</li><li><b>צביטה</b> מתקרבת או מתרחקת</li><li><b>שתי אצבעות</b> מזיזות את השמיים הצידה</li><li><b>הקשה כפולה</b> מתרחקת אל הכוכבים הרחוקים, ועוד אחת חוזרת</li><li><b>לחיצה על כוכב</b> פותחת אותו</li>
+  </ul>
+  <p class="subp" style="margin-top:12px">בכניסה לעמוד השמיים נכנסים לאט מרחוק, כדי שיהיה ברור שיש עוד כוכבים מסביב.</p>
+
+  <article class="card main" style="--c:var(--a)" aria-labelledby="m">
+    <div class="phones" style="--n:4"><figure><img src="shots/day-sky.jpg" alt="השמיים" width="585" height="1266"><figcaption>השמיים</figcaption></figure><figure><img src="shots/day-far.jpg" alt="מתרחקים" width="585" height="1266"><figcaption>מתרחקים: מי שעוד לא פגשת</figcaption></figure><figure><img src="shots/day-pick.jpg" alt="לחיצה על כוכב" width="585" height="1266"><figcaption>לחיצה על כוכב</figcaption></figure><figure><img src="shots/day-tour.jpg" alt="הסיור" width="585" height="1266"><figcaption>הסיור, בקשת מעופרנת</figcaption></figure></div>
+    <h2 id="m">שמי יום, ביד <span>Daylight, by hand</span></h2>
+    <p class="idea">הבסיס שבחרת. מה שלקחתי מכל אחד:</p>
+    <ul><li><b>משמי יום:</b> השמיים לפי השעה, הכוכבים הרחוקים באובך, הקווים שנמשכים מעצמם, הצבע לפי סוג הכוכב, וקשת הסיור</li><li><b>מנייר שקוף:</b> העיפרון בקווים ובעיגולים, כתמי צבעי המים, כתב העיפרון, וה-"you" המוקף בקו יד</li><li><b>גם מתחת לשמיים:</b> קו עיפרון מתחת לכל כותרת, קשת מעופרנת סביב הסיור, כתמי צבע מאחורי האמנים, וקווים מקווקווים</li></ul>
+    <a class="open" href="day.html">לפתוח את שמי יום, ביד</a>
+  </article>
+
+  <h2 class="sub">שלושה כיוונים לעיצוב הזה</h2>
+  <p class="subp">אותו בית ואותה תנועה. כל כיוון מזיז את המשקל: יותר רישום, יותר צבע, או חומר.</p>
+  <div class="vars">
+    <article class="card" style="--c:#9EA0B8" aria-labelledby="v1">
+      <div class="phones"><figure><img src="shots/day-graphite-sky.jpg" alt="עיפרון: השמיים" loading="lazy" width="585" height="1266"><figcaption>השמיים</figcaption></figure><figure><img src="shots/day-graphite-far.jpg" alt="עיפרון: מתרחקים" loading="lazy" width="585" height="1266"><figcaption>מתרחקים</figcaption></figure><figure><img src="shots/day-graphite-artists.jpg" alt="עיפרון: האמנים" loading="lazy" width="585" height="1266"><figcaption>מתחת</figcaption></figure></div>
+      <h2 id="v1">עיפרון <span>Graphite</span></h2>
+      <p class="idea">יותר רישום, פחות צבע. השמיים מחווירים לדף עם אופק בפסטל, וכל כוכב מוקף בקווקוו עיפרון.</p>
+      <ul><li>השמות עצמם כתובים ביד, וליד כל הערה חץ קטן שמצביע על הכוכב</li><li>הצבע נשאר בעבודות ובנקודת צבע קטנה ליד כל כוכב</li><li>הכותרות בעמוד בכתב יד</li></ul>
+      <a class="open" href="day-graphite.html">לפתוח את עיפרון</a>
+    </article>
+    <article class="card" style="--c:#F5B3C4" aria-labelledby="v2">
+      <div class="phones"><figure><img src="shots/day-watercolour-sky.jpg" alt="צבעי מים: השמיים" loading="lazy" width="585" height="1266"><figcaption>השמיים</figcaption></figure><figure><img src="shots/day-watercolour-far.jpg" alt="צבעי מים: מתרחקים" loading="lazy" width="585" height="1266"><figcaption>מתרחקים</figcaption></figure><figure><img src="shots/day-watercolour-artists.jpg" alt="צבעי מים: האמנים" loading="lazy" width="585" height="1266"><figcaption>מתחת</figcaption></figure></div>
+      <h2 id="v2">צבעי מים <span>Watercolour</span></h2>
+      <p class="idea">יותר צבע. השמיים הם לא מעבר צבע אלא דף שצויר בכתמים רטובים בפסטל שנוזלים זה לתוך זה, וכל כוכב יושב בשלולית של הצבע שלו.</p>
+      <ul><li>הקווים בעט דיו דק, וההערות בכתב דיו</li><li>מתחת לשמיים: כתם צבע מאחורי כל כותרת, מאחורי האמנים ומאחורי הסיור</li><li>הכי צבעוני ושמח</li></ul>
+      <a class="open" href="day-watercolour.html">לפתוח את צבעי מים</a>
+    </article>
+    <article class="card" style="--c:#C8BEF3" aria-labelledby="v3">
+      <div class="phones"><figure><img src="shots/day-paper-sky.jpg" alt="גזרי נייר: השמיים" loading="lazy" width="585" height="1266"><figcaption>השמיים</figcaption></figure><figure><img src="shots/day-paper-far.jpg" alt="גזרי נייר: מתרחקים" loading="lazy" width="585" height="1266"><figcaption>מתרחקים</figcaption></figure><figure><img src="shots/day-paper-artists.jpg" alt="גזרי נייר: האמנים" loading="lazy" width="585" height="1266"><figcaption>מתחת</figcaption></figure></div>
+      <h2 id="v3">גזרי נייר <span>Cut paper</span></h2>
+      <p class="idea">חומר. אותם שמיים, עשויים במספריים: כל כוכב הוא פיסת נייר בפסטל שנגזרה ביד ומונחת על השמיים עם צל קטן משלה.</p>
+      <ul><li>הקווים תפורים כמו חוט, ולמטה גבעות נייר ועננים</li><li>ההערות נשארות בעיפרון</li><li>מתחת לשמיים, העבודות מודבקות בפיסות נייר עקומות קצת</li></ul>
+      <a class="open" href="day-paper.html">לפתוח את גזרי נייר</a>
+    </article>
+  </div>
+
+  <section class="pick" aria-labelledby="pk">
+    <h2 id="pk">מה הייתי בוחר</h2>
+    <p>את שמי יום, ביד, כמו שהוא, עם הצבע של צבעי מים בשמיים. ככה העיפרון שומר על האינטימיות, והשמיים מקבלים את הצבע ששמח אותך.</p>
+    <p>עיפרון מתאים אם תרצה שהיד תהיה הדבר הראשון שרואים. גזרי נייר הכי שובר תבנית, אבל גם הכי רחוק מהשקט של השמיים.</p>
+    <p class="hand">open them on your phone and tell me which one feels like home</p>
+  </section>
+  <p class="note">הקישור לסבב הקודם, עם ארבעת הכיוונים, נשאר <a href="./">כאן</a>. אחרי שתבחר אדייק את הכיוון, אשליך אותו על כל האפליקציה ואעלה ל-Figma.</p>
+</main>
+</body>
+</html>
