@@ -19,22 +19,20 @@ const MODES = { foot: { label: 'Walk', path: 'routed-foot' }, bike: { label: 'Cy
 const FOLLOW_KEY = 'os-follow-places';
 const DAY = 864e5;
 
+// MapLibre GL 6 (vendor/maplibre: the module and its worker, which it finds beside itself), loaded once, when a map is
+// first shown. (4.7 had a critical hole, GHSA-jrc7-96c5-q579, found by the App health check: 6.4.1 fixed it.)
 let lib = null;
 function loadLib() {
-  if (window.maplibregl) return Promise.resolve(window.maplibregl);
-  lib = lib || new Promise((ok, no) => {
+  lib = lib || (() => {
     const css = document.createElement('link');
     css.rel = 'stylesheet'; css.href = 'vendor/maplibre/maplibre-gl.css';
     document.head.append(css);
-    const s = document.createElement('script');
-    s.src = 'vendor/maplibre/maplibre-gl.js';
-    s.onload = () => {
-      try { window.maplibregl.setRTLTextPlugin(new URL('vendor/maplibre/mapbox-gl-rtl-text.js', location.href).href, true).catch(() => {}); } catch {}
-      ok(window.maplibregl);
-    };
-    s.onerror = no;
-    document.head.append(s);
-  });
+    return import('./vendor/maplibre/maplibre-gl.mjs').then(gl => {
+      try { gl.setRTLTextPlugin(new URL('vendor/maplibre/mapbox-gl-rtl-text.js', location.href).href, true).catch(() => {}); } catch {}
+      window.maplibregl = gl;                                  // (for the checks)
+      return gl;
+    });
+  })();
   return lib;
 }
 
@@ -625,7 +623,8 @@ export async function mountArtMap(root, ctx) {
       lastPaintAt = live.at;
       const name = areaName();
       if (first || name !== area) { area = name; paint(); } else { const box = sheet.querySelector('.am-live'); if (box) { box.innerHTML = around(); wireSheet(); } }
-      if (first && map) map.once('idle', () => { const n = areaName(); if (n && n !== area && !trip && !sel) { area = n; paint(); } });
+      // the name is the nearest of the place names the map has loaded so far: each time it has loaded more, look again
+      if (first && map) map.on('idle', () => { if (!root.isConnected || trip || sel) return; const n = areaName(); if (n && n !== area) { area = n; paint(); } });
     }
   }
   function onFixError(e) {
