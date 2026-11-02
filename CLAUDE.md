@@ -72,8 +72,9 @@ that wasn't copied. "Art map: exhibitions" daily (sites, newsletters, Makore; pa
 3 days it runs `studio/app/health/health.cjs` (every kind of page as an iPhone, Home's speed, the 3D room, the way in),
 `check_home.cjs`, `check_app.py` and `health/deps.py` (libraries: vulnerabilities fail, updates are notes) on the live
 site, and opens/updates a GitHub issue labelled `app-health` when something is broken. A scheduled task on the owner's
-account ("Open Studio: app health (fix and improve)", trig_01LbviSYZUirMYn8dfiza3FB, nightly 03:41 Israel time) starts a
-fresh session that follows `studio/app/health/PLAYBOOK.md` (fix first with proof, one improvement per 3 days, never
+account ("Open Studio: app health (fix and improve)", trig_014jaVdgnMaAojFCVD8RpH9b, nightly 03:41 Israel time) wakes a
+dedicated session, "Open Studio: app health (nightly)" (session_01BXFf6NoJoP75DyP8nDWCci, opened with the repository
+attached so it can push: a session the task starts fresh each time gets a read-only copy and can't), which follows `studio/app/health/PLAYBOOK.md` (fix first with proof, one improvement per 3 days, never
 design/sign-in/data/secrets without the owner) and writes `studio/app/health/log.md`. Before calling a serious change
 done, run health.cjs locally (`http://localhost:8765/studio/app/`) as well.
 
