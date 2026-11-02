@@ -28,6 +28,10 @@ const base = (process.argv[2] || 'http://localhost:8765/studio/app/').replace(/\
   try { await p.waitForFunction(() => { const v = document.querySelector('.hs .tour video'); return v && !v.paused && v.readyState >= 3 && v.videoWidth; }, null, { timeout: 30000 }); }
   catch { bad.push("the room's film never played on Home"); }
   const film = await p.evaluate(() => { const v = document.querySelector('.hs .tour video'); return v ? { w: v.videoWidth, h: v.videoHeight, src: v.currentSrc.split('/').pop() } : null; });
+  // the film is the picture from the first moment (its poster is its first frame): faded in over another picture, it
+  // showed a ghost of the one in the other
+  const fade = await p.evaluate(() => { const v = document.querySelector('.hs .tour video'); if (!v) return null; const cs = getComputedStyle(v); return cs.transitionDuration !== '0s' && cs.transitionProperty.includes('opacity') ? cs.transitionDuration : (v.poster ? null : 'no poster'); });
+  if (fade) bad.push(`the room's film fades in over the photo (${fade}): a ghost of one picture in the other`);
   if (film && film.w && film.w < 1000) bad.push(`the room's film is ${film.w}px wide (${film.src}): soft on a phone`);
   const got = await p.evaluate(() => ({
     stars: document.querySelectorAll('.hs .star').length, sky: !!document.querySelector('.hs canvas.sky-g'),

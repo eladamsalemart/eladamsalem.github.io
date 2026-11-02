@@ -47,8 +47,8 @@ def warp_maker(wide, vfov_wide):
     return frame, covered
 
 
-def angle(n):
-    return SWING * math.sin(2 * math.pi * n / (FPS * SECONDS))
+def angle(n):                                      # from rest at one end, easing across and back: it opens almost still
+    return SWING * math.cos(2 * math.pi * n / (FPS * SECONDS))
 
 
 def main(src, vfov_wide, out):
