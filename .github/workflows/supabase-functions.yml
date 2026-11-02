@@ -29,5 +29,5 @@ jobs:
         run: |
           for d in supabase/functions/*/; do
             n=$(basename "$d"); echo "deploying $n"
-            supabase functions deploy "$n" --project-ref hlpzqeosdavfuzjgpwhy --use-api
+            supabase functions deploy "$n" --project-ref hlpzqeosdavfuzjgpwhy --use-api --yes
           done
