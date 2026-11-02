@@ -388,7 +388,8 @@ async function mountHome(root) {
   fillNear(root.querySelector('#hsNear'));
 }
 
-// the room you can walk into, on Home: a short film of it turning (made from the room itself, space/preview.cjs), played
+// the room you can walk into, on Home: a short film of it turning (shown from the start as its own first frame, the
+// poster: never faded in over the show's photo, which made a ghost of the one in the other) (made from the room itself, space/preview.cjs), played
 // only while it is on screen; "Step inside" opens the real room. (A live room in a frame here made Home slow on a phone.)
 // the arch drawn round the room, in pencil, twice, not quite on its line
 function sketchArch(tour) {
