@@ -1,6 +1,7 @@
 // The app's health, as a phone sees it: every kind of page opened as an iPhone would, and looked at.
 //   node studio/app/health/health.cjs <app url> <out dir>        e.g. https://eladamsalem.com/open-studio/ /tmp/health
 // Writes <out>/report.json, <out>/report.md and a screenshot of each page; exits 1 when something is broken.
+// HEALTH_FAKE=503:<regex> (or 404:...) answers the first matching request falsely, to prove a check catches it.
 // A FAIL is a bug a visitor meets (a script error, a request that fails, a broken image, a page wider than the phone,
 // an empty or "doesn't exist" page, the 3D room not opening, Home too slow to move). A NOTE is worth improving.
 // Runs after every publish and every few days ("App health" workflow); the scheduled Claude session reads it.
@@ -31,11 +32,18 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
 
   for (const [name, hash] of PAGES) {
     const ctx = await b.newContext(phone), p = await ctx.newPage(), errs = [], bad = [];
+    // to prove the check: HEALTH_FAKE=<status>:<regex> answers the first matching request with that status (the
+    // browser's only; the retry asks the real site)
+    if (process.env.HEALTH_FAKE) { const [st, re] = process.env.HEALTH_FAKE.split(/:(.*)/s); let once = false;
+      await ctx.route(new RegExp(re), r => { if (once) return r.continue(); once = true; r.fulfill({ status: +st, body: 'fake' }); }); }
     p.on('pageerror', e => errs.push(e.message));
     p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errs.push(m.text().slice(0, 300)); });
-    p.on('requestfailed', r => { const f = r.failure() && r.failure().errorText; if (!benign(r.url(), f)) bad.push(`${f} ${r.url().slice(0, 160)}`); });
+    p.on('requestfailed', r => { const f = r.failure() && r.failure().errorText; if (!benign(r.url(), f)) bad.push([f, r.url()]); });
     // (data/thumbs.json is written when the app is published: a run on the code itself, before publishing, has none)
-    p.on('response', r => { if (r.status() >= 400 && !/tiles\.openfreemap\.org/.test(r.url()) && !(LOCAL && /data\/thumbs\.json$/.test(r.url()))) bad.push(`${r.status()} ${r.url().slice(0, 160)}`); });
+    // a server error (5xx) is asked again a few seconds later: one that answers then is the host's hiccup (a note), one
+    // that doesn't is broken. Anything else that fails (404 and the like) is broken at once.
+    const retry = [];
+    p.on('response', r => { if (r.status() >= 400 && !/tiles\.openfreemap\.org/.test(r.url()) && !(LOCAL && /data\/thumbs\.json$/.test(r.url()))) (r.status() >= 500 ? retry : bad).push([r.status(), r.url()]); });
     const t0 = Date.now();
     await p.goto(`${base}?guest${hash}`, { waitUntil: 'load', timeout: 60000 }).catch(e => errs.push('did not load: ' + e.message));
     await p.waitForFunction(() => { const a = document.getElementById('app'); return a && a.innerText.trim().length > 30 && !/^Loading/.test(a.innerText.trim()); }, null, { timeout: 30000 }).catch(() => {});
@@ -53,10 +61,16 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
         title: document.title, h: !!document.querySelector('h1,h2') };
     });
     await p.screenshot({ path: path.join(out, `${name.replace(/\W+/g, '-').toLowerCase()}.png`) });
+    for (const [st, url] of retry) {
+      await new Promise(r => setTimeout(r, 4000));
+      const again = await fetch(url, { headers: { Range: 'bytes=0-1023' } }).then(r => r.status).catch(() => 0);
+      if (again >= 200 && again < 400) note(name, `the host answered ${st} once for ${url.slice(-60)}, then ${again}`);
+      else bad.push([`${st}, again ${again || 'no answer'}`, url]);
+    }
     const row = { name, hash, ready_ms: ready, errors: errs, requests: bad, ...look };
     report.pages.push(row);
     if (errs.length) fail(name, `script errors: ${errs.slice(0, 3).join(' | ')}`);
-    if (bad.length) fail(name, `${bad.length} failed requests: ${bad.slice(0, 3).join(' | ')}`);
+    if (bad.length) fail(name, `${bad.length} failed requests: ${bad.slice(0, 3).map(([w, u]) => `${w} ${u.slice(0, 160)}`).join(' | ')}`);
     if (look.broken.length) fail(name, `${look.broken.length} broken images: ${look.broken.slice(0, 3).join(', ')}`);
     if (look.wide > 391) fail(name, `the page is ${look.wide}px wide on a 390px phone`);
     if (look.text < 30 || look.notFound) fail(name, look.notFound ? 'the page says it does not exist or could not load' : 'the page is empty');

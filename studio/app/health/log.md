@@ -2,6 +2,17 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-02 (evening): the stage's own two faults, fixed
+
+- Run #2 closed issue #1 with "All checks pass again" and an empty report: its browser had not installed, so
+  nothing was checked. The workflow now treats "could not run" as broken (it comments, never closes).
+- Run #3 found everything clean but one request: the room's film answered 503 once, right after the publish; it
+  answers 200 every time since. A server error is now asked again a few seconds later: a hiccup becomes a note, an
+  error that stays is broken; a 404 is broken at once. Proven with HEALTH_FAKE (503 once on the film: a note; 404:
+  broken; on a script: broken, since the page really breaks).
+- The browser workflows run on Ubuntu 24.04: GitHub's runners moved to 26.04, where playwright 1.56.1 can't
+  install (the publish check stopped a publish there; nothing broken reached the site).
+
 ## 2026-11-02 (later): the first issue, fixed
 
 - The first server run of "App health" opened issue #1: two known vulnerabilities, which the local run had missed
