@@ -39,6 +39,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   if (matchMedia('(pointer: fine)').matches) $('.sv-hint').innerHTML = 'Drag to look around<br>W A S D or arrows to walk · Click the floor to go there';
 
   let dirty = true;                                               // something changed: draw the next frame
+  let ibrReady = () => true;                                   // (every photo in place: for the inspection)
   let ibrChoose = null, ibrNear = null, ibrLeaveOut = null;                           // with many photos (a video's frames): pick the nearest
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -87,12 +88,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     g.computeVertexNormals();
     return new THREE.Mesh(g, material);
   }
-  function openingPath(o, path) {
+  // lo: where its foot is (an opening's inside starts under the floor, or its bottom lies on the floor as a band)
+  function openingPath(o, path, lo = 0) {
     // an arch: half an ellipse as wide as the opening, rising as measured (a semicircle when not measured)
     const hw = (o.to - o.from) / 2, r = o.arch ? Math.min(o.rise || hw, o.height - 0.5) : 0;
-    path.moveTo(o.from, 0); path.lineTo(o.to, 0); path.lineTo(o.to, o.height - r);
+    path.moveTo(o.from, lo); path.lineTo(o.to, lo); path.lineTo(o.to, o.height - r);
     if (o.arch) path.absellipse(o.from + hw, o.height - r, hw, r, 0, Math.PI, false); else path.lineTo(o.from, o.height);
-    path.lineTo(o.from, 0); return path;
+    path.lineTo(o.from, lo); return path;
   }
 
   const floorS = surfaces.find(s => s.kind === 'floor');
@@ -116,7 +118,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const bottom = O.clone().addScaledVector(V(s.v), s.size[1]);  // the wall's foot at u = 0
     if (o.arch || !surfaces.some(x => x.kind === 'reveal')) {
       // an arch's curved inside (or, in older spaces, any opening's sides): modelled, in the room's plaster
-      const geo = new THREE.ExtrudeGeometry(openingPath(o, new THREE.Shape()), { depth, bevelEnabled: false, curveSegments: 48 });
+      const geo = new THREE.ExtrudeGeometry(openingPath(o, new THREE.Shape(), -0.05), { depth, bevelEnabled: false, curveSegments: 48 });
       const basis = new THREE.Matrix4().makeBasis(U, new THREE.Vector3(0, 1, 0), N.clone().negate());
       let side;
       if (plasterTex) {
@@ -169,7 +171,15 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       const fm = bottom.clone().addScaledVector(U, (u0 + u1) / 2).addScaledVector(N, lap - run / 2);
       const fw0 = w + 0.1;                                          // and under its side walls
       const fw = Math.abs(U.x) * fw0 + Math.abs(N.x) * run, fl = Math.abs(U.z) * fw0 + Math.abs(N.z) * run;
-      const f = new THREE.Mesh(new THREE.PlaneGeometry(fw, fl), floorMaterial(fw, fl, false));
+      // with the room's own light on it where it meets the room (the light at the room's edge, carried on), so
+      // the floor doesn't change tone at the threshold
+      const fg = new THREE.PlaneGeometry(fw, fl), fp = fg.attributes.position, uv1 = [];
+      for (let i = 0; i < fp.count; i++) {
+        const wx = fm.x + fp.getX(i), wz = fm.z - fp.getY(i);           // (the plane is turned flat below)
+        uv1.push(Math.min(1, Math.max(0, (wx - R.x0) / (R.x1 - R.x0))), Math.min(1, Math.max(0, 1 - (wz - R.z0) / (R.z1 - R.z0))));
+      }
+      fg.setAttribute('uv1', new THREE.Float32BufferAttribute(uv1, 2));
+      const f = new THREE.Mesh(fg, floorMaterial(fw, fl));
       f.rotation.x = -Math.PI / 2; f.position.copy(fm).setY(-0.001); f.userData.kind = 'floor'; scene.add(f);
     }
   }
@@ -181,7 +191,6 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     if (tile) { tile.wrapS = tile.wrapT = THREE.RepeatWrapping; tile.repeat.set(w / (floorS.tile || 1), l / (floorS.tile || 1)); tile.needsUpdate = true; }
     const c = floorS.color || [140, 120, 100];
     const m = room(new THREE.MeshBasicMaterial({ map: tile, color: tile ? 0xffffff : new THREE.Color(`rgb(${c.join(',')})`), toneMapped: false }));
-    m.userData.photosAlways = withLight;                // the room's floor: always the photos' (its grain, its reflections)
     if (withLight && lights[i]) { m.lightMap = lights[i]; m.lightMapIntensity = Math.PI * (floorS.lightScale || 1); }
     return m;
   }
@@ -315,15 +324,35 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     });
   }
 
-  const pieces = [], pendingFull = [];
-  const inspecting = new URLSearchParams(location.search).has('inspect');
-  let upgrading = false, opened = performance.now();
+  // (the inspection's phone pass, ?phone=1: opened as a visitor's phone opens it, light images first)
+  const inspecting = new URLSearchParams(location.search).has('inspect') && !new URLSearchParams(location.search).has('phone');
+  const pieces = [], pendingFull = [], failed = [];
+  const loadRetry = async urls => {
+    for (const u of urls.filter(Boolean)) for (let k = 0; k < 3; k++) {
+      const t = await loadTex(u); if (t) return t;
+      await new Promise(r => setTimeout(r, 600 * (k + 1)));
+    }
+    return null;
+  };
+  const plainTex = () => { const t = new THREE.DataTexture(new Uint8Array([214, 207, 194, 255]), 1, 1); t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; return t; };
+  // the phone's memory for images is small (a few hundred MB for the whole page, on an iPhone): what the room
+  // keeps in it is held to a budget
+  const PHONE = matchMedia('(pointer: coarse)').matches && !inspecting;   // (true in the phone pass too)
+  const FULL_AT_ONCE = PHONE ? 2 : 4;
+  let upgrading = false, opened = performance.now(), nextFull = 0;
+  function setFront(f, t) {
+    f.front.emissiveMap = t; if (f.front.map) f.front.map = t; f.front.needsUpdate = true; dirty = true;
+    for (const e of f.edges || []) e.material.uniforms.img.value = t;
+  }
   await Promise.all((spec.works || []).map(async (h, order) => {
     const w = works.find(x => x.title.toLowerCase() === h.work.toLowerCase()) || { title: h.work, image: h.image, artist: { name: '' }, year: '', medium: '' };
     // a light image first, so the room opens quickly on a phone (the inspection sees the full one at once)
     const first = !inspecting && h.imageSmall ? h.imageSmall : h.image;
-    const [tex, light] = await Promise.all([loadTex(first), loadTex(h.light, false)]);
-    if (!tex) return;
+    // a work is never left out of the room: a failed download is tried again, then the other size, and
+    // until one arrives the canvas shows a plain tone (and keeps trying in the background)
+    const [got, light] = await Promise.all([loadRetry([first, first === h.image ? h.imageSmall : h.image]), loadTex(h.light, false)]);
+    const tex = got || plainTex();
+    if (!got) failed.push(h.work);
     tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
     const wM = h.measured[0] / 100, hM = h.measured[1] / 100, dM = h.depth || 0.035;
     const X = V(h.axes[0]), Y = V(h.axes[1]), Z = V(h.axes[2]);
@@ -334,7 +363,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     g.matrix.makeBasis(X, Y, Z).setPosition(c);
     // front: no diffuse light of its own (that is the measured light), only a faint varnish sheen from the spots
     const front = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: tex, roughness: 0.42, metalness: 0, toneMapped: false });
-    front.normalMap = reliefFrom(tex.image); front.normalScale.set(0.2, 0.2);
+    if (got) { front.normalMap = reliefFrom(tex.image); front.normalScale.set(0.2, 0.2); }
     // up close (more than one screen pixel to each pixel of the image) the image's own detail is brought out
     // a little, as the eye sees paint up close: a gentle sharpening of what is there, nothing added. And the
     // measured light, when there is one.
@@ -360,7 +389,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     // a larger image of the work, when there is one, is loaded once a visitor comes close enough to see it
     // then the full image, once a visitor nears the work (or the room has been open a few seconds), and the
     // artist's full-resolution upload, when there is one, only up close
-    const urls = [...(first !== h.image ? [[h.image, Math.max(5, 3 * Math.max(wM, hM))]] : []), ...(h.imageFull ? [[h.imageFull, Math.max(1.6, 1.2 * Math.max(wM, hM))]] : [])];
+    // (only for the few works nearest the visitor at a time: a phone has room for a handful of full images,
+    // not for every work's; walking away, a work goes back to its light image)
+    const full = !got ? first : h.imageFull || (first !== h.image ? h.image : null);
+    const reach = h.imageFull ? Math.max(1.6, 1.2 * Math.max(wM, hM)) : Math.max(5, 3 * Math.max(wM, hM));
     const back = sideMat('#4a4640'), none = new THREE.MeshBasicMaterial({ visible: false });
     // a work cut out of its backdrop: its body is the solid rectangle (core), and the front shows only the
     // work itself (parts standing out of the body, a shaped edge), the wall showing through around it
@@ -378,13 +410,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       const edges = canvasEdges(bw, bh, dM, h.sides, null);
       edges.forEach(e => e.position.set(bx, by, 0));
       g.add(face, body, ...edges); box = face;
-      if (urls.length) pendingFull.push({ front, centre: V(h.centre), urls, edges: [] });
+      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges: [] });
     } else {
       box = new THREE.Mesh(new THREE.BoxGeometry(wM, hM, dM), [none, none, none, none, front, back]);
       box.userData.kind = 'work';
       const edges = canvasEdges(wM, hM, dM, h.sides, tex);
       g.add(box, ...edges);
-      if (urls.length) pendingFull.push({ front, centre: V(h.centre), urls, edges });
+      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges });
     }
     const sh = new THREE.Mesh(new THREE.PlaneGeometry(bw + Math.min(0.08, 0.15 * Math.min(bw, bh)), bh + Math.min(0.1, 0.18 * Math.min(bw, bh))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.07, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
     sh.position.set(bx + Math.min(0.012, 0.03 * bw), by - Math.min(0.03, 0.06 * bh), -dM / 2 - 0.002);   // just off the wall, never in it
@@ -410,7 +442,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   // photo saw is known by rendering the room from it once, as depth. Where no photo saw, the baked surface shows.
   const SLOTS = Math.min(6, shots.length), FAR = 50;
   if (SLOTS) {
-    const slotW = 1024, slotH = Math.round(slotW / Math.max(...shots.map(v => v.aspect || 1.5))) , cols = Math.min(3, SLOTS), rows = Math.ceil(SLOTS / cols);
+    const slotW = PHONE ? 768 : 1024, slotH = Math.round(slotW / Math.max(...shots.map(v => v.aspect || 1.5))) , cols = Math.min(3, SLOTS), rows = Math.ceil(SLOTS / cols);
     const atlas = new THREE.WebGLRenderTarget(slotW * cols, slotH * rows, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, generateMipmaps: false });
     const U = {
       ibrPhoto: { value: [] }, ibrDepth: { value: atlas.texture }, ibrEye: { value: [] }, ibrRot: { value: [] },
@@ -444,8 +476,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     async function photoWithWorks(p) {
       const [ph, mk] = await Promise.all([img(p.image), p.works ? img(p.works) : null]);
       if (!ph) return null;
-      const c = document.createElement('canvas'); c.width = ph.naturalWidth; c.height = ph.naturalHeight;
-      const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(ph, 0, 0);
+      // (on a phone at most 1280 px across: six photos at full size alone would fill its memory for images)
+      const k = PHONE ? Math.min(1, 1280 / ph.naturalWidth) : 1;
+      const c = document.createElement('canvas'); c.width = Math.round(ph.naturalWidth * k); c.height = Math.round(ph.naturalHeight * k);
+      const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(ph, 0, 0, c.width, c.height);
       if (mk) {
         const d = x.getImageData(0, 0, c.width, c.height);
         x.drawImage(mk, 0, 0, c.width, c.height);
@@ -485,11 +519,16 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       renderer.setRenderTarget(null); renderer.setClearColor(0x000000, 1);
       scene.overrideMaterial = null; scene.background = bg;
       for (const [o, vis] of keep) o.visible = vis;
-      // and the photo itself (until it arrives, the slot stays off)
+      // and the photo itself (until it arrives, the slot stays off; and the photos come on together, once all
+      // have arrived: some on and some not yet, the floor would show where one ends, a cut across it)
       U.ibrOn.value[slot] = 0;
       const url = p.image;
       (photoTex.has(url) ? Promise.resolve(photoTex.get(url)) : photoWithWorks(p).then(t => { if (t) photoTex.set(url, t); return t; }))
-        .then(t => { if (t && slots[slot] === v) { U.ibrPhoto.value[slot] = t; U.ibrOn.value[slot] = 1; dirty = true; } });
+        .then(t => {
+          if (!t || slots[slot] !== v || !ibrReady()) return;
+          slots.forEach((w, i) => { if (w) { U.ibrPhoto.value[i] = photoTex.get(w.project.image); U.ibrOn.value[i] = 1; } });
+          dirty = true;
+        });
     }
     // the photos nearest the visitor fill the slots (all of them, for a show of a few photos)
     const slots = new Array(SLOTS).fill(null);
@@ -500,6 +539,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       for (const v of want) if (!slots.includes(v)) { const i = free.shift(); slots[i] = v; place(i, v); }
     }
     choose(new THREE.Vector3(0, EYE, 0), new THREE.Vector3(0, 0, -1));
+    ibrReady = () => slots.every(v => !v || photoTex.has(v.project.image));
     ibrChoose = shots.length > SLOTS ? choose : null;
     // the inspection checks the room against each photo with that photo left out: every surface then shows
     // the other photos only, wherever they saw it (cover: what they saw, in white), so where the room's shape
@@ -508,9 +548,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       slots.forEach((v, i) => { U.ibrOn.value[i] = v && v.photo === photo ? 0 : (v && photoTex.has(v.project.image) ? 1 : 0); });
       U.ibrForce.value = force ? 1 : 0; U.ibrShowCover.value = cover ? 1 : 0;
     };
-    // walls, ceiling, openings: the photos themselves only near where one was taken (standing there, the room
-    // is that photo; a step or two away it gives way to the surfaces baked from all of them, which hold
-    // still as one walks). The floor always shows them.
+    // walls, ceiling, floor, openings: the photos themselves only near where one was taken (standing there,
+    // the room is that photo; a step or two away it gives way to the surfaces baked from all of them, which
+    // hold still as one walks). The floor too: polished, each photo shows other reflections on it, and laid
+    // side by side they leave cuts across it where one gives way to the next.
     ibrNear = (at, dir) => {
       let changed = false;
       slots.forEach((v, i) => {
@@ -526,7 +567,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
         vec3 c = ibrRot[${i}] * (P - ibrEye[${i}]);
         if (c.z > 0.05 && ibrOn[${i}] > 0.5) {
           vec2 uv = ibrLens[${i}].zw + ibrLens[${i}].xy * c.xy / c.z;              // 0..1 across the frame, y down
-          float edge = smoothstep(0.0, 0.08, min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y)));
+          float toEdge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
+          float edge = smoothstep(0.0, 0.15, toEdge);
+          // towards its frame's edge a photo hands over to the others gradually: the photo taken nearest the
+          // visitor weighs thousands of times the rest, and would end in a straight cut across the floor
+          float hand = smoothstep(0.0, 0.25, toEdge); hand *= hand; hand *= hand;
           if (edge > 0.0 && NEAR(${i}) > 0.0) {
             vec4 e = texture2D(ibrDepth, ibrSlot[${i}].xy + vec2(uv.x, 1.0 - uv.y) * ibrSlot[${i}].zw);
             float seenAt = unpackRGBAToDepth(e) * ${FAR.toFixed(1)};
@@ -537,7 +582,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
             // most from the photo taken closest to the visitor's line of sight; less from one that saw the
             // surface at a glancing angle (stretched, and where a small error moves things far)
             float facing = abs(dot(nrm, normalize(ibrEye[${i}] - P)));
-            float w = vis * max(facing, 0.05) / pow(ang + 0.05, 4.0);
+            // how sharp the photo is here, against the screen: seen from much further than the visitor stands,
+            // or at a glancing angle, its pixels are stretched into streaks; there it gives way, smoothly
+            float sharp = facing * min(1.0, 1.6 * length(cameraPosition - P) / max(length(ibrEye[${i}] - P), 1e-3));
+            vis *= smoothstep(0.12, 0.35, sharp);
+            float w = vis * hand * max(facing, 0.05) / pow(ang + 0.05, 4.0);
             acc += w * ph.rgb * ibrGain[${i}];
             wsum += w; ibrCover = max(ibrCover, vis);
           }
@@ -554,7 +603,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
         if (prev) prev(sh, r);
         Object.assign(sh.uniforms, U);
         sh.vertexShader = 'varying vec3 vIbrW;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\nvIbrW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-        sh.fragmentShader = head + (m.userData.photosAlways ? '#define NEAR(i) 1.0\n' : '#define NEAR(i) max(ibrNear[i], ibrForce)\n') + sh.fragmentShader.replace('void main() {', 'void main() {\nfloat ibrCover = 0.0;').replace('#include <opaque_fragment>', `
+        sh.fragmentShader = head + '#define NEAR(i) max(ibrNear[i], ibrForce)\n' + sh.fragmentShader.replace('void main() {', 'void main() {\nfloat ibrCover = 0.0;').replace('#include <opaque_fragment>', `
           {
             vec3 P = vIbrW, toV = normalize(cameraPosition - P), acc = vec3(0.0); float wsum = 0.0;
             vec3 nrm = normalize(cross(dFdx(P), dFdy(P)));
@@ -564,7 +613,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
           }
           #include <opaque_fragment>`);
       };
-      m.customProgramCacheKey = () => 'ibr' + SLOTS + (m.userData.photosAlways ? 'a' : 'n') + (prev ? prev.toString().length : 0);
+      m.customProgramCacheKey = () => 'ibr' + SLOTS + (prev ? prev.toString().length : 0);
       m.needsUpdate = true;
     }
   }
@@ -901,22 +950,25 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     if (mode === 'walk' && now > nextFocus) { focus(); nextFocus = now + 200; }
     if (ibrChoose && now > nextChoose) { ibrChoose(pos, new THREE.Vector3().subVectors(look, pos).normalize()); nextChoose = now + 700; }
     if (ibrNear) ibrNear(pos, new THREE.Vector3().subVectors(look, pos).normalize());
-    // one image at a time: the nearest work in reach, or after a few seconds the nearest still light one
-    if (!upgrading && pendingFull.length) {
-      const idle = now - opened > 4000;
-      const ok = pendingFull.filter(f => { const d = pos.distanceTo(f.centre); return d < f.urls[0][1] || (idle && f.urls[0][1] >= 5); });
-      const f = ok.sort((a, b) => pos.distanceTo(a.centre) - pos.distanceTo(b.centre))[0];
+    // full images: for the few works nearest the visitor (within reach), one download at a time; a work
+    // left well behind goes back to its light image, so the page never holds every work's full image at once
+    if (pendingFull.length && now > nextFull) {
+      nextFull = now + 400;
+      const near = pendingFull.map(f => [f, pos.distanceTo(f.centre)]).filter(([f, d]) => d < f.reach).sort((a, b) => a[1] - b[1]).slice(0, FULL_AT_ONCE).map(([f]) => f);
+      for (const f of pendingFull) {
+        if (f.fullTex && !near.includes(f) && pos.distanceTo(f.centre) > f.reach * 1.3 && f.reach < 1e8) {
+          setFront(f, f.small); f.fullTex.dispose(); f.fullTex = null;
+        }
+      }
+      const f = !upgrading && near.find(x => !x.fullTex && !x.tries);
       if (f) {
         upgrading = true;
-        const [url] = f.urls.shift(); if (!f.urls.length) pendingFull.splice(pendingFull.indexOf(f), 1);
-        loadTex(url).then(t => {
+        loadRetry([f.full]).then(t => {
           upgrading = false;
-          if (!t) return;
+          if (!t) { f.tries = 1; return; }
           t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
-          const old = f.front.emissiveMap;
-          f.front.emissiveMap = t; if (f.front.map) f.front.map = t; f.front.needsUpdate = true; dirty = true;
-          for (const e of f.edges || []) e.material.uniforms.img.value = t;
-          if (old && old !== t) old.dispose();
+          if (f.reach >= 1e8) { f.small = t; f.reach = 0; setFront(f, t); return; }     // a work that had only its plain tone
+          f.fullTex = t; setFront(f, t);
         });
       }
     }
@@ -941,6 +993,22 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     pieces: pieces.map(p => ({ title: p.w.title, centre: p.centre.toArray(), facing: p.facing.toArray(), size: p.size, stand: p.stand.toArray(), image: p.h.image, core: p.h.core || null })),
     views, room: R, eye: EYE, start: { pos: pos.toArray(), look: look.toArray() },
     stand: p => clampStand(V(p)).toArray(),                 // where a visitor can actually stand
+    failed,                                                  // works whose image never arrived
+    ready: () => ibrReady(),                                 // the photos all in place on the room
+    // each work as drawn now: its image's size (0: none), and whether it is in the scene and visible
+    works() { return pieces.map(p => { const m = p.mesh.material, mats = [].concat(m), f = mats.find(x => x.emissiveMap) || mats[0]; const t = f && f.emissiveMap; let vis = true; for (let o = p.mesh; o; o = o.parent) vis = vis && o.visible; return { title: p.w.title, image: t && t.image ? [t.image.width, t.image.height] : [0, 0], visible: vis, inScene: !!p.mesh.parent && !!p.mesh.parent.parent }; }); },
+    // stand somewhere and look at something, as a visitor walking would (the room keeps running: for testing
+    // what a phone does as one walks, unlike shot() below)
+    where() { return { pos: pos.toArray(), look: look.toArray(), fov: camera.fov }; },
+    place(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },
+    // the images the room holds in the graphics memory, in MB (what a phone has to find room for)
+    memory() {
+      const seen = new Set(); let b = 0;
+      const add = t => { if (!t || seen.has(t) || !t.image) return; seen.add(t); const w = t.image.width || 0, h = t.image.height || 0; b += w * h * 4 * (t.generateMipmaps === false ? 1 : 1.34); };
+      scene.traverse(o => { const ms = o.material ? [].concat(o.material) : []; for (const m of ms) { for (const k of ['map', 'emissiveMap', 'normalMap', 'lightMap']) add(m[k]); if (m.uniforms) for (const u of Object.values(m.uniforms)) [].concat(u.value).forEach(v => v && v.isTexture && add(v)); } });
+      renderer.info && scene.traverse(o => { if (o.isReflector && o.getRenderTarget) { const rt = o.getRenderTarget(); b += rt.width * rt.height * 4; } });
+      return Math.round(b / 1048576);
+    },
     // lens: a photo's own camera (view.project); leaveOut: { photo, cover } to check the room against it
     shot(at, to, fov = 60, upv = [0, 1, 0], ids = false, lens = null, leaveOut = null) {      // ids: false, true, or 'height'
       running = false; renderer.setAnimationLoop(null);
@@ -975,11 +1043,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
           m.map = o.material.map; m.alphaTest = o.material.alphaTest;
           m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', 'diffuseColor.a *= texture2D( map, vMapUv ).a;'); };
         }
-        swapped.push([o, o.material]); o.material = m;
+        // (a surface drawn in parts keeps its hidden parts hidden: an arch's ends are open, to see through it)
+        const was = o.material;
+        swapped.push([o, was, m]); o.material = Array.isArray(was) ? was.map(x => x.visible === false ? x : m) : m;
       });
       renderer.render(scene, camera);
       const png = renderer.domElement.toDataURL('image/png');
-      for (const [o, m] of swapped) { if (m === 'v') o.visible = true; else { o.material.dispose(); o.material = m; } }
+      for (const [o, was, m] of swapped) { if (was === 'v') o.visible = true; else { m.dispose(); o.material = was; } }
       if (ibrLeaveOut) ibrLeaveOut(null, false, false);
       scene.background = bg;
       // where each work's corners fall on the screen (0..1 from the top left), for comparing it with its image

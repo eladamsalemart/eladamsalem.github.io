@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Daylight sky · Open Studio Home</title>
+<meta name="theme-color" content="#F9D9C9">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Figtree:wght@700&family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Sans+Hebrew:wght@600&display=swap">
+<link rel="stylesheet" href="base.css">
+<style>
+/* A · Daylight sky: the constellation by day. A pastel sky that follows the hour, the far stars lost in its haze
+   (not in the dark), stars ringed in the colour of what they are, the ties drawn in ink, notes in the hand. */
+:root{--h1-size:30px;--ground:#F5F3FA;--ink:#262A4F;--muted:#5D6086;--line:#DCD8EC;--card:#FFFFFF;--chip:rgba(255,255,255,.78);--shade:rgba(54,48,110,.45);--sel:#F5B9C8;
+  --display:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;--hand:'Caveat',cursive;--hand-ink:#3F4BA8;--hand-size:21px;
+  --tie:#2F3A86;--tie-maybe:#6A72B6;--live:#E2557A;--accent-ink:#B23E65;--me-bg:#F5B9C8;--me-ink:#262A4F;
+  --artist:#F5B3C4;--show:#AEDCC4;--tour:#C8BEF3;--place:#FADB8E;--work:#F8C3A6;
+  --sky:linear-gradient(180deg,#F9D9C9 0%,#F4DCE6 38%,#DCDDF4 70%,#CFE2F2 100%)}
+.hero{background:var(--sky)}
+.hero::after{content:"";position:absolute;inset:auto 0 0 0;height:90px;background:linear-gradient(to bottom,transparent,var(--ground));pointer-events:none;z-index:11}
+.sky-ui,.legend,.pick{z-index:16}
+.star .st{width:var(--d);height:var(--d);transform:translate(-50%,-50%);border-radius:50%;display:block;background:var(--c) center/cover no-repeat;
+  box-shadow:0 0 0 3px #fff,0 0 0 9px color-mix(in srgb,var(--c) 55%,transparent),0 14px 30px -12px var(--shade);transition:box-shadow .4s ease}
+.star.r0 .st{--d:58px}.star.r1 .st{--d:42px}.star.r2 .st{--d:36px}
+.star.real .st{--d:12px;box-shadow:0 0 0 3px rgba(255,255,255,.85),0 0 22px 6px color-mix(in srgb,var(--c) 70%,transparent)}
+.star.k-tour:not(.has-img) .st{--d:16px;box-shadow:0 0 0 3px rgba(255,255,255,.85),0 0 22px 6px color-mix(in srgb,var(--c) 70%,transparent)}
+.k-artist{--c:var(--artist)}.k-show{--c:var(--show)}.k-tour{--c:var(--tour)}.k-place{--c:var(--place)}.k-work{--c:var(--work)}
+.star.on .st{box-shadow:0 0 0 3px #fff,0 0 0 12px var(--c),0 18px 36px -12px var(--shade)}
+.star .lab{width:150px;transform:translate(-50%,calc(var(--d,44px)/2 + 9px));text-align:center;display:grid;gap:0;pointer-events:none}
+.star .lab b{font:500 14px/1.15 var(--display);color:var(--ink)}
+.star .lab small{font-size:11.5px;color:var(--muted);line-height:1.25;display:none}
+.star.on .lab small{display:block}
+.star .lab .hand{font-size:18px;margin-top:1px}
+.star.real .lab,.star.k-tour:not(.has-img) .lab{--d:14px}
+.star.k-you .me-star{width:44px;height:44px;transform:translate(-50%,-50%);display:block}
+.star.k-you .me-star path{fill:none;stroke:var(--tie);stroke-width:2.2;stroke-linecap:round}
+.star.k-you .lab{--d:44px;transform:translate(-50%,6px)}
+.dust circle{fill:#fff}
+.lg-artist{background:var(--artist)}.lg-show{background:var(--show)}.lg-tour{background:var(--tour)}.lg-place{background:var(--place)}
+.pick .dot{background:var(--c);box-shadow:0 0 0 8px color-mix(in srgb,var(--c) 40%,transparent)}
+.tour[data-shape=arch]{height:470px}
+.ppl li{border-bottom:1px solid var(--line)}
+.ppl img{box-shadow:0 0 0 3px #fff,0 0 0 8px var(--artist)}
+.ppl li:nth-child(2) img{box-shadow:0 0 0 3px #fff,0 0 0 8px var(--show)}
+.ppl li:nth-child(3) img{box-shadow:0 0 0 3px #fff,0 0 0 8px var(--place)}
+.shows img{border-radius:999px 999px 18px 18px}
+.shows li:nth-child(1) img{background:var(--show)}.shows li:nth-child(2) img{background:var(--artist)}
+.map{box-shadow:0 0 0 1px var(--line)}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script type="module">
+import { home } from './home.js';
+import { rnd } from './sky.js';
+import { placeAll } from './data.js';
+
+const node = s => s.kind === 'you'
+  ? `<svg class="me-star" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 6c.4 6 .2 12 .1 32M7 22.5c9-.6 21-.4 30 .2M11 11c7 7 14 14 22 22M33 10.5c-7 8-14 15-22 23"/></svg><span class="lab"><span class="hand">you</span></span>`
+  : `<span class="st"${s.img ? ` style="background-image:url(${s.img})"` : ''}></span><span class="lab"><b${/[֐-׿]/.test(s.name) ? ' dir="rtl"' : ''}>${s.name}</b>${s.sub ? `<small>${s.sub}</small>` : ''}${s.note ? `<span class="hand">${s.note}</span>` : ''}</span>`;
+
+// the dust: pale motes far out, so the sky has depth even before you step back
+const motes = Array.from({ length: 70 }, (_, i) => ({ x: (rnd(i + 1) - .5) * 1900, y: (rnd(i + 51) - .5) * 2300, z: (rnd(i + 101) - .5) * 1900, r: 0.6 + rnd(i + 151) * 1.6 }));
+let dust = null;
+
+// the sky follows the hour: dawn peach, noon blue, evening rose, night lilac (never black)
+const H = new Date().getHours();
+const SKIES = [[5, '#F9D9C9,#F4DCE6 38%,#DCDDF4 70%,#CFE2F2'], [11, '#CFE6F5,#DDE3F7 40%,#EEE0F1 75%,#F8E6DF'], [16, '#F8D3C6,#F2C9D8 40%,#D9CDEF 72%,#C9D4F0'], [20, '#D3CCEE,#C7CFEE 45%,#D9D2F0 75%,#EBDDF0']];
+const sk = [...SKIES].reverse().find(([h]) => H >= h) || SKIES[3];
+document.documentElement.style.setProperty('--sky', `linear-gradient(180deg,${sk[1]} 100%)`);
+
+home({
+  tourShape: 'arch',
+  copy: { title: 'Your sky, today', hand: 'the closest stars are where you were last', hint: 'Drag to turn · pinch to see further', live: 'Walk in now', end: 'that’s your sky for today' },
+  legend: [['artist', 'Artists'], ['show', 'Shows'], ['tour', 'In 3D'], ['place', 'Places']],
+  sky: {
+    cam: { D: 560, pitch: 0 }, F: 560, cy: 0.56, limits: { yaw: 0.8, pitch: 0.45, Dmin: 300, Dmax: 1500 }, farFrom: 560, fogStart: 60, fogRange: 1500, minOp: .1, labelAt: 0.7, bigAt: 0.86, maxScale: 1.3, bow: 0.1, ink: 1.15, pickLift: 90,
+    layout: placeAll,
+    node,
+    extra(g, project, cam, t, { W, H }) {
+      if (!dust) { dust = motes.map(() => { const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); g.append(c); return c; }); g.classList.add('dust'); }
+      motes.forEach((m, i) => { const q = project(m); const c = dust[i]; if (q.behind) { c.setAttribute('r', 0); return; }
+        c.setAttribute('cx', q.x.toFixed(1)); c.setAttribute('cy', q.y.toFixed(1)); c.setAttribute('r', Math.min(3, m.r * q.k).toFixed(2)); c.setAttribute('opacity', Math.min(.9, .25 + q.k * .6).toFixed(2)); });
+    },
+  },
+});
+</script>
+</body>
+</html>

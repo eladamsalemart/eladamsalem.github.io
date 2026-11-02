@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Tracing paper · Open Studio Home</title>
+<meta name="theme-color" content="#FAF8F6">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reenie+Beanie&family=Figtree:wght@700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Sans+Hebrew:wght@600&display=swap">
+<link rel="stylesheet" href="base.css">
+<style>
+/* B · Tracing paper: the sky as an artist's sketchbook, drawn on sheets of tracing paper laid one over another.
+   The top sheet holds where you were; under it your artists; deeper sheets, fainter, the ones you haven't met.
+   Pencil ties, watercolour washes in pastels, notes in pencil. Turning slides the sheets past each other. */
+:root{--h1-size:32px;--ground:#FAF8F6;--ink:#2E2B33;--muted:#69646F;--line:#E4DED8;--card:#FFFFFF;--chip:rgba(255,255,255,.86);--shade:rgba(60,48,40,.35);--sel:#F6CFD6;
+  --display:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;--hand:'Reenie Beanie',cursive;--hand-ink:#4B4752;--hand-size:25px;--hand-weight:400;
+  --tie:#5D5965;--tie-maybe:#8F8A96;--live:#E0607E;--accent-ink:#A8475F;--me-bg:#CFE3F3;--me-ink:#2E2B33;
+  --rose:#F6C4CD;--blue:#BFDCF1;--mint:#C6E8D2;--butter:#F8E3A3;--lilac:#D9CCF4;--halo:rgba(250,248,246,.95);
+  --sky:#FAF8F6}
+.hero{background:radial-gradient(60% 40% at 18% 72%,color-mix(in srgb,var(--rose) 55%,transparent),transparent 70%),radial-gradient(55% 38% at 86% 38%,color-mix(in srgb,var(--blue) 60%,transparent),transparent 70%),radial-gradient(45% 30% at 70% 88%,color-mix(in srgb,var(--butter) 55%,transparent),transparent 70%),radial-gradient(40% 28% at 30% 30%,color-mix(in srgb,var(--mint) 45%,transparent),transparent 70%),var(--ground)}
+.hello h1{font-style:italic}
+.sheet{fill:rgba(255,255,255,.42);stroke:#B9B2BD;stroke-width:.8}
+.sheet-shadow{fill:rgba(80,64,72,.06)}
+.sky-ties{filter:url(#pencil)}
+.tie{stroke-linecap:round}
+.star .st{width:var(--d);height:var(--d);transform:translate(-50%,-50%) rotate(var(--rot,0deg));display:block;background:var(--c) center/cover no-repeat;border-radius:47% 53% 49% 51% / 52% 46% 54% 48%}
+.star .wash{width:calc(var(--d) * 2.3);height:calc(var(--d) * 1.9);transform:translate(-50%,-48%);border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--c) 85%,transparent),color-mix(in srgb,var(--c) 40%,transparent) 60%,transparent);filter:url(#wc);opacity:.95}
+.star .ring{width:calc(var(--d) + 16px);height:calc(var(--d) + 16px);transform:translate(-50%,-50%);overflow:visible}
+.star .ring path{fill:none;stroke:#57525C;stroke-width:1.3;stroke-linecap:round}
+.star.r0 .st{--d:58px}.star.r1 .st,.star.r1 .wash,.star.r1 .ring{--d:42px}.star.r2 .st,.star.r2 .wash{--d:34px}.star.r0 .wash,.star.r0 .ring{--d:58px}
+.star.real .st,.star.k-tour:not(.has-img) .st{--d:12px;border-radius:50%;background:#6B6672}
+.star.real .wash,.star.k-tour:not(.has-img) .wash{--d:22px}
+.k-artist{--c:var(--rose)}.k-show{--c:var(--blue)}.k-tour{--c:var(--lilac)}.k-place{--c:var(--butter)}.k-work{--c:var(--mint)}
+.star .lab{width:200px;transform:translate(-50%,calc(var(--d,34px)/2 + 10px));text-align:center;display:grid;pointer-events:none}
+.star .lab b{font:italic 400 15px/1.1 var(--display);color:var(--ink)}
+.star .lab small{display:none;font-size:11.5px;color:var(--muted)}
+.star.on .lab small{display:block}
+.star .lab .hand{font-size:21px;line-height:.95;margin-top:2px}
+.star.real .lab,.star.k-tour:not(.has-img) .lab{--d:12px}
+.star.on .ring path{stroke:#E0607E;stroke-width:1.8}
+.star.k-you .me{transform:translate(-50%,-50%);font:400 34px/1 var(--hand);color:var(--ink);white-space:nowrap}
+.star.k-you .me svg{position:absolute;left:50%;top:50%;width:70px;height:46px;transform:translate(-50%,-52%);overflow:visible}
+.star.k-you .me path{fill:none;stroke:#57525C;stroke-width:1.2}
+.pick{border-radius:6px 18px 8px 16px / 16px 8px 18px 6px}
+.pick .dot{background:var(--c)}
+.legend .lg{border-radius:47% 53% 49% 51%}
+.lg-artist{background:var(--rose)}.lg-show{background:var(--blue)}.lg-tour{background:var(--lilac)}.lg-place{background:var(--butter)}
+.sec-h h2{font-style:italic}
+.sec-h h2::after{content:"";display:block;height:8px;margin-top:2px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M2 5c40-3 90-3 196-1' fill='none' stroke='%2357525C' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") left/100% 100% no-repeat;opacity:.8}
+.tour{box-shadow:0 1px 0 #fff inset,0 18px 40px -26px var(--shade)}
+.ppl li{position:relative}
+.ppl img{border-radius:47% 53% 49% 51% / 52% 46% 54% 48%}
+.ppl li::before{content:"";position:absolute;left:-8px;top:2px;width:80px;height:80px;border-radius:50%;background:radial-gradient(closest-side,var(--c),transparent);opacity:.75;z-index:-1}
+.ppl li:nth-child(1){--c:var(--rose)}.ppl li:nth-child(2){--c:var(--blue)}.ppl li:nth-child(3){--c:var(--butter)}
+.ppl{isolation:isolate}
+.shows img{border-radius:4px 14px 6px 12px / 12px 6px 14px 4px}
+.map{border-radius:6px 22px 10px 18px / 18px 10px 22px 6px}
+.list li a{border-bottom-style:dashed}
+.ppl .now{font-size:25px}
+.sec-h .side{font-size:22px}
+.tabs{background:color-mix(in srgb,var(--ground) 96%,transparent)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="pencil"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.2"/></filter>
+  <filter id="wc" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="8" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="16"/></filter>
+</svg>
+<main id="app"></main>
+<script type="module">
+import { home } from './home.js';
+import { placeAll } from './data.js';
+import { rnd } from './sky.js';
+
+// a pencil circle, gone round a little more than once, never quite closed
+const ring = i => { const a = rnd(i) * 6, r = 50; let d = ''; for (let k = 0; k <= 30; k++) { const t = a + k / 26 * Math.PI * 2, rr = r + Math.sin(k * 0.9 + i) * 1.6 + k * .05; d += `${k ? 'L' : 'M'}${(50 + Math.cos(t) * rr).toFixed(1)} ${(50 + Math.sin(t) * rr).toFixed(1)}`; } return `<svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><path d="${d}"/></svg>`; };
+const node = (s, i = s.id.length * 7 + s.id.charCodeAt(0)) => s.kind === 'you'
+  ? `<span class="me"><svg viewBox="0 0 70 46"><path d="M8 25c2-14 50-20 56-6 5 12-40 22-53 10-6-6 1-14 12-16"/></svg>you</span>`
+  : `<span class="wash"></span><span class="st" style="--rot:${((rnd(i) - .5) * 10).toFixed(1)}deg${s.img ? `;background-image:url(${s.img})` : ''}"></span>${s.ring === 0 ? ring(i) : ''}<span class="lab"><b${/[֐-׿]/.test(s.name) ? ' dir="rtl"' : ''}>${s.name}</b>${s.sub ? `<small>${s.sub}</small>` : ''}${s.note ? `<span class="hand">${s.note}</span>` : ''}</span>`;
+
+// the sheets: where you were on top, your artists under it, the rest deeper down
+const SHEETS = [[640, .035, 320], [420, -.04, 262], [150, .03, 205], [0, -.025, 172]];   // deepest first: z, turn, half-width
+let sheets = null;
+home({
+  tourShape: 'cut',
+  copy: { title: 'Today, in pencil', hand: 'top sheet: where you were. underneath: who you haven’t met', hint: 'Drag to slide the sheets · pinch to go deeper', live: 'Walk in now', end: 'turn the page tomorrow' },
+  legend: [['artist', 'Artists'], ['show', 'Shows'], ['tour', 'In 3D'], ['place', 'Places']],
+  sky: {
+    cam: { D: 560, pitch: 0 }, F: 560, cy: 0.57, limits: { yaw: 0.6, pitch: 0.35, Dmin: 300, Dmax: 1500 }, farFrom: 560, fogStart: 60, fogRange: 1300, minOp: .1, labelAt: .7, bigAt: .86, maxScale: 1.3, bow: .05, ink: 1.1, pickLift: 90,
+    layout(st) { placeAll(st); st.forEach(s => { s.z = s.ring <= 0 ? 0 : s.ring === 1 ? 150 : (s.z < 560 ? 420 : 640); }); },
+    node,
+    extra(g, project, cam, t, { W, H }) {
+      if (!sheets) { sheets = SHEETS.map(() => { const sh = document.createElementNS('http://www.w3.org/2000/svg', 'polygon'); sh.setAttribute('class', 'sheet'); const sd = sh.cloneNode(); sd.setAttribute('class', 'sheet-shadow'); g.append(sd, sh); return [sh, sd]; }); }
+      SHEETS.forEach(([z, rot, w], i) => {
+        const h = w * 1.42, c = Math.cos(rot), s = Math.sin(rot);
+        const pts = [[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, y]) => project({ x: x * c - y * s, y: x * s + y * c - 10, z: z + 30 }));
+        const [sh, sd] = sheets[i];
+        if (pts.some(p => p.behind)) { sh.setAttribute('points', ''); sd.setAttribute('points', ''); return; }
+        sh.setAttribute('points', pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '));
+        sd.setAttribute('points', pts.map(p => `${(p.x + 3).toFixed(1)},${(p.y + 6).toFixed(1)}`).join(' '));
+        sh.style.opacity = sd.style.opacity = .55 + i * .15;
+      });
+    },
+  },
+});
+</script>
+</body>
+</html>
