@@ -105,7 +105,7 @@ main{padding-bottom:max(64px,env(safe-area-inset-bottom,0px))}
 .chip[aria-current="page"]{background:var(--ink);color:var(--wall)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:22px 16px}
 .grid a{text-decoration:none;display:grid;gap:8px;min-width:0}
-.grid .im{background:var(--stage);aspect-ratio:1;padding:14px;border-radius:4px;max-width:100%}
+.grid .im{background:var(--stage);aspect-ratio:1;padding:14px;border-radius:4px;max-width:100%;width:100%;min-width:0;min-height:0;overflow:hidden}
 .grid .im img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,.16))}
 .grid .c{font-size:13px;line-height:1.35}
 .grid .c .m{color:var(--muted)}
