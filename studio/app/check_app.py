@@ -116,7 +116,7 @@ def sign_in():
 
 
 def vendor():
-    for f in ('maplibre-gl.js', 'maplibre-gl.css', 'mapbox-gl-rtl-text.js'):
+    for f in ('maplibre-gl.mjs', 'maplibre-gl-worker.mjs', 'maplibre-gl.css', 'mapbox-gl-rtl-text.js'):
         p = APP / 'vendor' / 'maplibre' / f
         if not p.exists() or p.stat().st_size < 10000:
             fail(f'map: vendor/maplibre/{f} is missing')

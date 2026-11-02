@@ -2,6 +2,22 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-02 (later): the first issue, fixed
+
+- The first server run of "App health" opened issue #1: two known vulnerabilities, which the local run had missed
+  (the container's proxy blocks GitHub's advisory API, and `deps.py` took "couldn't ask" for "nothing known").
+  The check is fixed: it asks OSV first (reachable from anywhere), GitHub second, and says so when it can't ask.
+- maplibre-gl 4.7.1, CRITICAL (GHSA-jrc7-96c5-q579, XSS in DOM.sanitize; the app doesn't call it, but the attribution
+  HTML goes through it): updated to 6.16.0, which is a module now (vendor/maplibre/maplibre-gl.mjs and its worker;
+  artmap.js imports it). The map compared before and after at three places (area, a place up close in 3D, Haifa):
+  the same; no errors. One difference: v6 keeps only the tiles in view, so "where you are" is named from fewer
+  neighbourhood labels (the map's tiles carry them from zoom 14 only); it now also looks again each time the map
+  has loaded more. Every check passes (app, Home, every page).
+- playwright 1.49.1, HIGH (GHSA-7mvr-c777-76hp, browser download without verifying SSL; CI only): pinned to 1.56.1,
+  the version every local check and tour inspection already ran on, in the three workflows.
+- Left to improve: three 0.170 → 0.187, supabase-js 2.45 → 2.118, playwright → 1.64; tap targets; the Work page's
+  heading.
+
 ## 2026-11-02: the stage is set up
 
 - Built the checks: `health.cjs` (every kind of page as an iPhone sees it, Home's speed, the 3D room, the way in),

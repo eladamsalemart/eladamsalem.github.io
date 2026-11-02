@@ -20,8 +20,10 @@ def pinned():
     out = {}
     m = re.search(r'three@([\d.]+)', (APP / 'index.html').read_text())
     if m: out['three'] = m.group(1)
-    m = re.search(r'"(\d+\.\d+\.\d+)"', (APP / 'vendor/maplibre/maplibre-gl.js').read_text()[:4000]) or re.search(r'v(\d+\.\d+\.\d+)', (APP / 'vendor/maplibre/maplibre-gl.js').read_text()[:400])
+    ml = APP / 'vendor/maplibre/maplibre-gl.mjs'
+    m = ml.exists() and re.search(r'maplibre-gl-js/blob/v(\d+\.\d+\.\d+)/', ml.read_text()[:20000])
     if m: out['maplibre-gl'] = m.group(1)
+    else: out['maplibre-gl'] = '0.0.0'               # (a version that can't be read is reported, never skipped)
     m = re.search(r'version="(2\.\d+\.\d+)"', (APP / 'vendor/supabase/supabase.js').read_text())
     if m: out['@supabase/supabase-js'] = m.group(1)
     for wf in (ROOT / '.github/workflows').glob('*.yml'):
@@ -49,13 +51,29 @@ def main(dest=None):
                 notes.append(f'{name} {have} → {latest} available')
         except Exception as e:
             row['latest'] = f'unknown ({e.__class__.__name__})'
-        try:   # GitHub's advisory database: anything known against this exact version
-            adv = get(f'https://api.github.com/advisories?ecosystem=npm&affects={name}@{have}&per_page=20', token)
-            row['advisories'] = [f"{a.get('severity')}: {a.get('summary')} ({a.get('ghsa_id')})" for a in adv]
-            for a in row['advisories']:
-                fails.append(f'{name} {have} has a known vulnerability: {a}')
-        except Exception as e:
-            row['advisories'] = f'unknown ({e.__class__.__name__})'
+        # known vulnerabilities in this exact version: OSV (reachable from anywhere), else GitHub's advisory database.
+        # Not being able to ask is said out loud: a local run once took "couldn't ask" for "nothing known", while the
+        # server's run found a critical hole in the map's library.
+        row['advisories'] = None
+        try:
+            req = urllib.request.Request('https://api.osv.dev/v1/query', method='POST', headers={'Content-Type': 'application/json', 'User-Agent': 'open-studio-health'},
+                                         data=json.dumps({'package': {'name': name, 'ecosystem': 'npm'}, 'version': have}).encode())
+            with urllib.request.urlopen(req, timeout=30) as r:
+                vulns = json.loads(r.read()).get('vulns', [])
+            row['advisories'] = []
+            for v in vulns:
+                fixed = sorted({e['fixed'] for a in v.get('affected', []) for rg in a.get('ranges', []) for e in rg.get('events', []) if e.get('fixed')})
+                sev = (v.get('database_specific') or {}).get('severity', '?')
+                row['advisories'].append(f"{sev}: {v.get('summary', '')} ({v['id']}; fixed in {', '.join(fixed) or '?'})")
+        except Exception:
+            try:
+                adv = get(f'https://api.github.com/advisories?ecosystem=npm&affects={name}@{have}&per_page=20', token)
+                if not isinstance(adv, list): raise ValueError(adv)
+                row['advisories'] = [f"{a.get('severity')}: {a.get('summary')} ({a.get('ghsa_id')})" for a in adv]
+            except Exception as e:
+                notes.append(f'{name} {have}: could not ask about known vulnerabilities from here ({e.__class__.__name__}); the server\'s App health run does')
+        for a in row['advisories'] or []:
+            fails.append(f'{name} {have} has a known vulnerability: {a}')
         rows.append(row)
     report = {'libraries': rows, 'fails': fails, 'notes': notes}
     if dest: Path(dest).write_text(json.dumps(report, indent=1))
