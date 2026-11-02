@@ -2,6 +2,19 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-02 (night): the first nightly run, and the first improvement
+
+- Looked: no open `app-health` issue; the last runs of App health (#4), Open Studio app, Studio spaces and Art map:
+  exhibitions are green. On the live site every check passes (health, Home, app, libraries: no known
+  vulnerabilities). The screenshots (Home, Work, Map, the 3D room) look right.
+- Improvement (accessibility): the Work page had no heading, so a screen reader had nothing to jump to. The work's
+  title is now the page's `<h1>`, styled exactly as the bold title it replaces: the label is pixel-identical at
+  390x844, light and dark. health.cjs: the note is there on the live site (before) and gone locally (after);
+  every check passes locally.
+- Still to improve: tap targets under 30 px (the map's place card has 14: a change of look, so for the owner),
+  three 0.170 → 0.187, supabase-js 2.45 → 2.118, playwright 1.56 → 1.64.
+- Setup proven end to end: this entry was pushed by the scheduled session.
+
 ## 2026-11-02 (evening): the stage's own two faults, fixed
 
 - Run #2 closed issue #1 with "All checks pass again" and an empty report: its browser had not installed, so
