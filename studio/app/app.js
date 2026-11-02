@@ -166,7 +166,7 @@ function setFollow(slug, on) {
 }
 
 // what this phone opened last (artists, exhibitions, their 3D spaces, works, places on the art map), newest first:
-// Home's quick tiles, as Spotify's
+// the nearest stars of Home's sky
 const RECENT_KEY = 'os-recent';
 function recent() { try { const r = JSON.parse(localStorage.getItem(RECENT_KEY)); if (Array.isArray(r)) return r; } catch {} return []; }
 function remember(item) {
@@ -174,6 +174,8 @@ function remember(item) {
   try { localStorage.setItem(RECENT_KEY, JSON.stringify(r)); } catch {}
 }
 function rememberHash(hash) {
+  let framed = false; try { framed = window.top !== window.self; } catch { framed = true; }
+  if (framed) return;                          // (Home shows a room in a frame: that isn't a visit)
   const m = hash.match(/^#\/(artist|exhibition|work|place)\/([^/]+)(\/space)?$/);
   if (m) remember({ k: m[3] ? 'space' : m[1], id: decodeURIComponent(m[2]), t: Date.now() });
 }
@@ -203,102 +205,257 @@ const workCover = w => `<a href="#/work/${w.slug}"><div class="im">${im(w.image,
 const person = (a, fresh) => `<a class="person${fresh ? ' fresh' : ''}" href="#/artist/${a.slug}">${im(a.portrait, a.name)}<div><b>${esc(a.name)}</b><div class="m">${esc(a.discipline)}</div></div></a>`;
 
 // --- views -----------------------------------------------------------------
-// what was opened last, as a visitor's log: the last thing large, with its way back in; two more below it.
-// A first visit has no log, so it gets a place to start instead (the map, a room to walk in), never a made-up history
-function logItem(r) {
-  const it = (href, pic, name, kind, act) => ({ href, pic, name, kind, act });
-  if (r.k === 'artist') { const a = M.artists.find(x => x.slug === r.id); return a && it(`#/artist/${a.slug}`, im(a.portrait, '', '', '96px'), a.name, 'Artist', 'Open'); }
-  if (r.k === 'exhibition' || r.k === 'space') {
-    const e = M.exhibitions.find(x => x.slug === r.id);
-    if (!e) return null;
-    return r.k === 'space' && e.space ? it(`#/exhibition/${e.slug}/space`, im(e.images[0], '', '', '96px'), e.title, 'Walking it in 3D', 'Walk back in')
-      : it(`#/exhibition/${e.slug}`, im(e.images[0], '', '', '96px'), e.title, status(e) === 'on' ? 'Exhibition · on now' : status(e) === 'soon' ? 'Exhibition · coming up' : 'Exhibition', 'Continue');
-  }
-  if (r.k === 'work') { const w = M.works.find(x => x.slug === r.id); return w && it(`#/work/${w.slug}`, im(w.image, '', '', '96px'), w.title, `Work · ${w.artist.name}`, 'Look again'); }
-  if (r.k === 'place') { const c = M.cities.find(x => x.slug === r.id); return c && it(`#/place/${c.slug}`, '<span class="lg-sw"></span>', c.name, 'City', 'Open'); }
-  if (r.k === 'artplace') return it(`#/map/place/${encodeURIComponent(r.id)}`, `<span class="lg-sw pin" style="--c:${esc(r.c || '#2F4FD0')}"></span>`, r.name || 'Art space', 'On the art map', 'Show on the map');
-  if (r.k === 'map') return it('#/map', '<span class="lg-sw map"></span>', 'Art near you', 'The art map, live', 'Open the map');
-  return null;
+// Home: your sky. The stars nearest are what this phone opened last, drawn as the trail you took; your artists
+// and their shows sit just outside; deeper in the sky, the artists and rooms you haven't met and the shows on
+// now near you (the art map's daily read), there when you pinch out or tap twice. Under the sky, a room you can
+// walk into from Home, your artists, their shows, and what's on near you. Drawn in pencil on a daylight sky.
+// The sky itself is sky.js; its places here are fixed slots, so the near ones never sit on each other.
+const SLOTS = [
+  [[-30, -175, -40], [125, -75, 20], [100, 120, -30], [-55, 190, 10], [-130, -5, 40]],
+  [[-150, -245, 110], [170, -215, 120], [172, 55, 110], [-160, 170, 120], [80, -285, 160], [-178, -100, 140]],
+  [[-250, 80, 420], [215, -20, 420], [-180, -330, 520], [230, 310, 500], [-520, 260, 520], [380, 330, 420], [560, -300, 640],
+    [-480, -380, 560], [260, -600, 520], [120, 640, 560], [-260, 600, 600], [-360, -700, 700], [420, -760, 740], [-560, 520, 760]],
+];
+const pic = p => p ? (M.thumbs[p] || src(p)) : '';
+// what's new with an artist, in a few words: the next thing on, else what's on, else the studio's last clip
+function newsOf(a) {
+  const on = showsOf(a).filter(e => status(e) !== 'past').sort((x, y) => x.start - y.start);
+  for (const e of on) { const ev = nextEvent(e); if (ev) return `${evWhen(ev)}`; }
+  if (on[0]) return `${on[0].title}: ${when(on[0]).toLowerCase()}`;
+  const clip = M.live.filter(p => p.artist === a).sort((x, y) => y.at - x.at)[0];
+  return clip ? clip.text : '';
 }
-function visitLog() {
-  const seen = new Set(), items = [];
+const noteOf = e => e.kind === 'online' && isOn(e) ? 'online now' : when(e);
+// a title as the art map read it, without what the place's site wrote round it ("title | dates | prize")
+const cleanTitle = t => String(t || '').split(/\s+\|\s+/)[0].trim();
+function skyOf() {
+  const stars = [], ties = [], by = new Map(), slot = [0, 0, 0];
+  const put = (id, s) => {
+    if (by.has(id)) return by.get(id);
+    const r = s.ring, at = SLOTS[r][slot[r]]; if (!at) return null;
+    slot[r]++; const x = { id, ...s, x: at[0], y: at[1], z: at[2] }; by.set(id, x); stars.push(x); return x;
+  };
+  const artist = (a, ring, note) => put('a:' + a.slug, { kind: 'artist', ring, name: a.name, sub: [a.discipline, a.city].filter(Boolean).join(' · '), note, img: pic(a.portrait), href: `#/artist/${a.slug}`, go: 'Open' });
+  const show = (e, ring, note) => put('e:' + e.slug, { kind: 'show', ring, name: e.title, sub: [byOf(e), e.kind === 'online' ? 'Online' : (e.venue || '').split(' — ')[0]].filter(Boolean).join(' · '), note, img: pic(e.images[0]), href: `#/exhibition/${e.slug}`, go: 'Open', e });
+  const room = (e, ring, note) => put('t:' + e.slug, { kind: 'tour', ring, name: e.title, sub: `${byOf(e)} · in 3D`, note, img: pic(e.images[0]), href: `#/exhibition/${e.slug}/space`, go: 'Walk in', e });
+  const piece = (w, ring, note) => put('w:' + w.slug, { kind: 'work', ring, name: w.title, sub: [w.artist.name, w.year].filter(Boolean).join(', '), note, img: pic(w.image), href: `#/work/${w.slug}`, go: 'Open', w });
+  // where you were, newest first
+  const near = [], seen = new Set();
   for (const r of recent()) {
-    const key = r.k + ':' + r.id; if (seen.has(key)) continue;
-    const x = logItem(r); if (x) { seen.add(key); items.push({ ...x, t: r.t }); }
-    if (items.length === 3) break;
+    if (near.length === 5) break;
+    const key = r.k + ':' + r.id; if (seen.has(key)) continue; seen.add(key);
+    let s = null; const t = ago(r.t);
+    if (r.k === 'artist') { const a = M.artists.find(x => x.slug === r.id); if (a) s = artist(a, 0, newsOf(a) || `you visited ${t}`); }
+    else if (r.k === 'exhibition') { const e = M.exhibitions.find(x => x.slug === r.id); if (e) s = show(e, 0, status(e) !== 'past' ? noteOf(e) : `you were here ${t}`); }
+    else if (r.k === 'space') { const e = M.exhibitions.find(x => x.slug === r.id); if (e && e.space) s = room(e, 0, `you walked it ${t}`); }
+    else if (r.k === 'work') { const w = M.works.find(x => x.slug === r.id); if (w) s = piece(w, 0, `you looked at it ${t}`); }
+    else if (r.k === 'artplace') s = put('p:' + r.id, { kind: 'place', ring: 0, name: r.name || 'Art space', sub: 'On the art map', note: `you looked it up ${t}`, href: `#/map/place/${encodeURIComponent(r.id)}`, go: 'On the map' });
+    if (s) { s.ago = t; near.push(s); }
   }
-  const row = x => `<a class="lg-row" href="${x.href}">${x.pic}<span><b>${esc(x.name)}</b><i>${esc(x.kind)}${x.t ? ` · ${esc(ago(x.t))}` : ''}</i></span></a>`;
-  if (!items.length) {
-    const walk = M.exhibitions.find(e => e.space);
-    const start = [logItem({ k: 'map' }), walk && logItem({ k: 'space', id: walk.slug })].filter(Boolean);
-    return `<section class="visits"><h2>Start here</h2>${start.map(row).join('')}</section>`;
+  for (let i = 1; i < near.length; i++) ties.push([near[i - 1].id, near[i].id, 'used']);
+  // your artists, and what they have on (on a first visit, they are the nearest stars)
+  const mine = following().map(s => M.artists.find(a => a.slug === s)).filter(Boolean);
+  const ring = near.length ? 1 : 0;
+  for (const a of mine) {
+    artist(a, ring, newsOf(a));
+    const e = showsOf(a).filter(x => status(x) !== 'past').sort((x, y) => x.start - y.start)[0];
+    if (e) show(e, ring, noteOf(e));
   }
-  const [first, ...rest] = items;
-  return `<section class="visits"><h2>Pick up where you left off</h2>
-    <a class="lg-first" href="${first.href}">${first.pic}<span><b>${esc(first.name)}</b><i>${esc(first.kind)}${first.t ? ` · ${esc(ago(first.t))}` : ''}</i><em>${esc(first.act)} <span aria-hidden="true">→</span></em></span></a>
-    ${rest.map(row).join('')}</section>`;
+  // further out: who and what you haven't met yet
+  for (const a of M.artists) if (!following().includes(a.slug)) {
+    artist(a, 2, newsOf(a));
+    const e = showsOf(a).filter(x => status(x) !== 'past')[0]; if (e) show(e, 2, noteOf(e));
+  }
+  for (const e of M.exhibitions) if (e.space) room(e, 2, 'walk it in 3D');
+  // the ties: an artist to their shows, rooms and works
+  for (const s of stars) {
+    const ofA = s.e ? (s.e.artists || [s.e.artist]) : s.w ? [s.w.artist] : [];
+    for (const a of ofA) if (a && by.has('a:' + a.slug)) ties.push(['a:' + a.slug, s.id, by.get('a:' + a.slug).ring === 2 || s.ring === 2 ? 'maybe' : 'tie']);
+  }
+  return { stars, ties, slot };
 }
 
 function home() {
-  const live = M.exhibitions.find(e => isOn(e) && e.kind !== 'online') || M.exhibitions[0];
-  return `<div class="wrap gut">
-    <div class="home-h"><h1 class="brand-h">${LOGO}</h1>${signedIn() ? `<a class="me" href="#/account" aria-label="Your account">${esc((signedIn().name || signedIn().email || '?')[0].toUpperCase())}</a>` : ''}</div>
-    ${visitLog()}
-    ${live ? `<section class="shelf"><h2 class="live-h"><span class="dot" aria-hidden="true"></span>On view now</h2>
-      <a class="feature" href="#/exhibition/${live.slug}">${im(live.images[0], `Installation view of ${live.title}`, 'loading="eager"', '100vw')}
-        <div class="ov"><h3>${esc(live.title)}</h3><div class="m"><b>${esc(live.artist.name)}</b> · ${esc([live.venue.replace(/^Solo exhi\w+ at /i, '').split(' — ')[0], live.dates || live.year].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
-    <section class="shelf week" id="hmWeek" hidden></section>
-    <section class="shelf"><h2>Artists</h2><div class="people">${M.artists.map(a => person(a)).join('')}
-      <span class="person" aria-label="More artists are coming"><span class="ring" aria-hidden="true">+</span><div class="m">More artists<br>coming soon</div></span></div></section>
-    <section class="shelf"><h2>Exhibitions</h2><div class="covers">${M.exhibitions.map(e => `<a href="#/exhibition/${e.slug}">${im(e.images[0], '')}<div><b>${esc(e.title)}</b><div class="m">${esc([e.year, e.artist.name].join(' · '))}</div></div></a>`).join('')}</div></section>
-    <section class="shelf"><h2>Latest works</h2><div class="covers works">${M.works.slice(0, 10).map(workCover).join('')}</div></section>
-    <section class="shelf"><h2>By location</h2><div class="places">${M.cities.map(cityCard).join('')}</div></section>
-    <a class="for-artists" href="#/studio"><b>Open your studio</b><span class="m">For artists: your works at their real size, your shows as rooms anyone can walk through.</span><span aria-hidden="true">→</span></a>
+  const me = signedIn(), live = M.exhibitions.find(e => e.space && isOn(e))
+    || M.exhibitions.find(e => e.space && recent().some(r => r.k === 'space' && r.id === e.slug)) || M.exhibitions.find(e => e.space);
+  const mine = following().map(s => M.artists.find(a => a.slug === s)).filter(Boolean);
+  const theirs = [...new Set(mine.flatMap(a => showsOf(a).filter(e => status(e) !== 'past')))].sort((a, b) => a.start - b.start).slice(0, 6);
+  const d0 = new Date(), day = `${d0.toLocaleDateString('en-GB', { weekday: 'short' })} ${d0.getDate()} ${d0.toLocaleDateString('en-GB', { month: 'short' })}`;
+  return `<div class="hs">
+    <section class="hs-hero" aria-label="Your art world">
+      <div class="hs-top"><span class="brand-h">${LOGO}</span><span class="hs-day">${esc(day)}</span>${me ? `<a class="me" href="#/account" aria-label="Your account">${esc((me.name || me.email || '?')[0].toUpperCase())}</a>` : ''}</div>
+      <h1 class="vh">Open Studio</h1>
+      <div id="hsSky" class="skybox"></div>
+      <div class="sky-ui"><span class="hint">drag to turn · pinch or tap twice to go further</span></div>
+      <div class="pick" hidden aria-live="polite"></div>
+    </section>
+    ${live ? `<section class="hs-sec" aria-labelledby="hsLive">
+      <div class="hs-h"><h2 id="hsLive">Walk in now</h2><span class="hand side">you can walk in from here</span></div>
+      <div class="tour-wrap"><div class="tour" data-slug="${esc(live.slug)}">
+        ${im(live.images[0], '', 'class="tour-poster"', '100vw')}
+        <iframe title="${esc(live.title)}, a walkable 3D room" tabindex="-1" allow="xr-spatial-tracking; gyroscope; accelerometer"></iframe>
+        <span class="livepill"><i></i>${isOn(live) ? 'Live now' : 'In 3D'}</span>
+        <div class="tour-cap"><b>${esc(live.title)}</b><span>${esc([byOf(live), live.city].filter(Boolean).join(' · '))}</span></div>
+        <button type="button" class="step">Step inside</button>
+        <button type="button" class="tour-x" hidden>← Back to Home</button>
+      </div></div></section>` : ''}
+    ${mine.length ? `<section class="hs-sec" aria-labelledby="hsArtists">
+      <div class="hs-h"><h2 id="hsArtists">Your artists</h2><a class="hs-more" href="#/artists">All</a></div>
+      <ul class="ppl">${mine.map((a, i) => `<li style="--c:var(--hs-${['artist', 'show', 'place', 'tour'][i % 4]})"><a href="#/artist/${a.slug}">${im(a.portrait, '', 'width="64" height="64"', '64px')}<b>${esc(a.name)}</b><span class="what">${esc([a.discipline, a.city].filter(Boolean).join(' · '))}</span>${newsOf(a) ? `<span class="hand now">${esc(newsOf(a))}</span>` : ''}</a></li>`).join('')}</ul>
+    </section>` : ''}
+    ${theirs.length ? `<section class="hs-sec" aria-labelledby="hsTheirs">
+      <div class="hs-h"><h2 id="hsTheirs">Their shows, on now</h2></div>
+      <ul class="shows">${theirs.map(e => `<li><a href="#/exhibition/${e.slug}">${im(e.images[0], '', '', '72vw')}<span class="when hand">${esc(when(e))}</span><b>${esc(e.title)}</b><span>${esc(byOf(e))}</span><span class="m">${esc([e.kind === 'online' ? 'Online' : (e.venue || '').split(' — ')[0], e.city].filter(Boolean).join(', '))}</span></a></li>`).join('')}</ul>
+    </section>` : ''}
+    <section class="hs-sec" id="hsNear" aria-labelledby="hsNearH" hidden></section>
+    <p class="hs-end hand">that’s your sky for today</p>
   </div>`;
 }
 
-// This week across the country: the art map's openings and talks (read daily from the places' own sites) with
-// Open Studio's own; filled in after Home is on screen, below the fold, so nothing above it moves.
-const HE_QUOTED = /["“”״]([^"“”״]{2,60})["“”״]/;
-function weekWhat(t) { return /פתיח|opening/i.test(t) ? 'Opening' : /שיח|talk|הרצא|lecture|tour|סיור/i.test(t) ? 'Gallery talk' : 'Event'; }
-function weekTitle(t, what) {
-  t = t.replace(/[\u{1F300}-\u{1FAFF}☀-➿]️?/gu, '').replace(/^\s*opening\s*:\s*/i, '').trim();
-  if (what === 'Opening') { const q = t.match(HE_QUOTED); if (q) return q[1].trim(); }
-  return t.replace(/^שיח גלריה( בתערוכה)?\s*[|:]\s*/, '');
+// the art map's places and shows, read once and kept (Home's far stars and "near you" use them)
+let artData = null;
+const loadArt = () => artData || (artData = Promise.all(['places', 'exhibitions'].map(n => fetch(`data/art/${n}.json`).then(r => r.ok ? r.json() : null).catch(() => null)))
+  .then(([pl, ex]) => ({ places: new Map((pl && pl.places || []).map(p => [p.id, p])), shows: ex && ex.shows || [] })));
+const km = (a, b) => { const r = Math.PI / 180, x = (b[1] - a[1]) * r * Math.cos((a[0] + b[0]) / 2 * r), y = (b[0] - a[0]) * r; return Math.hypot(x, y) * 6371; };
+const far = d => d < 1.6 ? `${Math.max(1, Math.round(d * 1.3 / 4.8 * 60))} min walk` : `${d.toFixed(1)} km`;
+// shows on today at the places nearest you, one a place
+async function nearShows(n) {
+  const { places, shows } = await loadArt(), here = myPlace(), t = new Date().toISOString().slice(0, 10), pick = new Map();
+  for (const s of shows) {
+    const p = places.get(s.place); if (!p || !p.at || (s.start && s.start > t) || (s.end && s.end < t)) continue;
+    const d = km(here.at, p.at); if (d > 25) continue;
+    if (!pick.has(p.id) || (s.end || '9') < (pick.get(p.id).s.end || '9')) pick.set(p.id, { s, p, d });
+  }
+  return [...pick.values()].sort((a, b) => a.d - b.d).slice(0, n);
 }
-async function fillWeek(box) {
-  const get = u => fetch(u).then(r => r.ok ? r.json() : null).catch(() => null);
-  const [pl, ex] = await Promise.all([get('data/art/places.json'), get('data/art/exhibitions.json')]);
-  const t0 = +today(), end = t0 + 7 * DAY, rows = [];
-  const byId = new Map((pl && pl.places || []).map(p => [p.id, p]));
-  const at = (d, hhmm) => { const x = new Date(d + 'T00:00'); if (hhmm) { const [h, m] = hhmm.split(':'); x.setHours(+h, +m); } return x; };
-  for (const e of M.exhibitions) for (const v of e.events || []) if (+v.at >= Date.now() - 3 * 3600000 && +v.at < end)
-    rows.push({ at: new Date(v.at), time: hm(v.at), title: e.title, what: v.what, where: [e.kind === 'online' ? 'Online' : e.venue && e.venue.split(' — ')[0], e.kind === 'online' ? '' : e.city].filter(Boolean).join(', '), href: `#/exhibition/${e.slug}`, own: true });
-  const seen = new Set();
-  for (const v of ex && ex.events || []) {
-    const p = byId.get(v.place), d = at(v.date, v.time); if (!p || +d < t0 || +d >= end) continue;
-    const what = weekWhat(v.title), title = weekTitle(v.title, what);
-    seen.add(`${p.id}|${v.date}|${title}`);
-    rows.push({ at: d, time: v.time || '', title, what, where: [p.name, p.city].filter(Boolean).join(", "), href: `#/map/place/${encodeURIComponent(p.id)}` });
-  }
-  const opening = new Map();   // shows that open this week, one row a place and day
-  for (const sh of ex && ex.shows || []) {
-    const p = byId.get(sh.place); if (!p || !sh.start) continue;
-    const d = at(sh.start); if (+d < t0 || +d >= end || seen.has(`${p.id}|${sh.start}|${sh.title}`)) continue;
-    const k = p.id + sh.start; (opening.get(k) || opening.set(k, { d, p, titles: [] }).get(k)).titles.push(sh.title);
-  }
-  for (const { d, p, titles } of opening.values())
-    rows.push({ at: d, time: '', title: titles.length > 1 ? `${titles.length} new shows` : titles[0], what: 'Opens', where: [p.name, p.city].filter(Boolean).join(", "), href: `#/map/place/${encodeURIComponent(p.id)}` });
-  if (!rows.length) return;
-  // openings before talks; then by day
-  const rank = r => /^Open/.test(r.what) ? 0 : 1;
-  rows.sort((a, b) => rank(a) - rank(b) || a.at - b.at);
-  const own = rows.filter(r => r.own).slice(0, 2), pick = [...own, ...rows.filter(r => !r.own)].slice(0, 5).sort((a, b) => a.at - b.at);
-  const label = d => { const n = Math.round((new Date(d).setHours(0, 0, 0, 0) - t0) / DAY); return n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : d.toLocaleDateString('en-GB', { weekday: 'short' }); };
-  box.innerHTML = `<h2>This week</h2><ol class="wk">${pick.map((r, i) => `<li><a href="${r.href}"${label(r.at) === 'Today' ? ' class="now"' : ''}>
-      <span class="wk-d">${i && pick[i - 1].at.toDateString() === r.at.toDateString() ? '' : `<b>${r.at.getDate()}</b>${esc(label(r.at))}`}</span>
-      <span class="wk-b"><b dir="auto">${esc(r.title)}</b><span>${esc([r.what, r.time].filter(Boolean).join(' · '))}</span><span dir="auto">${esc(r.where)}</span></span></a></li>`).join('')}</ol>
-    <a class="wk-all" href="#/map">${rows.length > pick.length ? `${rows.length - pick.length} more this week, on the art map` : 'All of it on the art map'}</a>`;
+const untilOf = s => { if (!s.end) return 'On now'; const left = Math.ceil((new Date(s.end + 'T23:59') - Date.now()) / DAY); return left <= 7 ? `${left} ${left === 1 ? 'day' : 'days'} left` : `Until ${dm(new Date(s.end + 'T12:00'))}`; };
+
+// the pencil and the water, defined once: a little roughness on every drawn line, a soft bleed on every wash
+const HS_DEFS = `<svg width="0" height="0" style="position:absolute" aria-hidden="true" id="hsDefs">
+  <filter id="hsPencil"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.2"/></filter>
+  <filter id="hsWash" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="8" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="16"/></filter></svg>`;
+const SKIES = [[5, '#F9D9C9,#F4DCE6 38%,#DCDDF4 70%,#CFE2F2'], [11, '#CFE6F5,#DDE3F7 40%,#EEE0F1 75%,#F8E6DF'], [16, '#F8D3C6,#F2C9D8 40%,#D9CDEF 72%,#C9D4F0'], [20, '#D3CCEE,#C7CFEE 45%,#D9D2F0 75%,#EBDDF0']];
+const seeded = i => { const x = Math.sin(i * 999.7) * 43758.5453; return x - Math.floor(x); };
+// a pencil circle, gone round a little more than once, never quite closed
+const pencilRing = i => { const a = seeded(i) * 6; let d = ''; for (let k = 0; k <= 30; k++) { const t = a + k / 26 * Math.PI * 2, rr = 50 + Math.sin(k * 0.9 + i) * 1.6 + k * .05; d += `${k ? 'L' : 'M'}${(50 + Math.cos(t) * rr).toFixed(1)} ${(50 + Math.sin(t) * rr).toFixed(1)}`; } return `<svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><path d="${d}"/></svg>`; };
+const heb = s => /[֐-׿]/.test(s) ? ' dir="rtl"' : '';
+const skyStar = s => `<span class="wash"></span><span class="sp"${s.img ? ` style="background-image:url('${esc(s.img)}')"` : ''}></span>${s.ring === 0 ? pencilRing([...s.id].reduce((h, c) => h + c.charCodeAt(0), 0)) : ''}<span class="lab"><b${heb(s.name)}>${esc(s.name)}</b>${s.sub ? `<small>${esc(s.sub)}</small>` : ''}${s.note ? `<span class="hand">${esc(s.note)}</span>` : ''}</span>`;
+const KIND = { artist: 'Artist', show: 'Show', tour: 'In 3D', place: 'Place', work: 'Work' };
+const MOTES = Array.from({ length: 70 }, (_, i) => ({ x: (seeded(i + 1) - .5) * 1900, y: (seeded(i + 51) - .5) * 2300, z: (seeded(i + 101) - .5) * 1900, r: 0.6 + seeded(i + 151) * 1.6 }));
+
+let homeSky = null;
+async function mountHome(root) {
+  if (!document.getElementById('hsDefs')) document.body.insertAdjacentHTML('afterbegin', HS_DEFS);
+  const H = new Date().getHours(), sk = [...SKIES].reverse().find(([h]) => H >= h) || SKIES[3];
+  root.style.setProperty('--hs-sky', `linear-gradient(180deg,${sk[1]} 100%)`);
+  const hero = root.querySelector('.hs-hero'), pick = root.querySelector('.pick'), box = root.querySelector('#hsSky');
+  const { stars, ties, slot } = skyOf();
+  const { sky } = await import('./sky.js');
+  if (!box.isConnected) return;
+  let dust = null;
+  const S = homeSky = sky(box, {
+    stars, ties, node: skyStar,
+    cam: { D: 560, pitch: 0 }, F: 560, cy: 0.535, limits: { yaw: 0.8, pitch: 0.45, Dmin: 300, Dmax: 1500 }, intro: 1.9, zoomEase: .05, farZoom: 1.9,
+    farFrom: 560, fogStart: 60, fogRange: 1500, minOp: .1, labelAt: 0.7, bigAt: 0.86, maxScale: 1.3, bow: 0.1, ink: .8, pickLift: 90,
+    extra(g, project) {                                         // pale motes far out, so the sky has depth before you step back
+      if (!dust) { dust = MOTES.map(() => { const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); g.append(c); return c; }); g.classList.add('dust'); }
+      MOTES.forEach((m, i) => { const q = project(m), c = dust[i]; if (q.behind) { c.setAttribute('r', 0); return; }
+        c.setAttribute('cx', q.x.toFixed(1)); c.setAttribute('cy', q.y.toFixed(1)); c.setAttribute('r', Math.min(3, m.r * q.k).toFixed(2)); c.setAttribute('opacity', Math.min(.9, .25 + q.k * .6).toFixed(2)); });
+    },
+    onChoose(s) {
+      hero.classList.toggle('picking', !!s);
+      if (!s) { pick.hidden = true; return; }
+      pick.innerHTML = `${s.img ? `<img src="${esc(s.img)}" alt="">` : `<i class="pk-dot k-${s.kind}"></i>`}<div><span class="pk-k">${KIND[s.kind]}${s.ago ? ` · ${esc(s.ago)}` : ''}</span><b${heb(s.name)}>${esc(s.name)}</b><span>${esc(s.sub || '')}</span>${s.note ? `<span class="hand">${esc(s.note)}</span>` : ''}</div>${s.href ? `<a class="go" href="${esc(s.href)}">${esc(s.go || 'Open')}</a>` : ''}<button type="button" class="x" aria-label="Close">×</button>`;
+      pick.hidden = false;
+      pick.querySelector('.x').onclick = () => { pick.hidden = true; S.clear(); hero.classList.remove('picking'); };
+    },
+  });
+  // the far sky: shows on now at the places nearest you, from the art map
+  nearShows(14 - slot[2]).then(list => {
+    if (!box.isConnected) return;
+    const more = [], tie = [];
+    list.forEach(({ s, p, d }) => {
+      const at = SLOTS[2][slot[2]++]; if (!at) return;
+      const id = 'r:' + s.id; more.push({ id, kind: 'show', ring: 2, real: true, name: cleanTitle(s.title), sub: `${p.name} · ${far(d)}`, note: untilOf(s), href: `#/map/place/${encodeURIComponent(p.id)}`, go: 'On the map', x: at[0], y: at[1], z: at[2] });
+    });
+    for (let i = 1; i < more.length; i++) if (seeded(i * 7) > .45) tie.push([more[i - 1].id, more[i].id, 'maybe']);
+    S.add(more, tie);
+  });
+  wireTour(root);
+  fillNear(root.querySelector('#hsNear'));
+}
+
+// the room you can walk into, live on Home: the real 3D tour (the app itself, in a frame), turning slowly until you
+// step inside; inside, it takes the screen, and "Back to Home" gives Home back where it was
+// the arch drawn round the room, in pencil, twice, not quite on its line
+function sketchArch(tour) {
+  const w = tour.clientWidth, h = tour.clientHeight, r = w / 2; if (!w) return;
+  const path = (dx, dy, s) => `M${4 + dx} ${h - 2 + dy}L${3 + dx} ${r + dy}A${r - 3 + s} ${r - 3 + s} 0 0 1 ${w - 3 + dx} ${r - 2 + dy}L${w - 4 + dx} ${h - 6 + dy}`;
+  const old = tour.parentElement.querySelector('.sketch-arch'); if (old) old.remove();
+  tour.insertAdjacentHTML('afterend', `<svg class="sketch-arch" viewBox="-9 -9 ${w + 16} ${h + 15}" aria-hidden="true"><path d="${path(-8, -9, 9)}"/><path d="${path(4, -3, 3)}" opacity=".5"/></svg>`);
+}
+function wireTour(root) {
+  const tour = root.querySelector('.tour'); if (!tour) return;
+  sketchArch(tour);
+  const frame = tour.querySelector('iframe'), slug = tour.dataset.slug;
+  let view = null, sweep = 0, t0 = 0, base = null, inside = false;
+  const HIDE = '.sv-top,.sv-modes,.sv-map,.sv-joy,.sv-hint,.sv-card,.sv-dot,.sv-loading,.install{display:none!important}';
+  const chrome = show => {
+    const doc = frame.contentDocument; if (!doc || !doc.head) return;
+    let st = doc.getElementById('home-hide'); if (!st) { st = doc.createElement('style'); st.id = 'home-hide'; doc.head.append(st); }
+    st.textContent = show ? '.sv-x,.sv-t,.install{display:none!important}' : HIDE;
+  };
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const turn = now => {
+    if (!view || inside || !tour.isConnected) return;
+    if (!t0) t0 = now;
+    const a = Math.sin((now - t0) / 1000 * 0.16) * 0.55, [lx, ly, lz] = base.look, [px, , pz] = base.pos, dx = lx - px, dz = lz - pz, ca = Math.cos(a), sa = Math.sin(a);
+    try { view.inspect.place(base.pos, [px + dx * ca - dz * sa, ly, pz + dx * sa + dz * ca]); } catch {}
+    sweep = requestAnimationFrame(turn);
+  };
+  const wait = (tries = 0) => {
+    if (!tour.isConnected) return;
+    const v = frame.contentWindow && frame.contentWindow.__spaceView;
+    if (!v || !v.inspect) return tries < 120 && setTimeout(() => wait(tries + 1), 400);
+    view = v; chrome(false);
+    setTimeout(() => { base = view.inspect.where(); tour.classList.add('ready'); if (!calm) sweep = requestAnimationFrame(turn); }, 900);
+  };
+  new IntersectionObserver(([e], io) => {
+    if (!e.isIntersecting) return; io.disconnect();
+    frame.src = `./?guest#/exhibition/${encodeURIComponent(slug)}/space`;
+    frame.addEventListener('load', () => { chrome(false); wait(); }, { once: true });
+  }, { rootMargin: '600px 0px' }).observe(tour);
+  const out = tour.querySelector('.tour-x');
+  tour.querySelector('.step').onclick = () => {
+    if (!view) { location.hash = `#/exhibition/${slug}/space`; return; }      // not ready yet: open the room itself
+    inside = true; cancelAnimationFrame(sweep); tour.classList.add('inside'); chrome(true);
+    frame.tabIndex = 0; out.hidden = false; document.documentElement.classList.add('lock'); setTimeout(() => frame.focus(), 50);
+  };
+  out.onclick = () => {
+    inside = false; tour.classList.remove('inside'); chrome(false); frame.tabIndex = -1; out.hidden = true; document.documentElement.classList.remove('lock');
+    if (view) { base = view.inspect.where(); t0 = 0; if (!calm) sweep = requestAnimationFrame(turn); }
+  };
+}
+
+// what's on near you: the nearest places with a show on today, drawn as a small pencil map round where you are
+async function fillNear(box) {
+  if (!box) return;
+  const list = await nearShows(4), here = myPlace();
+  if (!list.length || !box.isConnected) return;
+  const W = 340, H = 250, maxd = Math.max(...list.map(x => x.d), .4);
+  // a sketch, not a survey: each place in its true direction from you, spread so no two sit on each other, nearer ones nearer
+  const cosLat = Math.cos(here.at[0] * Math.PI / 180);
+  const P = list.map(({ p, d }) => ({ p, k: .42 + .58 * Math.sqrt(d / maxd), th: Math.atan2(-(p.at[0] - here.at[0]), (p.at[1] - here.at[1]) * cosLat) }));
+  P.sort((a, b) => a.th - b.th);
+  P.forEach((x, i) => { x.th = P[0].th + i * Math.PI * 2 / P.length + .35; });   // their order round you kept, evenly spread
+  const rx = W / 2 - 112, ry = H / 2 - 36;
+  const pins = P.map(({ p, k, th }, i) => { const x = W / 2 + Math.cos(th) * k * rx, y = H / 2 + Math.sin(th) * k * ry, right = Math.cos(th) >= 0;
+    return `<g class="pin" style="--c:var(--hs-${['show', 'artist', 'tour', 'place'][i % 4]})"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" class="pw"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5"/><text x="${(x + (right ? 12 : -12)).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="${right ? 'start' : 'end'}"${heb(p.name)}>${esc(p.name.length > 19 ? p.name.slice(0, 17).trim() + '…' : p.name)}</text></g>`; }).join('');
+  box.innerHTML = `<div class="hs-h"><h2 id="hsNearH">On now, near you</h2><span class="hand side">${esc(here.name && here.name !== 'Tel Aviv' ? 'around ' + here.name : 'in Tel Aviv')}</span></div>
+    <a class="hs-map" href="#/map" aria-label="Open the art map"><svg viewBox="0 0 ${W} ${H}" aria-hidden="true">
+      <circle cx="${W / 2}" cy="${H / 2}" r="${(H / 2 - 30)}" class="o1"/><circle cx="${W / 2}" cy="${H / 2}" r="${(H / 2 - 64)}" class="o2"/>
+      <circle cx="${W / 2}" cy="${H / 2}" r="5" class="here"/><text x="${W / 2}" y="${H / 2 + 22}" text-anchor="middle" class="here-t">you</text>${pins}</svg><span>Open the map</span></a>
+    <ul class="hs-list">${list.map(({ s, p, d }) => `<li><a href="#/map/place/${encodeURIComponent(p.id)}"><b dir="auto">${esc(cleanTitle(s.title))}</b><span dir="auto">${esc(p.name)}</span><span class="m">${esc(untilOf(s))} · ${esc(far(d))}</span></a></li>`).join('')}</ul>`;
   box.hidden = false;
 }
 
@@ -693,8 +850,8 @@ function wire() {
   document.querySelectorAll('[data-log]').forEach(b => b.onclick = () => { const [s, i] = b.dataset.log.split(':'); openLog(s, +i); });
   const am = document.querySelector('.am');
   if (am) openArtMap(am);
-  const wk = document.getElementById('hmWeek');
-  if (wk) fillWeek(wk);
+  const hs = app.querySelector('.hs');
+  if (hs) mountHome(hs).catch(e => console.error('home:', e));
   // a list that opens five more at a time
   document.querySelectorAll('[data-more]').forEach(b => b.onclick = () => {
     const rest = [...b.parentNode.querySelectorAll('[data-more-list] > [hidden]')];
