@@ -160,7 +160,7 @@ function home() {
       ${todo.length ? `<div class="list">${todo.map(([t, h]) => `<a class="st-todo" href="${h}">${esc(t)}<span aria-hidden="true">→</span></a>`).join('')}</div>` : '<p class="m">Nothing: everything is in order.</p>'}
     </section>
     <section class="sec"><div class="sec-h"><h2>Quick add</h2></div>
-      <div class="btns"><a class="btn f" href="#/studio/works/new">Add a work</a><a class="btn g" href="#/studio/exhibitions/new">Add an exhibition</a><a class="btn g" href="#/studio/preview">See your page</a></div>
+      <div class="btns"><a class="btn f" href="#/studio/works/new">Add a work</a><a class="btn g" href="#/studio/exhibitions/new">Add an exhibition</a><a class="btn g" href="#/studio/virtual/new">Design a virtual exhibition</a><a class="btn g" href="#/studio/preview">See your page</a></div>
       <p class="m small">${ready} of ${S.works.length} works are ready for a walkable tour.</p>
     </section>
     <section class="sec"><button type="button" class="more" id="signOut">Sign out</button></section>
@@ -205,12 +205,74 @@ function workForm(id) {
 
 function exhibitions() {
   return `<div class="wrap gut st">${head('Exhibitions')}${nav('exhibitions')}
-    <div class="btns" style="padding-block:6px 18px"><a class="btn f" href="#/studio/exhibitions/new">Add an exhibition</a></div>
+    <div class="btns" style="padding-block:6px 18px"><a class="btn f" href="#/studio/exhibitions/new">Add an exhibition</a><a class="btn g" href="#/studio/virtual/new">Design a virtual one</a></div>
+    ${(S.virtual || []).length ? `<section class="sec" style="padding-top:0"><div class="sec-h"><h2>Virtual</h2><span class="more">rooms that exist only here</span></div><div class="list">${S.virtual.map(v => `<a class="row" href="#/studio/virtual/${v.id}"><img src="${esc(thumbOf(v.works[0]))}" alt=""><div class="t"><div><b>${esc(v.title || 'Untitled')}</b></div><div class="m">${esc(roomName(v.room))} · ${v.works.length} works</div></div><span class="st-flag ok">Virtual</span></a>`).join('')}</div></section>` : ''}
     <div class="list">${S.exhibitions.map(ex => {
       return `<a class="row" href="#/studio/exhibition/${ex.id}"><img src="${esc(ex.cover || (ex.photos[0] || {}).src || '')}" alt=""><div class="t"><div><b>${esc(ex.title)}</b></div><div class="m">${esc([ex.venue, ex.year].filter(Boolean).join(' · '))}</div></div>
         <span class="st-flag ${tourFlag(ex)[0]}">${tourFlag(ex)[1]}</span></a>`;
     }).join('')}</div>
   </div>`;
+}
+
+// --- a virtual exhibition: a room that exists only here, designed around the works ------------------------
+// The artist chooses one of Open Studio's rooms, the walls' colour, the works and their walking order, and the
+// height they hang at; the room is drawn around them (space/synth.js) and opens in the same viewer as a real tour.
+let SYN = null, addOpen = false, restoreY = null;                    // (the works to add stay open while the artist adds several)
+const synth = () => SYN || (SYN = import('./space/synth.js'));
+let ROOMS = {}, PAINTS = {};
+const roomName = r => (ROOMS[r] || {}).name || 'A virtual room';
+const workOf = id => S.works.find(w => w.id === id);
+const thumbOf = id => { const w = workOf(id); return w ? srcOf(w.thumb || w.image) : ''; };
+const srcOf = p => (model && model.media && model.media[p]) || p;
+const plan = (r, on) => {
+  const k = 64 / Math.max(r.w, r.d), W = r.w * k, D = r.d * k, d = r.door * k;
+  return `<svg viewBox="-3 -3 ${W + 6} ${D + 6}" width="${W + 6}" height="${D + 6}" aria-hidden="true"><path d="M${W} ${D / 2 + d / 2}V${D}H0V0H${W}V${D / 2 - d / 2}" fill="${on ? 'var(--card)' : 'none'}" stroke="currentColor" stroke-width="1.5"/></svg>`;
+};
+function designer(id) {
+  const isNew = id === 'new';
+  const v = isNew ? { id: '', title: '', room: 'white-cube', paint: '', centre: 150, works: [], text: '' } : (S.virtual || []).find(x => x.id === id);
+  if (!v) return `<div class="wrap gut st">${head('Not found', '#/studio/exhibitions')}</div>`;
+  const paint = v.paint || ROOMS[v.room].paint;
+  const rest = S.works.filter(w => !v.works.includes(w.id));
+  return `<div class="wrap gut st">${head(isNew ? 'A virtual exhibition' : v.title || 'Untitled', '#/studio/exhibitions')}
+    <p class="m">Choose a room, the colour of its walls and the works, in the order a visitor will walk past them. The room is built around them, every work at its real size.</p>
+    <form class="st-form st-vx" id="vxForm" data-id="${esc(v.id)}">
+      <label>Title<input name="title" required value="${esc(v.title)}" placeholder="The exhibition's title"></label>
+      <fieldset><legend>The room</legend><div class="vx-rooms">${Object.entries(ROOMS).map(([k, r]) => `<label class="vx-room"><input type="radio" name="room" value="${k}" ${v.room === k ? 'checked' : ''}>${plan(r, v.room === k)}<b>${esc(r.name)}</b><span class="m small">${esc(r.size)} · ${esc(r.blurb)}</span></label>`).join('')}</div></fieldset>
+      <fieldset><legend>The walls</legend><div class="vx-paints">${Object.entries(PAINTS).map(([k, [n, c]]) => `<label class="vx-paint" title="${n}"><input type="radio" name="paint" value="${k}" ${paint === k ? 'checked' : ''}><i style="background:${c}"></i><span>${n}</span></label>`).join('')}</div></fieldset>
+      <fieldset><legend>Works, in walking order</legend>
+        ${v.works.length ? `<ol class="vx-order">${v.works.map((wid, i) => { const w = workOf(wid); if (!w) return ''; return `<li><img src="${esc(thumbOf(wid))}" alt=""><div class="t"><b>${esc(w.title)}</b><span class="m small">${esc([w.year, w.width && w.height ? `${w.height} × ${w.width} cm` : ''].filter(Boolean).join(' · '))}</span></div>
+          <button type="button" data-up="${i}" aria-label="Move ${esc(w.title)} earlier" ${i ? '' : 'disabled'}>↑</button><button type="button" data-down="${i}" aria-label="Move ${esc(w.title)} later" ${i < v.works.length - 1 ? '' : 'disabled'}>↓</button><button type="button" data-out="${i}" aria-label="Take ${esc(w.title)} out">×</button></li>`; }).join('')}</ol>` : '<p class="m">No works yet: add them below.</p>'}
+        <p class="m small" id="vxFit" aria-live="polite"></p>
+        ${rest.length ? `<details class="vx-add" ${v.works.length && !addOpen ? '' : 'open'}><summary>Add works (${rest.length})</summary><div class="st-pick">${rest.map(w => `<label><input type="checkbox" data-add="${esc(w.id)}"><img src="${esc(srcOf(w.thumb || w.image))}" alt=""><span>${esc(w.title)}</span></label>`).join('')}</div></details>` : ''}
+      </fieldset>
+      <label>Hung at, centre (cm)<input name="centre" type="range" min="135" max="160" step="1" value="${+v.centre || 150}"><span class="m small" id="vxCentre">${+v.centre || 150} cm from the floor to the middle of each work</span></label>
+      <label>About the exhibition<textarea name="text" rows="4">${esc(v.text)}</textarea></label>
+      <div class="btns"><button class="btn f" type="button" id="vxWalk" ${v.works.length ? '' : 'disabled'}>Walk in</button><button class="btn g" type="submit">Save</button>${isNew ? '' : '<button class="btn g" type="button" id="vxDel">Delete</button>'}</div>
+      <p class="m small">In this demo the design stays on this phone. With artists' accounts, Publish will put it on your page and in Shows.</p>
+    </form>
+  </div>`;
+}
+async function fitNote(app, v) {
+  const el = app.querySelector('#vxFit');
+  if (!el || !v.works.length) return;
+  const { sizeOf, hang } = await synth();
+  const ws = v.works.map(workOf).filter(Boolean);
+  const sized = await Promise.all(ws.map(async w => ({ work: w, ...(await sizeOf(w, srcOf)) })));
+  if (!app.contains(el)) return;
+  const { left } = hang({ room: v.room, centre: v.centre }, sized);
+  const guessed = sized.filter(x => x.guessed).length;
+  el.textContent = (left.length ? `${ws.length - left.length} of ${ws.length} works fit on the walls of the ${roomName(v.room)}: choose a larger room, or fewer works.` : `All ${ws.length} works fit on the walls, with room to breathe.`)
+    + (guessed ? ` ${guessed} without a size: hung at about 90 cm; add their sizes in Works.` : '');
+  el.classList.toggle('warn', !!left.length);
+}
+async function walkIn(v) {
+  const [{ buildRoom }, { openSpace }] = await Promise.all([synth(), import('./space/space.js')]);
+  const works = v.works.map(workOf).filter(Boolean).map(w => ({ title: w.title, image: srcOf(w.image), width: w.width, height: w.height, pairs: w.width && w.height ? [[+w.height, +w.width]] : [],
+    year: w.year, medium: w.medium, artist: { name: S.artist.name } }));
+  const made = await buildRoom({ title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre, works }, u => u);
+  const view = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => made.revoke() });
+  window.__spaceView = view;
 }
 
 // a live tour, to share anywhere: a link, and a frame for the artist's own website
@@ -350,6 +412,40 @@ function wire(app, go) {
     if (del) del.onclick = () => { if (!confirm('Delete this work?')) return; S.works = S.works.filter(x => x.id !== wf.dataset.id); S.exhibitions.forEach(ex => ex.works = ex.works.filter(i => i !== wf.dataset.id)); save(); go('#/studio/works'); };
   }
 
+  const vx = $('#vxForm');
+  if (vx) {
+    const id = vx.dataset.id;
+    let v = id ? S.virtual.find(x => x.id === id) : null;
+    const keep = () => {
+      const f = new FormData(vx);
+      const data = { title: f.get('title').trim(), room: f.get('room'), paint: f.get('paint'), centre: +f.get('centre'), text: f.get('text') };
+      if (!v) { v = { id: uid(), works: [], ...data }; (S.virtual = S.virtual || []).unshift(v); vx.dataset.id = v.id; history.replaceState(null, '', `#/studio/virtual/${v.id}`); }
+      else Object.assign(v, data);
+      save(); return v;
+    };
+    // (a change redraws the screen where the artist is, not at its top)
+    const redo = () => { if (restoreY == null) restoreY = scrollY; go(`#/studio/virtual/${keep().id}`, true); };
+    vx.querySelectorAll('input[name=room], input[name=paint]').forEach(i => i.onchange = () => {
+      if (i.name === 'room') { const p = vx.querySelector('input[name=paint]:checked'); if (p && p.value === ROOMS[(v || {}).room || 'white-cube'].paint) p.checked = false; }
+      redo();
+    });
+    const c = vx.querySelector('input[name=centre]');
+    c.oninput = () => { $('#vxCentre').textContent = `${c.value} cm from the floor to the middle of each work`; };
+    c.onchange = () => { keep(); fitNote(app, v); };
+    vx.querySelectorAll('[data-add]').forEach(b => b.onchange = () => { addOpen = true; restoreY = scrollY; keep().works.push(b.dataset.add); redo(); });
+    const ad = vx.querySelector('.vx-add'); if (ad) ad.ontoggle = () => { addOpen = ad.open; };
+    vx.querySelectorAll('[data-up],[data-down],[data-out]').forEach(b => b.onclick = () => {
+      const w = keep().works, i = +(b.dataset.up ?? b.dataset.down ?? b.dataset.out);
+      if (b.dataset.out != null) w.splice(i, 1); else { const j = b.dataset.up != null ? i - 1 : i + 1; [w[i], w[j]] = [w[j], w[i]]; }
+      redo();
+    });
+    vx.onsubmit = e => { e.preventDefault(); keep(); go('#/studio/exhibitions'); };
+    const walk = $('#vxWalk');
+    if (walk) walk.onclick = async () => { walk.disabled = true; walk.textContent = 'Building the room…'; try { await walkIn(keep()); } finally { walk.disabled = false; walk.textContent = 'Walk in'; } };
+    const del = $('#vxDel');
+    if (del) del.onclick = () => { if (!confirm('Delete this virtual exhibition?')) return; S.virtual = S.virtual.filter(x => x.id !== id); save(); go('#/studio/exhibitions'); };
+    if (v) fitNote(app, v);
+  }
   const xf = $('#exForm');
   if (xf) {
     const id = xf.dataset.id, ex = id ? S.exhibitions.find(x => x.id === id) : null;
@@ -400,18 +496,21 @@ function wire(app, go) {
 // the real artist's studio, from the app's own content and each exhibition's tour status
 async function realArtist(M) {
   const a = M.artist;
-  const works = M.works.map(w => {
+  const works = M.works.filter(w => w.artist === a).map(w => {
     const [width, height] = w.pairs && w.pairs[0] ? w.pairs[0] : ['', ''];
     return { id: w.slug, title: w.title, year: w.year, medium: w.medium, width, height, depth: '', framed: 'no', image: w.image,
       check: { W: 2000, H: 2000, long: 2000, mean: 120, clipped: 0, sharp: 0.5, backdrop: false } };
   });
-  const exhibitions = await Promise.all(M.exhibitions.map(async e => {
+  const exhibitions = await Promise.all(M.exhibitions.filter(e => !e.virtual && (e.artists || [e.artist]).includes(a)).map(async e => {
     const st = await fetch(`data/spaces/${e.slug}.status.json`).then(r => r.ok ? r.json() : null).catch(() => null);
     return { id: e.slug, title: e.title, venue: (e.venue || '').split(' — ')[0], city: e.city || '', year: e.year, dates: e.dates || '', curator: '', text: (e.text || []).join('\n\n'),
       works: e.works.map(w => w.slug), photos: (e.images || []).map(src => ({ src })), video: '', space: {}, cover: (e.images || [])[0],
       tour: e.space ? 'live' : st && st.state === 'building' ? 'building' : 'none', real: st };
   }));
-  return { artist: { name: a.name, discipline: a.discipline || 'Painter', city: a.city, photo: a.portrait, statement: a.statement, bio: '', link: '', cover: a.hero }, works, exhibitions };
+  // the virtual exhibitions already designed for this artist (data/virtual.json)
+  const virtual = M.exhibitions.filter(e => e.virtual && e.virtual.kind === 'artist' && e.artist === a).map(e => ({ id: e.slug, title: e.title,
+    room: e.virtual.room, paint: e.virtual.paint, centre: e.virtual.centre, works: e.works.map(w => w.slug).filter(s => works.some(w => w.id === s)), text: e.text.join('\n\n') }));
+  return { artist: { name: a.name, discipline: a.discipline || 'Painter', city: a.city, photo: a.portrait, statement: a.statement, bio: '', link: '', cover: a.hero }, works, exhibitions, virtual };
 }
 
 export async function studio(hash, app, go, M) {
@@ -424,12 +523,16 @@ export async function studio(hash, app, go, M) {
   else if (m === 'works') html = works();
   else if (m === 'works/new') html = workForm(null);
   else if (m.startsWith('work/')) html = workForm(m.slice(5));
-  else if (m === 'exhibitions') html = exhibitions();
   else if (m === 'exhibitions/new') html = exhibitionPage('new');
   else if (m.startsWith('exhibition/')) html = exhibitionPage(m.slice(11));
+  else if (m.startsWith('virtual/') || m === 'exhibitions') {
+    ({ ROOMS, PAINTS } = await synth());
+    html = m === 'exhibitions' ? exhibitions() : designer(m.slice(8));
+  }
   else if (m === 'profile') html = profile();
   else if (m === 'preview') html = preview();
   else html = home();
   app.innerHTML = html;
   wire(app, go);
+  if (restoreY != null) { const y = restoreY; restoreY = null; requestAnimationFrame(() => scrollTo({ top: y, behavior: 'instant' })); }
 }

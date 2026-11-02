@@ -475,7 +475,7 @@ main .artist-row img{width:72px;height:72px;object-fit:cover;border-radius:50% !
 .cv-im{position:relative;display:block}
 .badge{position:absolute;top:8px;left:8px;font:500 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;font-style:normal;background:rgba(14,14,16,.78);color:#fff;padding:5px 7px;border-radius:99px !important}
 main .person.fresh img{box-shadow:0 0 0 2.5px var(--wall),0 0 0 4.5px var(--dot) !important}
-.bys{display:flex;flex-wrap:wrap;gap:6px 14px}
+.bys{display:flex;flex-wrap:wrap;gap:18px 14px}
 .visit{display:grid;gap:2px;font-size:14px;padding:12px 14px;background:var(--paper);border:1px solid var(--line)}
 .visit a{display:grid;text-decoration:none}.visit a span,.visit>span{color:var(--muted)}
 .event{display:flex;gap:10px;align-items:baseline;font-size:14px}.event b{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dot)}
@@ -843,6 +843,27 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
   background:none!important;border:0!important;box-shadow:none!important;pointer-events:auto}
 .seg button{min-width:46px}                    /* (side by side, no room round them: the one that changes how it looks, by a few px) */
 .am-kinds{padding-block:3px;margin-block:-3px}   /* (a sideways scroller clips what reaches past it: room inside, the same place outside) */
+.vx-rooms{display:grid;gap:8px}
+.vx-room{position:relative;display:grid;grid-template-columns:76px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:14px;cursor:pointer}
+.vx-room svg{grid-row:1/3;justify-self:center;color:var(--ink)}
+.vx-room input,.vx-paint input{position:absolute;top:0;left:0;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
+.vx-room:has(input:checked){border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.vx-room:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2px}
+.vx-paints{display:flex;flex-wrap:wrap;gap:6px}
+.vx-paint{position:relative;display:grid;justify-items:center;gap:4px;font-size:12px;min-width:46px;cursor:pointer}
+.vx-paint i{width:36px;height:36px;border-radius:50%;border:1px solid var(--line)}
+.vx-paint:has(input:checked) i{box-shadow:0 0 0 2px var(--wall),0 0 0 4px var(--ink)}
+.vx-paint:has(input:focus-visible) i{outline:2px solid var(--ink);outline-offset:4px}
+.vx-order{list-style:none;padding:0;margin:0;display:grid;gap:6px;counter-reset:vx}
+.vx-order li{display:grid;grid-template-columns:22px 52px 1fr repeat(3,44px);align-items:center;gap:6px;counter-increment:vx}
+.vx-order li::before{content:counter(vx);font-family:var(--mono);font-size:12px;color:var(--muted,#777)}
+.vx-order img{width:52px;height:52px;object-fit:cover;border-radius:8px}
+.vx-order .t{display:grid;min-width:0}.vx-order .t b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vx-order button{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--ink);font-size:16px;cursor:pointer}
+.vx-order button:disabled{opacity:.3;cursor:default}
+#vxFit.warn{color:var(--dot)}
+.vx-add summary{cursor:pointer;padding-block:12px;font-weight:600}
+.st-vx input[type=range]{width:100%;accent-color:var(--ink)}
 </style>
 
 <!-- app:head-end -->
