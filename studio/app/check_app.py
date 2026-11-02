@@ -150,7 +150,40 @@ def art_data():
         ok(f'art map: {len(places)} places, {sum(bool(p.get("building")) for p in places)} with their building')
 
 
+# The film of each room on Home (space/preview_film.py measures it as it is made). The first one went out blurry,
+# flickering and turning too fast, and only a phone showed it: now a film below these marks holds the app back.
+FILM = {'width': 1000, 'psnr_db': 36.0, 'flicker_max': 6.0, 'deg_per_s_max': 5.0}
+
+
+def films():
+    spaces = APP / 'data' / 'spaces'
+    try:
+        slugs = list(json.loads((spaces / 'index.json').read_text()))
+    except (OSError, ValueError):
+        return
+    for slug in slugs:
+        d = spaces / slug
+        files = [f for f in ('preview.hevc.mp4', 'preview.webm', 'preview.mp4', 'preview.jpg') if not (d / f).exists()]
+        if files:
+            fail(f'film of {slug}: missing {", ".join(files)} (node studio/app/space/preview.cjs {slug})')
+            continue
+        try:
+            m = json.loads((d / 'preview.json').read_text())
+        except (OSError, ValueError):
+            fail(f'film of {slug}: no measurements (preview.json): made the old way, make it again'); continue
+        bad = []
+        if m.get('width', 0) < FILM['width']: bad.append(f"{m.get('width')} px wide, under {FILM['width']}: soft on a phone")
+        if m.get('psnr_db', 0) < FILM['psnr_db']: bad.append(f"{m.get('psnr_db')} dB against its own frames: compressed too far")
+        if m.get('flicker', 99) > FILM['flicker_max']: bad.append(f"flicker {m.get('flicker')} (most {FILM['flicker_max']})")
+        if m.get('peak_deg_per_s', 99) > FILM['deg_per_s_max']: bad.append(f"turns {m.get('peak_deg_per_s')}°/s (most {FILM['deg_per_s_max']})")
+        if bad:
+            fail(f'film of {slug}: ' + '; '.join(bad))
+        else:
+            ok(f"film of {slug}: {m['width']}x{m['height']}, {m['psnr_db']} dB, flicker {m['flicker']}, {m['peak_deg_per_s']}°/s, {m['kb']['preview.hevc.mp4']} KB")
+
+
 if __name__ == '__main__':
+    films()
     map_tiles()
     directions()
     vendor()

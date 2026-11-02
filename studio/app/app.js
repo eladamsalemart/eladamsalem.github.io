@@ -296,7 +296,7 @@ function home() {
       <div class="hs-h"><h2 id="hsLive">Walk in now</h2><span class="hand side">you can walk in from here</span></div>
       <div class="tour-wrap"><div class="tour" data-slug="${esc(live.slug)}">
         ${im(live.images[0], '', 'class="tour-poster"', '100vw')}
-        <video class="tour-film" muted loop playsinline preload="none" poster="data/spaces/${esc(live.slug)}/preview.jpg" aria-label="${esc(live.title)}: the room, turning slowly"><source src="data/spaces/${esc(live.slug)}/preview.mp4" type="video/mp4"><source src="data/spaces/${esc(live.slug)}/preview.webm" type="video/webm"></video>
+        <video class="tour-film" muted loop playsinline preload="none" poster="data/spaces/${esc(live.slug)}/preview.jpg" aria-label="${esc(live.title)}: the room, turning slowly"><source src="data/spaces/${esc(live.slug)}/preview.hevc.mp4" type='video/mp4; codecs="hvc1"'><source src="data/spaces/${esc(live.slug)}/preview.webm" type='video/webm; codecs="vp9"'><source src="data/spaces/${esc(live.slug)}/preview.mp4" type="video/mp4"></video>
         <span class="livepill"><i></i>${isOn(live) ? 'Live now' : 'In 3D'}</span>
         <div class="tour-cap"><b>${esc(live.title)}</b><span>${esc([byOf(live), live.city].filter(Boolean).join(' · '))}</span></div>
         <a class="step" href="#/exhibition/${esc(live.slug)}/space">Step inside</a>

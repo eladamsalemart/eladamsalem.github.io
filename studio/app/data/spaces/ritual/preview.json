@@ -1,0 +1,16 @@
+{
+ "frames": 900,
+ "flicker": 3.041,
+ "motion": 2.54,
+ "psnr_db": 38.0,
+ "width": 1080,
+ "height": 1440,
+ "fps": 30,
+ "seconds": 30,
+ "peak_deg_per_s": 3.46,
+ "kb": {
+  "preview.mp4": 4170,
+  "preview.hevc.mp4": 3261,
+  "preview.webm": 2850
+ }
+}

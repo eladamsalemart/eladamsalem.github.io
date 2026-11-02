@@ -80,14 +80,14 @@ jobs:
             ${{ runner.temp }}/inspect/**/*.json
           retention-days: 3
           if-no-files-found: ignore
-      - name: A short film of each room for Home (studio/app/space/preview.cjs), where the room is new or rebuilt
+      - name: A short film of each room for Home (studio/app/space/preview.cjs, sharp and slow, measured), where the room is new or rebuilt
         run: |
           command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
           (python3 -m http.server 8765 >/dev/null 2>&1 &) && sleep 1
           for slug in $(python3 -c "import json; print(' '.join(json.load(open('studio/app/data/spaces/index.json'))))"); do
             d=studio/app/data/spaces
-            if [ ! -f "$d/$slug/preview.mp4" ] || [ "$d/$slug.json" -nt "$d/$slug/preview.mp4" ]; then
-              node studio/app/space/preview.cjs "$slug" http://localhost:8765/studio/app/ || echo "no film for $slug (Home shows its photo)"
+            if [ ! -f "$d/$slug/preview.json" ] || [ "$d/$slug.json" -nt "$d/$slug/preview.json" ]; then
+              node studio/app/space/preview.cjs "$slug" http://localhost:8765/studio/app/ || echo "no film for $slug (the app's check will say so)"
             fi
           done
       - name: Commit and push to studio

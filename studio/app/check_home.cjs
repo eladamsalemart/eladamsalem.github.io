@@ -23,6 +23,12 @@ const base = (process.argv[2] || 'http://localhost:8765/studio/app/').replace(/\
   catch { bad.push('the sky has fewer than 8 stars after 30 s'); }
   try { await p.waitForFunction(() => { const n = document.getElementById('hsNear'); return n && !n.hidden; }, null, { timeout: 20000 }); }
   catch { bad.push('"On now, near you" never appeared (the art map\'s data, or Home stopped before it)'); }
+  // the room's film, as the browser receives it: playing, and as sharp as a phone shows it
+  await p.evaluate(() => document.querySelector('.hs .tour') && document.querySelector('.hs .tour').scrollIntoView({ block: 'center', behavior: 'instant' }));
+  try { await p.waitForFunction(() => { const v = document.querySelector('.hs .tour video'); return v && !v.paused && v.readyState >= 3 && v.videoWidth; }, null, { timeout: 30000 }); }
+  catch { bad.push("the room's film never played on Home"); }
+  const film = await p.evaluate(() => { const v = document.querySelector('.hs .tour video'); return v ? { w: v.videoWidth, h: v.videoHeight, src: v.currentSrc.split('/').pop() } : null; });
+  if (film && film.w && film.w < 1000) bad.push(`the room's film is ${film.w}px wide (${film.src}): soft on a phone`);
   const got = await p.evaluate(() => ({
     stars: document.querySelectorAll('.hs .star').length, sky: !!document.querySelector('.hs canvas.sky-g'),
     near: document.querySelectorAll('.hs .star.r0').length, room: !!document.querySelector('.hs .tour .step'),
@@ -34,6 +40,6 @@ const base = (process.argv[2] || 'http://localhost:8765/studio/app/').replace(/\
   if (!got.artists) bad.push('no "Your artists"');
   if (got.wide > 391) bad.push(`the page is ${got.wide}px wide on a 390px phone`);
   await b.close();
-  console.log(bad.length ? bad.map(x => 'FAIL ' + x).join('\n') : `ok   Home: ${got.stars} stars (${got.near} near), the room, ${got.artists} artists, near you`);
+  console.log(bad.length ? bad.map(x => 'FAIL ' + x).join('\n') : `ok   Home: ${got.stars} stars (${got.near} near), the room (${film && film.w}x${film && film.h} ${film && film.src}), ${got.artists} artists, near you`);
   process.exit(bad.length ? 1 : 0);
 })().catch(e => { console.error('FAIL', e.message); process.exit(1); });
