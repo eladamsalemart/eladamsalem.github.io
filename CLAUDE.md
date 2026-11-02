@@ -27,6 +27,14 @@ to a tour or the viewer is done:
    A screenshot taken with an outside service stubbed out (map tiles, fonts) proves nothing about that service:
    the map once showed only "API KEY REQUIRED" watermarks on phones while local shots, with stubbed tiles, looked right.
 
+## Working lean (tokens are the owner's money)
+
+- One session per topic; this file carries the state between them (keep it under ~130 lines; history goes to logs).
+- Ask for little: GitHub runs with `per_page` 1-3 and the workflow named; logs through grep/tail; scripts print a
+  one-line summary and write details to a file. Read files by range or grep, never whole big files twice.
+- Pictures last: measure with a check first, then look at one cropped shot (390 wide) per question.
+- Wide searches and web reading go to a subagent (it returns only the answer); independent calls go in one batch.
+
 ## Design
 
 - For any UI work, use the design skills in `.claude/skills` (sources in `.claude/skills/SOURCES.md`): `impeccable`

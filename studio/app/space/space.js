@@ -36,6 +36,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     <div class="sv-loading">Building the room…</div>`;
   document.body.append(root);
   const $ = s => root.querySelector(s);
+  if (!(spec.views || []).length) $('[data-mode="photos"]').hidden = true;     // (a virtual room has no photos)
   if (matchMedia('(pointer: fine)').matches) $('.sv-hint').innerHTML = 'Drag to look around<br>W A S D or arrows to walk · Click the floor to go there';
 
   let dirty = true;                                               // something changed: draw the next frame
@@ -431,7 +432,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const stand = clampStand(centre.clone().addScaledVector(facing, dist).setY(EYE), centre.clone().addScaledVector(facing, 0.5));
     pieces.push({ w, h, mesh: box, centre, stand, facing, order, size: { w: h.measured[0], h: h.measured[1] } });
   }));
-  pieces.sort((a, b) => (a.centre.x - b.centre.x) || (a.centre.z - b.centre.z));
+  // in the order the show was hung (a designed show: as its artist or curator set it), else along the room
+  pieces.sort(spec.ordered ? (a, b) => a.order - b.order : (a, b) => (a.centre.x - b.centre.x) || (a.centre.z - b.centre.z));
 
   // --- the photos, projected back onto the room -------------------------------------------------------
   // Every surface of the room (walls, floor, ceiling, an arch's inside, the room beyond an opening) shows the

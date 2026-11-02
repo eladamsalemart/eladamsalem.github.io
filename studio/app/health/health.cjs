@@ -16,6 +16,9 @@ const PAGES = [
   ['Artist (demo)', '#/artist/lia-moren'], ['Artist (Elad)', '#/artist/elad-amsalem'], ['Show on now', '#/exhibition/low-tide-haifa'],
   ['Show with a 3D room', '#/exhibition/ritual'], ['Work', '#/work/together-2026'], ['Works', '#/works'],
   ['A place on the map', '#/map/place/tel-aviv-museum-of-art'], ['About', '#/about'],
+  ['Virtual show', '#/exhibition/celebration-virtual'], ['Curated show', '#/exhibition/green-hour'],
+  // the artist's side (signed in as the real artist first, in this browser)
+  ['Studio: design a virtual show', '#/studio/virtual/celebration-virtual', 'artist'],
 ];
 const report = { url: base, at: new Date().toISOString(), pages: [], fails: [], notes: [] };
 const fail = (page, what) => report.fails.push({ page, what });
@@ -30,7 +33,9 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
     geolocation: { latitude: 32.0590, longitude: 34.7700 }, permissions: ['geolocation'], locale: 'en-GB',
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' };
 
-  for (const [name, hash] of PAGES) {
+  // HEALTH_ONLY=<regex>: only the pages and rooms whose name matches (to prove a check on one page, quickly)
+  const only = process.env.HEALTH_ONLY ? new RegExp(process.env.HEALTH_ONLY, 'i') : null;
+  for (const [name, hash, as] of PAGES.filter(([n]) => !only || only.test(n))) {
     const ctx = await b.newContext(phone), p = await ctx.newPage(), errs = [], bad = [];
     // (the "Get Open Studio" install card is closed, as a visitor does once: it would sit over the page's lower controls)
     await ctx.addInitScript(() => { try { localStorage.setItem('os-install-dismissed', '1'); } catch {} });
@@ -46,6 +51,7 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
     // that doesn't is broken. Anything else that fails (404 and the like) is broken at once.
     const retry = [];
     p.on('response', r => { if (r.status() >= 400 && !/tiles\.openfreemap\.org/.test(r.url()) && !(LOCAL && /data\/thumbs\.json$/.test(r.url()))) (r.status() >= 500 ? retry : bad).push([r.status(), r.url()]); });
+    if (as === 'artist') { await p.goto(`${base}?guest#/studio`, { waitUntil: 'load' }); await p.click('#realIn', { timeout: 20000 }).catch(e => errs.push('could not sign in as the artist: ' + e.message)); await p.waitForTimeout(1500); }
     const t0 = Date.now();
     await p.goto(`${base}?guest${hash}`, { waitUntil: 'load', timeout: 60000 }).catch(e => errs.push('did not load: ' + e.message));
     await p.waitForFunction(() => { const a = document.getElementById('app'); return a && a.innerText.trim().length > 30 && !/^Loading/.test(a.innerText.trim()); }, null, { timeout: 30000 }).catch(() => {});
@@ -106,7 +112,7 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
   }
 
   // Home moving, at a phone's speed (a 4x slower processor): the sky at rest, dragged, and at the room's film
-  {
+  if (!only || only.test('Home speed')) {
     const ctx = await b.newContext(phone), p = await ctx.newPage(), cdp = await ctx.newCDPSession(p);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
     await p.goto(`${base}?guest#/`); await p.waitForFunction(() => document.querySelector('.hs .star'), null, { timeout: 60000 }).catch(() => {});
@@ -123,27 +129,29 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
     await ctx.close();
   }
 
-  // the 3D room opens, draws, and its works are there
-  {
+  // the 3D rooms open, draw, and their works are there: a room built from photos, and the virtual rooms (drawn in
+  // the browser around the works: every one of the show's works must hang, none left over)
+  for (const [name, slug, want] of [['3D room', 'ritual'], ['Virtual room', 'celebration-virtual', 14], ['Curated room', 'green-hour', 12]].filter(([n]) => !only || only.test(n))) {
     const ctx = await b.newContext(phone), p = await ctx.newPage(), errs = [];
     p.on('pageerror', e => errs.push(e.message));
-    await p.goto(`${base}?guest#/exhibition/ritual/space`);
+    await p.goto(`${base}?guest#/exhibition/${slug}/space`);
     const ok = await p.waitForFunction(() => window.__spaceView && window.__spaceView.inspect, null, { timeout: 90000 }).then(() => true).catch(() => false);
-    if (!ok) fail('3D room', 'the room did not open in 90 s');
+    if (!ok) fail(name, 'the room did not open in 90 s');
     else {
       await p.waitForTimeout(6000);
       const w = await p.evaluate(() => window.__spaceView.inspect.works());
       const shown = w.filter(x => x.visible && x.inScene && x.image[0] > 0).length;
-      report.room = { works: w.length, shown };
-      if (shown < w.length) fail('3D room', `${w.length - shown} of ${w.length} works not shown`);
-      await p.screenshot({ path: path.join(out, '3d-room.png') });
+      report[slug === 'ritual' ? 'room' : slug] = { works: w.length, shown };
+      if (shown < w.length) fail(name, `${w.length - shown} of ${w.length} works not shown`);
+      if (want && w.length < want) fail(name, `${want - w.length} of the show's ${want} works not hung (the room ran out of wall)`);
+      await p.screenshot({ path: path.join(out, `${slug === 'ritual' ? '3d-room' : slug}.png`) });
     }
-    if (errs.length) fail('3D room', `script errors: ${errs.slice(0, 3).join(' | ')}`);
+    if (errs.length) fail(name, `script errors: ${errs.slice(0, 3).join(' | ')}`);
     await ctx.close();
   }
 
   // the way in: a new visitor (no account) lands on the welcome, with a way to sign in
-  {
+  if (!only || only.test('Way in')) {
     const ctx = await b.newContext(phone), p = await ctx.newPage(), errs = [];
     p.on('pageerror', e => errs.push(e.message));
     await p.goto(base); await p.waitForTimeout(4000);

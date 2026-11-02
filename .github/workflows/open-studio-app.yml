@@ -45,14 +45,18 @@ jobs:
           cp -r $src/icons open-studio/
           cp -r $src/data/demo open-studio/data/
           cp $src/data/spaces/*.status.json open-studio/data/spaces/ 2>/dev/null || true
-          cp $src/space/space.js open-studio/space/
-          cp $src/data/studio.json open-studio/data/
+          cp $src/space/space.js $src/space/synth.js open-studio/space/
+          cp $src/data/studio.json $src/data/virtual.json open-studio/data/
           cp -r $src/data/art open-studio/data/ 2>/dev/null || true
           cp $src/data/spaces/index.json open-studio/data/spaces/
           # only the spaces that passed their checks (the ones index.json lists)
           for k in $(python3 -c "import json;print(' '.join(json.load(open('$src/data/spaces/index.json'))))"); do
             cp $src/data/spaces/$k.json open-studio/data/spaces/
             cp -r $src/data/spaces/$k open-studio/data/spaces/
+          done
+          # the virtual rooms' films and covers (the rooms themselves are drawn in the browser: space/synth.js)
+          for k in $(python3 -c "import json;print(' '.join(s['slug'] for s in json.load(open('$src/data/virtual.json'))['shows']))"); do
+            [ -d $src/data/spaces/$k ] && cp -r $src/data/spaces/$k open-studio/data/spaces/
           done
           # small versions of the site's images, for grids and lists on a phone
           python3 /tmp/studio/studio/app/thumbs.py media open-studio

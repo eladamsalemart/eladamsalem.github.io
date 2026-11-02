@@ -1,0 +1,33 @@
+# Open Studio: the server functions (studio/supabase/functions/<name>) go to Supabase when they change on studio,
+# or by hand. Uses the SUPABASE_ACCESS_TOKEN secret (the same as "Supabase settings").
+name: "Supabase functions"
+
+on:
+  push:
+    branches: [studio]
+    paths: ['studio/supabase/functions/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Deploy every function (each checks the caller's sign-in)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        working-directory: studio
+        run: |
+          for d in supabase/functions/*/; do
+            n=$(basename "$d"); echo "deploying $n"
+            supabase functions deploy "$n" --project-ref hlpzqeosdavfuzjgpwhy --use-api
+          done
