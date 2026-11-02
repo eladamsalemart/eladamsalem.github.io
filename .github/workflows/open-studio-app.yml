@@ -25,7 +25,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -80,6 +80,14 @@ jobs:
           PY
       - name: Check what phones will fetch (the map's tiles really are a map) and the art map's data
         run: python3 /tmp/studio/studio/app/check_app.py /tmp/studio/studio/app
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Home opens on a phone (the sky and its stars, the room, near you; no script error), from the copy going out
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw && npm install --no-save --no-package-lock playwright@1.49.1 >/dev/null && npx playwright install --with-deps chromium >/dev/null
+          cd "$GITHUB_WORKSPACE" && (python3 -m http.server 8000 >/dev/null 2>&1 &) && sleep 1
+          NODE_PATH=/tmp/pw/node_modules node /tmp/studio/studio/app/check_home.cjs http://localhost:8000/open-studio/
       - name: Commit and push to main
         run: |
           git config user.name "open-studio"
