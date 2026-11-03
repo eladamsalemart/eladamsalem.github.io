@@ -30,8 +30,12 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    "Open Studio import" 28954169344235251 (user access token); redirect URI
    https://hlpzqeosdavfuzjgpwhy.supabase.co/functions/v1/instagram. The "Supabase functions" workflow copies the GitHub
    secrets INSTAGRAM_APP_ID/SECRET into the function's settings (`supabase secrets set --yes`); done 3.11, the
-   function answers (401 without a sign-in). Next: test end to end with the owner's account (artist, admin of the
-   Meta app): the owner signs in to the app, Connect Instagram, approves on Facebook, posts listed, a few brought in.
+   function answers (401 without a sign-in). First test (owner, phone, 3.11 09:23): Facebook returned to the function
+   twice (302) but no Page with instagram_business_account came back, so nothing was saved ('noaccount'); the owner
+   says it "just returns to the app". Since then the function logs, on 'noaccount', the Pages Facebook gave and the
+   granted permissions (`instagram noaccount` in function logs). Paused by the owner ("later"): next time, ask for
+   screenshots of each Facebook screen, read that log, check the Page is chosen in the dialog and that the IG account
+   is linked to the Page. Also fixed 3.11: the website field refused www.… on iPhone (type=url).
    Needed for the app: privacy policy https://eladamsalem.com/open-studio/privacy.html (names Instagram since 3.11),
    data deletion instructions https://eladamsalem.com/open-studio/data-deletion.html (live 3.11), icon (studio/design/google-brand-logo-120.png or the
    app icons), category. Put App ID / App Secret in GitHub secrets INSTAGRAM_APP_ID / INSTAGRAM_APP_SECRET. Then
