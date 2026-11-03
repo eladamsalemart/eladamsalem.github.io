@@ -3,7 +3,9 @@ built and inspected by the same pipeline as Open Studio's own tours, and the ans
 
     SUPABASE_SECRET_KEY=... python -m studio.app.space.artist_tours [--max 2] [--only <exhibition id>]
 
-For each exhibition whose tour is 'requested' (artists.exhibitions[].tour, in Supabase):
+Every exhibition with installation photos (or a video) is tried, asked for or not: a chance of a tour is never
+missed. First the ones artists asked for ('requested'), then those never tried yet (no 'tourTried'), as many as a
+run allows. For each (artists.exhibitions[], in Supabase):
   1. it is marked 'building', so the artist sees that it's under way;
   2. its installation photos, the photos and video given only for the tour (the private bucket tour-material), and
      the images of its works with their sizes are downloaded to space/.artist/<slug>/ (never committed);
@@ -103,19 +105,25 @@ def main(argv):
     most = int(argv[argv.index('--max') + 1]) if '--max' in argv else 2
     only = argv[argv.index('--only') + 1] if '--only' in argv else None
     artists = call('/rest/v1/artists?select=id,name,exhibitions')
-    todo = [(a, e) for a in artists for e in (a['exhibitions'] or [])
-            if ((e.get('id') == only) if only else (e.get('tour') == 'requested'))][:most]
+    has = lambda e: bool(e.get('photos')) or any(f.get('kind') == 'video' for f in e.get('tourFiles') or [])
+    every = [(a, e) for a in artists for e in (a['exhibitions'] or [])]
+    if only:
+        todo = [(a, e) for a, e in every if e.get('id') == only]
+    else:   # asked for first; then never tried (a tour may well come of what's there)
+        todo = [(a, e) for a, e in every if e.get('tour') == 'requested'] +                [(a, e) for a, e in every if e.get('tour') in (None, '', 'none') and not e.get('tourTried') and has(e)]
+        todo = todo[:most]
     if not todo:
         print('no tour asked for'); return
     done = []
     for a, ex in todo:
         slug = f"a-{a['id'][:8]}-{slugify(ex.get('title', ''))}"
-        print(f"== {a['name']}: {ex.get('title')} -> {slug}", flush=True)
-        set_tour(a['id'], ex['id'], tour='building', tourNote='')
+        asked = ex.get('tour') == 'requested' or bool(only)
+        print(f"== {a['name']}: {ex.get('title')} -> {slug} ({'asked for' if asked else 'tried unasked'})", flush=True)
+        set_tour(a['id'], ex['id'], tour='building', tourNote='', tourTried=datetime.now(timezone.utc).isoformat())
         try:
             spec = gather(a, ex, slug)
-            if len(spec['photos']) < 3 and not spec['video']:
-                set_tour(a['id'], ex['id'], tour='more', tourNote='A tour needs installation photos: at least 6 wide views (10 or more is better), every wall in two of them, or a walk-through video.')
+            if not spec['photos'] and not spec['video']:
+                set_tour(a['id'], ex['id'], tour='more', tourNote='A tour is built from installation photos or a walk-through video: add some, and it will be tried again.')
                 continue
             subprocess.run([sys.executable, '-m', 'studio.app.space.pipeline', slug], cwd=ROOT, check=False, timeout=5400)
             built = SPACES / f'{slug}.json'
@@ -125,11 +133,12 @@ def main(argv):
                          tourBuilt=datetime.now(timezone.utc).isoformat())
                 print(f'{slug}: live'); done.append(slug)
             else:
-                set_tour(a['id'], ex['id'], tour='more', tourNote=note_of(slug))
+                lead = '' if asked else 'We tried to build a walkable tour from your installation photos. '
+                set_tour(a['id'], ex['id'], tour='more', tourNote=lead + note_of(slug))
                 print(f'{slug}: not yet: {note_of(slug)}')
         except Exception as e:
             import traceback; traceback.print_exc()
-            set_tour(a['id'], ex['id'], tour='requested', tourNote='')        # put back: it will be tried again
+            set_tour(a['id'], ex['id'], tour='requested' if asked else 'none', tourNote='', tourTried=None)   # put back: tried again next time
             print(f'{slug}: failed ({e}); asked again next time')
     print('published:', ', '.join(done) or 'none')
 

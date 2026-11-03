@@ -34,8 +34,8 @@ jobs:
           KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         run: |
           n=$(curl -sf "https://hlpzqeosdavfuzjgpwhy.supabase.co/rest/v1/artists?select=exhibitions" -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
-            | python3 -c "import json,sys; print(sum(1 for a in json.load(sys.stdin) for e in (a['exhibitions'] or []) if e.get('tour') == 'requested'))")
-          echo "asked=$n" >> "$GITHUB_OUTPUT"; echo "$n asked for"
+            | python3 -c "import json,sys; print(sum(1 for a in json.load(sys.stdin) for e in (a['exhibitions'] or []) if e.get('tour') == 'requested' or (e.get('tour') in (None, '', 'none') and not e.get('tourTried') and e.get('photos'))))")
+          echo "asked=$n" >> "$GITHUB_OUTPUT"; echo "$n to try (asked for, or never tried)"
       - uses: actions/setup-python@v5
         if: steps.ask.outputs.asked != '0' || github.event.inputs.only != ''
         with:
