@@ -1,0 +1,116 @@
+# Open Studio's virtual rooms, rendered in Blender (Cycles) on GitHub's machines: each kind of room in its variants,
+# lit as galleries are, with real works on the walls (studio/app/space/rooms/build_rooms.py). The pictures land in
+# studio/design/virtual-spaces/renders on the studio branch. By hand: choose the kinds (or all) and the samples.
+name: "Studio rooms"
+
+on:
+  workflow_dispatch:
+    inputs:
+      types:
+        description: 'Kinds of room, comma separated, or all'
+        default: 'all'
+      samples:
+        description: 'Cycles samples (adaptive, denoised)'
+        default: '192'
+      size:
+        description: 'Picture size'
+        default: '1600x1000'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: studio-rooms
+  cancel-in-progress: false
+
+env:
+  BLENDER: blender-4.5.15-linux-x64
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      types: ${{ steps.p.outputs.types }}
+    steps:
+      - id: p
+        run: |
+          all='["white-cube","loft","skylit-hall","salon","concrete","studio","apartment","black-box","glass-pavilion","japanese"]'
+          t="${{ github.event.inputs.types }}"
+          if [ -z "$t" ] || [ "$t" = all ]; then echo "types=$all" >> "$GITHUB_OUTPUT"
+          else echo "types=$(python3 -c "import json,sys; print(json.dumps([x.strip() for x in sys.argv[1].split(',') if x.strip()]))" "$t")" >> "$GITHUB_OUTPUT"; fi
+
+  render:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        type: ${{ fromJSON(needs.plan.outputs.types) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio
+          sparse-checkout: |
+            studio/app/space/rooms
+            studio/app/data/demo
+      - uses: actions/cache@v4
+        with:
+          path: ~/blender
+          key: ${{ env.BLENDER }}
+      - uses: actions/cache@v4
+        with:
+          path: .cache/polyhaven
+          key: polyhaven-${{ matrix.type }}-v1
+          restore-keys: polyhaven-
+      - name: Blender
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq libxi6 libxkbcommon0 libsm6 libxrender1 libxxf86vm1 libxfixes3 libgl1 libegl1 >/dev/null
+          if [ ! -x ~/blender/$BLENDER/blender ]; then
+            mkdir -p ~/blender && curl -sL "https://download.blender.org/release/Blender4.5/$BLENDER.tar.xz" | tar -xJ -C ~/blender
+          fi
+          ~/blender/$BLENDER/blender --version | head -1
+      - name: Render ${{ matrix.type }}
+        run: |
+          mkdir -p out
+          ~/blender/$BLENDER/blender -b --factory-startup -P studio/app/space/rooms/build_rooms.py -- \
+            --type "${{ matrix.type }}" --variant all --out out \
+            --samples "${{ github.event.inputs.samples || '192' }}" --size "${{ github.event.inputs.size || '1600x1000' }}" 2>&1 \
+            | grep -v -E '^(Fra:|Remaining|Sample|Rendered|Path Tracing|Updating|Loading|Synchronizing)' | tail -80
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: room-${{ matrix.type }}
+          path: out
+          if-no-files-found: error
+
+  collect:
+    needs: render
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: room-*
+          path: got
+      - name: Into the design folder, with one list of rooms
+        run: |
+          d=studio/design/virtual-spaces/renders; mkdir -p $d
+          python3 - <<'EOF'
+          import json, pathlib, shutil
+          d = pathlib.Path('studio/design/virtual-spaces/renders'); meta = d / 'rooms.json'
+          rooms = json.loads(meta.read_text()) if meta.exists() else {}
+          for f in pathlib.Path('got').rglob('*'):
+              if f.suffix == '.jpg': shutil.copy(f, d / f.name)
+              if f.name == 'rooms.json': rooms.update(json.loads(f.read_text()))
+          meta.write_text(json.dumps(dict(sorted(rooms.items())), indent=1))
+          print(len(rooms), 'rooms')
+          EOF
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add $d
+          git diff --cached --quiet || git commit -m "Studio rooms: renders of the virtual rooms"
+          for i in 1 2 3; do git pull --no-rebase --no-edit -X ours origin studio && git push origin HEAD:studio && exit 0; sleep 5; done
+          exit 1
