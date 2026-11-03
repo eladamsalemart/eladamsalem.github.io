@@ -180,15 +180,25 @@ function home() {
   </div>`;
 }
 
+// works in groups, as an artist's site shows them: the newest year first, objects apart
+function byYear(list) {
+  const objects = list.filter(w => w.kind === 'object'), wall = list.filter(w => w.kind !== 'object');
+  const years = [...new Set(wall.map(w => String(w.year || '').slice(0, 4) || 'Undated'))].sort((a, b) => (b === 'Undated') - (a === 'Undated') || +b - +a);
+  return [...years.map(y => [y, wall.filter(w => (String(w.year || '').slice(0, 4) || 'Undated') === y)]), ...(objects.length ? [['Objects', objects]] : [])];
+}
+const detail = w => [w.medium, w.width && w.height ? `${w.height} × ${w.width}${w.depth ? ` × ${w.depth}` : ''} cm` : '', w.kind === 'object' ? w.year : ''].filter(Boolean).join(' · ');
+
 function works() {
   return `<div class="wrap gut st">${head('Works')}${nav('works')}
     <div class="btns" style="padding-block:6px 18px"><a class="btn f" href="#/studio/works/new">Add a work</a></div>
-    <div class="grid">${S.works.map(w => {
+    <p class="m small">${S.works.length} works. Sizes are height × width.</p>
+    ${byYear(S.works).map(([y, ws]) => `<section class="sec st-year"><div class="sec-h"><h2>${esc(y)}</h2><span class="more">${ws.length}</span></div>
+    <div class="grid">${ws.map(w => {
       const v = w.check ? verdict(w.check, w) : verdict(null, w), ok = tourReady(v);
       return `<a href="#/studio/work/${w.id}"><div class="im"><img src="${esc(w.thumb || w.image)}" alt="" loading="lazy"></div>
-        <div class="c"><b>${esc(w.title)}</b><div class="m">${esc([w.year, w.width && w.height ? `${w.width} × ${w.height} cm` : ''].filter(Boolean).join(' · '))}</div>
+        <div class="c"><b>${esc(w.title)}</b><div class="m">${esc(detail(w))}</div>
         <div class="st-flag ${ok ? 'ok' : 'no'}">${ok ? 'Ready' : 'Needs attention'}</div></div></a>`;
-    }).join('')}</div>
+    }).join('')}</div></section>`).join('')}
   </div>`;
 }
 
@@ -336,10 +346,11 @@ function foundList(msg = '') {
   if (!found.length) return msg ? `<p class="m">${msg}</p>` : '';
   const n = found.filter(x => x.on).length;
   const ex = extra ? [extra.about && (extra.about.statement || extra.about.bio) ? 'your statement, the about text and your portrait' : '', extra.cv.length ? `your CV (${extra.cv.length} lines)` : '',
-    extra.exhibitions.length ? `${extra.exhibitions.length} exhibitions with their photos` : ''].filter(Boolean) : [];
+    extra.exhibitions.length ? `${extra.exhibitions.length} exhibitions with their photos and works${extra.exhibitions.some(e => e.tour) ? ' (and their walkable tours)' : ''}` : '',
+    (extra.objects || []).length ? `${extra.objects.length} ${extra.objects.length === 1 ? 'object' : 'objects'}` : ''].filter(Boolean) : [];
   return `${ex.length ? `<div class="st-card im-extra"><h3>Also on your website</h3><label class="im-check"><input type="checkbox" id="imExtra" ${extra.on ? 'checked' : ''}> Bring in ${ex.join(', ')}</label></div>` : ''}
     <div class="sec-h"><h2>Found ${found.length}</h2><button type="button" class="more" id="imAll">${n === found.length ? 'Choose none' : 'Choose all'}</button></div>${msg ? `<p class="m small">${msg}</p>` : ''}
-    <div class="im-grid">${found.map((x, i) => `<div class="im-item${x.on ? ' on' : ''}"><label><input type="checkbox" data-i="${i}" ${x.on ? 'checked' : ''}><img src="${esc(x.preview || x.thumb || x.image)}" alt="" loading="lazy" referrerpolicy="no-referrer"></label>
+    <div class="im-grid">${found.map((x, i) => `<div class="im-item${x.on ? ' on' : ''}"><label>${x.had ? '<span class="im-had">In your studio</span>' : ''}<input type="checkbox" data-i="${i}" ${x.on ? 'checked' : ''}><img src="${esc(x.preview || x.thumb || x.image)}" alt="" loading="lazy" referrerpolicy="no-referrer"></label>
       <input class="im-t" data-t="${i}" value="${esc(x.title || '')}" placeholder="Title" aria-label="Title"></div>`).join('')}</div>
     <div class="btns im-go"><button class="btn f" type="button" id="imAdd" ${n ? '' : 'disabled'}>Bring in ${n} ${n === 1 ? 'work' : 'works'}</button></div>`;
 }
@@ -349,7 +360,12 @@ function wireImport(app, go) {
   // pressed, so an answer brings it into view
   const show = (msg, look) => { box.innerHTML = foundList(msg); wireFound(); if (look) box.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   const tell = msg => show(msg, true);
-  const take = (items, from) => { if (from !== 'site') extra = null; found = items.map(x => ({ ...x, on: true, from })); tell(items.length ? '' : 'Nothing found there.'); };
+  const take = (items, from) => {
+    if (from !== 'site') extra = null;
+    found = items.map(x => { const had = S.works.some(w => same(w.title, x.title) && (!x.year || !w.year || String(w.year) === String(x.year))); return { ...x, on: !had, had, from }; });
+    const fresh = found.filter(x => !x.had).length;
+    tell(!items.length ? 'Nothing found there.' : !fresh ? 'Everything here is already in your studio. Bring in the rest of your website below, or choose works to bring in again.' : '');
+  };
   if (S.preview) {   // the control room's preview: the page as a new artist sees it, nothing fetched or kept
     const say = e => { if (e) e.preventDefault(); tell('<span dir="rtl" lang="he">בתצוגה מקדימה לא מייבאים בפועל: כך נראה הדף לאמן חדש.</span>'); };
     app.querySelectorAll('form.im-way').forEach(f => f.onsubmit = say);
@@ -362,7 +378,8 @@ function wireImport(app, go) {
     const b = f.querySelector('button'); b.disabled = true; b.textContent = 'Looking…'; show('');
     try {
       const d = await cloud.find(f.dataset.kind, f.url.value.trim());
-      extra = d.about || (d.cv && d.cv.length) || (d.exhibitions && d.exhibitions.length) ? { about: d.about || null, cv: d.cv || [], exhibitions: d.exhibitions || [], on: true } : null;
+      extra = d.about || (d.cv && d.cv.length) || (d.exhibitions && d.exhibitions.length) || (d.objects && d.objects.length)
+        ? { about: d.about || null, cv: d.cv || [], exhibitions: d.exhibitions || [], objects: d.objects || [], on: true } : null;
       take(d.items, f.dataset.kind);
     }
     catch (err) { tell(esc(err.message)); }
@@ -399,14 +416,26 @@ function wireImport(app, go) {
         try {
           const blob = x.blob || await cloud.fetchImage(x.image);
           const up = await cloud.upload(blob);
-          const [a, b] = String(x.size || '').match(/[\d.]+/g) || [];
-          const work = { id: crypto.randomUUID(), title: (x.title || 'Untitled').trim(), year: x.year || '', medium: x.medium || '', width: a ? +a : '', height: b ? +b : '', depth: '',
+          const { width, height } = sized(x.size, up.w, up.h);
+          const work = { id: crypto.randomUUID(), title: (x.title || 'Untitled').trim(), year: x.year || '', medium: x.medium || '', width, height, depth: '', kind: 'work',
             image: up.image, thumb: up.thumb, source: x.from || x.source || '', framed: 'no', check: { W: up.w, H: up.h, long: Math.max(up.w, up.h), mean: 120, clipped: 0, sharp: 0.5, backdrop: false } };
           S.works.push(work); added.push(work);
           done++;
         } catch (e) { console.warn(e); failed++; }
       }
+      let objects = 0;
+      if (extra && extra.on) for (const o of extra.objects || []) {
+        if (S.works.some(w => w.kind === 'object' && same(w.title, o.title))) continue;
+        add.textContent = `Bringing in ${o.title}…`;
+        try {
+          const up = await cloud.upload(await cloud.fetchImage(o.image)), { width, height } = sized(o.size, up.w, up.h);
+          S.works.push({ id: crypto.randomUUID(), title: o.title, year: o.year || '', medium: o.medium || '', width, height, depth: +o.depth || '', kind: 'object',
+            image: up.image, thumb: up.thumb, source: 'site', framed: 'no', check: { W: up.w, H: up.h, long: Math.max(up.w, up.h), mean: 120, clipped: 0, sharp: 0.5, backdrop: false } });
+          objects++;
+        } catch (e) { console.warn(e); }
+      }
       const more = extra && extra.on ? bringRest(extra) : [];
+      if (objects) more.push(`${objects} ${objects === 1 ? 'object' : 'objects'}`);
       // a first exhibition in 3D, of what just came in (the works that have a size), to walk into and change
       const hangable = added.filter(w => +w.width && +w.height).slice(0, 12);
       let tour = null;
@@ -453,6 +482,16 @@ function wireInstagram(app, show, take) {
   if (back && back !== 'ok') show(IG_BACK[back] || IG_BACK.error);
 }
 
+// a size as a site writes it ("90x70", "70 × 90 cm"): which number is the height isn't said the same way everywhere, so
+// the picture decides: the larger number goes to its longer side
+function sized(text, w, h) {
+  const [a, b] = (String(text || '').match(/\d+(?:\.\d+)?/g) || []).map(Number);
+  if (!a || !b) return { width: '', height: '' };
+  const big = Math.max(a, b), small = Math.min(a, b);
+  return h > w ? { width: small, height: big } : w > h ? { width: big, height: small } : { width: a, height: b };
+}
+const same = (a, b) => String(a || '').trim().toLowerCase().replace(/^["“]|["”]$/g, '') === String(b || '').trim().toLowerCase().replace(/^["“]|["”]$/g, '');
+
 // the rest of a website, into the studio: what the artist hasn't written yet is filled in; the CV is the site's;
 // exhibitions not already here are added, with their installation photos (from which a walkable tour can be built)
 function bringRest(x) {
@@ -461,10 +500,17 @@ function bringRest(x) {
   if ([fill('statement', (ab.statement || '').replace(/^["“]|["”]$/g, '')), fill('bio', ab.bio), fill('photo', ab.photo), fill('discipline', ab.discipline), fill('city', ab.city), fill('instagram', ab.instagram)].some(Boolean)) said.push('your profile');
   if (x.cv.length) { a.cv = x.cv; said.push(`your CV (${x.cv.length} lines)`); }
   let n = 0;
+  const ids = titles => (titles || []).map(t => (S.works.find(w => same(w.title, t)) || {}).id).filter(Boolean);
   for (const e of x.exhibitions) {
-    if (S.exhibitions.some(y => y.title.toLowerCase() === e.title.toLowerCase())) continue;
-    S.exhibitions.push({ id: crypto.randomUUID(), title: e.title, venue: e.venue, city: '', year: e.year, dates: e.dates, curator: '', text: e.text, works: [],
-      photos: e.photos.map(src => ({ src })), video: '', space: {}, tour: 'none', cover: e.photos[0] || '' });
+    const had = S.exhibitions.find(y => same(y.title, e.title));
+    if (had) {    // completed from the site where the studio has nothing yet
+      if (!had.works.length) had.works = ids(e.works);
+      if (!had.city) had.city = e.city || '';
+      if (e.tour && had.tour !== 'live') { had.tour = 'live'; had.space = { ...(had.space || {}), slug: e.tour }; }
+      continue;
+    }
+    S.exhibitions.push({ id: crypto.randomUUID(), title: e.title, venue: e.venue, city: e.city || '', year: e.year, dates: e.dates, curator: '', text: e.text, works: ids(e.works),
+      photos: e.photos.map(src => ({ src })), video: '', space: e.tour ? { slug: e.tour } : {}, tour: e.tour ? 'live' : 'none', cover: e.photos[0] || '' });
     n++;
   }
   if (n) said.push(`${n} ${n === 1 ? 'exhibition' : 'exhibitions'}`);
@@ -495,6 +541,7 @@ function exhibitionPage(id) {
         : `<p class="m">A tour is built from your installation photos and the works, then checked view by view before it goes up. This is what it still needs:</p>${checks(r.items)}`}
       ${!status && r.ready && ex.tour !== 'live' ? '<button class="btn f" type="button" id="buildTour">Build the tour</button>' : ''}
       ${ex.tour === 'building' ? '<p class="m small">Building: you\'ll get an email when it\'s ready, or what to add if it doesn\'t pass its checks.</p>' : ''}
+      ${ex.tour === 'live' && ex.space && ex.space.slug ? `<p class="m">This exhibition has a walkable tour, built from its installation photos.</p><div class="btns"><a class="btn f" href="#/exhibition/${esc(ex.space.slug)}/space">Walk through the tour</a></div>` : ''}
       ${ex.tour === 'live' && ex.real ? share(ex) : ''}
     </section>`}
     <form class="st-form" id="exForm" data-id="${esc(ex.id)}">
@@ -554,10 +601,11 @@ function preview() {
   <section class="hero">${a.cover || (S.works[0] && S.works[0].image) ? `<img src="${esc(a.cover || S.works[0].image)}" alt="">` : ''}<div class="ov gut"><div class="wrap"><h1>${esc(a.name)}</h1><div class="k">${esc([a.discipline, a.city].filter(Boolean).join(' · '))}</div></div></div></section>
   <div class="wrap gut">
     ${a.statement ? `<p class="statement">“${esc(a.statement)}”</p>` : ''}
-    <section class="sec"><div class="sec-h"><h2>Works</h2></div>
-      <div class="grid">${S.works.map(w => `<div><div class="im"><img src="${esc(w.thumb || w.image)}" alt="${esc(w.title)}"></div><div class="c"><b>${esc(w.title)}</b><div class="m">${esc([w.medium, w.width && w.height ? `${w.width} × ${w.height} cm` : '', w.year].filter(Boolean).join(' · '))}</div></div></div>`).join('')}</div></section>
+    ${byYear(S.works).map(([y, ws]) => `<section class="sec"><div class="sec-h"><h2>${esc(y)}</h2><span class="more">${ws.length}</span></div>
+      <div class="grid">${ws.map(w => `<div><div class="im"><img src="${esc(w.thumb || w.image)}" alt="${esc(w.title)}"></div><div class="c"><b>${esc(w.title)}</b><div class="m">${esc(detail(w))}</div></div></div>`).join('')}</div></section>`).join('')}
     ${S.exhibitions.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2></div><div class="covers">${S.exhibitions.map(ex => `<div><img src="${esc(ex.cover || (ex.photos[0] || {}).src || '')}" alt=""><div><b>${esc(ex.title)}</b><div class="m">${esc([ex.venue, ex.year].filter(Boolean).join(' · '))}</div></div></div>`).join('')}</div></section>` : ''}
-    ${a.bio ? `<section class="sec"><div class="sec-h"><h2>About</h2></div><div class="prose"><p>${esc(a.bio)}</p></div></section>` : ''}
+    ${a.bio || a.photo ? `<section class="sec st-about"><div class="sec-h"><h2>About</h2></div>${a.photo ? `<img class="st-portrait" src="${esc(a.photo)}" alt="${esc(a.name)}">` : ''}${a.bio ? `<div class="prose">${a.bio.split(/\n+/).map(p => `<p>${esc(p)}</p>`).join('')}</div>` : ''}</section>` : ''}
+    ${(a.cv || []).length ? `<section class="sec"><div class="sec-h"><h2>CV</h2></div><div class="cv">${cvList(a.cv)}</div></section>` : ''}
   </div>`;
 }
 
