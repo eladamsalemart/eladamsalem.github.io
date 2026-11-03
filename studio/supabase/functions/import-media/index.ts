@@ -93,8 +93,13 @@ async function platform(base: URL): Promise<{ image: string; title: string; year
 // their exhibitions with the installation photos
 async function more_of(base: URL) {
   const tryJson = async (path: string) => { const u = safe(new URL(path, base).href); const r = u && await get(u, 6_000_000, 'application/json'); if (!r) return null; try { return await r.json(); } catch { return null; } };
-  const [s, cv, ex] = await Promise.all([tryJson('/content/settings.json'), tryJson('/content/cv.json'), tryJson('/content/exhibitions.json')]);
+  // (an Open Studio site's own app says which works were in each show, and which shows have a walkable tour)
+  const [s, cv, ex, ob, st, ix] = await Promise.all([tryJson('/content/settings.json'), tryJson('/content/cv.json'), tryJson('/content/exhibitions.json'),
+    tryJson('/content/objects.json'), tryJson('/open-studio/data/studio.json'), tryJson('/open-studio/data/spaces/index.json')]);
   const abs = (p: string) => { try { return new URL(p, base).href; } catch { return ''; } };
+  const slugify = (t: string) => t.toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '-');
+  const tours = new Set(Array.isArray(ix) ? ix : Object.keys(ix || {}));
+  const showOf = (title: string) => (st && st.exhibitions && st.exhibitions[title.trim()]) || {};
   const out: Record<string, unknown> = {};
   if (s && typeof s === 'object') {
     const label = String(s.hero_label || '');
@@ -106,8 +111,17 @@ async function more_of(base: URL) {
   if (Array.isArray(ex)) out.exhibitions = ex.filter((e: any) => e && e.title).map((e: any) => {
     const lines = String(e.description || '').split('\n').map((x: string) => x.trim());
     const dated = /\d{4}/.test(lines[0] || '') && lines[0].length < 40;
+    const known = showOf(String(e.title)), tour = known.space || slugify(String(e.title));
     return { title: String(e.title).trim(), year: String(e.year || ''), venue: String(e.venue || '').trim(), dates: dated ? lines[0] : '',
-      text: (dated ? lines.slice(1) : lines).filter(Boolean).join('\n\n'), photos: (e.images || []).map(abs).filter(Boolean) };
+      text: (dated ? lines.slice(1) : lines).filter(Boolean).join('\n\n'), photos: (e.images || []).map(abs).filter(Boolean),
+      city: String(known.city || ''), works: Array.isArray(known.works) ? known.works.map(String) : [], tour: tours.has(tour) ? tour : '' };
+  });
+  // objects: a folding screen, a ceramic, a sculpture (their size is in the description's text)
+  if (Array.isArray(ob)) out.objects = ob.filter((o: any) => o && o.title && (o.images || []).length).map((o: any) => {
+    const meta = String(o.meta || ''), desc = String(o.description || '').replace(/​/g, '');
+    const size = (desc.match(/(\d+(?:\.\d+)?)\s*[x×X]\s*(\d+(?:\.\d+)?)(?:\s*[x×X]\s*(\d+(?:\.\d+)?))?/) || []).slice(1);
+    return { title: String(o.title).trim(), year: (meta.match(/\d{4}/) || [''])[0], medium: (desc.split('\n')[0] || meta.split('·')[0] || '').trim(),
+      size: size[0] ? `${size[0]}x${size[1]}` : '', depth: size[2] || '', image: abs(o.images[0]), images: o.images.map(abs), text: desc.trim() };
   });
   return out;
 }

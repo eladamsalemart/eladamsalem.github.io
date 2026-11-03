@@ -43,7 +43,7 @@ async function communityData() {
   const q = path => fetch(DB + path, { headers: { apikey: DB_KEY }, signal }).then(r => r.ok ? r.json() : []);
   const [artists, works, shows] = await Promise.all([
     q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,link,instagram,cv,exhibitions&status=eq.approved'),
-    q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position&order=position'),
+    q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position,kind&order=position'),
     q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,starts,ends,owner_id,created_at&status=eq.published'),
   ]);
   return { artists, works, shows };
@@ -106,7 +106,7 @@ function buildModel(d) {
   const cities = [];
   for (const e of exhibitions) if (e.city && !cities.some(c => c.name === e.city)) cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
   if (artist.city && !cities.some(c => c.name === artist.city)) cities.push({ name: artist.city, slug: slugify(artist.city), country: artist.country });
-  const m = { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: { ...(d.thumbs || {}) },
+  const m = { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: { ...(d.thumbs || {}) }, spaces: d.spaces || {},
     live: [], listings: [], places: {} };
   if (d.world) addWorld(m, d.world, uniq, seen);
   if (d.community) addCommunity(m, d.community, uniq, seen);
@@ -129,7 +129,7 @@ function addCommunity(m, c, uniq, seen) {
       const lines = String(e.text || '').split(/\n+/).map(t => t.trim()).filter(Boolean);
       m.exhibitions.push({ slug: uniq(slugify(`${e.title}-${slug}`)), title: e.title, year: e.year || '', venue: e.venue || '', dates: e.dates || '', text: lines,
         images: (e.photos || []).map(p => p.src || p).filter(Boolean), city: e.city || '', country: '', confirmed: true, artist: x, artists: [x], works: [], maybe: [],
-        space: null, kind: 'gallery', ...span(e.dates || '', e.year), events: [], community: true });
+        space: (e.tour === 'live' && e.space && m.spaces[e.space.slug]) || null, workIds: e.works || [], kind: 'gallery', ...span(e.dates || '', e.year), events: [], community: true });
     }
   }
   m.exhibitions.sort((p, q) => (+q.year || 0) - (+p.year || 0));
@@ -140,6 +140,8 @@ function addCommunity(m, c, uniq, seen) {
       size: pairs.length ? `${pairs[0][0]} × ${pairs[0][1]} cm` : '', image: w.image, artist: a, community: true });
     if (w.thumb) m.thumbs[w.image] = w.thumb;
   }
+  // their exhibitions' works, now that the works are known
+  for (const e of m.exhibitions) if (e.community && e.workIds) e.works = e.workIds.map(id => m.works.find(w => w.id === id)).filter(Boolean);
   m.works.sort((a, b) => (+b.year || 0) - (+a.year || 0) || a.i - b.i);
 }
 // a show from the database, in the shape of data/virtual.json (its works by id, or by the app's slug for the site's)

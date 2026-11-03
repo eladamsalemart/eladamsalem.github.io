@@ -13,7 +13,7 @@ export async function session() {
   return data.session ? { c, user: data.session.user, token: data.session.access_token } : null;
 }
 
-const rowToWork = r => ({ id: r.id, title: r.title, year: r.year || '', medium: r.medium || '', width: r.width ?? '', height: r.height ?? '', depth: r.depth ?? '',
+const rowToWork = r => ({ id: r.id, title: r.title, year: r.year || '', medium: r.medium || '', width: r.width ?? '', height: r.height ?? '', depth: r.depth ?? '', kind: r.kind || 'work',
   image: r.image, thumb: r.thumb || r.image, source: r.source || '', framed: 'no', check: { W: 2000, H: 2000, long: 2000, mean: 120, clipped: 0, sharp: 0.5, backdrop: false } });
 const rowToShow = r => ({ id: r.id, title: r.title, room: r.room, paint: r.paint || '', centre: r.centre, text: r.text || '', status: r.status, slug: r.slug,
   works: (r.works || []).map(w => w.id) });
@@ -109,7 +109,7 @@ async function push(S) {
     if (old.get(w.id) === JSON.stringify(w) && i === was.works.findIndex(x => x.id === w.id)) continue;
     if (isLocal(w.image) || isLocal(w.thumb)) Object.assign(w, await upload(await toBlob(isLocal(w.image) ? w.image : w.thumb)));
     const row = { id: w.id, artist_id: user.id, title: w.title || 'Untitled', year: w.year || null, medium: w.medium || null, width: +w.width || null, height: +w.height || null,
-      depth: +w.depth || null, image: w.image, thumb: w.thumb || null, source: w.source || null, position: i };
+      depth: +w.depth || null, image: w.image, thumb: w.thumb || null, source: w.source || null, position: i, kind: w.kind === 'object' ? 'object' : 'work' };
     const { error } = await c.from('works').upsert(row);
     if (error) throw error;
   }
