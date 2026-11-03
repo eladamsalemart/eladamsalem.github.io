@@ -23,7 +23,7 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    uses Unified login = Facebook Login for Business with a configuration (login variation, permissions) and a
    registered redirect URL, so an artist connects through Facebook and their Instagram must be professional and
    linked to a Page. No separate Instagram keys: INSTAGRAM_APP_ID = the Meta App ID, INSTAGRAM_APP_SECRET = the
-   App secret in App settings → Basic (owner puts them in GitHub secrets). Not made yet: the configuration
+   App secret in App settings → Basic (both added to GitHub secrets by the owner on 3.11). Not made yet: the configuration
    (Meta's default asks for ads_* and messaging; ours needs instagram_basic, maybe pages_show_list) and the redirect
    URL; both when "Connect Instagram" and its Supabase function are built.
    Needed for the app: privacy policy https://eladamsalem.com/open-studio/privacy.html (names Instagram since 3.11),
