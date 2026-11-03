@@ -132,6 +132,17 @@ export async function fetchImage(url) {
   if (!r.ok) throw new Error('The image couldn’t be fetched');
   return r.blob();
 }
+// Instagram, connected: the artist signs in with Facebook once, then their posts can be listed any time
+// (server function "instagram": start, status, media, disconnect). Until Meta reviews the app, only its testers.
+const IG = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/functions/v1/instagram';
+export async function instagram(action) {
+  const { token } = await session();
+  const r = await fetch(IG, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, back: location.href.split(/[?#]/)[0] }) });
+  const d = await r.json().catch(() => ({ error: 'Instagram didn’t answer.' }));
+  if (!r.ok || d.error) throw Object.assign(new Error(d.error || 'That didn’t work.'), { reconnect: !!d.reconnect });
+  return d;
+}
 // Instagram: the artist's own export ("Download your information", JSON). Its posts list each image and caption.
 export async function fromInstagramZip(file) {
   if (!window.JSZip) await new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'vendor/jszip/jszip.min.js'; s.onload = ok; s.onerror = no; document.head.append(s); });
