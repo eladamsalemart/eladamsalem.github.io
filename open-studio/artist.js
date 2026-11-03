@@ -137,7 +137,7 @@ function signIn() {
     <p class="m small">With Google or your email (a code, no password). Then choose “I make art”.</p>
     <div class="st-or"><span>or look around first</span></div>
     <button class="btn g" type="button" id="demoIn">Open the demo studio</button>
-    <p class="m small">A made-up artist with made-up works, to show how it all works.</p>
+    <p class="m small">Berthe Morisot's, with her real works, to show how it all works.</p>
     ${model ? `<button class="btn g" type="button" id="realIn">Open ${esc(model.artist.name)}'s studio</button>
     <p class="m small">The real works and exhibitions, with each tour's real status.</p>` : ''}
   </div>`;
