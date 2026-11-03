@@ -1,0 +1,86 @@
+# Open Studio: walkable tours for exhibitions artists give in the app ("Ask for a tour" in their studio). Every three
+# hours, or by hand: the asked-for exhibitions are built and inspected by the same pipeline as Open Studio's own tours
+# (studio/app/space/artist_tours.py), the artist's exhibition says 'live' or what to add, and the tours that passed
+# are published with the others (studio/app/data/spaces, index.json).
+name: "Artist tours"
+
+on:
+  schedule:
+    - cron: "41 */3 * * *"
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'One exhibition id (to build again), or empty for every asked-for one'
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: studio-spaces          # one builder of spaces at a time (with "Studio spaces")
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio
+      - name: Anything asked for?
+        id: ask
+        env:
+          KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          n=$(curl -sf "https://hlpzqeosdavfuzjgpwhy.supabase.co/rest/v1/artists?select=exhibitions" -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
+            | python3 -c "import json,sys; print(sum(1 for a in json.load(sys.stdin) for e in (a['exhibitions'] or []) if e.get('tour') == 'requested'))")
+          echo "asked=$n" >> "$GITHUB_OUTPUT"; echo "$n asked for"
+      - uses: actions/setup-python@v5
+        if: steps.ask.outputs.asked != '0' || github.event.inputs.only != ''
+        with:
+          python-version: '3.13'
+      - name: Keep the inpainting model between runs
+        if: steps.ask.outputs.asked != '0' || github.event.inputs.only != ''
+        uses: actions/cache@v4
+        with:
+          path: studio/app/space/.cache/inpainting_lama_2025jan.onnx
+          key: lama-2025jan
+      - name: Install
+        if: steps.ask.outputs.asked != '0' || github.event.inputs.only != ''
+        run: pip install opencv-python-headless==5.0.0.93 numpy==2.5.3 scipy==1.18.1 pillow==12.3.0
+      - uses: actions/setup-node@v4
+        if: steps.ask.outputs.asked != '0' || github.event.inputs.only != ''
+        with:
+          node-version: '20'
+      - name: Install a browser for the inspection
+        if: steps.ask.outputs.asked != '0' || github.event.inputs.only != ''
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Build, inspect, answer the artists
+        if: steps.ask.outputs.asked != '0' || github.event.inputs.only != ''
+        env:
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          if [ -n "${{ github.event.inputs.only }}" ]; then python -m studio.app.space.artist_tours --only "${{ github.event.inputs.only }}"
+          else python -m studio.app.space.artist_tours --max 2; fi
+      - name: Publish the tours that passed (and keep nothing of the ones that didn't)
+        if: steps.ask.outputs.asked != '0' || github.event.inputs.only != ''
+        run: |
+          d=studio/app/data/spaces
+          python3 - <<'EOF'
+          import json, pathlib, shutil
+          d = pathlib.Path('studio/app/data/spaces'); live = json.load(open(d / 'index.json'))
+          for f in d.glob('a-*.json'):
+              if f.name.endswith(('.status.json', '.overrides.json')): continue
+              slug = f.stem
+              if slug not in live:
+                  shutil.rmtree(d / slug, ignore_errors=True)
+                  for ext in ('.json', '.status.json', '.report.md'): (d / f'{slug}{ext}').unlink(missing_ok=True)
+          EOF
+          git config user.name "artist-tours"; git config user.email "artist-tours@users.noreply.github.com"
+          git add $d
+          git diff --cached --quiet || git commit -m "Artist tours: built and inspected"
+          for i in 1 2 3; do git pull --no-rebase --no-edit -X ours origin studio && git push origin HEAD:studio && exit 0; sleep 5; done
+          exit 1
