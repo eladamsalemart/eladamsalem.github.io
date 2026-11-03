@@ -67,8 +67,9 @@ GitHub secrets or the environment's settings. Report briefly, in Hebrew.
   through the app's Gmail, 30 emails an hour, the code (`{{ .Token }}`, 6 digits) in Confirm signup and Magic Link.
   Both sign-in emails are Open Studio's own (the code in the subject, a token_hash link that works in any browser).
   Email sign-in proved end to end on 1.11, on the live site, by link and by code. Google: on since 2.11 (Google Cloud project open-studio-513508, its client in GOOGLE_CLIENT_ID/SECRET; the
-  button reaches Google's sign-in). The consent screen was still in Testing (only test users) until its Branding page
-  (home page, privacy.html, authorized domains) is filled and the app published. Apple: not wanted (the owner said Google is enough); Facebook: no; Instagram login doesn't exist for apps.
+  button reaches Google's sign-in). The consent screen was published by the owner on 3.11 (In production: anyone
+  can sign in). Google's page says "continue to hlpzqeosdavfuzjgpwhy.supabase.co": showing "Open Studio" needs Google's brand
+  verification (free; eladamsalem.com verified in Search Console) or a Supabase custom auth domain (paid). Apple: not wanted (the owner said Google is enough); Facebook: no; Instagram login doesn't exist for apps.
 - The app's mailbox ooopenstudio@gmail.com: the Gmail connector (drafts, reading, labels). It is subscribed to
   galleries' newsletters (`studio/app/artmap/newsletters.json`); the daily read takes their openings and shows.
 - Figma file `eLDsgYWEfoqx49oFQJ53c1` (Studio Paper variables and text styles, Home components, Home screen).
@@ -144,6 +145,6 @@ Four working directions: `studio/design/home-sky/` (shared engine `sky.js`, page
 eladamsalem.com/open-studio-lab/home/ (a copy on `main`, folder `open-studio-lab/home`), PDF there. The owner chose the
 daylight sky with tracing paper's pencil, and no Wander (gestures live on Home): that is `day.html` (`day.js`, `day.css`),
 with three variations (`day-graphite`, `day-watercolour`, `day-paper`), page `daylight.html`, PDF
-`open-studio-daylight-by-hand.pdf`. Home is built (see The app now); next: carry its look across the app's energy (the owner likes the artist page, the map, exhibitions and tours as they are); the artists' platform; publishing the Google consent screen (Branding, then Audience, Publish app); the owner signs up by hand to the 13
+`open-studio-daylight-by-hand.pdf`. Home is built (see The app now); next: carry its look across the app's energy (the owner likes the artist page, the map, exhibitions and tours as they are); the artists' platform; the owner signs up by hand to the 13
 newsletters behind a CAPTCHA (list in `newsletters.json`, status `captcha`/`asks for a phone`); the Ritual ceiling
 (task #34 in the old list).
