@@ -888,6 +888,14 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
 .adm-table{display:grid;font-size:14px}.adm-table>div{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
 .adm-table span{color:var(--muted,#777);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .st .row.noimg{grid-template-columns:minmax(0,1fr) auto}
+.adm-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding-bottom:8px}
+@media (min-width:640px){.adm-stats{grid-template-columns:repeat(4,1fr)}}
+.adm-stat{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:2px;text-decoration:none;color:inherit;min-height:44px}
+.adm-stat b{font-family:var(--serif);font-size:34px;font-weight:400;line-height:1}.adm-stat span{font-size:13px;color:var(--muted)}
+.adm-works{display:grid;gap:8px}
+.adm-work{display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 12px;align-items:center}
+.adm-work img{width:72px;height:72px;object-fit:cover;border-radius:8px;grid-row:span 2}.adm-work .t{display:grid;gap:2px}
+.adm-steps{display:grid;gap:8px;padding-left:20px}.adm-steps code{font-size:13px;word-break:break-all}
 </style>
 
 <!-- app:head-end -->
