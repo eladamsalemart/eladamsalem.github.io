@@ -68,8 +68,7 @@ GitHub secrets or the environment's settings. Report briefly, in Hebrew.
   Both sign-in emails are Open Studio's own (the code in the subject, a token_hash link that works in any browser).
   Email sign-in proved end to end on 1.11, on the live site, by link and by code. Google: on since 2.11 (Google Cloud project open-studio-513508, its client in GOOGLE_CLIENT_ID/SECRET; the
   button reaches Google's sign-in). The consent screen was published by the owner on 3.11 (In production: anyone
-  can sign in). Google's page says "continue to hlpzqeosdavfuzjgpwhy.supabase.co": showing "Open Studio" needs Google's brand
-  verification (free; eladamsalem.com verified in Search Console) or a Supabase custom auth domain (paid). Apple: not wanted (the owner said Google is enough); Facebook: no; Instagram login doesn't exist for apps.
+  can sign in). Google's page says "to continue to Open Studio" since 3.11 (brand verified and published in project open-studio-513508, owned by ooopenstudio@; eladamsalem.com verified in Search Console by the file google81845dabc2b2b517.html at the site root on `main`: keep it). Apple: not wanted (the owner said Google is enough); Facebook: no; Instagram login doesn't exist for apps.
 - The app's mailbox ooopenstudio@gmail.com: the Gmail connector (drafts, reading, labels). It is subscribed to
   galleries' newsletters (`studio/app/artmap/newsletters.json`); the daily read takes their openings and shows.
 - Figma file `eLDsgYWEfoqx49oFQJ53c1` (Studio Paper variables and text styles, Home components, Home screen).

@@ -42,10 +42,8 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    build "Connect Instagram" in studio-cloud.js / artist.js (#/studio/import) through a Supabase function holding
    the secret; app review for instagram_business_basic later (screencast, description). Until approved it works
    for testers only; the export zip keeps working for everyone.
-2. Google brand verification (guide: studio/design/google-brand-verification-guide.pdf). 3.11: the Google account
-   signed in to the owner's Chrome has no access to project open-studio-513508 ("You need additional access"): find
-   which account owns it (likely ooopenstudio@) before Branding/Verification. The app's home (#/welcome, signed out)
-   already shows "Open Studio", a line about it and a Privacy link.
+2. Google brand verification: DONE 3.11 (Search Console file on `main`, Branding verified and published; the sign-in
+   window says "to continue to Open Studio"). No logo uploaded (it would need Google's review); add later if wanted.
 2b. Drive in Bring work in (3.11, built): "Choose from Google Drive" = Google Picker + GIS token (drive.file), files
    downloaded in the browser (studio-cloud.js prepareDrive/fromDrive); the folder link stays under it. Project
    open-studio-513508 is ooopenstudio@'s (in the owner's Chrome as authuser=1): Picker + Drive APIs on, browser key
