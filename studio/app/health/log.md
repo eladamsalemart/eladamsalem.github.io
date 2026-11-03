@@ -2,6 +2,22 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-03: issue #5, the room's film "never played" once; check_home now says why
+
+- Looked: issue #5 open (App health #11, 20:47: Home's check said the room's film never played; everything else
+  passed). The other runs are green, and the newest publishes are checked. No owner requests.
+- Measured, could not reproduce: on the live site the film plays every time (6 runs). It isn't a one-off server
+  error: a 503 on the webm's first request falls back to the mp4, which plays, and a 503 mid-stream (the 2nd or 3rd
+  range request) recovers. It isn't speed either: at 300 kbps it plays. The films are sound. Home's room is now
+  Celebration (the virtual show, on now), not Ritual: 1080x1440, 38.8 dB, flicker 0.97. Not fixed by guessing.
+- check_home.cjs said only "never played", and the run kept no picture of it. Now it says why (the video's state,
+  what the host answered for each film file, or that Home took the video away because every source failed) and,
+  in the App health run, saves home-film.png into the artifact. HOME_FAKE=<status>[@n|@*]:<regex> fakes the host
+  to prove it: 404 on every film file fails with the reason and the picture; normal passes, locally and live.
+- Seen on the way, for a next improvement: check_app.py checks the films of rooms in data/spaces/index.json only
+  (Ritual), not the virtual rooms' (Celebration, The Green Hour), which Home now shows. Their measures pass today.
+- No improvement tonight (one was made 2.11).
+
 ## 2026-11-02 (night, late): artists, virtual exhibitions, the control room (built in the main session)
 
 - New to watch: virtual and curated shows and rooms, the studio's design screen, approved artists reaching the app

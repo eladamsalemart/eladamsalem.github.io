@@ -4,6 +4,7 @@
 // (A script error in Home once took the room's film and "near you" with it, silently: this is the check for that.)
 const { chromium } = require('playwright');
 const base = (process.argv[2] || 'http://localhost:8765/studio/app/').replace(/\/?$/, '/');
+const shots = process.argv[3]; // a folder for a screenshot when something fails (the App health run keeps it)
 
 (async () => {
   const b = await chromium.launch();
@@ -16,6 +17,14 @@ const base = (process.argv[2] || 'http://localhost:8765/studio/app/').replace(/\
       { k: 'artist', id: 'lia-moren', t: now - 60 * m }, { k: 'space', id: 'ritual', t: now - 1500 * m }, { k: 'artist', id: 'elad-amsalem', t: now - 3000 * m }]));
   });
   const p = await ctx.newPage(), bad = [];
+  // what the browser got for the room's film (to say why, when it doesn't play)
+  const filmNet = [];
+  p.on('response', r => { if (/data\/spaces\/[^/]+\/preview\./.test(r.url())) filmNet.push([r.status(), r.url()]); });
+  p.on('requestfailed', r => { if (/data\/spaces\/[^/]+\/preview\./.test(r.url())) filmNet.push([r.failure() ? r.failure().errorText : 'failed', r.url()]); });
+  // to prove the check: HOME_FAKE=<status>[@n|@*]:<regex> answers the n-th matching request (the first by default), or
+  // every one (@*), with that status
+  if (process.env.HOME_FAKE) { const [spec, re] = process.env.HOME_FAKE.split(/:(.*)/s), [st, nth = '1'] = spec.split('@');
+    let seen = 0; await p.route(u => new RegExp(re).test(u.href), r => (++seen === +nth || nth === '*') ? r.fulfill({ status: +st, body: 'fake' }) : r.continue()); }
   p.on('pageerror', e => bad.push(`a script error: ${e.message}`));
   p.on('console', m => { if (m.type() === 'error' && /^home:/.test(m.text())) bad.push(`Home failed: ${m.text().slice(0, 200)}`); });
   await p.goto(`${base}?guest#/`);
@@ -25,8 +34,15 @@ const base = (process.argv[2] || 'http://localhost:8765/studio/app/').replace(/\
   catch { bad.push('"On now, near you" never appeared (the art map\'s data, or Home stopped before it)'); }
   // the room's film, as the browser receives it: playing, and as sharp as a phone shows it
   await p.evaluate(() => document.querySelector('.hs .tour') && document.querySelector('.hs .tour').scrollIntoView({ block: 'center', behavior: 'instant' }));
-  try { await p.waitForFunction(() => { const v = document.querySelector('.hs .tour video'); return v && !v.paused && v.readyState >= 3 && v.videoWidth; }, null, { timeout: 30000 }); }
-  catch { bad.push("the room's film never played on Home"); }
+  const plays = () => p.waitForFunction(() => { const v = document.querySelector('.hs .tour video'); return v && !v.paused && v.readyState >= 3 && v.videoWidth; }, null, { timeout: 30000 }).then(() => true, () => false);
+  const why = () => p.evaluate(() => { const v = document.querySelector('.hs .tour video'); if (!v) return 'no video: Home took it away, every source failed';
+    const r = v.getBoundingClientRect(); return `paused ${v.paused}, readyState ${v.readyState}, networkState ${v.networkState}, error ${v.error ? v.error.code : 'none'}, src ${v.currentSrc.split('/').slice(-2).join('/') || 'none'}, at y ${Math.round(r.top)} of ${innerHeight}`; });
+  const answers = () => filmNet.map(([st, u]) => `${st} ${u.split('/').slice(-2).join('/')}`).join(', ') || 'no request';
+  if (!await plays()) {
+    // say why, so the next one can be fixed: the video's own state, what the host answered for it, and how it looked
+    bad.push(`the room's film never played on Home (${await why()}; answers: ${answers()})`);
+    if (shots) await p.screenshot({ path: require('path').join(shots, 'home-film.png') }).catch(() => {});
+  }
   const film = await p.evaluate(() => { const v = document.querySelector('.hs .tour video'); return v ? { w: v.videoWidth, h: v.videoHeight, src: v.currentSrc.split('/').pop() } : null; });
   // the film is the picture from the first moment (its poster is its first frame): faded in over another picture, it
   // showed a ghost of the one in the other
