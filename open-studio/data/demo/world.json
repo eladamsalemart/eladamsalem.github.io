@@ -1,439 +1,1085 @@
 {
- "_note": "Demo content: fictional artists, galleries and shows, with generated works, to see the app full. Dates are days from today.",
+ "_note": "Demo content: real artists from art history, their works in the public domain (facts from Wikidata, images from Wikimedia Commons); the galleries and shows are made up. Dates are days from today. Made by studio/app/make_world.py.",
  "artists": [
   {
-   "slug": "lia-moren",
-   "name": "Lia Morén",
+   "slug": "vincent-van-gogh",
+   "name": "Vincent van Gogh",
    "discipline": "Painting",
-   "city": "Haifa",
-   "statement": "I paint the hour when a place stops being a view and becomes a feeling: tide lines, orchards, the light left in a room.",
-   "portrait": "data/demo/people/lia-moren.jpg"
+   "city": "Arles",
+   "country": "France",
+   "statement": "Painted fields, orchards and night skies in thick, fast strokes, most of them in his last three years, in the south of France.",
+   "portrait": "data/demo/people/vincent-van-gogh.jpg",
+   "wikidata": "Q5582",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Self-portrait - Vincent van Gogh.jpg"
   },
   {
-   "slug": "noa-ben-ari",
-   "name": "Noa Ben-Ari",
-   "discipline": "Textile & collage",
-   "city": "Jaffa",
-   "statement": "Cloth remembers hands. I cut up what my family wore and sew it into maps of the places we left.",
-   "portrait": "data/demo/people/noa-ben-ari.jpg"
-  },
-  {
-   "slug": "daniel-ostrovsky",
-   "name": "Daniel Ostrovsky",
+   "slug": "henri-matisse",
+   "name": "Henri Matisse",
    "discipline": "Painting",
-   "city": "Tel Aviv",
-   "statement": "Colour slowly, and it starts to breathe. Each painting is twenty thin layers and a lot of waiting.",
-   "portrait": "data/demo/people/daniel-ostrovsky.jpg"
+   "city": "Nice",
+   "country": "France",
+   "statement": "Made colour do the work of drawing: flat, bright fields that hold a room, a window, a body.",
+   "portrait": "data/demo/people/henri-matisse.jpg",
+   "wikidata": "Q5589",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Portrait of Henri Matisse 1933 May 20.jpg"
   },
   {
-   "slug": "maya-haddad",
-   "name": "Maya Haddad",
+   "slug": "victor-hugo",
+   "name": "Victor Hugo",
    "discipline": "Works on paper",
-   "city": "Jerusalem",
-   "statement": "One breath, one stroke. I draw the city's stone and wind with a brush that holds a single dip of ink.",
-   "portrait": "data/demo/people/maya-haddad.jpg"
+   "city": "Guernsey",
+   "country": "United Kingdom",
+   "statement": "The novelist drew in private all his life: storms, castles and dark seas in ink, coffee and soot.",
+   "portrait": "data/demo/people/victor-hugo.jpg",
+   "wikidata": "Q535",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Victor Hugo by Étienne Carjat 1876 - full.jpg"
   },
   {
-   "slug": "tomer-lev",
-   "name": "Tomer Lev",
-   "discipline": "Digital art",
-   "city": "Tel Aviv",
-   "statement": "I write the rules and let the work grow. Every piece is a field of forces made visible, different every time it runs.",
-   "portrait": "data/demo/people/tomer-lev.jpg"
+   "slug": "claude-monet",
+   "name": "Claude Monet",
+   "discipline": "Painting",
+   "city": "Giverny",
+   "country": "France",
+   "statement": "Painted the same subject at every hour to catch the light as it changed: haystacks, cathedrals, the water lilies of his own pond.",
+   "portrait": "data/demo/people/claude-monet.jpg",
+   "wikidata": "Q296",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Claude Monet 1899 Nadar crop.jpg"
+  },
+  {
+   "slug": "katsushika-hokusai",
+   "name": "Katsushika Hokusai",
+   "discipline": "Prints & painting",
+   "city": "Edo",
+   "country": "Japan",
+   "statement": "Made thousands of prints and paintings over seventy years, among them the wave and the thirty-six views of Mount Fuji.",
+   "portrait": "data/demo/people/katsushika-hokusai.jpg",
+   "wikidata": "Q5586",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Hokusai as an old man.jpg"
+  },
+  {
+   "slug": "berthe-morisot",
+   "name": "Berthe Morisot",
+   "discipline": "Painting",
+   "city": "Paris",
+   "country": "France",
+   "statement": "A founder of Impressionism: quick, airy paintings of women, gardens and rooms, close to the people in them.",
+   "portrait": "data/demo/people/berthe-morisot.jpg",
+   "wikidata": "Q105320",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Morisot berthe photo.jpg"
+  },
+  {
+   "slug": "mary-cassatt",
+   "name": "Mary Cassatt",
+   "discipline": "Painting & prints",
+   "city": "Paris",
+   "country": "France",
+   "statement": "An American in Paris, she painted and printed the everyday life of women and children with an unsentimental eye.",
+   "portrait": "data/demo/people/mary-cassatt.jpg",
+   "wikidata": "Q173223",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:1914 Mary Cassatt.jpg"
+  },
+  {
+   "slug": "hilma-af-klint",
+   "name": "Hilma af Klint",
+   "discipline": "Painting",
+   "city": "Stockholm",
+   "country": "Sweden",
+   "statement": "Painted abstraction years before it had a name: vast, coded canvases she asked to keep hidden until long after her death.",
+   "portrait": "data/demo/people/hilma-af-klint.jpg",
+   "wikidata": "Q436267",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Hilma-af-Klint-uncropped.jpg"
+  },
+  {
+   "slug": "suzanne-valadon",
+   "name": "Suzanne Valadon",
+   "discipline": "Painting",
+   "city": "Montmartre",
+   "country": "France",
+   "statement": "A painters' model who became a painter: frank nudes, portraits and still lifes in strong outline and colour.",
+   "portrait": "data/demo/people/suzanne-valadon.jpg",
+   "wikidata": "Q156889",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:(Barcelona) Autoretrat al mirall - by Suzanne Valadon.jpg"
+  },
+  {
+   "slug": "paula-modersohn-becker",
+   "name": "Paula Modersohn-Becker",
+   "discipline": "Painting",
+   "city": "Worpswede",
+   "country": "Germany",
+   "statement": "Painted women, children and herself with a plainness and weight that were new; the first woman to paint herself nude.",
+   "portrait": "data/demo/people/paula-modersohn-becker.jpg",
+   "wikidata": "Q234370",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Paula Modersohn-Becker.jpg"
   }
  ],
  "works": [
   {
-   "slug": "low-tide",
-   "artist": "lia-moren",
-   "title": "Low Tide",
-   "year": "2025",
+   "slug": "the-starry-night",
+   "artist": "vincent-van-gogh",
+   "title": "The Starry Night",
+   "year": "1889",
    "medium": "Oil on canvas",
    "size": [
-    100,
-    80
+    92.1,
+    73.7
    ],
-   "image": "data/demo/works/low-tide.jpg"
+   "collection": "Museum of Modern Art",
+   "wikidata": "Q45585",
+   "source": "https://commons.wikimedia.org/wiki/File:Van Gogh - Starry Night - Google Art Project.jpg",
+   "file": "Van Gogh - Starry Night - Google Art Project.jpg",
+   "image": "data/demo/works/the-starry-night.jpg"
   },
   {
-   "slug": "orchard-at-noon",
-   "artist": "lia-moren",
-   "title": "Orchard at Noon",
-   "year": "2025",
+   "slug": "the-potato-eaters",
+   "artist": "vincent-van-gogh",
+   "title": "The Potato Eaters",
+   "year": "1885",
    "medium": "Oil on canvas",
    "size": [
-    120,
-    150
+    114.0,
+    82.0
    ],
-   "image": "data/demo/works/orchard-at-noon.jpg"
+   "collection": "Van Gogh Museum",
+   "wikidata": "Q154469",
+   "source": "https://commons.wikimedia.org/wiki/File:De aardappeleters - s0005V1962 - Van Gogh Museum.jpg",
+   "file": "De aardappeleters - s0005V1962 - Van Gogh Museum.jpg",
+   "image": "data/demo/works/the-potato-eaters.jpg"
   },
   {
-   "slug": "two-rooms",
-   "artist": "lia-moren",
-   "title": "Two Rooms",
-   "year": "2025",
-   "medium": "Acrylic on canvas",
-   "size": [
-    90,
-    90
-   ],
-   "image": "data/demo/works/two-rooms.jpg"
-  },
-  {
-   "slug": "late-garden",
-   "artist": "lia-moren",
-   "title": "Late Garden",
-   "year": "2024",
-   "medium": "Oil on linen",
-   "size": [
-    140,
-    110
-   ],
-   "image": "data/demo/works/late-garden.jpg"
-  },
-  {
-   "slug": "night-window",
-   "artist": "lia-moren",
-   "title": "Night Window",
-   "year": "2024",
-   "medium": "Oil on panel",
-   "size": [
-    60,
-    80
-   ],
-   "image": "data/demo/works/night-window.jpg"
-  },
-  {
-   "slug": "salt",
-   "artist": "lia-moren",
-   "title": "Salt",
-   "year": "2024",
-   "medium": "Gouache on paper",
-   "size": [
-    50,
-    50
-   ],
-   "image": "data/demo/works/salt.jpg"
-  },
-  {
-   "slug": "dusk-study-i",
-   "artist": "lia-moren",
-   "title": "Dusk Study I",
-   "year": "2023",
+   "slug": "sunflowers",
+   "artist": "vincent-van-gogh",
+   "title": "Sunflowers",
+   "year": "1888",
    "medium": "Oil on canvas",
    "size": [
-    40,
-    30
+    73.0,
+    95.0
    ],
-   "image": "data/demo/works/dusk-study-i.jpg"
+   "collection": "",
+   "wikidata": "Q157541",
+   "source": "https://commons.wikimedia.org/wiki/File:Vincent Willem van Gogh 127.jpg",
+   "file": "Vincent Willem van Gogh 127.jpg",
+   "image": "data/demo/works/sunflowers.jpg"
   },
   {
-   "slug": "dusk-study-ii",
-   "artist": "lia-moren",
-   "title": "Dusk Study II",
-   "year": "2023",
+   "slug": "wheatfield-with-crows",
+   "artist": "vincent-van-gogh",
+   "title": "Wheatfield with Crows",
+   "year": "1890",
    "medium": "Oil on canvas",
    "size": [
-    40,
-    30
+    103.0,
+    50.2
    ],
-   "image": "data/demo/works/dusk-study-ii.jpg"
+   "collection": "Van Gogh Museum",
+   "wikidata": "Q634122",
+   "source": "https://commons.wikimedia.org/wiki/File:Korenveld met kraaien - s0149V1962 - Van Gogh Museum.jpg",
+   "file": "Korenveld met kraaien - s0149V1962 - Van Gogh Museum.jpg",
+   "image": "data/demo/works/wheatfield-with-crows.jpg"
   },
   {
-   "slug": "market-day",
-   "artist": "noa-ben-ari",
-   "title": "Market Day",
-   "year": "2026",
-   "medium": "Hand-stitched textile collage",
+   "slug": "irises",
+   "artist": "vincent-van-gogh",
+   "title": "Irises",
+   "year": "1889",
+   "medium": "Oil on canvas",
    "size": [
-    120,
-    90
+    94.3,
+    74.3
    ],
-   "image": "data/demo/works/market-day.jpg"
+   "collection": "J. Paul Getty Museum",
+   "wikidata": "Q2282256",
+   "source": "https://commons.wikimedia.org/wiki/File:Irises-Vincent van Gogh.jpg",
+   "file": "Irises-Vincent van Gogh.jpg",
+   "image": "data/demo/works/irises.jpg"
   },
   {
-   "slug": "indigo-map",
-   "artist": "noa-ben-ari",
-   "title": "Indigo Map",
-   "year": "2026",
-   "medium": "Hand-stitched textile collage",
+   "slug": "bedroom-in-arles",
+   "artist": "vincent-van-gogh",
+   "title": "Bedroom in Arles",
+   "year": "1888",
+   "medium": "Oil on canvas",
    "size": [
-    100,
-    140
+    90.0,
+    72.0
    ],
-   "image": "data/demo/works/indigo-map.jpg"
+   "collection": "",
+   "wikidata": "Q724377",
+   "source": "https://commons.wikimedia.org/wiki/File:Vincent van Gogh - De slaapkamer - Google Art Project.jpg",
+   "file": "Vincent van Gogh - De slaapkamer - Google Art Project.jpg",
+   "image": "data/demo/works/bedroom-in-arles.jpg"
   },
   {
-   "slug": "grandmothers-kitchen",
-   "artist": "noa-ben-ari",
-   "title": "Grandmother's Kitchen",
-   "year": "2025",
-   "medium": "Hand-stitched textile collage",
+   "slug": "dance",
+   "artist": "henri-matisse",
+   "title": "Dance",
+   "year": "1910",
+   "medium": "Oil on canvas",
    "size": [
-    90,
-    90
+    391.0,
+    260.0
    ],
-   "image": "data/demo/works/grandmothers-kitchen.jpg"
+   "collection": "",
+   "wikidata": "Q164517",
+   "source": "https://commons.wikimedia.org/wiki/File:La Danse I, par Henri Matisse.jpg",
+   "file": "La Danse I, par Henri Matisse.jpg",
+   "image": "data/demo/works/dance.jpg"
   },
   {
-   "slug": "patchwork-weather",
-   "artist": "noa-ben-ari",
-   "title": "Patchwork Weather",
-   "year": "2025",
-   "medium": "Hand-stitched textile collage",
+   "slug": "woman-with-a-hat",
+   "artist": "henri-matisse",
+   "title": "Woman with a hat",
+   "year": "1905",
+   "medium": "Oil on canvas",
    "size": [
-    160,
-    120
+    60.0,
+    80.0
    ],
-   "image": "data/demo/works/patchwork-weather.jpg"
+   "collection": "San Francisco Museum of Modern Art",
+   "wikidata": "Q1437492",
+   "source": "https://commons.wikimedia.org/wiki/File:Matisse-Woman-with-a-Hat.jpg",
+   "file": "Matisse-Woman-with-a-Hat.jpg",
+   "image": "data/demo/works/woman-with-a-hat.jpg"
   },
   {
-   "slug": "saturday-quilt",
-   "artist": "noa-ben-ari",
-   "title": "Saturday Quilt",
-   "year": "2024",
-   "medium": "Hand-stitched textile collage",
+   "slug": "the-dessert-harmony-in-red-the-red-room",
+   "artist": "henri-matisse",
+   "title": "The Dessert: Harmony in Red (The Red Room)",
+   "year": "1907",
+   "medium": "Oil on canvas",
    "size": [
-    140,
-    140
+    221.0,
+    180.5
    ],
-   "image": "data/demo/works/saturday-quilt.jpg"
+   "collection": "Hermitage Museum",
+   "wikidata": "Q921429",
+   "source": "https://commons.wikimedia.org/wiki/File:La Desserte rouge, par Henri Matisse.jpg",
+   "file": "La Desserte rouge, par Henri Matisse.jpg",
+   "image": "data/demo/works/the-dessert-harmony-in-red-the-red-room.jpg"
   },
   {
-   "slug": "red-thread",
-   "artist": "noa-ben-ari",
-   "title": "Red Thread",
-   "year": "2024",
-   "medium": "Hand-stitched textile collage",
+   "slug": "the-joy-of-life",
+   "artist": "henri-matisse",
+   "title": "The Joy of Life",
+   "year": "1906",
+   "medium": "Oil on canvas",
    "size": [
-    70,
-    100
+    240.7,
+    176.5
    ],
-   "image": "data/demo/works/red-thread.jpg"
+   "collection": "Barnes Foundation",
+   "wikidata": "Q2538580",
+   "source": "https://commons.wikimedia.org/wiki/File:La Joie de vivre, par Henri Matisse.jpg",
+   "file": "La Joie de vivre, par Henri Matisse.jpg",
+   "image": "data/demo/works/the-joy-of-life.jpg"
   },
   {
-   "slug": "slow-colour-i",
-   "artist": "daniel-ostrovsky",
-   "title": "Slow Colour I",
-   "year": "2026",
-   "medium": "Acrylic on canvas",
+   "slug": "the-green-stripe",
+   "artist": "henri-matisse",
+   "title": "The Green Stripe",
+   "year": "1905",
+   "medium": "Oil on canvas",
    "size": [
-    120,
-    160
+    32.5,
+    40.5
    ],
-   "image": "data/demo/works/slow-colour-i.jpg"
+   "collection": "Statens Museum for Kunst",
+   "wikidata": "Q2902188",
+   "source": "https://commons.wikimedia.org/wiki/File:La Raie verte, par Henri Matisse.jpg",
+   "file": "La Raie verte, par Henri Matisse.jpg",
+   "image": "data/demo/works/the-green-stripe.jpg"
   },
   {
-   "slug": "slow-colour-ii",
-   "artist": "daniel-ostrovsky",
-   "title": "Slow Colour II",
-   "year": "2026",
-   "medium": "Acrylic on canvas",
+   "slug": "the-open-window",
+   "artist": "henri-matisse",
+   "title": "The Open Window",
+   "year": "1905",
+   "medium": "Oil on canvas",
    "size": [
-    120,
-    160
+    46.0,
+    55.3
    ],
-   "image": "data/demo/works/slow-colour-ii.jpg"
+   "collection": "",
+   "wikidata": "Q3745698",
+   "source": "https://commons.wikimedia.org/wiki/File:Fenêtre ouverte, Collioure, par Henri Matisse.jpg",
+   "file": "Fenêtre ouverte, Collioure, par Henri Matisse.jpg",
+   "image": "data/demo/works/the-open-window.jpg"
   },
   {
-   "slug": "ochre-hour",
-   "artist": "daniel-ostrovsky",
-   "title": "Ochre Hour",
-   "year": "2025",
-   "medium": "Acrylic on canvas",
+   "slug": "medieval-castle",
+   "artist": "victor-hugo",
+   "title": "Medieval Castle",
+   "year": "",
+   "medium": "",
    "size": [
-    100,
-    130
+    15.6,
+    19.9
    ],
-   "image": "data/demo/works/ochre-hour.jpg"
+   "collection": "Nationalmuseum",
+   "wikidata": "Q110750910",
+   "source": "https://commons.wikimedia.org/wiki/File:Victor Hugo - Medeltida borg - NMH 5-1982 - Nationalmuseum.jpg",
+   "file": "Victor Hugo - Medeltida borg - NMH 5-1982 - Nationalmuseum.jpg",
+   "image": "data/demo/works/medieval-castle.jpg"
   },
   {
-   "slug": "blue-room",
-   "artist": "daniel-ostrovsky",
-   "title": "Blue Room",
-   "year": "2025",
-   "medium": "Acrylic on canvas",
+   "slug": "a-magistrate",
+   "artist": "victor-hugo",
+   "title": "A Magistrate",
+   "year": "1835",
+   "medium": "",
    "size": [
-    150,
-    180
+    9.5,
+    11.6
    ],
-   "image": "data/demo/works/blue-room.jpg"
+   "collection": "Nationalmuseum",
+   "wikidata": "Q110763679",
+   "source": "https://commons.wikimedia.org/wiki/File:Victor Hugo - Magistratsperson - NMH 2-1982 - Nationalmuseum.jpg",
+   "file": "Victor Hugo - Magistratsperson - NMH 2-1982 - Nationalmuseum.jpg",
+   "image": "data/demo/works/a-magistrate.jpg"
   },
   {
-   "slug": "between-two-greens",
-   "artist": "daniel-ostrovsky",
-   "title": "Between Two Greens",
-   "year": "2024",
-   "medium": "Acrylic on canvas",
+   "slug": "steep-street-in-moonlight",
+   "artist": "victor-hugo",
+   "title": "Steep Street in Moonlight",
+   "year": "",
+   "medium": "",
    "size": [
-    90,
-    120
+    12.3,
+    22.7
    ],
-   "image": "data/demo/works/between-two-greens.jpg"
+   "collection": "Nationalmuseum",
+   "wikidata": "Q110782790",
+   "source": "https://commons.wikimedia.org/wiki/File:Victor Hugo - Brant sluttande gata i månsken - NMH 6-1982 - Nationalmuseum.jpg",
+   "file": "Victor Hugo - Brant sluttande gata i månsken - NMH 6-1982 - Nationalmuseum.jpg",
+   "image": "data/demo/works/steep-street-in-moonlight.jpg"
   },
   {
-   "slug": "late-pink",
-   "artist": "daniel-ostrovsky",
-   "title": "Late Pink",
-   "year": "2024",
-   "medium": "Acrylic on canvas",
+   "slug": "gust-of-wind",
+   "artist": "victor-hugo",
+   "title": "Gust of Wind",
+   "year": "1869",
+   "medium": "",
    "size": [
-    80,
-    100
+    19.2,
+    12.2
    ],
-   "image": "data/demo/works/late-pink.jpg"
+   "collection": "Nationalmuseum",
+   "wikidata": "Q110782795",
+   "source": "https://commons.wikimedia.org/wiki/File:Victor Hugo - Vindpust - NMH 36-1981 - Nationalmuseum.jpg",
+   "file": "Victor Hugo - Vindpust - NMH 36-1981 - Nationalmuseum.jpg",
+   "image": "data/demo/works/gust-of-wind.jpg"
   },
   {
-   "slug": "breath-i",
-   "artist": "maya-haddad",
-   "title": "Breath I",
-   "year": "2026",
-   "medium": "Sumi ink on paper",
+   "slug": "landscape-with-a-group-of-trees",
+   "artist": "victor-hugo",
+   "title": "Landscape with a Group of Trees",
+   "year": "1855",
+   "medium": "",
    "size": [
-    70,
-    100
+    10.4,
+    19.3
    ],
-   "image": "data/demo/works/breath-i.jpg"
+   "collection": "Nationalmuseum",
+   "wikidata": "Q110782792",
+   "source": "https://commons.wikimedia.org/wiki/File:Victor Hugo - Landskap med en grupp träd - NMH 4-1982 - Nationalmuseum.jpg",
+   "file": "Victor Hugo - Landskap med en grupp träd - NMH 4-1982 - Nationalmuseum.jpg",
+   "image": "data/demo/works/landscape-with-a-group-of-trees.jpg"
   },
   {
-   "slug": "breath-ii",
-   "artist": "maya-haddad",
-   "title": "Breath II",
-   "year": "2026",
-   "medium": "Sumi ink on paper",
+   "slug": "imaginary-figure",
+   "artist": "victor-hugo",
+   "title": "Imaginary Figure",
+   "year": "1865",
+   "medium": "",
    "size": [
-    70,
-    100
+    11.0,
+    14.2
    ],
-   "image": "data/demo/works/breath-ii.jpg"
+   "collection": "Nationalmuseum",
+   "wikidata": "Q110782799",
+   "source": "https://commons.wikimedia.org/wiki/File:Victor Hugo - Imaginär person - NMH 33-1981 - Nationalmuseum.jpg",
+   "file": "Victor Hugo - Imaginär person - NMH 33-1981 - Nationalmuseum.jpg",
+   "image": "data/demo/works/imaginary-figure.jpg"
   },
   {
-   "slug": "stone-wind",
-   "artist": "maya-haddad",
-   "title": "Stone Wind",
-   "year": "2025",
-   "medium": "Sumi ink on paper",
+   "slug": "impression-sunrise",
+   "artist": "claude-monet",
+   "title": "Impression, Sunrise",
+   "year": "1872",
+   "medium": "Oil on canvas",
    "size": [
-    100,
-    70
+    63.0,
+    48.0
    ],
-   "image": "data/demo/works/stone-wind.jpg"
+   "collection": "Musée Marmottan Monet",
+   "wikidata": "Q328523",
+   "source": "https://commons.wikimedia.org/wiki/File:Monet - Impression, Sunrise.jpg",
+   "file": "Monet - Impression, Sunrise.jpg",
+   "image": "data/demo/works/impression-sunrise.jpg"
   },
   {
-   "slug": "circle-for-the-old-city",
-   "artist": "maya-haddad",
-   "title": "Circle for the Old City",
-   "year": "2025",
-   "medium": "Sumi ink on paper",
+   "slug": "garden-at-sainte-adresse",
+   "artist": "claude-monet",
+   "title": "Garden at Sainte-Adresse",
+   "year": "1867",
+   "medium": "Oil on canvas",
    "size": [
-    90,
-    90
+    129.9,
+    98.1
    ],
-   "image": "data/demo/works/circle-for-the-old-city.jpg"
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q432253",
+   "source": "https://commons.wikimedia.org/wiki/File:Claude Monet - Jardin à Sainte-Adresse.jpg",
+   "file": "Claude Monet - Jardin à Sainte-Adresse.jpg",
+   "image": "data/demo/works/garden-at-sainte-adresse.jpg"
   },
   {
-   "slug": "rain-on-musrara",
-   "artist": "maya-haddad",
-   "title": "Rain on Musrara",
-   "year": "2024",
-   "medium": "Sumi ink on paper",
+   "slug": "woman-with-a-parasol-madame-monet-and-her-son",
+   "artist": "claude-monet",
+   "title": "Woman with a Parasol – Madame Monet and Her Son",
+   "year": "1875",
+   "medium": "Oil on canvas",
    "size": [
-    70,
-    100
+    82.0,
+    100.0
    ],
-   "image": "data/demo/works/rain-on-musrara.jpg"
+   "collection": "",
+   "wikidata": "Q2395218",
+   "source": "https://commons.wikimedia.org/wiki/File:Claude Monet - Woman with a Parasol - Madame Monet and Her Son - Google Art Project.jpg",
+   "file": "Claude Monet - Woman with a Parasol - Madame Monet and Her Son - Google Art Project.jpg",
+   "image": "data/demo/works/woman-with-a-parasol-madame-monet-and-her-son.jpg"
   },
   {
-   "slug": "one-line",
-   "artist": "maya-haddad",
-   "title": "One Line",
-   "year": "2024",
-   "medium": "Sumi ink on paper",
+   "slug": "women-in-the-garden",
+   "artist": "claude-monet",
+   "title": "Women in the Garden",
+   "year": "1866",
+   "medium": "Oil on canvas",
    "size": [
-    50,
-    140
+    205.0,
+    255.0
    ],
-   "image": "data/demo/works/one-line.jpg"
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q2734892",
+   "source": "https://commons.wikimedia.org/wiki/File:Claude Monet 024.jpg",
+   "file": "Claude Monet 024.jpg",
+   "image": "data/demo/works/women-in-the-garden.jpg"
   },
   {
-   "slug": "signal-01",
-   "artist": "tomer-lev",
-   "title": "Signal 01",
-   "year": "2026",
-   "medium": "Generative digital work, edition of 5",
+   "slug": "the-magpie",
+   "artist": "claude-monet",
+   "title": "The Magpie",
+   "year": "1868",
+   "medium": "Oil on canvas",
    "size": [
-    120,
-    67.5
+    130.0,
+    89.0
    ],
-   "image": "data/demo/works/signal-01.jpg"
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q4429116",
+   "source": "https://commons.wikimedia.org/wiki/File:Claude Monet - The Magpie - Google Art Project.jpg",
+   "file": "Claude Monet - The Magpie - Google Art Project.jpg",
+   "image": "data/demo/works/the-magpie.jpg"
   },
   {
-   "slug": "signal-02",
-   "artist": "tomer-lev",
-   "title": "Signal 02",
-   "year": "2026",
-   "medium": "Generative digital work, edition of 5",
+   "slug": "woman-in-the-garden",
+   "artist": "claude-monet",
+   "title": "Woman in the Garden",
+   "year": "1867",
+   "medium": "Oil on canvas",
    "size": [
-    120,
-    67.5
+    101.0,
+    82.0
    ],
-   "image": "data/demo/works/signal-02.jpg"
+   "collection": "Hermitage Museum",
+   "wikidata": "Q681876",
+   "source": "https://commons.wikimedia.org/wiki/File:Claude Monet 022.jpg",
+   "file": "Claude Monet 022.jpg",
+   "image": "data/demo/works/woman-in-the-garden.jpg"
   },
   {
-   "slug": "noise-garden",
-   "artist": "tomer-lev",
-   "title": "Noise Garden",
-   "year": "2025",
-   "medium": "Generative digital work, edition of 5",
+   "slug": "the-great-wave-off-kanagawa",
+   "artist": "katsushika-hokusai",
+   "title": "The Great Wave off Kanagawa",
+   "year": "1830",
+   "medium": "Woodblock print",
    "size": [
-    100,
-    100
+    38.0,
+    26.0
    ],
-   "image": "data/demo/works/noise-garden.jpg"
+   "collection": "British Museum",
+   "wikidata": "Q252485",
+   "source": "https://commons.wikimedia.org/wiki/File:Katsushika Hokusai - The Great Wave off the Coast of Kanagawa LCCN2008660568.jpg",
+   "file": "Katsushika Hokusai - The Great Wave off the Coast of Kanagawa LCCN2008660568.jpg",
+   "image": "data/demo/works/the-great-wave-off-kanagawa.jpg"
   },
   {
-   "slug": "night-traffic",
-   "artist": "tomer-lev",
-   "title": "Night Traffic",
-   "year": "2025",
-   "medium": "Generative digital work, edition of 5",
+   "slug": "the-dream-of-the-fisherman-s-wife",
+   "artist": "katsushika-hokusai",
+   "title": "The Dream of the Fisherman's Wife",
+   "year": "1820",
+   "medium": "Woodblock print",
    "size": [
-    160,
-    90
+    22.2,
+    16.5
    ],
-   "image": "data/demo/works/night-traffic.jpg"
+   "collection": "",
+   "wikidata": "Q2717022",
+   "source": "https://commons.wikimedia.org/wiki/File:Tako to ama retouched.jpg",
+   "file": "Tako to ama retouched.jpg",
+   "image": "data/demo/works/the-dream-of-the-fisherman-s-wife.jpg"
   },
   {
-   "slug": "carrier-wave",
-   "artist": "tomer-lev",
-   "title": "Carrier Wave",
-   "year": "2024",
-   "medium": "Generative digital work, edition of 5",
+   "slug": "fine-wind-clear-morning",
+   "artist": "katsushika-hokusai",
+   "title": "Fine Wind, Clear Morning",
+   "year": "1830",
+   "medium": "Woodblock print",
    "size": [
-    120,
-    67.5
+    38.0,
+    25.7
    ],
-   "image": "data/demo/works/carrier-wave.jpg"
+   "collection": "British Museum",
+   "wikidata": "Q3565037",
+   "source": "https://commons.wikimedia.org/wiki/File:Katsushika Hokusai - Fine Wind, Clear Morning (Gaifū kaisei) - Google Art Project.jpg",
+   "file": "Katsushika Hokusai - Fine Wind, Clear Morning (Gaifū kaisei) - Google Art Project.jpg",
+   "image": "data/demo/works/fine-wind-clear-morning.jpg"
   },
   {
-   "slug": "static-bloom",
-   "artist": "tomer-lev",
-   "title": "Static Bloom",
-   "year": "2024",
-   "medium": "Generative digital work, edition of 5",
+   "slug": "sundai-edo",
+   "artist": "katsushika-hokusai",
+   "title": "Sundai, Edo",
+   "year": "1831",
+   "medium": "Woodblock print",
    "size": [
-    100,
-    100
+    36.5,
+    24.8
    ],
-   "image": "data/demo/works/static-bloom.jpg"
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q18173387",
+   "source": "https://commons.wikimedia.org/wiki/File:The Fuji seen from the Mishima pass.jpg",
+   "file": "The Fuji seen from the Mishima pass.jpg",
+   "image": "data/demo/works/sundai-edo.jpg"
+  },
+  {
+   "slug": "sazai-hall-temple-of-five-hundred-rakan",
+   "artist": "katsushika-hokusai",
+   "title": "Sazai hall - Temple of Five Hundred Rakan",
+   "year": "1831",
+   "medium": "Woodblock print",
+   "size": [
+    38.3,
+    25.5
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q18173408",
+   "source": "https://commons.wikimedia.org/wiki/File:Sazai hall - 500 Rakan temples.jpg",
+   "file": "Sazai hall - 500 Rakan temples.jpg",
+   "image": "data/demo/works/sazai-hall-temple-of-five-hundred-rakan.jpg"
+  },
+  {
+   "slug": "morning-after-a-snowfall-at-koishikawa",
+   "artist": "katsushika-hokusai",
+   "title": "Morning after a Snowfall at Koishikawa",
+   "year": "1831",
+   "medium": "Woodblock print",
+   "size": [
+    38.7,
+    26.1
+   ],
+   "collection": "Ashmolean Museum",
+   "wikidata": "Q18173409",
+   "source": "https://commons.wikimedia.org/wiki/File:Tea house at Koishikawa. The morning after a snowfall.jpg",
+   "file": "Tea house at Koishikawa. The morning after a snowfall.jpg",
+   "image": "data/demo/works/morning-after-a-snowfall-at-koishikawa.jpg"
+  },
+  {
+   "slug": "the-cradle",
+   "artist": "berthe-morisot",
+   "title": "The Cradle",
+   "year": "1872",
+   "medium": "Oil on canvas",
+   "size": [
+    46.5,
+    56.0
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q5966403",
+   "source": "https://commons.wikimedia.org/wiki/File:Berthe Morisot - Le berceau.jpg",
+   "file": "Berthe Morisot - Le berceau.jpg",
+   "image": "data/demo/works/the-cradle.jpg"
+  },
+  {
+   "slug": "summer-s-day",
+   "artist": "berthe-morisot",
+   "title": "Summer's Day",
+   "year": "1879",
+   "medium": "Oil on canvas",
+   "size": [
+    75.2,
+    45.7
+   ],
+   "collection": "National Gallery",
+   "wikidata": "Q14942039",
+   "source": "https://commons.wikimedia.org/wiki/File:Berthe Morisot - Jour d'été, 1879.jpg",
+   "file": "Berthe Morisot - Jour d'été, 1879.jpg",
+   "image": "data/demo/works/summer-s-day.jpg"
+  },
+  {
+   "slug": "the-psyche-mirror",
+   "artist": "berthe-morisot",
+   "title": "The Psyche mirror",
+   "year": "1876",
+   "medium": "Oil on canvas",
+   "size": [
+    54.0,
+    65.0
+   ],
+   "collection": "Thyssen-Bornemisza Museum",
+   "wikidata": "Q9498617",
+   "source": "https://commons.wikimedia.org/wiki/File:Berthe Morisot - Psyché.JPG",
+   "file": "Berthe Morisot - Psyché.JPG",
+   "image": "data/demo/works/the-psyche-mirror.jpg"
+  },
+  {
+   "slug": "in-a-park",
+   "artist": "berthe-morisot",
+   "title": "In a Park",
+   "year": "1874",
+   "medium": "Pastel on paper",
+   "size": [
+    91.8,
+    72.5
+   ],
+   "collection": "Musée des Beaux-Arts de la ville de Paris",
+   "wikidata": "Q80112683",
+   "source": "https://commons.wikimedia.org/wiki/File:Morisot - Dans le parc, Vers 1874.jpg",
+   "file": "Morisot - Dans le parc, Vers 1874.jpg",
+   "image": "data/demo/works/in-a-park.jpg"
+  },
+  {
+   "slug": "eugene-manet-on-isle-of-wight",
+   "artist": "berthe-morisot",
+   "title": "Eugène Manet on Isle of Wight",
+   "year": "1875",
+   "medium": "Oil on canvas",
+   "size": [
+    46.0,
+    38.0
+   ],
+   "collection": "Musée Marmottan Monet",
+   "wikidata": "Q26164546",
+   "source": "https://commons.wikimedia.org/wiki/File:Berthe Morisot - Eugène Manet à l'île de Wight.jpg",
+   "file": "Berthe Morisot - Eugène Manet à l'île de Wight.jpg",
+   "image": "data/demo/works/eugene-manet-on-isle-of-wight.jpg"
+  },
+  {
+   "slug": "the-port-at-lorient",
+   "artist": "berthe-morisot",
+   "title": "The Port at Lorient",
+   "year": "1869",
+   "medium": "Oil on canvas",
+   "size": [
+    73.0,
+    43.5
+   ],
+   "collection": "",
+   "wikidata": "Q3225805",
+   "source": "https://commons.wikimedia.org/wiki/File:Berthe Morisot, The Harbor at Lorient, 1869, NGA 52192.jpg",
+   "file": "Berthe Morisot, The Harbor at Lorient, 1869, NGA 52192.jpg",
+   "image": "data/demo/works/the-port-at-lorient.jpg"
+  },
+  {
+   "slug": "the-child-s-bath",
+   "artist": "mary-cassatt",
+   "title": "The Child's Bath",
+   "year": "1893",
+   "medium": "Oil on canvas",
+   "size": [
+    66.1,
+    100.3
+   ],
+   "collection": "Art Institute of Chicago",
+   "wikidata": "Q3172226",
+   "source": "https://commons.wikimedia.org/wiki/File:Mary Cassatt - The Child's Bath - Google Art Project.jpg",
+   "file": "Mary Cassatt - The Child's Bath - Google Art Project.jpg",
+   "image": "data/demo/works/the-child-s-bath.jpg"
+  },
+  {
+   "slug": "woman-with-a-pearl-necklace-in-a-loge",
+   "artist": "mary-cassatt",
+   "title": "Woman with a Pearl Necklace in a Loge",
+   "year": "1879",
+   "medium": "Oil on canvas",
+   "size": [
+    59.5,
+    81.5
+   ],
+   "collection": "Philadelphia Museum of Art",
+   "wikidata": "Q15130000",
+   "source": "https://commons.wikimedia.org/wiki/File:Mary Stevenson Cassatt, American - Woman with a Pearl Necklace in a Loge - Google Art Project.jpg",
+   "file": "Mary Stevenson Cassatt, American - Woman with a Pearl Necklace in a Loge - Google Art Project.jpg",
+   "image": "data/demo/works/woman-with-a-pearl-necklace-in-a-loge.jpg"
+  },
+  {
+   "slug": "little-girl-in-a-blue-armchair",
+   "artist": "mary-cassatt",
+   "title": "Little Girl in a Blue Armchair",
+   "year": "1878",
+   "medium": "Oil on canvas",
+   "size": [
+    129.8,
+    89.5
+   ],
+   "collection": "",
+   "wikidata": "Q3640080",
+   "source": "https://commons.wikimedia.org/wiki/File:Cassat - Blue Armchair NGA.jpg",
+   "file": "Cassat - Blue Armchair NGA.jpg",
+   "image": "data/demo/works/little-girl-in-a-blue-armchair.jpg"
+  },
+  {
+   "slug": "the-cup-of-tea",
+   "artist": "mary-cassatt",
+   "title": "The Cup of Tea",
+   "year": "1880",
+   "medium": "Oil on canvas",
+   "size": [
+    65.4,
+    92.4
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q12859910",
+   "source": "https://commons.wikimedia.org/wiki/File:Cassatt Mary The Cup of Tea 1880.jpg",
+   "file": "Cassatt Mary The Cup of Tea 1880.jpg",
+   "image": "data/demo/works/the-cup-of-tea.jpg"
+  },
+  {
+   "slug": "girl-arranging-her-hair",
+   "artist": "mary-cassatt",
+   "title": "Girl Arranging Her Hair",
+   "year": "1886",
+   "medium": "Oil on canvas",
+   "size": [
+    62.5,
+    75.1
+   ],
+   "collection": "",
+   "wikidata": "Q3633620",
+   "source": "https://commons.wikimedia.org/wiki/File:Mary Cassatt - Girl Arranging Her Hair - Google Art Project.jpg",
+   "file": "Mary Cassatt - Girl Arranging Her Hair - Google Art Project.jpg",
+   "image": "data/demo/works/girl-arranging-her-hair.jpg"
+  },
+  {
+   "slug": "the-boating-party",
+   "artist": "mary-cassatt",
+   "title": "The Boating Party",
+   "year": "1893",
+   "medium": "Oil on canvas",
+   "size": [
+    117.3,
+    90.0
+   ],
+   "collection": "",
+   "wikidata": "Q15876324",
+   "source": "https://commons.wikimedia.org/wiki/File:Mary Cassatt - The Boating Party - Google Art Project.jpg",
+   "file": "Mary Cassatt - The Boating Party - Google Art Project.jpg",
+   "image": "data/demo/works/the-boating-party.jpg"
+  },
+  {
+   "slug": "the-ten-largest-no-2-childhood",
+   "artist": "hilma-af-klint",
+   "title": "The Ten Largest, No. 2, Childhood",
+   "year": "1907",
+   "medium": "Oil and tempera on paper",
+   "size": [
+    240.0,
+    328.0
+   ],
+   "collection": "Hilma af Klint Foundation",
+   "wikidata": "Q104917962",
+   "source": "https://commons.wikimedia.org/wiki/File:Hilma af Klint - The Ten Largest No. 2 - Childhood - 1907.jpg",
+   "file": "Hilma af Klint - The Ten Largest No. 2 - Childhood - 1907.jpg",
+   "image": "data/demo/works/the-ten-largest-no-2-childhood.jpg"
+  },
+  {
+   "slug": "the-ten-largest-no-1-childhood",
+   "artist": "hilma-af-klint",
+   "title": "The Ten Largest, No. 1, Childhood",
+   "year": "1907",
+   "medium": "Oil and tempera on paper",
+   "size": [
+    240.0,
+    328.0
+   ],
+   "collection": "Hilma af Klint Foundation",
+   "wikidata": "Q105007373",
+   "source": "https://commons.wikimedia.org/wiki/File:Hilma af Klint - The Ten Largest No. 1 - Childhood - 1907.jpg",
+   "file": "Hilma af Klint - The Ten Largest No. 1 - Childhood - 1907.jpg",
+   "image": "data/demo/works/the-ten-largest-no-1-childhood.jpg"
+  },
+  {
+   "slug": "the-ten-largest-no-3-youth",
+   "artist": "hilma-af-klint",
+   "title": "The Ten Largest, No. 3, Youth",
+   "year": "1907",
+   "medium": "Oil and tempera on paper",
+   "size": [
+    240.0,
+    328.0
+   ],
+   "collection": "Hilma af Klint Foundation",
+   "wikidata": "Q105008927",
+   "source": "https://commons.wikimedia.org/wiki/File:Hilma af Klint - The Ten Largest No. 3 - Youth - 1907.jpg",
+   "file": "Hilma af Klint - The Ten Largest No. 3 - Youth - 1907.jpg",
+   "image": "data/demo/works/the-ten-largest-no-3-youth.jpg"
+  },
+  {
+   "slug": "the-ten-largest-no-4-youth",
+   "artist": "hilma-af-klint",
+   "title": "The Ten Largest, No. 4, Youth",
+   "year": "1907",
+   "medium": "Oil and tempera on paper",
+   "size": [
+    240.0,
+    328.0
+   ],
+   "collection": "Hilma af Klint Foundation",
+   "wikidata": "Q105009013",
+   "source": "https://commons.wikimedia.org/wiki/File:Hilma af Klint - The Ten Largest No. 4 - Youth - 1907.jpg",
+   "file": "Hilma af Klint - The Ten Largest No. 4 - Youth - 1907.jpg",
+   "image": "data/demo/works/the-ten-largest-no-4-youth.jpg"
+  },
+  {
+   "slug": "the-ten-largest-no-5-adulthood",
+   "artist": "hilma-af-klint",
+   "title": "The Ten Largest, No. 5, Adulthood",
+   "year": "1907",
+   "medium": "Oil and tempera on paper",
+   "size": [
+    240.0,
+    328.0
+   ],
+   "collection": "Hilma af Klint Foundation",
+   "wikidata": "Q105009077",
+   "source": "https://commons.wikimedia.org/wiki/File:Hilma af Klint - The Ten Largest No. 5 - Adulthood - 1907.jpg",
+   "file": "Hilma af Klint - The Ten Largest No. 5 - Adulthood - 1907.jpg",
+   "image": "data/demo/works/the-ten-largest-no-5-adulthood.jpg"
+  },
+  {
+   "slug": "the-ten-largest-no-6",
+   "artist": "hilma-af-klint",
+   "title": "The Ten Largest, No. 6",
+   "year": "1907",
+   "medium": "Oil and tempera on paper",
+   "size": [
+    240.0,
+    328.0
+   ],
+   "collection": "Hilma af Klint Foundation",
+   "wikidata": "Q105009113",
+   "source": "https://commons.wikimedia.org/wiki/File:Hilma af Klint - The Ten Largest No. 6 - 1907.jpg",
+   "file": "Hilma af Klint - The Ten Largest No. 6 - 1907.jpg",
+   "image": "data/demo/works/the-ten-largest-no-6.jpg"
+  },
+  {
+   "slug": "the-abandoned-doll",
+   "artist": "suzanne-valadon",
+   "title": "The Abandoned Doll",
+   "year": "1921",
+   "medium": "Oil on canvas",
+   "size": [
+    83.0,
+    129.0
+   ],
+   "collection": "National Museum of Women in the Arts",
+   "wikidata": "Q4097113",
+   "source": "https://commons.wikimedia.org/wiki/File:La Poupée abandonnée, par Suzanne Valadon.jpg",
+   "file": "La Poupée abandonnée, par Suzanne Valadon.jpg",
+   "image": "data/demo/works/the-abandoned-doll.jpg"
+  },
+  {
+   "slug": "the-blue-room",
+   "artist": "suzanne-valadon",
+   "title": "The Blue Room",
+   "year": "1923",
+   "medium": "Oil on canvas",
+   "size": [
+    116.0,
+    90.0
+   ],
+   "collection": "Musée National d'Art Moderne",
+   "wikidata": "Q16938777",
+   "source": "https://commons.wikimedia.org/wiki/File:(Barcelona) La chambre bleue - Suzanne Valadon.jpg",
+   "file": "(Barcelona) La chambre bleue - Suzanne Valadon.jpg",
+   "image": "data/demo/works/the-blue-room.jpg"
+  },
+  {
+   "slug": "adam-and-eve",
+   "artist": "suzanne-valadon",
+   "title": "Adam and Eve",
+   "year": "1909",
+   "medium": "Oil on canvas",
+   "size": [
+    131.0,
+    162.0
+   ],
+   "collection": "Musée National d'Art Moderne",
+   "wikidata": "Q110945175",
+   "source": "https://commons.wikimedia.org/wiki/File:(Barcelona) L'été ou Adam et Eve - Suzanne Valadon - Musée national d'Art moderne Paris.jpg",
+   "file": "(Barcelona) L'été ou Adam et Eve - Suzanne Valadon - Musée national d'Art moderne Paris.jpg",
+   "image": "data/demo/works/adam-and-eve.jpg"
+  },
+  {
+   "slug": "joy-of-life",
+   "artist": "suzanne-valadon",
+   "title": "Joy of Life",
+   "year": "1911",
+   "medium": "Oil on canvas",
+   "size": [
+    205.7,
+    122.9
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q19917694",
+   "source": "https://commons.wikimedia.org/wiki/File:Joy of Life MET DT356454.jpg",
+   "file": "Joy of Life MET DT356454.jpg",
+   "image": "data/demo/works/joy-of-life.jpg"
+  },
+  {
+   "slug": "nu-au-chale-bleu",
+   "artist": "suzanne-valadon",
+   "title": "Nu au châle bleu",
+   "year": "1930",
+   "medium": "Oil on canvas",
+   "size": [
+    54.5,
+    65.0
+   ],
+   "collection": "Unterlinden Museum",
+   "wikidata": "Q99337597",
+   "source": "https://commons.wikimedia.org/wiki/File:Valadon, Nu au châle bleu.jpg",
+   "file": "Valadon, Nu au châle bleu.jpg",
+   "image": "data/demo/works/nu-au-chale-bleu.jpg"
+  },
+  {
+   "slug": "the-bathers",
+   "artist": "suzanne-valadon",
+   "title": "The bathers",
+   "year": "1923",
+   "medium": "Oil on canvas",
+   "size": [
+    89.0,
+    116.4
+   ],
+   "collection": "Nantes Museum of Arts",
+   "wikidata": "Q115943056",
+   "source": "https://commons.wikimedia.org/wiki/File:(Barcelona) Les baigneuses (1923) Suzanne Valadon - Musée d'arts de Nantes.jpg",
+   "file": "(Barcelona) Les baigneuses (1923) Suzanne Valadon - Musée d'arts de Nantes.jpg",
+   "image": "data/demo/works/the-bathers.jpg"
+  },
+  {
+   "slug": "self-portrait-at-6th-wedding-anniversary",
+   "artist": "paula-modersohn-becker",
+   "title": "Self-portrait at 6th wedding anniversary",
+   "year": "1906",
+   "medium": "Tempera on canvas",
+   "size": [
+    70.2,
+    101.8
+   ],
+   "collection": "Paula Modersohn-Becker Museum",
+   "wikidata": "Q22570122",
+   "source": "https://commons.wikimedia.org/wiki/File:Paula Moderson-Becker - Selbstbildnis am 6 Hochzeitstag (1906).jpg",
+   "file": "Paula Moderson-Becker - Selbstbildnis am 6 Hochzeitstag (1906).jpg",
+   "image": "data/demo/works/self-portrait-at-6th-wedding-anniversary.jpg"
+  },
+  {
+   "slug": "portrait-of-rainer-maria-rilke",
+   "artist": "paula-modersohn-becker",
+   "title": "Portrait of Rainer Maria Rilke",
+   "year": "1906",
+   "medium": "",
+   "size": [
+    25.4,
+    32.3
+   ],
+   "collection": "Ludwig Roselius Museum",
+   "wikidata": "Q120491846",
+   "source": "https://commons.wikimedia.org/wiki/File:Paula Modersohn-Becker 016.jpg",
+   "file": "Paula Modersohn-Becker 016.jpg",
+   "image": "data/demo/works/portrait-of-rainer-maria-rilke.jpg"
+  },
+  {
+   "slug": "self-portrait-with-hat-and-veil",
+   "artist": "paula-modersohn-becker",
+   "title": "Self-portrait with hat and veil",
+   "year": "1906",
+   "medium": "Oil on canvas",
+   "size": [
+    79.8,
+    89.6
+   ],
+   "collection": "Kunstmuseum Den Haag",
+   "wikidata": "Q24046511",
+   "source": "https://commons.wikimedia.org/wiki/File:Paula Modersohn-Becker - Self-portrait with hat and veil - Google Art Project.jpg",
+   "file": "Paula Modersohn-Becker - Self-portrait with hat and veil - Google Art Project.jpg",
+   "image": "data/demo/works/self-portrait-with-hat-and-veil.jpg"
+  },
+  {
+   "slug": "old-peasant-woman",
+   "artist": "paula-modersohn-becker",
+   "title": "Old Peasant Woman",
+   "year": "1907",
+   "medium": "Oil on canvas",
+   "size": [
+    57.8,
+    75.6
+   ],
+   "collection": "Detroit Institute of Arts",
+   "wikidata": "Q64575784",
+   "source": "https://commons.wikimedia.org/wiki/File:Paula Modersohn-Becker - Old Peasant Woman (c1905).jpg",
+   "file": "Paula Modersohn-Becker - Old Peasant Woman (c1905).jpg",
+   "image": "data/demo/works/old-peasant-woman.jpg"
+  },
+  {
+   "slug": "self-portrait-looking-slightly-left",
+   "artist": "paula-modersohn-becker",
+   "title": "Self-Portrait Looking Slightly Left",
+   "year": "1906",
+   "medium": "Oil on paper",
+   "size": [
+    21.4,
+    26.8
+   ],
+   "collection": "Museum Behnhaus Drägerhaus",
+   "wikidata": "Q111799341",
+   "source": "https://commons.wikimedia.org/wiki/File:Paula Modersohn-Becker - Selbstbildnis nach halblinks.jpg",
+   "file": "Paula Modersohn-Becker - Selbstbildnis nach halblinks.jpg",
+   "image": "data/demo/works/self-portrait-looking-slightly-left.jpg"
+  },
+  {
+   "slug": "old-peasant-woman-1903",
+   "artist": "paula-modersohn-becker",
+   "title": "Old Peasant Woman",
+   "year": "1903",
+   "medium": "Oil on canvas",
+   "size": [
+    57.0,
+    77.0
+   ],
+   "collection": "Hamburger Kunsthalle",
+   "wikidata": "Q102422465",
+   "source": "https://commons.wikimedia.org/wiki/File:1903 Modersohn-Becker Alte Moorbäuerin anagoria.JPG",
+   "file": "1903 Modersohn-Becker Alte Moorbäuerin anagoria.JPG",
+   "image": "data/demo/works/old-peasant-woman-1903.jpg"
   }
  ],
  "shows": [
   {
-   "slug": "low-tide-haifa",
-   "title": "Low Tide",
+   "slug": "orchards-in-bloom",
+   "title": "Orchards in Bloom",
    "artists": [
-    "lia-moren"
+    "vincent-van-gogh"
    ],
    "kind": "gallery",
    "venue": "Harbour Gallery",
@@ -453,24 +1099,25 @@
      "what": "Opening"
     }
    ],
+   "text": "Van Gogh in the south: the fields, the night and the faces of Arles, in paintings from his last years.",
    "works": [
-    "low-tide",
-    "salt",
-    "night-window",
-    "dusk-study-i",
-    "dusk-study-ii"
+    "the-starry-night",
+    "the-potato-eaters",
+    "sunflowers",
+    "wheatfield-with-crows",
+    "irises",
+    "bedroom-in-arles"
    ],
-   "text": "New paintings of the bay at low tide: the hour when the water steps back and the harbour shows its floor.",
    "images": [
-    "data/demo/shows/low-tide-haifa-1.jpg",
-    "data/demo/shows/low-tide-haifa-2.jpg"
+    "data/demo/works/the-starry-night.jpg",
+    "data/demo/works/the-potato-eaters.jpg"
    ]
   },
   {
-   "slug": "patchwork-weather",
-   "title": "Patchwork Weather",
+   "slug": "open-window",
+   "title": "The Open Window",
    "artists": [
-    "noa-ben-ari"
+    "henri-matisse"
    ],
    "kind": "gallery",
    "venue": "Rope Street Gallery",
@@ -490,23 +1137,25 @@
      "what": "Closing night"
     }
    ],
+   "text": "Matisse and the room: windows, interiors and the people in them, in colour that holds the wall.",
    "works": [
-    "patchwork-weather",
-    "market-day",
-    "indigo-map",
-    "red-thread"
+    "dance",
+    "woman-with-a-hat",
+    "the-dessert-harmony-in-red-the-red-room",
+    "the-joy-of-life",
+    "the-green-stripe",
+    "the-open-window"
    ],
-   "text": "Six large textiles sewn from clothes of three generations, hung like weather maps of a family.",
    "images": [
-    "data/demo/shows/patchwork-weather-1.jpg",
-    "data/demo/shows/patchwork-weather-2.jpg"
+    "data/demo/works/dance.jpg",
+    "data/demo/works/woman-with-a-hat.jpg"
    ]
   },
   {
-   "slug": "slow-colour",
-   "title": "Slow Colour",
+   "slug": "hours-of-light",
+   "title": "Hours of Light",
    "artists": [
-    "daniel-ostrovsky"
+    "claude-monet"
    ],
    "kind": "gallery",
    "venue": "Studio 5",
@@ -526,23 +1175,26 @@
      "what": "Opening"
     }
    ],
+   "text": "Monet at every hour: the same places painted again and again as the light moves over them.",
    "works": [
-    "slow-colour-i",
-    "slow-colour-ii",
-    "ochre-hour",
-    "blue-room"
+    "impression-sunrise",
+    "garden-at-sainte-adresse",
+    "woman-with-a-parasol-madame-monet-and-her-son",
+    "women-in-the-garden",
+    "the-magpie",
+    "woman-in-the-garden"
    ],
-   "text": "Colour fields built from twenty thin layers each. Stand close, and they move.",
    "images": [
-    "data/demo/shows/slow-colour-1.jpg",
-    "data/demo/shows/slow-colour-2.jpg"
+    "data/demo/works/impression-sunrise.jpg",
+    "data/demo/works/garden-at-sainte-adresse.jpg"
    ]
   },
   {
-   "slug": "ink-breath",
-   "title": "Ink, Breath",
+   "slug": "ink-and-storm",
+   "title": "Ink and Storm",
    "artists": [
-    "maya-haddad"
+    "victor-hugo",
+    "katsushika-hokusai"
    ],
    "kind": "gallery",
    "venue": "Musrara Lane Gallery",
@@ -559,28 +1211,27 @@
     {
      "day": 2,
      "time": "18:00",
-     "what": "Artist talk"
+     "what": "Talk"
     }
    ],
+   "text": "Two masters of the wave and the dark sky: Victor Hugo's private drawings beside Hokusai's prints.",
    "works": [
-    "breath-i",
-    "breath-ii",
-    "stone-wind",
-    "circle-for-the-old-city",
-    "rain-on-musrara"
+    "medieval-castle",
+    "a-magistrate",
+    "the-great-wave-off-kanagawa",
+    "the-dream-of-the-fisherman-s-wife"
    ],
-   "text": "Ink drawings made in one breath each, on paper from a mill in the Old City.",
    "images": [
-    "data/demo/shows/ink-breath-1.jpg",
-    "data/demo/shows/ink-breath-2.jpg"
+    "data/demo/works/medieval-castle.jpg",
+    "data/demo/works/a-magistrate.jpg"
    ]
   },
   {
-   "slug": "two-rooms-one-light",
-   "title": "Two Rooms, One Light",
+   "slug": "women-at-home",
+   "title": "Women at Home",
    "artists": [
-    "lia-moren",
-    "daniel-ostrovsky"
+    "berthe-morisot",
+    "mary-cassatt"
    ],
    "kind": "gallery",
    "venue": "Courtyard Hall",
@@ -600,24 +1251,23 @@
      "what": "Opening"
     }
    ],
+   "text": "Two Impressionists, friends in Paris, paint the life of women from inside the rooms they lived in.",
    "works": [
-    "two-rooms",
-    "late-garden",
-    "between-two-greens",
-    "late-pink"
+    "the-cradle",
+    "summer-s-day",
+    "the-child-s-bath",
+    "woman-with-a-pearl-necklace-in-a-loge"
    ],
-   "text": "Two painters who never met, paired by the light in their rooms: Lia Morén's harbour and Daniel Ostrovsky's colour fields.",
-   "curator": "Open Studio",
    "images": [
-    "data/demo/shows/two-rooms-one-light-1.jpg",
-    "data/demo/shows/two-rooms-one-light-2.jpg"
+    "data/demo/works/the-cradle.jpg",
+    "data/demo/works/summer-s-day.jpg"
    ]
   },
   {
-   "slug": "signal-noise",
-   "title": "Signal / Noise",
+   "slug": "paintings-for-the-future",
+   "title": "Paintings for the Future",
    "artists": [
-    "tomer-lev"
+    "hilma-af-klint"
    ],
    "kind": "online",
    "venue": "Online",
@@ -630,29 +1280,31 @@
     {
      "day": 1,
      "time": "21:00",
-     "what": "Live render"
+     "what": "Online talk"
     }
    ],
+   "text": "Hilma af Klint's abstract paintings, made for a public she believed would come long after her. Only online.",
    "works": [
-    "signal-01",
-    "signal-02",
-    "night-traffic",
-    "carrier-wave",
-    "static-bloom"
+    "the-ten-largest-no-2-childhood",
+    "the-ten-largest-no-1-childhood",
+    "the-ten-largest-no-3-youth",
+    "the-ten-largest-no-4-youth",
+    "the-ten-largest-no-5-adulthood",
+    "the-ten-largest-no-6"
    ],
-   "text": "A digital exhibition: works that grow from a field of forces, different each time they run. Only online.",
    "images": [
-    "data/demo/works/signal-01.jpg"
+    "data/demo/works/the-ten-largest-no-2-childhood.jpg",
+    "data/demo/works/the-ten-largest-no-1-childhood.jpg"
    ]
   },
   {
-   "slug": "afterimage",
-   "title": "Afterimage",
+   "slug": "seen-from-within",
+   "title": "Seen from Within",
    "artists": [
-    "lia-moren",
-    "noa-ben-ari",
-    "maya-haddad",
-    "tomer-lev"
+    "suzanne-valadon",
+    "paula-modersohn-becker",
+    "berthe-morisot",
+    "mary-cassatt"
    ],
    "kind": "online",
    "venue": "Online",
@@ -662,23 +1314,28 @@
    "end": 30,
    "hours": "Open all the time",
    "events": [],
-   "works": [
-    "orchard-at-noon",
-    "saturday-quilt",
-    "one-line",
-    "noise-garden"
-   ],
-   "text": "A concept exhibition: four artists, four ways a place stays with you after you leave it. Curated on Open Studio.",
    "curator": "Open Studio",
+   "text": "A concept exhibition: four women painters who looked at bodies, children and themselves without the usual flattery. Curated on Open Studio.",
+   "works": [
+    "the-abandoned-doll",
+    "the-blue-room",
+    "self-portrait-at-6th-wedding-anniversary",
+    "portrait-of-rainer-maria-rilke",
+    "the-cradle",
+    "summer-s-day",
+    "the-child-s-bath",
+    "woman-with-a-pearl-necklace-in-a-loge"
+   ],
    "images": [
-    "data/demo/works/orchard-at-noon.jpg"
+    "data/demo/works/the-abandoned-doll.jpg",
+    "data/demo/works/the-blue-room.jpg"
    ]
   },
   {
-   "slug": "threads",
-   "title": "Threads",
+   "slug": "a-model-paints",
+   "title": "A Model Paints",
    "artists": [
-    "noa-ben-ari"
+    "suzanne-valadon"
    ],
    "kind": "gallery",
    "venue": "Salt Room",
@@ -692,21 +1349,25 @@
    "end": -380,
    "hours": "",
    "events": [],
+   "text": "Suzanne Valadon, who sat for Renoir and Toulouse-Lautrec, and painted her own way.",
    "works": [
-    "grandmothers-kitchen",
-    "saturday-quilt"
+    "the-abandoned-doll",
+    "the-blue-room",
+    "adam-and-eve",
+    "joy-of-life",
+    "nu-au-chale-bleu",
+    "the-bathers"
    ],
-   "text": "Noa Ben-Ari's first solo show.",
    "images": [
-    "data/demo/shows/threads-1.jpg",
-    "data/demo/shows/threads-2.jpg"
+    "data/demo/works/the-abandoned-doll.jpg",
+    "data/demo/works/the-blue-room.jpg"
    ]
   },
   {
-   "slug": "shoreline",
-   "title": "Shoreline",
+   "slug": "worpswede",
+   "title": "Worpswede",
    "artists": [
-    "lia-moren"
+    "paula-modersohn-becker"
    ],
    "kind": "gallery",
    "venue": "Harbour Gallery",
@@ -720,289 +1381,85 @@
    "end": -515,
    "hours": "",
    "events": [],
+   "text": "Paintings from the artists' village on the moor, where Paula Modersohn-Becker found her plain, heavy forms.",
    "works": [
-    "low-tide",
-    "orchard-at-noon",
-    "two-rooms",
-    "late-garden"
+    "self-portrait-at-6th-wedding-anniversary",
+    "portrait-of-rainer-maria-rilke",
+    "self-portrait-with-hat-and-veil",
+    "old-peasant-woman",
+    "self-portrait-looking-slightly-left",
+    "old-peasant-woman-1903"
    ],
-   "text": "Paintings of the coast at low tide, made over one winter.",
    "images": [
-    "data/demo/shows/shoreline-1.jpg",
-    "data/demo/shows/shoreline-2.jpg"
+    "data/demo/works/self-portrait-at-6th-wedding-anniversary.jpg",
+    "data/demo/works/portrait-of-rainer-maria-rilke.jpg"
    ]
   }
  ],
- "live": [
-  {
-   "artist": "lia-moren",
-   "work": "low-tide",
-   "kind": "video",
-   "video": "data/demo/live/low-tide.mp4",
-   "poster": "data/demo/live/low-tide.jpg",
-   "ago": 3,
-   "text": "The last layer of Low Tide, before it goes to the harbour"
-  },
-  {
-   "artist": "noa-ben-ari",
-   "work": "red-thread",
-   "kind": "video",
-   "video": "data/demo/live/red-thread.mp4",
-   "poster": "data/demo/live/red-thread.jpg",
-   "ago": 20,
-   "text": "Sewing Red Thread, the whole afternoon in seven seconds"
-  },
-  {
-   "artist": "daniel-ostrovsky",
-   "work": "slow-colour-i",
-   "kind": "video",
-   "video": "data/demo/live/slow-colour-i.mp4",
-   "poster": "data/demo/live/slow-colour-i.jpg",
-   "ago": 30,
-   "text": "Layer by layer: how Slow Colour I was built"
-  },
-  {
-   "artist": "maya-haddad",
-   "work": "one-line",
-   "kind": "video",
-   "video": "data/demo/live/one-line.mp4",
-   "poster": "data/demo/live/one-line.jpg",
-   "ago": 6,
-   "text": "One Line, in one breath"
-  },
-  {
-   "artist": "tomer-lev",
-   "work": "static-bloom",
-   "kind": "video",
-   "video": "data/demo/live/static-bloom.mp4",
-   "poster": "data/demo/live/static-bloom.jpg",
-   "ago": 50,
-   "text": "Static Bloom, rendering live"
-  },
-  {
-   "artist": "lia-moren",
-   "kind": "story",
-   "frames": [
-    "data/demo/shows/low-tide-haifa-1.jpg",
-    "data/demo/works/salt.jpg",
-    "data/demo/shows/low-tide-haifa-2.jpg"
-   ],
-   "ago": 9,
-   "text": "Hanging Low Tide at the Harbour Gallery",
-   "work": "salt"
-  },
-  {
-   "artist": "noa-ben-ari",
-   "kind": "story",
-   "frames": [
-    "data/demo/works/market-day.jpg",
-    "data/demo/works/indigo-map.jpg"
-   ],
-   "ago": 52,
-   "text": "Cloth from the Jaffa market, before it's cut",
-   "work": "market-day"
-  },
-  {
-   "artist": "maya-haddad",
-   "kind": "story",
-   "frames": [
-    "data/demo/works/rain-on-musrara.jpg",
-    "data/demo/shows/ink-breath-1.jpg"
-   ],
-   "ago": 28,
-   "text": "Rain all morning: a new drawing",
-   "work": "rain-on-musrara"
-  },
-  {
-   "artist": "daniel-ostrovsky",
-   "kind": "story",
-   "frames": [
-    "data/demo/works/blue-room.jpg",
-    "data/demo/works/ochre-hour.jpg"
-   ],
-   "ago": 70,
-   "text": "Two finished, drying side by side",
-   "work": "ochre-hour"
-  }
- ],
- "listings": [
-  {
-   "name": "Courtyard 31",
-   "city": "Tel Aviv",
-   "address": "Nahalat Binyamin St 31, Tel Aviv",
-   "at": [
-    32.0668,
-    34.7716
-   ],
-   "show": "Small Hours",
-   "what": "Group show of drawings",
-   "start": -10,
-   "end": 14,
-   "hours": "Tue–Sat 11:00–19:00"
-  },
-  {
-   "name": "Kiosk 9",
-   "city": "Tel Aviv",
-   "address": "Florentin St 9, Tel Aviv",
-   "at": [
-    32.0567,
-    34.769
-   ],
-   "show": "Night Garden",
-   "what": "Opening night",
-   "start": 1,
-   "end": 30,
-   "hours": "Thu–Sat 18:00–23:00",
-   "events": [
-    {
-     "day": 1,
-     "time": "20:00",
-     "what": "Opening"
-    }
-   ]
-  },
-  {
-   "name": "Paper Mill Rooms",
-   "city": "Jerusalem",
-   "address": "Emek Refaim St 12, Jerusalem",
-   "at": [
-    31.7676,
-    35.2196
-   ],
-   "show": "Prints from the North",
-   "what": "Printmaking",
-   "start": -20,
-   "end": 20,
-   "hours": "Sun–Thu 10:00–18:00"
-  },
-  {
-   "name": "North Light Space",
-   "city": "Haifa",
-   "address": "Masada St 18, Haifa",
-   "at": [
-    32.8086,
-    34.9925
-   ],
-   "show": "Coastline",
-   "what": "Photography",
-   "start": -5,
-   "end": 9,
-   "hours": "Wed–Sat 12:00–19:00"
-  },
-  {
-   "name": "Old Bakery Gallery",
-   "city": "Be'er Sheva",
-   "address": "Smilansky St 20, Be'er Sheva",
-   "at": [
-    31.2427,
-    34.7955
-   ],
-   "show": "Desert Notes",
-   "what": "Group show",
-   "start": -15,
-   "end": 25,
-   "hours": "Sun–Thu 10:00–17:00"
-  },
-  {
-   "name": "Salt Room",
-   "city": "Jaffa",
-   "address": "Yefet St 30, Jaffa",
-   "at": [
-    32.05,
-    34.7537
-   ],
-   "show": "Open Studios Weekend",
-   "what": "Twelve studios open their doors",
-   "start": 3,
-   "end": 4,
-   "hours": "Fri–Sat 10:00–17:00",
-   "events": [
-    {
-     "day": 3,
-     "time": "10:00",
-     "what": "Open studios"
-    }
-   ]
-  }
- ],
- "places": {
-  "Tel Aviv": [
-   32.0809,
-   34.7806
-  ],
-  "Jaffa": [
-   32.054,
-   34.752
-  ],
-  "Jerusalem": [
-   31.778,
-   35.225
-  ],
-  "Haifa": [
-   32.8156,
-   34.9892
-  ],
-  "Be'er Sheva": [
-   31.252,
-   34.7915
-  ]
- },
- "venues": {
-  "Ritual": {
-   "venue": "Jerusalem Artists' House",
-   "address": "Shmuel HaNagid St 12, Jerusalem",
-   "at": [
-    31.7808,
-    35.2172
-   ]
-  }
- },
+ "live": [],
+ "listings": [],
+ "places": {},
+ "venues": {},
  "thumbs": {
-  "data/demo/works/between-two-greens.jpg": "data/demo/works/between-two-greens-s.jpg",
-  "data/demo/works/blue-room.jpg": "data/demo/works/blue-room-s.jpg",
-  "data/demo/works/breath-i.jpg": "data/demo/works/breath-i-s.jpg",
-  "data/demo/works/breath-ii.jpg": "data/demo/works/breath-ii-s.jpg",
-  "data/demo/works/carrier-wave.jpg": "data/demo/works/carrier-wave-s.jpg",
-  "data/demo/works/circle-for-the-old-city.jpg": "data/demo/works/circle-for-the-old-city-s.jpg",
-  "data/demo/works/dusk-study-i.jpg": "data/demo/works/dusk-study-i-s.jpg",
-  "data/demo/works/dusk-study-ii.jpg": "data/demo/works/dusk-study-ii-s.jpg",
-  "data/demo/works/grandmothers-kitchen.jpg": "data/demo/works/grandmothers-kitchen-s.jpg",
-  "data/demo/works/indigo-map.jpg": "data/demo/works/indigo-map-s.jpg",
-  "data/demo/works/late-garden.jpg": "data/demo/works/late-garden-s.jpg",
-  "data/demo/works/late-pink.jpg": "data/demo/works/late-pink-s.jpg",
-  "data/demo/works/low-tide.jpg": "data/demo/works/low-tide-s.jpg",
-  "data/demo/works/market-day.jpg": "data/demo/works/market-day-s.jpg",
-  "data/demo/works/night-traffic.jpg": "data/demo/works/night-traffic-s.jpg",
-  "data/demo/works/night-window.jpg": "data/demo/works/night-window-s.jpg",
-  "data/demo/works/noise-garden.jpg": "data/demo/works/noise-garden-s.jpg",
-  "data/demo/works/ochre-hour.jpg": "data/demo/works/ochre-hour-s.jpg",
-  "data/demo/works/one-line.jpg": "data/demo/works/one-line-s.jpg",
-  "data/demo/works/orchard-at-noon.jpg": "data/demo/works/orchard-at-noon-s.jpg",
-  "data/demo/works/patchwork-weather.jpg": "data/demo/works/patchwork-weather-s.jpg",
-  "data/demo/works/rain-on-musrara.jpg": "data/demo/works/rain-on-musrara-s.jpg",
-  "data/demo/works/red-thread.jpg": "data/demo/works/red-thread-s.jpg",
-  "data/demo/works/salt.jpg": "data/demo/works/salt-s.jpg",
-  "data/demo/works/saturday-quilt.jpg": "data/demo/works/saturday-quilt-s.jpg",
-  "data/demo/works/signal-01.jpg": "data/demo/works/signal-01-s.jpg",
-  "data/demo/works/signal-02.jpg": "data/demo/works/signal-02-s.jpg",
-  "data/demo/works/slow-colour-i.jpg": "data/demo/works/slow-colour-i-s.jpg",
-  "data/demo/works/slow-colour-ii.jpg": "data/demo/works/slow-colour-ii-s.jpg",
-  "data/demo/works/static-bloom.jpg": "data/demo/works/static-bloom-s.jpg",
-  "data/demo/works/stone-wind.jpg": "data/demo/works/stone-wind-s.jpg",
-  "data/demo/works/two-rooms.jpg": "data/demo/works/two-rooms-s.jpg",
-  "data/demo/shows/ink-breath-1.jpg": "data/demo/shows/ink-breath-1-s.jpg",
-  "data/demo/shows/ink-breath-2.jpg": "data/demo/shows/ink-breath-2-s.jpg",
-  "data/demo/shows/low-tide-haifa-1.jpg": "data/demo/shows/low-tide-haifa-1-s.jpg",
-  "data/demo/shows/low-tide-haifa-2.jpg": "data/demo/shows/low-tide-haifa-2-s.jpg",
-  "data/demo/shows/patchwork-weather-1.jpg": "data/demo/shows/patchwork-weather-1-s.jpg",
-  "data/demo/shows/patchwork-weather-2.jpg": "data/demo/shows/patchwork-weather-2-s.jpg",
-  "data/demo/shows/shoreline-1.jpg": "data/demo/shows/shoreline-1-s.jpg",
-  "data/demo/shows/shoreline-2.jpg": "data/demo/shows/shoreline-2-s.jpg",
-  "data/demo/shows/slow-colour-1.jpg": "data/demo/shows/slow-colour-1-s.jpg",
-  "data/demo/shows/slow-colour-2.jpg": "data/demo/shows/slow-colour-2-s.jpg",
-  "data/demo/shows/threads-1.jpg": "data/demo/shows/threads-1-s.jpg",
-  "data/demo/shows/threads-2.jpg": "data/demo/shows/threads-2-s.jpg",
-  "data/demo/shows/two-rooms-one-light-1.jpg": "data/demo/shows/two-rooms-one-light-1-s.jpg",
-  "data/demo/shows/two-rooms-one-light-2.jpg": "data/demo/shows/two-rooms-one-light-2-s.jpg"
+  "data/demo/works/the-starry-night.jpg": "data/demo/works/the-starry-night-s.jpg",
+  "data/demo/works/the-potato-eaters.jpg": "data/demo/works/the-potato-eaters-s.jpg",
+  "data/demo/works/sunflowers.jpg": "data/demo/works/sunflowers-s.jpg",
+  "data/demo/works/wheatfield-with-crows.jpg": "data/demo/works/wheatfield-with-crows-s.jpg",
+  "data/demo/works/irises.jpg": "data/demo/works/irises-s.jpg",
+  "data/demo/works/bedroom-in-arles.jpg": "data/demo/works/bedroom-in-arles-s.jpg",
+  "data/demo/works/dance.jpg": "data/demo/works/dance-s.jpg",
+  "data/demo/works/woman-with-a-hat.jpg": "data/demo/works/woman-with-a-hat-s.jpg",
+  "data/demo/works/the-dessert-harmony-in-red-the-red-room.jpg": "data/demo/works/the-dessert-harmony-in-red-the-red-room-s.jpg",
+  "data/demo/works/the-joy-of-life.jpg": "data/demo/works/the-joy-of-life-s.jpg",
+  "data/demo/works/the-green-stripe.jpg": "data/demo/works/the-green-stripe-s.jpg",
+  "data/demo/works/the-open-window.jpg": "data/demo/works/the-open-window-s.jpg",
+  "data/demo/works/medieval-castle.jpg": "data/demo/works/medieval-castle-s.jpg",
+  "data/demo/works/a-magistrate.jpg": "data/demo/works/a-magistrate-s.jpg",
+  "data/demo/works/steep-street-in-moonlight.jpg": "data/demo/works/steep-street-in-moonlight-s.jpg",
+  "data/demo/works/gust-of-wind.jpg": "data/demo/works/gust-of-wind-s.jpg",
+  "data/demo/works/landscape-with-a-group-of-trees.jpg": "data/demo/works/landscape-with-a-group-of-trees-s.jpg",
+  "data/demo/works/imaginary-figure.jpg": "data/demo/works/imaginary-figure-s.jpg",
+  "data/demo/works/impression-sunrise.jpg": "data/demo/works/impression-sunrise-s.jpg",
+  "data/demo/works/garden-at-sainte-adresse.jpg": "data/demo/works/garden-at-sainte-adresse-s.jpg",
+  "data/demo/works/woman-with-a-parasol-madame-monet-and-her-son.jpg": "data/demo/works/woman-with-a-parasol-madame-monet-and-her-son-s.jpg",
+  "data/demo/works/women-in-the-garden.jpg": "data/demo/works/women-in-the-garden-s.jpg",
+  "data/demo/works/the-magpie.jpg": "data/demo/works/the-magpie-s.jpg",
+  "data/demo/works/woman-in-the-garden.jpg": "data/demo/works/woman-in-the-garden-s.jpg",
+  "data/demo/works/the-great-wave-off-kanagawa.jpg": "data/demo/works/the-great-wave-off-kanagawa-s.jpg",
+  "data/demo/works/the-dream-of-the-fisherman-s-wife.jpg": "data/demo/works/the-dream-of-the-fisherman-s-wife-s.jpg",
+  "data/demo/works/fine-wind-clear-morning.jpg": "data/demo/works/fine-wind-clear-morning-s.jpg",
+  "data/demo/works/sundai-edo.jpg": "data/demo/works/sundai-edo-s.jpg",
+  "data/demo/works/sazai-hall-temple-of-five-hundred-rakan.jpg": "data/demo/works/sazai-hall-temple-of-five-hundred-rakan-s.jpg",
+  "data/demo/works/morning-after-a-snowfall-at-koishikawa.jpg": "data/demo/works/morning-after-a-snowfall-at-koishikawa-s.jpg",
+  "data/demo/works/the-cradle.jpg": "data/demo/works/the-cradle-s.jpg",
+  "data/demo/works/summer-s-day.jpg": "data/demo/works/summer-s-day-s.jpg",
+  "data/demo/works/the-psyche-mirror.jpg": "data/demo/works/the-psyche-mirror-s.jpg",
+  "data/demo/works/in-a-park.jpg": "data/demo/works/in-a-park-s.jpg",
+  "data/demo/works/eugene-manet-on-isle-of-wight.jpg": "data/demo/works/eugene-manet-on-isle-of-wight-s.jpg",
+  "data/demo/works/the-port-at-lorient.jpg": "data/demo/works/the-port-at-lorient-s.jpg",
+  "data/demo/works/the-child-s-bath.jpg": "data/demo/works/the-child-s-bath-s.jpg",
+  "data/demo/works/woman-with-a-pearl-necklace-in-a-loge.jpg": "data/demo/works/woman-with-a-pearl-necklace-in-a-loge-s.jpg",
+  "data/demo/works/little-girl-in-a-blue-armchair.jpg": "data/demo/works/little-girl-in-a-blue-armchair-s.jpg",
+  "data/demo/works/the-cup-of-tea.jpg": "data/demo/works/the-cup-of-tea-s.jpg",
+  "data/demo/works/girl-arranging-her-hair.jpg": "data/demo/works/girl-arranging-her-hair-s.jpg",
+  "data/demo/works/the-boating-party.jpg": "data/demo/works/the-boating-party-s.jpg",
+  "data/demo/works/the-ten-largest-no-2-childhood.jpg": "data/demo/works/the-ten-largest-no-2-childhood-s.jpg",
+  "data/demo/works/the-ten-largest-no-1-childhood.jpg": "data/demo/works/the-ten-largest-no-1-childhood-s.jpg",
+  "data/demo/works/the-ten-largest-no-3-youth.jpg": "data/demo/works/the-ten-largest-no-3-youth-s.jpg",
+  "data/demo/works/the-ten-largest-no-4-youth.jpg": "data/demo/works/the-ten-largest-no-4-youth-s.jpg",
+  "data/demo/works/the-ten-largest-no-5-adulthood.jpg": "data/demo/works/the-ten-largest-no-5-adulthood-s.jpg",
+  "data/demo/works/the-ten-largest-no-6.jpg": "data/demo/works/the-ten-largest-no-6-s.jpg",
+  "data/demo/works/the-abandoned-doll.jpg": "data/demo/works/the-abandoned-doll-s.jpg",
+  "data/demo/works/the-blue-room.jpg": "data/demo/works/the-blue-room-s.jpg",
+  "data/demo/works/adam-and-eve.jpg": "data/demo/works/adam-and-eve-s.jpg",
+  "data/demo/works/joy-of-life.jpg": "data/demo/works/joy-of-life-s.jpg",
+  "data/demo/works/nu-au-chale-bleu.jpg": "data/demo/works/nu-au-chale-bleu-s.jpg",
+  "data/demo/works/the-bathers.jpg": "data/demo/works/the-bathers-s.jpg",
+  "data/demo/works/self-portrait-at-6th-wedding-anniversary.jpg": "data/demo/works/self-portrait-at-6th-wedding-anniversary-s.jpg",
+  "data/demo/works/portrait-of-rainer-maria-rilke.jpg": "data/demo/works/portrait-of-rainer-maria-rilke-s.jpg",
+  "data/demo/works/self-portrait-with-hat-and-veil.jpg": "data/demo/works/self-portrait-with-hat-and-veil-s.jpg",
+  "data/demo/works/old-peasant-woman.jpg": "data/demo/works/old-peasant-woman-s.jpg",
+  "data/demo/works/self-portrait-looking-slightly-left.jpg": "data/demo/works/self-portrait-looking-slightly-left-s.jpg",
+  "data/demo/works/old-peasant-woman-1903.jpg": "data/demo/works/old-peasant-woman-1903-s.jpg"
  }
 }

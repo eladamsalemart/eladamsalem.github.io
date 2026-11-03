@@ -42,11 +42,12 @@
    "curator": "Elad Amsalem",
    "artists": [
     "elad-amsalem",
-    "lia-moren",
-    "daniel-ostrovsky",
-    "maya-haddad",
-    "noa-ben-ari",
-    "tomer-lev"
+    "claude-monet",
+    "henri-matisse",
+    "victor-hugo",
+    "berthe-morisot",
+    "vincent-van-gogh",
+    "hilma-af-klint"
    ],
    "room": "long-hall",
    "paint": "bone",
@@ -54,21 +55,21 @@
    "start": "2026-11-02",
    "end": "2027-02-28",
    "text": [
-    "Six artists who never shared a wall, hung together for the hour when the light turns green: gardens and orchards, a slow field of colour, a single breath of ink, a stitched map, a garden grown from noise.",
+    "Seven artists who never shared a wall, hung together for the hour when the light turns green: Monet's gardens, Van Gogh's irises, Matisse's green stripe, Berthe Morisot on the water, a storm of Victor Hugo's ink, Hilma af Klint's childhood in pink and green, and Elad Amsalem's paintings of now.",
     "Curated by hand for Open Studio, in an order meant to be walked from the door to the far wall and back. No algorithm chose these works."
    ],
    "works": [
-    "late-garden",
+    "garden-at-sainte-adresse",
     "sunflower-2026",
-    "between-two-greens",
-    "breath-i",
-    "orchard-at-noon",
-    "indigo-map",
+    "the-green-stripe",
+    "landscape-with-a-group-of-trees",
+    "summer-s-day",
+    "irises",
     "nature-2025",
-    "slow-colour-i",
-    "one-line",
-    "noise-garden",
-    "night-window",
+    "woman-in-the-garden",
+    "gust-of-wind",
+    "the-ten-largest-no-1-childhood",
+    "the-starry-night",
     "together-2026"
    ],
    "cover": "data/spaces/green-hour/preview.jpg"

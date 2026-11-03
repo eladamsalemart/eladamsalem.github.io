@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02",
+ "updated": "2026-11-03",
  "sources": [
   {
    "source": "haifa-museum",
@@ -39,9 +39,9 @@
    "source": "artists-house-tlv",
    "place": "tel-aviv-artists-house",
    "url": "https://www.artistshouse.org.il/",
-   "read": "browser",
-   "status": "nothing found",
-   "shows": 0,
+   "via": "wordpress",
+   "status": "ok",
+   "shows": 7,
    "events": 0
   },
   {
@@ -166,8 +166,8 @@
    "place": "art-shelter-gallery",
    "url": "https://asg.org.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -229,8 +229,8 @@
    "place": "beeri-gallery",
    "url": "https://gallerybeeri.co.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 3,
    "events": 0
   },
   {
@@ -240,16 +240,16 @@
    "auto": true,
    "status": "ok",
    "shows": 1,
-   "events": 1
+   "events": 0
   },
   {
    "source": "site:beit-benyamini",
    "place": "beit-benyamini",
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
-   "events": 0
+   "status": "ok",
+   "shows": 1,
+   "events": 1
   },
   {
    "source": "site:beit-castel",
@@ -283,9 +283,9 @@
    "place": "benyamini-contemporary-ceramics-center",
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
-   "events": 0
+   "status": "ok",
+   "shows": 1,
+   "events": 1
   },
   {
    "source": "site:bet-ot-ha-motsar-ha-yerushalmi",
@@ -374,7 +374,7 @@
    "url": "http://www.gordongallery.co.il",
    "auto": true,
    "status": "ok",
-   "shows": 6,
+   "shows": 7,
    "events": 0
   },
   {
@@ -391,8 +391,8 @@
    "place": "hanina-gallery",
    "url": "https://www.hanina.org/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -400,8 +400,8 @@
    "place": "hansen-house",
    "url": "https://hansen.co.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 4,
    "events": 0
   },
   {
@@ -418,8 +418,8 @@
    "place": "helena-rubinstein-pavilion",
    "url": "https://www.tamuseum.org.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -518,7 +518,7 @@
    "url": "https://www.hms.org.il/",
    "auto": true,
    "status": "ok",
-   "shows": 6,
+   "shows": 8,
    "events": 1
   },
   {
@@ -526,8 +526,8 @@
    "place": "maya-gallery",
    "url": "https://www.mayagallerytlv.com/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -535,8 +535,8 @@
    "place": "meyerhoff-art-education-center",
    "url": "http://www.tamuseum.org.il/master/he/education-lobby",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -562,7 +562,7 @@
    "place": "museum-for-islamic-art",
    "url": "https://www.islamicart.co.il/",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -571,7 +571,7 @@
    "place": "museum-for-islamic-art-2",
    "url": "https://www.islamicart.co.il/",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -670,7 +670,7 @@
    "place": "rosenfeld-gallery",
    "url": "https://rg.co.il",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -724,7 +724,7 @@
    "place": "wikidata-Q115089736",
    "url": "https://www.kehilatayim.org.il/%D7%94%D7%92%D7%9C%D7%A8%D7%99%D7%94-%D7%94%D7%A2%D7%99%D7%A8%D7%95%D7%A0%D7%99%D7%AA-%D7%9E%D7%9B%D7%95%D7%9F-%D7%94%D7%9E%D7%99%D7%9D/",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -742,8 +742,8 @@
    "place": "wikidata-Q135407831",
    "url": "https://tivon-lib.co.il/gallery/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -778,25 +778,31 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 18,
-   "matched": 1,
+   "messages": 25,
+   "matched": 2,
    "unmatched": 1,
-   "shows": 0,
+   "shows": 2,
    "events": 0
+  },
+  {
+   "source": "mail:sommer-contemporary-art-2",
+   "place": "sommer-contemporary-art-2",
+   "status": "ok",
+   "mail": true
   },
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 6,
-   "seconds": 509,
-   "status": "TimeoutError: timed out"
+   "calls": 104,
+   "seconds": 8674,
+   "status": "time budget of 180 minutes used"
   },
   {
    "source": "makore",
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 22
+   "events": 24
   }
  ]
 }
