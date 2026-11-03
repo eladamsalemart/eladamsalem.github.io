@@ -356,7 +356,7 @@ def sides_box(name, c, a, n, W, H, d, material):
 def frame_box(name, c, a, n, FW, FH, fw, d, material):
     up = Vector((0, 0, 1)); c = Vector(c)
     obs = []
-    for i, (oa, ou, sw, sh) in enumerate(((0, (FH - fw) / 2, FW, fw), (0, -(FH - fw) / 2, FW, fw), ((FW - fw) / 2, 0, fw, FH), (-(FW - fw) / 2, 0, fw, FH))):
+    for i, (oa, ou, sw, sh) in enumerate(((0, (FH - fw) / 2, FW, fw), (0, -(FH - fw) / 2, FW, fw), ((FW - fw) / 2, 0, fw, FH - 2 * fw - 0.002), (-(FW - fw) / 2, 0, fw, FH - 2 * fw - 0.002))):
         cc = c + a * oa + up * ou
         verts = []
         for sa in (-1, 1):
@@ -404,8 +404,8 @@ def track_head(pos, target):
     """A visible spot fixture: a small black cylinder on the track, pointing at its work."""
     d = (target - pos).normalized()
     body = cylinder('fixture', (0, 0), 0.035, 0, 0.13, mat('fixture', (0.03, 0.03, 0.03), 0.35, metal=0.3))
-    body.location = pos; body.rotation_euler = (-d).to_track_quat('Z', 'Y').to_euler()
-    body.location = pos + d * 0.02
+    body.rotation_euler = (-d).to_track_quat('Z', 'Y').to_euler()     # its length runs back from the lamp, away from the work
+    body.location = pos - d * 0.015
 
 
 def track(x0, y0, x1, y1, z):
@@ -481,12 +481,17 @@ def fill(room, works, walls='sne w', **kw):
             take, used = [], 0.9
             for w in left:
                 W = w['size'][0] / 100 + 0.9
-                if used + W > L: break
+                if used + W > L: continue
                 take.append(w); used += W
             if not take: continue
-            left = left[len(take):]
+            left = [w for w in left if w not in take]
             placed += hang_wall(take, at_wall(p0, n), at_wall(p1, n), n, ceiling=kw.get('ceiling', room.h), **{k: v for k, v in kw.items() if k != 'ceiling'})
     return placed
+
+
+def ambient(r, lux=110, kelvin=3500):
+    """The washers' even light on a gallery's walls (and the bounce off its ceiling), as one soft emitter."""
+    area(f'ambient', ((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2, r.h - 0.06), (r.x1 - r.x0 - 0.4, r.y1 - r.y0 - 0.4), lux, kelvin)
 
 
 def camera(pos, look, lens=20, shift=(0, 0)):
@@ -509,13 +514,14 @@ def white_cube(v):
         r = Room(0, 0, 6, 5, 3.2, floor, plaster, ceil, doors=[('e', 1.2, 1.4, 2.4)])
         track(0.3, 5 - 1.0, 5.7, 5 - 1.0, 3.2); track(1.05, 0.3, 1.05, 4.7, 3.2)
         fill(r, works_of('henri-matisse', n=4), walls='nw', ceiling=3.2)
-        area('wash', (3, 2.5, 3.18), (4.5, 3.5), 25, 3000)
+        ambient(r, 120)
         return camera((5.6, 0.5, EYE), (1.2, 3.6, 1.45), lens=18)
     if v == 'large':           # a hall 15 x 10 x 5.5 with a north skylight strip
         r = Room(0, 0, 15, 10, 5.5, floor, plaster, ceil, doors=[('e', 2.0, 2.2, 3.0)], ceiling_open=(1.5, 7.2, 13.5, 8.4))
         mesh('diffuser', [(1.5, 7.2, 5.4), (13.5, 7.2, 5.4), (13.5, 8.4, 5.4), (1.5, 8.4, 5.4)], [(0, 1, 2, 3)], emission('skylight', 2.2, 6500))
         area('skylight', (7.5, 7.8, 5.38), (12, 1.2), 160, 6500)
         track(1, 2.6, 14, 2.6, 5.5)
+        ambient(r, 80)
         fill(r, works_of('hilma-af-klint', n=3) + works_of('henri-matisse', n=3), walls='nw', ceiling=5.5, lux=180)
         return camera((14.2, 0.6, EYE), (3.0, 7.0, 2.0), lens=17)
     # three rooms in a row, 9 x 7 x 4 each, doorways 2 m on one axis
@@ -526,6 +532,7 @@ def white_cube(v):
         if i < 2: doors.append(('e', 3.5, 2.0, 2.8))
         x = 9.25 * i; rooms.append(Room(x, 0, x + 9, 7, 4.0, floor, plaster, ceil, doors=doors))
         track(x + 0.4, 7 - 1.4, x + 8.6, 7 - 1.4, 4.0); track(x + 0.4, 1.4, x + 8.6, 1.4, 4.0)
+    for r in rooms: ambient(r, 110)
     fill(rooms[0], works_of('henri-matisse', n=3), walls='ns', ceiling=4.0)
     fill(rooms[1], works_of('vincent-van-gogh', n=4), walls='ns', ceiling=4.0)
     fill(rooms[2], works_of('claude-monet', n=4), walls='nse', ceiling=4.0)
@@ -599,7 +606,7 @@ def skylit_hall(v):
 
 
 def salon(v):
-    red = mat('salon-red', tex='painted_plaster_wall', scale=2.0, tint=(0.33, 0.07, 0.06), tint_mix=0.15, bump=0.2)
+    red = mat('salon-red', tex='painted_plaster_wall', scale=2.0, tint=(0.24, 0.035, 0.045), tint_mix=0.15, bump=0.2)
     green = mat('salon-green', tex='painted_plaster_wall', scale=2.0, tint=(0.09, 0.17, 0.12), tint_mix=0.15, bump=0.2)
     parquet = mat('parquet', tex='herringbone_parquet', scale=1.6, rough_mul=0.7, coat=0.25, bump=0.3)
     ceil = mat('ceiling-cream', (0.82, 0.79, 0.72), 0.9)
@@ -669,7 +676,7 @@ def salon_hang(r, works, frame, walls='nsw'):
                     gilt_frame(ww, c, a, Vector(n), row_z, frame)
                     pos = c + Vector(n) * 0.9; pos.z = min(r.h - 0.35, row_z + 1.9)
                     NORMAL['n'] = tuple(n)
-                    spot(f'picture.{w["slug"]}', tuple(pos), (c.x, c.y, row_z), 120, 45, 2800, blend=0.6)
+                    spot(f'picture.{w["slug"]}', tuple(pos), (c.x, c.y, row_z), 120, 45, 3000, blend=0.6)
                     x += Wm + space
 
 
