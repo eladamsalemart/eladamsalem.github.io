@@ -50,7 +50,7 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    downloaded in the browser (studio-cloud.js prepareDrive/fromDrive); the folder link stays under it. Project
    open-studio-513508 is ooopenstudio@'s (in the owner's Chrome as authuser=1): Picker + Drive APIs on, browser key
    "Open Studio Drive picker (browser)" (Picker only; eladamsalem.com/*, localhost:8088/*), client 565397252258-9r716…
-   already has origin https://eladamsalem.com. Not yet tested end to end with a real pick (needs the owner's grant).
+   already has origin https://eladamsalem.com. Owner tested it 3.11: works.
    Also 3.11: found works scroll into view on a phone; every studio page has "← Open Studio" back to the app. Step 1 is a Search
    Console HTML tag on https://eladamsalem.com/ (the site's root index.html is on `main`). Google sign-in itself is
    already in production (published 3.11).
