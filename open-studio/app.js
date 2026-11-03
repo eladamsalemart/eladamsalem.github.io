@@ -112,6 +112,12 @@ function buildModel(d) {
   if (d.community) addCommunity(m, d.community, uniq, seen);
   if (d.virtual) addVirtual(m, d.virtual, uniq);
   if (d.community) addVirtual(m, { shows: d.community.shows.map(showOf(m)) }, uniq);
+  // the inspection opens a space by its own name: an artist's tour (built from what they gave in the app) has no
+  // exhibition of the site's to hang on, so it gets a bare one here, only while being inspected
+  const insp = new URLSearchParams(location.search).get('inspect');
+  if (insp && m.spaces[insp] && !m.exhibitions.some(e => e.space === m.spaces[insp]))
+    m.exhibitions.push({ slug: insp, title: m.spaces[insp].title || insp, year: '', venue: '', dates: '', text: [], images: [], city: '', country: '', confirmed: true,
+      artist: m.artist, artists: [m.artist], works: [], maybe: [], space: m.spaces[insp], kind: 'gallery', ...span('', ''), events: [] });
   return m;
 }
 
@@ -582,8 +588,11 @@ function archive(year, a = M.artist) {
   </div>`;
 }
 
+// an exhibition by its own name, or by its tour's (an artist's tour is named a-<artist>-<title>, its show otherwise)
+const exhibitionOf = slug => M.exhibitions.find(x => x.slug === slug) || (M.spaces && M.spaces[slug] && M.exhibitions.find(x => x.space === M.spaces[slug]));
+
 function exhibition(slug) {
-  const e = M.exhibitions.find(x => x.slug === slug);
+  const e = exhibitionOf(slug);
   if (!e) return notFound();
   return `<div class="wrap gut">
     <div class="album">
@@ -978,7 +987,7 @@ function render() {
 // the 3D room opens over the exhibition page; leaving it returns to the page
 let openSpaceView = null;
 async function enterSpace(slug) {
-  const e = M.exhibitions.find(x => x.slug === slug);
+  const e = exhibitionOf(slug);
   if (!e || !e.space) return;
   const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
   // a virtual room is drawn here, around the show's works, before it opens
