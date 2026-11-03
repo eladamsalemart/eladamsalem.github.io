@@ -903,7 +903,7 @@ def salon(v):
     green = mat('salon-green', tex='painted_plaster_wall', scale=2.0, tint=(0.09, 0.17, 0.12), tint_mix=0.15, bump=0.2)
     parquet = mat('parquet', tex='herringbone_parquet', scale=3.4, rough_mul=0.7, coat=0.25, bump=0.3, smudges=('SurfaceImperfections003', 2.0, 0.7), streaks=True)
     ceil = mat('ceiling-cream', (0.82, 0.79, 0.72), 0.9, tex='plastered_wall_04', scale=2.5, tint=(0.82, 0.79, 0.72), tint_mix=0.06, bump=0.2)
-    panel = mat('wainscot', (0.78, 0.75, 0.68), 0.55, bump=0.2)
+    panel = mat('wainscot', (0.78, 0.75, 0.68), 0.5, tex='painted_plaster_wall', scale=1.5, tint=(0.8, 0.77, 0.7), tint_mix=0.1, bump=0.25)
     gilt = mat('gilt-frame', (0.62, 0.47, 0.22), 0.3, metal=1.0)
     world()
 
