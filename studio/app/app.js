@@ -112,6 +112,12 @@ function buildModel(d) {
   if (d.community) addCommunity(m, d.community, uniq, seen);
   if (d.virtual) addVirtual(m, d.virtual, uniq);
   if (d.community) addVirtual(m, { shows: d.community.shows.map(showOf(m)) }, uniq);
+  // the inspection opens a space by its own name: an artist's tour (built from what they gave in the app) has no
+  // exhibition of the site's to hang on, so it gets a bare one here, only while being inspected
+  const insp = new URLSearchParams(location.search).get('inspect');
+  if (insp && m.spaces[insp] && !m.exhibitions.some(e => e.space === m.spaces[insp]))
+    m.exhibitions.push({ slug: insp, title: m.spaces[insp].title || insp, year: '', venue: '', dates: '', text: [], images: [], city: '', country: '', confirmed: true,
+      artist: m.artist, artists: [m.artist], works: [], maybe: [], space: m.spaces[insp], kind: 'gallery', ...span('', ''), events: [] });
   return m;
 }
 

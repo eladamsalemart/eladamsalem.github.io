@@ -41,17 +41,28 @@ def oriented_size(pairs, aspect):
     return best
 
 
+# an artist's exhibition from the app (Supabase), downloaded by space/artist_tours.py: space/.artist/<slug>/exhibition.json
+# {"title", "photos": [paths in the app], "video": path or null, "works": [{"title", "image", "size": "a x b"}]}
+ARTIST = APP / 'space' / '.artist'
+
+
 def load_exhibition(slug):
     """Exhibition record with its photos and works (image, size in cm, how well the size fits the image)."""
-    studio = json.load(open(APP / 'data' / 'studio.json', encoding='utf-8'))
-    shows = json.load(open(ROOT / 'content' / 'exhibitions.json', encoding='utf-8'))
-    works = json.load(open(ROOT / 'content' / 'works.json', encoding='utf-8'))
-    by_title = {w['title'].strip().lower(): w for w in works}
-    ex = studio['exhibitions'][slug] if slug in studio['exhibitions'] else next(
-        v for k, v in studio['exhibitions'].items() if re.sub(r'\W+', '-', k.lower()).strip('-') == slug)
-    title = next(k for k, v in studio['exhibitions'].items() if v is ex)
-    show = next(s for s in shows if s['title'] == title)
-    out = {'title': title, 'slug': slug, 'photos': show.get('images', []), 'works': [], 'missing': []}
+    src = ARTIST / slug / 'exhibition.json'
+    if src.exists():
+        a = json.load(open(src, encoding='utf-8'))
+        by_title = {w['title'].strip().lower(): w for w in a['works']}
+        ex, title, photos = {'works': [w['title'] for w in a['works']], 'video': a.get('video')}, a['title'], a['photos']
+    else:
+        studio = json.load(open(APP / 'data' / 'studio.json', encoding='utf-8'))
+        shows = json.load(open(ROOT / 'content' / 'exhibitions.json', encoding='utf-8'))
+        works = json.load(open(ROOT / 'content' / 'works.json', encoding='utf-8'))
+        by_title = {w['title'].strip().lower(): w for w in works}
+        ex = studio['exhibitions'][slug] if slug in studio['exhibitions'] else next(
+            v for k, v in studio['exhibitions'].items() if re.sub(r'\W+', '-', k.lower()).strip('-') == slug)
+        title = next(k for k, v in studio['exhibitions'].items() if v is ex)
+        photos = next(s for s in shows if s['title'] == title).get('images', [])
+    out = {'title': title, 'slug': slug, 'photos': photos, 'works': [], 'missing': []}
     if ex.get('video'):                                 # a walk-through video: its frames are photos too
         from .video import frames
         out['photos'] = out['photos'] + frames(ex['video'])
