@@ -144,7 +144,7 @@ def image_node(nt, path, colour=True, scale=1.0, box=True):
 MATS = {}
 
 
-def mat(name, base=(0.8, 0.8, 0.8), rough=0.6, tex=None, scale=1.0, tint=None, tint_mix=0.0, metal=0.0, bump=1.0, rough_mul=1.0, spec=0.5, coat=0.0, wear=None, smudges=None, streaks=False):
+def mat(name, base=(0.8, 0.8, 0.8), rough=0.6, tex=None, scale=1.0, tint=None, tint_mix=0.0, metal=0.0, bump=1.0, rough_mul=1.0, spec=0.5, coat=0.0, wear=None, smudges=None, streaks=False, runs=False):
     """A Principled material; with a Poly Haven texture laid on in world scale (scale = metres per tile)."""
     if name in MATS: return MATS[name]
     if wear is None: wear = 0.4 if metal > 0.5 else 1.0      # every surface is used, metal a little less visibly
@@ -177,13 +177,13 @@ def mat(name, base=(0.8, 0.8, 0.8), rough=0.6, tex=None, scale=1.0, tint=None, t
             n = image_node(nt, t['nor'], False, scale)
             nm = nt.nodes.new('ShaderNodeNormalMap'); nm.inputs['Strength'].default_value = bump
             nt.links.new(n.outputs['Color'], nm.inputs['Color']); nt.links.new(nm.outputs[0], b.inputs['Normal'])
-    if wear: weather(m, wear, streaks)
+    if wear: weather(m, wear, streaks, runs)
     if smudges: smudge(m, *([smudges] if isinstance(smudges, str) else smudges))
     MATS[name] = m
     return m
 
 
-def weather(m, k=1.0, streaks=False):
+def weather(m, k=1.0, streaks=False, runs=False):
     """The marks of a used room on a material: colour that drifts over metres (paint coats, sun, cleaning), sheen that
     varies over centimetres (touch, wax, scuffs), and a little grime where surfaces meet (corners, under a sill)."""
     nt = m.node_tree; b = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
@@ -205,7 +205,18 @@ def weather(m, k=1.0, streaks=False):
     l = b.inputs['Base Color'].links
     if l: nt.links.new(l[0].from_socket, mix.inputs[6])
     else: mix.inputs[6].default_value = b.inputs['Base Color'].default_value[:]
-    comb = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(mul.outputs[0], comb.inputs[i]) for i in range(3)]
+    src = mul
+    if runs:      # water runs down a wall: vertical streaks, a few percent darker, a metre or two long
+        rm = nt.nodes.new('ShaderNodeMapping'); rm.inputs['Scale'].default_value = (4.0, 4.0, 0.35)
+        nt.links.new(tc.outputs['Object'], rm.inputs['Vector'])
+        rn = nt.nodes.new('ShaderNodeTexNoise'); rn.inputs['Scale'].default_value = 1.5; rn.inputs['Detail'].default_value = 6.0
+        nt.links.new(rm.outputs[0], rn.inputs['Vector'])
+        rr2 = nt.nodes.new('ShaderNodeMapRange'); rr2.inputs['From Min'].default_value = 0.35; rr2.inputs['From Max'].default_value = 0.65
+        rr2.inputs['To Min'].default_value = 0.93; rr2.inputs['To Max'].default_value = 1.02
+        nt.links.new(rn.outputs['Fac'], rr2.inputs['Value'])
+        src = nt.nodes.new('ShaderNodeMath'); src.operation = 'MULTIPLY'
+        nt.links.new(mul.outputs[0], src.inputs[0]); nt.links.new(rr2.outputs[0], src.inputs[1])
+    comb = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(src.outputs[0], comb.inputs[i]) for i in range(3)]
     nt.links.new(comb.outputs[0], mix.inputs[7]); nt.links.new(mix.outputs[2], b.inputs['Base Color'])
     # sheen: roughness +-0.1 over a few centimetres to half a metre
     fine = noise(6.0, 8.0, 0.65); rr = nt.nodes.new('ShaderNodeMapRange')
@@ -250,13 +261,14 @@ def glass(name='glass', tint=(0.92, 0.96, 0.95)):
     m = bpy.data.materials.new(name); m.use_nodes = True
     nt = m.node_tree; nt.nodes.clear()
     out = nt.nodes.new('ShaderNodeOutputMaterial'); g = nt.nodes.new('ShaderNodeBsdfPrincipled')
-    g.inputs['Transmission Weight'].default_value = 1.0; g.inputs['Roughness'].default_value = 0.0; g.inputs['IOR'].default_value = 1.5
+    g.inputs['Transmission Weight'].default_value = 1.0; g.inputs['Roughness'].default_value = 0.012; g.inputs['IOR'].default_value = 1.5
     g.inputs['Base Color'].default_value = (*tint, 1)
     tr = nt.nodes.new('ShaderNodeBsdfTransparent'); tr.inputs[0].default_value = (*tint, 1)
     lp = nt.nodes.new('ShaderNodeLightPath'); mix = nt.nodes.new('ShaderNodeMixShader')
     nt.links.new(lp.outputs['Is Shadow Ray'], mix.inputs[0]); nt.links.new(g.outputs[0], mix.inputs[1]); nt.links.new(tr.outputs[0], mix.inputs[2])
     nt.links.new(mix.outputs[0], out.inputs[0])
     MATS[name] = m
+    smudge(m, 'SurfaceImperfections004', 1.1, 5.0)    # fingerprints and rain-dried dust: the glass catches light unevenly
     return m
 
 
@@ -639,6 +651,11 @@ class Room:
                 B(wall, c - wd / 2, c + wd / 2, -t, 0.004, 0, 0.008, mat('threshold', (0.55, 0.53, 0.5), 0.3, metal=0.0, wear=0.8), 0.001)
             for wall, c, wd, z0, z1 in [w for w in windows if w[3] > 0.2]:  # a window board: a sill that runs through the reveal and projects into the room
                 B(wall, c - wd / 2 - 0.05, c + wd / 2 + 0.05, -t * 0.5, 0.05, z0 - 0.028, z0, trim, 0.003)
+                fr = trim if tc else mat('window-steel', (0.04, 0.04, 0.045), 0.4, metal=0.7, wear=0.3)
+                if wn == 'black-wall': continue
+                fw = 0.045                      # a casement frame in the reveal, around the glass: head, jambs, sill rail
+                B(wall, c - wd / 2, c - wd / 2 + fw, -0.055, -0.005, z0, z1, fr, 0.002); B(wall, c + wd / 2 - fw, c + wd / 2, -0.055, -0.005, z0, z1, fr, 0.002)
+                B(wall, c - wd / 2, c + wd / 2, -0.055, -0.005, z1 - fw, z1, fr, 0.002); B(wall, c - wd / 2, c + wd / 2, -0.055, -0.005, z0, z0 + fw * 1.4, fr, 0.002)
         SHELLS.append(self)
         if shadow_gap:   # the recessed shadow gap at the foot of a gallery wall
             g = mat('shadow-gap', (0.02, 0.02, 0.02), 0.9)
@@ -811,7 +828,7 @@ def white_cube(v):
 
 
 def loft(v):
-    brick = mat('painted-brick', tex='painted_brick', scale=2.2, tint=(0.86, 0.85, 0.82), tint_mix=0.25, bump=0.6)
+    brick = mat('painted-brick', tex='painted_brick', scale=2.2, tint=(0.86, 0.85, 0.82), tint_mix=0.25, bump=0.6, runs=True)
     floor = mat('worn-concrete', tex='concrete_floor_worn_001', scale=4.0, tint=(0.5, 0.5, 0.48), tint_mix=0.3, rough_mul=0.7, bump=0.3, smudges=('SurfaceImperfections004', 3.0, 0.7), streaks=True)
     steel = mat('steel', (0.08, 0.085, 0.09), 0.45, metal=0.8)
     ceil = mat('roof-white', (0.75, 0.75, 0.74), 0.9, tex='wood_planks', scale=3.0, tint=(0.8, 0.8, 0.78), tint_mix=0.15)
@@ -1000,7 +1017,7 @@ def disc(c, n, rad, material, k=16):
 
 
 def concrete(v):
-    conc = mat('formwork-concrete', tex='concrete_wall_004', scale=2.4, tint=(0.6, 0.6, 0.58), tint_mix=0.4, rough_mul=1.0, bump=0.5)
+    conc = mat('formwork-concrete', tex='concrete_wall_004', scale=2.4, tint=(0.6, 0.6, 0.58), tint_mix=0.4, rough_mul=1.0, bump=0.5, runs=True)
     floor = mat('concrete-floor', tex='concrete_floor_02', scale=3.0, tint=(0.42, 0.42, 0.41), tint_mix=0.4, rough_mul=0.6, coat=0.1, bump=0.3, streaks=True)
     world()
     if v == 'large':           # a tall volume 8 x 8 x 6 with a slot window high in the wall
@@ -1032,7 +1049,7 @@ def concrete(v):
 
 
 def studio(v):
-    brick = mat('limewash-brick', tex='whitewashed_brick', scale=2.0, tint=(0.88, 0.87, 0.84), tint_mix=0.3, bump=0.7)
+    brick = mat('limewash-brick', tex='whitewashed_brick', scale=2.0, tint=(0.88, 0.87, 0.84), tint_mix=0.3, bump=0.7, runs=True)
     boards = mat('painted-boards', tex='old_wooden_floor_03', scale=2.4, tint=(0.62, 0.6, 0.56), tint_mix=0.35, rough_mul=1.0, bump=0.5, smudges=('SurfaceImperfections004', 2.0, 0.5), streaks=True)
     ceil = mat('studio-ceiling', (0.82, 0.82, 0.8), 0.9, tex='plastered_wall_04', scale=2.5, tint=(0.82, 0.82, 0.8), tint_mix=0.06, bump=0.2)
     wood = mat('table-wood', tex='rough_pine_door', scale=1.2, bump=0.4)
