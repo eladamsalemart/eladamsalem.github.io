@@ -289,6 +289,11 @@ WORLD = json.load(open(os.path.join(APP, 'data', 'demo', 'world.json'), encoding
 WORKS = {w['slug']: w for w in WORLD['works']}
 
 
+def big(artist, n):
+    """An artist's largest works first (a big room wants them)."""
+    return sorted(works_of(artist), key=lambda w: -w['size'][0] * w['size'][1])[:n]
+
+
 def works_of(*artists, n=None):
     out = [w for a in artists for w in WORLD['works'] if w['artist'] == a]
     return out[:n] if n else out
@@ -368,10 +373,11 @@ def frame_box(name, c, a, n, FW, FH, fw, d, material):
     return obs
 
 
-def hang_wall(works, p0, p1, normal, z=1.55, gap=0.9, ceiling=3.6, spot_kelvin=3000, lux=200, light=True, frame=None, beam=None):
+def hang_wall(works, p0, p1, normal, z=1.55, gap=None, ceiling=3.6, spot_kelvin=3000, lux=200, light=True, frame=None, beam=None):
     """Works along a wall from p0 to p1 (on the wall's face), evenly spaced, each with its own spot."""
     p0, p1 = Vector(p0), Vector(p1); L = (p1 - p0).length; a = (p1 - p0).normalized(); n = Vector(normal)
     NORMAL['n'] = tuple(n)
+    gap = gap if gap is not None else min(0.9, L * 0.12)
     widths = []
     for w in works:
         paper = 'paper' in w['medium'].lower() or 'print' in w['medium'].lower() or w['artist'] in ('victor-hugo', 'katsushika-hokusai')
@@ -392,8 +398,8 @@ def hang_wall(works, p0, p1, normal, z=1.55, gap=0.9, ceiling=3.6, spot_kelvin=3
             dist = (Vector((c.x, c.y, z)) - pos).length
             paper = 'paper' in w['medium'].lower() or w['artist'] in ('victor-hugo', 'katsushika-hokusai')
             need = max(W, H) * 1.35
-            b = beam or min(60, max(12, math.degrees(2 * math.atan(need / 2 / dist)) * 0.75))
-            spot(f'spot.{w["slug"]}', tuple(pos), (c.x, c.y, z), 50 if paper else lux, b, spot_kelvin)
+            b = beam or min(60, max(14, math.degrees(2 * math.atan(need / 2 / dist))))
+            spot(f'spot.{w["slug"]}', tuple(pos), (c.x, c.y, z), 50 if paper else lux, b, spot_kelvin, blend=0.55)
             track_head(pos, Vector((c.x, c.y, z)))
         placed.append((w, c))
         x += W + space
@@ -418,7 +424,7 @@ class Room:
     ceiling, built from the materials given. Doors are (wall, centre, width, height); wall is 'w','e','s','n'."""
 
     def __init__(self, x0, y0, x1, y1, h, floor, walls, ceiling, doors=(), windows=(), t=0.25, base=None, shadow_gap=True,
-                 ceiling_open=None):
+                 ceiling_open=None, skip=''):
         self.x0, self.y0, self.x1, self.y1, self.h = x0, y0, x1, y1, h
         box('floor', x0 - t, y0 - t, -0.2, x1 + t, y1 + t, 0, floor)
         if ceiling is not None:
@@ -431,10 +437,10 @@ class Room:
         holes = {k: [] for k in 'wesn'}
         for wall, c, wd, ht in doors: holes[wall].append((c - wd / 2, c + wd / 2, 0, ht))
         for wall, c, wd, z0, z1 in windows: holes[wall].append((c - wd / 2, c + wd / 2, z0, z1))
-        wall_along('wall.s', 'x', y0, x0 - t, x1 + t, 0, h, -1, t, walls, holes['s'])
-        wall_along('wall.n', 'x', y1, x0 - t, x1 + t, 0, h, +1, t, walls, holes['n'])
-        wall_along('wall.w', 'y', x0, y0, y1, 0, h, -1, t, walls, holes['w'])
-        wall_along('wall.e', 'y', x1, y0, y1, 0, h, +1, t, walls, holes['e'])
+        if 's' not in skip: wall_along('wall.s', 'x', y0, x0 - t, x1 + t, 0, h, -1, t, walls, holes['s'])
+        if 'n' not in skip: wall_along('wall.n', 'x', y1, x0 - t, x1 + t, 0, h, +1, t, walls, holes['n'])
+        if 'w' not in skip: wall_along('wall.w', 'y', x0, y0, y1, 0, h, -1, t, walls, holes['w'])
+        if 'e' not in skip: wall_along('wall.e', 'y', x1, y0, y1, 0, h, +1, t, walls, holes['e'])
         self.doors, self.windows = doors, windows
         if shadow_gap:   # the recessed shadow gap at the foot of a gallery wall
             g = mat('shadow-gap', (0.02, 0.02, 0.02), 0.9)
@@ -489,7 +495,7 @@ def fill(room, works, walls='sne w', **kw):
     return placed
 
 
-def ambient(r, lux=110, kelvin=3500):
+def ambient(r, lux=110, kelvin=4000):
     """The washers' even light on a gallery's walls (and the bounce off its ceiling), as one soft emitter."""
     area(f'ambient', ((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2, r.h - 0.06), (r.x1 - r.x0 - 0.4, r.y1 - r.y0 - 0.4), lux, kelvin)
 
@@ -513,7 +519,7 @@ def white_cube(v):
     if v == 'small':           # a project room, 6 x 5 x 3.2
         r = Room(0, 0, 6, 5, 3.2, floor, plaster, ceil, doors=[('e', 1.2, 1.4, 2.4)])
         track(0.3, 5 - 1.0, 5.7, 5 - 1.0, 3.2); track(1.05, 0.3, 1.05, 4.7, 3.2)
-        fill(r, works_of('henri-matisse', n=4), walls='nw', ceiling=3.2)
+        fill(r, works_of('henri-matisse')[1:] + works_of('vincent-van-gogh', n=3), walls='nws', ceiling=3.2)
         ambient(r, 120)
         return camera((5.6, 0.5, EYE), (1.2, 3.6, 1.45), lens=18)
     if v == 'large':           # a hall 15 x 10 x 5.5 with a north skylight strip
@@ -530,7 +536,7 @@ def white_cube(v):
         doors = []
         if i > 0: doors.append(('w', 3.5, 2.0, 2.8))
         if i < 2: doors.append(('e', 3.5, 2.0, 2.8))
-        x = 9.25 * i; rooms.append(Room(x, 0, x + 9, 7, 4.0, floor, plaster, ceil, doors=doors))
+        x = 9.25 * i; rooms.append(Room(x, 0, x + 9, 7, 4.0, floor, plaster, ceil, doors=doors, skip='w' if i else ''))
         track(x + 0.4, 7 - 1.4, x + 8.6, 7 - 1.4, 4.0); track(x + 0.4, 1.4, x + 8.6, 1.4, 4.0)
     for r in rooms: ambient(r, 110)
     fill(rooms[0], works_of('henri-matisse', n=3), walls='ns', ceiling=4.0)
@@ -541,10 +547,10 @@ def white_cube(v):
 
 def loft(v):
     brick = mat('painted-brick', tex='whitewashed_brick', scale=2.2, tint=(0.86, 0.85, 0.82), tint_mix=0.25, bump=0.6)
-    floor = mat('worn-concrete', tex='worn_concrete_floor', scale=4.0, rough_mul=0.8, bump=0.3)
+    floor = mat('worn-concrete', tex='worn_concrete_floor', scale=4.0, tint=(0.5, 0.5, 0.48), tint_mix=0.35, rough_mul=0.8, bump=0.2)
     steel = mat('steel', (0.08, 0.085, 0.09), 0.45, metal=0.8)
     ceil = mat('roof-white', (0.75, 0.75, 0.74), 0.9, tex='wood_planks', scale=3.0, tint=(0.8, 0.8, 0.78), tint_mix=0.15)
-    world(sky={'kelvin': 6800}, strength=5.0)
+    world(sky={'kelvin': 6800}, strength=14.0)
     W, D, H = {'small': (20, 12, 6), 'large': (40, 10, 7)}.get(v, (24, 12, 6))
     r = Room(0, 0, W, D, H + 1.6, floor, brick, None, doors=[('e', D / 2, 3.0, 3.6)], shadow_gap=False)
     # a sawtooth roof: north-facing glass in each tooth, steel trusses below
@@ -561,6 +567,7 @@ def loft(v):
                 cylinder('column', (cx, cy), 0.18, 0, H, mat('cast-iron', (0.12, 0.12, 0.12), 0.5, metal=0.6))
     if v == '':                # two bays parted by a freestanding wall
         box('partition', W / 2 - 0.15, 2.5, 0, W / 2 + 0.15, D - 2.5, 4.2, brick)
+    area('north-light', (W / 2, D / 2, H - 0.3), (W - 1, D - 1), 90, 6500)
     fill(r, works_of('hilma-af-klint') + works_of('henri-matisse', n=2), walls='ns', ceiling=H, lux=170, beam=40)
     return camera((W - 1.2, 1.0, EYE), (W * 0.25, D * 0.7, 2.6), lens=17)
 
@@ -645,7 +652,7 @@ def salon(v):
     for i, wall in enumerate((red, green, red)):
         doors = [('w', 3.0, 1.4, 2.6)] if i else []
         if i < 2: doors.append(('e', 3.0, 1.4, 2.6))
-        r = Room(7.25 * i, 0, 7.25 * i + 7, 6, 4.5, parquet, wall, ceil, doors=doors, shadow_gap=False)
+        r = Room(7.25 * i, 0, 7.25 * i + 7, 6, 4.5, parquet, wall, ceil, doors=doors, shadow_gap=False, skip='w' if i else '')
         dress(r); lantern(r); rooms.append(r)
     salon_hang(rooms[0], works_of('mary-cassatt'), gilt, walls='ns')
     salon_hang(rooms[1], works_of('berthe-morisot'), gilt, walls='ns')
@@ -688,28 +695,29 @@ def gilt_frame(w, c, a, n, z, material):
 
 
 def concrete(v):
-    conc = mat('formwork-concrete', tex='concrete_wall_008', scale=2.4, rough_mul=1.0, bump=0.7)
-    floor = mat('concrete-floor', tex='concrete_floor_02', scale=3.0, rough_mul=0.6, coat=0.1, bump=0.3)
+    conc = mat('formwork-concrete', tex='concrete_wall_008', scale=2.4, tint=(0.56, 0.56, 0.54), tint_mix=0.45, rough_mul=1.0, bump=0.7)
+    floor = mat('concrete-floor', tex='concrete_floor_02', scale=3.0, tint=(0.42, 0.42, 0.41), tint_mix=0.4, rough_mul=0.6, coat=0.1, bump=0.3)
     world()
     if v == 'large':           # a tall volume 8 x 8 x 6 with a slot window high in the wall
         world(sky={'kelvin': 6500}, strength=4.0)
         r = Room(0, 0, 8, 8, 6, floor, conc, conc, doors=[('e', 1.6, 1.4, 2.6)], windows=[('n', 4, 6.6, 4.9, 5.4)])
         mesh('slot.glass', [(0.7, 8.02, 4.9), (7.3, 8.02, 4.9), (7.3, 8.02, 5.4), (0.7, 8.02, 5.4)], [(0, 1, 2, 3)], glass())
-        area('slot.sky', (4, 8.5, 5.15), (6.6, 0.5), 700, 6500, rot=(math.radians(-90), 0, 0), spread=120)
-        fill(r, works_of('claude-monet', n=3), walls='swn', ceiling=6, lux=140, beam=30)
+        area('slot.sky', (4, 8.5, 5.15), (6.6, 0.5), 2600, 6500, rot=(math.radians(-90), 0, 0), spread=120)
+        ambient(r, 35, 6000)
+        fill(r, big('claude-monet', 3), walls='swn', ceiling=6, lux=140, beam=30)
         return camera((7.2, 0.7, EYE), (1.5, 6.5, 2.6), lens=17)
     if v == 'small':           # a square room 8 x 8 x 4.25 under a glass daylight ceiling (Bregenz)
         r = Room(0, 0, 8, 8, 4.25, floor, conc, conc, doors=[('e', 1.6, 1.4, 2.6)], ceiling_open=(0.3, 0.3, 7.7, 7.7))
         mesh('light-ceiling', [(0.3, 0.3, 4.24), (7.7, 0.3, 4.24), (7.7, 7.7, 4.24), (0.3, 7.7, 4.24)], [(0, 1, 2, 3)], emission('daylight-ceiling', 1.25, 6300))
         for i in range(1, 8): box('ceiling.joint', i - 0.01, 0.3, 4.22, i + 0.01, 7.7, 4.24, mat('joint', (0.4, 0.4, 0.4), 0.6))
         area('daylight', (4, 4, 4.2), (7.4, 7.4), 230, 6300)
-        fill(r, works_of('claude-monet', n=4), walls='nsw', ceiling=4.25, light=False)
+        fill(r, big('claude-monet', 4), walls='nsw', ceiling=4.25, light=False)
         return camera((7.3, 0.7, EYE), (1.0, 6.0, 1.8), lens=18)
-    rooms = [Room(0, 0, 9, 8, 4.5, floor, conc, conc, doors=[('e', 4, 1.0, 3.6)]), Room(9.25, 0, 18.25, 8, 4.5, floor, conc, conc, doors=[('w', 4, 1.0, 3.6)])]
+    rooms = [Room(0, 0, 9, 8, 4.5, floor, conc, conc, doors=[('e', 4, 1.0, 3.6)]), Room(9.25, 0, 18.25, 8, 4.5, floor, conc, conc, doors=[('w', 4, 1.0, 3.6)], skip='w')]
     for r in rooms:
         mesh('light-ceiling', [(r.x0 + 0.4, 0.4, 4.49), (r.x1 - 0.4, 0.4, 4.49), (r.x1 - 0.4, 7.6, 4.49), (r.x0 + 0.4, 7.6, 4.49)], [(0, 1, 2, 3)], emission('daylight-ceiling', 1.1, 6300))
         area('daylight', ((r.x0 + r.x1) / 2, 4, 4.45), (8.2, 7.2), 190, 6300)
-    fill(rooms[0], works_of('claude-monet', n=3), walls='nsw', ceiling=4.5, light=False)
+    fill(rooms[0], big('claude-monet', 3), walls='nsw', ceiling=4.5, light=False)
     fill(rooms[1], works_of('hilma-af-klint', n=2), walls='ne', ceiling=4.5, light=False)
     return camera((0.8, 1.0, EYE), (16, 4.6, 1.9), lens=20)
 
@@ -719,7 +727,7 @@ def studio(v):
     boards = mat('painted-boards', tex='old_wooden_floor_02' if True else '', scale=2.0, tint=(0.62, 0.6, 0.56), tint_mix=0.55, rough_mul=1.0, bump=0.5)
     ceil = mat('studio-ceiling', (0.82, 0.82, 0.8), 0.9)
     wood = mat('table-wood', tex='rough_pine_door', scale=1.2, bump=0.4)
-    world(sky={'kelvin': 7000}, strength=4.0)
+    world(sky={'kelvin': 7000}, strength=1.6 if v != 'large' else 12.0)
     if v == 'large':
         r = Room(0, 0, 10, 7, 6.3, boards, brick, None, doors=[('e', 1.5, 1.4, 2.5)], shadow_gap=False)
         for i in range(5):   # sawtooth: north glass
@@ -727,6 +735,7 @@ def studio(v):
             mesh('roof.slope', [(x, -0.2, 6.3), (x + 1.6, -0.2, 5.0), (x + 1.6, 7.2, 5.0), (x, 7.2, 6.3)], [(0, 1, 2, 3)], ceil)
             mesh('roof.glass', [(x + 1.6, -0.2, 5.0), (x + 2.0, -0.2, 6.3), (x + 2.0, 7.2, 6.3), (x + 1.6, 7.2, 5.0)], [(0, 1, 2, 3)], glass())
         box('roof.top', -0.2, -0.2, 6.3, 10.2, 7.2, 6.5, ceil)
+        area('sawtooth-light', (5, 3.5, 4.9), (9.4, 6.4), 110, 6800)
         H = 5
     else:
         W, D, H = (5, 4, 3.2) if v == 'small' else (8, 6, 3.6)
@@ -735,7 +744,7 @@ def studio(v):
         for k in range(1, 4):
             box('mullion', W * 0.15 + k * W * 0.7 / 4 - 0.025, D, 0.9, W * 0.15 + k * W * 0.7 / 4 + 0.025, D + 0.06, H - 0.2, mat('window-frame', (0.85, 0.85, 0.83), 0.5))
         box('transom', W * 0.15, D, 2.2, W * 0.85, D + 0.06, 2.25, mat('window-frame', (0.85, 0.85, 0.83), 0.5))
-        area('north-sky', (W / 2, D + 1.2, (0.9 + H - 0.2) / 2), (W * 0.7, H - 1.1), 900, 7000, rot=(math.radians(-90), 0, 0), spread=110)
+        area('north-sky', (W / 2, D + 1.2, (0.9 + H - 0.2) / 2), (W * 0.7, H - 1.1), 520, 7000, rot=(math.radians(-90), 0, 0), spread=110)
     # a trestle table, works leaning on the wall, a stool
     tw = 2.2
     box('table.top', 0.8, 1.0, 0.86, 0.8 + tw, 1.9, 0.9, wood, bevel=0.005)
@@ -748,7 +757,7 @@ def studio(v):
         c = Vector((r.x1 - 0.03 - 0.12, 2.0 + i * 1.2, Hh / 2 + 0.01))
         ob = quad(w['slug'] + '.leaning', (0, 0, 0), (0, -1, 0), W, Hh, canvas_material(w), uv=True)
         ob.location = c; ob.rotation_euler = (0, math.radians(-8), 0)
-    fill(r, works_of('paula-modersohn-becker')[2:], walls='sw', ceiling=H, light=False)
+    fill(r, works_of('paula-modersohn-becker')[2:] + works_of('suzanne-valadon', n=3), walls='swn', ceiling=H, light=False)
     return camera((r.x1 - 0.6, 0.6, EYE), (0.9, r.y1 - 0.8, 1.7), lens=18)
 
 
@@ -759,12 +768,13 @@ def apartment(v):
     skirt = mat('skirting', (0.85, 0.84, 0.8), 0.5)
     linen = mat('sofa-linen', tex='rough_linen', scale=0.4, tint=(0.55, 0.5, 0.42), tint_mix=0.3)
     rug = mat('rug', tex='rough_linen', scale=0.6, tint=(0.62, 0.55, 0.45), tint_mix=0.5)
-    world(hdri=hdri('lebombo'), strength=0.6, rot=60)
+    world(hdri=hdri('lebombo'), strength=1.6, rot=60)
     W, D, H = {'small': (5, 4.5, 2.8), 'large': (9, 6, 3.2)}.get(v, (7, 5, 3.0))
     r = Room(0, 0, W, D, H, herring, walls, ceil, doors=[('e', 1.0, 0.9, 2.2)], windows=[('n', W * 0.62, 1.6, 0.6, H - 0.35)],
              base=(0.12, skirt), shadow_gap=False)
     mesh('window.glass', [(W * 0.62 - 0.8, D + 0.02, 0.6), (W * 0.62 + 0.8, D + 0.02, 0.6), (W * 0.62 + 0.8, D + 0.02, H - 0.35), (W * 0.62 - 0.8, D + 0.02, H - 0.35)], [(0, 1, 2, 3)], glass())
     box('window.frame', W * 0.62 - 0.03, D, 0.6, W * 0.62 + 0.03, D + 0.07, H - 0.35, skirt)
+    area('window.day', (W * 0.62, D + 0.6, (0.6 + H - 0.35) / 2), (1.6, H - 0.95), 1100, 6000, rot=(math.radians(-90), 0, 0), spread=120)
     # a picture rail, a sofa, a rug, a low table, a floor lamp
     for (a0, b0, a1, b1) in ((0, 0, W, 0.02), (0, D - 0.02, W, D), (0, 0, 0.02, D), (W - 0.02, 0, W, D)):
         box('picture-rail', a0, b0, H - 0.4, a1, b1, H - 0.37, skirt)
@@ -776,10 +786,10 @@ def apartment(v):
     box('table', 1.6, D * 0.42, 0, 2.5, D * 0.58, 0.4, mat('walnut', tex='walnut_veneer', scale=0.8, coat=0.3), bevel=0.01)
     cylinder('lamp.pole', (0.5, D * 0.12), 0.012, 0, 1.55, mat('brass', (0.6, 0.45, 0.2), 0.3, metal=1.0))
     cylinder('lamp.shade', (0.5, D * 0.12), 0.2, 1.4, 1.7, emission('shade', 3.0, 2700))
-    li = bpy.data.lights.new('lamp', 'POINT'); li.energy = 60; li.color = blackbody(2700); li.shadow_soft_size = 0.15
+    li = bpy.data.lights.new('lamp', 'POINT'); li.energy = 25; li.color = blackbody(2700); li.shadow_soft_size = 0.15
     lo = bpy.data.objects.new('lamp', li); bpy.context.collection.objects.link(lo); lo.location = (0.5, D * 0.12, 1.55)
-    hang_wall(works_of('henri-matisse', n=1)[:1] + works_of('suzanne-valadon')[1:2], at_wall((0, D * 0.9), (1, 0, 0)), at_wall((0, D * 0.1), (1, 0, 0)), (1, 0, 0), z=1.55, ceiling=H, lux=120, spot_kelvin=2700)
-    fill(r, works_of('suzanne-valadon')[2:4] + works_of('henri-matisse')[4:6], walls='s', ceiling=H, lux=110, spot_kelvin=2700)
+    hang_wall(works_of('henri-matisse', n=1)[:1] + works_of('suzanne-valadon')[1:2], at_wall((0, D * 0.9), (1, 0, 0)), at_wall((0, D * 0.1), (1, 0, 0)), (1, 0, 0), z=1.55, ceiling=H, lux=150, spot_kelvin=3000)
+    fill(r, works_of('suzanne-valadon')[2:4] + works_of('henri-matisse')[4:6], walls='s', ceiling=H, lux=150, spot_kelvin=3000)
     return camera((W - 0.5, 0.5, EYE), (0.8, D * 0.62, 1.4), lens=17)
 
 
@@ -799,13 +809,13 @@ def black_box(v):
             faces.append((2 * i, 2 * j, 2 * j + 1, 2 * i + 1))
         mesh('round.wall', verts, faces, black, smooth=True)
         box('ceiling', -R - 0.5, -R - 0.5, H, R + 0.5, R + 0.5, H + 0.2, black)
-        ws = works_of('victor-hugo')
+        ws = works_of('hilma-af-klint', n=4)
         for k, w in enumerate(ws):
-            a = math.radians(70 + k * 44); c = Vector((R * math.cos(a), R * math.sin(a), 0)); n = -c.normalized(); n.z = 0
+            a = math.radians(55 + k * 52); c = Vector((R * math.cos(a), R * math.sin(a), 0)); n = -c.normalized(); n.z = 0
             along = Vector((-math.sin(a), math.cos(a), 0)); c = c + n * 0.01
-            hang(w, c, along, n, 1.5)
+            hang(w, c, along, n, 1.9)
             pos = c + n * 1.8; pos.z = H - 0.1; NORMAL['n'] = tuple(n)
-            spot('spot', tuple(pos), (c.x, c.y, 1.5), 45, 11, 3000, blend=0.2)
+            spot('spot', tuple(pos), (c.x, c.y, 1.9), 150, 48, 3000, blend=0.35)
         return camera((0.0, -5.3, EYE), (0.3, 4.0, 1.5), lens=17)
     W, D, H = (14, 10, 5) if v == '' else (8, 6, 3.5)
     r = Room(0, 0, W, D, H, floor, black, black, doors=[('e', D / 2, 1.2, 2.4)], shadow_gap=False)
@@ -818,7 +828,7 @@ def black_box(v):
             nt.links.new(e.outputs[0], o.inputs[0])
             q = quad('projection', p, a, ww, hh, pm, uv=True)
         return camera((W - 1.0, 1.0, EYE), (2.5, D - 2.0, 2.2), lens=17)
-    fill(r, works_of('victor-hugo', n=4) + works_of('katsushika-hokusai', n=2), walls='nsw', ceiling=H, beam=14)
+    fill(r, works_of('vincent-van-gogh', n=4), walls='nsw', ceiling=H, lux=170)
     return camera((W - 0.7, 0.8, EYE), (1.0, D - 1.5, 1.5), lens=17)
 
 
@@ -826,8 +836,8 @@ def glass_pavilion(v):
     granite = mat('granite', tex='granite_tile', scale=1.6, rough_mul=0.6, coat=0.15, bump=0.3)
     white = mat('pavilion-wall', (0.84, 0.84, 0.82), 0.9, tex='painted_plaster_wall', scale=2.5, tint=(0.85, 0.85, 0.83), tint_mix=0.06, bump=0.2)
     steel = mat('black-steel', (0.02, 0.02, 0.022), 0.4, metal=0.85)
-    ceil = mat('pavilion-ceiling', (0.2, 0.2, 0.21), 0.6)
-    world(hdri=hdri('garden'), strength=1.0, rot=120)
+    ceil = mat('pavilion-ceiling', (0.72, 0.72, 0.7), 0.85)
+    world(hdri=hdri('garden'), strength=2.4, rot=120)
     W, D, H = {'small': (10, 8, 4), 'large': (24, 16, 5)}.get(v, (14, 9, 4.5))
     box('floor', -2, -2, -0.2, W + 2, D + 2, 0, granite)
     box('roof', -2, -2, H, W + 2, D + 2, H + 0.6, ceil)
@@ -844,11 +854,12 @@ def glass_pavilion(v):
             if wall in 'sn': box('wall.' + wall, min(p0[0], p1[0]), p0[1] - (0.25 if wall == 's' else 0), 0, max(p0[0], p1[0]), p0[1] + (0.25 if wall == 'n' else 0), H, white)
             else: box('wall.' + wall, p0[0] - (0.25 if wall == 'w' else 0), min(p0[1], p1[1]), 0, p0[0] + (0.25 if wall == 'e' else 0), max(p0[1], p1[1]), H, white)
     # freestanding white walls inside, set back from the glass, with the works on them
+    area('sky-bounce', (W / 2, D / 2, H - 0.05), (W - 1, D - 1), 140, 6000)
     stands = [(W * 0.3, D * 0.45), (W * 0.65, D * 0.55)] if v != 'small' else [(W * 0.45, D * 0.4)]
     for i, (sx, sy) in enumerate(stands):
         box('stand', sx - 2.0, sy - 0.12, 0, sx + 2.0, sy + 0.12, 3.2, white)
         ws = works_of('claude-monet')[i * 2:(i + 1) * 2] or works_of('claude-monet', n=1)
-        hang_wall(ws[:1], (sx - 2.0, sy - 0.122, 0), (sx + 2.0, sy - 0.122, 0), (0, -1, 0), ceiling=H, lux=250, light=False)
+        hang_wall(ws[:1], (sx - 2.0, sy - 0.122, 0), (sx + 2.0, sy - 0.122, 0), (0, -1, 0), ceiling=H, lux=220)
     if 'w' not in sides:
         fill(Room.__new__(Room) if False else _fake_room(0, 0, W, D, H), works_of('claude-monet')[4:6], walls='w', ceiling=H, light=False)
     return camera((W - 1.2, 0.9, EYE), (W * 0.3, D - 0.5, 1.8), lens=17)
@@ -876,7 +887,7 @@ def japanese(v):
     for z in [0.35 * j for j in range(1, int((H - 0.4) / 0.35) + 1)]:
         box('kumiko', sx0, D - 0.01, z - 0.008, sx1, D + 0.005, z + 0.008, hinoki)
     box('kamoi', 0, D - 0.06, H - 0.45, W, D, H - 0.38, hinoki)
-    area('garden.light', (W / 2, D + 1.0, (H - 0.4) / 2), (W - 0.4, H - 0.6), 520, 6200, rot=(math.radians(-90), 0, 0), spread=150)
+    area('garden.light', (W / 2, D + 1.0, (H - 0.4) / 2), (W - 0.4, H - 0.6), 300, 6200, rot=(math.radians(-90), 0, 0), spread=150)
     # a tokonoma on the west wall: a raised floor, a hanging scroll (a print), a vase
     box('tokonoma.floor', 0, D * 0.25, 0, 0.75, D * 0.75, 0.12, cedar, bevel=0.004)
     box('tokonoma.post', 0.7, D * 0.75 - 0.06, 0, 0.78, D * 0.75 + 0.02, H, mat('toko-post', tex='japanese_cedar_bark', scale=0.8, bump=0.8))
