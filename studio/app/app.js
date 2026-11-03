@@ -588,8 +588,11 @@ function archive(year, a = M.artist) {
   </div>`;
 }
 
+// an exhibition by its own name, or by its tour's (an artist's tour is named a-<artist>-<title>, its show otherwise)
+const exhibitionOf = slug => M.exhibitions.find(x => x.slug === slug) || (M.spaces && M.spaces[slug] && M.exhibitions.find(x => x.space === M.spaces[slug]));
+
 function exhibition(slug) {
-  const e = M.exhibitions.find(x => x.slug === slug);
+  const e = exhibitionOf(slug);
   if (!e) return notFound();
   return `<div class="wrap gut">
     <div class="album">
@@ -984,7 +987,7 @@ function render() {
 // the 3D room opens over the exhibition page; leaving it returns to the page
 let openSpaceView = null;
 async function enterSpace(slug) {
-  const e = M.exhibitions.find(x => x.slug === slug);
+  const e = exhibitionOf(slug);
   if (!e || !e.space) return;
   const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
   // a virtual room is drawn here, around the show's works, before it opens

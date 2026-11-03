@@ -541,7 +541,8 @@ function exhibitionPage(id) {
   const r = readiness(ex, S.works), sp = ex.space || {};
   const status = ex.real ? ex.real : null;
   const extra = ex.tourFiles || [], hasVideo = ex.video || extra.some(f => f.kind === 'video');
-  const canAsk = !status && ex.tour !== 'live' && ex.tour !== 'requested' && ex.tour !== 'building' && (r.ready || hasVideo);
+  // (always worth a try: with any photo or a video the tour is attempted, and the checks say what would make it better)
+  const canAsk = !status && ex.tour !== 'live' && ex.tour !== 'requested' && ex.tour !== 'building' && (ex.photos.length || extra.length || hasVideo);
   return `<div class="wrap gut st">${head(isNew ? 'Add an exhibition' : ex.title, '#/studio/exhibitions')}
     <div class="st-step"><span class="n">1</span><div><h2>Your exhibition</h2><p class="m small">What visitors see on your page: the details, a few words, the installation photos and the works that were in the show.</p></div></div>
     <form class="st-form" id="exForm" data-id="${esc(ex.id)}">
@@ -563,7 +564,7 @@ function exhibitionPage(id) {
       ${ex.tour === 'live' && ex.space && ex.space.slug ? `<p class="m">This exhibition has a walkable tour.</p><div class="btns"><a class="btn f" href="#/exhibition/${esc(ex.space.slug)}/space">Walk through the tour</a></div>`
         : ex.tour === 'requested' || ex.tour === 'building' ? `<p class="m">Asked for on ${esc(new Date(ex.tourRequested || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }))}. Open Studio is building it: it shows here when it's ready, usually within a few days, or with what to add if the photos aren't enough.</p>`
         : status ? `<p class="m">${esc(status.summary)}</p>${checks(status.items)}`
-        : `<p class="m">${r.ready ? 'Everything a tour needs is here.' : 'What a tour still needs:'}</p>${checks(r.items)}`}
+        : `<p class="m">${r.ready ? 'Everything a tour needs is here.' : 'You can ask for a tour now: it is always tried. These would make it surer:'}</p>${checks(r.items)}`}
       ${ex.tour === 'more' && ex.tourNote ? `<p class="st-status no">${esc(ex.tourNote)}</p>` : ''}
       <h3>Material for the tour only</h3>
       <p class="m small">More installation photos, and a walk-through video if you have one. They help build the tour and are <b>never shown on your page</b>. Photos: wide, 2–3 works and a corner of the room in each. Video: phone sideways, walk slowly down the middle and back, filming every wall (up to 50 MB).</p>
@@ -582,7 +583,8 @@ function exhibitionPage(id) {
         <p class="m small">A laser measure gives the room's size in seconds; one measured height (the centre of one work above the floor) fixes the whole room's scale.</p>
         <div class="btns"><button class="btn g" type="submit">Save the room</button></div></form></details>
       ${canAsk ? '<div class="btns st-ask"><button class="btn f" type="button" id="buildTour">Ask for a tour</button></div>' : ''}
-      ${!canAsk && ex.tour === 'none' && !r.ready && !hasVideo ? '<p class="m small">Add the missing photos (or a video) above, and “Ask for a tour” appears here.</p>' : ''}
+      ${!canAsk && (ex.tour || 'none') === 'none' && !ex.photos.length && !extra.length ? '<p class="m small">Add installation photos (in step 1, or here for the tour only), and “Ask for a tour” appears here.</p>' : ''}
+      ${ex.tour === 'more' ? '<div class="btns st-ask"><button class="btn f" type="button" id="buildTour">Try again with what’s here now</button></div>' : ''}
       ${ex.tour === 'live' && ex.real ? share(ex) : ''}
     </section>`}
   </div>`;
