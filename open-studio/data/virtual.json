@@ -1,0 +1,77 @@
+{
+ "_note": "Virtual exhibitions: shows designed in Open Studio for a room that exists only here (space/synth.js draws it). 'artist' shows are designed by the artist in their studio; 'curated' ones by Open Studio's curator, across artists, in a chosen order, like a playlist. Works are app slugs, in walking order.",
+ "shows": [
+  {
+   "slug": "celebration-virtual",
+   "kind": "artist",
+   "title": "Celebration",
+   "artists": [
+    "elad-amsalem"
+   ],
+   "room": "white-cube",
+   "paint": "white",
+   "centre": 150,
+   "start": "2026-11-02",
+   "end": "2027-11-01",
+   "text": [
+    "New paintings from 2024 to 2026, hung by the artist in a room that exists only here: the large gatherings first, then the flowers, small and close together, then the figures.",
+    "A demo of the exhibitions artists will design in Open Studio: choose a room, a wall colour and the order of the works, and the room is built around them."
+   ],
+   "works": [
+    "gathering-2026",
+    "celebration-2026",
+    "together-2026",
+    "sunflower-2026",
+    "flower-2026",
+    "flowers-1-2026",
+    "flowers-2-2026",
+    "flowers-3-2026",
+    "here-2024",
+    "menora-2024",
+    "yehudiya-2024",
+    "nature-2025",
+    "human-nature-2025",
+    "woman-2025"
+   ],
+   "cover": "data/spaces/celebration-virtual/preview.jpg"
+  },
+  {
+   "slug": "green-hour",
+   "kind": "curated",
+   "title": "The Green Hour",
+   "curator": "Elad Amsalem",
+   "artists": [
+    "elad-amsalem",
+    "lia-moren",
+    "daniel-ostrovsky",
+    "maya-haddad",
+    "noa-ben-ari",
+    "tomer-lev"
+   ],
+   "room": "long-hall",
+   "paint": "bone",
+   "centre": 148,
+   "start": "2026-11-02",
+   "end": "2027-02-28",
+   "text": [
+    "Six artists who never shared a wall, hung together for the hour when the light turns green: gardens and orchards, a slow field of colour, a single breath of ink, a stitched map, a garden grown from noise.",
+    "Curated by hand for Open Studio, in an order meant to be walked from the door to the far wall and back. No algorithm chose these works."
+   ],
+   "works": [
+    "late-garden",
+    "sunflower-2026",
+    "between-two-greens",
+    "breath-i",
+    "orchard-at-noon",
+    "indigo-map",
+    "nature-2025",
+    "slow-colour-i",
+    "one-line",
+    "noise-garden",
+    "night-window",
+    "together-2026"
+   ],
+   "cover": "data/spaces/green-hour/preview.jpg"
+  }
+ ]
+}
