@@ -14,8 +14,10 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
 1. Instagram direct connection (owner's wish; free). The owner was in Meta Business Suite by mistake: the app is
    made at developers.facebook.com → My Apps → Create App → use case "Manage messaging & content on Instagram" →
    "API setup with Instagram login". Their Instagram (Elad Amsalem Art, 4.4K) is already professional and linked to
-   a Facebook page. Needed for the app: privacy policy https://eladamsalem.com/open-studio/privacy.html, a data
-   deletion URL (to build: a page or a Supabase function), icon (studio/design/google-brand-logo-120.png or the
+   a Facebook page. 3.11 (local session): Meta blocked the developer account ("Account confirmation needed");
+   the owner went through the email-code check but it still showed blocked, so they may need to retry or wait.
+   Needed for the app: privacy policy https://eladamsalem.com/open-studio/privacy.html (names Instagram since 3.11),
+   data deletion instructions https://eladamsalem.com/open-studio/data-deletion.html (live 3.11), icon (studio/design/google-brand-logo-120.png or the
    app icons), category. Put App ID / App Secret in GitHub secrets INSTAGRAM_APP_ID / INSTAGRAM_APP_SECRET. Then
    build "Connect Instagram" in studio-cloud.js / artist.js (#/studio/import) through a Supabase function holding
    the secret; app review for instagram_business_basic later (screencast, description). Until approved it works
