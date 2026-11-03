@@ -73,3 +73,10 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    real "+" test accounts sit under it. The welcome screen's pictures pointed at the deleted made-up works: fixed.
    Rooms: two trial rounds fixed shared walls, fixtures that blocked their own spots, works that didn't fit, light
    levels; the summary PDF for the owner is made by `studio/design/virtual-spaces/make_summary.py` (Chrome headless).
+6. Also 3.11: the owner's own artist page (Supabase, 1 work) deleted and his role reset so he signs up again as an
+   artist (his account and admin stay; 2 orphan files in storage works/bbd9e297…/). Import from a website now brings
+   everything from an Open Studio site: works, about (statement, bio, portrait, discipline, city, instagram), CV and
+   exhibitions with installation photos (import-media `more_of`; `artists.cv`, `artists.exhibitions` jsonb; studio
+   profile shows the CV; the public page shows CV and past shows), then hangs up to 12 sized works in a first virtual
+   exhibition (draft) with "Walk into your exhibition in 3D". Not done: photo-built tours for imported exhibitions (the
+   server pipeline). The owner chose to KEEP the built-in Elad (site content and photo tours) visible: don't hide it.
