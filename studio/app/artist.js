@@ -314,9 +314,12 @@ function importer() {
         <div class="btns"><button class="btn f" type="button" id="imIgGo">Connect Instagram</button><button class="btn g" type="button" id="imIgOff" hidden>Disconnect</button></div>
         <details class="im-zip"><summary class="small">Or use Instagram’s download file</summary><p class="m small">In the Instagram app, <b>Settings → Accounts Centre → Your information and permissions → Download your information</b>, choose <b>Some of your information → Posts</b>, format <b>JSON</b>. Instagram emails you a file (.zip); choose it here.</p>
         <label class="btn g"><input type="file" accept=".zip,application/zip" id="imZip" hidden>Choose the Instagram file</label></details></div>
-      <form class="st-card im-way" data-kind="drive"><h2>Google Drive</h2><p class="m small">A folder of images, shared as <b>Anyone with the link</b>. Paste its link.</p>
+      <div class="st-card im-way"><h2>Google Drive</h2><p class="m small">Choose images of your work from your Drive. Open Studio sees only the ones you choose.</p>
+        <div class="btns"><button class="btn f" type="button" id="imDriveGo">Choose from Google Drive</button></div>
+        <details class="im-zip"><summary class="small">Or paste a shared folder link</summary>
+        <form class="im-way" data-kind="drive"><p class="m small">A folder of images, shared as <b>Anyone with the link</b>.</p>
         <label class="vh" for="imDrive">Drive folder link</label><input id="imDrive" name="url" inputmode="url" placeholder="https://drive.google.com/drive/folders/…" required>
-        <button class="btn f" type="submit">Find my work</button></form>
+        <button class="btn g" type="submit">Find my work</button></form></details></div>
       <div class="st-card im-way"><h2>From your phone or computer</h2><p class="m small">Photos or image files of your works, straight on, the whole work in the picture.</p>
         <label class="btn g"><input type="file" accept="image/*" multiple id="imFiles" hidden>Choose images</label></div>
     </div>
@@ -348,6 +351,18 @@ function wireImport(app, go) {
   const zip = app.querySelector('#imZip');
   if (zip) zip.onchange = async () => { if (!zip.files[0]) return; tell('Opening the Instagram file…'); try { take(await cloud.fromInstagramZip(zip.files[0]), 'instagram'); } catch (err) { tell('That file couldn’t be read: choose the .zip Instagram sent (JSON format).'); } };
   wireInstagram(app, tell, take);
+  const drive = app.querySelector('#imDriveGo');
+  if (drive) {
+    cloud.prepareDrive().catch(() => {});
+    drive.onclick = async () => {
+      drive.disabled = true;
+      try {
+        const items = await cloud.fromDrive((i, n) => { drive.textContent = `Bringing ${i} of ${n} from Drive…`; });
+        if (items.length) take(items, 'drive');
+      } catch (e) { tell(esc(e.message)); }
+      drive.disabled = false; drive.textContent = 'Choose from Google Drive';
+    };
+  }
   const files = app.querySelector('#imFiles');
   if (files) files.onchange = () => take([...files.files].map(f => ({ title: f.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' '), blob: f, preview: URL.createObjectURL(f), source: 'phone' })), 'phone');
   function wireFound() {
