@@ -46,11 +46,12 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    signed in to the owner's Chrome has no access to project open-studio-513508 ("You need additional access"): find
    which account owns it (likely ooopenstudio@) before Branding/Verification. The app's home (#/welcome, signed out)
    already shows "Open Studio", a line about it and a Privacy link.
-2b. Drive in Bring work in, the owner's wish (3.11): choose from Drive (Google Picker, scope drive.file, files
-   downloaded in the browser with the token) instead of pasting a folder link. Needs, in open-studio-513508: Picker
-   API + Drive API on, a browser API key limited to eladamsalem.com, https://eladamsalem.com as an authorized JS origin
-   of client 565397252258-9r716….apps.googleusercontent.com, and the project number (Picker's appId). Same account
-   question as 2. Done 3.11 meanwhile: found works scroll into view on a phone (they were drawn screens below). Step 1 is a Search
+2b. Drive in Bring work in (3.11, built): "Choose from Google Drive" = Google Picker + GIS token (drive.file), files
+   downloaded in the browser (studio-cloud.js prepareDrive/fromDrive); the folder link stays under it. Project
+   open-studio-513508 is ooopenstudio@'s (in the owner's Chrome as authuser=1): Picker + Drive APIs on, browser key
+   "Open Studio Drive picker (browser)" (Picker only; eladamsalem.com/*, localhost:8088/*), client 565397252258-9r716…
+   already has origin https://eladamsalem.com. Not yet tested end to end with a real pick (needs the owner's grant).
+   Also 3.11: found works scroll into view on a phone; every studio page has "← Open Studio" back to the app. Step 1 is a Search
    Console HTML tag on https://eladamsalem.com/ (the site's root index.html is on `main`). Google sign-in itself is
    already in production (published 3.11).
 3. Leftover: change_requests row with issue 3 (a test) still in the table, status filed; delete it.
