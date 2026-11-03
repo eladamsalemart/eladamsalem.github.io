@@ -1,4 +1,130 @@
 {
+ "apartment": {
+  "type": "apartment",
+  "name": "Collector's home",
+  "variant": "medium",
+  "label": "Living room, 7 \u00d7 5 m",
+  "image": "apartment.jpg"
+ },
+ "apartment-large": {
+  "type": "apartment",
+  "name": "Collector's home",
+  "variant": "large",
+  "label": "Large living room, 9 \u00d7 6 m",
+  "image": "apartment-large.jpg"
+ },
+ "apartment-small": {
+  "type": "apartment",
+  "name": "Collector's home",
+  "variant": "small",
+  "label": "Studio flat, 5 \u00d7 4.5 m",
+  "image": "apartment-small.jpg"
+ },
+ "black-box": {
+  "type": "black-box",
+  "name": "Black box",
+  "variant": "medium",
+  "label": "Projection hall, 14 \u00d7 10 m",
+  "image": "black-box.jpg"
+ },
+ "black-box-large": {
+  "type": "black-box",
+  "name": "Black box",
+  "variant": "large",
+  "label": "Round room, 12 m across",
+  "image": "black-box-large.jpg"
+ },
+ "black-box-small": {
+  "type": "black-box",
+  "name": "Black box",
+  "variant": "small",
+  "label": "Dark cell, 8 \u00d7 6 m",
+  "image": "black-box-small.jpg"
+ },
+ "concrete": {
+  "type": "concrete",
+  "name": "Raw concrete",
+  "variant": "medium",
+  "label": "Two rooms through a slit, 9 \u00d7 8 m each",
+  "image": "concrete.jpg"
+ },
+ "concrete-large": {
+  "type": "concrete",
+  "name": "Raw concrete",
+  "variant": "large",
+  "label": "Tall volume with a slot window, 8 \u00d7 8 \u00d7 6 m",
+  "image": "concrete-large.jpg"
+ },
+ "concrete-small": {
+  "type": "concrete",
+  "name": "Raw concrete",
+  "variant": "small",
+  "label": "Under a daylight ceiling, 8 \u00d7 8 m",
+  "image": "concrete-small.jpg"
+ },
+ "glass-pavilion": {
+  "type": "glass-pavilion",
+  "name": "Glass pavilion",
+  "variant": "medium",
+  "label": "Gallery with a glass end, 14 \u00d7 9 m",
+  "image": "glass-pavilion.jpg"
+ },
+ "glass-pavilion-large": {
+  "type": "glass-pavilion",
+  "name": "Glass pavilion",
+  "variant": "large",
+  "label": "Glass hall, 24 \u00d7 16 m",
+  "image": "glass-pavilion-large.jpg"
+ },
+ "glass-pavilion-small": {
+  "type": "glass-pavilion",
+  "name": "Glass pavilion",
+  "variant": "small",
+  "label": "Pavilion with a glass wall, 10 \u00d7 8 m",
+  "image": "glass-pavilion-small.jpg"
+ },
+ "japanese": {
+  "type": "japanese",
+  "name": "Japanese room",
+  "variant": "medium",
+  "label": "Gallery with a tokonoma, 9 \u00d7 6 m",
+  "image": "japanese.jpg"
+ },
+ "japanese-large": {
+  "type": "japanese",
+  "name": "Japanese room",
+  "variant": "large",
+  "label": "Long engawa room, 12 \u00d7 4.5 m",
+  "image": "japanese-large.jpg"
+ },
+ "japanese-small": {
+  "type": "japanese",
+  "name": "Japanese room",
+  "variant": "small",
+  "label": "Tea room, 3.6 \u00d7 3.6 m",
+  "image": "japanese-small.jpg"
+ },
+ "loft": {
+  "type": "loft",
+  "name": "Industrial loft",
+  "variant": "medium",
+  "label": "Two bays and a free wall, 24 \u00d7 12 m",
+  "image": "loft.jpg"
+ },
+ "loft-large": {
+  "type": "loft",
+  "name": "Industrial loft",
+  "variant": "large",
+  "label": "Long nave, 40 \u00d7 10 m",
+  "image": "loft-large.jpg"
+ },
+ "loft-small": {
+  "type": "loft",
+  "name": "Industrial loft",
+  "variant": "small",
+  "label": "Loft with columns, 20 \u00d7 12 m",
+  "image": "loft-small.jpg"
+ },
  "salon": {
   "type": "salon",
   "name": "Salon",
@@ -19,6 +145,48 @@
   "variant": "small",
   "label": "One salon, 6 \u00d7 5 m",
   "image": "salon-small.jpg"
+ },
+ "skylit-hall": {
+  "type": "skylit-hall",
+  "name": "Skylit museum hall",
+  "variant": "medium",
+  "label": "Vaulted hall, 20 \u00d7 8 m",
+  "image": "skylit-hall.jpg"
+ },
+ "skylit-hall-large": {
+  "type": "skylit-hall",
+  "name": "Skylit museum hall",
+  "variant": "large",
+  "label": "Three vaults, 24 \u00d7 7 m",
+  "image": "skylit-hall-large.jpg"
+ },
+ "skylit-hall-small": {
+  "type": "skylit-hall",
+  "name": "Skylit museum hall",
+  "variant": "small",
+  "label": "Skylit square, 10 \u00d7 10 m",
+  "image": "skylit-hall-small.jpg"
+ },
+ "studio": {
+  "type": "studio",
+  "name": "Artist studio, north light",
+  "variant": "medium",
+  "label": "Studio with a tall window, 8 \u00d7 6 m",
+  "image": "studio.jpg"
+ },
+ "studio-large": {
+  "type": "studio",
+  "name": "Artist studio, north light",
+  "variant": "large",
+  "label": "Sawtooth studio, 10 \u00d7 7 m",
+  "image": "studio-large.jpg"
+ },
+ "studio-small": {
+  "type": "studio",
+  "name": "Artist studio, north light",
+  "variant": "small",
+  "label": "Small studio, 5 \u00d7 4 m",
+  "image": "studio-small.jpg"
  },
  "white-cube": {
   "type": "white-cube",
