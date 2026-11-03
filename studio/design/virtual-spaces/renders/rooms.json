@@ -1,0 +1,44 @@
+{
+ "salon": {
+  "type": "salon",
+  "name": "Salon",
+  "variant": "medium",
+  "label": "Three rooms en enfilade, 7 \u00d7 6 m each",
+  "image": "salon.jpg"
+ },
+ "salon-large": {
+  "type": "salon",
+  "name": "Salon",
+  "variant": "large",
+  "label": "Long gallery with lanterns, 16 \u00d7 5.5 m",
+  "image": "salon-large.jpg"
+ },
+ "salon-small": {
+  "type": "salon",
+  "name": "Salon",
+  "variant": "small",
+  "label": "One salon, 6 \u00d7 5 m",
+  "image": "salon-small.jpg"
+ },
+ "white-cube": {
+  "type": "white-cube",
+  "name": "White cube",
+  "variant": "medium",
+  "label": "Three rooms in a row, 9 \u00d7 7 m each",
+  "image": "white-cube.jpg"
+ },
+ "white-cube-large": {
+  "type": "white-cube",
+  "name": "White cube",
+  "variant": "large",
+  "label": "Hall under a skylight, 15 \u00d7 10 m",
+  "image": "white-cube-large.jpg"
+ },
+ "white-cube-small": {
+  "type": "white-cube",
+  "name": "White cube",
+  "variant": "small",
+  "label": "Project room, 6 \u00d7 5 m",
+  "image": "white-cube-small.jpg"
+ }
+}
