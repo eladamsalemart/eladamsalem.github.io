@@ -318,6 +318,7 @@ def hang(w, centre, along, normal, z=1.55, frame=None):
     """One work on a wall: its picture, the depth of its stretcher (or a frame and a mat for works on paper)."""
     W, H = w['size'][0] / 100, w['size'][1] / 100
     a, n = Vector(along).normalized(), Vector(normal).normalized()
+    z = max(z, H / 2 + 0.35)
     c = Vector(centre) + Vector((0, 0, z))
     paper = 'paper' in w['medium'].lower() or 'print' in w['medium'].lower() or w['artist'] in ('victor-hugo', 'katsushika-hokusai')
     depth = 0.012 if paper else 0.035
@@ -393,13 +394,14 @@ def hang_wall(works, p0, p1, normal, z=1.55, gap=None, ceiling=3.6, spot_kelvin=
         hang(w, c, a, n, z, frame)
         if light:
             H = w['size'][1] / 100
+            z = max(z, H / 2 + 0.35)
             off = (ceiling - EYE) * 0.577 + (0.3 if H > 1.2 else 0)
             pos = c + n * off; pos.z = ceiling - 0.12
             dist = (Vector((c.x, c.y, z)) - pos).length
             paper = 'paper' in w['medium'].lower() or w['artist'] in ('victor-hugo', 'katsushika-hokusai')
-            need = max(W, H) * 1.35
+            need = max(W, H) * 1.7
             b = beam or min(60, max(14, math.degrees(2 * math.atan(need / 2 / dist))))
-            spot(f'spot.{w["slug"]}', tuple(pos), (c.x, c.y, z), 50 if paper else lux, b, spot_kelvin, blend=0.55)
+            spot(f'spot.{w["slug"]}', tuple(pos), (c.x, c.y, z), 50 if paper else lux, b, spot_kelvin, blend=0.8)
             track_head(pos, Vector((c.x, c.y, z)))
         placed.append((w, c))
         x += W + space
@@ -513,7 +515,7 @@ def camera(pos, look, lens=20, shift=(0, 0)):
 
 def white_cube(v):
     plaster = mat('white-plaster', (0.83, 0.83, 0.81), 0.9, tex='painted_plaster_wall', scale=2.5, tint=(0.84, 0.835, 0.82), tint_mix=0.08, bump=0.25)
-    floor = mat('polished-concrete', rough=0.35, tex='smooth_concrete_floor', scale=3.0, rough_mul=0.55, bump=0.2, coat=0.15)
+    floor = mat('polished-concrete', rough=0.35, tex='smooth_concrete_floor', scale=3.0, tint=(0.46, 0.46, 0.45), tint_mix=0.35, rough_mul=0.55, bump=0.2, coat=0.15)
     ceil = mat('ceiling-white', (0.8, 0.8, 0.79), 0.95)
     world()
     if v == 'small':           # a project room, 6 x 5 x 3.2
@@ -727,7 +729,7 @@ def studio(v):
     boards = mat('painted-boards', tex='old_wooden_floor_02' if True else '', scale=2.0, tint=(0.62, 0.6, 0.56), tint_mix=0.55, rough_mul=1.0, bump=0.5)
     ceil = mat('studio-ceiling', (0.82, 0.82, 0.8), 0.9)
     wood = mat('table-wood', tex='rough_pine_door', scale=1.2, bump=0.4)
-    world(sky={'kelvin': 7000}, strength=1.6 if v != 'large' else 12.0)
+    world(sky={'kelvin': 7000}, strength=0.9 if v != 'large' else 12.0)
     if v == 'large':
         r = Room(0, 0, 10, 7, 6.3, boards, brick, None, doors=[('e', 1.5, 1.4, 2.5)], shadow_gap=False)
         for i in range(5):   # sawtooth: north glass
@@ -744,7 +746,7 @@ def studio(v):
         for k in range(1, 4):
             box('mullion', W * 0.15 + k * W * 0.7 / 4 - 0.025, D, 0.9, W * 0.15 + k * W * 0.7 / 4 + 0.025, D + 0.06, H - 0.2, mat('window-frame', (0.85, 0.85, 0.83), 0.5))
         box('transom', W * 0.15, D, 2.2, W * 0.85, D + 0.06, 2.25, mat('window-frame', (0.85, 0.85, 0.83), 0.5))
-        area('north-sky', (W / 2, D + 1.2, (0.9 + H - 0.2) / 2), (W * 0.7, H - 1.1), 520, 7000, rot=(math.radians(-90), 0, 0), spread=110)
+        area('north-sky', (W / 2, D + 1.2, (0.9 + H - 0.2) / 2), (W * 0.7, H - 1.1), 420, 7000, rot=(math.radians(-90), 0, 0), spread=110)
     # a trestle table, works leaning on the wall, a stool
     tw = 2.2
     box('table.top', 0.8, 1.0, 0.86, 0.8 + tw, 1.9, 0.9, wood, bevel=0.005)
@@ -948,7 +950,7 @@ def main():
         json.dump(all_, open(meta, 'w'), indent=1)
 
 
-EXPOSURE = {}
+EXPOSURE = {'studio': -0.4}
 
 if __name__ == '__main__':
     main()
