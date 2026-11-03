@@ -332,18 +332,21 @@ function foundList(msg = '') {
 }
 function wireImport(app, go) {
   const box = app.querySelector('#imFound'); if (!box) return;
-  const show = msg => { box.innerHTML = foundList(msg); wireFound(); };
-  const take = (items, from) => { found = items.map(x => ({ ...x, on: true, from })); show(items.length ? '' : 'Nothing found there.'); };
+  // what was found (or why not) is drawn under the four ways in: on a phone that is screens below the button
+  // pressed, so an answer brings it into view
+  const show = (msg, look) => { box.innerHTML = foundList(msg); wireFound(); if (look) box.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  const tell = msg => show(msg, true);
+  const take = (items, from) => { found = items.map(x => ({ ...x, on: true, from })); tell(items.length ? '' : 'Nothing found there.'); };
   app.querySelectorAll('form.im-way').forEach(f => f.onsubmit = async e => {
     e.preventDefault();
     const b = f.querySelector('button'); b.disabled = true; b.textContent = 'Looking…'; show('');
     try { const d = await cloud.find(f.dataset.kind, f.url.value.trim()); take(d.items, f.dataset.kind); }
-    catch (err) { show(esc(err.message)); }
+    catch (err) { tell(esc(err.message)); }
     b.disabled = false; b.textContent = 'Find my work';
   });
   const zip = app.querySelector('#imZip');
-  if (zip) zip.onchange = async () => { if (!zip.files[0]) return; show('Opening the Instagram file…'); try { take(await cloud.fromInstagramZip(zip.files[0]), 'instagram'); } catch (err) { show('That file couldn’t be read: choose the .zip Instagram sent (JSON format).'); } };
-  wireInstagram(app, show, take);
+  if (zip) zip.onchange = async () => { if (!zip.files[0]) return; tell('Opening the Instagram file…'); try { take(await cloud.fromInstagramZip(zip.files[0]), 'instagram'); } catch (err) { tell('That file couldn’t be read: choose the .zip Instagram sent (JSON format).'); } };
+  wireInstagram(app, tell, take);
   const files = app.querySelector('#imFiles');
   if (files) files.onchange = () => take([...files.files].map(f => ({ title: f.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' '), blob: f, preview: URL.createObjectURL(f), source: 'phone' })), 'phone');
   function wireFound() {
