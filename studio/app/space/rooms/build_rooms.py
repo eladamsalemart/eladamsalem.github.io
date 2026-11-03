@@ -27,11 +27,11 @@ EYE = 1.6
 # --- arguments ----------------------------------------------------------------------------------------------------
 def args():
     a = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
-    o = dict(type='white-cube', variant='', out=os.path.join(ROOT, 'studio', 'design', 'virtual-spaces', 'renders'), samples=192, size='1600x1000', blend=False)
+    o = dict(type='white-cube', variant='', out=os.path.join(ROOT, 'studio', 'design', 'virtual-spaces', 'renders'), samples=192, size='1600x1000', blend=False, surfaces=False)
     i = 0
     while i < len(a):
         k = a[i].lstrip('-')
-        if k == 'blend': o['blend'] = True; i += 1; continue
+        if k in ('blend', 'surfaces'): o[k] = True; i += 1; continue
         o[k] = a[i + 1]; i += 2
     o['samples'] = int(o['samples']); o['w'], o['h'] = map(int, o['size'].split('x'))
     return o
@@ -397,6 +397,10 @@ def canvas_material(w):
     return m
 
 
+SURF = {'on': False}     # building the room's surfaces for the app: empty walls, no works, no works' spots
+SHELLS = []               # the rooms built (a variant made of one room can go to the app)
+
+
 def hang(w, centre, along, normal, z=1.55, frame=None):
     """One work on a wall: its picture, the depth of its stretcher (or a frame and a mat for works on paper)."""
     W, H = w['size'][0] / 100, w['size'][1] / 100
@@ -459,6 +463,7 @@ def frame_box(name, c, a, n, FW, FH, fw, d, material):
 
 def hang_wall(works, p0, p1, normal, z=1.55, gap=None, ceiling=3.6, spot_kelvin=3000, lux=200, light=True, frame=None, beam=None):
     """Works along a wall from p0 to p1 (on the wall's face), evenly spaced, each with its own spot."""
+    if SURF['on']: return []
     p0, p1 = Vector(p0), Vector(p1); L = (p1 - p0).length; a = (p1 - p0).normalized(); n = Vector(normal)
     NORMAL['n'] = tuple(n)
     gap = gap if gap is not None else min(0.9, L * 0.12)
@@ -601,6 +606,7 @@ class Room:
         if 'w' not in skip: wall_along('wall.w', 'y', x0, y0, y1, 0, h, -1, t, walls, holes['w'])
         if 'e' not in skip: wall_along('wall.e', 'y', x1, y0, y1, 0, h, +1, t, walls, holes['e'])
         self.doors, self.windows = doors, windows
+        SHELLS.append(self)
         if shadow_gap:   # the recessed shadow gap at the foot of a gallery wall
             g = mat('shadow-gap', (0.02, 0.02, 0.02), 0.9)
             for (a0, b0, a1, b1) in ((x0, y0, x1, y0 + 0.012), (x0, y1 - 0.012, x1, y1), (x0, y0, x0 + 0.012, y1), (x1 - 0.012, y0, x1, y1)):
@@ -892,6 +898,7 @@ def salon(v):
 
 def salon_hang(r, works, frame, walls='nsw'):
     """A salon hang: works in gilt frames, two rows where they fit, each with a warm picture light."""
+    if SURF['on']: return
     left = list(works)
     for wall in walls:
         for p0, p1, n in r.wall_runs(wall, margin=0.4):
@@ -1019,7 +1026,7 @@ def studio(v):
     box('table.top', 0.8, 1.0, 0.86, 0.8 + tw, 1.9, 0.9, wood, bevel=0.005)
     for tx in (0.95, 0.8 + tw - 0.25):
         box('trestle', tx, 1.05, 0, tx + 0.05, 1.85, 0.86, wood)
-    leaning = works_of('paula-moderson-becker') or works_of('paula-modersohn-becker')
+    leaning = [] if SURF['on'] else (works_of('paula-moderson-becker') or works_of('paula-modersohn-becker'))
     x = (r.x1 - 0.5)
     for i, w in enumerate(leaning[:2]):
         W, Hh = w['size'][0] / 100, w['size'][1] / 100
@@ -1096,7 +1103,7 @@ def black_box(v):
     for hx in (W * 0.25, W * 0.75):      # house lights, low: you can see your way, not the walls
         area('house', (hx, D / 2, H - 0.75), (0.3, 0.3), 6, 3000)
     if v == '':                # three projection walls: a work as projected light
-        for (p, a, n, w) in (((W / 2, D - 0.01, 2.3), (-1, 0, 0), (0, -1, 0), WORKS['the-great-wave-off-kanagawa']), ((0.01, D / 2, 2.3), (0, -1, 0), (1, 0, 0), WORKS['the-starry-night'])):
+        for (p, a, n, w) in () if SURF['on'] else (((W / 2, D - 0.01, 2.3), (-1, 0, 0), (0, -1, 0), WORKS['the-great-wave-off-kanagawa']), ((0.01, D / 2, 2.3), (0, -1, 0), (1, 0, 0), WORKS['the-starry-night'])):
             ww, hh = (6.0, 6.0 * w['size'][1] / w['size'][0])
             pm = bpy.data.materials.new('projection.' + w['slug']); pm.use_nodes = True; nt = pm.node_tree; nt.nodes.clear()
             o = nt.nodes.new('ShaderNodeOutputMaterial'); e = nt.nodes.new('ShaderNodeEmission'); t = nt.nodes.new('ShaderNodeTexImage')
@@ -1135,7 +1142,8 @@ def glass_pavilion(v):
             else: box('wall.' + wall, p0[0] - (0.25 if wall == 'w' else 0), min(p0[1], p1[1]), 0, p0[0] + (0.25 if wall == 'e' else 0), max(p0[1], p1[1]), H, white)
     # freestanding white walls inside, set back from the glass, with the works on them
     area('sky-bounce', (W / 2, D / 2, H - 0.05), (W - 1, D - 1), 140, 6000)
-    stands = [(W * 0.3, D * 0.45), (W * 0.65, D * 0.55)] if v != 'small' else [(W * 0.45, D * 0.4)]
+    stands = [] if SURF['on'] else ([(W * 0.3, D * 0.45), (W * 0.65, D * 0.55)] if v != 'small' else [(W * 0.45, D * 0.4)])
+    shell = _fake_room(0, 0, W, D, H); shell.glass = sides; SHELLS.append(shell)
     for i, (sx, sy) in enumerate(stands):
         box('stand', sx - 2.0, sy - 0.12, 0, sx + 2.0, sy + 0.12, 3.2, white)
         ws = works_of('claude-monet')[i * 2:(i + 1) * 2] or works_of('claude-monet', n=1)
@@ -1214,14 +1222,81 @@ TYPES = {
 }
 
 
+def surfaces(slug, o, label):
+    """The empty room's six surfaces, each photographed square on with the room's own light, for the app's viewer
+    (space.js), which builds the room from them and hangs an artist's works on its walls. Coordinates as the app's:
+    x from the west wall, z from the north wall, walls in its walking order (wall-x1, the east wall, has the door)."""
+    if len(SHELLS) != 1: print(f'{slug}: not one room, no surfaces'); return
+    r = SHELLS[0]; s = bpy.context.scene
+    W, D, H = r.x1 - r.x0, r.y1 - r.y0, r.h
+    loose = ('table', 'trestle', 'sofa', 'cushion', 'rug', 'lamp', 'bench', 'stand', 'tokonoma', 'vase', 'partition', 'column', 'label')
+    for ob in bpy.data.objects:      # the lights' lenses and the furniture are not part of a surface's picture (their shadows are)
+        if ob.type == 'LIGHT' or ob.name.split('.')[0] in loose: ob.visible_camera = False
+    try: s.use_nodes = False            # no lens: a surface is not a photograph's frame
+    except Exception: pass
+    out = os.path.join(o['out'], 'surfaces', slug); os.makedirs(out, exist_ok=True)
+    ppm = int(o.get('ppm', 110))
+    s.cycles.samples = int(o.get('surface_samples', 128))
+    cam = bpy.data.cameras.new('surface'); cam.type = 'ORTHO'
+    ob = bpy.data.objects.new('surface', cam); bpy.context.collection.objects.link(ob); s.camera = ob
+    def shoot(name, pos, rot, w, h, clip, dist=None):
+        # a wall: a perspective camera framing exactly the wall (parallel to it, so the wall keeps its scale) shows
+        # through a window what a visitor in the room would see; the floor and the ceiling: straight down and up
+        k = min(1.0, 4096 / max(w * ppm, h * ppm))
+        s.render.resolution_x, s.render.resolution_y = max(16, round(w * ppm * k)), max(16, round(h * ppm * k))
+        cam.sensor_fit = 'HORIZONTAL' if w >= h else 'VERTICAL'
+        if dist:
+            cam.type = 'PERSP'; cam.sensor_width = 36; cam.lens = 36 * dist / max(w, h)
+        else:
+            cam.type = 'ORTHO'; cam.ortho_scale = max(w, h)
+        cam.clip_start, cam.clip_end = clip
+        ob.location = pos; ob.rotation_euler = rot
+        s.render.filepath = os.path.join(out, name + '.jpg')
+        print(f'  {name}: {s.render.resolution_x}x{s.render.resolution_y}', flush=True)
+        bpy.ops.render.render(write_still=True)
+    cx, cy = (r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2
+    # walls, from the far side of the room, seeing only the last 30 cm before the wall
+    shoot('wall-z0', (cx, r.y0 + 0.05, H / 2), (math.pi / 2, 0, 0), W, H, (D - 0.17, D + 0.5), D - 0.05)                  # north
+    shoot('wall-x0', (r.x1 - 0.05, cy, H / 2), (math.pi / 2, 0, math.pi / 2), D, H, (W - 0.17, W + 0.5), W - 0.05)       # west
+    shoot('wall-z1', (cx, r.y1 - 0.05, H / 2), (math.pi / 2, 0, math.pi), W, H, (D - 0.17, D + 0.5), D - 0.05)           # south
+    shoot('wall-x1', (r.x0 + 0.05, cy, H / 2), (math.pi / 2, 0, -math.pi / 2), D, H, (W - 0.17, W + 0.5), W - 0.05)      # east
+    shoot('floor', (cx, cy, H - 0.02), (0, 0, 0), W, D, (H - 0.04, H + 0.2))
+    shoot('ceiling', (cx, cy, 0.02), (math.pi, 0, 0), W, D, (H - 0.4, 60))
+    # what the app needs besides: the size, the door, and where no work can hang (windows, glass, doors)
+    def a_of(wall, c):
+        return {'n': c - r.x0, 'w': c - r.y0, 's': r.x1 - c, 'e': r.y1 - c}[wall]
+    name = {'n': 'wall-z0', 'w': 'wall-x0', 's': 'wall-z1', 'e': 'wall-x1'}
+    blocks, door = {v: [] for v in name.values()}, None
+    for wall, c, wd, ht in getattr(r, 'doors', []) or []:
+        a = a_of(wall, c); blocks[name[wall]].append([round(a - wd / 2, 3), round(a + wd / 2, 3)])
+        if wall == 'e' and door is None: door = {'from': round(a - wd / 2, 3), 'to': round(a + wd / 2, 3), 'height': ht}
+    for wall, c, wd, z0, z1 in getattr(r, 'windows', []) or []:
+        a = a_of(wall, c); blocks[name[wall]].append([round(a - wd / 2, 3), round(a + wd / 2, 3)])
+    for wall in getattr(r, 'glass', ''):
+        blocks[name[wall]].append([0, round(W if wall in 'ns' else D, 3)])
+    meta = {'slug': slug, 'type': o['type'], 'label': label, 'w': round(W, 3), 'd': round(D, 3), 'h': round(H, 3),
+            'door': door, 'blocks': {k: v for k, v in blocks.items() if v}, 'light': LIGHTING.get(o['type'], 'spots'),
+            'floorReflect': REFLECT.get(o['type'], [0.04, 0.18]), 'ppm': ppm}
+    json.dump(meta, open(os.path.join(out, 'room.json'), 'w'), indent=1)
+
+
+# how a room is lit, for the light the app adds round each work; how much its floor reflects (near, low angle)
+LIGHTING = {'white-cube': 'spots', 'loft': 'spots', 'salon': 'narrow', 'black-box': 'narrow', 'apartment': 'spots',
+            'skylit-hall': 'daylight', 'concrete': 'daylight', 'studio': 'daylight', 'glass-pavilion': 'daylight', 'japanese': 'daylight'}
+REFLECT = {'white-cube': [0.06, 0.26], 'black-box': [0.08, 0.34], 'glass-pavilion': [0.06, 0.28], 'concrete': [0.04, 0.18],
+           'loft': [0.03, 0.14], 'skylit-hall': [0.03, 0.14], 'salon': [0.03, 0.14], 'apartment': [0.03, 0.14],
+           'studio': [0.0, 0.0], 'japanese': [0.0, 0.0]}
+
+
 def main():
     o = args()
     os.makedirs(o['out'], exist_ok=True)
     build, name, variants = TYPES[o['type']]
     todo = [o['variant']] if o['variant'] != '' or '--variant' in sys.argv else list(variants)
     if o['variant'] == 'all': todo = list(variants)
+    SURF['on'] = o['surfaces']
     for v in todo:
-        MATS.clear(); NORMAL.clear()
+        MATS.clear(); NORMAL.clear(); SHELLS.clear()
         s = reset(o)
         build(v)
         s.view_settings.exposure = EXPOSURE.get((o['type'], v), EXPOSURE.get(o['type'], 0.0))
@@ -1230,6 +1305,8 @@ def main():
             s.view_settings.white_balance_temperature = BALANCE.get(o['type'], 4300)
         except Exception as e: print('no white balance:', e)
         slug = f'{o["type"]}{"-" + v if v else ""}'
+        if o['surfaces']:
+            surfaces(slug, o, variants[v]); continue
         s.render.filepath = os.path.join(o['out'], slug + '.jpg')
         print(f'rendering {slug}: {name}, {variants[v]}', flush=True)
         bpy.ops.render.render(write_still=True)

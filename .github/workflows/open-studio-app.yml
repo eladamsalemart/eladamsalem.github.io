@@ -11,7 +11,7 @@ on:
       - 'studio/app/**'
       - '!studio/app/space/pipeline/**'
   workflow_run:
-    workflows: [Studio spaces, "Art map: exhibitions", "Art map: places"]
+    workflows: [Studio spaces, Studio rooms, "Art map: exhibitions", "Art map: places"]
     types: [completed]
   workflow_dispatch:
 
@@ -58,6 +58,8 @@ jobs:
           for k in $(python3 -c "import json;print(' '.join(s['slug'] for s in json.load(open('$src/data/virtual.json'))['shows']))"); do
             [ -d $src/data/spaces/$k ] && cp -r $src/data/spaces/$k open-studio/data/spaces/
           done
+          # the ten kinds of room, their surfaces photographed in Blender ("Studio rooms"), for artists' own shows
+          cp -r $src/data/rooms open-studio/data/ 2>/dev/null || true
           # small versions of the site's images, for grids and lists on a phone
           python3 /tmp/studio/studio/app/thumbs.py media open-studio
           # a new cache name with every version, so an installed app drops what it kept from the last one
