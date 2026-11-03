@@ -91,3 +91,12 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    (19 sizes turned, exhibitions' works and the Ritual tour set, Pargod and Sliding Wall added).
    Rooms: final renders in studio/design/virtual-spaces/renders; summary PDF open-studio-summary-2026-11-03.pdf (also on
    the owner's Desktop, OPEN STUDIO folder). Next for rooms: the owner chooses; then stage 0 (bake one room for the app).
+8. Exhibitions, as an artist makes one (3.11 evening): the studio's exhibition page is two steps, "1 Your exhibition"
+   (what visitors see) and "2 A walk-through tour (optional)" with a checklist, "Material for the tour only" (photos and
+   a video in the private bucket `tour-material/<uid>/<exhibition>/`, ≤50 MB, never on the page: `tourFiles` in the
+   exhibition) and "Ask for a tour" (`tour: 'requested'`, `tourRequested`); the control room's Overview lists the
+   requests. NOT DONE: the server building those tours. The pipeline (space/pipeline, load_exhibition in works.py) reads
+   content/*.json + data/studio.json only, and its inspection opens the public app; to do: a workflow that takes
+   requested exhibitions from Supabase (secret key), downloads photos/video/works, builds and inspects, publishes the
+   space and sets the exhibition's tour to live (space.slug) or 'more' with `tourNote`. Artist names: setup asks for
+   English letters; the import replaces a non-Latin name with the site's.

@@ -102,6 +102,8 @@ function tourFlag(ex) {
   if (ex.tour === 'live') return ['ok', 'Tour live'];
   if (ex.real) return ex.real.state === 'building' ? ['ok', 'Being built'] : ['no', 'Not yet'];
   if (ex.tour === 'building') return ['ok', 'Being built'];
+  if (ex.tour === 'requested') return ['ok', 'Tour requested'];
+  if (ex.tour === 'more') return ['no', 'Needs more material'];
   const r = readiness(ex, S.works);
   return r.ready ? ['ok', 'Ready to build'] : ['no', `${r.blocking} to go`];
 }
@@ -113,14 +115,14 @@ function readiness(ex, works) {
   const items = [];
   const noSize = inShow.filter(w => !(w.width > 0 && w.height > 0));
   const small = inShow.filter(w => w.check && w.check.long < 2000);
-  const photos = ex.photos.length;
+  const extra = ex.tourFiles || [], photos = ex.photos.length + extra.filter(f => f.kind === 'photo').length, video = ex.video || extra.some(f => f.kind === 'video');
   items.push(inShow.length ? ['ok', `${inShow.length} works in the show.`] : ['no', 'Add the works that were in the show.']);
   if (noSize.length) items.push(['no', `${noSize.length} ${noSize.length === 1 ? 'work needs its' : 'works need their'} size: ${noSize.map(w => w.title).join(', ')}.`]);
   if (small.length) items.push(['no', `${small.length} ${small.length === 1 ? 'image is' : 'images are'} too small: ${small.map(w => w.title).join(', ')}.`]);
   items.push(photos >= 10 ? ['ok', `${photos} installation photos.`]
     : photos >= 6 ? ['warn', `${photos} installation photos: enough to try. 10 or more, every wall in two of them, makes it reliable.`]
     : ['no', `${photos} installation photos: at least 6 are needed (10 or more is better), wide, with 2–3 works and a corner of the room in each.`]);
-  if (ex.video) items.push(['ok', 'A walk-through video: the tour can be built from it.']);
+  if (video) items.push(['ok', 'A walk-through video: the tour can be built from it.']);
   else items.push(['warn', 'Optional, and the surest way: a slow walk-through video of a minute or two, filming every wall.']);
   const sp = ex.space || {};
   items.push(sp.ceiling || sp.centre || sp.depth ? ['ok', 'Room details added: they make the tour more exact.'] : ['warn', 'Optional: the room details below (ceiling height, canvas depth...) make the tour more exact.']);
@@ -308,7 +310,7 @@ function setup(u) {
   return `<div class="wrap gut st">${head('Your studio')}
     <p class="m">Two steps to a page of your own: who you are, then your work, brought in from where it already is (your website, Instagram, a Drive folder or your phone). Open Studio looks at every new page before it goes live.</p>
     <form class="st-form" id="setup">
-      <label>Your name, as an artist<input name="name" required value="${esc(u.name || '')}" autocomplete="name"></label>
+      <label>Your name, as an artist, in English letters (the app is in English)<input name="name" required value="${esc(/^[\x00-\u024f\s'.-]+$/.test(u.name || '') ? u.name : '')}" autocomplete="name" placeholder="e.g. Maya Cohen"></label>
       <div class="st-row"><label>You make<input name="discipline" placeholder="Painting"></label><label>City<input name="city" placeholder="Tel Aviv"></label></div>
       <div class="st-row"><label>Instagram<input name="instagram" placeholder="@yourname" autocapitalize="off"></label><label>Website<input name="link" type="url" placeholder="https://" inputmode="url"></label></div>
       <p class="err m small" role="alert"></p>
@@ -500,6 +502,7 @@ const same = (a, b) => String(a || '').trim().toLowerCase().replace(/^["“]|["�
 function bringRest(x) {
   const a = S.artist, ab = x.about || {}, said = [];
   const fill = (k, v) => { if (v && !a[k]) { a[k] = v; return true; } return false; };
+  if (ab.name && !/^[\x00-\u024f\s'.-]+$/.test(a.name || '')) { a.name = ab.name; said.push('your name as your website writes it'); }
   if ([fill('statement', (ab.statement || '').replace(/^["“]|["”]$/g, '')), fill('bio', ab.bio), fill('photo', ab.photo), fill('discipline', ab.discipline), fill('city', ab.city), fill('instagram', ab.instagram)].some(Boolean)) said.push('your profile');
   if (x.cv.length) { a.cv = x.cv; said.push(`your CV (${x.cv.length} lines)`); }
   let n = 0;
@@ -537,16 +540,10 @@ function exhibitionPage(id) {
   if (!ex) return `<div class="wrap gut st">${head('Not found', '#/studio/exhibitions')}</div>`;
   const r = readiness(ex, S.works), sp = ex.space || {};
   const status = ex.real ? ex.real : null;
+  const extra = ex.tourFiles || [], hasVideo = ex.video || extra.some(f => f.kind === 'video');
+  const canAsk = !status && ex.tour !== 'live' && ex.tour !== 'requested' && ex.tour !== 'building' && (r.ready || hasVideo);
   return `<div class="wrap gut st">${head(isNew ? 'Add an exhibition' : ex.title, '#/studio/exhibitions')}
-    ${isNew ? '' : `<section class="st-card">
-      <div class="sec-h"><h2>Walkable tour</h2><span class="st-flag ${tourFlag(ex)[0]}">${tourFlag(ex)[1]}</span></div>
-      ${status ? `<p class="m">${esc(status.summary)}</p>${checks(status.items)}`
-        : `<p class="m">A tour is built from your installation photos and the works, then checked view by view before it goes up. This is what it still needs:</p>${checks(r.items)}`}
-      ${!status && r.ready && ex.tour !== 'live' ? '<button class="btn f" type="button" id="buildTour">Build the tour</button>' : ''}
-      ${ex.tour === 'building' ? '<p class="m small">Building: you\'ll get an email when it\'s ready, or what to add if it doesn\'t pass its checks.</p>' : ''}
-      ${ex.tour === 'live' && ex.space && ex.space.slug ? `<p class="m">This exhibition has a walkable tour, built from its installation photos.</p><div class="btns"><a class="btn f" href="#/exhibition/${esc(ex.space.slug)}/space">Walk through the tour</a></div>` : ''}
-      ${ex.tour === 'live' && ex.real ? share(ex) : ''}
-    </section>`}
+    <div class="st-step"><span class="n">1</span><div><h2>Your exhibition</h2><p class="m small">What visitors see on your page: the details, a few words, the installation photos and the works that were in the show.</p></div></div>
     <form class="st-form" id="exForm" data-id="${esc(ex.id)}">
       <label>Title<input name="title" required value="${esc(ex.title)}"></label>
       <div class="st-row"><label>Venue<input name="venue" value="${esc(ex.venue)}"></label><label>City<input name="city" value="${esc(ex.city)}"></label></div>
@@ -558,10 +555,23 @@ function exhibitionPage(id) {
         <div class="st-photos">${ex.photos.map((p, i) => `<figure><img src="${esc(p.src)}" alt="Installation photo ${i + 1}"><button type="button" data-delphoto="${i}" aria-label="Remove">×</button></figure>`).join('')}
           <label class="st-add"><input type="file" accept="image/*" multiple name="photos" hidden>+ Add photos</label></div>
         <p class="m small">Wide views, each with 2–3 works and a corner of the room, so that every wall is in at least two photos. Natural light, no people in front of the works.</p></fieldset>
-      <fieldset><legend>Walk-through video (optional)</legend>
-        <label class="st-add wide"><input type="file" accept="video/*" name="video" hidden>${ex.video ? '✓ ' + esc(ex.video) : '+ Add a video'}</label>
-        <p class="m small">The surest way to a tour. Hold the phone sideways, walk slowly down the middle of the room and back, filming every wall, a minute or two. Turn slowly at the ends, with a little of the floor and ceiling in view.</p></fieldset>
-      <fieldset><legend>The room (optional, makes the tour exact)</legend>
+      <div class="btns"><button class="btn f" type="submit">${isNew ? 'Save, then on to the tour' : 'Save'}</button>${isNew ? '' : '<button class="btn g" type="button" id="delEx">Delete</button>'}</div>
+    </form>
+    ${isNew ? '' : `<div class="st-step"><span class="n">2</span><div><h2>A walk-through tour <span class="m">(optional)</span></h2><p class="m small">Visitors walk through the show in 3D, every work at its real size and place. Open Studio builds it from your installation photos and the works' sizes, and checks it view by view before it goes up.</p></div></div>
+    <section class="st-card st-tour">
+      <div class="sec-h"><h3>Where it stands</h3><span class="st-flag ${tourFlag(ex)[0]}">${tourFlag(ex)[1]}</span></div>
+      ${ex.tour === 'live' && ex.space && ex.space.slug ? `<p class="m">This exhibition has a walkable tour.</p><div class="btns"><a class="btn f" href="#/exhibition/${esc(ex.space.slug)}/space">Walk through the tour</a></div>`
+        : ex.tour === 'requested' || ex.tour === 'building' ? `<p class="m">Asked for on ${esc(new Date(ex.tourRequested || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }))}. Open Studio is building it: it shows here when it's ready, usually within a few days, or with what to add if the photos aren't enough.</p>`
+        : status ? `<p class="m">${esc(status.summary)}</p>${checks(status.items)}`
+        : `<p class="m">${r.ready ? 'Everything a tour needs is here.' : 'What a tour still needs:'}</p>${checks(r.items)}`}
+      ${ex.tour === 'more' && ex.tourNote ? `<p class="st-status no">${esc(ex.tourNote)}</p>` : ''}
+      <h3>Material for the tour only</h3>
+      <p class="m small">More installation photos, and a walk-through video if you have one. They help build the tour and are <b>never shown on your page</b>. Photos: wide, 2–3 works and a corner of the room in each. Video: phone sideways, walk slowly down the middle and back, filming every wall (up to 50 MB).</p>
+      <div class="st-files">${extra.map((f, i) => `<div class="st-file"><span>${f.kind === 'video' ? '▶' : '▣'} ${esc(f.name)}</span><button type="button" data-deltour="${i}" aria-label="Remove ${esc(f.name)}">×</button></div>`).join('') || '<p class="m small">Nothing yet.</p>'}</div>
+      <div class="btns"><label class="btn g"><input type="file" accept="image/*,video/*" multiple id="tourFiles" hidden>+ Add photos or a video</label></div>
+      <p class="m small" id="tourMsg" role="status"></p>
+      <details class="st-room"><summary>The room, if you know it (makes the tour exact)</summary>
+      <form class="st-form" id="roomForm">
         <div class="st-row"><label>Ceiling height (m)<input name="ceiling" inputmode="decimal" placeholder="3.40" value="${esc(sp.ceiling || '')}"></label>
           <label>Works hung at, centre (cm)<input name="centre" inputmode="decimal" placeholder="150" value="${esc(sp.centre || '')}"></label></div>
         <div class="st-row"><label>Canvas depth (cm)<input name="depth" inputmode="decimal" placeholder="3.5" value="${esc(sp.depth || '')}"></label>
@@ -569,9 +579,12 @@ function exhibitionPage(id) {
         <div class="st-row"><label>Light<select name="light">${['', 'Spotlights', 'Daylight', 'Both'].map(f => `<option ${sp.light === f ? 'selected' : ''}>${f}</option>`).join('')}</select></label>
           <label>Walls<select name="walls">${['', 'White', 'Coloured', 'Mixed'].map(f => `<option ${sp.walls === f ? 'selected' : ''}>${f}</option>`).join('')}</select></label></div>
         <label>Room size, if measured (m)<input name="room" placeholder="12.4 × 6.1" value="${esc(sp.room || '')}"></label>
-        <p class="m small">A laser measure gives the room's size in seconds; one measured height (the centre of one work above the floor) fixes the whole room's scale.</p></fieldset>
-      <div class="btns"><button class="btn f" type="submit">Save</button>${isNew ? '' : '<button class="btn g" type="button" id="delEx">Delete</button>'}</div>
-    </form>
+        <p class="m small">A laser measure gives the room's size in seconds; one measured height (the centre of one work above the floor) fixes the whole room's scale.</p>
+        <div class="btns"><button class="btn g" type="submit">Save the room</button></div></form></details>
+      ${canAsk ? '<div class="btns st-ask"><button class="btn f" type="button" id="buildTour">Ask for a tour</button></div>' : ''}
+      ${!canAsk && ex.tour === 'none' && !r.ready && !hasVideo ? '<p class="m small">Add the missing photos (or a video) above, and “Ask for a tour” appears here.</p>' : ''}
+      ${ex.tour === 'live' && ex.real ? share(ex) : ''}
+    </section>`}
   </div>`;
 }
 
@@ -734,13 +747,11 @@ function wire(app, go) {
       for (const f of e.target.files) photos.push({ src: await asDataURL(f, 1400), name: f.name });
       store(false); go(location.hash, true);
     };
-    xf.querySelector('input[name=video]').onchange = e => { const f = e.target.files[0]; if (f) { video = f.name; store(false); go(location.hash, true); } };
     xf.querySelectorAll('[data-delphoto]').forEach(b => b.onclick = () => { photos.splice(+b.dataset.delphoto, 1); store(false); go(location.hash, true); });
     function store(leave = true) {
       const f = new FormData(xf);
       const data = { title: f.get('title').trim() || 'Untitled exhibition', venue: f.get('venue'), city: f.get('city'), dates: f.get('dates'), curator: f.get('curator'), text: f.get('text'),
-        works: f.getAll('works'), photos, video, year: (f.get('dates').match(/\d{4}/) || [String(new Date().getFullYear())])[0],
-        space: { ceiling: f.get('ceiling'), centre: f.get('centre'), depth: f.get('depth'), floor: f.get('floor'), light: f.get('light'), walls: f.get('walls'), room: f.get('room') } };
+        works: f.getAll('works'), photos, video, year: (f.get('dates').match(/\d{4}/) || [String(new Date().getFullYear())])[0] };
       let target = ex;
       if (!target) { target = { id: uid(), tour: 'none', ...data }; S.exhibitions.unshift(target); xf.dataset.id = target.id; if (!leave) history.replaceState(null, '', `#/studio/exhibition/${target.id}`); }
       else Object.assign(target, data);
@@ -756,8 +767,30 @@ function wire(app, go) {
     try { await navigator.clipboard.writeText(input.value); } catch { input.select(); document.execCommand('copy'); }
     const t = b.textContent; b.textContent = 'Copied'; setTimeout(() => { b.textContent = t; }, 1600);
   });
+  const thisEx = () => S.exhibitions.find(x => location.hash.endsWith('/' + x.id));
+  const rf = $('#roomForm');
+  if (rf) rf.onsubmit = e => {
+    e.preventDefault(); const ex = thisEx(), f = new FormData(rf);
+    ex.space = { ...(ex.space || {}), ceiling: f.get('ceiling'), centre: f.get('centre'), depth: f.get('depth'), floor: f.get('floor'), light: f.get('light'), walls: f.get('walls'), room: f.get('room') };
+    save(); go(location.hash, true);
+  };
+  const tf = $('#tourFiles');
+  if (tf) tf.onchange = async () => {
+    const ex = thisEx(), msg = $('#tourMsg'); ex.tourFiles = ex.tourFiles || [];
+    for (const [i, file] of [...tf.files].entries()) {
+      msg.textContent = `Uploading ${i + 1} of ${tf.files.length}: ${file.name}…`;
+      try { ex.tourFiles.push(S.cloud ? await cloud.uploadTourFile(ex.id, file) : { path: '', name: file.name, kind: /^video\//.test(file.type) ? 'video' : 'photo' }); }
+      catch (e) { msg.textContent = e.message; return; }
+    }
+    await save(); go(location.hash, true);
+  };
+  app.querySelectorAll('[data-deltour]').forEach(b => b.onclick = async () => {
+    const ex = thisEx(), f = ex.tourFiles[+b.dataset.deltour]; if (!f) return;
+    if (S.cloud && f.path) await cloud.removeTourFile(f.path).catch(() => {});
+    ex.tourFiles.splice(+b.dataset.deltour, 1); save(); go(location.hash, true);
+  });
   const bt = $('#buildTour');
-  if (bt) bt.onclick = () => { const ex = S.exhibitions.find(x => location.hash.endsWith(x.id)); if (ex) { ex.tour = 'building'; save(); go(location.hash, true); } };
+  if (bt) bt.onclick = () => { const ex = thisEx(); if (ex) { ex.tour = 'requested'; ex.tourRequested = new Date().toISOString(); ex.tourNote = ''; save(); go(location.hash, true); } };
 
   const pf = $('#profForm');
   if (pf) {

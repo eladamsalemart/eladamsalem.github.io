@@ -131,6 +131,19 @@ async function push(S) {
   last = JSON.stringify(S);
 }
 
+// --- material for a walkable tour only (more photos, a walk-through video): kept private, never on the page -----------
+export async function uploadTourFile(exId, file) {
+  const { c, user } = await session();
+  const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0].toLowerCase(), path = `${user.id}/${exId}/${crypto.randomUUID()}${ext}`;
+  const { error } = await c.storage.from('tour-material').upload(path, file, { contentType: file.type || undefined, upsert: false });
+  if (error) throw new Error(/size|large|exceed/i.test(error.message) ? `${file.name} is larger than 50 MB: shorten the video, or film at 1080p.` : error.message);
+  return { path, name: file.name, kind: /^video\//.test(file.type) ? 'video' : 'photo', size: file.size };
+}
+export async function removeTourFile(path) {
+  const { c } = await session();
+  await c.storage.from('tour-material').remove([path]);
+}
+
 // --- review: the artist sends their page to Open Studio (or takes it back); the database allows no more than that
 export async function setStatus(status) {
   const { c, user } = await session();

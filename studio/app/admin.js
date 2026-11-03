@@ -44,6 +44,9 @@ async function overview(c) {
     c.from('works').select('id', { count: 'exact', head: true }),
     c.from('virtual_shows').select('id').eq('status', 'published'),
   ]);
+  const { data: withShows = [] } = await c.from('artists').select('id, name, exhibitions');
+  const tours = withShows.flatMap(a => (a.exhibitions || []).filter(e => e.tour === 'requested' || e.tour === 'building').map(e => ({ uid: a.id, name: a.name, title: e.title,
+    photos: (e.photos || []).length, extra: (e.tourFiles || []).length, video: !!(e.video || (e.tourFiles || []).some(f => f.kind === 'video')), at: e.tourRequested || Date.now() })));
   const today = people.filter(p => p.created_at >= since(1)).length, week = people.filter(p => p.created_at >= since(7)).length;
   const stat = (n, t, href) => `<a class="adm-stat" href="${href}"><b>${n}</b><span>${t}</span></a>`;
   return `<div class="adm-stats">
@@ -53,6 +56,9 @@ async function overview(c) {
       ${stat(allWorks ?? 0, 'עבודות', '#/admin/artists')}${stat(shows.length, 'תערוכות מפורסמות', '#/admin/curated')}</div>
     <section class="sec"><div class="sec-h"><h2>אמנים מחכים לאישור</h2><a class="more" href="#/admin/artists">כל האמנים ←</a></div>
       ${waiting.length ? `<div class="list">${waiting.map(a => `<a class="row noimg" href="#/admin/artists"><div class="t"><div><b>${esc(a.name)}</b></div><div class="m">${esc([a.discipline, a.city].filter(Boolean).join(' · '))} · מאז ${day(a.created_at)}</div></div><span class="st-flag">מחכה</span></a>`).join('')}</div>` : '<p class="m">אין אף אחד שמחכה.</p>'}</section>
+    ${tours.length ? `<section class="sec"><div class="sec-h"><h2>בקשות לסיור תלת־ממדי</h2><span class="more">${tours.length}</span></div>
+      <p class="m small">אמן ביקש סיור לתערוכה שלו. החומר לסיור (צילומים וסרטון שלא מופיעים בעמוד) שמור בתיקייה פרטית, ותהליך הבנייה בשרת מתחבר לכאן בשלב הבא.</p>
+      <div class="list">${tours.map(t => `<a class="row noimg" href="#/preview/${t.uid}"><div class="t"><div><b>${esc(t.title)}</b> · ${esc(t.name)}</div><div class="m">${t.photos} צילומי הצבה · ${t.extra} קבצים לסיור${t.video ? ' · יש סרטון' : ''} · ${day(t.at)}</div></div><span class="st-flag">ביקש סיור</span></a>`).join('')}</div></section>` : ''}
     <section class="sec"><div class="sec-h"><h2>עבודות חדשות לבדיקה</h2><span class="more">${fresh.length}</span></div>
       <p class="m small">עבודה עולה לאפליקציה מיד כשהאמן מוסיף אותה (אם האמן כבר מאושר). מספיק להסתכל פעם אחת: "נראה טוב" מוריד אותה מהרשימה; "הסתר" מוריד אותה מהאפליקציה, והאמן עדיין רואה אותה בסטודיו שלו.</p>
       ${fresh.length ? `<div class="adm-works">${fresh.map(w => `<article class="st-card adm-work" data-work="${w.id}"><img src="${esc(w.thumb || w.image)}" alt="" loading="lazy">
