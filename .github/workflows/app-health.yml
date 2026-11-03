@@ -50,7 +50,7 @@ jobs:
           set +e
           mkdir -p "$RUNNER_TEMP/health"
           node studio/app/health/health.cjs https://eladamsalem.com/open-studio/ "$RUNNER_TEMP/health"; pages=$?
-          node studio/app/check_home.cjs https://eladamsalem.com/open-studio/ > "$RUNNER_TEMP/health/home.txt"; home=$?
+          node studio/app/check_home.cjs https://eladamsalem.com/open-studio/ "$RUNNER_TEMP/health" > "$RUNNER_TEMP/health/home.txt"; home=$?
           python3 studio/app/check_app.py > "$RUNNER_TEMP/health/app.txt"; app=$?
           python3 studio/app/health/deps.py "$RUNNER_TEMP/health/deps.json" > "$RUNNER_TEMP/health/deps.txt"; deps=$?
           cat "$RUNNER_TEMP/health/home.txt" "$RUNNER_TEMP/health/app.txt" "$RUNNER_TEMP/health/deps.txt"
