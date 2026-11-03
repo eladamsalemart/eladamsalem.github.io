@@ -19,7 +19,34 @@ async function loadData() {
   const thumbs = await get('data/thumbs.json').catch(() => ({}));
   // the demo world: fictional artists, galleries and shows, to see the app full (data/demo/world.json)
   const world = await get('data/demo/world.json').catch(() => null);
-  return { settings, works, exhibitions, objects, cv, studio, spaces, thumbs, world };
+  // virtual exhibitions: designed here, in rooms that exist only here (data/virtual.json, space/synth.js)
+  const virtual = await get('data/virtual.json').catch(() => null);
+  // the artists Open Studio has approved, their works and the exhibitions they published (Supabase): never waited
+  // on. The app opens with what this phone had last time; the fresh list follows, and redraws only if it changed.
+  let community = null;
+  try { community = JSON.parse(localStorage.getItem('os-community') || 'null'); } catch {}
+  return { settings, works, exhibitions, objects, cv, studio, spaces, thumbs, world, virtual, community };
+}
+function freshCommunity(d) {
+  communityData().then(c => {
+    const was = JSON.stringify(d.community || { artists: [], works: [], shows: [] }), now = JSON.stringify(c);
+    try { localStorage.setItem('os-community', now); } catch {}
+    if (now === was) return;
+    M = buildModel({ ...d, community: c });
+    // (the page being read isn't pulled from under the reader: only a list that can show the new ones is redrawn)
+    if (/^#?\/?$|^#\/(artists|shows|search)$|^#\/(artist|exhibition)\//.test(location.hash || '#/') && !openSpaceView) render();
+  }).catch(e => console.warn('community', e));
+}
+const DB = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/rest/v1/', DB_KEY = 'sb_publishable_VKboaeE8UE3iwVKhyr4FSA_faDO17fu';
+async function communityData() {
+  const signal = AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
+  const q = path => fetch(DB + path, { headers: { apikey: DB_KEY }, signal }).then(r => r.ok ? r.json() : []);
+  const [artists, works, shows] = await Promise.all([
+    q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,link,instagram&status=eq.approved'),
+    q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position&order=position'),
+    q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,starts,ends,owner_id,created_at&status=eq.published'),
+  ]);
+  return { artists, works, shows };
 }
 
 // --- model -----------------------------------------------------------------
@@ -82,7 +109,59 @@ function buildModel(d) {
   const m = { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: { ...(d.thumbs || {}) },
     live: [], listings: [], places: {} };
   if (d.world) addWorld(m, d.world, uniq, seen);
+  if (d.community) addCommunity(m, d.community, uniq, seen);
+  if (d.virtual) addVirtual(m, d.virtual, uniq);
+  if (d.community) addVirtual(m, { shows: d.community.shows.map(showOf(m)) }, uniq);
   return m;
+}
+
+// artists on Open Studio (approved), with their works
+function addCommunity(m, c, uniq, seen) {
+  const A = new Map();
+  for (const a of c.artists) {
+    const slug = uniq(a.slug); seen.add(slug);
+    const x = { slug, name: a.name, discipline: a.discipline || '', city: a.city || '', country: a.country || '', statement: a.statement || '', bio: a.bio || '',
+      portrait: a.photo || '', label: [a.discipline, a.city].filter(Boolean).join(' · '), link: a.link || '', instagram: a.instagram || '', community: true, uid: a.id };
+    A.set(a.id, x); m.artists.push(x);
+  }
+  for (const w of c.works) {
+    const a = A.get(w.artist_id); if (!a) continue;
+    const pairs = w.width && w.height ? [[+w.height, +w.width]] : [];
+    m.works.push({ i: m.works.length, slug: uniq(slugify(`${w.title}-${a.slug}`)), id: w.id, title: w.title, year: w.year || '', medium: w.medium || '', pairs,
+      size: pairs.length ? `${pairs[0][0]} × ${pairs[0][1]} cm` : '', image: w.image, artist: a, community: true });
+    if (w.thumb) m.thumbs[w.image] = w.thumb;
+  }
+  m.works.sort((a, b) => (+b.year || 0) - (+a.year || 0) || a.i - b.i);
+}
+// a show from the database, in the shape of data/virtual.json (its works by id, or by the app's slug for the site's)
+const showOf = m => v => {
+  const made = v.created_at || new Date().toISOString();
+  const owner = m.artists.find(a => a.uid === v.owner_id);
+  const keys = (v.works || []).map(w => (m.works.find(x => (w.id && x.id === w.id) || (w.slug && x.slug === w.slug)) || {}).slug).filter(Boolean);
+  const artists = [...new Set(keys.map(k => m.works.find(x => x.slug === k).artist.slug))];
+  return { slug: v.slug || `show-${v.id.slice(0, 8)}`, kind: v.kind, title: v.title, artists: v.kind === 'artist' && owner ? [owner.slug] : artists, curator: v.curator || '',
+    room: v.room, paint: v.paint, centre: v.centre, start: v.starts || made.slice(0, 10), end: v.ends || `${+made.slice(0, 4) + 1}${made.slice(4, 10)}`,
+    text: v.text ? v.text.split(/\n\s*\n/) : [], works: keys };
+};
+
+// a virtual exhibition is an online show whose room is drawn here (space/synth.js) around the works it hangs
+const ROOM_NAMES = { 'white-cube': 'White Cube', 'long-hall': 'Long Hall', vault: 'The Vault' };
+function addVirtual(m, v, uniq) {
+  for (const x of v.shows || []) {
+    const works = x.works.map(s => m.works.find(w => w.slug === s)).filter(Boolean);
+    const artists = x.artists.map(s => m.artists.find(a => a.slug === s)).filter(Boolean);
+    if (!works.length || !artists.length) continue;
+    const start = new Date(`${x.start}T00:00`), end = new Date(`${x.end}T23:59`);
+    const fmt = t => t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const room = ROOM_NAMES[x.room] || 'A virtual room';
+    m.exhibitions.push({
+      slug: uniq(x.slug), title: x.title, year: String(start.getFullYear()), venue: `Open Studio · ${room}`, address: '',
+      dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: x.text || [], images: x.cover ? [x.cover] : [works[0].image], city: '', country: '',
+      confirmed: true, artist: artists[0], artists, works, maybe: [], kind: 'online', start, end, hours: '', curator: x.curator || '',
+      events: [], virtual: x,
+      space: { source: `${room}, a virtual room`, virtual: { title: x.title, room: x.room, paint: x.paint, centre: x.centre } },
+    });
+  }
 }
 
 // a show's dates as days: "21 Feb — 30 May, 2026" (else the whole year it's from)
@@ -490,12 +569,12 @@ function exhibition(slug) {
     <div class="album">
       ${im(e.images[0], `Installation view of ${e.title}`, 'class="cover" loading="eager"', '100vw')}
       <h1>${esc(e.title)}</h1>
-      <div class="k">${status(e) === 'past' ? 'Exhibition' : `<span class="dot"></span>&nbsp; ${lh(when(e))}`} · ${e.kind === 'online' ? 'Online' : esc(e.city || e.year)}</div>
+      <div class="k">${status(e) === 'past' ? 'Exhibition' : `<span class="dot"></span>&nbsp; ${lh(when(e))}`} · ${e.virtual ? (e.virtual.kind === 'curated' ? 'Curated' : 'Virtual') : e.kind === 'online' ? 'Online' : esc(e.city || e.year)}</div>
       <div class="bys">${(e.artists || [e.artist]).map(a => `<a class="by" href="#/artist/${a.slug}">${im(a.portrait, '')}${esc(a.name)}</a>`).join('')}</div>
-      <div class="m">${esc([e.dates, e.kind === 'online' ? 'An online exhibition' : e.venue].filter(Boolean).join(' · '))}${e.curator ? ` · Curated by ${esc(e.curator)}` : ''}</div>
+      <div class="m">${esc([e.dates, e.virtual ? e.venue : e.kind === 'online' ? 'An online exhibition' : e.venue].filter(Boolean).join(' · '))}${e.curator ? ` · Curated by ${esc(e.curator)}` : ''}</div>
       ${status(e) !== 'past' && (e.address || e.hours) ? `<div class="visit">${e.address ? `<a href="#/map/${e.slug}"><b>${esc(e.venue)}</b><span>${esc(e.address)}</span></a>` : ''}${e.hours ? `<span>${esc(e.hours)}</span>` : ''}</div>` : ''}
       ${e.events.filter(v => +v.at > Date.now() - 3 * 3600000).map(v => `<div class="event"><b>${esc(dayName(v.at))}</b><span>${lh(`${v.what} · ${hm(v.at)}`)} · ${esc(v.at.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }))}</span></div>`).join('')}
-      ${e.space ? `<div class="btns"><a class="btn f" href="#/exhibition/${e.slug}/space">Enter the space</a></div><p class="m">${esc(e.space.source)}: a walkable 3D space in the room's own light, with every work at its measured size and place.</p>` : ''}
+      ${e.space ? `<div class="btns"><a class="btn f" href="#/exhibition/${e.slug}/space">Enter the space</a></div><p class="m">${e.virtual ? `${esc(e.space.source)}: a room that exists only here, ${e.virtual.kind === 'curated' ? 'hung by the curator' : 'hung by the artist'}, every work at its real size.` : `${esc(e.space.source)}: a walkable 3D space in the room's own light, with every work at its measured size and place.`}</p>` : ''}
     </div>
     ${e.works.length ? `<section class="sec"><div class="sec-h"><h2>Works</h2><span class="more">${e.works.length} works</span></div>
       ${e.confirmed ? '' : `<p class="note">${e.space ? 'Identified from the installation photos, in walking order. Waiting for the artist to confirm.' : 'Draft list, grouped by year. Waiting for the artist to confirm which works were in the show.'}</p>`}
@@ -748,7 +827,16 @@ function render() {
     if (!me) { location.replace('#/welcome'); return; }
     if (me.details === false) { location.replace('#/welcome/details'); return; }
     if (!me.role) { location.replace('#/welcome/role'); return; }
-    if (me.role === 'artist' && !sessionStorage.getItem('os-browse')) { location.replace('#/welcome/artist'); return; }
+    // (an artist sees the same app as everyone; their studio is a tap away, from their account)
+  }
+  // the control room, for the people who run Open Studio (admin.js; the database decides who may)
+  if (hash.startsWith('#/admin')) {
+    if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }
+    document.querySelector('.bar').hidden = true; document.querySelector('.tabs').hidden = true; document.body.classList.remove('has-tabs');
+    delete document.body.dataset.look;
+    const go = (h, same) => { if (same || h === location.hash) render(); else location.hash = h; };
+    import('./admin.js').then(m => m.admin(hash, app, go, M)).catch(e => { console.error(e); app.innerHTML = '<div class="wrap gut loading"><p>The control room couldn’t load.</p></div>'; });
+    return;
   }
   // the artist's side: its own screens, without the visitors' bar and tabs
   if (hash.startsWith('#/studio')) {
@@ -790,11 +878,15 @@ async function enterSpace(slug) {
   const e = M.exhibitions.find(x => x.slug === slug);
   if (!e || !e.space) return;
   const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
+  // a virtual room is drawn here, around the show's works, before it opens
+  let spec = e.space, made = null;
+  if (e.space.virtual) { made = await (await import('./space/synth.js')).buildRoom({ ...e.space.virtual, works: e.works }, src); spec = made.spec; }
   openSpaceView = await openSpace({
-    spec: e.space, works: M.works, src,
+    spec, works: e.space.virtual ? e.works : M.works, src,
     // leaving the space goes back to where it was entered from, without leaving the space in the history
     onClose: () => {
       openSpaceView = null;
+      if (made) made.revoke();
       const page = `#/exhibition/${slug}`;
       if (prevHash === page || prevHash === '#/') history.back(); else location.replace(page);
     },
@@ -898,7 +990,7 @@ function openZoom(url) {
 document.addEventListener('click', e => { const t = e.target.closest('[data-zoom]'); if (t) openZoom(t.dataset.zoom); });
 
 const returning = /[?&](code|token_hash|error_description)=/.test(location.search) ? import('./auth.js').then(m => m.finishReturn()).catch(() => {}) : Promise.resolve();
-Promise.all([loadData(), returning]).then(([d]) => { M = buildModel(d); render(); window.addEventListener('hashchange', render); })
+Promise.all([loadData(), returning]).then(([d]) => { M = buildModel(d); render(); window.addEventListener('hashchange', render); freshCommunity(d); })
   .then(() => {
     if (!signedIn() || /[?&](inspect|guest)(=|&|$)/.test(location.search)) return;
     import('./auth.js').then(m => m.refresh()).then(next => {
