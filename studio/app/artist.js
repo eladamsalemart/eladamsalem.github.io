@@ -306,6 +306,7 @@ function setup(u) {
 
 // --- bringing work in: from a website, Instagram, a Drive folder, or the phone --------------------------------------
 let found = [];                         // what was found, waiting for the artist to choose
+let extra = null;                       // and the rest of an artist's website: about, CV, exhibitions (Open Studio sites say it plainly)
 function importer() {
   if (!S.cloud && !S.preview) return `<div class="wrap gut st">${head('Bring work in')}${nav('import')}<p class="m">In the demo studio nothing is brought in. <a href="#/welcome">Join as an artist</a> to bring your own work from your website, Instagram, a Drive folder or your phone.</p></div>`;
   const site = S.artist.link || '';
@@ -334,7 +335,10 @@ function importer() {
 function foundList(msg = '') {
   if (!found.length) return msg ? `<p class="m">${msg}</p>` : '';
   const n = found.filter(x => x.on).length;
-  return `<div class="sec-h"><h2>Found ${found.length}</h2><button type="button" class="more" id="imAll">${n === found.length ? 'Choose none' : 'Choose all'}</button></div>${msg ? `<p class="m small">${msg}</p>` : ''}
+  const ex = extra ? [extra.about && (extra.about.statement || extra.about.bio) ? 'your statement, the about text and your portrait' : '', extra.cv.length ? `your CV (${extra.cv.length} lines)` : '',
+    extra.exhibitions.length ? `${extra.exhibitions.length} exhibitions with their photos` : ''].filter(Boolean) : [];
+  return `${ex.length ? `<div class="st-card im-extra"><h3>Also on your website</h3><label class="im-check"><input type="checkbox" id="imExtra" ${extra.on ? 'checked' : ''}> Bring in ${ex.join(', ')}</label></div>` : ''}
+    <div class="sec-h"><h2>Found ${found.length}</h2><button type="button" class="more" id="imAll">${n === found.length ? 'Choose none' : 'Choose all'}</button></div>${msg ? `<p class="m small">${msg}</p>` : ''}
     <div class="im-grid">${found.map((x, i) => `<div class="im-item${x.on ? ' on' : ''}"><label><input type="checkbox" data-i="${i}" ${x.on ? 'checked' : ''}><img src="${esc(x.preview || x.thumb || x.image)}" alt="" loading="lazy" referrerpolicy="no-referrer"></label>
       <input class="im-t" data-t="${i}" value="${esc(x.title || '')}" placeholder="Title" aria-label="Title"></div>`).join('')}</div>
     <div class="btns im-go"><button class="btn f" type="button" id="imAdd" ${n ? '' : 'disabled'}>Bring in ${n} ${n === 1 ? 'work' : 'works'}</button></div>`;
@@ -345,7 +349,7 @@ function wireImport(app, go) {
   // pressed, so an answer brings it into view
   const show = (msg, look) => { box.innerHTML = foundList(msg); wireFound(); if (look) box.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   const tell = msg => show(msg, true);
-  const take = (items, from) => { found = items.map(x => ({ ...x, on: true, from })); tell(items.length ? '' : 'Nothing found there.'); };
+  const take = (items, from) => { if (from !== 'site') extra = null; found = items.map(x => ({ ...x, on: true, from })); tell(items.length ? '' : 'Nothing found there.'); };
   if (S.preview) {   // the control room's preview: the page as a new artist sees it, nothing fetched or kept
     const say = e => { if (e) e.preventDefault(); tell('<span dir="rtl" lang="he">בתצוגה מקדימה לא מייבאים בפועל: כך נראה הדף לאמן חדש.</span>'); };
     app.querySelectorAll('form.im-way').forEach(f => f.onsubmit = say);
@@ -356,7 +360,11 @@ function wireImport(app, go) {
   app.querySelectorAll('form.im-way').forEach(f => f.onsubmit = async e => {
     e.preventDefault();
     const b = f.querySelector('button'); b.disabled = true; b.textContent = 'Looking…'; show('');
-    try { const d = await cloud.find(f.dataset.kind, f.url.value.trim()); take(d.items, f.dataset.kind); }
+    try {
+      const d = await cloud.find(f.dataset.kind, f.url.value.trim());
+      extra = d.about || (d.cv && d.cv.length) || (d.exhibitions && d.exhibitions.length) ? { about: d.about || null, cv: d.cv || [], exhibitions: d.exhibitions || [], on: true } : null;
+      take(d.items, f.dataset.kind);
+    }
     catch (err) { tell(esc(err.message)); }
     b.disabled = false; b.textContent = 'Find my work';
   });
@@ -380,10 +388,11 @@ function wireImport(app, go) {
   function wireFound() {
     box.querySelectorAll('[data-i]').forEach(c => c.onchange = () => { found[+c.dataset.i].on = c.checked; c.closest('.im-item').classList.toggle('on', c.checked); const n = found.filter(x => x.on).length; const a = box.querySelector('#imAdd'); a.disabled = !n; a.textContent = `Bring in ${n} ${n === 1 ? 'work' : 'works'}`; });
     box.querySelectorAll('[data-t]').forEach(t => t.oninput = () => { found[+t.dataset.t].title = t.value; });
+    const ex = box.querySelector('#imExtra'); if (ex) ex.onchange = () => { extra.on = ex.checked; };
     const all = box.querySelector('#imAll'); if (all) all.onclick = () => { const on = found.some(x => !x.on); found.forEach(x => x.on = on); show(); };
     const add = box.querySelector('#imAdd');
     if (add) add.onclick = async () => {
-      const pick = found.filter(x => x.on); let done = 0, failed = 0;
+      const pick = found.filter(x => x.on); let done = 0, failed = 0; const added = [];
       add.disabled = true;
       for (const x of pick) {
         add.textContent = `Bringing in ${done + 1} of ${pick.length}…`;
@@ -391,14 +400,26 @@ function wireImport(app, go) {
           const blob = x.blob || await cloud.fetchImage(x.image);
           const up = await cloud.upload(blob);
           const [a, b] = String(x.size || '').match(/[\d.]+/g) || [];
-          S.works.push({ id: crypto.randomUUID(), title: (x.title || 'Untitled').trim(), year: x.year || '', medium: x.medium || '', width: a ? +a : '', height: b ? +b : '', depth: '',
-            image: up.image, thumb: up.thumb, source: x.from || x.source || '', framed: 'no', check: { W: up.w, H: up.h, long: Math.max(up.w, up.h), mean: 120, clipped: 0, sharp: 0.5, backdrop: false } });
+          const work = { id: crypto.randomUUID(), title: (x.title || 'Untitled').trim(), year: x.year || '', medium: x.medium || '', width: a ? +a : '', height: b ? +b : '', depth: '',
+            image: up.image, thumb: up.thumb, source: x.from || x.source || '', framed: 'no', check: { W: up.w, H: up.h, long: Math.max(up.w, up.h), mean: 120, clipped: 0, sharp: 0.5, backdrop: false } };
+          S.works.push(work); added.push(work);
           done++;
         } catch (e) { console.warn(e); failed++; }
       }
+      const more = extra && extra.on ? bringRest(extra) : [];
+      // a first exhibition in 3D, of what just came in (the works that have a size), to walk into and change
+      const hangable = added.filter(w => +w.width && +w.height).slice(0, 12);
+      let tour = null;
+      if (hangable.length >= 2) {
+        tour = { id: crypto.randomUUID(), title: `${S.artist.name || 'My'}: works`, room: hangable.some(w => +w.width > 200 || +w.height > 200) ? 'long-hall' : 'white-cube',
+          paint: '', centre: 150, text: '', works: hangable.map(w => w.id), status: 'draft', slug: '' };
+        S.virtual.push(tour);
+      }
       await save();
-      found = [];
-      show(`${done} ${done === 1 ? 'work' : 'works'} brought in${failed ? `; ${failed} couldn’t be fetched` : ''}. <a href="#/studio/works">See them in Works</a>, and add their sizes: a virtual room hangs them at their real size.`);
+      found = []; extra = null;
+      show(`${done} ${done === 1 ? 'work' : 'works'} brought in${failed ? `; ${failed} couldn’t be fetched` : ''}${more.length ? `, and ${more.join(', ')}` : ''}.
+        ${tour ? `<a class="btn f" href="#/studio/virtual/${tour.id}">Walk into your exhibition in 3D</a>` : ''}
+        <a href="#/studio/works">See them in Works</a>${more.length ? ' · <a href="#/studio/exhibitions">Your exhibitions</a> · <a href="#/studio/profile">Your profile</a>' : ''}. Works without a size are left out of the 3D room: add their sizes in Works and they hang at their real size.`);
     };
   }
   wireFound();
@@ -430,6 +451,24 @@ function wireInstagram(app, show, take) {
   off.onclick = async () => { off.disabled = true; try { await cloud.instagram('disconnect'); set(false); show('Instagram is disconnected.'); } catch (e) { show(esc(e.message)); } off.disabled = false; };
   cloud.instagram('status').then(d => { set(d.connected, d.username); if (back === 'ok' && d.connected) posts(); }).catch(() => {});
   if (back && back !== 'ok') show(IG_BACK[back] || IG_BACK.error);
+}
+
+// the rest of a website, into the studio: what the artist hasn't written yet is filled in; the CV is the site's;
+// exhibitions not already here are added, with their installation photos (from which a walkable tour can be built)
+function bringRest(x) {
+  const a = S.artist, ab = x.about || {}, said = [];
+  const fill = (k, v) => { if (v && !a[k]) { a[k] = v; return true; } return false; };
+  if ([fill('statement', (ab.statement || '').replace(/^["“]|["”]$/g, '')), fill('bio', ab.bio), fill('photo', ab.photo), fill('discipline', ab.discipline), fill('city', ab.city), fill('instagram', ab.instagram)].some(Boolean)) said.push('your profile');
+  if (x.cv.length) { a.cv = x.cv; said.push(`your CV (${x.cv.length} lines)`); }
+  let n = 0;
+  for (const e of x.exhibitions) {
+    if (S.exhibitions.some(y => y.title.toLowerCase() === e.title.toLowerCase())) continue;
+    S.exhibitions.push({ id: crypto.randomUUID(), title: e.title, venue: e.venue, city: '', year: e.year, dates: e.dates, curator: '', text: e.text, works: [],
+      photos: e.photos.map(src => ({ src })), video: '', space: {}, tour: 'none', cover: e.photos[0] || '' });
+    n++;
+  }
+  if (n) said.push(`${n} ${n === 1 ? 'exhibition' : 'exhibitions'}`);
+  return said;
 }
 
 // a live tour, to share anywhere: a link, and a frame for the artist's own website
@@ -486,6 +525,12 @@ function exhibitionPage(id) {
   </div>`;
 }
 
+// a CV as the site keeps it: lines in groups (Education, Solo Exhibitions...), each with its year
+const cvList = cv => {
+  const groups = [...new Set(cv.map(l => l.group || ''))];
+  return groups.map(g => `<section class="cv-g">${g ? `<h3>${esc(g)}</h3>` : ''}<dl>${cv.filter(l => (l.group || '') === g).map(l => `<div><dt>${esc(l.year)}</dt><dd>${esc(l.title)}${l.venue ? `<span>${esc(l.venue)}</span>` : ''}</dd></div>`).join('')}</dl></section>`).join('');
+};
+
 function profile() {
   const a = S.artist;
   return `<div class="wrap gut st">${head('Profile')}${nav('profile')}
@@ -498,6 +543,8 @@ function profile() {
       <label>Website or Instagram<input name="link" value="${esc(a.link)}"></label>
       <div class="btns"><button class="btn f" type="submit">Save</button><a class="btn g" href="#/studio/preview">See your page</a></div>
     </form>
+    ${(a.cv || []).length ? `<section class="sec"><div class="sec-h"><h2>CV</h2><span class="more">from your website</span></div><div class="cv">${cvList(a.cv)}</div>
+      <p class="m small">Bring your website in again to update it.</p></section>` : ''}
   </div>`;
 }
 

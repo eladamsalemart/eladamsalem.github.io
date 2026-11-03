@@ -89,13 +89,36 @@ async function platform(base: URL): Promise<{ image: string; title: string; year
   return [];
 }
 
+// the rest of an artist's site, where it says it plainly (an Open Studio site's content/*.json): who they are, their CV,
+// their exhibitions with the installation photos
+async function more_of(base: URL) {
+  const tryJson = async (path: string) => { const u = safe(new URL(path, base).href); const r = u && await get(u, 6_000_000, 'application/json'); if (!r) return null; try { return await r.json(); } catch { return null; } };
+  const [s, cv, ex] = await Promise.all([tryJson('/content/settings.json'), tryJson('/content/cv.json'), tryJson('/content/exhibitions.json')]);
+  const abs = (p: string) => { try { return new URL(p, base).href; } catch { return ''; } };
+  const out: Record<string, unknown> = {};
+  if (s && typeof s === 'object') {
+    const label = String(s.hero_label || '');
+    out.about = { name: String(s.hero_title || '').replace(/\n/g, ' ').trim(), statement: String(s.hero_statement || '').trim(), bio: String(s.about_text || '').trim(),
+      photo: s.about_portrait ? abs(s.about_portrait) : '', discipline: label.split('·')[0].trim(), city: (label.split('·')[1] || '').split(',')[0].trim(),
+      instagram: String(s.instagram || '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '@').replace(/\/$/, '') };
+  }
+  if (Array.isArray(cv)) out.cv = cv.filter((l: any) => l && l.title).map((l: any) => ({ group: String(l.group || ''), year: String(l.year || ''), title: String(l.title).trim(), venue: String(l.venue || '').trim() }));
+  if (Array.isArray(ex)) out.exhibitions = ex.filter((e: any) => e && e.title).map((e: any) => {
+    const lines = String(e.description || '').split('\n').map((x: string) => x.trim());
+    const dated = /\d{4}/.test(lines[0] || '') && lines[0].length < 40;
+    return { title: String(e.title).trim(), year: String(e.year || ''), venue: String(e.venue || '').trim(), dates: dated ? lines[0] : '',
+      text: (dated ? lines.slice(1) : lines).filter(Boolean).join('\n\n'), photos: (e.images || []).map(abs).filter(Boolean) };
+  });
+  return out;
+}
+
 async function site(url: string) {
   const start = safe(url.includes('://') ? url : `https://${url}`);
   if (!start) return { error: 'That address can’t be opened.' };
   const r = await get(start); if (!r) return { error: 'The site didn’t answer.' };
   const html = await r.text(), base = new URL(r.url || start.href);
   const listed = await platform(base);
-  if (listed.length) return { source: base.hostname, title: decode(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || ''), pages: 1, items: listed.slice(0, 300) };
+  if (listed.length) return { source: base.hostname, title: decode(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || ''), pages: 1, items: listed.slice(0, 300), ...(await more_of(base)) };
   const items = images(html, base), pages = galleryLinks(html, base);
   const more = await Promise.all(pages.map(async p => { const x = safe(p); const q = x && await get(x); return q ? images(await q.text(), new URL(q.url || p)) : []; }));
   const all = new Map<string, { image: string; title: string; page?: string }>();
