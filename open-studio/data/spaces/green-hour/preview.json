@@ -1,16 +1,31 @@
 {
  "frames": 900,
- "flicker": 2.581,
- "motion": 2.06,
- "psnr_db": 38.8,
+ "flicker": 2.526,
+ "motion": 1.994,
+ "psnr_db": 38.4,
  "width": 1080,
  "height": 1440,
  "fps": 30,
  "seconds": 30,
  "peak_deg_per_s": 3.46,
  "kb": {
-  "preview.mp4": 2911,
-  "preview.hevc.mp4": 1767,
-  "preview.webm": 1907
- }
+  "preview.mp4": 2987,
+  "preview.hevc.mp4": 1884,
+  "preview.webm": 2031
+ },
+ "works": [
+  "garden-at-sainte-adresse",
+  "sunflower-2026",
+  "the-green-stripe",
+  "landscape-with-a-group-of-trees",
+  "summer-s-day",
+  "irises",
+  "nature-2025",
+  "woman-in-the-garden",
+  "gust-of-wind",
+  "the-ten-largest-no-1-childhood",
+  "the-starry-night",
+  "together-2026"
+ ],
+ "room": "long-hall"
 }
