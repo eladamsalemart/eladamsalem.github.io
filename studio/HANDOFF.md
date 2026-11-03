@@ -100,3 +100,23 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    requested exhibitions from Supabase (secret key), downloads photos/video/works, builds and inspects, publishes the
    space and sets the exhibition's tour to live (space.slug) or 'more' with `tourNote`. Artist names: setup asks for
    English letters; the import replaces a non-Latin name with the site's.
+9. Artist tours on the server (3.11 night, DONE): `space/artist_tours.py` + workflow "Artist tours" (every 3 h, or by
+   hand with an exhibition id). The owner's rule: never miss a chance, so EVERY exhibition with photos or a video is
+   tried, asked for or not (asked first, then never tried: `tourTried`); a pass is 'live' (space a-<uid8>-<title>),
+   else 'more' with a plain `tourNote`; the studio offers "Ask for a tour" with any photo. Tried: Nature of Man and BFA,
+   both 'more' (works missing from the photos, walls uncovered: a walk-through video would do it).
+10. Rooms, realism round (3.11 night, owner: "they still look digital"): every material weathered (colour drift, sheen,
+   AO grime), ambientCG smudges on floors, wall washers instead of one flat light, a level camera with shifted lens,
+   white balance per room, lens vignette/bloom; real views through windows (Poly Haven HDRIs urban_street_03,
+   killesberg_park, ninomaru_teien, kloofendal_overcast_puresky) with light portals; Ando formwork joints and tie holes;
+   labels, sockets, sprinklers, exit signs, benches; the Japanese room's shoji open on a garden. Local test: Blender
+   4.5.15 portable in C:\Users\elada\blender, `ROOMS_HDRI=2k` for speed. Research notes (assets, IES, web tech): the
+   subagent's report is summarised in this item; IES not used yet (no free direct library found).
+11. On View (owner's decision 3.11: every artist shows their exhibition now in one of the ten spaces, at the top of their
+   page). "Studio rooms" with surfaces=yes also photographs each empty single-room variant's six surfaces (walls by a
+   perspective camera framing the wall exactly, so windows show the view; floor/ceiling orthographic) into
+   `studio/app/data/rooms/<slug>/` + `index.json` + `view.jpg` (cover); the app publishes after it. synth.js loads them
+   as ROOMS (`baked`), hangs works with blocks for windows/glass/doors, adds spot pools; the studio tab On View
+   (#/studio/onview: space, size, title, works, words; `virtual_shows.on_view`); app.js `onViewBlock` opens the artist's
+   page with it. Multi-room variants and the round black box have no surfaces (not one rectangle). Later: GLB with
+   baked lightmaps for full geometry (columns, vaults, furniture).
