@@ -74,18 +74,20 @@ async function overview(c) {
 // --- artists: approve, hide, a note to the artist ------------------------------------------------------------------
 async function artists(c) {
   const [{ data: rows = [] }, { data: works = [] }] = await Promise.all([c.from('artists').select('*').order('created_at', { ascending: false }), c.from('works').select('artist_id, thumb, image')]);
-  const order = { pending: 0, approved: 1, hidden: 2 };
+  const order = { pending: 0, changes: 1, draft: 2, approved: 3, hidden: 4 };
   rows.sort((a, b) => order[a.status] - order[b.status]);
-  if (!rows.length) return '<p class="m">אף אמן עוד לא יצר עמוד. כשמישהו יצור, הוא יחכה לך כאן.</p>';
+  if (!rows.length) return '<p class="m">אף אמן עוד לא יצר עמוד. כשמישהו יצור ויישלח לבדיקה, הוא יחכה לך כאן.</p>';
   const n = rows.filter(r => r.status === 'pending').length;
-  return `<p class="m">${n ? `<b>${n}</b> מחכים לך.` : 'אין אף אחד שמחכה.'} עמוד מאושר מופיע באפליקציה מיד; עמוד מוסתר לא מופיע, והאמן רואה את ההערה שלך.</p>
+  const label = { pending: 'נשלח לבדיקה', changes: 'מחכה לתיקונים', draft: 'בעבודה, לא נשלח', approved: 'באוויר', hidden: 'מוסתר' };
+  return `<p class="m">${n ? `<b>${n}</b> נשלחו לבדיקה ומחכים לך.` : 'אין אף אחד שמחכה.'} "צפה בעמוד" מראה אותו בדיוק כמו שמבקרים יראו. "בקש שינויים" שולח לאמן את ההערה, הוא מתקן ושולח שוב; "אשר" מעלה את העמוד לאפליקציה.</p>
   <div class="adm-list">${rows.map(a => { const ws = works.filter(w => w.artist_id === a.id); return `<article class="st-card adm-artist" data-id="${a.id}">
-    <div class="sec-h"><h2>${esc(a.name)}</h2><span class="st-flag ${a.status === 'approved' ? 'ok' : a.status === 'hidden' ? 'no' : ''}">${a.status === 'pending' ? 'מחכה' : a.status === 'approved' ? 'באוויר' : 'מוסתר'}</span></div>
+    <div class="sec-h"><h2>${esc(a.name)}</h2><span class="st-flag ${a.status === 'approved' ? 'ok' : a.status === 'hidden' ? 'no' : ''}">${label[a.status] || a.status}</span></div>
     <p class="m small">${esc([a.discipline, a.city, a.country].filter(Boolean).join(' · '))} · ${ws.length} עבודות · הצטרף/ה ${day(a.created_at)}${a.instagram ? ` · <a href="https://instagram.com/${esc(a.instagram.replace(/^@/, ''))}" target="_blank" rel="noopener">${esc(a.instagram)}</a>` : ''}${a.link ? ` · <a href="${esc(a.link)}" target="_blank" rel="noopener">אתר</a>` : ''}</p>
     ${a.statement ? `<p>${esc(a.statement)}</p>` : ''}
     ${ws.length ? `<div class="adm-thumbs">${ws.slice(0, 12).map(w => `<img src="${esc(w.thumb || w.image)}" alt="" loading="lazy">`).join('')}</div>` : '<p class="m small">עוד אין עבודות.</p>'}
-    <label class="adm-note">הערה לאמן (באנגלית, הוא רואה אותה בסטודיו שלו)<input name="note" dir="auto" value="${esc(a.note || '')}" placeholder="e.g. Add sizes to your works, then we'll put you live"></label>
-    <div class="btns">${a.status !== 'approved' ? '<button class="btn f" data-status="approved">אשר</button>' : ''}${a.status !== 'hidden' ? '<button class="btn g" data-status="hidden">הסתר</button>' : ''}${a.status === 'approved' ? `<a class="btn g" href="#/artist/${esc(a.slug)}">העמוד שלו</a>` : ''}</div>
+    <label class="adm-note">מה לשנות, או הערה לאמן (באנגלית: הוא רואה אותה בסטודיו שלו)<input name="note" dir="auto" value="${esc(a.note || '')}" placeholder="e.g. Add sizes to your works, then we'll put you live"></label>
+    <div class="btns"><a class="btn g" href="#/preview/${a.id}">צפה בעמוד</a>${a.status !== 'approved' ? '<button class="btn f" data-status="approved">אשר</button>' : ''}${a.status !== 'changes' && a.status !== 'approved' ? '<button class="btn g" data-status="changes">בקש שינויים</button>' : ''}${a.status !== 'hidden' ? '<button class="btn g" data-status="hidden">הסתר</button>' : ''}</div>
+    ${a.sent_at ? `<p class="m small">נשלח לבדיקה ${day(a.sent_at)}</p>` : ''}
   </article>`; }).join('')}</div>`;
 }
 
@@ -195,8 +197,10 @@ function wire(app, c, go) {
     list();
   }
   app.querySelectorAll('.adm-artist [data-status]').forEach(b => b.onclick = async () => {
-    const card = b.closest('.adm-artist'); b.disabled = true;
-    const { error } = await c.from('artists').update({ status: b.dataset.status, note: card.querySelector('[name=note]').value || null }).eq('id', card.dataset.id);
+    const card = b.closest('.adm-artist'), note = card.querySelector('[name=note]').value.trim();
+    if (b.dataset.status === 'changes' && !note) { card.querySelector('[name=note]').focus(); card.querySelector('[name=note]').placeholder = 'What should change? (the artist sees it in their studio)'; return; }
+    b.disabled = true;
+    const { error } = await c.from('artists').update({ status: b.dataset.status, note: note || null }).eq('id', card.dataset.id);
     if (error) { alert(error.message); b.disabled = false; return; }
     go(location.hash, true);
   });

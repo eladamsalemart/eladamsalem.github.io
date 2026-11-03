@@ -131,6 +131,14 @@ async function push(S) {
   last = JSON.stringify(S);
 }
 
+// --- review: the artist sends their page to Open Studio (or takes it back); the database allows no more than that
+export async function setStatus(status) {
+  const { c, user } = await session();
+  const { data, error } = await c.from('artists').update({ status }).eq('id', user.id).select('status, note').single();
+  if (error) throw error;
+  return data;
+}
+
 // --- bringing work in -------------------------------------------------------------------------------------------------
 // a website or a shared Drive folder, read by Open Studio's server function (a browser may not read another site)
 export async function find(kind, url) {
