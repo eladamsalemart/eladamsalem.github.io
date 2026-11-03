@@ -9,8 +9,25 @@
  "seconds": 30,
  "peak_deg_per_s": 3.46,
  "kb": {
-  "preview.mp4": 1913,
+  "preview.mp4": 1914,
   "preview.hevc.mp4": 1244,
   "preview.webm": 1112
- }
+ },
+ "works": [
+  "gathering-2026",
+  "celebration-2026",
+  "together-2026",
+  "sunflower-2026",
+  "flower-2026",
+  "flowers-1-2026",
+  "flowers-2-2026",
+  "flowers-3-2026",
+  "here-2024",
+  "menora-2024",
+  "yehudiya-2024",
+  "nature-2025",
+  "human-nature-2025",
+  "woman-2025"
+ ],
+ "room": "white-cube"
 }

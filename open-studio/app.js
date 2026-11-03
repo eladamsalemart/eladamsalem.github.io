@@ -42,8 +42,8 @@ async function communityData() {
   const signal = AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
   const q = path => fetch(DB + path, { headers: { apikey: DB_KEY }, signal }).then(r => r.ok ? r.json() : []);
   const [artists, works, shows] = await Promise.all([
-    q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,link,instagram&status=eq.approved'),
-    q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position&order=position'),
+    q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,link,instagram,cv,exhibitions&status=eq.approved'),
+    q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position,kind&order=position'),
     q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,starts,ends,owner_id,created_at&status=eq.published'),
   ]);
   return { artists, works, shows };
@@ -106,7 +106,7 @@ function buildModel(d) {
   const cities = [];
   for (const e of exhibitions) if (e.city && !cities.some(c => c.name === e.city)) cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
   if (artist.city && !cities.some(c => c.name === artist.city)) cities.push({ name: artist.city, slug: slugify(artist.city), country: artist.country });
-  const m = { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: { ...(d.thumbs || {}) },
+  const m = { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: { ...(d.thumbs || {}) }, spaces: d.spaces || {},
     live: [], listings: [], places: {} };
   if (d.world) addWorld(m, d.world, uniq, seen);
   if (d.community) addCommunity(m, d.community, uniq, seen);
@@ -121,16 +121,27 @@ function addCommunity(m, c, uniq, seen) {
   for (const a of c.artists) {
     const slug = uniq(a.slug); seen.add(slug);
     const x = { slug, name: a.name, discipline: a.discipline || '', city: a.city || '', country: a.country || '', statement: a.statement || '', bio: a.bio || '',
-      portrait: a.photo || '', label: [a.discipline, a.city].filter(Boolean).join(' · '), link: a.link || '', instagram: a.instagram || '', community: true, uid: a.id };
+      portrait: a.photo || '', label: [a.discipline, a.city].filter(Boolean).join(' · '), link: a.link || '', instagram: a.instagram || '', community: true, uid: a.id,
+      cv: a.cv || [] };
     A.set(a.id, x); m.artists.push(x);
+    // their past exhibitions, as shows of the past (with their installation photos)
+    for (const e of a.exhibitions || []) {
+      const lines = String(e.text || '').split(/\n+/).map(t => t.trim()).filter(Boolean);
+      m.exhibitions.push({ slug: uniq(slugify(`${e.title}-${slug}`)), title: e.title, year: e.year || '', venue: e.venue || '', dates: e.dates || '', text: lines,
+        images: (e.photos || []).map(p => p.src || p).filter(Boolean), city: e.city || '', country: '', confirmed: true, artist: x, artists: [x], works: [], maybe: [],
+        space: (e.tour === 'live' && e.space && m.spaces[e.space.slug]) || null, workIds: e.works || [], kind: 'gallery', ...span(e.dates || '', e.year), events: [], community: true });
+    }
   }
+  m.exhibitions.sort((p, q) => (+q.year || 0) - (+p.year || 0));
   for (const w of c.works) {
     const a = A.get(w.artist_id); if (!a) continue;
     const pairs = w.width && w.height ? [[+w.height, +w.width]] : [];
-    m.works.push({ i: m.works.length, slug: uniq(slugify(`${w.title}-${a.slug}`)), id: w.id, title: w.title, year: w.year || '', medium: w.medium || '', pairs,
+    m.works.push({ i: m.works.length, slug: uniq(slugify(`${w.title}-${a.slug}`)), id: w.id, title: w.title, year: w.year || '', medium: w.medium || '', pairs, kind: w.kind || 'work',
       size: pairs.length ? `${pairs[0][0]} × ${pairs[0][1]} cm` : '', image: w.image, artist: a, community: true });
     if (w.thumb) m.thumbs[w.image] = w.thumb;
   }
+  // their exhibitions' works, now that the works are known
+  for (const e of m.exhibitions) if (e.community && e.workIds) e.works = e.workIds.map(id => m.works.find(w => w.id === id)).filter(Boolean);
   m.works.sort((a, b) => (+b.year || 0) - (+a.year || 0) || a.i - b.i);
 }
 // a show from the database, in the shape of data/virtual.json (its works by id, or by the app's slug for the site's)
@@ -181,7 +192,7 @@ function addWorld(m, w, uniq, seen) {
   const A = new Map();
   for (const a of w.artists) {
     seen.add(a.slug);
-    const x = { ...a, label: [a.discipline, a.city].filter(Boolean).join(' · '), country: 'Israel', demo: true };
+    const x = { ...a, label: [a.discipline, a.city].filter(Boolean).join(' · '), country: a.country || 'Israel', demo: true };
     A.set(a.slug, x); m.artists.push(x);
   }
   const W = new Map();
@@ -213,11 +224,18 @@ function addWorld(m, w, uniq, seen) {
   for (const e of m.exhibitions) if (e.city && !m.cities.some(c => c.name === e.city)) m.cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
 }
 
+// a CV as the site keeps it: lines in groups (Education, Solo Exhibitions...), each with its year
+const cvOf = cv => {
+  const groups = [...new Set(cv.map(l => l.group || ''))];
+  return groups.map(g => `<section class="cv-g">${g ? `<h3>${esc(g)}</h3>` : ''}<dl>${cv.filter(l => (l.group || '') === g).map(l => `<div><dt>${esc(l.year)}</dt><dd>${esc(l.title)}${l.venue ? `<span>${esc(l.venue)}</span>` : ''}</dd></div>`).join('')}</dl></section>`).join('');
+};
+
 // where a show stands today
 const status = e => { const now = Date.now(); return now < e.start ? 'soon' : now > e.end ? 'past' : 'on'; };
 const isOn = e => status(e) === 'on';
 const nextEvent = e => e.events.filter(v => +v.at > Date.now() - 3 * 3600000).sort((a, b) => a.at - b.at)[0];
-const worksOf = a => M.works.filter(w => w.artist === a);
+const worksOf = a => M.works.filter(w => w.artist === a && w.kind !== 'object');
+const objectsOf = a => M.works.filter(w => w.artist === a && w.kind === 'object');
 // an artist's shows, their own first (a group show after)
 const showsOf = a => M.exhibitions.filter(e => (e.artists || [e.artist]).includes(a)).sort((x, y) => (y.artist === a) - (x.artist === a));
 const byOf = e => (e.artists || [e.artist]).map(a => a.name).join(' × ');
@@ -240,7 +258,7 @@ function when(e) {
 const FOLLOW_KEY = 'os-following';
 function following() {
   try { const f = JSON.parse(localStorage.getItem(FOLLOW_KEY)); if (Array.isArray(f)) return f; } catch {}
-  return [M.artist.slug, 'lia-moren', 'maya-haddad'];
+  return [M.artist.slug, 'vincent-van-gogh', 'berthe-morisot'];
 }
 function setFollow(slug, on) {
   const f = new Set(following()); if (on) f.add(slug); else f.delete(slug);
@@ -528,9 +546,9 @@ function artistPage(slug) {
   <section class="hero">${im(hero, last ? `Installation view, ${last.title}` : a.name, 'loading="eager"', '100vw')}
     <div class="ov gut"><div class="wrap"><h1>${esc(a.name)}</h1><div class="k">${esc(a.label)}</div></div></div></section>
   <div class="wrap gut">
-    <div class="btns" style="padding-block:18px 0"><button type="button" class="btn ${followed ? 'g' : 'f'}" data-follow="${esc(a.slug)}" aria-pressed="${followed}">${followed ? 'Following' : 'Follow'}</button>${own ? '<a class="btn g" href="#/about">About & CV</a>' : ''}</div>
+    <div class="btns" style="padding-block:18px 0"><button type="button" class="btn ${followed ? 'g' : 'f'}" data-follow="${esc(a.slug)}" aria-pressed="${followed}">${followed ? 'Following' : 'Follow'}</button>${own ? '<a class="btn g" href="#/about">About & CV</a>' : a.bio || a.portrait || (a.cv && a.cv.length) ? `<a class="btn g" href="#/artist/${esc(a.slug)}/about">About & CV</a>` : ''}</div>
     <p class="statement">${esc(curly(a.statement))}</p>
-    ${a.demo ? '<p class="note" style="margin-top:14px">A made-up artist, to show how Open Studio looks full. The works are generated.</p>' : ''}
+    ${a.demo ? '<p class="note" style="margin-top:14px">A real artist from art history, shown to see Open Studio full: the works are in the public domain (images from Wikimedia Commons). The galleries and shows they appear in here are made up.</p>' : ''}
     ${posts.length ? `<section class="sec" style="margin-top:28px"><div class="sec-h"><h2>Live from the studio</h2><span class="more">${posts.length} new</span></div>
       <div class="studio-log">${posts.map((p, i) => `<button type="button" class="log" data-log="${esc(a.slug)}:${i}">
         ${p.kind === 'video' ? `<video src="${esc(p.video)}" poster="${esc(p.poster)}" muted playsinline loop preload="none" aria-hidden="true"></video>` : im(p.frames[0], '', '', '40vw')}
@@ -547,6 +565,8 @@ function artistPage(slug) {
       <div class="covers">${[...shows].sort((x, y) => y.end - x.end).map(e => cover(e)).join('')}</div></section>` : ''}
     ${own && M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
       <div class="covers">${M.objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
+    ${!own && objectsOf(a).length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
+      <div class="covers">${objectsOf(a).map(o => `<a href="#/work/${o.slug}">${im(o.image, '')}<div><b>${esc(o.title)}</b><div class="m">${esc([o.medium, o.year].filter(Boolean).join(' · '))}</div></div></a>`).join('')}</div></section>` : ''}
   </div>`;
 }
 const ago = t => { const h = Math.round((Date.now() - t) / 3600000); return h < 1 ? 'just now' : h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`; };
@@ -642,6 +662,20 @@ function about() {
     <div class="prose">${(s.about_text || '').split(/\n\s*\n/).map(p => `<p>${esc(p)}</p>`).join('')}<p style="color:var(--muted)">${esc(s.about_credit)}</p></div>
     <div class="cv">${groups.map(g => `<div><h3>${esc(g)}</h3><dl>${cv.filter(c => c.group === g).map(c => `<dt>${esc(c.year)}</dt><dd>${esc(c.title)}${c.venue ? `<br><span>${esc(c.venue)}</span>` : ''}</dd>`).join('')}</dl></div>`).join('')}</div>
     <div class="contact"><div class="k">Contact</div><span class="addr">${esc(s.email)}</span><a href="${esc(s.instagram)}" target="_blank" rel="noopener">Instagram</a></div>
+  </div></div>`;
+}
+
+function aboutOf(slug) {
+  const a = M.artists.find(x => x.slug === slug);
+  if (!a) return notFound();
+  if (a === M.artist) return about();
+  const cv = a.cv || [], groups = [...new Set(cv.map(c => c.group))];
+  return `<div class="wrap gut"><div class="about">
+    ${a.portrait ? `<div style="display:grid;gap:10px">${im(a.portrait, a.name)}<div class="k">${esc([a.name, a.city].filter(Boolean).join(' · '))}</div></div>` : ''}
+    <div class="ex-head" style="padding:0"><h1>${esc(a.name)}</h1><div class="k">About</div></div>
+    <div class="prose">${(a.bio || '').split(/\n\s*\n|\n/).filter(Boolean).map(p => `<p>${esc(p)}</p>`).join('')}</div>
+    ${cv.length ? `<div class="cv">${groups.map(g => `<div><h3>${esc(g)}</h3><dl>${cv.filter(c => c.group === g).map(c => `<dt>${esc(c.year)}</dt><dd>${esc(c.title)}${c.venue ? `<br><span>${esc(c.venue)}</span>` : ''}</dd>`).join('')}</dl></div>`).join('')}</div>` : ''}
+    ${a.instagram || a.link ? `<div class="contact"><div class="k">Contact</div>${a.link ? `<a href="${esc(a.link)}" target="_blank" rel="noopener">Website</a>` : ''}${a.instagram ? `<a href="https://instagram.com/${esc(a.instagram.replace(/^@/, ''))}" target="_blank" rel="noopener">Instagram</a>` : ''}</div>` : ''}
   </div></div>`;
 }
 
@@ -789,6 +823,7 @@ const routes = [
   [/^#\/map\/([^/]+)$/, m => mapPage(m[1]), 'map'],
   [/^#\/place\/([^/]+)$/, m => placePage(m[1]), 'map'],
   [/^#\/artist\/([^/]+)$/, m => artistPage(m[1]), 'artists'],
+  [/^#\/artist\/([^/]+)\/about$/, m => aboutOf(m[1]), 'artists'],
   [/^#\/artist\/([^/]+)\/works\/?$/, m => { const a = M.artists.find(x => x.slug === m[1]); return a ? archive(null, a) : notFound(); }],
   [/^#\/artist\/([^/]+)\/works\/([^/]+)$/, m => { const a = M.artists.find(x => x.slug === m[1]); return a ? archive(decodeURIComponent(m[2]), a) : notFound(); }],
   [/^#\/works\/?$/, () => archive()],
@@ -801,11 +836,79 @@ const routes = [
 ];
 
 // who is signed in on this phone (auth.js keeps it; read here at once, without loading the sign-in code)
-function signedIn() { try { const u = JSON.parse(localStorage.getItem('os-user')); return u && u.id ? u : null; } catch { return null; } }
+function signedIn() {
+  try { const pv = JSON.parse(sessionStorage.getItem('os-preview')); if (pv) return pv.user && pv.user.id ? pv.user : null; } catch {}
+  try { const u = JSON.parse(localStorage.getItem('os-user')); return u && u.id ? u : null; } catch { return null; }
+}
+// the control room's preview (auth.js): a bar on every screen while it lasts, in Hebrew (only the owners use it)
+function previewBar() {
+  let on = null; try { on = JSON.parse(sessionStorage.getItem('os-preview')); } catch {}
+  let bar = document.getElementById('pvBar');
+  if (!on) { if (bar) bar.remove(); document.body.classList.remove('previewing'); return; }
+  if (!bar) {
+    bar = document.createElement('div'); bar.id = 'pvBar'; bar.className = 'pv-bar'; bar.dir = 'rtl'; bar.lang = 'he';
+    bar.innerHTML = `<span>תצוגה מקדימה, ${on.as === 'artist' ? 'כאמן חדש' : 'כמבקר חדש'}: שום דבר לא נשלח ולא נשמר</span><button type="button">יציאה</button>`;
+    bar.querySelector('button').onclick = () => { try { sessionStorage.removeItem('os-preview'); sessionStorage.removeItem('os-pending'); } catch {} location.hash = '#/admin'; };
+    document.body.append(bar);
+  }
+  document.body.classList.add('previewing');
+}
+
+// --- a page before it's live: its artist, or the people who run Open Studio, see it exactly as visitors will -----------
+// #/preview/me (the artist's own) or #/preview/<id> (an admin): the page is read with the viewer's own sign-in (the
+// database lets an artist read their own and an admin any), joined to the app's content, and shown with a bar
+const REVIEW = 'os-review';
+const reviewing = () => { try { return JSON.parse(sessionStorage.getItem(REVIEW)); } catch { return null; } };
+async function loadReview(id) {
+  const { client } = await import('./auth.js'); const c = await client();
+  const { data: { session } } = await c.auth.getSession();
+  if (!session) return null;
+  const uid = id === 'me' ? session.user.id : id;
+  const [{ data: a }, { data: works }, { data: admin }] = await Promise.all([c.from('artists').select('*').eq('id', uid).maybeSingle(),
+    c.from('works').select('*').eq('artist_id', uid).order('position'), c.rpc('is_admin')]);
+  if (!a) return null;
+  // (a page shown before: taken out, so the fresh one replaces it)
+  M.artists = M.artists.filter(x => x.uid !== uid); M.works = M.works.filter(w => !(w.artist && w.artist.uid === uid));
+  M.exhibitions = M.exhibitions.filter(e => !(e.artist && e.artist.uid === uid));
+  const seen = new Set([...M.artists.map(x => x.slug), ...M.works.map(w => w.slug), ...M.exhibitions.map(e => e.slug)]);
+  const uniq = base => { let s = base, i = 2; while (seen.has(s)) s = `${base}-${i++}`; seen.add(s); return s; };
+  addCommunity(M, { artists: [a], works: works || [], shows: [] }, uniq, seen);
+  const x = M.artists.find(y => y.uid === uid);
+  const r = { uid, slug: x.slug, name: a.name, status: a.status, note: a.note || '', own: uid === session.user.id, admin: admin === true };
+  try { sessionStorage.setItem(REVIEW, JSON.stringify(r)); } catch {}
+  return r;
+}
+function reviewBar() {
+  const r = reviewing(); let bar = document.getElementById('rvBar');
+  if (!r) { if (bar) bar.remove(); document.body.classList.remove('reviewing'); return; }
+  if (!bar) { bar = document.createElement('div'); bar.id = 'rvBar'; document.body.append(bar); }
+  const close = '<button type="button" data-rv="close">×</button>';
+  if (r.admin && !r.own) {
+    bar.className = 'rv-bar'; bar.dir = 'rtl'; bar.lang = 'he';
+    bar.innerHTML = `<span>בדיקת העמוד של <b>${esc(r.name)}</b>, כמו שמבקרים יראו אותו</span><span class="rv-b"><a href="#/admin/artists">לאשר או לבקש שינויים</a>${close}</span>`;
+  } else {
+    bar.className = 'rv-bar'; bar.dir = 'ltr'; bar.lang = 'en';
+    const what = r.status === 'approved' ? 'Your page, live' : r.status === 'pending' ? 'Your page, as visitors will see it. Sent for review.' : 'Your page, as visitors will see it once approved.';
+    bar.innerHTML = `<span>${what}</span><span class="rv-b"><a href="#/studio">Edit in your studio</a>${close}</span>`;
+  }
+  bar.querySelector('[data-rv=close]').onclick = () => { try { sessionStorage.removeItem(REVIEW); } catch {} location.hash = r.admin && !r.own ? '#/admin/artists' : '#/studio'; };
+  document.body.classList.add('reviewing');
+}
 
 let prevHash = null, lastHash = null;
 function render() {
   const hash = location.hash || '#/';
+  const rv = hash.match(/^#\/preview\/([^/]+)$/);
+  if (rv) {
+    app.innerHTML = '<div class="wrap gut loading"><p>Opening the page…</p></div>';
+    loadReview(rv[1]).then(r => r ? location.replace(`#/artist/${r.slug}`) : (app.innerHTML = '<div class="wrap gut"><p class="m">This page can’t be opened here. Sign in first.</p></div>'));
+    return;
+  }
+  // a page in review, after a reload: read again before it's shown
+  const r0 = reviewing();
+  if (r0 && !M.artists.some(x => x.uid === r0.uid)) { loadReview(r0.own ? 'me' : r0.uid).then(() => render()); return; }
+  reviewBar();
+  previewBar();
   if (hash !== lastHash) { prevHash = lastHash; lastHash = hash; }
   document.querySelectorAll('.log-view').forEach(v => v.remove());       // (a studio log open over the page closes with it)
   // the way in: signing up or in, and who you are here (auth.js), full screen, without the bar and tabs

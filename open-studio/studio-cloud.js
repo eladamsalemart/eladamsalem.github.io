@@ -13,10 +13,15 @@ export async function session() {
   return data.session ? { c, user: data.session.user, token: data.session.access_token } : null;
 }
 
-const rowToWork = r => ({ id: r.id, title: r.title, year: r.year || '', medium: r.medium || '', width: r.width ?? '', height: r.height ?? '', depth: r.depth ?? '',
+const rowToWork = r => ({ id: r.id, title: r.title, year: r.year || '', medium: r.medium || '', width: r.width ?? '', height: r.height ?? '', depth: r.depth ?? '', kind: r.kind || 'work',
   image: r.image, thumb: r.thumb || r.image, source: r.source || '', framed: 'no', check: { W: 2000, H: 2000, long: 2000, mean: 120, clipped: 0, sharp: 0.5, backdrop: false } });
 const rowToShow = r => ({ id: r.id, title: r.title, room: r.room, paint: r.paint || '', centre: r.centre, text: r.text || '', status: r.status, slug: r.slug,
   works: (r.works || []).map(w => w.id) });
+
+// a past exhibition as the studio edits it (kept in artists.exhibitions)
+const exhibitionOf = e => ({ id: e.id || crypto.randomUUID(), title: e.title || '', venue: e.venue || '', city: e.city || '', year: e.year || '', dates: e.dates || '',
+  curator: e.curator || '', text: e.text || '', works: e.works || [], photos: (e.photos || []).map(p => typeof p === 'string' ? { src: p } : p), video: e.video || '',
+  space: e.space || {}, tour: e.tour || 'none', cover: e.cover || '' });
 
 // the studio as the database has it, or null when this account has no page yet
 export async function load() {
@@ -29,8 +34,8 @@ export async function load() {
     c.from('virtual_shows').select('*').eq('owner_id', user.id).eq('kind', 'artist').order('created_at', { ascending: false }),
   ]);
   const S = { cloud: true, status: a.status, note: a.note || '', slug: a.slug,
-    artist: { name: a.name, discipline: a.discipline || '', city: a.city || '', photo: a.photo || '', statement: a.statement || '', bio: a.bio || '', link: a.link || '', instagram: a.instagram || '', cover: '' },
-    works: (works || []).map(rowToWork), exhibitions: [], virtual: (shows || []).map(rowToShow) };
+    artist: { name: a.name, discipline: a.discipline || '', city: a.city || '', photo: a.photo || '', statement: a.statement || '', bio: a.bio || '', link: a.link || '', instagram: a.instagram || '', cover: '', cv: a.cv || [] },
+    works: (works || []).map(rowToWork), exhibitions: (a.exhibitions || []).map(exhibitionOf), virtual: (shows || []).map(rowToShow) };
   last = JSON.stringify(S);
   return S;
 }
@@ -84,7 +89,17 @@ async function push(S) {
   const a = S.artist;
   if (JSON.stringify(a) !== JSON.stringify(was.artist)) {
     if (isLocal(a.photo)) a.photo = (await upload(await toBlob(a.photo))).thumb;
-    const { error } = await c.from('artists').update({ name: a.name, discipline: a.discipline || null, city: a.city || null, statement: a.statement || null, bio: a.bio || null, photo: a.photo || null, link: a.link || null }).eq('id', user.id);
+    const { error } = await c.from('artists').update({ name: a.name, discipline: a.discipline || null, city: a.city || null, statement: a.statement || null, bio: a.bio || null, photo: a.photo || null, link: a.link || null, instagram: a.instagram || null, cv: a.cv || [] }).eq('id', user.id);
+    if (error) throw error;
+  }
+  // past exhibitions, with their installation photos (a photo chosen on the phone is uploaded first)
+  if (JSON.stringify(S.exhibitions || []) !== JSON.stringify(was.exhibitions || [])) {
+    for (const ex of S.exhibitions || []) {
+      if (!/^[0-9a-f-]{36}$/.test(ex.id || '')) ex.id = crypto.randomUUID();
+      for (const ph of ex.photos || []) if (isLocal(ph.src)) ph.src = (await upload(await toBlob(ph.src))).image;
+      if (isLocal(ex.cover)) ex.cover = (ex.photos[0] || {}).src || '';
+    }
+    const { error } = await c.from('artists').update({ exhibitions: S.exhibitions || [] }).eq('id', user.id);
     if (error) throw error;
   }
   // works: new and changed ones written (images uploaded first), removed ones deleted, the order kept
@@ -94,7 +109,7 @@ async function push(S) {
     if (old.get(w.id) === JSON.stringify(w) && i === was.works.findIndex(x => x.id === w.id)) continue;
     if (isLocal(w.image) || isLocal(w.thumb)) Object.assign(w, await upload(await toBlob(isLocal(w.image) ? w.image : w.thumb)));
     const row = { id: w.id, artist_id: user.id, title: w.title || 'Untitled', year: w.year || null, medium: w.medium || null, width: +w.width || null, height: +w.height || null,
-      depth: +w.depth || null, image: w.image, thumb: w.thumb || null, source: w.source || null, position: i };
+      depth: +w.depth || null, image: w.image, thumb: w.thumb || null, source: w.source || null, position: i, kind: w.kind === 'object' ? 'object' : 'work' };
     const { error } = await c.from('works').upsert(row);
     if (error) throw error;
   }
@@ -114,6 +129,27 @@ async function push(S) {
   const goneV = (was.virtual || []).filter(v => !(S.virtual || []).some(x => x.id === v.id)).map(v => v.id);
   if (goneV.length) { const { error } = await c.from('virtual_shows').delete().in('id', goneV); if (error) throw error; }
   last = JSON.stringify(S);
+}
+
+// --- material for a walkable tour only (more photos, a walk-through video): kept private, never on the page -----------
+export async function uploadTourFile(exId, file) {
+  const { c, user } = await session();
+  const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0].toLowerCase(), path = `${user.id}/${exId}/${crypto.randomUUID()}${ext}`;
+  const { error } = await c.storage.from('tour-material').upload(path, file, { contentType: file.type || undefined, upsert: false });
+  if (error) throw new Error(/size|large|exceed/i.test(error.message) ? `${file.name} is larger than 50 MB: shorten the video, or film at 1080p.` : error.message);
+  return { path, name: file.name, kind: /^video\//.test(file.type) ? 'video' : 'photo', size: file.size };
+}
+export async function removeTourFile(path) {
+  const { c } = await session();
+  await c.storage.from('tour-material').remove([path]);
+}
+
+// --- review: the artist sends their page to Open Studio (or takes it back); the database allows no more than that
+export async function setStatus(status) {
+  const { c, user } = await session();
+  const { data, error } = await c.from('artists').update({ status }).eq('id', user.id).select('status, note').single();
+  if (error) throw error;
+  return data;
 }
 
 // --- bringing work in -------------------------------------------------------------------------------------------------
