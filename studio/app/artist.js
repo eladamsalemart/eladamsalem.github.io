@@ -160,9 +160,12 @@ function home() {
     const n = ex.real ? ex.real.items.filter(([l]) => l === 'no').length : readiness(ex, S.works).blocking;
     if (n) todo.push([`${ex.title}: ${n} ${n === 1 ? 'thing' : 'things'} before a tour`, `#/studio/exhibition/${ex.id}`]);
   }
-  const status = !S.cloud ? '' : S.status === 'approved' ? `<p class="st-status ok">Your page is live: <a href="#/artist/${esc(S.slug)}">see it as visitors do</a>.</p>`
+  const see = '<a class="btn g" href="#/preview/me">See your page</a>';
+  const status = !S.cloud ? '' : S.status === 'approved' ? `<p class="st-status ok">Your page is live: <a href="#/preview/me">see it as visitors do</a>.</p>`
     : S.status === 'hidden' ? `<p class="st-status no">Your page is not shown at the moment.${S.note ? ' ' + esc(S.note) : ''}</p>`
-    : `<p class="st-status">Open Studio is looking at your page: it goes live once approved. Everything you add meanwhile will be there.${S.note ? ' ' + esc(S.note) : ''}</p>`;
+    : S.status === 'pending' ? `<div class="st-status"><p>Sent for review: Open Studio is looking at your page and will write here if anything should change. You can go on editing.</p><div class="btns">${see}<button type="button" class="btn g" data-review="draft">Take it back</button></div></div>`
+    : S.status === 'changes' ? `<div class="st-status no"><p><b>Open Studio asks for a few changes:</b> ${esc(S.note || '')}</p><div class="btns">${see}<button type="button" class="btn f" data-review="pending">Send again</button></div></div>`
+    : `<div class="st-status"><p>Your page is a draft: only you see it. Bring your work in, check how your page looks, then send it to Open Studio to go live.</p><div class="btns">${see}<button type="button" class="btn f" data-review="pending">Send for review</button></div></div>`;
   return `<div class="wrap gut st">${head(`Hello, ${S.artist.name.split(' ')[0]}`)}${nav('')}${status}
     <div class="st-stats">
       <div><b>${S.works.length}</b><span>works</span></div>
@@ -173,7 +176,7 @@ function home() {
       ${todo.length ? `<div class="list">${todo.map(([t, h]) => `<a class="st-todo" href="${h}">${esc(t)}<span aria-hidden="true">→</span></a>`).join('')}</div>` : '<p class="m">Nothing: everything is in order.</p>'}
     </section>
     <section class="sec"><div class="sec-h"><h2>Quick add</h2></div>
-      <div class="btns">${S.cloud ? '<a class="btn f" href="#/studio/import">Bring your work in</a><a class="btn g" href="#/studio/works/new">Add a work</a>' : '<a class="btn f" href="#/studio/works/new">Add a work</a><a class="btn g" href="#/studio/exhibitions/new">Add an exhibition</a>'}<a class="btn g" href="#/studio/virtual/new">Design a virtual exhibition</a><a class="btn g" href="#/studio/preview">See your page</a></div>
+      <div class="btns">${S.cloud ? '<a class="btn f" href="#/studio/import">Bring your work in</a><a class="btn g" href="#/studio/works/new">Add a work</a>' : '<a class="btn f" href="#/studio/works/new">Add a work</a><a class="btn g" href="#/studio/exhibitions/new">Add an exhibition</a>'}<a class="btn g" href="#/studio/exhibitions/new">Add an exhibition</a><a class="btn g" href="#/studio/virtual/new">Design a virtual exhibition</a><a class="btn g" href="${S.cloud ? '#/preview/me' : '#/studio/preview'}">See your page</a></div>
       <p class="m small">${ready} of ${S.works.length} works are ready for a walkable tour.</p>
     </section>
     <section class="sec"><button type="button" class="more" id="signOut">Sign out</button></section>
@@ -228,7 +231,7 @@ function workForm(id) {
 
 function exhibitions() {
   return `<div class="wrap gut st">${head('Exhibitions')}${nav('exhibitions')}
-    <div class="btns" style="padding-block:6px 18px">${S.cloud ? '' : '<a class="btn f" href="#/studio/exhibitions/new">Add an exhibition</a>'}<a class="btn ${S.cloud ? 'f' : 'g'}" href="#/studio/virtual/new">Design a virtual exhibition</a></div>
+    <div class="btns" style="padding-block:6px 18px"><a class="btn f" href="#/studio/exhibitions/new">Add an exhibition</a><a class="btn g" href="#/studio/virtual/new">Design a virtual exhibition</a></div>
     ${(S.virtual || []).length ? `<section class="sec" style="padding-top:0"><div class="sec-h"><h2>Virtual</h2><span class="more">rooms that exist only here</span></div><div class="list">${S.virtual.map(v => `<a class="row" href="#/studio/virtual/${v.id}"><img src="${esc(thumbOf(v.works[0]))}" alt=""><div class="t"><div><b>${esc(v.title || 'Untitled')}</b></div><div class="m">${esc(roomName(v.room))} · ${v.works.length} works</div></div><span class="st-flag ok">Virtual</span></a>`).join('')}</div></section>` : ''}
     <div class="list">${S.exhibitions.map(ex => {
       return `<a class="row" href="#/studio/exhibition/${ex.id}"><img src="${esc(ex.cover || (ex.photos[0] || {}).src || '')}" alt=""><div class="t"><div><b>${esc(ex.title)}</b></div><div class="m">${esc([ex.venue, ex.year].filter(Boolean).join(' · '))}</div></div>
@@ -638,6 +641,11 @@ function wire(app, go) {
     try { localStorage.removeItem(KEY); } catch {} S = null; go('#/studio');
   };
   // a new artist's page
+  app.querySelectorAll('[data-review]').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try { const d = await cloud.setStatus(b.dataset.review); S.status = d.status; S.note = d.note || ''; go(location.hash, true); }
+    catch (e) { b.disabled = false; alert(e.message); }
+  });
   const su = $('#setup');
   if (su) su.onsubmit = async e => {
     e.preventDefault();
