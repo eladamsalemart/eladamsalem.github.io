@@ -245,6 +245,11 @@ export async function screen(hash, app, go) {
   if (hash.startsWith('#/account')) {
     if (!u) return go('#/welcome');
     app.innerHTML = accountPage(u);
+    // the people who run Open Studio find their control room here (the database answers who they are)
+    client().then(c => c.rpc('is_admin')).then(({ data }) => {
+      const b = app.querySelector('.wl-btns');
+      if (data === true && b && location.hash.startsWith('#/account') && !b.querySelector('[href="#/admin"]')) b.insertAdjacentHTML('afterbegin', '<a class="wl-go" href="#/admin">Control room</a>');
+    }).catch(() => {});
   } else if (step === 'email') app.innerHTML = emailForm(pending.email, err);
   else if (step === 'sent') { if (!pending.email) return go('#/welcome/email'); app.innerHTML = sent(pending.email, err); }
   else if (step === 'details') {
