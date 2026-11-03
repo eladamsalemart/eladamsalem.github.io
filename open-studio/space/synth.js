@@ -21,6 +21,38 @@ export const ROOMS = {
     w: 9, d: 9, h: 4.4, paint: 'charcoal', floor: 'stone', ceiling: 'dark', light: 'narrow', door: 1.5,
   },
 };
+// The ten kinds of room built and lit in Blender (space/rooms/build_rooms.py, the "Studio rooms" workflow), each in its
+// sizes: every surface of the empty room photographed square on, with its own light and, through its windows, a real
+// view (data/rooms/<slug>/). The works are hung here, at their real size, with the light of the room's fixtures.
+export const KINDS = {
+  'white-cube': ['White cube', 'White walls, polished concrete, a track spot over every work.'],
+  'loft': ['Industrial loft', 'Painted brick, a worn concrete floor, daylight from a sawtooth roof.'],
+  'skylit-hall': ['Skylit museum hall', 'Lime plaster and oak under a vault of daylight.'],
+  'salon': ['Salon', 'Deep coloured walls, parquet, works in two rows under a lantern.'],
+  'concrete': ['Raw concrete', 'Cast concrete with the marks of its formwork, light from above.'],
+  'studio': ['Artist studio', 'Limewashed brick, old boards, a tall north window onto the street.'],
+  'apartment': ["Collector's home", 'A living room: parquet, a sofa, a window onto a quiet street.'],
+  'black-box': ['Black box', 'A dark room; each work in its own light.'],
+  'glass-pavilion': ['Glass pavilion', 'Terrazzo and white walls, a wall of glass onto a park.'],
+  'japanese': ['Japanese room', 'Earth plaster, tatami, shoji slid open onto a garden.'],
+};
+const SIZE = { small: 'Small', large: 'Large', medium: 'Medium' };
+const BAKED = new URL('../data/rooms/', import.meta.url).href;
+try {
+  const idx = await (await fetch(BAKED + 'index.json', { cache: 'no-cache' })).json();
+  for (const [slug, m] of Object.entries(idx)) {
+    if (ROOMS[slug]) continue;           // (the three drawn rooms keep their names)
+    const variant = slug === m.type ? 'medium' : slug.slice(m.type.length + 1);
+    ROOMS[slug] = {
+      name: (KINDS[m.type] || [m.type])[0], size: m.label, blurb: (KINDS[m.type] || ['', ''])[1], kind: m.type, variant, sizeName: SIZE[variant] || variant,
+      w: m.w, d: m.d, h: m.h, door: m.door ? m.door.to - m.door.from : 0, doorSpan: m.door ? [m.door.from, m.door.to] : null,
+      doorHeight: m.door ? m.door.height : 0, blocks: m.blocks || {}, light: m.light, floorReflect: m.floorReflect,
+      baked: BAKED + slug + '/', cover: BAKED + slug + '/view.jpg', paint: 'white',
+    };
+  }
+} catch { /* no rooms published yet: the three drawn ones */ }
+const loadImg = u => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = u; });
+
 export const PAINTS = {
   white: ['White', '#f2f0eb'], bone: ['Bone', '#ebe4d6'], sage: ['Sage', '#c7cdbd'], clay: ['Clay', '#c99a80'],
   oxblood: ['Oxblood', '#6a2b2b'], ink: ['Ink', '#28324b'], charcoal: ['Charcoal', '#3d3c3f'],
@@ -106,6 +138,12 @@ export async function sizeOf(work, src) {
 // --- the walls, in walking order from the door --------------------------------------------------------
 function wallsOf(R) {
   const { w: W, d: D, h: H } = R, door = R.door;
+  if (R.baked) return [
+    { name: 'wall-z0', origin: [0, H, 0], u: [1, 0, 0], normal: [0, 0, 1], len: W },
+    { name: 'wall-x0', origin: [0, H, D], u: [0, 0, -1], normal: [1, 0, 0], len: D },
+    { name: 'wall-z1', origin: [W, H, D], u: [-1, 0, 0], normal: [0, 0, -1], len: W },
+    { name: 'wall-x1', origin: [W, H, 0], u: [0, 0, 1], normal: [-1, 0, 0], len: D, ...(R.doorSpan ? { door: R.doorSpan } : {}) },
+  ];
   return [
     { name: 'wall-z0', origin: [0, H, 0], u: [1, 0, 0], normal: [0, 0, 1], len: W },
     { name: 'wall-x0', origin: [0, H, D], u: [0, 0, -1], normal: [1, 0, 0], len: D },
@@ -115,8 +153,18 @@ function wallsOf(R) {
 }
 // the stretches of wall a work may hang on, in walking order (a = metres along the wall's u; the walk runs
 // from high a to low a on every wall)
-function stretches(walls) {
+function stretches(walls, R = {}) {
   const out = [];
+  if (R.baked) {
+    // the free stretches of each wall, between its windows, glass and door, each walked from high a to low a
+    for (const wl of walls) {
+      const cut = [...(R.blocks[wl.name] || []), ...(wl.door ? [wl.door] : [])].map(([a, b]) => [a - 0.4, b + 0.4]).sort((p, q) => q[0] - p[0]);
+      let hi = wl.len - MARGIN;
+      for (const [a, b] of cut) { if (hi - Math.max(b, MARGIN) >= 0.6) out.push({ wall: wl, from: hi, to: Math.max(b, MARGIN), ...(wl.door ? { last: true } : {}) }); hi = Math.min(hi, a); }
+      if (hi - MARGIN >= 0.6) out.push({ wall: wl, from: hi, to: MARGIN, ...(wl.door ? { last: true } : {}) });
+    }
+    return out;
+  }
   for (const wl of walls) {
     if (wl.door) {
       out.push({ wall: wl, from: wl.door[0] - 0.5, to: MARGIN, last: true });
@@ -132,7 +180,7 @@ export function hang(design, sized) {
   const centre = Math.min(Math.max(+(design.centre || 150) / 100, 1.3), 1.7);
   const order = sized.map((s, i) => ({ ...s, i }));
   // works on the door wall only if the other walls are full
-  const runs = stretches(walls).map(s => ({ ...s, items: [] }));
+  const runs = stretches(walls, R).map(s => ({ ...s, items: [] }));
   let r = 0;
   const gap = design._tight ? MIN_GAP : GAP;
   const fits = (run, extra) => run.items.reduce((t, x) => t + x.w / 100, 0) + extra + gap * Math.max(0, run.items.length) <= (run.from - run.to);
@@ -165,6 +213,20 @@ export function hang(design, sized) {
 }
 
 // --- drawing the room -----------------------------------------------------------------------------------
+function drawBakedWall(R, wl, works, img) {
+  const c = canvas(img.naturalWidth, img.naturalHeight), ctx = c.getContext('2d'), k = c.width / wl.len;
+  ctx.drawImage(img, 0, 0);
+  if (R.light === 'daylight') return c;          // daylight is already on the wall: nothing aims at a work
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of works) {
+    const wm = p.w / 100, hm = p.h / 100, x = p.a * k, y = (R.h - p.y) * k;
+    if (R.light === 'narrow') pool(ctx, x, y - 0.05 * k, (wm / 2 + 0.35) * k, (hm / 2 + 0.35) * k, 0.2, '255,236,205');
+    else { pool(ctx, x, y - 0.1 * k, (wm / 2 + 0.6) * k, (hm / 2 + 0.62) * k, 0.1); pool(ctx, x, y - (hm / 2 + 0.55) * k, (wm / 2 + 0.2) * k, 0.9 * k, 0.03); }
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  return c;
+}
+
 function drawWall(R, wl, works, paint, seed) {
   const H = R.h, ppm = Math.min(220, 4096 / wl.len), cw = wl.len * ppm, ch = H * ppm;
   const c = canvas(cw, ch), ctx = c.getContext('2d');
@@ -337,18 +399,25 @@ export async function buildRoom(design, src) {
   const surfaces = [];
   for (const wl of walls) {
     const on = placed.filter(p => p.wall === wl);
+    const img = R.baked ? await loadImg(R.baked + wl.name + '.jpg').catch(() => null) : null;
     surfaces.push({
-      name: wl.name, kind: 'wall', texture: await keep(drawWall(R, wl, on, paint, seed + surfaces.length)),
+      name: wl.name, kind: 'wall', texture: await keep(img ? drawBakedWall(R, wl, on, img) : drawWall(R, wl, on, paint, seed + surfaces.length)),
       origin: wl.origin, u: wl.u, v: [0, -1, 0], size: [wl.len, R.h], normal: wl.normal,
-      openings: wl.door ? [{ from: wl.door[0], to: wl.door[1], height: Math.min(2.7, R.h - 0.6), arch: false, depth: 0.3 }] : [],
+      openings: wl.door ? [{ from: wl.door[0], to: wl.door[1], height: R.doorHeight || Math.min(2.7, R.h - 0.6), arch: false, depth: 0.3 }] : [],
     });
   }
-  const tile = drawFloorTile(R.floor, seed);
-  surfaces.push({
-    name: 'floor', kind: 'floor', texture: await keep(tile.c), tile: tile.tile, light: await keep(drawFloorLight(R, placed), true),
-    lightScale: R.light === 'narrow' ? 1.25 : 1.3, origin: [0, 0, 0], u: [1, 0, 0], v: [0, 0, 1], size: [R.w, R.d], normal: [0, 1, 0], openings: [],
-  });
-  surfaces.push({ name: 'ceiling', kind: 'ceiling', texture: await keep(drawCeiling(R, placed, paint)), origin: [0, R.h, R.d], u: [1, 0, 0], v: [0, 0, -1], size: [R.w, R.d], normal: [0, -1, 0], openings: [] });
+  if (R.baked) {
+    // the floor and the ceiling as photographed (the floor whole, not a repeating tile)
+    surfaces.push({ name: 'floor', kind: 'floor', texture: R.baked + 'floor.jpg', tileXY: [R.w, R.d], origin: [0, 0, 0], u: [1, 0, 0], v: [0, 0, 1], size: [R.w, R.d], normal: [0, 1, 0], openings: [] });
+    surfaces.push({ name: 'ceiling', kind: 'ceiling', texture: R.baked + 'ceiling.jpg', origin: [0, R.h, R.d], u: [1, 0, 0], v: [0, 0, -1], size: [R.w, R.d], normal: [0, -1, 0], openings: [] });
+  } else {
+    const tile = drawFloorTile(R.floor, seed);
+    surfaces.push({
+      name: 'floor', kind: 'floor', texture: await keep(tile.c), tile: tile.tile, light: await keep(drawFloorLight(R, placed), true),
+      lightScale: R.light === 'narrow' ? 1.25 : 1.3, origin: [0, 0, 0], u: [1, 0, 0], v: [0, 0, 1], size: [R.w, R.d], normal: [0, 1, 0], openings: [],
+    });
+    surfaces.push({ name: 'ceiling', kind: 'ceiling', texture: await keep(drawCeiling(R, placed, paint)), origin: [0, R.h, R.d], u: [1, 0, 0], v: [0, 0, -1], size: [R.w, R.d], normal: [0, -1, 0], openings: [] });
+  }
   const plaster = canvas(512, 512), pc = plaster.getContext('2d');
   pc.fillStyle = paint; pc.fillRect(0, 0, 512, 512); texture(pc, 512, 512, seed + 9, 0.05, 0.03);
   pc.fillStyle = 'rgba(0,0,0,.12)'; pc.fillRect(0, 0, 512, 512);
@@ -361,7 +430,7 @@ export async function buildRoom(design, src) {
       light: workLight, lightScale: 1, ...(p.guessed ? { guessed: true } : {}),
     };
   });
-  const floorReflect = R.floor === 'oak' ? [0.03, 0.12] : R.floor === 'stone' ? [0.08, 0.34] : [0.06, 0.26];
+  const floorReflect = R.floorReflect || (R.floor === 'oak' ? [0.03, 0.12] : R.floor === 'stone' ? [0.08, 0.34] : [0.06, 0.26]);
   const spec = {
     version: 2, title: design.title, source: `${ROOMS[design.room].name}, a virtual room`, virtual: true, ordered: true,
     room: { x0: 0, x1: R.w, z0: 0, z1: R.d, height: R.h }, surfaces, works, views: [], floorReflect, plaster: await keep(plaster),

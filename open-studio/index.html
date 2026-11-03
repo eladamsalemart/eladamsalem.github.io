@@ -858,6 +858,20 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
 .seg button{min-width:46px}                    /* (side by side, no room round them: the one that changes how it looks, by a few px) */
 .am-kinds{padding-block:3px;margin-block:-3px}   /* (a sideways scroller clips what reaches past it: room inside, the same place outside) */
 .vx-rooms{display:grid;gap:8px}
+.ov-kinds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ov-kind{position:relative;display:grid;gap:4px;padding:0 0 10px;border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer}
+.ov-kind img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block}
+.ov-kind b,.ov-kind span{padding-inline:10px}
+.ov-kind span{line-height:1.3}
+.ov-sizes{display:flex;flex-wrap:wrap;gap:8px}
+.ov-size{position:relative;display:grid;gap:2px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;cursor:pointer;min-height:44px}
+.ov-kind input,.ov-size input{position:absolute;top:0;left:0;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
+.ov-kind:has(input:checked),.ov-size:has(input:checked){border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.ov-kind:has(input:focus-visible),.ov-size:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2px}
+.ov-now{padding-bottom:6px}
+.ov-wall{display:grid;place-items:center;aspect-ratio:16/9;max-height:62vh;width:100%;background:#d9d6cf center/cover no-repeat}
+.ov-wall img{max-width:46%;max-height:62%;width:auto;height:auto;object-fit:contain;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.ov-now h2{margin:6px 0 4px}
 .vx-room{position:relative;display:grid;grid-template-columns:76px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:14px;cursor:pointer}
 .vx-room svg{grid-row:1/3;justify-self:center;color:var(--ink)}
 .vx-room input,.vx-paint input{position:absolute;top:0;left:0;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
