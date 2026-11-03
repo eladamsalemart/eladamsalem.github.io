@@ -1,11 +1,12 @@
 // Open Studio's control room (#/admin): for the people who run it (public.admins; the database checks it on every
-// read and write, this screen only follows). Artists waiting to be approved, the people who joined, the exhibitions
-// Open Studio curates (like playlists, by hand, across artists), asking for a change in the app, and how the app is.
+// read and write, this screen only follows). An overview first (what waits for you, how many joined, trying the app as
+// someone new), then artists waiting to be approved, the people who joined, the exhibitions Open Studio curates (like
+// playlists, by hand, across artists), asking for a change in the app, and how the app is.
 import { client } from './auth.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const REPO = 'eladamsalemart/eladamsalem.github.io';
-const TABS = [['', 'Artists'], ['people', 'People'], ['curated', 'Curated'], ['requests', 'Ask for a change'], ['health', 'Health']];
+const TABS = [['', 'Overview'], ['artists', 'Artists'], ['people', 'People'], ['curated', 'Curated'], ['requests', 'Ask for a change'], ['health', 'Health']];
 let M = null, SYN = null, cur = null;            // the app's content; the room drawing; the curated show being edited
 const synth = () => SYN || (SYN = import('./space/synth.js'));
 const day = t => new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -25,9 +26,46 @@ export async function admin(hash, app, go, model) {
   const m = hash.replace(/^#\/admin\/?/, '');
   const tab = m.split('/')[0];
   app.innerHTML = shell(tab, '<p class="m">Loading…</p>');
-  const body = tab === 'people' ? await people(c) : tab === 'curated' ? await curated(c, m.split('/')[1]) : tab === 'requests' ? await requests(c) : tab === 'health' ? await health() : await artists(c);
+  const body = tab === 'artists' ? await artists(c) : tab === 'people' ? await people(c) : tab === 'curated' ? await curated(c, m.split('/')[1]) : tab === 'requests' ? await requests(c) : tab === 'health' ? await health() : await overview(c);
   app.innerHTML = shell(tab, body);
   wire(app, c, go);
+}
+
+// --- overview: what waits for you, and the numbers ------------------------------------------------------------------
+const USERS = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/functions/v1/admin-users';
+async function overview(c) {
+  const since = d => new Date(Date.now() - d * 864e5).toISOString();
+  const [{ data: people = [] }, { data: waiting = [] }, { data: fresh = [] }, { count: liveArtists }, { count: allWorks }, { data: shows = [] }] = await Promise.all([
+    c.from('profiles').select('first_name, last_name, role, country, created_at').order('created_at', { ascending: false }).limit(1000),
+    c.from('artists').select('id, name, discipline, city, created_at').eq('status', 'pending').order('created_at'),
+    c.from('works').select('id, title, year, medium, width, height, thumb, image, created_at, artist_id, artists(name, status)').is('reviewed_at', null).order('created_at', { ascending: false }).limit(60),
+    c.from('artists').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+    c.from('works').select('id', { count: 'exact', head: true }),
+    c.from('virtual_shows').select('id').eq('status', 'published'),
+  ]);
+  const today = people.filter(p => p.created_at >= since(1)).length, week = people.filter(p => p.created_at >= since(7)).length;
+  const stat = (n, t, href) => `<a class="adm-stat" href="${href}"><b>${n}</b><span>${t}</span></a>`;
+  return `<div class="adm-stats">
+      ${stat(waiting.length, 'artists waiting', '#/admin/artists')}${stat(fresh.length, 'new works to look at', '#/admin')}
+      ${stat(today, 'joined today', '#/admin/people')}${stat(week, 'joined this week', '#/admin/people')}
+      ${stat(people.length, 'people in all', '#/admin/people')}${stat(liveArtists ?? 0, 'artists live', '#/admin/artists')}
+      ${stat(allWorks ?? 0, 'works', '#/admin/artists')}${stat(shows.length, 'exhibitions published', '#/admin/curated')}</div>
+    <section class="sec"><div class="sec-h"><h2>Artists waiting</h2><a class="more" href="#/admin/artists">All artists →</a></div>
+      ${waiting.length ? `<div class="list">${waiting.map(a => `<a class="row noimg" href="#/admin/artists"><div class="t"><div><b>${esc(a.name)}</b></div><div class="m">${esc([a.discipline, a.city].filter(Boolean).join(' · '))} · since ${day(a.created_at)}</div></div><span class="st-flag">Waiting</span></a>`).join('')}</div>` : '<p class="m">Nobody waiting.</p>'}</section>
+    <section class="sec"><div class="sec-h"><h2>New works to look at</h2><span class="more">${fresh.length}</span></div>
+      <p class="m small">A work is in the app as soon as its artist adds it (once the artist is approved). Look once: “Looks good” clears it from here; “Hide” takes it out of the app, and its artist still sees it in their studio.</p>
+      ${fresh.length ? `<div class="adm-works">${fresh.map(w => `<article class="st-card adm-work" data-work="${w.id}"><img src="${esc(w.thumb || w.image)}" alt="" loading="lazy">
+        <div class="t"><b>${esc(w.title)}</b><span class="m small">${esc(w.artists ? w.artists.name : '')}${w.artists && w.artists.status !== 'approved' ? ' (not approved yet)' : ''} · ${esc([w.year, w.medium, w.width && w.height ? `${w.height} × ${w.width} cm` : 'no size'].filter(Boolean).join(' · '))}</span></div>
+        <div class="btns"><button type="button" class="btn f" data-review="ok">Looks good</button><button type="button" class="btn g" data-review="hide">Hide</button></div></article>`).join('')}</div>` : '<p class="m">Nothing new.</p>'}</section>
+    <section class="sec"><div class="sec-h"><h2>Joined lately</h2><a class="more" href="#/admin/people">Everyone →</a></div>
+      ${people.length ? `<div class="adm-table">${people.slice(0, 8).map(r => `<div><b>${esc([r.first_name, r.last_name].filter(Boolean).join(' ') || '—')}</b><span>${r.role === 'artist' ? 'Artist' : r.role === 'lover' ? 'Art lover' : '—'}</span><span>${esc(r.country || '')}</span><span>${day(r.created_at)}</span></div>`).join('')}</div>` : '<p class="m">Nobody yet.</p>'}</section>
+    <section class="sec"><div class="sec-h"><h2>Try the app as someone new</h2></div>
+      <div class="st-card"><p class="m">Sign up as a new person, from the very start, without touching your own account:</p>
+        <ol class="m small adm-steps"><li>Open a private window (iPhone Safari: Tabs, then Private; Chrome: New incognito window) at <b>eladamsalem.com/open-studio</b>.</li>
+          <li>Continue with email, with this address: <code id="admAlias"></code> <button type="button" class="btn g" id="admCopy">Copy</button></li>
+          <li>The code arrives at <b>ooopenstudio@gmail.com</b>. Go on as anyone would: your details, then “I make art” or “I love art”.</li></ol>
+        <p class="m small">Every “+” address is a new account with the same inbox. They are listed here: delete them when you are done, with everything they made.</p>
+        <div id="admTests"><p class="m small">Loading the test accounts…</p></div></div></section>`;
 }
 
 // --- artists: approve, hide, a note to the artist ------------------------------------------------------------------
@@ -117,6 +155,38 @@ async function health() {
 
 function wire(app, c, go) {
   const $ = s => app.querySelector(s);
+  app.querySelectorAll('[data-review]').forEach(b => b.onclick = async () => {
+    const card = b.closest('[data-work]'); card.querySelectorAll('button').forEach(x => x.disabled = true);
+    const { error } = await c.from('works').update({ reviewed_at: new Date().toISOString(), hidden: b.dataset.review === 'hide' }).eq('id', card.dataset.work);
+    if (error) { alert(error.message); card.querySelectorAll('button').forEach(x => x.disabled = false); return; }
+    card.remove();
+  });
+  const alias = $('#admAlias');
+  if (alias) {
+    const t = new Date(), p = n => String(n).padStart(2, '0');
+    alias.textContent = `ooopenstudio+t${p(t.getMonth() + 1)}${p(t.getDate())}${p(t.getHours())}${p(t.getMinutes())}@gmail.com`;
+    $('#admCopy').onclick = () => navigator.clipboard.writeText(alias.textContent).then(() => { $('#admCopy').textContent = 'Copied'; });
+    const call = async body => {
+      const { data: { session } } = await c.auth.getSession();
+      const r = await fetch(USERS, { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const d = await r.json().catch(() => ({ error: 'No answer.' }));
+      if (!r.ok || d.error) throw new Error(d.error || 'That didn’t work.');
+      return d;
+    };
+    const list = async () => {
+      const box = $('#admTests'); if (!box) return;
+      try {
+        const { accounts } = await call({ action: 'list' });
+        box.innerHTML = accounts.length ? `<div class="list">${accounts.map(a => `<div class="row noimg"><div class="t"><div><b>${esc(a.email)}</b></div><div class="m">${esc(a.name || 'no name yet')} · ${a.role === 'artist' ? `Artist${a.artist ? ` (${a.artist === 'pending' ? 'waiting' : a.artist})` : ''}` : a.role === 'lover' ? 'Art lover' : 'not chosen yet'} · ${day(a.created_at)}</div></div><button type="button" class="btn g" data-del-user="${a.id}">Delete</button></div>`).join('')}</div>` : '<p class="m small">No test accounts now.</p>';
+        box.querySelectorAll('[data-del-user]').forEach(b => b.onclick = async () => {
+          if (!confirm('Delete this test account and everything it made?')) return;
+          b.disabled = true;
+          try { await call({ action: 'delete', id: b.dataset.delUser }); list(); } catch (e) { alert(e.message); b.disabled = false; }
+        });
+      } catch (e) { box.innerHTML = `<p class="m small">${esc(e.message)}</p>`; }
+    };
+    list();
+  }
   app.querySelectorAll('.adm-artist [data-status]').forEach(b => b.onclick = async () => {
     const card = b.closest('.adm-artist'); b.disabled = true;
     const { error } = await c.from('artists').update({ status: b.dataset.status, note: card.querySelector('[name=note]').value || null }).eq('id', card.dataset.id);
