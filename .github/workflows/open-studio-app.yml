@@ -40,7 +40,7 @@ jobs:
           git worktree add /tmp/studio origin/studio
           src=/tmp/studio/studio/app
           rm -rf open-studio && mkdir -p open-studio/space open-studio/data/spaces
-          cp $src/index.html $src/privacy.html $src/app.js $src/sky.js $src/artist.js $src/studio-cloud.js $src/admin.js $src/artmap.js $src/auth.js $src/sw.js $src/manifest.webmanifest open-studio/
+          cp $src/index.html $src/privacy.html $src/data-deletion.html $src/app.js $src/sky.js $src/artist.js $src/studio-cloud.js $src/admin.js $src/artmap.js $src/auth.js $src/sw.js $src/manifest.webmanifest open-studio/
           cp -r $src/vendor open-studio/
           cp -r $src/icons open-studio/
           cp -r $src/data/demo open-studio/data/
