@@ -95,7 +95,7 @@ def note_of(slug):
     if not st.exists():
         return 'The tour couldn’t be built from what’s here yet. More installation photos (every wall in at least two), or a walk-through video, would help.'
     s = json.load(open(st, encoding='utf-8'))
-    items = [t for level, t in s.get('items', []) if level in ('no', 'warn')]
+    items = list(dict.fromkeys(t for level, t in s.get('items', []) if level in ('no', 'warn')))   # each thing once
     return ' '.join([s.get('summary', '')] + [f'• {t}' for t in items]).strip()
 
 
