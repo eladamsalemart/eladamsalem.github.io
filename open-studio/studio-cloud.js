@@ -18,6 +18,11 @@ const rowToWork = r => ({ id: r.id, title: r.title, year: r.year || '', medium: 
 const rowToShow = r => ({ id: r.id, title: r.title, room: r.room, paint: r.paint || '', centre: r.centre, text: r.text || '', status: r.status, slug: r.slug,
   works: (r.works || []).map(w => w.id) });
 
+// a past exhibition as the studio edits it (kept in artists.exhibitions)
+const exhibitionOf = e => ({ id: e.id || crypto.randomUUID(), title: e.title || '', venue: e.venue || '', city: e.city || '', year: e.year || '', dates: e.dates || '',
+  curator: e.curator || '', text: e.text || '', works: e.works || [], photos: (e.photos || []).map(p => typeof p === 'string' ? { src: p } : p), video: e.video || '',
+  space: e.space || {}, tour: e.tour || 'none', cover: e.cover || '' });
+
 // the studio as the database has it, or null when this account has no page yet
 export async function load() {
   const s = await session(); if (!s) return null;
@@ -29,8 +34,8 @@ export async function load() {
     c.from('virtual_shows').select('*').eq('owner_id', user.id).eq('kind', 'artist').order('created_at', { ascending: false }),
   ]);
   const S = { cloud: true, status: a.status, note: a.note || '', slug: a.slug,
-    artist: { name: a.name, discipline: a.discipline || '', city: a.city || '', photo: a.photo || '', statement: a.statement || '', bio: a.bio || '', link: a.link || '', instagram: a.instagram || '', cover: '' },
-    works: (works || []).map(rowToWork), exhibitions: [], virtual: (shows || []).map(rowToShow) };
+    artist: { name: a.name, discipline: a.discipline || '', city: a.city || '', photo: a.photo || '', statement: a.statement || '', bio: a.bio || '', link: a.link || '', instagram: a.instagram || '', cover: '', cv: a.cv || [] },
+    works: (works || []).map(rowToWork), exhibitions: (a.exhibitions || []).map(exhibitionOf), virtual: (shows || []).map(rowToShow) };
   last = JSON.stringify(S);
   return S;
 }
@@ -84,7 +89,17 @@ async function push(S) {
   const a = S.artist;
   if (JSON.stringify(a) !== JSON.stringify(was.artist)) {
     if (isLocal(a.photo)) a.photo = (await upload(await toBlob(a.photo))).thumb;
-    const { error } = await c.from('artists').update({ name: a.name, discipline: a.discipline || null, city: a.city || null, statement: a.statement || null, bio: a.bio || null, photo: a.photo || null, link: a.link || null }).eq('id', user.id);
+    const { error } = await c.from('artists').update({ name: a.name, discipline: a.discipline || null, city: a.city || null, statement: a.statement || null, bio: a.bio || null, photo: a.photo || null, link: a.link || null, instagram: a.instagram || null, cv: a.cv || [] }).eq('id', user.id);
+    if (error) throw error;
+  }
+  // past exhibitions, with their installation photos (a photo chosen on the phone is uploaded first)
+  if (JSON.stringify(S.exhibitions || []) !== JSON.stringify(was.exhibitions || [])) {
+    for (const ex of S.exhibitions || []) {
+      if (!/^[0-9a-f-]{36}$/.test(ex.id || '')) ex.id = crypto.randomUUID();
+      for (const ph of ex.photos || []) if (isLocal(ph.src)) ph.src = (await upload(await toBlob(ph.src))).image;
+      if (isLocal(ex.cover)) ex.cover = (ex.photos[0] || {}).src || '';
+    }
+    const { error } = await c.from('artists').update({ exhibitions: S.exhibitions || [] }).eq('id', user.id);
     if (error) throw error;
   }
   // works: new and changed ones written (images uploaded first), removed ones deleted, the order kept

@@ -42,7 +42,7 @@ async function communityData() {
   const signal = AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
   const q = path => fetch(DB + path, { headers: { apikey: DB_KEY }, signal }).then(r => r.ok ? r.json() : []);
   const [artists, works, shows] = await Promise.all([
-    q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,link,instagram&status=eq.approved'),
+    q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,link,instagram,cv,exhibitions&status=eq.approved'),
     q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position&order=position'),
     q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,starts,ends,owner_id,created_at&status=eq.published'),
   ]);
@@ -121,9 +121,18 @@ function addCommunity(m, c, uniq, seen) {
   for (const a of c.artists) {
     const slug = uniq(a.slug); seen.add(slug);
     const x = { slug, name: a.name, discipline: a.discipline || '', city: a.city || '', country: a.country || '', statement: a.statement || '', bio: a.bio || '',
-      portrait: a.photo || '', label: [a.discipline, a.city].filter(Boolean).join(' · '), link: a.link || '', instagram: a.instagram || '', community: true, uid: a.id };
+      portrait: a.photo || '', label: [a.discipline, a.city].filter(Boolean).join(' · '), link: a.link || '', instagram: a.instagram || '', community: true, uid: a.id,
+      cv: a.cv || [] };
     A.set(a.id, x); m.artists.push(x);
+    // their past exhibitions, as shows of the past (with their installation photos)
+    for (const e of a.exhibitions || []) {
+      const lines = String(e.text || '').split(/\n+/).map(t => t.trim()).filter(Boolean);
+      m.exhibitions.push({ slug: uniq(slugify(`${e.title}-${slug}`)), title: e.title, year: e.year || '', venue: e.venue || '', dates: e.dates || '', text: lines,
+        images: (e.photos || []).map(p => p.src || p).filter(Boolean), city: e.city || '', country: '', confirmed: true, artist: x, artists: [x], works: [], maybe: [],
+        space: null, kind: 'gallery', ...span(e.dates || '', e.year), events: [], community: true });
+    }
   }
+  m.exhibitions.sort((p, q) => (+q.year || 0) - (+p.year || 0));
   for (const w of c.works) {
     const a = A.get(w.artist_id); if (!a) continue;
     const pairs = w.width && w.height ? [[+w.height, +w.width]] : [];
@@ -212,6 +221,12 @@ function addWorld(m, w, uniq, seen) {
   Object.assign(m.thumbs, w.thumbs || {});
   for (const e of m.exhibitions) if (e.city && !m.cities.some(c => c.name === e.city)) m.cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
 }
+
+// a CV as the site keeps it: lines in groups (Education, Solo Exhibitions...), each with its year
+const cvOf = cv => {
+  const groups = [...new Set(cv.map(l => l.group || ''))];
+  return groups.map(g => `<section class="cv-g">${g ? `<h3>${esc(g)}</h3>` : ''}<dl>${cv.filter(l => (l.group || '') === g).map(l => `<div><dt>${esc(l.year)}</dt><dd>${esc(l.title)}${l.venue ? `<span>${esc(l.venue)}</span>` : ''}</dd></div>`).join('')}</dl></section>`).join('');
+};
 
 // where a show stands today
 const status = e => { const now = Date.now(); return now < e.start ? 'soon' : now > e.end ? 'past' : 'on'; };
@@ -530,6 +545,7 @@ function artistPage(slug) {
   <div class="wrap gut">
     <div class="btns" style="padding-block:18px 0"><button type="button" class="btn ${followed ? 'g' : 'f'}" data-follow="${esc(a.slug)}" aria-pressed="${followed}">${followed ? 'Following' : 'Follow'}</button>${own ? '<a class="btn g" href="#/about">About & CV</a>' : ''}</div>
     <p class="statement">${esc(curly(a.statement))}</p>
+    ${a.community && a.cv && a.cv.length ? `<details class="cv-more"><summary>CV</summary><div class="cv">${a.cv.length ? cvOf(a.cv) : ''}</div></details>` : ''}
     ${a.demo ? '<p class="note" style="margin-top:14px">A real artist from art history, shown to see Open Studio full: the works are in the public domain (images from Wikimedia Commons). The galleries and shows they appear in here are made up.</p>' : ''}
     ${posts.length ? `<section class="sec" style="margin-top:28px"><div class="sec-h"><h2>Live from the studio</h2><span class="more">${posts.length} new</span></div>
       <div class="studio-log">${posts.map((p, i) => `<button type="button" class="log" data-log="${esc(a.slug)}:${i}">
