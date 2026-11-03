@@ -53,3 +53,16 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    Console HTML tag on https://eladamsalem.com/ (the site's root index.html is on `main`). Google sign-in itself is
    already in production (published 3.11).
 3. Leftover: change_requests row with issue 3 (a test) still in the table, status filed; delete it.
+4. Done 3.11 (owner's list): (a) the demo's made-up artists replaced by ten real public-domain artists (5 women, 5 men),
+   six works each with real size/year/medium/collection (`studio/app/make_world.py`: Wikidata + Commons; galleries and
+   shows stay made up and the artist page says so; demo studio = Berthe Morisot's; The Green Hour hangs real works
+   beside Elad's; "Studio spaces" now refilms a virtual show when its works change). (b) Control room `#/admin` opens
+   on an Overview: numbers, artists waiting, new works to look at (`works.reviewed_at`, `works.hidden`: Looks good /
+   Hide; a work is live at once, a trigger keeps those two columns admin-only), latest people, and test accounts:
+   sign up with `ooopenstudio+…@gmail.com` in a private window (code arrives in the app's inbox); the `admin-users`
+   function lists and deletes only "+" accounts with all they made. (c) Virtual spaces: research in
+   `studio/design/virtual-spaces/research.md` (market, three.js on iPhone, museum lighting numbers, ten room kinds,
+   pipeline: Blender model + Cycles-baked lightmaps + live per-work light). `studio/app/space/rooms/build_rooms.py`
+   builds the ten kinds x 3 variants in Blender; the "Studio rooms" workflow (by hand) renders them on GitHub into
+   `studio/design/virtual-spaces/renders/` (rooms.json lists them). Next: the owner picks rooms from the renders; then
+   stage 0 of the research's plan: bake one room (white cube) to GLB + lightmap, show it in space.js, A/B on an iPhone.
