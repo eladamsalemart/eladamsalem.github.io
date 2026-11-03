@@ -13,6 +13,7 @@ on:
       - 'content/exhibitions.json'
       - 'media/works/**'
       - 'studio/app/data/studio.json'
+      - 'studio/app/data/virtual.json'
       - 'studio/app/data/spaces/*.overrides.json'
       - 'studio/app/space/pipeline/**'
       - 'studio/app/space/inspect/**'
@@ -89,6 +90,25 @@ jobs:
             if [ ! -f "$d/$slug/preview.json" ] || [ "$d/$slug.json" -nt "$d/$slug/preview.json" ]; then
               node studio/app/space/preview.cjs "$slug" http://localhost:8765/studio/app/ || echo "no film for $slug (the app's check will say so)"
             fi
+          done
+          # the virtual exhibitions (data/virtual.json): a film again when the works on its walls change (preview.json
+          # keeps the list it was made with)
+          stale=$(python3 - <<'EOF'
+          import json, pathlib
+          for s in json.load(open('studio/app/data/virtual.json'))['shows']:
+              p = pathlib.Path('studio/app/data/spaces') / s['slug'] / 'preview.json'
+              made = json.loads(p.read_text()) if p.exists() else {}
+              if made.get('works') != s['works'] or made.get('room') != s.get('room'): print(s['slug'])
+          EOF
+          )
+          for slug in $stale; do
+            node studio/app/space/preview.cjs "$slug" http://localhost:8765/studio/app/ || { echo "no film for $slug (the app's check will say so)"; continue; }
+            python3 - "$slug" <<'EOF'
+          import json, pathlib, sys
+          s = next(x for x in json.load(open('studio/app/data/virtual.json'))['shows'] if x['slug'] == sys.argv[1])
+          p = pathlib.Path('studio/app/data/spaces') / s['slug'] / 'preview.json'
+          made = json.loads(p.read_text()); made.update(works=s['works'], room=s.get('room')); p.write_text(json.dumps(made, indent=1))
+          EOF
           done
       - name: Commit and push to studio
         run: |
