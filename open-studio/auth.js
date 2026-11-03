@@ -11,7 +11,21 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 
 // --- who is signed in, on this phone ---------------------------------------------------------------------------------
 export function account() {
+  const pv = previewing(); if (pv) return pv.user && pv.user.id ? pv.user : null;
   try { const u = JSON.parse(localStorage.getItem(USER_KEY)); return u && u.id ? u : null; } catch { return null; }
+}
+
+// --- the control room's preview: its owner walks the way in as someone new (a visitor, or an artist) ------------------
+// A pretend person lives in this tab only (sessionStorage); no email goes out, any code is taken, nothing is saved, and
+// the real account stays signed in underneath. app.js shows a bar to leave it.
+const PV = 'os-preview';
+export function previewing() { try { return JSON.parse(sessionStorage.getItem(PV)); } catch { return null; } }
+export function startPreview(as) { profile = null; pending = { email: '' }; try { sessionStorage.setItem(PV, JSON.stringify({ as, user: null })); sessionStorage.removeItem('os-pending'); } catch {} }
+export function endPreview() { try { sessionStorage.removeItem(PV); sessionStorage.removeItem('os-pending'); } catch {} }
+function pretend(patch) {
+  const pv = previewing(); if (!pv) return;
+  pv.user = { ...(pv.user || { id: 'preview', email: '', provider: 'email', role: '', name: '', details: false }), ...patch };
+  try { sessionStorage.setItem(PV, JSON.stringify(pv)); } catch {}
 }
 function keep(user, extra = {}) {
   try {
@@ -101,8 +115,8 @@ async function enabled() {
 
 // --- the screens ----------------------------------------------------------------------------------------------------
 // works that fill their picture to the edge (the others are photographed with their paper or canvas around them)
-const ART = ['data/demo/works/low-tide.jpg', 'data/demo/works/late-garden.jpg', 'data/demo/works/two-rooms.jpg', 'data/demo/works/orchard-at-noon.jpg',
-  'data/demo/works/blue-room.jpg', 'data/demo/works/static-bloom.jpg', 'data/demo/works/noise-garden.jpg'];
+const ART = ['data/demo/works/the-starry-night.jpg', 'data/demo/works/impression-sunrise.jpg', 'data/demo/works/the-cradle.jpg', 'data/demo/works/irises.jpg',
+  'data/demo/works/the-great-wave-off-kanagawa.jpg', 'data/demo/works/the-ten-largest-no-3-youth.jpg', 'data/demo/works/the-blue-room.jpg'];
 const LOGO_MARK = '<svg viewBox="0 0 132 132" aria-hidden="true"><rect x="8" y="8" width="116" height="116" rx="36" fill="#1F2A44"/><path d="M42 106 V62 a24 24 0 0 1 48 0 V106 Z" fill="#F5C9B8"/></svg>';
 const ICONS = {
   google: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.6 12.2c0-.8-.1-1.5-.2-2.2H12v4.2h5.9a5 5 0 0 1-2.2 3.3v2.7h3.6c2.1-1.9 3.3-4.8 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.8c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.5H2.1v2.9A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.8 14.1a6.6 6.6 0 0 1 0-4.2V7H2.1a11 11 0 0 0 0 10l3.7-2.9z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2A11 11 0 0 0 2.1 7l3.7 2.9C6.7 7.3 9.1 5.4 12 5.4z"/></svg>',
@@ -246,7 +260,7 @@ export async function screen(hash, app, go) {
     if (!u) return go('#/welcome');
     app.innerHTML = accountPage(u);
     // the people who run Open Studio find their control room here (the database answers who they are)
-    client().then(c => c.rpc('is_admin')).then(({ data }) => {
+    if (!previewing()) client().then(c => c.rpc('is_admin')).then(({ data }) => {
       const b = app.querySelector('.wl-btns');
       if (data === true && b && location.hash.startsWith('#/account') && !b.querySelector('[href="#/admin"]')) b.insertAdjacentHTML('afterbegin', '<a class="wl-go" href="#/admin">Control room</a>');
     }).catch(() => {});
@@ -280,6 +294,7 @@ function wire(app, go) {
   app.querySelectorAll('[data-provider]').forEach(b => b.onclick = async () => {
     const k = b.dataset.provider;
     if (k === 'email') return go('#/welcome/email');
+    if (previewing()) { pretend({ email: 'someone@gmail.com', provider: k, name: 'Someone New', details: true }); return go('#/welcome/role'); }
     busy(b, true, 'Opening…');
     try {
       const c = await client();
@@ -296,6 +311,7 @@ function wire(app, go) {
       const email = input.value.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { app.innerHTML = emailForm(email, 'That doesn’t look like an email address.'); return wire(app, go); }
       const b = ef.querySelector('button'); busy(b, true, 'Sending…');
+      if (previewing()) { pending = { email, at: Date.now() }; savePending(); return go('#/welcome/sent'); }
       try {
         const c = await client();
         const { error } = await c.auth.signInWithOtp({ email, options: { emailRedirectTo: APP_URL(), shouldCreateUser: true } });
@@ -316,6 +332,7 @@ function wire(app, go) {
       const token = input.value.replace(/\D/g, '');
       if (token.length < 6) { app.innerHTML = sent(pending.email, 'Type the whole code from the email.'); return wire(app, go); }
       const b = cf.querySelector('button'); busy(b, true, 'Checking…');
+      if (previewing()) { pretend({ email: pending.email, provider: 'email', details: false, role: '' }); return go('#/welcome/details'); }
       try {
         const c = await client();
         const { data, error } = await c.auth.verifyOtp({ email: pending.email, token, type: 'email' });
@@ -329,6 +346,7 @@ function wire(app, go) {
     const tick = () => { if (!rs.isConnected) return; const s = left(); if (s) { rs.querySelector('span').textContent = s; setTimeout(tick, 1000); } else { rs.disabled = false; rs.textContent = 'Send the email again'; } };
     tick();
     rs.onclick = async () => {
+      if (previewing()) { pending.at = Date.now(); savePending(); rs.disabled = true; rs.innerHTML = 'Sent. Send again in <span>60</span> s'; return tick(); }
       rs.disabled = true; rs.textContent = 'Sending…';
       try { const c = await client(); const { error } = await c.auth.signInWithOtp({ email: pending.email, options: { emailRedirectTo: APP_URL() } }); if (error) throw error;
         pending.at = Date.now(); savePending(); rs.innerHTML = 'Sent. Send again in <span>60</span> s'; tick();
@@ -344,6 +362,7 @@ function wire(app, go) {
       : !p.gender ? 'Choose one under Gender (Prefer not to say is fine).' : '';
     if (bad) { app.innerHTML = details(p, bad); return wire(app, go); }
     const b = df.querySelector('.wl-go'); busy(b, true, 'Saving…');
+    if (previewing()) { profile = { ...p }; pretend({ details: true, name: `${p.first_name} ${p.last_name}` }); return go(account().role ? '#/' : '#/welcome/role'); }
     try {
       const c = await client(), u = account();
       const { error } = await c.from('profiles').upsert({ id: u.id, ...p });
@@ -359,6 +378,7 @@ function wire(app, go) {
     const r = b.dataset.role;
     b.setAttribute('aria-busy', 'true'); app.querySelectorAll('[data-role]').forEach(x => { x.disabled = true; });
     const u = account() || {};
+    if (previewing()) { pretend({ role: r }); return go(r === 'artist' ? '#/welcome/artist' : '#/'); }
     try {
       const c = await client();
       const { data, error } = await c.auth.updateUser({ data: { role: r } });
@@ -373,6 +393,7 @@ function wire(app, go) {
   });
   app.querySelectorAll('[data-browse]').forEach(a => a.onclick = () => { try { sessionStorage.setItem('os-browse', '1'); } catch {} });
   app.querySelectorAll('[data-signout]').forEach(b => b.onclick = async () => {
+    if (previewing()) { endPreview(); return go('#/admin'); }
     b.disabled = true;
     try { const c = await client(); await c.auth.signOut(); } catch {}
     keep(null); try { sessionStorage.clear(); } catch {}
