@@ -144,7 +144,7 @@ def image_node(nt, path, colour=True, scale=1.0, box=True):
 MATS = {}
 
 
-def mat(name, base=(0.8, 0.8, 0.8), rough=0.6, tex=None, scale=1.0, tint=None, tint_mix=0.0, metal=0.0, bump=1.0, rough_mul=1.0, spec=0.5, coat=0.0, wear=None, smudges=None):
+def mat(name, base=(0.8, 0.8, 0.8), rough=0.6, tex=None, scale=1.0, tint=None, tint_mix=0.0, metal=0.0, bump=1.0, rough_mul=1.0, spec=0.5, coat=0.0, wear=None, smudges=None, streaks=False):
     """A Principled material; with a Poly Haven texture laid on in world scale (scale = metres per tile)."""
     if name in MATS: return MATS[name]
     if wear is None: wear = 0.4 if metal > 0.5 else 1.0      # every surface is used, metal a little less visibly
@@ -177,13 +177,13 @@ def mat(name, base=(0.8, 0.8, 0.8), rough=0.6, tex=None, scale=1.0, tint=None, t
             n = image_node(nt, t['nor'], False, scale)
             nm = nt.nodes.new('ShaderNodeNormalMap'); nm.inputs['Strength'].default_value = bump
             nt.links.new(n.outputs['Color'], nm.inputs['Color']); nt.links.new(nm.outputs[0], b.inputs['Normal'])
-    if wear: weather(m, wear)
+    if wear: weather(m, wear, streaks)
     if smudges: smudge(m, *([smudges] if isinstance(smudges, str) else smudges))
     MATS[name] = m
     return m
 
 
-def weather(m, k=1.0):
+def weather(m, k=1.0, streaks=False):
     """The marks of a used room on a material: colour that drifts over metres (paint coats, sun, cleaning), sheen that
     varies over centimetres (touch, wax, scuffs), and a little grime where surfaces meet (corners, under a sill)."""
     nt = m.node_tree; b = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
@@ -216,6 +216,23 @@ def weather(m, k=1.0):
     if l: nt.links.new(l[0].from_socket, add.inputs[0])
     else: add.inputs[0].default_value = b.inputs['Roughness'].default_value
     nt.links.new(rr.outputs[0], add.inputs[1]); nt.links.new(add.outputs[0], b.inputs['Roughness'])
+    if streaks:   # a floor that is mopped and walked: long wipes and blotches in the sheen, a few percent of reflection
+        mp = nt.nodes.new('ShaderNodeMapping'); mp.inputs['Scale'].default_value = (1.0, 7.0, 1.0)
+        nt.links.new(tc.outputs['Object'], mp.inputs['Vector'])
+        st = nt.nodes.new('ShaderNodeTexNoise'); st.inputs['Scale'].default_value = 1.6; st.inputs['Detail'].default_value = 5.0
+        nt.links.new(mp.outputs[0], st.inputs['Vector'])
+        sr = nt.nodes.new('ShaderNodeMapRange'); sr.inputs['To Min'].default_value = -0.16; sr.inputs['To Max'].default_value = 0.14
+        nt.links.new(st.outputs['Fac'], sr.inputs['Value'])
+        a2 = nt.nodes.new('ShaderNodeMath'); a2.operation = 'ADD'; a2.use_clamp = True
+        nt.links.new(add.outputs[0], a2.inputs[0]); nt.links.new(sr.outputs[0], a2.inputs[1]); nt.links.new(a2.outputs[0], b.inputs['Roughness'])
+    # paint and plaster are never flat: a few tenths of a millimetre of orange peel in the normal
+    mb = nt.nodes.new('ShaderNodeTexNoise'); mb.inputs['Scale'].default_value = 260.0; mb.inputs['Detail'].default_value = 3.0
+    nt.links.new(tc.outputs['Object'], mb.inputs['Vector'])
+    bp = nt.nodes.new('ShaderNodeBump'); bp.inputs['Strength'].default_value = 0.05 * k; bp.inputs['Distance'].default_value = 0.002
+    nt.links.new(mb.outputs['Fac'], bp.inputs['Height'])
+    ln = b.inputs['Normal'].links
+    if ln: nt.links.new(ln[0].from_socket, bp.inputs['Normal'])
+    nt.links.new(bp.outputs[0], b.inputs['Normal'])
 
 
 def emission(name, strength, kelvin=6500, visible_only=False):
@@ -397,6 +414,7 @@ def canvas_material(w):
     return m
 
 
+TRIM = {'black-wall': None, 'formwork-concrete': None, 'earth-plaster': None, 'salon-red': (0.8, 0.77, 0.7), 'salon-green': (0.8, 0.77, 0.7)}
 SURF = {'on': False}     # building the room's surfaces for the app: empty walls, no works, no works' spots
 SHELLS = []               # the rooms built (a variant made of one room can go to the app)
 
@@ -606,6 +624,21 @@ class Room:
         if 'w' not in skip: wall_along('wall.w', 'y', x0, y0, y1, 0, h, -1, t, walls, holes['w'])
         if 'e' not in skip: wall_along('wall.e', 'y', x1, y0, y1, 0, h, +1, t, walls, holes['e'])
         self.doors, self.windows = doors, windows
+        wn = getattr(walls, 'name', '')
+        tc = TRIM.get(wn, (0.86, 0.85, 0.82))
+        if tc and not SURF.get('bare'):
+            trim = mat('trim-' + wn, tc, 0.38, wear=0.5)
+            def P(wall, a, d, z): return {'s': (a, y0 + d), 'n': (a, y1 - d), 'w': (x0 + d, a), 'e': (x1 - d, a)}[wall] + (z,)
+            def B(wall, a0, a1, d0, d1, z0, z1, m, bv=0.002):
+                p, q = P(wall, a0, d0, z0), P(wall, a1, d1, z1)
+                box('trim', min(p[0], q[0]), min(p[1], q[1]), z0, max(p[0], q[0]), max(p[1], q[1]), z1, m, bevel=bv)
+            for wall, c, wd, ht in doors:      # architrave: two jambs and a head, 7 cm wide, proud of the wall; a thin threshold strip
+                B(wall, c - wd / 2 - 0.07, c - wd / 2, 0, 0.014, 0, ht + 0.07, trim)
+                B(wall, c + wd / 2, c + wd / 2 + 0.07, 0, 0.014, 0, ht + 0.07, trim)
+                B(wall, c - wd / 2, c + wd / 2, 0, 0.014, ht, ht + 0.07, trim)
+                B(wall, c - wd / 2, c + wd / 2, -t, 0.004, 0, 0.008, mat('threshold', (0.55, 0.53, 0.5), 0.3, metal=0.0, wear=0.8), 0.001)
+            for wall, c, wd, z0, z1 in [w for w in windows if w[3] > 0.2]:  # a window board: a sill that runs through the reveal and projects into the room
+                B(wall, c - wd / 2 - 0.05, c + wd / 2 + 0.05, -t * 0.5, 0.05, z0 - 0.028, z0, trim, 0.003)
         SHELLS.append(self)
         if shadow_gap:   # the recessed shadow gap at the foot of a gallery wall
             g = mat('shadow-gap', (0.02, 0.02, 0.02), 0.9)
@@ -742,8 +775,8 @@ def lens_look(s):
 
 def white_cube(v):
     plaster = mat('white-plaster', (0.83, 0.83, 0.81), 0.9, tex='plastered_wall_04', scale=2.5, tint=(0.84, 0.835, 0.82), tint_mix=0.08, bump=0.25)
-    floor = mat('polished-concrete', rough=0.35, tex='smooth_concrete_floor', scale=3.0, tint=(0.46, 0.46, 0.45), tint_mix=0.35, rough_mul=0.55, bump=0.2, coat=0.15, smudges=('SurfaceImperfections003', 2.2, 0.8))
-    ceil = mat('ceiling-white', (0.8, 0.8, 0.79), 0.95)
+    floor = mat('polished-concrete', rough=0.35, tex='smooth_concrete_floor', scale=3.0, tint=(0.46, 0.46, 0.45), tint_mix=0.35, rough_mul=0.55, bump=0.2, coat=0.15, smudges=('SurfaceImperfections003', 2.2, 0.8), streaks=True)
+    ceil = mat('ceiling-white', (0.8, 0.8, 0.79), 0.95, tex='plastered_wall_04', scale=2.5, tint=(0.8, 0.8, 0.79), tint_mix=0.06, bump=0.2)
     world()
     if v == 'small':           # a project room, 6 x 5 x 3.2
         r = Room(0, 0, 6, 5, 3.2, floor, plaster, ceil, doors=[('e', 1.2, 1.4, 2.4)])
@@ -779,7 +812,7 @@ def white_cube(v):
 
 def loft(v):
     brick = mat('painted-brick', tex='painted_brick', scale=2.2, tint=(0.86, 0.85, 0.82), tint_mix=0.25, bump=0.6)
-    floor = mat('worn-concrete', tex='concrete_floor_worn_001', scale=4.0, tint=(0.5, 0.5, 0.48), tint_mix=0.3, rough_mul=0.7, bump=0.3, smudges=('SurfaceImperfections004', 3.0, 0.7))
+    floor = mat('worn-concrete', tex='concrete_floor_worn_001', scale=4.0, tint=(0.5, 0.5, 0.48), tint_mix=0.3, rough_mul=0.7, bump=0.3, smudges=('SurfaceImperfections004', 3.0, 0.7), streaks=True)
     steel = mat('steel', (0.08, 0.085, 0.09), 0.45, metal=0.8)
     ceil = mat('roof-white', (0.75, 0.75, 0.74), 0.9, tex='wood_planks', scale=3.0, tint=(0.8, 0.8, 0.78), tint_mix=0.15)
     world(hdri=hdri('overcast'), strength=1.0)
@@ -807,7 +840,7 @@ def loft(v):
 
 def skylit_hall(v):
     plaster = mat('lime-plaster', tex='white_plaster_rough_01', scale=2.0, tint=(0.82, 0.8, 0.76), tint_mix=0.15, bump=0.3)
-    oak = mat('oak-floor', tex='oak_wood_planks', scale=2.4, rough_mul=0.75, bump=0.4, coat=0.1, smudges=('SurfaceImperfections003', 2.0, 0.6))
+    oak = mat('oak-floor', tex='oak_wood_planks', scale=2.4, rough_mul=0.75, bump=0.4, coat=0.1, smudges=('SurfaceImperfections003', 2.0, 0.6), streaks=True)
     vault = mat('vault', (0.82, 0.8, 0.77), 0.9, tex='white_plaster_rough_02', scale=3.0, tint=(0.84, 0.82, 0.78), tint_mix=0.1)
     world()
     if v == 'small':           # a skylit square, 10 x 10 x 5.5, a laylight ceiling
@@ -851,8 +884,8 @@ def skylit_hall(v):
 def salon(v):
     red = mat('salon-red', tex='painted_plaster_wall', scale=2.0, tint=(0.24, 0.035, 0.045), tint_mix=0.15, bump=0.2)
     green = mat('salon-green', tex='painted_plaster_wall', scale=2.0, tint=(0.09, 0.17, 0.12), tint_mix=0.15, bump=0.2)
-    parquet = mat('parquet', tex='herringbone_parquet', scale=3.4, rough_mul=0.7, coat=0.25, bump=0.3, smudges=('SurfaceImperfections003', 2.0, 0.7))
-    ceil = mat('ceiling-cream', (0.82, 0.79, 0.72), 0.9)
+    parquet = mat('parquet', tex='herringbone_parquet', scale=3.4, rough_mul=0.7, coat=0.25, bump=0.3, smudges=('SurfaceImperfections003', 2.0, 0.7), streaks=True)
+    ceil = mat('ceiling-cream', (0.82, 0.79, 0.72), 0.9, tex='plastered_wall_04', scale=2.5, tint=(0.82, 0.79, 0.72), tint_mix=0.06, bump=0.2)
     panel = mat('wainscot', (0.78, 0.75, 0.68), 0.55, bump=0.2)
     gilt = mat('gilt-frame', (0.62, 0.47, 0.22), 0.3, metal=1.0)
     world()
@@ -968,7 +1001,7 @@ def disc(c, n, rad, material, k=16):
 
 def concrete(v):
     conc = mat('formwork-concrete', tex='concrete_wall_004', scale=2.4, tint=(0.6, 0.6, 0.58), tint_mix=0.4, rough_mul=1.0, bump=0.5)
-    floor = mat('concrete-floor', tex='concrete_floor_02', scale=3.0, tint=(0.42, 0.42, 0.41), tint_mix=0.4, rough_mul=0.6, coat=0.1, bump=0.3)
+    floor = mat('concrete-floor', tex='concrete_floor_02', scale=3.0, tint=(0.42, 0.42, 0.41), tint_mix=0.4, rough_mul=0.6, coat=0.1, bump=0.3, streaks=True)
     world()
     if v == 'large':           # a tall volume 8 x 8 x 6 with a slot window high in the wall
         world(hdri=hdri('overcast'), strength=WIN_STRENGTH)
@@ -1000,8 +1033,8 @@ def concrete(v):
 
 def studio(v):
     brick = mat('limewash-brick', tex='whitewashed_brick', scale=2.0, tint=(0.88, 0.87, 0.84), tint_mix=0.3, bump=0.7)
-    boards = mat('painted-boards', tex='old_wooden_floor_03', scale=2.4, tint=(0.62, 0.6, 0.56), tint_mix=0.35, rough_mul=1.0, bump=0.5, smudges=('SurfaceImperfections004', 2.0, 0.5))
-    ceil = mat('studio-ceiling', (0.82, 0.82, 0.8), 0.9)
+    boards = mat('painted-boards', tex='old_wooden_floor_03', scale=2.4, tint=(0.62, 0.6, 0.56), tint_mix=0.35, rough_mul=1.0, bump=0.5, smudges=('SurfaceImperfections004', 2.0, 0.5), streaks=True)
+    ceil = mat('studio-ceiling', (0.82, 0.82, 0.8), 0.9, tex='plastered_wall_04', scale=2.5, tint=(0.82, 0.82, 0.8), tint_mix=0.06, bump=0.2)
     wood = mat('table-wood', tex='rough_pine_door', scale=1.2, bump=0.4)
     world(hdri=hdri('overcast' if v == 'large' else 'city'), strength=WIN_STRENGTH, rot=STREET_ROT)
     if v == 'large':
@@ -1039,8 +1072,8 @@ def studio(v):
 
 def apartment(v):
     walls = mat('warm-white', tex='painted_plaster_wall', scale=2.0, tint=(0.8, 0.77, 0.71), tint_mix=0.1, bump=0.2)
-    herring = mat('herringbone-oak', tex='herringbone_parquet', scale=3.4, rough_mul=0.7, coat=0.2, bump=0.3, smudges=('SurfaceImperfections003', 2.0, 0.7))
-    ceil = mat('apt-ceiling', (0.84, 0.83, 0.8), 0.9)
+    herring = mat('herringbone-oak', tex='herringbone_parquet', scale=3.4, rough_mul=0.7, coat=0.2, bump=0.3, smudges=('SurfaceImperfections003', 2.0, 0.7), streaks=True)
+    ceil = mat('apt-ceiling', (0.84, 0.83, 0.8), 0.9, tex='plastered_wall_04', scale=2.5, tint=(0.84, 0.83, 0.8), tint_mix=0.06, bump=0.2)
     skirt = mat('skirting', (0.85, 0.84, 0.8), 0.5)
     linen = mat('sofa-linen', tex='rough_linen', scale=0.4, tint=(0.55, 0.5, 0.42), tint_mix=0.3)
     rug = mat('rug', tex='rough_linen', scale=0.6, tint=(0.62, 0.55, 0.45), tint_mix=0.5)
@@ -1071,7 +1104,7 @@ def apartment(v):
 
 def black_box(v):
     black = mat('black-wall', (0.05, 0.05, 0.052), 0.9, tex='painted_plaster_wall', scale=2.0, tint=(0.055, 0.055, 0.058), tint_mix=0.12, bump=0.3)
-    floor = mat('dark-floor', tex='smooth_concrete_floor', scale=3.0, tint=(0.1, 0.1, 0.105), tint_mix=0.3, rough_mul=0.5, coat=0.2, smudges=('SurfaceImperfections004', 2.5, 1.0))
+    floor = mat('dark-floor', tex='smooth_concrete_floor', scale=3.0, tint=(0.1, 0.1, 0.105), tint_mix=0.3, rough_mul=0.5, coat=0.2, smudges=('SurfaceImperfections004', 2.5, 1.0), streaks=True)
     world()
     if v == 'large':           # a round room, 12 m across (the Tanks)
         R, H = 6, 5
@@ -1117,10 +1150,10 @@ def black_box(v):
 
 
 def glass_pavilion(v):
-    granite = mat('terrazzo', tex='terrazzo_tiles', scale=2.0, rough_mul=0.6, coat=0.2, bump=0.2, smudges=('SurfaceImperfections003', 2.5, 0.6))
+    granite = mat('terrazzo', tex='terrazzo_tiles', scale=2.0, rough_mul=0.6, coat=0.2, bump=0.2, smudges=('SurfaceImperfections003', 2.5, 0.6), streaks=True)
     white = mat('pavilion-wall', (0.84, 0.84, 0.82), 0.9, tex='painted_plaster_wall', scale=2.5, tint=(0.85, 0.85, 0.83), tint_mix=0.06, bump=0.2)
     steel = mat('black-steel', (0.02, 0.02, 0.022), 0.4, metal=0.85)
-    ceil = mat('pavilion-ceiling', (0.72, 0.72, 0.7), 0.85)
+    ceil = mat('pavilion-ceiling', (0.72, 0.72, 0.7), 0.85, tex='plastered_wall_04', scale=2.5, tint=(0.72, 0.72, 0.7), tint_mix=0.06, bump=0.2)
     world(hdri=hdri('garden'), strength=GARDEN_STRENGTH, rot=GARDEN_ROT)
     W, D, H = {'small': (10, 8, 4), 'large': (24, 16, 5)}.get(v, (14, 9, 4.5))
     box('floor', -2, -2, -0.2, W + 2, D + 2, 0, granite)
@@ -1166,6 +1199,13 @@ def japanese(v):
     world(hdri=hdri('japanese-garden'), strength=GARDEN_STRENGTH * 0.8, rot=JP_ROT)
     W, D, H = {'small': (3.6, 3.6, 2.5), 'large': (12, 4.5, 3.0)}.get(v, (9, 6, 3.2))
     r = Room(0, 0, W, D, H, tatami, plaster, cedar, doors=[('e', D / 2, 0.9, 1.9)], windows=[('n', W / 2, W - 0.4, 0.0, H - 0.4)], shadow_gap=False)
+    heri = mat('heri', (0.02, 0.025, 0.02), 0.85, wear=0.2)    # the black cloth edging that outlines every tatami mat
+    for k in range(1, int(W / 0.9) + 1):
+        for m in range(int(D / 1.8) + 1):
+            y0_, y1_ = m * 1.8, min(D, (m + 1) * 1.8)
+            if y1_ - y0_ > 0.05: box('heri', k * 0.9 - 0.007 if k * 0.9 < W else W - 0.014, y0_, 0, k * 0.9 + 0.007 if k * 0.9 < W else W, y1_, 0.003, heri)
+    for m in range(1, int(D / 1.8) + 1):
+        if m * 1.8 < D: box('heri', 0, m * 1.8 - 0.007, 0, W, m * 1.8 + 0.007, 0.003, heri)
     # shoji along the garden side: paper in a fine lattice
     sx0, sx1 = 0.2, W - 0.2
     o0, o1 = W / 2 - min(0.9, W * 0.22), W / 2 + min(0.9, W * 0.22)       # the panels slid aside: the garden
