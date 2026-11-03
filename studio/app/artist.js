@@ -307,7 +307,7 @@ function importer() {
     <p class="m">From wherever your work already is. You choose what comes in, and fix titles and sizes after, in Works.</p>
     <div class="im-ways">
       <form class="st-card im-way" data-kind="site"><h2>Your website</h2><p class="m small">We look at the page and its gallery pages for your images and their titles.</p>
-        <label class="vh" for="imSite">Website address</label><input id="imSite" name="url" type="url" inputmode="url" placeholder="https://yourname.com" value="${esc(site)}" required>
+        <label class="vh" for="imSite">Website address</label><input id="imSite" name="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="yourname.com" value="${esc(site)}" required>
         <button class="btn f" type="submit">Find my work</button></form>
       <div class="st-card im-way" id="imIg"><h2>Instagram</h2><p class="m small" id="imIgSay">Connect your Instagram (a professional account, linked to a Facebook Page) and choose posts from it.</p>
         <div class="btns"><button class="btn f" type="button" id="imIgGo">Connect Instagram</button><button class="btn g" type="button" id="imIgOff" hidden>Disconnect</button></div>
