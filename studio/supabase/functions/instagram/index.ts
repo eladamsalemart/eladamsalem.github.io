@@ -69,7 +69,13 @@ async function callback(url: URL) {
     const token = long.access_token as string;
     const pages = await graph('me/accounts', { fields: 'name,instagram_business_account{id,username}', limit: '100', access_token: token });
     const ig = (pages.data || []).map((p: any) => p.instagram_business_account).find(Boolean);
-    if (!ig) return home(st.b, 'noaccount');
+    if (!ig) {
+      // what Facebook gave, to see why (no tokens): how many Pages, which with Instagram, which permissions were granted
+      const perms = await graph('me/permissions', { access_token: token }).catch(() => ({ data: [] }));
+      console.log('instagram noaccount', JSON.stringify({ pages: (pages.data || []).map((p: any) => ({ name: p.name, ig: !!p.instagram_business_account })),
+        perms: (perms.data || []).map((p: any) => `${p.permission}:${p.status}`) }));
+      return home(st.b, 'noaccount');
+    }
     const r = await db('instagram_links', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify({
       user_id: st.u, ig_id: ig.id, username: ig.username || null, token,
       expires_at: long.expires_in ? new Date(Date.now() + long.expires_in * 1000).toISOString() : null, updated_at: new Date().toISOString() }) });
