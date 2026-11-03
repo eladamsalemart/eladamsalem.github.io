@@ -309,8 +309,10 @@ function importer() {
       <form class="st-card im-way" data-kind="site"><h2>Your website</h2><p class="m small">We look at the page and its gallery pages for your images and their titles.</p>
         <label class="vh" for="imSite">Website address</label><input id="imSite" name="url" type="url" inputmode="url" placeholder="https://yourname.com" value="${esc(site)}" required>
         <button class="btn f" type="submit">Find my work</button></form>
-      <div class="st-card im-way"><h2>Instagram</h2><p class="m small">Instagram lets you take your posts with you: in the app, <b>Settings → Accounts Centre → Your information and permissions → Download your information</b>, choose <b>Some of your information → Posts</b>, format <b>JSON</b>. Instagram emails you a file (.zip); choose it here.</p>
-        <label class="btn g"><input type="file" accept=".zip,application/zip" id="imZip" hidden>Choose the Instagram file</label></div>
+      <div class="st-card im-way" id="imIg"><h2>Instagram</h2><p class="m small" id="imIgSay">Connect your Instagram (a professional account, linked to a Facebook Page) and choose posts from it.</p>
+        <div class="btns"><button class="btn f" type="button" id="imIgGo">Connect Instagram</button><button class="btn g" type="button" id="imIgOff" hidden>Disconnect</button></div>
+        <details class="im-zip"><summary class="small">Or use Instagram’s download file</summary><p class="m small">In the Instagram app, <b>Settings → Accounts Centre → Your information and permissions → Download your information</b>, choose <b>Some of your information → Posts</b>, format <b>JSON</b>. Instagram emails you a file (.zip); choose it here.</p>
+        <label class="btn g"><input type="file" accept=".zip,application/zip" id="imZip" hidden>Choose the Instagram file</label></details></div>
       <form class="st-card im-way" data-kind="drive"><h2>Google Drive</h2><p class="m small">A folder of images, shared as <b>Anyone with the link</b>. Paste its link.</p>
         <label class="vh" for="imDrive">Drive folder link</label><input id="imDrive" name="url" inputmode="url" placeholder="https://drive.google.com/drive/folders/…" required>
         <button class="btn f" type="submit">Find my work</button></form>
@@ -341,6 +343,7 @@ function wireImport(app, go) {
   });
   const zip = app.querySelector('#imZip');
   if (zip) zip.onchange = async () => { if (!zip.files[0]) return; show('Opening the Instagram file…'); try { take(await cloud.fromInstagramZip(zip.files[0]), 'instagram'); } catch (err) { show('That file couldn’t be read: choose the .zip Instagram sent (JSON format).'); } };
+  wireInstagram(app, show, take);
   const files = app.querySelector('#imFiles');
   if (files) files.onchange = () => take([...files.files].map(f => ({ title: f.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' '), blob: f, preview: URL.createObjectURL(f), source: 'phone' })), 'phone');
   function wireFound() {
@@ -368,6 +371,34 @@ function wireImport(app, go) {
     };
   }
   wireFound();
+}
+
+// Instagram, connected through Facebook: Connect (then Facebook sends the artist back here with ?ig=…), Show my posts
+const IG_BACK = { ok: '', cancelled: 'Instagram wasn’t connected.', noaccount: 'No Instagram account came with that sign-in: Instagram has to be a professional account, linked to a Facebook Page, and chosen when Facebook asks.', error: 'Instagram couldn’t be connected. Try again in a moment.' };
+function wireInstagram(app, show, take) {
+  const go = app.querySelector('#imIgGo'), off = app.querySelector('#imIgOff'), say = app.querySelector('#imIgSay'); if (!go) return;
+  const back = new URLSearchParams(location.search).get('ig');
+  if (back != null) history.replaceState(null, '', location.pathname + location.hash);
+  let on = false;
+  const posts = async () => {
+    go.disabled = true; go.textContent = 'Looking…'; show('Bringing your posts from Instagram…');
+    try { const d = await cloud.instagram('media'); take(d.items, 'instagram'); }
+    catch (e) { if (e.reconnect) set(false); show(esc(e.message)); }
+    go.disabled = false; go.textContent = on ? 'Show my posts' : 'Connect Instagram';
+  };
+  const set = (c, user) => {
+    on = c; off.hidden = !c; go.textContent = c ? 'Show my posts' : 'Connect Instagram';
+    say.textContent = c ? `Connected${user ? ` as @${user}` : ''}. Choose which posts come in.` : 'Connect your Instagram (a professional account, linked to a Facebook Page) and choose posts from it.';
+  };
+  go.onclick = async () => {
+    if (on) return posts();
+    go.disabled = true; go.textContent = 'Opening Facebook…';
+    try { location.href = (await cloud.instagram('start')).url; }
+    catch (e) { show(esc(e.message)); go.disabled = false; go.textContent = 'Connect Instagram'; }
+  };
+  off.onclick = async () => { off.disabled = true; try { await cloud.instagram('disconnect'); set(false); show('Instagram is disconnected.'); } catch (e) { show(esc(e.message)); } off.disabled = false; };
+  cloud.instagram('status').then(d => { set(d.connected, d.username); if (back === 'ok' && d.connected) posts(); }).catch(() => {});
+  if (back && back !== 'ok') show(IG_BACK[back] || IG_BACK.error);
 }
 
 // a live tour, to share anywhere: a link, and a frame for the artist's own website
