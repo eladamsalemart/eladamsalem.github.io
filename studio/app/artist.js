@@ -20,12 +20,17 @@ function load() {
   return S;
 }
 function save() {
+  if (S && S.preview) return;                                 // the control room's preview: nothing is kept
   if (S && S.cloud) return cloud.save(S);                    // a real artist's account: kept in the database
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { /* private window: kept for this visit */ }
 }
 // a real artist's account (signed in, here as an artist): the studio is kept in Open Studio's database
 let cloud = null;
-const me = () => { try { const u = JSON.parse(localStorage.getItem('os-user')); return u && u.id ? u : null; } catch { return null; } };
+const me = () => {
+  try { const pv = JSON.parse(sessionStorage.getItem('os-preview')); if (pv) return pv.user && pv.user.id ? pv.user : null; } catch {}
+  try { const u = JSON.parse(localStorage.getItem('os-user')); return u && u.id ? u : null; } catch { return null; }
+};
+const previewing = () => { try { return !!sessionStorage.getItem('os-preview'); } catch { return false; } };
 
 async function demoArtist() {
   if (!demo) demo = await fetch('data/demo/artist.json').then(r => r.json());
@@ -302,7 +307,7 @@ function setup(u) {
 // --- bringing work in: from a website, Instagram, a Drive folder, or the phone --------------------------------------
 let found = [];                         // what was found, waiting for the artist to choose
 function importer() {
-  if (!S.cloud) return `<div class="wrap gut st">${head('Bring work in')}${nav('import')}<p class="m">In the demo studio nothing is brought in. <a href="#/welcome">Join as an artist</a> to bring your own work from your website, Instagram, a Drive folder or your phone.</p></div>`;
+  if (!S.cloud && !S.preview) return `<div class="wrap gut st">${head('Bring work in')}${nav('import')}<p class="m">In the demo studio nothing is brought in. <a href="#/welcome">Join as an artist</a> to bring your own work from your website, Instagram, a Drive folder or your phone.</p></div>`;
   const site = S.artist.link || '';
   return `<div class="wrap gut st">${head('Bring work in')}${nav('import')}
     <p class="m">From wherever your work already is. You choose what comes in, and fix titles and sizes after, in Works.</p>
@@ -341,6 +346,13 @@ function wireImport(app, go) {
   const show = (msg, look) => { box.innerHTML = foundList(msg); wireFound(); if (look) box.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   const tell = msg => show(msg, true);
   const take = (items, from) => { found = items.map(x => ({ ...x, on: true, from })); tell(items.length ? '' : 'Nothing found there.'); };
+  if (S.preview) {   // the control room's preview: the page as a new artist sees it, nothing fetched or kept
+    const say = e => { if (e) e.preventDefault(); tell('<span dir="rtl" lang="he">בתצוגה מקדימה לא מייבאים בפועל: כך נראה הדף לאמן חדש.</span>'); };
+    app.querySelectorAll('form.im-way').forEach(f => f.onsubmit = say);
+    app.querySelectorAll('#imIgGo, #imIgOff, #imDriveGo').forEach(b => b.onclick = () => say());
+    app.querySelectorAll('#imZip, #imFiles').forEach(i => i.onchange = () => say());
+    return;
+  }
   app.querySelectorAll('form.im-way').forEach(f => f.onsubmit = async e => {
     e.preventDefault();
     const b = f.querySelector('button'); b.disabled = true; b.textContent = 'Looking…'; show('');
@@ -536,6 +548,10 @@ function wire(app, go) {
     e.preventDefault();
     const f = Object.fromEntries(new FormData(su)), b = su.querySelector('button[type=submit]');
     b.disabled = true; b.textContent = 'Making your page…';
+    if (previewing()) {
+      S = { preview: true, cloud: false, status: 'pending', note: '', artist: { name: f.name, discipline: f.discipline || '', city: f.city || '', photo: '', statement: '', bio: '', link: f.link || '', instagram: f.instagram || '', cover: '' }, works: [], exhibitions: [], virtual: [] };
+      return go('#/studio/import');
+    }
     try { S = await cloud.create(f); go('#/studio/import'); }
     catch (err) { b.disabled = false; b.textContent = 'Make my page'; su.querySelector('.err').textContent = err.message; }
   };
@@ -677,7 +693,10 @@ export async function studio(hash, app, go, M) {
   model = M || null;
   // signed in as an artist: the studio is the account's own, in the database
   const u = me();
-  if (u && u.role === 'artist' && !(S && S.cloud && S.uid === u.id)) {
+  if (previewing() && u && u.role === 'artist') {           // the preview's new artist: a page made here, kept nowhere
+    if (!(S && S.preview)) { app.innerHTML = setup(u); wire(app, go); return; }
+  } else if (S && S.preview) S = null;
+  if (!previewing() && u && u.role === 'artist' && !(S && S.cloud && S.uid === u.id)) {
     cloud = cloud || await import('./studio-cloud.js');
     app.innerHTML = '<div class="wrap gut st"><p class="m">Opening your studio…</p></div>';
     try { S = await cloud.load(); if (S) S.uid = u.id; } catch (e) { console.error(e); S = null; }

@@ -801,11 +801,28 @@ const routes = [
 ];
 
 // who is signed in on this phone (auth.js keeps it; read here at once, without loading the sign-in code)
-function signedIn() { try { const u = JSON.parse(localStorage.getItem('os-user')); return u && u.id ? u : null; } catch { return null; } }
+function signedIn() {
+  try { const pv = JSON.parse(sessionStorage.getItem('os-preview')); if (pv) return pv.user && pv.user.id ? pv.user : null; } catch {}
+  try { const u = JSON.parse(localStorage.getItem('os-user')); return u && u.id ? u : null; } catch { return null; }
+}
+// the control room's preview (auth.js): a bar on every screen while it lasts, in Hebrew (only the owners use it)
+function previewBar() {
+  let on = null; try { on = JSON.parse(sessionStorage.getItem('os-preview')); } catch {}
+  let bar = document.getElementById('pvBar');
+  if (!on) { if (bar) bar.remove(); document.body.classList.remove('previewing'); return; }
+  if (!bar) {
+    bar = document.createElement('div'); bar.id = 'pvBar'; bar.className = 'pv-bar'; bar.dir = 'rtl'; bar.lang = 'he';
+    bar.innerHTML = `<span>תצוגה מקדימה, ${on.as === 'artist' ? 'כאמן חדש' : 'כמבקר חדש'}: שום דבר לא נשלח ולא נשמר</span><button type="button">יציאה</button>`;
+    bar.querySelector('button').onclick = () => { try { sessionStorage.removeItem('os-preview'); sessionStorage.removeItem('os-pending'); } catch {} location.hash = '#/admin'; };
+    document.body.append(bar);
+  }
+  document.body.classList.add('previewing');
+}
 
 let prevHash = null, lastHash = null;
 function render() {
   const hash = location.hash || '#/';
+  previewBar();
   if (hash !== lastHash) { prevHash = lastHash; lastHash = hash; }
   document.querySelectorAll('.log-view').forEach(v => v.remove());       // (a studio log open over the page closes with it)
   // the way in: signing up or in, and who you are here (auth.js), full screen, without the bar and tabs
