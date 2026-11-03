@@ -29,9 +29,9 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    under it). Meta: use case permissions instagram_basic, pages_show_list, pages_read_engagement; FLfB configuration
    "Open Studio import" 28954169344235251 (user access token); redirect URI
    https://hlpzqeosdavfuzjgpwhy.supabase.co/functions/v1/instagram. The "Supabase functions" workflow copies the GitHub
-   secrets INSTAGRAM_APP_ID/SECRET into the function's settings: on the first deploy they weren't there (warning
-   "missing"), so the function answers "isn't set up yet" until the owner adds them and the workflow is run again.
-   Then: test end to end with the owner's account (artist, admin of the Meta app).
+   secrets INSTAGRAM_APP_ID/SECRET into the function's settings (`supabase secrets set --yes`); done 3.11, the
+   function answers (401 without a sign-in). Next: test end to end with the owner's account (artist, admin of the
+   Meta app): the owner signs in to the app, Connect Instagram, approves on Facebook, posts listed, a few brought in.
    Needed for the app: privacy policy https://eladamsalem.com/open-studio/privacy.html (names Instagram since 3.11),
    data deletion instructions https://eladamsalem.com/open-studio/data-deletion.html (live 3.11), icon (studio/design/google-brand-logo-120.png or the
    app icons), category. Put App ID / App Secret in GitHub secrets INSTAGRAM_APP_ID / INSTAGRAM_APP_SECRET. Then
