@@ -132,6 +132,47 @@ export async function fetchImage(url) {
   if (!r.ok) throw new Error('The image couldn’t be fetched');
   return r.blob();
 }
+// Google Drive, chosen: Google's own picker (Google Cloud project open-studio-513508). The artist lets Open Studio see
+// only the files they pick (scope drive.file), picks images, and the browser downloads them with that permission;
+// nothing passes through our server. The key is a browser key, held to eladamsalem.com and to the Picker.
+const GOOGLE = { client: '565397252258-9r716pqru9bcpmkob8kp9bidvi28p3hf.apps.googleusercontent.com', key: 'AIzaSyDZXfrowjZkGHNYVr8J8x4obL1MMP-yuxQ', app: '565397252258' };
+const script = src => new Promise((ok, no) => { if (document.querySelector(`script[src="${src}"]`)) return ok(); const s = document.createElement('script'); s.src = src; s.async = true; s.onload = ok; s.onerror = () => no(new Error('Google didn’t load.')); document.head.append(s); });
+let driveReady = null, driveToken = null;
+// loaded ahead, when the import page opens: the sign-in window must open straight from the tap, or the phone blocks it
+export function prepareDrive() {
+  return driveReady || (driveReady = Promise.all([script('https://accounts.google.com/gsi/client'), script('https://apis.google.com/js/api.js')])
+    .then(() => new Promise(ok => window.gapi.load('picker', ok))).catch(e => { driveReady = null; throw e; }));
+}
+// call from a tap; resolves with the picked images ([] when the artist closes the picker), each { title, blob, preview }
+export function fromDrive(onProgress = () => {}) {
+  return new Promise((ok, no) => {
+    if (!window.google?.accounts?.oauth2 || !window.google?.picker) { prepareDrive(); return no(new Error('Google Drive is still loading. Try again in a moment.')); }
+    const pick = token => {
+      const view = new google.picker.DocsView(google.picker.ViewId.DOCS_IMAGES).setIncludeFolders(true).setMode(google.picker.DocsViewMode.GRID);
+      new google.picker.PickerBuilder().addView(view).enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+        .setOAuthToken(token).setDeveloperKey(GOOGLE.key).setAppId(GOOGLE.app).setTitle('Choose images of your work')
+        .setCallback(async d => {
+          if (d.action === google.picker.Action.CANCEL) return ok([]);
+          if (d.action !== google.picker.Action.PICKED) return;
+          const docs = d.docs || [], items = [];
+          for (const [i, doc] of docs.entries()) {
+            onProgress(i + 1, docs.length);
+            try {
+              const r = await fetch(`https://www.googleapis.com/drive/v3/files/${doc.id}?alt=media`, { headers: { Authorization: `Bearer ${token}` } });
+              if (!r.ok) throw new Error(r.status);
+              const blob = await r.blob();
+              items.push({ title: String(doc.name || '').replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').trim(), blob, preview: URL.createObjectURL(blob), source: 'drive' });
+            } catch (e) { console.warn('drive', doc.name, e); }
+          }
+          ok(items);
+        }).build().setVisible(true);
+    };
+    if (driveToken && driveToken.until > Date.now()) return pick(driveToken.value);
+    google.accounts.oauth2.initTokenClient({ client_id: GOOGLE.client, scope: 'https://www.googleapis.com/auth/drive.file',
+      callback: r => { if (r.error || !r.access_token) return no(new Error('Google Drive wasn’t opened.')); driveToken = { value: r.access_token, until: Date.now() + (r.expires_in - 60) * 1000 }; pick(r.access_token); },
+      error_callback: e => no(new Error(e?.type === 'popup_closed' ? 'Google Drive wasn’t opened.' : 'Google Drive couldn’t be opened. Allow pop-ups for this site and try again.')) }).requestAccessToken();
+  });
+}
 // Instagram, connected: the artist signs in with Facebook once, then their posts can be listed any time
 // (server function "instagram": start, status, media, disconnect). Until Meta reviews the app, only its testers.
 const IG = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/functions/v1/instagram';
