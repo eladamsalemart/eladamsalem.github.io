@@ -66,3 +66,10 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    builds the ten kinds x 3 variants in Blender; the "Studio rooms" workflow (by hand) renders them on GitHub into
    `studio/design/virtual-spaces/renders/` (rooms.json lists them). Next: the owner picks rooms from the renders; then
    stage 0 of the research's plan: bake one room (white cube) to GLB + lightmap, show it in space.js, A/B on an iPhone.
+5. Also 3.11 (later): the control room is in Hebrew, right to left (the owner's wish; only owners see it), reached by
+   a "Control room" button on the account page (is_admin). Its Overview has a preview: "סיור כמבקר/כאמן חדש" walks the
+   way in with a pretend person in sessionStorage (`os-preview`: auth.js `previewing/startPreview/endPreview`, app.js
+   `previewBar`, artist.js keeps a preview studio on the page only); any code is taken, nothing is sent or saved; the
+   real "+" test accounts sit under it. The welcome screen's pictures pointed at the deleted made-up works: fixed.
+   Rooms: two trial rounds fixed shared walls, fixtures that blocked their own spots, works that didn't fit, light
+   levels; the summary PDF for the owner is made by `studio/design/virtual-spaces/make_summary.py` (Chrome headless).
