@@ -34,6 +34,9 @@ to a tour or the viewer is done:
   one-line summary and write details to a file. Read files by range or grep, never whole big files twice.
 - Pictures last: measure with a check first, then look at one cropped shot (390 wide) per question.
 - Wide searches and web reading go to a subagent (it returns only the answer); independent calls go in one batch.
+- Model (the owner's rule, 3.11): long or mechanical work (checks, inspections, films, bulk edits, research, anything
+  that runs for long) and everything at night runs on Sonnet: a subagent with `model: sonnet` (`haiku` for simple
+  lookups); the nightly session itself is on Sonnet. Design decisions and hard bugs stay in the main session.
 
 ## Design
 
@@ -80,8 +83,9 @@ that wasn't copied. "Art map: exhibitions" daily (sites, newsletters, Makore; pa
 3 days it runs `studio/app/health/health.cjs` (every kind of page as an iPhone, Home's speed, the 3D room, the way in),
 `check_home.cjs`, `check_app.py` and `health/deps.py` (libraries: vulnerabilities fail, updates are notes) on the live
 site, and opens/updates a GitHub issue labelled `app-health` when something is broken. A scheduled task on the owner's
-account ("Open Studio: app health (fix and improve)", trig_014jaVdgnMaAojFCVD8RpH9b, nightly 03:41 Israel time) wakes a
-dedicated session, "Open Studio: app health (nightly)" (session_01BXFf6NoJoP75DyP8nDWCci, opened with the repository
+account ("Open Studio: app health (fix and improve, Sonnet)", trig_01M2ANWFBaQUXo9MyyBzTVSD, nightly 03:41 Israel time;
+the Opus one, trig_014jaVdgnMaAojFCVD8RpH9b, is paused) wakes a dedicated session on Sonnet, "Open Studio: app health
+(nightly, Sonnet)" (session_01BXFf6RhxRTmCxBSX7W3Cxs, opened with the repository
 attached so it can push: a session the task starts fresh each time gets a read-only copy and can't), which follows `studio/app/health/PLAYBOOK.md` (fix first with proof, one improvement per 3 days, never
 design/sign-in/data/secrets without the owner) and writes `studio/app/health/log.md`. Before calling a serious change
 done, run health.cjs locally (`http://localhost:8765/studio/app/`) as well.
@@ -127,6 +131,11 @@ paints); the demo shows are in data/virtual.json (films in data/spaces/<slug>/).
 ones show in the app like any show), Ask for a change (`change_requests` → the hourly "Owner requests" workflow →
 an `owner-request` issue the nightly session takes up), health. Tested end to end with the app's mailbox (sign in by
 the emailed code via the Gmail connector); clean the test data afterwards.
+
+**Owner's decisions (3.11)** — No "Curated" row on Home for now. Later, once there are real artists and shows: the
+"Walk in now" place under the stars becomes a row of exhibitions (curated and artists' virtual ones) moving slowly
+past, each one you can step into. Instagram's direct connection waits for a Meta developer app (the owner's); until
+then the export zip, a website, Drive and the phone or computer.
 
 **Open** — Home: from the ten (`studio/design/home-ten/`) the owner liked the constellation (not its black) and the
 artist's hand, and asked for Home as a sky of what they used last (near), with who and what they haven't met further

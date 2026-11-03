@@ -314,8 +314,8 @@ function importer() {
       <form class="st-card im-way" data-kind="drive"><h2>Google Drive</h2><p class="m small">A folder of images, shared as <b>Anyone with the link</b>. Paste its link.</p>
         <label class="vh" for="imDrive">Drive folder link</label><input id="imDrive" name="url" inputmode="url" placeholder="https://drive.google.com/drive/folders/…" required>
         <button class="btn f" type="submit">Find my work</button></form>
-      <div class="st-card im-way"><h2>From this phone</h2><p class="m small">Photos of your works, straight on, the whole work in the picture.</p>
-        <label class="btn g"><input type="file" accept="image/*" multiple id="imFiles" hidden>Choose photos</label></div>
+      <div class="st-card im-way"><h2>From your phone or computer</h2><p class="m small">Photos or image files of your works, straight on, the whole work in the picture.</p>
+        <label class="btn g"><input type="file" accept="image/*" multiple id="imFiles" hidden>Choose images</label></div>
     </div>
     <section class="sec" id="imFound" aria-live="polite">${foundList()}</section>
   </div>`;
