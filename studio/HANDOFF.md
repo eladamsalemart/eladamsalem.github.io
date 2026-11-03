@@ -81,3 +81,13 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    profile shows the CV; the public page shows CV and past shows), then hangs up to 12 sized works in a first virtual
    exhibition (draft) with "Walk into your exhibition in 3D". Not done: photo-built tours for imported exhibitions (the
    server pipeline). The owner chose to KEEP the built-in Elad (site content and photo tours) visible: don't hide it.
+7. Later 3.11 (owner's test of the import): sizes are read against the picture (the site writes some "a x b" height
+   first, some width first); exhibitions come with their works (from the site's open-studio/data/studio.json) and their
+   tour where live (Ritual: space slug 'ritual'); objects as works of kind 'object' (`works.kind`); a second import
+   doesn't double. Every artist's page = Elad's design (About & CV at #/artist/<slug>/about, Objects). Review round
+   trip: `artists.status` draft -> pending (sent) -> changes (admin note) -> approved; the artist sees their page at
+   #/preview/me, an admin at #/preview/<id> (app.js `loadReview`, bar `reviewBar`, sessionStorage `os-review`); the
+   guard lets an artist only send or take back. Owner's new account is 9d1b42f7-…, his page 'draft', data fixed by hand
+   (19 sizes turned, exhibitions' works and the Ritual tour set, Pargod and Sliding Wall added).
+   Rooms: final renders in studio/design/virtual-spaces/renders; summary PDF open-studio-summary-2026-11-03.pdf (also on
+   the owner's Desktop, OPEN STUDIO folder). Next for rooms: the owner chooses; then stage 0 (bake one room for the app).
