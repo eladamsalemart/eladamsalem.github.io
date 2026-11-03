@@ -22,6 +22,14 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+      - name: The functions' settings (Meta's app for Instagram; its configuration id isn't secret)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          INSTAGRAM_APP_ID: ${{ secrets.INSTAGRAM_APP_ID }}
+          INSTAGRAM_APP_SECRET: ${{ secrets.INSTAGRAM_APP_SECRET }}
+        run: |
+          [ -n "$INSTAGRAM_APP_ID" ] && [ -n "$INSTAGRAM_APP_SECRET" ] || { echo "::warning::INSTAGRAM_APP_ID / INSTAGRAM_APP_SECRET missing"; exit 0; }
+          supabase secrets set --project-ref hlpzqeosdavfuzjgpwhy INSTAGRAM_APP_ID="$INSTAGRAM_APP_ID" INSTAGRAM_APP_SECRET="$INSTAGRAM_APP_SECRET" INSTAGRAM_CONFIG_ID=28954169344235251
       - name: Deploy every function (each checks the caller's sign-in)
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -29,5 +37,7 @@ jobs:
         run: |
           for d in supabase/functions/*/; do
             n=$(basename "$d"); echo "deploying $n"
-            supabase functions deploy "$n" --project-ref hlpzqeosdavfuzjgpwhy --use-api --yes
+            # instagram: Facebook sends the artist back to it without a sign-in, so it checks sign-ins itself
+            extra=""; [ "$n" = instagram ] && extra="--no-verify-jwt"
+            supabase functions deploy "$n" --project-ref hlpzqeosdavfuzjgpwhy --use-api --yes $extra
           done
