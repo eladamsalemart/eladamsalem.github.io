@@ -181,7 +181,7 @@ function addWorld(m, w, uniq, seen) {
   const A = new Map();
   for (const a of w.artists) {
     seen.add(a.slug);
-    const x = { ...a, label: [a.discipline, a.city].filter(Boolean).join(' · '), country: 'Israel', demo: true };
+    const x = { ...a, label: [a.discipline, a.city].filter(Boolean).join(' · '), country: a.country || 'Israel', demo: true };
     A.set(a.slug, x); m.artists.push(x);
   }
   const W = new Map();
@@ -240,7 +240,7 @@ function when(e) {
 const FOLLOW_KEY = 'os-following';
 function following() {
   try { const f = JSON.parse(localStorage.getItem(FOLLOW_KEY)); if (Array.isArray(f)) return f; } catch {}
-  return [M.artist.slug, 'lia-moren', 'maya-haddad'];
+  return [M.artist.slug, 'vincent-van-gogh', 'berthe-morisot'];
 }
 function setFollow(slug, on) {
   const f = new Set(following()); if (on) f.add(slug); else f.delete(slug);
@@ -530,7 +530,7 @@ function artistPage(slug) {
   <div class="wrap gut">
     <div class="btns" style="padding-block:18px 0"><button type="button" class="btn ${followed ? 'g' : 'f'}" data-follow="${esc(a.slug)}" aria-pressed="${followed}">${followed ? 'Following' : 'Follow'}</button>${own ? '<a class="btn g" href="#/about">About & CV</a>' : ''}</div>
     <p class="statement">${esc(curly(a.statement))}</p>
-    ${a.demo ? '<p class="note" style="margin-top:14px">A made-up artist, to show how Open Studio looks full. The works are generated.</p>' : ''}
+    ${a.demo ? '<p class="note" style="margin-top:14px">A real artist from art history, shown to see Open Studio full: the works are in the public domain (images from Wikimedia Commons). The galleries and shows they appear in here are made up.</p>' : ''}
     ${posts.length ? `<section class="sec" style="margin-top:28px"><div class="sec-h"><h2>Live from the studio</h2><span class="more">${posts.length} new</span></div>
       <div class="studio-log">${posts.map((p, i) => `<button type="button" class="log" data-log="${esc(a.slug)}:${i}">
         ${p.kind === 'video' ? `<video src="${esc(p.video)}" poster="${esc(p.poster)}" muted playsinline loop preload="none" aria-hidden="true"></video>` : im(p.frames[0], '', '', '40vw')}

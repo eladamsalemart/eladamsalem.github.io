@@ -14,7 +14,7 @@ const shots = process.argv[3]; // a folder for a screenshot when something fails
     if (sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1');
     const now = Date.now(), m = 60000;
     localStorage.setItem('os-recent', JSON.stringify([{ k: 'exhibition', id: 'signal-noise', t: now - 2 * m },
-      { k: 'artist', id: 'lia-moren', t: now - 60 * m }, { k: 'space', id: 'ritual', t: now - 1500 * m }, { k: 'artist', id: 'elad-amsalem', t: now - 3000 * m }]));
+      { k: 'artist', id: 'vincent-van-gogh', t: now - 60 * m }, { k: 'space', id: 'ritual', t: now - 1500 * m }, { k: 'artist', id: 'elad-amsalem', t: now - 3000 * m }]));
   });
   const p = await ctx.newPage(), bad = [];
   // what the browser got for the room's film (to say why, when it doesn't play)

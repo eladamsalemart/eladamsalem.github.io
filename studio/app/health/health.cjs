@@ -13,7 +13,7 @@ fs.mkdirSync(out, { recursive: true });
 const LOCAL = /^http:\/\/(localhost|127\.)/.test(base);
 const PAGES = [
   ['Home', '#/'], ['Artists', '#/artists'], ['Shows', '#/shows'], ['Map', '#/map'], ['Search', '#/search'],
-  ['Artist (demo)', '#/artist/lia-moren'], ['Artist (Elad)', '#/artist/elad-amsalem'], ['Show on now', '#/exhibition/low-tide-haifa'],
+  ['Artist (demo)', '#/artist/vincent-van-gogh'], ['Artist (Elad)', '#/artist/elad-amsalem'], ['Show on now', '#/exhibition/orchards-in-bloom'],
   ['Show with a 3D room', '#/exhibition/ritual'], ['Work', '#/work/together-2026'], ['Works', '#/works'],
   ['A place on the map', '#/map/place/tel-aviv-museum-of-art'], ['About', '#/about'],
   ['Virtual show', '#/exhibition/celebration-virtual'], ['Curated show', '#/exhibition/green-hour'],
