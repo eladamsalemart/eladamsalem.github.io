@@ -11,7 +11,7 @@ on:
         default: 'all'
       samples:
         description: 'Cycles samples (adaptive, denoised)'
-        default: '192'
+        default: '256'
       size:
         description: 'Picture size'
         default: '1600x1000'
@@ -61,7 +61,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .cache/polyhaven
-          key: polyhaven-${{ matrix.type }}-v1
+          key: polyhaven-${{ matrix.type }}-v2
           restore-keys: polyhaven-
       - name: Blender
         run: |
@@ -75,7 +75,7 @@ jobs:
           mkdir -p out
           ~/blender/$BLENDER/blender -b --factory-startup -P studio/app/space/rooms/build_rooms.py -- \
             --type "${{ matrix.type }}" --variant all --out out \
-            --samples "${{ github.event.inputs.samples || '192' }}" --size "${{ github.event.inputs.size || '1600x1000' }}" 2>&1 \
+            --samples "${{ github.event.inputs.samples || '256' }}" --size "${{ github.event.inputs.size || '1600x1000' }}" 2>&1 \
             | grep -v -E '^(Fra:|Remaining|Sample|Rendered|Path Tracing|Updating|Loading|Synchronizing)' | tail -80
           ls -la out
       - uses: actions/upload-artifact@v4

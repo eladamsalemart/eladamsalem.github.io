@@ -48,7 +48,11 @@ def reset(o):
     s.cycles.adaptive_threshold = 0.02
     s.cycles.use_denoising = True
     s.cycles.denoiser = 'OPENIMAGEDENOISE'
-    s.cycles.max_bounces = 8; s.cycles.diffuse_bounces = 5; s.cycles.glossy_bounces = 3; s.cycles.transmission_bounces = 6
+    s.cycles.denoising_input_passes = 'RGB_ALBEDO_NORMAL'
+    try: s.cycles.denoising_prefilter = 'ACCURATE'
+    except Exception: pass
+    s.cycles.adaptive_threshold = 0.012
+    s.cycles.max_bounces = 10; s.cycles.diffuse_bounces = 6; s.cycles.glossy_bounces = 3; s.cycles.transmission_bounces = 6
     s.cycles.caustics_reflective = False; s.cycles.caustics_refractive = False
     s.cycles.sample_clamp_indirect = 8.0
     s.render.resolution_x, s.render.resolution_y = o['w'], o['h']
@@ -95,6 +99,38 @@ def polyhaven(asset, res='2k'):
     return have
 
 
+def ambientcg(asset, res='2K'):
+    """An ambientCG (CC0) material's maps, downloaded once: {'Color', 'Roughness', 'NormalGL', ...} -> path."""
+    import zipfile, io
+    d = os.path.join(CACHE, 'acg', asset); os.makedirs(d, exist_ok=True)
+    got = {f.split('_')[-1].split('.')[0]: os.path.join(d, f) for f in os.listdir(d)}
+    if got: return got
+    raw = urllib.request.urlopen(urllib.request.Request(f'https://ambientcg.com/get?file={asset}_{res}-JPG.zip', headers=UA), timeout=300).read()
+    with zipfile.ZipFile(io.BytesIO(raw)) as z:
+        for n in z.namelist():
+            if n.lower().endswith('.jpg'):
+                open(os.path.join(d, os.path.basename(n)), 'wb').write(z.read(n))
+    return {f.split('_')[-1].split('.')[0]: os.path.join(d, f) for f in os.listdir(d)}
+
+
+def smudge(m, asset='SurfaceImperfections003', scale=1.6, amount=0.6):
+    """Smudges, wipes and scuffs on a surface's sheen (a floor that is walked on, a glass that is touched)."""
+    try: t = ambientcg(asset)
+    except Exception as e:
+        print('no imperfections:', asset, e); return
+    path = t.get('Roughness') or t.get('Color')
+    if not path: return
+    nt = m.node_tree; b = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
+    img = image_node(nt, path, False, scale)
+    rng = nt.nodes.new('ShaderNodeMapRange'); rng.inputs['To Min'].default_value = 1 - amount * 0.5; rng.inputs['To Max'].default_value = 1 + amount
+    bw = nt.nodes.new('ShaderNodeRGBToBW'); nt.links.new(img.outputs['Color'], bw.inputs[0]); nt.links.new(bw.outputs[0], rng.inputs['Value'])
+    mul = nt.nodes.new('ShaderNodeMath'); mul.operation = 'MULTIPLY'; mul.use_clamp = True
+    l = b.inputs['Roughness'].links
+    if l: nt.links.new(l[0].from_socket, mul.inputs[0])
+    else: mul.inputs[0].default_value = b.inputs['Roughness'].default_value
+    nt.links.new(rng.outputs[0], mul.inputs[1]); nt.links.new(mul.outputs[0], b.inputs['Roughness'])
+
+
 def image_node(nt, path, colour=True, scale=1.0, box=True):
     tex = nt.nodes.new('ShaderNodeTexImage'); tex.image = bpy.data.images.load(path, check_existing=True)
     if not colour: tex.image.colorspace_settings.name = 'Non-Color'
@@ -108,9 +144,10 @@ def image_node(nt, path, colour=True, scale=1.0, box=True):
 MATS = {}
 
 
-def mat(name, base=(0.8, 0.8, 0.8), rough=0.6, tex=None, scale=1.0, tint=None, tint_mix=0.0, metal=0.0, bump=1.0, rough_mul=1.0, spec=0.5, coat=0.0):
+def mat(name, base=(0.8, 0.8, 0.8), rough=0.6, tex=None, scale=1.0, tint=None, tint_mix=0.0, metal=0.0, bump=1.0, rough_mul=1.0, spec=0.5, coat=0.0, wear=None, smudges=None):
     """A Principled material; with a Poly Haven texture laid on in world scale (scale = metres per tile)."""
     if name in MATS: return MATS[name]
+    if wear is None: wear = 0.4 if metal > 0.5 else 1.0      # every surface is used, metal a little less visibly
     m = bpy.data.materials.new(name); m.use_nodes = True
     nt = m.node_tree; b = nt.nodes['Principled BSDF']
     b.inputs['Base Color'].default_value = (*base, 1); b.inputs['Roughness'].default_value = rough; b.inputs['Metallic'].default_value = metal
@@ -140,8 +177,45 @@ def mat(name, base=(0.8, 0.8, 0.8), rough=0.6, tex=None, scale=1.0, tint=None, t
             n = image_node(nt, t['nor'], False, scale)
             nm = nt.nodes.new('ShaderNodeNormalMap'); nm.inputs['Strength'].default_value = bump
             nt.links.new(n.outputs['Color'], nm.inputs['Color']); nt.links.new(nm.outputs[0], b.inputs['Normal'])
+    if wear: weather(m, wear)
+    if smudges: smudge(m, *([smudges] if isinstance(smudges, str) else smudges))
     MATS[name] = m
     return m
+
+
+def weather(m, k=1.0):
+    """The marks of a used room on a material: colour that drifts over metres (paint coats, sun, cleaning), sheen that
+    varies over centimetres (touch, wax, scuffs), and a little grime where surfaces meet (corners, under a sill)."""
+    nt = m.node_tree; b = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
+    tc = nt.nodes.new('ShaderNodeTexCoord')
+    def noise(scale, detail, rough=0.55):
+        n = nt.nodes.new('ShaderNodeTexNoise'); n.noise_dimensions = '3D'
+        n.inputs['Scale'].default_value = scale; n.inputs['Detail'].default_value = detail; n.inputs['Roughness'].default_value = rough
+        nt.links.new(tc.outputs['Object'], n.inputs['Vector']); return n
+    # colour: a few percent over a couple of metres, and grime of up to 18% in the corners
+    big = noise(0.35, 4.0); rng = nt.nodes.new('ShaderNodeMapRange')
+    rng.inputs['To Min'].default_value = 1 - 0.05 * k; rng.inputs['To Max'].default_value = 1 + 0.03 * k
+    nt.links.new(big.outputs['Fac'], rng.inputs['Value'])
+    ao = nt.nodes.new('ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = 0.35; ao.samples = 8
+    dirt = nt.nodes.new('ShaderNodeMapRange'); dirt.inputs['To Min'].default_value = 1 - 0.18 * k; dirt.inputs['To Max'].default_value = 1.0
+    nt.links.new(ao.outputs['AO'], dirt.inputs['Value'])
+    mul = nt.nodes.new('ShaderNodeMath'); mul.operation = 'MULTIPLY'
+    nt.links.new(rng.outputs[0], mul.inputs[0]); nt.links.new(dirt.outputs[0], mul.inputs[1])
+    mix = nt.nodes.new('ShaderNodeMix'); mix.data_type = 'RGBA'; mix.blend_type = 'MULTIPLY'; mix.inputs[0].default_value = 1.0
+    l = b.inputs['Base Color'].links
+    if l: nt.links.new(l[0].from_socket, mix.inputs[6])
+    else: mix.inputs[6].default_value = b.inputs['Base Color'].default_value[:]
+    comb = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(mul.outputs[0], comb.inputs[i]) for i in range(3)]
+    nt.links.new(comb.outputs[0], mix.inputs[7]); nt.links.new(mix.outputs[2], b.inputs['Base Color'])
+    # sheen: roughness +-0.1 over a few centimetres to half a metre
+    fine = noise(6.0, 8.0, 0.65); rr = nt.nodes.new('ShaderNodeMapRange')
+    rr.inputs['To Min'].default_value = -0.1 * k; rr.inputs['To Max'].default_value = 0.1 * k
+    nt.links.new(fine.outputs['Fac'], rr.inputs['Value'])
+    add = nt.nodes.new('ShaderNodeMath'); add.operation = 'ADD'; add.use_clamp = True
+    l = b.inputs['Roughness'].links
+    if l: nt.links.new(l[0].from_socket, add.inputs[0])
+    else: add.inputs[0].default_value = b.inputs['Roughness'].default_value
+    nt.links.new(rr.outputs[0], add.inputs[1]); nt.links.new(add.outputs[0], b.inputs['Roughness'])
 
 
 def emission(name, strength, kelvin=6500, visible_only=False):
@@ -273,6 +347,15 @@ def area(name, pos, size, power_lux_on_floor, kelvin=6500, rot=(0, 0, 0), spread
     return ob
 
 
+def portal(pos, size, rot=(0, 0, 0)):
+    """A light portal over a window: tells Cycles where the outside light comes in (much less noise, true light)."""
+    li = bpy.data.lights.new('portal', 'AREA'); li.shape = 'RECTANGLE'; li.size, li.size_y = size
+    li.cycles.is_portal = True
+    ob = bpy.data.objects.new('portal', li); bpy.context.collection.objects.link(ob)
+    ob.location = pos; ob.rotation_euler = rot
+    return ob
+
+
 def blackbody(k):
     """sRGB-linear colour of a blackbody at k kelvin (normalised to its brightest channel)."""
     t = k / 100
@@ -392,6 +475,7 @@ def hang_wall(works, p0, p1, normal, z=1.55, gap=None, ceiling=3.6, spot_kelvin=
     for w, W in zip(works, widths):
         c = p0 + a * (x + W / 2)
         hang(w, c, a, n, z, frame)
+        label(c + a * (W / 2 + 0.25), n)
         if light:
             H = w['size'][1] / 100
             z = max(z, H / 2 + 0.35)
@@ -399,13 +483,86 @@ def hang_wall(works, p0, p1, normal, z=1.55, gap=None, ceiling=3.6, spot_kelvin=
             pos = c + n * off; pos.z = ceiling - 0.12
             dist = (Vector((c.x, c.y, z)) - pos).length
             paper = 'paper' in w['medium'].lower() or w['artist'] in ('victor-hugo', 'katsushika-hokusai')
-            need = max(W, H) * 1.7
+            need = max(W, H) * 2.3
             b = beam or min(60, max(14, math.degrees(2 * math.atan(need / 2 / dist))))
-            spot(f'spot.{w["slug"]}', tuple(pos), (c.x, c.y, z), 50 if paper else lux, b, spot_kelvin, blend=0.8)
+            spot(f'spot.{w["slug"]}', tuple(pos), (c.x, c.y, z), 50 if paper else lux, b, spot_kelvin, blend=1.0, radius=0.05)
             track_head(pos, Vector((c.x, c.y, z)))
         placed.append((w, c))
         x += W + space
     return placed
+
+
+def label(c, n):
+    """A wall label: a small white card standing off the wall, its few lines of grey type."""
+    c = Vector(c); n = Vector(n); a = n.cross(Vector((0, 0, 1))).normalized()
+    p = Vector((c.x, c.y, 1.4)) + n * 0.002
+    box('label', *_span(p, a, n, 0.11, 0.075, 0.003), mat('label-card', (0.86, 0.86, 0.84), 0.7, wear=0.3))
+    ink = mat('label-ink', (0.1, 0.1, 0.1), 0.8, wear=0)
+    for i, (w, dz) in enumerate(((0.07, 0.022), (0.08, 0.008), (0.05, -0.006), (0.06, -0.02))):
+        q = p + n * 0.0035 + Vector((0, 0, dz))
+        quad('label.line', q, a, w - 0.016, 0.006 if i == 0 else 0.004, ink, facing=n)
+
+
+def _span(p, a, n, W, H, d):
+    """Bounds of an axis-aligned box W wide along a, H tall, d deep along n, centred at p (walls are axis aligned)."""
+    pts = [p + a * sa * W / 2 + Vector((0, 0, su * H / 2)) + n * sn * d for sa in (-1, 1) for su in (-1, 1) for sn in (0, 1)]
+    return (min(q.x for q in pts), min(q.y for q in pts), min(q.z for q in pts), max(q.x for q in pts), max(q.y for q in pts), max(q.z for q in pts))
+
+
+def fittings(r, outlets=True, sprinklers=True, exit_sign=True, vent=True, dark=False):
+    """What every real room has and a rendered one forgets: sockets low on the walls, sprinkler heads and a smoke
+    detector in the ceiling, a ventilation slot, a lit exit sign over the door. Small, but the eye looks for them."""
+    white = mat('fitting-white', (0.8, 0.8, 0.78), 0.45, wear=0.3)
+    chrome = mat('sprinkler', (0.7, 0.7, 0.7), 0.25, metal=1.0)
+    if outlets:
+        for wall in 'sn':
+            for p0, p1, n in r.wall_runs(wall, margin=0.4):
+                L = math.dist(p0, p1)
+                if L < 3: continue
+                a = (Vector((*p1, 0)) - Vector((*p0, 0))).normalized()
+                for t in ((0.12, 0.88) if L > 8 else (0.88,)):
+                    q = Vector(at_wall(p0, n, 0.0)) + a * (L * t) + Vector((0, 0, 0.3))
+                    box('socket', *_span(q, a, Vector(n), 0.085, 0.085, 0.008), white, bevel=0.002)
+    if sprinklers:
+        nx, ny = max(1, int((r.x1 - r.x0) // 3.6)), max(1, int((r.y1 - r.y0) // 3.6))
+        for i in range(nx):
+            for j in range(ny):
+                x = r.x0 + (i + 0.5) * (r.x1 - r.x0) / nx; y = r.y0 + (j + 0.5) * (r.y1 - r.y0) / ny
+                cylinder('sprinkler', (x, y), 0.028, r.h - 0.012, r.h, chrome, n=16)
+                cylinder('sprinkler.head', (x, y), 0.008, r.h - 0.05, r.h - 0.012, chrome, n=8)
+        cylinder('smoke-detector', (r.x0 + (r.x1 - r.x0) * 0.3, r.y0 + (r.y1 - r.y0) * 0.6), 0.06, r.h - 0.04, r.h, white, n=24)
+    if vent:
+        y = r.y0 + 0.002
+        box('vent', r.x0 + (r.x1 - r.x0) * 0.2, y - 0.004, r.h - 0.32, r.x0 + (r.x1 - r.x0) * 0.2 + 1.2, y + 0.004, r.h - 0.22, mat('vent-slot', (0.035, 0.035, 0.035), 0.6, wear=0))
+    if exit_sign:
+        for wall, c, wd, ht in list(r.doors)[:1]:
+            x, y, n = {'e': (r.x1, c, (-1, 0, 0)), 'w': (r.x0, c, (1, 0, 0)), 's': (c, r.y0, (0, 1, 0)), 'n': (c, r.y1, (0, -1, 0))}[wall]
+            nn = Vector(n); a = nn.cross(Vector((0, 0, 1))).normalized()
+            q = Vector((x, y, min(r.h - 0.2, ht + 0.25))) + nn * 0.002
+            box('exit', *_span(q, a, nn, 0.36, 0.15, 0.04), mat('exit-body', (0.85, 0.85, 0.83), 0.4, wear=0.2))
+            quad('exit.face', q + nn * 0.042, a, 0.32, 0.11, exit_green(dark), facing=nn)
+
+
+def exit_green(dark):
+    if 'exit-green' in MATS: return MATS['exit-green']
+    m = bpy.data.materials.new('exit-green'); m.use_nodes = True
+    nt = m.node_tree; nt.nodes.clear()
+    out = nt.nodes.new('ShaderNodeOutputMaterial'); em = nt.nodes.new('ShaderNodeEmission')
+    em.inputs[0].default_value = (0.04, 0.75, 0.22, 1); em.inputs[1].default_value = 5.0 if dark else 2.5
+    nt.links.new(em.outputs[0], out.inputs[0]); MATS['exit-green'] = m
+    return m
+
+
+def bench(cx, cy, length=1.8, along='x'):
+    """A gallery bench: a slab of oak on a black steel frame."""
+    oak = mat('bench-oak', tex='oak_veneer_01', scale=0.8, rough_mul=0.8, coat=0.2)
+    steel = mat('bench-steel', (0.03, 0.03, 0.03), 0.35, metal=0.8)
+    L, Wd = (length, 0.45) if along == 'x' else (0.45, length)
+    box('bench.top', cx - L / 2, cy - Wd / 2, 0.40, cx + L / 2, cy + Wd / 2, 0.45, oak, bevel=0.004)
+    for sx in (-1, 1):
+        ox, oy = (sx * (L / 2 - 0.15), 0) if along == 'x' else (0, sx * (Wd / 2 - 0.15))
+        bx, by = (0.03, Wd / 2 - 0.03) if along == 'x' else (L / 2 - 0.03, 0.03)
+        box('bench.leg', cx + ox - bx, cy + oy - by, 0, cx + ox + bx, cy + oy + by, 0.40, steel)
 
 
 def track_head(pos, target):
@@ -498,31 +655,95 @@ def fill(room, works, walls='sne w', **kw):
 
 
 def ambient(r, lux=110, kelvin=4000):
-    """The washers' even light on a gallery's walls (and the bounce off its ceiling), as one soft emitter."""
-    area(f'ambient', ((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2, r.h - 0.06), (r.x1 - r.x0 - 0.4, r.y1 - r.y0 - 0.4), lux, kelvin)
+    """Wall washers, as a gallery has them: a line of light near the ceiling along each wall, aimed down at it, so a
+    wall is brightest under the ceiling and fades a little toward the floor, and the room is lit by what the walls
+    give back (not by one flat light over everything, which reads as a render)."""
+    from mathutils import Matrix
+    for wall in 'snwe':
+        for p0, p1, n in r.wall_runs(wall, margin=0.3) or []:
+            a = (Vector((*p1, 0)) - Vector((*p0, 0))); L = a.length; a.normalize(); nv = Vector(n)
+            if L < 0.8: continue
+            d = (-nv * 0.55 + Vector((0, 0, -0.85))).normalized()          # toward the wall and down
+            z = -d; y = z.cross(a).normalized(); x = y.cross(z)
+            m = Matrix((x, y, z)).transposed().to_4x4()
+            mid = (Vector((*p0, 0)) + Vector((*p1, 0))) / 2 + nv * 0.8; mid.z = r.h - 0.08
+            li = bpy.data.lights.new('washer', 'AREA'); li.shape = 'RECTANGLE'; li.size, li.size_y = L - 0.2, 0.12
+            li.color = blackbody(kelvin); li.spread = math.radians(110)
+            li.energy = lux * LUX * L * r.h * 2.2
+            ob = bpy.data.objects.new('washer', li); bpy.context.collection.objects.link(ob)
+            ob.matrix_world = Matrix.Translation(mid) @ m
 
 
 def camera(pos, look, lens=20, shift=(0, 0)):
-    cam = bpy.data.cameras.new('cam'); cam.lens = lens; cam.sensor_width = 36; cam.shift_x, cam.shift_y = shift
+    """An architecture photographer's camera: level, so verticals stay vertical, framed up or down by shifting the
+    lens (two-point perspective); never wider than 20 mm, whose stretched corners give a render away."""
+    lens = max(lens + 3, 20)
+    d = Vector(look) - Vector(pos); flat = Vector((d.x, d.y, 0))
+    pitch = math.atan2(d.z, flat.length)
+    cam = bpy.data.cameras.new('cam'); cam.lens = lens; cam.sensor_width = 36; cam.sensor_fit = 'HORIZONTAL'
+    s = bpy.context.scene; aspect = s.render.resolution_y / s.render.resolution_x
+    cam.shift_x = shift[0]
+    cam.shift_y = max(-0.3 * aspect, min(0.3 * aspect, lens * math.tan(pitch) / 36 + shift[1]))
     ob = bpy.data.objects.new('cam', cam); bpy.context.collection.objects.link(ob)
-    ob.location = pos; ob.rotation_euler = (Vector(look) - Vector(pos)).to_track_quat('-Z', 'Y').to_euler()
-    bpy.context.scene.camera = ob
+    ob.location = pos; ob.rotation_euler = (math.pi / 2, 0, math.atan2(flat.y, flat.x) - math.pi / 2)
+    s.camera = ob
+    lens_look(s)
     return ob
+
+
+def lens_look(s):
+    """What a real lens adds: light falling off toward the corners, a faint bloom round bright things, a trace of
+    chromatic fringe at the edges. Kept small: seen, not noticed."""
+    try:
+        s.use_nodes = True; nt = s.node_tree; nt.nodes.clear()
+    except Exception as e:
+        print('no compositor:', e); return
+    try:
+        rl = nt.nodes.new('CompositorNodeRLayers'); comp = nt.nodes.new('CompositorNodeComposite')
+        glare = nt.nodes.new('CompositorNodeGlare')
+        for k, v in (('glare_type', 'FOG_GLOW'), ('quality', 'HIGH'), ('mix', -0.92), ('threshold', 1.5), ('size', 8)):
+            try: setattr(glare, k, v)
+            except Exception: pass
+        for k, v in (('Strength', 0.06), ('Threshold', 1.5)):
+            try: glare.inputs[k].default_value = v
+            except Exception: pass
+        lens = nt.nodes.new('CompositorNodeLensdist')
+        try: lens.inputs['Dispersion'].default_value = 0.005
+        except Exception: pass
+        mask = nt.nodes.new('CompositorNodeEllipseMask')
+        for k, v in (('width', 1.3), ('height', 1.3)):
+            try: setattr(mask, k, v)
+            except Exception: pass
+        blur = nt.nodes.new('CompositorNodeBlur')
+        for k, v in (('filter_type', 'GAUSS'), ('use_relative', True), ('factor_x', 30), ('factor_y', 30), ('size_x', 400), ('size_y', 400)):
+            try: setattr(blur, k, v)
+            except Exception: pass
+        rng = nt.nodes.new('CompositorNodeMapRange')
+        rng.inputs[3].default_value = 0.8; rng.inputs[4].default_value = 1.0
+        mul = nt.nodes.new('CompositorNodeMixRGB'); mul.blend_type = 'MULTIPLY'; mul.inputs[0].default_value = 1.0
+        L = nt.links
+        L.new(rl.outputs['Image'], glare.inputs[0]); L.new(glare.outputs[0], lens.inputs[0])
+        L.new(mask.outputs[0], blur.inputs[0]); L.new(blur.outputs[0], rng.inputs[0])
+        L.new(lens.outputs[0], mul.inputs[1]); L.new(rng.outputs[0], mul.inputs[2])
+        L.new(mul.outputs[0], comp.inputs[0])
+    except Exception as e:      # a compositor that changed: the plain render rather than none
+        print('lens look skipped:', e); nt.nodes.clear()
+        rl = nt.nodes.new('CompositorNodeRLayers'); comp = nt.nodes.new('CompositorNodeComposite'); nt.links.new(rl.outputs['Image'], comp.inputs[0])
 
 
 # --- the ten kinds of room ------------------------------------------------------------------------------------------
 # Each builder returns the camera's place; materials, light and works are its own.
 
 def white_cube(v):
-    plaster = mat('white-plaster', (0.83, 0.83, 0.81), 0.9, tex='painted_plaster_wall', scale=2.5, tint=(0.84, 0.835, 0.82), tint_mix=0.08, bump=0.25)
-    floor = mat('polished-concrete', rough=0.35, tex='smooth_concrete_floor', scale=3.0, tint=(0.46, 0.46, 0.45), tint_mix=0.35, rough_mul=0.55, bump=0.2, coat=0.15)
+    plaster = mat('white-plaster', (0.83, 0.83, 0.81), 0.9, tex='plastered_wall_04', scale=2.5, tint=(0.84, 0.835, 0.82), tint_mix=0.08, bump=0.25)
+    floor = mat('polished-concrete', rough=0.35, tex='smooth_concrete_floor', scale=3.0, tint=(0.46, 0.46, 0.45), tint_mix=0.35, rough_mul=0.55, bump=0.2, coat=0.15, smudges=('SurfaceImperfections003', 2.2, 0.8))
     ceil = mat('ceiling-white', (0.8, 0.8, 0.79), 0.95)
     world()
     if v == 'small':           # a project room, 6 x 5 x 3.2
         r = Room(0, 0, 6, 5, 3.2, floor, plaster, ceil, doors=[('e', 1.2, 1.4, 2.4)])
         track(0.3, 5 - 1.0, 5.7, 5 - 1.0, 3.2); track(1.05, 0.3, 1.05, 4.7, 3.2)
         fill(r, works_of('henri-matisse')[1:] + works_of('vincent-van-gogh', n=3), walls='nws', ceiling=3.2)
-        ambient(r, 120)
+        ambient(r, 120); fittings(r)
         return camera((5.6, 0.5, EYE), (1.2, 3.6, 1.45), lens=18)
     if v == 'large':           # a hall 15 x 10 x 5.5 with a north skylight strip
         r = Room(0, 0, 15, 10, 5.5, floor, plaster, ceil, doors=[('e', 2.0, 2.2, 3.0)], ceiling_open=(1.5, 7.2, 13.5, 8.4))
@@ -531,6 +752,7 @@ def white_cube(v):
         track(1, 2.6, 14, 2.6, 5.5)
         ambient(r, 80)
         fill(r, works_of('hilma-af-klint', n=3) + works_of('henri-matisse', n=3), walls='nw', ceiling=5.5, lux=180)
+        fittings(r); bench(7.5, 4.6, 2.4)
         return camera((14.2, 0.6, EYE), (3.0, 7.0, 2.0), lens=17)
     # three rooms in a row, 9 x 7 x 4 each, doorways 2 m on one axis
     rooms = []
@@ -544,15 +766,17 @@ def white_cube(v):
     fill(rooms[0], works_of('henri-matisse', n=3), walls='ns', ceiling=4.0)
     fill(rooms[1], works_of('vincent-van-gogh', n=4), walls='ns', ceiling=4.0)
     fill(rooms[2], works_of('claude-monet', n=4), walls='nse', ceiling=4.0)
+    for r in rooms: fittings(r, exit_sign=r is rooms[0])
+    bench(9.25 + 4.5, 3.5, 1.8)
     return camera((1.2, 3.5, EYE), (26.5, 3.6, 1.5), lens=22)
 
 
 def loft(v):
-    brick = mat('painted-brick', tex='whitewashed_brick', scale=2.2, tint=(0.86, 0.85, 0.82), tint_mix=0.25, bump=0.6)
-    floor = mat('worn-concrete', tex='worn_concrete_floor', scale=4.0, tint=(0.5, 0.5, 0.48), tint_mix=0.35, rough_mul=0.8, bump=0.2)
+    brick = mat('painted-brick', tex='painted_brick', scale=2.2, tint=(0.86, 0.85, 0.82), tint_mix=0.25, bump=0.6)
+    floor = mat('worn-concrete', tex='concrete_floor_worn_001', scale=4.0, tint=(0.5, 0.5, 0.48), tint_mix=0.3, rough_mul=0.7, bump=0.3, smudges=('SurfaceImperfections004', 3.0, 0.7))
     steel = mat('steel', (0.08, 0.085, 0.09), 0.45, metal=0.8)
     ceil = mat('roof-white', (0.75, 0.75, 0.74), 0.9, tex='wood_planks', scale=3.0, tint=(0.8, 0.8, 0.78), tint_mix=0.15)
-    world(sky={'kelvin': 6800}, strength=14.0)
+    world(hdri=hdri('overcast'), strength=1.0)
     W, D, H = {'small': (20, 12, 6), 'large': (40, 10, 7)}.get(v, (24, 12, 6))
     r = Room(0, 0, W, D, H + 1.6, floor, brick, None, doors=[('e', D / 2, 3.0, 3.6)], shadow_gap=False)
     # a sawtooth roof: north-facing glass in each tooth, steel trusses below
@@ -571,12 +795,13 @@ def loft(v):
         box('partition', W / 2 - 0.15, 2.5, 0, W / 2 + 0.15, D - 2.5, 4.2, brick)
     area('north-light', (W / 2, D / 2, H - 0.3), (W - 1, D - 1), 90, 6500)
     fill(r, works_of('hilma-af-klint') + works_of('henri-matisse', n=2), walls='ns', ceiling=H, lux=170, beam=40)
+    fittings(r, sprinklers=False, vent=False); bench(W * 0.62, D / 2, 2.2)
     return camera((W - 1.2, 1.0, EYE), (W * 0.25, D * 0.7, 2.6), lens=17)
 
 
 def skylit_hall(v):
     plaster = mat('lime-plaster', tex='white_plaster_rough_01', scale=2.0, tint=(0.82, 0.8, 0.76), tint_mix=0.15, bump=0.3)
-    oak = mat('oak-floor', tex='oak_wood_planks', scale=2.4, rough_mul=0.75, bump=0.4, coat=0.1)
+    oak = mat('oak-floor', tex='oak_wood_planks', scale=2.4, rough_mul=0.75, bump=0.4, coat=0.1, smudges=('SurfaceImperfections003', 2.0, 0.6))
     vault = mat('vault', (0.82, 0.8, 0.77), 0.9, tex='white_plaster_rough_02', scale=3.0, tint=(0.84, 0.82, 0.78), tint_mix=0.1)
     world()
     if v == 'small':           # a skylit square, 10 x 10 x 5.5, a laylight ceiling
@@ -586,6 +811,7 @@ def skylit_hall(v):
             box('laylight.bar', 2 + i, 2, 5.42, 2 + i + 0.04, 8, 5.45, mat('bar', (0.7, 0.7, 0.68), 0.6))
         area('daylight', (5, 5, 5.4), (6, 6), 260, 6000)
         fill(r, works_of('vincent-van-gogh', n=6), walls='nsw', ceiling=5.5, lux=120)
+        fittings(r, sprinklers=False, vent=False); bench(5, 5, 2.0)
         return camera((9.3, 1.0, EYE), (2.0, 7.5, 2.0), lens=18)
     n = 3 if v == 'large' else 1
     L, D, Hs = (24, 7, 4.6) if n == 3 else (20, 8, 4.8)
@@ -611,13 +837,15 @@ def skylit_hall(v):
         box('reflector', 0.3, cy - 0.9, top - 0.75, L - 0.3, cy + 0.9, top - 0.72, mat('perforated-aluminium', (0.75, 0.76, 0.78), 0.35, metal=0.9))
         area(f'vault.light.{k}', (L / 2, cy, top - 0.8), (L - 1, 1.8), 210, 6200, spread=150)
     fill(r, works_of('vincent-van-gogh') + works_of('claude-monet', n=3), walls='ns', ceiling=Hs, lux=110)
+    fittings(r, sprinklers=False, vent=False)
+    for bx in (L * 0.3, L * 0.7): bench(bx, D / 2, 2.0)
     return camera((L - 1.0, D / 2 + 0.6, EYE), (2, D / 2 - 0.5, 2.2), lens=18)
 
 
 def salon(v):
     red = mat('salon-red', tex='painted_plaster_wall', scale=2.0, tint=(0.24, 0.035, 0.045), tint_mix=0.15, bump=0.2)
     green = mat('salon-green', tex='painted_plaster_wall', scale=2.0, tint=(0.09, 0.17, 0.12), tint_mix=0.15, bump=0.2)
-    parquet = mat('parquet', tex='herringbone_parquet', scale=1.6, rough_mul=0.7, coat=0.25, bump=0.3)
+    parquet = mat('parquet', tex='herringbone_parquet', scale=3.4, rough_mul=0.7, coat=0.25, bump=0.3, smudges=('SurfaceImperfections003', 2.0, 0.7))
     ceil = mat('ceiling-cream', (0.82, 0.79, 0.72), 0.9)
     panel = mat('wainscot', (0.78, 0.75, 0.68), 0.55, bump=0.2)
     gilt = mat('gilt-frame', (0.62, 0.47, 0.22), 0.3, metal=1.0)
@@ -636,7 +864,7 @@ def salon(v):
     def lantern(r):
         cx, cy = (r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2; lw, ld = (r.x1 - r.x0) * 0.45, (r.y1 - r.y0) * 0.45
         mesh('lantern', [(cx - lw / 2, cy - ld / 2, r.h - 0.01), (cx + lw / 2, cy - ld / 2, r.h - 0.01), (cx + lw / 2, cy + ld / 2, r.h - 0.01), (cx - lw / 2, cy + ld / 2, r.h - 0.01)], [(0, 1, 2, 3)], emission('lantern', 1.3, 5600))
-        area('lantern.light', (cx, cy, r.h - 0.05), (lw, ld), 120, 5600)
+        area('lantern.light', (cx, cy, r.h - 0.05), (lw, ld), 280, 5600)
 
     if v == 'small':
         r = Room(0, 0, 6, 5, 4.2, parquet, red, ceil, doors=[('e', 2.5, 1.3, 2.5)], shadow_gap=False)
@@ -696,17 +924,54 @@ def gilt_frame(w, c, a, n, z, material):
     frame_box(w['slug'] + '.frame', cc, a, n, W + 0.14, H + 0.14, 0.075, 0.05, material)
 
 
+def formwork(r, walls='nswe', panel=(1.8, 0.9)):
+    """The marks the formwork leaves on cast concrete: the panels' joints (a fine raised line), and six tie holes
+    per panel, 25 mm across, a few millimetres deep and a little darker; each panel a shade different from the next."""
+    joint = mat('form-joint', (0.33, 0.33, 0.32), 0.85, wear=0.5)
+    hole = mat('tie-hole', (0.12, 0.12, 0.115), 0.7, wear=0)
+    rim = mat('tie-rim', (0.42, 0.42, 0.4), 0.6, wear=0)
+    pw, ph = panel
+    for wall in walls:
+        for p0, p1, n in r.wall_runs(wall, margin=0.0) or []:
+            a = Vector((*p1, 0)) - Vector((*p0, 0)); L = a.length; a.normalize(); nv = Vector(n)
+            base = Vector(at_wall(p0, n, 0.0))
+            cols, rows = int(L / pw) + 1, int(r.h / ph) + 1
+            for i in range(1, cols):                     # vertical joints
+                q = base + a * (i * pw) + Vector((0, 0, r.h / 2)) + nv * 0.0008
+                box('joint', *_span(q, a, nv, 0.004, r.h, 0.0015), joint)
+            for j in range(1, rows):                     # horizontal joints
+                q = base + a * (L / 2) + Vector((0, 0, j * ph)) + nv * 0.0008
+                box('joint', *_span(q, a, nv, L, 0.004, 0.0015), joint)
+            for i in range(cols):
+                for j in range(rows):
+                    for hx in (0.3, 0.9, 1.5):
+                        for hz in (0.225, 0.675):
+                            x, z = i * pw + hx * pw / 1.8, j * ph + hz * ph / 0.9
+                            if x > L - 0.05 or z > r.h - 0.05: continue
+                            c = base + a * x + Vector((0, 0, z))
+                            disc(c + nv * 0.001, nv, 0.0185, rim); disc(c + nv * 0.0015, nv, 0.0125, hole)
+
+
+def disc(c, n, rad, material, k=16):
+    a = Vector(n).cross(Vector((0, 0, 1))).normalized(); up = Vector((0, 0, 1))
+    vs = [tuple(Vector(c) + (a * math.cos(2 * math.pi * i / k) + up * math.sin(2 * math.pi * i / k)) * rad) for i in range(k)]
+    face = tuple(range(k)) if a.cross(up).dot(Vector(n)) > 0 else tuple(reversed(range(k)))
+    return mesh('disc', vs, [face], material)
+
+
 def concrete(v):
-    conc = mat('formwork-concrete', tex='concrete_wall_008', scale=2.4, tint=(0.56, 0.56, 0.54), tint_mix=0.45, rough_mul=1.0, bump=0.7)
+    conc = mat('formwork-concrete', tex='concrete_wall_004', scale=2.4, tint=(0.6, 0.6, 0.58), tint_mix=0.4, rough_mul=1.0, bump=0.5)
     floor = mat('concrete-floor', tex='concrete_floor_02', scale=3.0, tint=(0.42, 0.42, 0.41), tint_mix=0.4, rough_mul=0.6, coat=0.1, bump=0.3)
     world()
     if v == 'large':           # a tall volume 8 x 8 x 6 with a slot window high in the wall
-        world(sky={'kelvin': 6500}, strength=4.0)
+        world(hdri=hdri('overcast'), strength=WIN_STRENGTH)
         r = Room(0, 0, 8, 8, 6, floor, conc, conc, doors=[('e', 1.6, 1.4, 2.6)], windows=[('n', 4, 6.6, 4.9, 5.4)])
         mesh('slot.glass', [(0.7, 8.02, 4.9), (7.3, 8.02, 4.9), (7.3, 8.02, 5.4), (0.7, 8.02, 5.4)], [(0, 1, 2, 3)], glass())
-        area('slot.sky', (4, 8.5, 5.15), (6.6, 0.5), 2600, 6500, rot=(math.radians(-90), 0, 0), spread=120)
+        area('slot.sky', (4, 8.5, 5.15), (6.6, 0.5), 1200, 6500, rot=(math.radians(-90), 0, 0), spread=120)
+        portal((4, 8.05, 5.15), (6.6, 0.5), rot=(math.radians(-90), 0, 0))
         ambient(r, 35, 6000)
         fill(r, big('claude-monet', 3), walls='swn', ceiling=6, lux=140, beam=30)
+        formwork(r)
         return camera((7.2, 0.7, EYE), (1.5, 6.5, 2.6), lens=17)
     if v == 'small':           # a square room 8 x 8 x 4.25 under a glass daylight ceiling (Bregenz)
         r = Room(0, 0, 8, 8, 4.25, floor, conc, conc, doors=[('e', 1.6, 1.4, 2.6)], ceiling_open=(0.3, 0.3, 7.7, 7.7))
@@ -714,6 +979,7 @@ def concrete(v):
         for i in range(1, 8): box('ceiling.joint', i - 0.01, 0.3, 4.22, i + 0.01, 7.7, 4.24, mat('joint', (0.4, 0.4, 0.4), 0.6))
         area('daylight', (4, 4, 4.2), (7.4, 7.4), 230, 6300)
         fill(r, big('claude-monet', 4), walls='nsw', ceiling=4.25, light=False)
+        formwork(r)
         return camera((7.3, 0.7, EYE), (1.0, 6.0, 1.8), lens=18)
     rooms = [Room(0, 0, 9, 8, 4.5, floor, conc, conc, doors=[('e', 4, 1.0, 3.6)]), Room(9.25, 0, 18.25, 8, 4.5, floor, conc, conc, doors=[('w', 4, 1.0, 3.6)], skip='w')]
     for r in rooms:
@@ -721,15 +987,16 @@ def concrete(v):
         area('daylight', ((r.x0 + r.x1) / 2, 4, 4.45), (8.2, 7.2), 190, 6300)
     fill(rooms[0], big('claude-monet', 3), walls='nsw', ceiling=4.5, light=False)
     fill(rooms[1], works_of('hilma-af-klint', n=2), walls='ne', ceiling=4.5, light=False)
+    for r in rooms: formwork(r)
     return camera((0.8, 1.0, EYE), (16, 4.6, 1.9), lens=20)
 
 
 def studio(v):
     brick = mat('limewash-brick', tex='whitewashed_brick', scale=2.0, tint=(0.88, 0.87, 0.84), tint_mix=0.3, bump=0.7)
-    boards = mat('painted-boards', tex='old_wooden_floor_02' if True else '', scale=2.0, tint=(0.62, 0.6, 0.56), tint_mix=0.55, rough_mul=1.0, bump=0.5)
+    boards = mat('painted-boards', tex='old_wooden_floor_03', scale=2.4, tint=(0.62, 0.6, 0.56), tint_mix=0.35, rough_mul=1.0, bump=0.5, smudges=('SurfaceImperfections004', 2.0, 0.5))
     ceil = mat('studio-ceiling', (0.82, 0.82, 0.8), 0.9)
     wood = mat('table-wood', tex='rough_pine_door', scale=1.2, bump=0.4)
-    world(sky={'kelvin': 7000}, strength=0.9 if v != 'large' else 12.0)
+    world(hdri=hdri('overcast' if v == 'large' else 'city'), strength=WIN_STRENGTH, rot=STREET_ROT)
     if v == 'large':
         r = Room(0, 0, 10, 7, 6.3, boards, brick, None, doors=[('e', 1.5, 1.4, 2.5)], shadow_gap=False)
         for i in range(5):   # sawtooth: north glass
@@ -746,7 +1013,7 @@ def studio(v):
         for k in range(1, 4):
             box('mullion', W * 0.15 + k * W * 0.7 / 4 - 0.025, D, 0.9, W * 0.15 + k * W * 0.7 / 4 + 0.025, D + 0.06, H - 0.2, mat('window-frame', (0.85, 0.85, 0.83), 0.5))
         box('transom', W * 0.15, D, 2.2, W * 0.85, D + 0.06, 2.25, mat('window-frame', (0.85, 0.85, 0.83), 0.5))
-        area('north-sky', (W / 2, D + 1.2, (0.9 + H - 0.2) / 2), (W * 0.7, H - 1.1), 420, 7000, rot=(math.radians(-90), 0, 0), spread=110)
+        portal((W / 2, D + 0.05, (0.9 + H - 0.2) / 2), (W * 0.7, H - 1.1), rot=(math.radians(-90), 0, 0))
     # a trestle table, works leaning on the wall, a stool
     tw = 2.2
     box('table.top', 0.8, 1.0, 0.86, 0.8 + tw, 1.9, 0.9, wood, bevel=0.005)
@@ -765,18 +1032,18 @@ def studio(v):
 
 def apartment(v):
     walls = mat('warm-white', tex='painted_plaster_wall', scale=2.0, tint=(0.8, 0.77, 0.71), tint_mix=0.1, bump=0.2)
-    herring = mat('herringbone-oak', tex='herringbone_parquet', scale=1.4, rough_mul=0.7, coat=0.2, bump=0.3)
+    herring = mat('herringbone-oak', tex='herringbone_parquet', scale=3.4, rough_mul=0.7, coat=0.2, bump=0.3, smudges=('SurfaceImperfections003', 2.0, 0.7))
     ceil = mat('apt-ceiling', (0.84, 0.83, 0.8), 0.9)
     skirt = mat('skirting', (0.85, 0.84, 0.8), 0.5)
     linen = mat('sofa-linen', tex='rough_linen', scale=0.4, tint=(0.55, 0.5, 0.42), tint_mix=0.3)
     rug = mat('rug', tex='rough_linen', scale=0.6, tint=(0.62, 0.55, 0.45), tint_mix=0.5)
-    world(hdri=hdri('lebombo'), strength=1.6, rot=60)
+    world(hdri=hdri('city'), strength=WIN_STRENGTH, rot=STREET_ROT + 25)
     W, D, H = {'small': (5, 4.5, 2.8), 'large': (9, 6, 3.2)}.get(v, (7, 5, 3.0))
     r = Room(0, 0, W, D, H, herring, walls, ceil, doors=[('e', 1.0, 0.9, 2.2)], windows=[('n', W * 0.62, 1.6, 0.6, H - 0.35)],
              base=(0.12, skirt), shadow_gap=False)
     mesh('window.glass', [(W * 0.62 - 0.8, D + 0.02, 0.6), (W * 0.62 + 0.8, D + 0.02, 0.6), (W * 0.62 + 0.8, D + 0.02, H - 0.35), (W * 0.62 - 0.8, D + 0.02, H - 0.35)], [(0, 1, 2, 3)], glass())
     box('window.frame', W * 0.62 - 0.03, D, 0.6, W * 0.62 + 0.03, D + 0.07, H - 0.35, skirt)
-    area('window.day', (W * 0.62, D + 0.6, (0.6 + H - 0.35) / 2), (1.6, H - 0.95), 1100, 6000, rot=(math.radians(-90), 0, 0), spread=120)
+    portal((W * 0.62, D + 0.05, (0.6 + H - 0.35) / 2), (1.6, H - 0.95), rot=(math.radians(-90), 0, 0))
     # a picture rail, a sofa, a rug, a low table, a floor lamp
     for (a0, b0, a1, b1) in ((0, 0, W, 0.02), (0, D - 0.02, W, D), (0, 0, 0.02, D), (W - 0.02, 0, W, D)):
         box('picture-rail', a0, b0, H - 0.4, a1, b1, H - 0.37, skirt)
@@ -796,8 +1063,8 @@ def apartment(v):
 
 
 def black_box(v):
-    black = mat('black-wall', (0.025, 0.025, 0.027), 0.95, tex='painted_plaster_wall', scale=2.0, tint=(0.03, 0.03, 0.032), tint_mix=0.05, bump=0.15)
-    floor = mat('dark-floor', tex='smooth_concrete_floor', scale=3.0, tint=(0.08, 0.08, 0.085), tint_mix=0.2, rough_mul=0.5, coat=0.2)
+    black = mat('black-wall', (0.05, 0.05, 0.052), 0.9, tex='painted_plaster_wall', scale=2.0, tint=(0.055, 0.055, 0.058), tint_mix=0.12, bump=0.3)
+    floor = mat('dark-floor', tex='smooth_concrete_floor', scale=3.0, tint=(0.1, 0.1, 0.105), tint_mix=0.3, rough_mul=0.5, coat=0.2, smudges=('SurfaceImperfections004', 2.5, 1.0))
     world()
     if v == 'large':           # a round room, 12 m across (the Tanks)
         R, H = 6, 5
@@ -821,6 +1088,13 @@ def black_box(v):
         return camera((0.0, -5.3, EYE), (0.3, 4.0, 1.5), lens=17)
     W, D, H = (14, 10, 5) if v == '' else (8, 6, 3.5)
     r = Room(0, 0, W, D, H, floor, black, black, doors=[('e', D / 2, 1.2, 2.4)], shadow_gap=False)
+    pipe = mat('grid-pipe', (0.04, 0.04, 0.04), 0.5, metal=0.6)
+    for gx in [x * 1.5 for x in range(1, int(W / 1.5))]:
+        box('grid', gx - 0.024, 0, H - 0.65, gx + 0.024, D, H - 0.6, pipe)
+    for gy in [y * 1.5 for y in range(1, int(D / 1.5))]:
+        box('grid', 0, gy - 0.024, H - 0.7, W, gy + 0.024, H - 0.65, pipe)
+    for hx in (W * 0.25, W * 0.75):      # house lights, low: you can see your way, not the walls
+        area('house', (hx, D / 2, H - 0.75), (0.3, 0.3), 6, 3000)
     if v == '':                # three projection walls: a work as projected light
         for (p, a, n, w) in (((W / 2, D - 0.01, 2.3), (-1, 0, 0), (0, -1, 0), WORKS['the-great-wave-off-kanagawa']), ((0.01, D / 2, 2.3), (0, -1, 0), (1, 0, 0), WORKS['the-starry-night'])):
             ww, hh = (6.0, 6.0 * w['size'][1] / w['size'][0])
@@ -831,15 +1105,16 @@ def black_box(v):
             q = quad('projection', p, a, ww, hh, pm, uv=True)
         return camera((W - 1.0, 1.0, EYE), (2.5, D - 2.0, 2.2), lens=17)
     fill(r, works_of('vincent-van-gogh', n=4), walls='nsw', ceiling=H, lux=170)
+    fittings(r, outlets=False, vent=False, dark=True)
     return camera((W - 0.7, 0.8, EYE), (1.0, D - 1.5, 1.5), lens=17)
 
 
 def glass_pavilion(v):
-    granite = mat('granite', tex='granite_tile', scale=1.6, rough_mul=0.6, coat=0.15, bump=0.3)
+    granite = mat('terrazzo', tex='terrazzo_tiles', scale=2.0, rough_mul=0.6, coat=0.2, bump=0.2, smudges=('SurfaceImperfections003', 2.5, 0.6))
     white = mat('pavilion-wall', (0.84, 0.84, 0.82), 0.9, tex='painted_plaster_wall', scale=2.5, tint=(0.85, 0.85, 0.83), tint_mix=0.06, bump=0.2)
     steel = mat('black-steel', (0.02, 0.02, 0.022), 0.4, metal=0.85)
     ceil = mat('pavilion-ceiling', (0.72, 0.72, 0.7), 0.85)
-    world(hdri=hdri('garden'), strength=2.4, rot=120)
+    world(hdri=hdri('garden'), strength=GARDEN_STRENGTH, rot=GARDEN_ROT)
     W, D, H = {'small': (10, 8, 4), 'large': (24, 16, 5)}.get(v, (14, 9, 4.5))
     box('floor', -2, -2, -0.2, W + 2, D + 2, 0, granite)
     box('roof', -2, -2, H, W + 2, D + 2, H + 0.6, ceil)
@@ -848,6 +1123,9 @@ def glass_pavilion(v):
     for wall, (p0, p1) in {'s': ((0, 0), (W, 0)), 'n': ((W, D), (0, D)), 'w': ((0, D), (0, 0)), 'e': ((W, 0), (W, D))}.items():
         if wall in sides:
             mesh('glass.' + wall, [(p0[0], p0[1], 0), (p1[0], p1[1], 0), (p1[0], p1[1], H), (p0[0], p0[1], H)], [(0, 1, 2, 3)], glass())
+            mid = ((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2, H / 2); L = math.dist(p0, p1)
+            facing = {'n': (math.radians(-90), 0, 0), 's': (math.radians(90), 0, 0), 'e': (0, math.radians(-90), 0), 'w': (0, math.radians(90), 0)}[wall]
+            portal(mid, (L, H) if wall in 'ns' else (H, L), rot=facing)
             L = math.dist(p0, p1); n = int(L // 2)
             for k in range(n + 1):
                 t = k / n; x, y = p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t
@@ -877,19 +1155,25 @@ def japanese(v):
     plaster = mat('earth-plaster', tex='clay_plaster', scale=1.6, tint=(0.72, 0.65, 0.52), tint_mix=0.35, bump=0.4)
     tatami = mat('tatami', tex='tatami_mat', scale=0.9, bump=0.5)
     cedar = mat('cedar', tex='japanese_cedar_planks', scale=1.0, bump=0.3)
-    world(hdri=hdri('japanese-garden'), strength=0.8, rot=30)
+    world(hdri=hdri('japanese-garden'), strength=GARDEN_STRENGTH * 0.8, rot=JP_ROT)
     W, D, H = {'small': (3.6, 3.6, 2.5), 'large': (12, 4.5, 3.0)}.get(v, (9, 6, 3.2))
     r = Room(0, 0, W, D, H, tatami, plaster, cedar, doors=[('e', D / 2, 0.9, 1.9)], windows=[('n', W / 2, W - 0.4, 0.0, H - 0.4)], shadow_gap=False)
     # shoji along the garden side: paper in a fine lattice
     sx0, sx1 = 0.2, W - 0.2
-    mesh('shoji.paper', [(sx0, D + 0.01, 0.0), (sx1, D + 0.01, 0.0), (sx1, D + 0.01, H - 0.4), (sx0, D + 0.01, H - 0.4)], [(0, 1, 2, 3)], paper_screen())
-    k = int((sx1 - sx0) / 0.3)
-    for i in range(k + 1):
-        x = sx0 + i * (sx1 - sx0) / k; box('kumiko', x - 0.008, D - 0.01, 0, x + 0.008, D + 0.005, H - 0.4, hinoki)
-    for z in [0.35 * j for j in range(1, int((H - 0.4) / 0.35) + 1)]:
-        box('kumiko', sx0, D - 0.01, z - 0.008, sx1, D + 0.005, z + 0.008, hinoki)
+    o0, o1 = W / 2 - min(0.9, W * 0.22), W / 2 + min(0.9, W * 0.22)       # the panels slid aside: the garden
+    for a0, a1 in ((sx0, o0), (o1, sx1)):
+        mesh('shoji.paper', [(a0, D + 0.01, 0.0), (a1, D + 0.01, 0.0), (a1, D + 0.01, H - 0.4), (a0, D + 0.01, H - 0.4)], [(0, 1, 2, 3)], paper_screen())
+        k = max(1, int((a1 - a0) / 0.3))
+        for i in range(k + 1):
+            x = a0 + i * (a1 - a0) / k; box('kumiko', x - 0.008, D - 0.01, 0, x + 0.008, D + 0.005, H - 0.4, hinoki)
+        for z in [0.35 * j for j in range(1, int((H - 0.4) / 0.35) + 1)]:
+            box('kumiko', a0, D - 0.01, z - 0.008, a1, D + 0.005, z + 0.008, hinoki)
+        box('shoji.frame', a0, D - 0.015, 0, a0 + 0.03, D + 0.01, H - 0.4, hinoki); box('shoji.frame', a1 - 0.03, D - 0.015, 0, a1, D + 0.01, H - 0.4, hinoki)
+    box('engawa', -0.3, D + 0.02, -0.06, W + 0.3, D + 1.3, -0.02, mat('engawa', tex='hinoki_planks', scale=1.2, tint=(0.36, 0.27, 0.18), tint_mix=0.5, rough_mul=0.8, bump=0.3))
+    box('ground', -30, D + 1.3, -0.6, W + 30, D + 40, -0.55, mat('garden-ground', tex='forest_ground_04', scale=3.0, bump=0.6))
+    portal((W / 2, D + 0.05, (H - 0.4) / 2), (o1 - o0, H - 0.4), rot=(math.radians(-90), 0, 0))
     box('kamoi', 0, D - 0.06, H - 0.45, W, D, H - 0.38, hinoki)
-    area('garden.light', (W / 2, D + 1.0, (H - 0.4) / 2), (W - 0.4, H - 0.6), 300, 6200, rot=(math.radians(-90), 0, 0), spread=150)
+    area('garden.light', (W / 2, D + 1.0, (H - 0.4) / 2), (W - 0.4, H - 0.6), 120, 6200, rot=(math.radians(-90), 0, 0), spread=150)
     # a tokonoma on the west wall: a raised floor, a hanging scroll (a print), a vase
     box('tokonoma.floor', 0, D * 0.25, 0, 0.75, D * 0.75, 0.12, cedar, bevel=0.004)
     box('tokonoma.post', 0.7, D * 0.75 - 0.06, 0, 0.78, D * 0.75 + 0.02, H, mat('toko-post', tex='japanese_cedar_bark', scale=0.8, bump=0.8))
@@ -901,10 +1185,12 @@ def japanese(v):
     return camera((W - 0.5, 0.5, 1.2 if v == 'small' else EYE), (0.4, D * 0.6, 1.2), lens=16)
 
 
-HDRIS = {'garden': 'symmetrical_garden_02', 'lebombo': 'lebombo', 'japanese-garden': 'chinese_garden'}
+HDRIS = {'garden': 'killesberg_park', 'lebombo': 'lebombo', 'japanese-garden': 'ninomaru_teien',
+         'street': 'urban_street_02', 'city': 'urban_street_03', 'overcast': 'kloofendal_overcast_puresky'}
 
 
-def hdri(key, res='2k'):
+def hdri(key, res=None):
+    res = res or os.environ.get('ROOMS_HDRI', '8k')
     asset = HDRIS[key]; d = os.path.join(CACHE, 'hdri'); os.makedirs(d, exist_ok=True)
     p = os.path.join(d, f'{asset}_{res}.hdr')
     if not os.path.exists(p):
@@ -939,6 +1225,10 @@ def main():
         s = reset(o)
         build(v)
         s.view_settings.exposure = EXPOSURE.get((o['type'], v), EXPOSURE.get(o['type'], 0.0))
+        try:
+            s.view_settings.use_white_balance = True
+            s.view_settings.white_balance_temperature = BALANCE.get(o['type'], 4300)
+        except Exception as e: print('no white balance:', e)
         slug = f'{o["type"]}{"-" + v if v else ""}'
         s.render.filepath = os.path.join(o['out'], slug + '.jpg')
         print(f'rendering {slug}: {name}, {variants[v]}', flush=True)
@@ -950,7 +1240,15 @@ def main():
         json.dump(all_, open(meta, 'w'), indent=1)
 
 
-EXPOSURE = {'studio': -0.4}
+EXPOSURE = {'studio': 0.0}
+JP_ROT = float(os.environ.get('JP_ROT', '0'))
+GARDEN_STRENGTH = float(os.environ.get('GARDEN_STRENGTH', '3'))
+GARDEN_ROT = float(os.environ.get('GARDEN_ROT', '200'))
+STREET_ROT = float(os.environ.get('STREET_ROT', '90'))
+WIN_STRENGTH = float(os.environ.get('WIN_STRENGTH', '4'))
+# the white point a photographer would set: warm museum light (3000 K spots) a little warm, daylight rooms neutral
+BALANCE = {'white-cube': 3800, 'salon': 4300, 'black-box': 3900, 'apartment': 5200, 'loft': 6800, 'skylit-hall': 4800,
+           'concrete': 6800, 'studio': 7000, 'glass-pavilion': 6300, 'japanese': 6000}
 
 if __name__ == '__main__':
     main()
