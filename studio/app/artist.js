@@ -124,7 +124,8 @@ function readiness(ex, works) {
 }
 
 // --- screens --------------------------------------------------------------------------------------------
-const head = (title, back) => `<div class="st-head">${back ? `<a class="back" href="${back}">← Back</a>` : '<span></span>'}<span class="tag">Open Studio for Artists</span></div><h1 class="st-h1">${esc(title)}</h1>`;
+// (a studio page without a page to go back to leads out to the app itself, its Home)
+const head = (title, back) => `<div class="st-head"><a class="back" href="${back || '#/'}">← ${back ? 'Back' : 'Open Studio'}</a><span class="tag">Open Studio for Artists</span></div><h1 class="st-h1">${esc(title)}</h1>`;
 const nav = cur => `<nav class="st-nav" aria-label="Studio">${[['', 'Home'], ['works', 'Works'], ['import', 'Bring work in'], ['exhibitions', 'Exhibitions'], ['profile', 'Profile']].map(([k, t]) => `<a href="#/studio${k ? '/' + k : ''}" ${cur === k ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
 
 function signIn() {
