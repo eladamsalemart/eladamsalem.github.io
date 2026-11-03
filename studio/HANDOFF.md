@@ -14,8 +14,10 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
 1. Instagram direct connection (owner's wish; free). The owner was in Meta Business Suite by mistake: the app is
    made at developers.facebook.com → My Apps → Create App → use case "Manage messaging & content on Instagram" →
    "API setup with Instagram login". Their Instagram (Elad Amsalem Art, 4.4K) is already professional and linked to
-   a Facebook page. 3.11 (local session): Meta blocked the developer account ("Account confirmation needed");
-   the owner went through the email-code check but it still showed blocked, so they may need to retry or wait.
+   a Facebook page. 3.11: the owner created the Meta app "Open Studio" by hand (use case Instagram, no business
+   portfolio), guided step by step: Meta shows "Account confirmation needed" to the agent's Chrome (automation)
+   even after the owner cleared it, so Meta's dashboard is the owner's hands; the agent can't check it. The keys
+   are the Instagram app ID/secret (Use cases → Instagram → API setup with Instagram login), not the Meta App ID.
    Needed for the app: privacy policy https://eladamsalem.com/open-studio/privacy.html (names Instagram since 3.11),
    data deletion instructions https://eladamsalem.com/open-studio/data-deletion.html (live 3.11), icon (studio/design/google-brand-logo-120.png or the
    app icons), category. Put App ID / App Secret in GitHub secrets INSTAGRAM_APP_ID / INSTAGRAM_APP_SECRET. Then
