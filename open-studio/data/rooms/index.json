@@ -398,6 +398,87 @@
   ],
   "ppm": 110
  },
+ "loft": {
+  "slug": "loft",
+  "type": "loft",
+  "label": "Two bays and a free wall, 24 \u00d7 12 m",
+  "w": 24,
+  "d": 12,
+  "h": 7.6,
+  "door": {
+   "from": 4.5,
+   "to": 7.5,
+   "height": 3.6
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     4.5,
+     7.5
+    ]
+   ]
+  },
+  "light": "spots",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "loft-large": {
+  "slug": "loft-large",
+  "type": "loft",
+  "label": "Long nave, 40 \u00d7 10 m",
+  "w": 40,
+  "d": 10,
+  "h": 8.6,
+  "door": {
+   "from": 3.5,
+   "to": 6.5,
+   "height": 3.6
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     3.5,
+     6.5
+    ]
+   ]
+  },
+  "light": "spots",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "loft-small": {
+  "slug": "loft-small",
+  "type": "loft",
+  "label": "Loft with columns, 20 \u00d7 12 m",
+  "w": 20,
+  "d": 12,
+  "h": 7.6,
+  "door": {
+   "from": 4.5,
+   "to": 7.5,
+   "height": 3.6
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     4.5,
+     7.5
+    ]
+   ]
+  },
+  "light": "spots",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
  "salon-large": {
   "slug": "salon-large",
   "type": "salon",
