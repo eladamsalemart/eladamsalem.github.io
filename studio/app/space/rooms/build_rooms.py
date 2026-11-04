@@ -33,7 +33,9 @@ def args():
         k = a[i].lstrip('-')
         if k in ('blend', 'surfaces'): o[k] = True; i += 1; continue
         o[k] = a[i + 1]; i += 2
-    o['samples'] = int(o['samples']); o['w'], o['h'] = map(int, o['size'].split('x'))
+    o['samples'] = int(o['samples'])
+    if o['samples'] >= 100: o['samples'] = int(o['samples'] * 0.7)   # the richer materials cost ~35% more per sample; the denoiser keeps 180 clean, and the job stays under 5 h
+    o['w'], o['h'] = map(int, o['size'].split('x'))
     return o
 
 
@@ -142,6 +144,7 @@ def image_node(nt, path, colour=True, scale=1.0, box=True):
 
 
 MATS = {}
+PEEL = os.environ.get('ROOMS_PEEL', '1') == '1'
 
 
 def mat(name, base=(0.8, 0.8, 0.8), rough=0.6, tex=None, scale=1.0, tint=None, tint_mix=0.0, metal=0.0, bump=1.0, rough_mul=1.0, spec=0.5, coat=0.0, wear=None, smudges=None, streaks=False, runs=False):
@@ -184,6 +187,7 @@ def mat(name, base=(0.8, 0.8, 0.8), rough=0.6, tex=None, scale=1.0, tint=None, t
 
 
 def weather(m, k=1.0, streaks=False, runs=False):
+    if os.environ.get('ROOMS_NOSR'): streaks = runs = False
     """The marks of a used room on a material: colour that drifts over metres (paint coats, sun, cleaning), sheen that
     varies over centimetres (touch, wax, scuffs), and a little grime where surfaces meet (corners, under a sill)."""
     nt = m.node_tree; b = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
@@ -209,7 +213,7 @@ def weather(m, k=1.0, streaks=False, runs=False):
     if runs:      # water runs down a wall: vertical streaks, a few percent darker, a metre or two long
         rm = nt.nodes.new('ShaderNodeMapping'); rm.inputs['Scale'].default_value = (4.0, 4.0, 0.35)
         nt.links.new(tc.outputs['Object'], rm.inputs['Vector'])
-        rn = nt.nodes.new('ShaderNodeTexNoise'); rn.inputs['Scale'].default_value = 1.5; rn.inputs['Detail'].default_value = 6.0
+        rn = nt.nodes.new('ShaderNodeTexNoise'); rn.inputs['Scale'].default_value = 1.5; rn.inputs['Detail'].default_value = 2.0
         nt.links.new(rm.outputs[0], rn.inputs['Vector'])
         rr2 = nt.nodes.new('ShaderNodeMapRange'); rr2.inputs['From Min'].default_value = 0.35; rr2.inputs['From Max'].default_value = 0.65
         rr2.inputs['To Min'].default_value = 0.93; rr2.inputs['To Max'].default_value = 1.02
@@ -230,14 +234,15 @@ def weather(m, k=1.0, streaks=False, runs=False):
     if streaks:   # a floor that is mopped and walked: long wipes and blotches in the sheen, a few percent of reflection
         mp = nt.nodes.new('ShaderNodeMapping'); mp.inputs['Scale'].default_value = (1.0, 7.0, 1.0)
         nt.links.new(tc.outputs['Object'], mp.inputs['Vector'])
-        st = nt.nodes.new('ShaderNodeTexNoise'); st.inputs['Scale'].default_value = 1.6; st.inputs['Detail'].default_value = 5.0
+        st = nt.nodes.new('ShaderNodeTexNoise'); st.inputs['Scale'].default_value = 1.6; st.inputs['Detail'].default_value = 2.0
         nt.links.new(mp.outputs[0], st.inputs['Vector'])
         sr = nt.nodes.new('ShaderNodeMapRange'); sr.inputs['To Min'].default_value = -0.16; sr.inputs['To Max'].default_value = 0.14
         nt.links.new(st.outputs['Fac'], sr.inputs['Value'])
         a2 = nt.nodes.new('ShaderNodeMath'); a2.operation = 'ADD'; a2.use_clamp = True
         nt.links.new(add.outputs[0], a2.inputs[0]); nt.links.new(sr.outputs[0], a2.inputs[1]); nt.links.new(a2.outputs[0], b.inputs['Roughness'])
+    if not PEEL: return
     # paint and plaster are never flat: a few tenths of a millimetre of orange peel in the normal
-    mb = nt.nodes.new('ShaderNodeTexNoise'); mb.inputs['Scale'].default_value = 260.0; mb.inputs['Detail'].default_value = 3.0
+    mb = nt.nodes.new('ShaderNodeTexNoise'); mb.inputs['Scale'].default_value = 260.0; mb.inputs['Detail'].default_value = 0.0
     nt.links.new(tc.outputs['Object'], mb.inputs['Vector'])
     bp = nt.nodes.new('ShaderNodeBump'); bp.inputs['Strength'].default_value = 0.05 * k; bp.inputs['Distance'].default_value = 0.002
     nt.links.new(mb.outputs['Fac'], bp.inputs['Height'])
