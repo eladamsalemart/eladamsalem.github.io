@@ -1,0 +1,27 @@
+{
+ "slug": "salon-large",
+ "type": "salon",
+ "label": "Long gallery with lanterns, 16 \u00d7 5.5 m",
+ "w": 16,
+ "d": 5.5,
+ "h": 5,
+ "door": {
+  "from": 1.95,
+  "to": 3.55,
+  "height": 2.8
+ },
+ "blocks": {
+  "wall-x1": [
+   [
+    1.95,
+    3.55
+   ]
+  ]
+ },
+ "light": "narrow",
+ "floorReflect": [
+  0.03,
+  0.14
+ ],
+ "ppm": 110
+}

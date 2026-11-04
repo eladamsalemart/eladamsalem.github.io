@@ -1,0 +1,23 @@
+{
+ "slug": "glass-pavilion",
+ "type": "glass-pavilion",
+ "label": "Gallery with a glass end, 14 \u00d7 9 m",
+ "w": 14,
+ "d": 9,
+ "h": 4.5,
+ "door": null,
+ "blocks": {
+  "wall-z0": [
+   [
+    0,
+    14
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.06,
+  0.28
+ ],
+ "ppm": 110
+}

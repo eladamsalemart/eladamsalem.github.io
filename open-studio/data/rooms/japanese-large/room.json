@@ -1,0 +1,33 @@
+{
+ "slug": "japanese-large",
+ "type": "japanese",
+ "label": "Long engawa room, 12 \u00d7 4.5 m",
+ "w": 12,
+ "d": 4.5,
+ "h": 3.0,
+ "door": {
+  "from": 1.8,
+  "to": 2.7,
+  "height": 1.9
+ },
+ "blocks": {
+  "wall-z0": [
+   [
+    0.2,
+    11.8
+   ]
+  ],
+  "wall-x1": [
+   [
+    1.8,
+    2.7
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.0,
+  0.0
+ ],
+ "ppm": 110
+}
