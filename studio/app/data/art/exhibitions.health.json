@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-03",
+ "updated": "2026-11-04",
  "sources": [
   {
    "source": "haifa-museum",
@@ -355,7 +355,7 @@
    "place": "galeryah-periskop",
    "url": "https://www.periscopedesigngallery.com/",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -562,7 +562,7 @@
    "place": "museum-for-islamic-art",
    "url": "https://www.islamicart.co.il/",
    "auto": true,
-   "status": "unreachable: TimeoutError",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -571,7 +571,7 @@
    "place": "museum-for-islamic-art-2",
    "url": "https://www.islamicart.co.il/",
    "auto": true,
-   "status": "unreachable: TimeoutError",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -670,7 +670,7 @@
    "place": "rosenfeld-gallery",
    "url": "https://rg.co.il",
    "auto": true,
-   "status": "unreachable: TimeoutError",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -778,9 +778,9 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 25,
+   "messages": 26,
    "matched": 2,
-   "unmatched": 1,
+   "unmatched": 2,
    "shows": 2,
    "events": 0
   },
@@ -793,9 +793,9 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 104,
-   "seconds": 8674,
-   "status": "time budget of 180 minutes used"
+   "calls": 26,
+   "seconds": 1744,
+   "status": "ok"
   },
   {
    "source": "makore",
