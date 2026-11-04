@@ -34,7 +34,7 @@ def args():
         if k in ('blend', 'surfaces'): o[k] = True; i += 1; continue
         o[k] = a[i + 1]; i += 2
     o['samples'] = int(o['samples'])
-    if o['samples'] >= 100: o['samples'] = int(o['samples'] * 0.7)   # the richer materials cost ~35% more per sample; the denoiser keeps 180 clean, and the job stays under 5 h
+    if o['samples'] >= 100: o['samples'] = int(o['samples'] * (0.45 if o['type'] == 'loft' else 0.7))   # the richer materials cost ~35% more per sample; the denoiser keeps 180 clean, and the job stays under 5 h
     o['w'], o['h'] = map(int, o['size'].split('x'))
     return o
 
@@ -1298,7 +1298,7 @@ def surfaces(slug, o, label):
     except Exception: pass
     out = os.path.join(o['out'], 'surfaces', slug); os.makedirs(out, exist_ok=True)
     ppm = int(o.get('ppm', 110))
-    s.cycles.samples = int(o.get('surface_samples', 128))
+    s.cycles.samples = int(int(o.get('surface_samples', 128)) * (0.5 if o['type'] == 'loft' else 1))
     cam = bpy.data.cameras.new('surface'); cam.type = 'ORTHO'
     ob = bpy.data.objects.new('surface', cam); bpy.context.collection.objects.link(ob); s.camera = ob
     def shoot(name, pos, rot, w, h, clip, dist=None):
