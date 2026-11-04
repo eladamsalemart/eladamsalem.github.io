@@ -130,8 +130,9 @@ jobs:
           for room in dst.glob('*/room.json'):     # its cover: the room's render, smaller (the studio's chooser)
               src = pathlib.Path('studio/design/virtual-spaces/renders') / f'{room.parent.name}.jpg'
               if src.exists():
-                  if subprocess.run(['convert', str(src), '-resize', '900x', '-quality', '82', str(room.parent / 'view.jpg')]).returncode:
-                      shutil.copy(src, room.parent / 'view.jpg')
+                  try: ok = not subprocess.run(['convert', str(src), '-resize', '900x', '-quality', '82', str(room.parent / 'view.jpg')]).returncode
+                  except FileNotFoundError: ok = False      # (no ImageMagick on the runner: the render as it is)
+                  if not ok: shutil.copy(src, room.parent / 'view.jpg')
           idx = {p.parent.name: json.loads(p.read_text()) for p in sorted(dst.glob('*/room.json'))}
           (dst / 'index.json').write_text(json.dumps(idx, indent=1))
           print(len(idx), 'rooms for the app')
