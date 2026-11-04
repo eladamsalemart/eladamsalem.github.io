@@ -2,6 +2,10 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-04: nothing to do
+
+- No open issues or owner requests; latest App health run green (earlier red ones on 11-03/04 were mid-publish, no issue left open). health.cjs, check_home, check_app, deps.py all pass on the live site (Home 2.4s, 17 ms frames). Last improvement under 3 days ago: none made. Notes: three, supabase-js, playwright updates still available.
+
 ## 2026-11-03: issue #5, the room's film "never played" once; check_home now says why
 
 - Looked: issue #5 open (App health #11, 20:47: Home's check said the room's film never played; everything else
