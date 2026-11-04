@@ -1,0 +1,27 @@
+{
+ "slug": "skylit-hall-large",
+ "type": "skylit-hall",
+ "label": "Three vaults, 24 \u00d7 7 m",
+ "w": 24,
+ "d": 7,
+ "h": 4.6,
+ "door": {
+  "from": 2.4,
+  "to": 4.6,
+  "height": 3.2
+ },
+ "blocks": {
+  "wall-x1": [
+   [
+    2.4,
+    4.6
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.03,
+  0.14
+ ],
+ "ppm": 110
+}

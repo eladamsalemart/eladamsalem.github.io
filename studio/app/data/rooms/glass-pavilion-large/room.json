@@ -1,0 +1,41 @@
+{
+ "slug": "glass-pavilion-large",
+ "type": "glass-pavilion",
+ "label": "Glass hall, 24 \u00d7 16 m",
+ "w": 24,
+ "d": 16,
+ "h": 5,
+ "door": null,
+ "blocks": {
+  "wall-z0": [
+   [
+    0,
+    24
+   ]
+  ],
+  "wall-x0": [
+   [
+    0,
+    16
+   ]
+  ],
+  "wall-z1": [
+   [
+    0,
+    24
+   ]
+  ],
+  "wall-x1": [
+   [
+    0,
+    16
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.06,
+  0.28
+ ],
+ "ppm": 110
+}

@@ -1,0 +1,27 @@
+{
+ "slug": "skylit-hall-small",
+ "type": "skylit-hall",
+ "label": "Skylit square, 10 \u00d7 10 m",
+ "w": 10,
+ "d": 10,
+ "h": 5.5,
+ "door": {
+  "from": 3.9,
+  "to": 6.1,
+  "height": 3.2
+ },
+ "blocks": {
+  "wall-x1": [
+   [
+    3.9,
+    6.1
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.03,
+  0.14
+ ],
+ "ppm": 110
+}

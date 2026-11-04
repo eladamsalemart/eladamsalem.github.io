@@ -1,0 +1,27 @@
+{
+ "slug": "black-box-small",
+ "type": "black-box",
+ "label": "Dark cell, 8 \u00d7 6 m",
+ "w": 8,
+ "d": 6,
+ "h": 3.5,
+ "door": {
+  "from": 2.4,
+  "to": 3.6,
+  "height": 2.4
+ },
+ "blocks": {
+  "wall-x1": [
+   [
+    2.4,
+    3.6
+   ]
+  ]
+ },
+ "light": "narrow",
+ "floorReflect": [
+  0.08,
+  0.34
+ ],
+ "ppm": 110
+}

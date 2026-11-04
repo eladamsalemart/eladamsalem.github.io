@@ -1,0 +1,23 @@
+{
+ "slug": "glass-pavilion-small",
+ "type": "glass-pavilion",
+ "label": "Pavilion with a glass wall, 10 \u00d7 8 m",
+ "w": 10,
+ "d": 8,
+ "h": 4,
+ "door": null,
+ "blocks": {
+  "wall-z0": [
+   [
+    0,
+    10
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.06,
+  0.28
+ ],
+ "ppm": 110
+}

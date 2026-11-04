@@ -1,0 +1,33 @@
+{
+ "slug": "studio",
+ "type": "studio",
+ "label": "Studio with a tall window, 8 \u00d7 6 m",
+ "w": 8,
+ "d": 6,
+ "h": 3.6,
+ "door": {
+  "from": 4.55,
+  "to": 5.45,
+  "height": 2.2
+ },
+ "blocks": {
+  "wall-z0": [
+   [
+    1.2,
+    6.8
+   ]
+  ],
+  "wall-x1": [
+   [
+    4.55,
+    5.45
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.0,
+  0.0
+ ],
+ "ppm": 110
+}
