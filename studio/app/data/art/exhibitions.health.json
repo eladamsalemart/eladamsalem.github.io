@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-04",
+ "updated": "2026-11-05",
  "sources": [
   {
    "source": "haifa-museum",
@@ -113,7 +113,7 @@
    "url": "https://www.tamuseum.org.il/he/exhibitions/",
    "read": "browser",
    "status": "ok",
-   "shows": 11,
+   "shows": 12,
    "events": 0
   },
   {
@@ -346,8 +346,8 @@
    "place": "ein-hod-art-gallery",
    "url": "https://www.ein-hod.org/גלריית-האמנים/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -355,7 +355,7 @@
    "place": "galeryah-periskop",
    "url": "https://www.periscopedesigngallery.com/",
    "auto": true,
-   "status": "unreachable: TimeoutError",
+   "status": "unreachable: Error",
    "shows": 0,
    "events": 0
   },
@@ -382,7 +382,7 @@
    "place": "hamidrasha-gallery",
    "url": "https://www.beitberl.ac.il/academic/faculties/art/exhbitions_galleries/hayarkun",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -418,8 +418,8 @@
    "place": "helena-rubinstein-pavilion",
    "url": "https://www.tamuseum.org.il/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -535,8 +535,8 @@
    "place": "meyerhoff-art-education-center",
    "url": "http://www.tamuseum.org.il/master/he/education-lobby",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -742,8 +742,8 @@
    "place": "wikidata-Q135407831",
    "url": "https://tivon-lib.co.il/gallery/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -760,8 +760,8 @@
    "place": "wilfrid-israel-museum",
    "url": "http://www.wilfrid.org.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -778,7 +778,7 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 26,
+   "messages": 27,
    "matched": 2,
    "unmatched": 2,
    "shows": 2,
@@ -793,16 +793,16 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 26,
-   "seconds": 1744,
-   "status": "ok"
+   "calls": 1,
+   "seconds": 0,
+   "status": "TimeoutError: timed out"
   },
   {
    "source": "makore",
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 24
+   "events": 21
   }
  ]
 }
