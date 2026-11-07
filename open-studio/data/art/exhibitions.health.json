@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-06",
+ "updated": "2026-11-07",
  "sources": [
   {
    "source": "haifa-museum",
@@ -793,8 +793,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 1,
-   "seconds": 0,
+   "calls": 8,
+   "seconds": 492,
    "status": "TimeoutError: timed out"
   },
   {
@@ -802,7 +802,7 @@
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 20
+   "events": 19
   }
  ]
 }
