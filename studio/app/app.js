@@ -911,13 +911,13 @@ function reviewBar() {
   const close = '<button type="button" data-rv="close">×</button>';
   if (r.admin && !r.own) {
     bar.className = 'rv-bar'; bar.dir = 'rtl'; bar.lang = 'he';
-    bar.innerHTML = `<span>בדיקת העמוד של <b>${esc(r.name)}</b>, כמו שמבקרים יראו אותו</span><span class="rv-b"><a href="#/admin/artists">לאשר או לבקש שינויים</a>${close}</span>`;
+    bar.innerHTML = `<span>בדיקת העמוד של <b>${esc(r.name)}</b>, כמו שמבקרים יראו אותו</span><span class="rv-b"><a href="#/admin">לאשר או לבקש שינויים</a>${close}</span>`;
   } else {
     bar.className = 'rv-bar'; bar.dir = 'ltr'; bar.lang = 'en';
     const what = r.status === 'approved' ? 'Your page, live' : r.status === 'pending' ? 'Your page, as visitors will see it. Sent for review.' : 'Your page, as visitors will see it once approved.';
     bar.innerHTML = `<span>${what}</span><span class="rv-b"><a href="#/studio">Edit in your studio</a>${close}</span>`;
   }
-  bar.querySelector('[data-rv=close]').onclick = () => { try { sessionStorage.removeItem(REVIEW); } catch {} location.hash = r.admin && !r.own ? '#/admin/artists' : '#/studio'; };
+  bar.querySelector('[data-rv=close]').onclick = () => { try { sessionStorage.removeItem(REVIEW); } catch {} location.hash = r.admin && !r.own ? '#/admin' : '#/studio'; };
   document.body.classList.add('reviewing');
 }
 
