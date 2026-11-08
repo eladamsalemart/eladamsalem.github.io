@@ -158,7 +158,9 @@ const showOf = m => v => {
   const artists = [...new Set(keys.map(k => m.works.find(x => x.slug === k).artist.slug))];
   return { slug: v.slug || `show-${v.id.slice(0, 8)}`, kind: v.kind, title: v.title, artists: v.kind === 'artist' && owner ? [owner.slug] : artists, curator: v.curator || '',
     room: v.room, paint: v.paint, centre: v.centre, onview: !!v.on_view, start: v.starts || made.slice(0, 10), end: v.ends || `${+made.slice(0, 4) + 1}${made.slice(4, 10)}`,
-    text: v.text ? v.text.split(/\n\s*\n/) : [], works: keys };
+    text: v.text ? v.text.split(/\n\s*\n/) : [], works: keys,
+    // where the artist hung each work (wall, a, y) and stood the plinths: the room hangs the rest itself
+    placements: Object.fromEntries((v.works || []).filter(w => w.id && w.wall).map(w => [w.id, { wall: w.wall, a: w.a, y: w.y }])), plinths: v.plinths || [] };
 };
 
 // a virtual exhibition is an online show whose room is drawn here (space/synth.js) around the works it hangs
@@ -181,7 +183,7 @@ function addVirtual(m, v, uniq) {
       dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: x.text || [], images: x.cover ? [x.cover] : [works[0].image], city: '', country: '',
       confirmed: true, artist: artists[0], artists, works, maybe: [], kind: 'online', start, end, hours: '', curator: x.curator || '',
       events: [], virtual: x,
-      space: { source: `${room}, a virtual room`, virtual: { title: x.title, room: x.room, paint: x.paint, centre: x.centre } },
+      space: { source: `${room}, a virtual room`, virtual: { title: x.title, room: x.room, paint: x.paint, centre: x.centre, placements: x.placements, plinths: x.plinths } },
     });
   }
 }
