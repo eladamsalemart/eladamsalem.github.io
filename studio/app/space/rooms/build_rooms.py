@@ -1139,10 +1139,10 @@ def cast_concrete(name, floor=False, tone=0.40, warm=(1.03, 1.0, 0.95), pw=1.8, 
     B.link(colour, mg.inputs[6]); c4 = B.n('ShaderNodeCombineColor'); [B.link(B.m('SUBTRACT', 1.0, B.m('MULTIPLY', groove, 0.5)), c4.inputs[i]) for i in range(3)]; B.link(c4.outputs[0], mg.inputs[7])
     B.link(mg.outputs[2], bsdf.inputs['Base Color'])
     # sheen: a rougher body, satin over it, patchy
-    rm = B.n('ShaderNodeMapRange'); rm.inputs['From Min'].default_value = 0.2; rm.inputs['From Max'].default_value = 0.8; rm.inputs['To Min'].default_value = 0.30 if floor else 0.46; rm.inputs['To Max'].default_value = 0.52 if floor else 0.74
+    rm = B.n('ShaderNodeMapRange'); rm.inputs['From Min'].default_value = 0.2; rm.inputs['From Max'].default_value = 0.8; rm.inputs['To Min'].default_value = 0.20 if floor else 0.46; rm.inputs['To Max'].default_value = 0.42 if floor else 0.74
     B.link(rough.outputs['Color'], rm.inputs['Value']); B.link(rm.outputs[0], bsdf.inputs['Roughness'])
     bsdf.inputs['Specular IOR Level'].default_value = 0.55
-    bsdf.inputs['Coat Weight'].default_value = 0.16 if not floor else 0.25; bsdf.inputs['Coat Roughness'].default_value = 0.30 if not floor else 0.12
+    bsdf.inputs['Coat Weight'].default_value = 0.16 if not floor else 0.35; bsdf.inputs['Coat Roughness'].default_value = 0.30 if not floor else 0.10
     # normal: the scan's relief (bug holes, pores) and the formwork's grooves and plugs, in one bump (each is costly)
     hh = B.m('ADD', heights, B.m('MULTIPLY', B.m('SUBTRACT', disp.outputs['Color'], 0.5), 0.45 * 0.0025 / 0.0035 * 2.0))
     b2 = B.n('ShaderNodeBump'); b2.inputs['Strength'].default_value = 1.0; b2.inputs['Distance'].default_value = 0.0035
