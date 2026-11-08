@@ -1,6 +1,6 @@
 // Open Studio offline support. Pages, scripts and data come from the network first, so every push
 // reaches the phone on the next open; images, space textures and libraries are kept once seen.
-const VERSION = 'open-studio-31025b4';
+const VERSION = 'open-studio-1a08ab0';
 const SHELL = ['./', 'index.html', 'app.js', 'sky.js', 'artist.js', 'studio-page.js', 'space/space.js', 'space/synth.js', 'space/plinths.js', 'space/hang-editor.js', 'manifest.webmanifest', 'icons/icon-192.png'];
 
 self.addEventListener('install', e => {
