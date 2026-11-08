@@ -284,7 +284,7 @@ def glass(name='glass', tint=(0.92, 0.96, 0.95), double=False):
     nt.links.new(lp.outputs['Is Shadow Ray'], mix.inputs[0]); nt.links.new(g.outputs[0], mix.inputs[1]); nt.links.new(tr.outputs[0], mix.inputs[2])
     nt.links.new(mix.outputs[0], out.inputs[0])
     MATS[name] = m
-    smudge(m, 'SurfaceImperfections004', 1.1, 5.0)    # fingerprints and rain-dried dust: the glass catches light unevenly
+    smudge(m, 'SurfaceImperfections003', 2.2, 1.6)    # fingerprints and rain-dried dust: the glass catches light unevenly
     return m
 
 
@@ -1163,7 +1163,7 @@ def concrete(v):
         r = Room(0, 0, 8, 8, 6, floor, conc, conc, doors=[('e', 1.6, 1.4, 2.6)], windows=[('n', 4, 6.6, 4.9, 5.4)])
         import random
         rnd = random.Random(8)       # what the slot shows: crowns of trees at 10-25 m over a lawn
-        ground(-0.02, 8.4, 700, -700, 700, outside_mat('lawn', 'leafy_grass', 3.5, tint=(0.24, 0.29, 0.11), tint_mix=0.7, bump=0.5, L=110))
+        ground(-0.02, 8.4, 700, -700, 700, outside_mat('lawn', 'leafy_grass', 3.5, tint=(0.12, 0.19, 0.05), tint_mix=0.75, bump=0.5, L=110))
         for i in range(9):
             place(rnd.choice(['island_tree_01', 'island_tree_01', 'island_tree_02']), rnd.uniform(-8, 16), 8 + rnd.uniform(10, 26), height=rnd.uniform(12, 21), rot=rnd.uniform(0, 360))
         mesh('slot.glass', [(0.7, 8.02, 4.9), (7.3, 8.02, 4.9), (7.3, 8.02, 5.4), (0.7, 8.02, 5.4)], [(0, 1, 2, 3)], glass())
@@ -1200,7 +1200,7 @@ def street_outside(W, D, xc, zg=-4.2, seed=11, rot=0.0):
     L = 120
     asph = outside_mat('road', 'asphalt_04', 4.0, tint=(0.55, 0.55, 0.57), tint_mix=0.3, bump=0.8, L=L)
     pave = outside_mat('pavement', 'concrete_pavement_03', 2.1, tint=(0.6, 0.6, 0.58), tint_mix=0.3, bump=0.6, L=L)
-    lawn = outside_mat('front-garden', 'leafy_grass', 3.0, tint=(0.24, 0.29, 0.11), tint_mix=0.7, bump=0.5, L=L)
+    lawn = outside_mat('front-garden', 'leafy_grass', 3.0, tint=(0.12, 0.19, 0.05), tint_mix=0.75, bump=0.5, L=L)
     ground(zg, D, 400, -400, 400, lawn)
     X0, X1 = -80, 80
     def strip(y0, y1, m, dz=0.0): mesh('street', [(X0, y0, zg + dz), (X1, y0, zg + dz), (X1, y1, zg + dz), (X0, y1, zg + dz)], [(0, 1, 2, 3)], m)
@@ -1374,7 +1374,8 @@ def garden_outside(W, D, sides, zg=-0.2, seed=3):
     kinds at 8-30 m (the photographed park stays as the far distance and the sky), all fading toward it."""
     import random
     rnd = random.Random(seed)
-    lawn = outside_mat('lawn', 'leafy_grass', 3.5, tint=(0.24, 0.29, 0.11), tint_mix=0.7, bump=0.5, L=110)
+    lawn = outside_mat('lawn', 'leafy_grass', 2.2, tint=(0.12, 0.19, 0.05), tint_mix=0.75, bump=1.0, L=110)
+    if not lawn.get('mown'): mow(lawn); lawn['mown'] = True
     ground(zg, -700, 700, -700, 700, lawn)
     ctr = Vector((W / 2, D / 2, 0))
     def at(side, along, out):      # a point `out` metres off the side's glass, `along` metres along it
@@ -1531,10 +1532,24 @@ def haze(m, L=90.0, p=1.5):
     B.link(mix.outputs[0], out.inputs['Surface'])
 
 
-def outside_mat(name, tex, scale, tint=None, tint_mix=0.0, bump=0.6, rough_mul=1.0, L=90.0):
-    m = mat(name, tex=tex, scale=scale, tint=tint, tint_mix=tint_mix, bump=bump, rough_mul=rough_mul, wear=0)
+def outside_mat(name, tex, scale, tint=None, tint_mix=0.0, bump=0.6, rough_mul=1.0, L=90.0, spec=0.12):
+    m = mat(name, tex=tex, scale=scale, tint=tint, tint_mix=tint_mix, bump=bump, rough_mul=rough_mul, wear=0, spec=spec)
     if not m.get('hazed'): haze(m, L); m['hazed'] = True
     return m
+
+
+def mow(m, width=1.7, amount=0.14):
+    """Mowing stripes: a lawn cut in bands that run away from the house, each band a shade lighter or darker."""
+    nt = m.node_tree; B = NB(nt); b = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
+    g = B.n('ShaderNodeNewGeometry'); sep = B.n('ShaderNodeSeparateXYZ'); B.link(g.outputs['Position'], sep.inputs[0])
+    wob = B.n('ShaderNodeTexNoise', noise_dimensions='2D'); wob.inputs['Scale'].default_value = 0.08; wob.inputs['Detail'].default_value = 0.0
+    B.link(B.xyz(sep.outputs[0], sep.outputs[1]), wob.inputs['Vector'])
+    x = B.m('ADD', sep.outputs[0], B.m('MULTIPLY', wob.outputs['Fac'], 6.0))
+    st = B.m('ADD', 1.0, B.m('MULTIPLY', B.m('SINE', B.m('MULTIPLY', x, 2 * math.pi / (width * 2))), amount))
+    mx = B.n('ShaderNodeMix', data_type='RGBA', blend_type='MULTIPLY'); mx.inputs[0].default_value = 1.0
+    l = b.inputs['Base Color'].links
+    if l: B.link(l[0].from_socket, mx.inputs[6])
+    c = B.n('ShaderNodeCombineColor'); [B.link(st, c.inputs[i]) for i in range(3)]; B.link(c.outputs[0], mx.inputs[7]); B.link(mx.outputs[2], b.inputs['Base Color'])
 
 
 def polymodel(asset, res='1k'):
@@ -1710,7 +1725,7 @@ def main():
         json.dump(all_, open(meta, 'w'), indent=1)
 
 
-EXPOSURE = {'studio': 0.0}
+EXPOSURE = {}
 JP_ROT = float(os.environ.get('JP_ROT', '0'))
 GARDEN_STRENGTH = float(os.environ.get('GARDEN_STRENGTH', '3'))
 GARDEN_ROT = float(os.environ.get('GARDEN_ROT', '200'))
