@@ -738,44 +738,72 @@ main .am-modes button[aria-pressed="true"]{background:var(--ink);color:#fff;bord
 .hs .sky-stars{position:absolute;inset:0}
 .hs .star{position:absolute;left:0;top:0;width:0;height:0;padding:0;border:0;background:none;cursor:pointer;will-change:transform,opacity;-webkit-tap-highlight-color:transparent;transition:filter .4s ease}
 .hs .star>*{position:absolute;left:0;top:0}
-.hs .star.r0{--d:58px}.hs .star.r1{--d:42px}.hs .star.r2{--d:34px}.hs .star.real,.hs .star.k-place:not(.has-img){--d:11px}
 .hs .k-artist{--c:var(--hs-artist)}.hs .k-show{--c:var(--hs-show)}.hs .k-tour{--c:var(--hs-tour)}.hs .k-place{--c:var(--hs-place)}.hs .k-work{--c:var(--hs-work)}
 .hs .star .wash{width:calc(var(--d) * 2.2);height:calc(var(--d) * 1.85);transform:translate(-50%,-48%);background:var(--c);
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 84'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='.95'/%3E%3Cstop offset='.58' stop-color='%23fff' stop-opacity='.5'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cfilter id='f' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.06' numOctaves='2' seed='8' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='14'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='50' cy='42' rx='44' ry='36' fill='url(%23g)' filter='url(%23f)'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 84'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='.95'/%3E%3Cstop offset='.58' stop-color='%23fff' stop-opacity='.5'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cfilter id='f' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.06' numOctaves='2' seed='8' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='14'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='50' cy='42' rx='44' ry='36' fill='url(%23g)' filter='url(%23f)'/%3E%3C/svg%3E") center/100% 100% no-repeat}
 .hs .star.real .wash,.hs .star.k-place:not(.has-img) .wash{width:44px;height:38px}
 .hs .star .sp{width:var(--d);height:var(--d);transform:translate(-50%,-50%);border-radius:50%;display:block;background:var(--c) center/cover no-repeat;box-shadow:0 0 0 3px #fff,0 12px 26px -12px var(--hs-shade)}
-.hs .star.real .sp,.hs .star.k-place:not(.has-img) .sp{box-shadow:0 0 0 2.5px rgba(255,255,255,.9)}
 .hs .star .ring{width:calc(var(--d) + 20px);height:calc(var(--d) + 20px);transform:translate(-50%,-50%);overflow:visible}
 .hs .star .ring path{fill:none;stroke:var(--hs-pencil);stroke-width:.75;stroke-linecap:round;opacity:.85}
 .hs .star.on .ring path{stroke:var(--hs-live);stroke-width:1.1;opacity:1}
 .hs .star.on .sp{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--c),0 16px 30px -12px var(--hs-shade)}
-.hs .star .lab{width:180px;transform:translate(-50%,calc(var(--d,34px)/2 + 10px));text-align:center;display:grid;pointer-events:none;transition:opacity .35s ease}
-.hs .star .lab b{font:500 14px/1.15 var(--serif);color:var(--hs-ink)}
+/* every star is a face or a picture, in the shape of what it is: artist round, show an arch, work a framed square */
+.hs .star.k-show .sp,.hs .star.k-tour .sp{border-radius:999px 999px 9px 9px}
+.hs .star.k-work .sp{border-radius:5px;box-shadow:0 0 0 4px #fff,0 10px 22px -12px var(--hs-shade)}
+.hs .star .sp{font:500 calc(var(--d) * .5)/var(--d) var(--serif);color:var(--hs-ink);text-align:center;overflow:visible}
+.hs .star .sp[data-l]::before{content:attr(data-l)}
+.hs .star .sp .b3{position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);font:700 10px/1 var(--sans);font-style:normal;letter-spacing:.04em;padding:3px 6px;border-radius:999px;background:var(--hs-ink);color:#fff}
+.hs .star.r2:not(.real) .wash{display:none}
+/* the name: always the same readable size whatever the zoom, shown when it fits clear of its neighbours */
+.hs .star .lab{width:150px;max-width:150px;transform:translate(-50%,calc(var(--d,46px)/2 + 5px)) scale(var(--inv,1));transform-origin:50% 0;text-align:center;display:grid;justify-items:center;pointer-events:none;opacity:0;transition:opacity .25s ease}
+.hs .star.named .lab,.hs .star.on .lab{opacity:1}
+.hs .star .lab b{font:500 14px/1.15 var(--serif);color:var(--hs-ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 0 6px rgba(255,255,255,.9),0 0 2px rgba(255,255,255,.9)}
 .hs .star .lab b[dir=rtl]{font:600 12.5px/1.2 'IBM Plex Sans Hebrew',var(--sans)}
-.hs .star .lab small{display:none;font-size:11.5px;color:var(--hs-muted)}
-.hs .star.on .lab small{display:block}
-.hs .star .lab .hand{font-size:18px;line-height:1.05;margin-top:2px;color:#4C5290}
-.hs .star.small .lab{opacity:0}
-.hs .star.r1:not(.on) .lab .hand,.hs .star.r2:not(.on) .lab .hand,.hs .star:not(.big):not(.on) .lab .hand{display:none}
-.hs .star.r2:not(.big):not(.on) .lab{opacity:0}
-.hs .star.dim{filter:saturate(.5) opacity(.45)}
+.hs .star .lab small{font-size:11px;line-height:1.2;color:var(--hs-muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 0 5px rgba(255,255,255,.9)}
+.hs .star.dim{filter:saturate(.55) opacity(.6)}
 .hs .star.dim .lab{opacity:0}
-.hs .sky.far-view .star.r2 .lab{opacity:1!important;transform-origin:50% 0;scale:calc(var(--inv) * .78)}
-.hs .sky.far-view .star.r0 .lab,.hs .sky.far-view .star.r1 .lab{opacity:0}
-.hs .sky.far-view .star.r2.dim .lab{opacity:0!important}
-.hs .sky-ui{position:absolute;z-index:16;left:18px;right:14px;bottom:52px;display:flex;align-items:center}
-.hs .hint{font-family:var(--hand);font-size:17px;color:#4C5290;line-height:1}
-.hs .pick{position:absolute;z-index:17;left:12px;right:12px;bottom:84px;display:flex;align-items:center;gap:12px;padding:10px;background:#fff;color:var(--hs-ink);
+.hs .star.on{filter:none}
+/* the thumb's controls */
+.hs .sky-ctl{position:absolute;z-index:18;right:12px;top:calc(62px + env(safe-area-inset-top));display:grid;gap:8px;justify-items:end;pointer-events:none}
+.hs .sky-ctl button{pointer-events:auto;min-width:44px;min-height:44px;border-radius:999px;border:1px solid #DCD8EC;background:rgba(255,255,255,.92);color:var(--hs-ink);display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer;box-shadow:0 8px 20px -12px var(--hs-shade);-webkit-tap-highlight-color:transparent;font:600 14px/1 var(--sans)}
+.hs .sky-ctl button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.hs .sky-ctl .wander-b{padding:0 16px;margin-top:6px;background:var(--hs-ink);color:#fff;border-color:var(--hs-ink)}
+.hs .sky-ctl .wander-b[aria-pressed=true]{background:var(--hs-live);border-color:var(--hs-live)}
+.hs .sky-ctl button:active{transform:scale(.94)}
+.hs .sky-ui{position:absolute;z-index:16;left:18px;right:74px;bottom:62px;display:flex;align-items:center;pointer-events:none;transition:opacity .4s ease}
+.hs .hint{font-family:var(--hand);font-size:17px;color:#4C5290;line-height:1.05}
+.hs-hero.used .sky-ui,.hs-hero.picking .sky-ui{opacity:0}
+/* the way down to the rest of Home: its own strip, the one place on the sky that scrolls the page */
+.hs .sky-down{position:absolute;z-index:19;left:0;right:0;bottom:0;height:54px;border:0;background:none;color:var(--hs-hand);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;touch-action:pan-y;font-size:17px}
+.hs .sky-down svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hs .pick{position:absolute;z-index:17;left:12px;right:12px;bottom:56px;display:grid;gap:10px;padding:12px;background:#fff;color:var(--hs-ink);
   border:1px solid #DCD8EC;border-radius:8px 20px 10px 18px / 18px 10px 20px 8px;box-shadow:0 14px 34px -16px var(--hs-shade);animation:hsUp .45s cubic-bezier(.2,.8,.2,1)}
-.hs .pick>img,.hs .pick>.pk-dot{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none}
+.hs .pick[hidden]{display:none}
+.hs .pk-row{display:flex;align-items:center;gap:12px}
+.hs .pick img,.hs .pick .pk-dot{width:60px;height:60px;border-radius:50%;object-fit:cover;flex:none}
 .hs .pick .pk-dot{background:var(--c)}
-.hs .pick>div{min-width:0;display:grid;gap:1px;flex:1}
+.hs .pk-t{min-width:0;display:grid;gap:1px;flex:1;padding-right:18px}
 .hs .pick .pk-k{font-size:12px;color:var(--hs-muted)}
 .hs .pick b{font:500 19px/1.15 var(--serif);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hs .pick div>span:not(.pk-k):not(.hand){font-size:13px;color:var(--hs-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hs .pk-t>span:not(.pk-k):not(.hand){font-size:13px;color:var(--hs-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hs .pick .hand{font-size:19px;color:#4C5290}
-.hs .pick .go{flex:none;min-height:40px;padding:0 14px;border-radius:999px;background:var(--hs-ink);color:#fff;font-weight:600;font-size:14px;display:inline-flex;align-items:center;text-decoration:none}
-.hs .pick .x{position:absolute;top:-10px;right:-6px;width:32px;height:32px;border-radius:50%;border:1px solid #DCD8EC;background:#fff;color:var(--hs-ink);cursor:pointer;font-size:18px;line-height:1}
+.hs .pk-do{display:flex;gap:8px}
+.hs .pk-do>*{flex:1;min-height:44px;padding:0 12px;border-radius:999px;font:600 14px/1 var(--sans);display:inline-flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;border:1px solid var(--hs-ink);background:#fff;color:var(--hs-ink)}
+.hs .pk-do .go{background:var(--hs-ink);color:#fff}
+.hs .pk-do .fo.on{background:#F5B9C8;border-color:#F5B9C8}
+.hs .pk-do .nx{border-color:#DCD8EC;flex:.8}
+.hs .pick .x{position:absolute;top:-12px;right:-6px;width:44px;height:44px;border:0;background:none;cursor:pointer;padding:0;font-size:0}
+.hs .pick .x::before{content:"×";position:absolute;top:6px;right:6px;width:32px;height:32px;border-radius:50%;border:1px solid #DCD8EC;background:#fff;color:var(--hs-ink);font-size:18px;line-height:30px}
+/* a calm shelf under the sky: meet someone new */
+.hs .meet{list-style:none;margin:0 -18px;padding:0 18px 6px;display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none}
+.hs .meet::-webkit-scrollbar{display:none}
+.hs .meet li{flex:0 0 132px;scroll-snap-align:start}
+.hs .meet a{display:grid;gap:1px;text-decoration:none;color:inherit}
+.hs .meet img{width:132px;height:160px;object-fit:cover;display:block;background:var(--card);margin-bottom:8px;border-radius:999px 999px 12px 12px}
+.hs .meet img.rd{height:132px;border-radius:50%;box-shadow:0 0 0 3px #fff}
+.hs .meet .mk{font-size:11.5px;color:var(--hs-muted);text-transform:uppercase;letter-spacing:.06em}
+.hs .meet b{font:500 17px/1.15 var(--serif)}
+.hs .meet .ms{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @keyframes hsUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 /* under the sky */
 .hs-sec{padding:0 18px;margin-top:44px}
