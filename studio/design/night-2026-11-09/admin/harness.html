@@ -10,5 +10,8 @@ const { admin } = await import('../../../app/admin.js');
 const app = document.getElementById('app');
 const go = (h, same) => { if (same || h === location.hash) render(); else location.hash = h; };
 const render = () => admin(location.hash || '#/admin', app, go, { works: [], artists: [], media: {} });
-addEventListener('hashchange', render); render();
+addEventListener('hashchange', render);
+await render();
+const q = new URLSearchParams(location.search);
+for (const sel of (q.get('click') || '').split('|').filter(Boolean)) { const el = document.querySelector(sel); if (el) { el.click(); if (el.closest('.ax-card')) el.closest('.ax-card').scrollIntoView(); } }
 </script></body></html>
