@@ -1,0 +1,31 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>B: כרטיסים</title><style>
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Heebo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+:root{--wall:#EFE9DD;--paper:#F6F1E7;--ink:#1B1A17;--muted:#5E594F;--line:#CFC7B6;--card:#E6DFD0;--dot:#2F6B4F;--warn:#9A5B1E;
+ --serif:"Fraunces",serif;--sans:"Heebo",sans-serif;--mono:"IBM Plex Mono",monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--wall);color:var(--ink);font:400 15px/1.45 var(--sans);direction:rtl}
+a{color:inherit;text-decoration:none}h1,h2,h3,p{margin:0;font-weight:400}
+.m{color:var(--muted);font-size:13px}.mono{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:14px;padding:0 16px;min-height:44px;font:600 14px var(--sans);border:1.5px solid var(--ink);background:transparent;color:var(--ink)}
+.btn.f{background:var(--dot);border-color:var(--dot);color:#F6F1E7}.btn.g{border-color:var(--line);font-weight:500}.btn.t{border:0;color:var(--muted);font-weight:500}
+.th{display:grid;gap:4px}.th img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;display:block}
+.flag{display:inline-block;font:500 10.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
+.flag.ok{background:color-mix(in srgb,var(--dot) 14%,transparent);color:var(--dot)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:10px}
+.badge{background:var(--dot);color:#F6F1E7;border-radius:99px;font:600 11px var(--sans);min-width:18px;height:18px;display:inline-grid;place-items:center;padding:0 5px}
+.serif{font-family:var(--serif)}
+
+.top{display:flex;justify-content:space-between;align-items:center;padding:6px 16px;min-height:44px}.top a{color:var(--muted);font-size:14px}
+main{padding:0 16px 40px;max-width:1100px;margin:auto}h1{font:400 34px/1.1 var(--serif);padding:6px 0 14px}
+.g{display:grid;gap:10px}.big{font:400 46px/1 var(--serif)}.c{gap:6px;align-content:start}.c h2{font:600 14px var(--sans);color:var(--muted)}
+.row{display:flex;justify-content:space-between;align-items:end}.spark{display:flex;gap:3px;align-items:end;height:38px}.spark i{width:9px;background:var(--dot);opacity:.55;border-radius:2px}
+.hot{border-color:var(--dot);background:color-mix(in srgb,var(--dot) 7%,var(--paper))}.cta{color:var(--dot);font-weight:700;font-size:14px;min-height:30px;display:flex;align-items:center}
+.ok{color:var(--dot);font-weight:600}
+@media(min-width:900px){.g{grid-template-columns:repeat(3,1fr)}main{padding:30px 36px}h1{font-size:42px}.w2{grid-column:span 2}}</style></head><body><div class="top"><a>→ לאפליקציה</a><span class="mono">חדר בקרה</span></div><main><h1>בוקר טוב</h1><div class="g">
+<a class="card c hot"><h2>אמנים מחכים לאישור</h2><div class="row"><span class="big">2</span><span class="m">Maya, Yosef</span></div><span class="cta">לבדיקה ←</span></a>
+<a class="card c hot"><h2>עבודות חדשות לבדיקה</h2><div class="row"><span class="big">14</span><span class="m">מ־3 אמנים</span></div><span class="cta">לבדיקה ←</span></a>
+<a class="card c"><h2>בקשות סיור תלת־ממדי</h2><div class="row"><span class="big">1</span><span class="m">Rooms Left Behind</span></div><span class="cta">לפרטים ←</span></a>
+<a class="card c"><h2>הצטרפו השבוע</h2><div class="row"><span class="big">12</span><div class="spark"><i style="height:30%"></i><i style="height:45%"></i><i style="height:40%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:90%"></i><i style="height:100%"></i></div></div><span class="m">5 היום · 143 בסך הכל</span></a>
+<a class="card c"><h2>תערוכות אוצרות</h2><div class="row"><span class="big">2</span><span class="m">מפורסמות · טיוטה אחת</span></div><span class="cta">לעריכה ←</span></a>
+<a class="card c"><h2>תקינות</h2><p class="ok">הכל תקין</p><p class="m">כל 7 הבדיקות עברו בלילה</p></a>
+<a class="card c w2"><h2>עוד</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="btn g">בקשת שינוי</span><span class="btn g">חשבונות בדיקה</span><span class="btn g">סיור כמבקר חדש</span><span class="btn g">סיור כאמן חדש</span></div></a>
+</div></main></body></html>
