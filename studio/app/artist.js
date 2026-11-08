@@ -296,11 +296,11 @@ function designer(id, onview = false) {
         ${v.works.length ? `<ol class="vx-order">${v.works.map((wid, i) => { const w = workOf(wid); if (!w) return ''; return `<li><img src="${esc(thumbOf(wid))}" alt=""><div class="t"><b>${esc(w.title)}</b><span class="m small">${esc([w.year, w.width && w.height ? `${w.height} × ${w.width} cm` : ''].filter(Boolean).join(' · '))}</span></div>
           <button type="button" data-up="${i}" aria-label="Move ${esc(w.title)} earlier" ${i ? '' : 'disabled'}>↑</button><button type="button" data-down="${i}" aria-label="Move ${esc(w.title)} later" ${i < v.works.length - 1 ? '' : 'disabled'}>↓</button><button type="button" data-out="${i}" aria-label="Take ${esc(w.title)} out">×</button></li>`; }).join('')}</ol>` : '<p class="m">No works yet: add them below.</p>'}
         <p class="m small" id="vxFit" aria-live="polite"></p>
-        ${rest.length ? `<details class="vx-add" ${v.works.length && !addOpen ? '' : 'open'}><summary>Add works (${rest.length})</summary><div class="st-pick">${rest.map(w => `<label><input type="checkbox" data-add="${esc(w.id)}"><img src="${esc(srcOf(w.thumb || w.image))}" alt=""><span>${esc(w.title)}</span></label>`).join('')}</div></details>` : ''}
+        ${onview ? `<p class="m small">${v.works.length ? 'Move, add and take out works in the space itself: stand where you want a work and drag it onto the wall. Plinths hold sculptures and objects.' : 'You add the works inside the space: walk in, tap Add, and drag each one onto a wall. Plinths hold sculptures and objects.'}</p>` : rest.length ? `<details class="vx-add" ${v.works.length && !addOpen ? '' : 'open'}><summary>Add works (${rest.length})</summary><div class="st-pick">${rest.map(w => `<label><input type="checkbox" data-add="${esc(w.id)}"><img src="${esc(srcOf(w.thumb || w.image))}" alt=""><span>${esc(w.title)}</span></label>`).join('')}</div></details>` : ''}
       </fieldset>
-      <label>Hung at, centre (cm)<input name="centre" type="range" min="135" max="160" step="1" value="${+v.centre || 150}"><span class="m small" id="vxCentre">${+v.centre || 150} cm from the floor to the middle of each work</span></label>
+      ${onview ? `<input type="hidden" name="centre" value="${+v.centre || 150}">` : `<label>Hung at, centre (cm)<input name="centre" type="range" min="135" max="160" step="1" value="${+v.centre || 150}"><span class="m small" id="vxCentre">${+v.centre || 150} cm from the floor to the middle of each work</span></label>`}
       <label>${onview ? 'In your words: what this exhibition is' : 'About the exhibition'}<textarea name="text" rows="4">${esc(v.text)}</textarea></label>
-      <div class="btns"><button class="btn f" type="button" id="vxWalk" ${v.works.length && ROOMS[v.room] ? '' : 'disabled'}>Walk in</button><button class="btn g" type="submit">Save</button>${isNew ? '' : '<button class="btn g" type="button" id="vxDel">Delete</button>'}</div>
+      <div class="btns">${onview ? `<button class="btn f" type="button" id="vxHang" ${ROOMS[v.room] && v.title ? '' : 'disabled'}>${v.works.length ? 'Hang the works' : 'Walk in and hang the works'}</button><button class="btn g" type="button" id="vxWalk" ${v.works.length && ROOMS[v.room] ? '' : 'disabled'}>Walk as a visitor</button>` : `<button class="btn f" type="button" id="vxWalk" ${v.works.length && ROOMS[v.room] ? '' : 'disabled'}>Walk in</button>`}<button class="btn g" type="submit">Save</button>${isNew ? '' : '<button class="btn g" type="button" id="vxDel">Delete</button>'}</div>
       ${S.cloud ? (v.id ? `<div class="btns"><button class="btn ${v.status === 'published' ? 'g' : 'f'}" type="button" id="vxPub">${v.status === 'published' ? 'Take it down' : onview ? 'Put it on my page' : 'Publish'}</button></div>
         <p class="m small">${v.status === 'published' ? (S.status === 'approved' ? (onview ? 'On view: at the top of your page, and in Shows.' : 'Published: on your page and in Shows.') : 'Published: it shows on your page and in Shows once your page is approved.') : 'A draft: only you see it.'}</p>` : '')
         : '<p class="m small">In this demo the design stays on this phone. With an artist’s account, Publish puts it on your page and in Shows.</p>'}
@@ -328,11 +328,23 @@ async function previewSpace(slug, onChoose) {
   const view = await openSpace({ spec: made.spec, works: [], src: u => u, onClose: () => made.revoke(), choose: { label: 'Choose this space', onChoose } });
   window.__spaceView = view;
 }
+const shapeWork = w => ({ id: w.id, kind: w.kind, title: w.title, image: srcOf(w.image), width: w.width, height: w.height, pairs: w.width && w.height ? [[+w.height, +w.width]] : [],
+  year: w.year, medium: w.medium, artist: { name: S.artist.name } });
+// the hang editor: inside the walkable room the artist adds, removes and places the works and plinths
+async function hangIn(v, done) {
+  const [{ openHangEditor }, { openSpace }] = await Promise.all([import('./space/hang-editor.js'), import('./space/space.js')]);
+  await openHangEditor({
+    design: { title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre || 150 },
+    library: S.works.map(w => ({ ...shapeWork(w), thumb: srcOf(w.thumb || w.image) })), state: { ids: v.works, placements: v.placements, plinths: v.plinths },
+    src: u => u, shape: w => w, openSpace,
+    onSave: s => { v.works = s.ids; v.placements = s.placements; v.plinths = s.plinths; save(); },
+    onExit: done,
+  });
+}
 async function walkIn(v) {
   const [{ buildRoom }, { openSpace }] = await Promise.all([synth(), import('./space/space.js')]);
-  const works = v.works.map(workOf).filter(Boolean).map(w => ({ title: w.title, image: srcOf(w.image), width: w.width, height: w.height, pairs: w.width && w.height ? [[+w.height, +w.width]] : [],
-    year: w.year, medium: w.medium, artist: { name: S.artist.name } }));
-  const made = await buildRoom({ title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre, works }, u => u);
+  const works = v.works.map(workOf).filter(Boolean).map(shapeWork);
+  const made = await buildRoom({ title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre, works, placements: v.placements, plinths: v.plinths }, u => u);
   const view = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => made.revoke() });
   window.__spaceView = view;
 }
@@ -767,8 +779,10 @@ function wire(app, go) {
       redo();
     });
     const c = vx.querySelector('input[name=centre]');
-    c.oninput = () => { $('#vxCentre').textContent = `${c.value} cm from the floor to the middle of each work`; };
-    c.onchange = () => { keep(); fitNote(app, v); };
+    if (c.type === 'range') {
+      c.oninput = () => { $('#vxCentre').textContent = `${c.value} cm from the floor to the middle of each work`; };
+      c.onchange = () => { keep(); fitNote(app, v); };
+    }
     vx.querySelectorAll('[data-add]').forEach(b => b.onchange = () => { addOpen = true; restoreY = scrollY; keep().works.push(b.dataset.add); redo(); });
     const ad = vx.querySelector('.vx-add'); if (ad) ad.ontoggle = () => { addOpen = ad.open; };
     vx.querySelectorAll('[data-up],[data-down],[data-out]').forEach(b => b.onclick = () => {
@@ -779,6 +793,8 @@ function wire(app, go) {
     vx.onsubmit = e => { e.preventDefault(); keep(); go(onview ? '#/studio/onview' : '#/studio/exhibitions'); };
     const walk = $('#vxWalk');
     if (walk) walk.onclick = async () => { walk.disabled = true; walk.textContent = 'Building the room…'; try { await walkIn(keep()); } finally { walk.disabled = false; walk.textContent = 'Walk in'; } };
+    const hang = $('#vxHang');
+    if (hang) hang.onclick = async () => { hang.disabled = true; hang.textContent = 'Building the room…'; try { await hangIn(keep(), () => go('#/studio/onview', true)); } finally { hang.disabled = false; } };
     const del = $('#vxDel');
     if (del) del.onclick = () => { if (!confirm('Delete this virtual exhibition?')) return; S.virtual = S.virtual.filter(x => x.id !== id); save(); go('#/studio/exhibitions'); };
     if (v) fitNote(app, v);

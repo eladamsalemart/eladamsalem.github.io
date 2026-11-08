@@ -45,7 +45,7 @@ jobs:
           cp -r $src/icons open-studio/
           cp -r $src/data/demo open-studio/data/
           cp $src/data/spaces/*.status.json open-studio/data/spaces/ 2>/dev/null || true
-          cp $src/space/space.js $src/space/synth.js open-studio/space/
+          cp $src/space/space.js $src/space/synth.js $src/space/plinths.js $src/space/hang-editor.js open-studio/space/
           cp $src/data/studio.json $src/data/virtual.json open-studio/data/
           cp -r $src/data/art open-studio/data/ 2>/dev/null || true
           cp $src/data/spaces/index.json open-studio/data/spaces/
