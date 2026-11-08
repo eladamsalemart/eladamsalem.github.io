@@ -116,7 +116,7 @@ kbd{font:500 11px var(--mono);border:1px solid var(--line);border-radius:6px;pad
 .cmdv{display:none}
 @media(min-width:900px){.dock{position:static;background:none;padding:14px 0;grid-template-columns:auto auto auto 1fr;justify-content:start}.dock .btn{min-height:44px}.cmdv{display:block}.big{grid-template-columns:repeat(6,1fr)}main{padding-top:26px}}'''
     body = f'''<div class="top"><a>→ לאפליקציה</a><span class="mono">חדר בקרה</span></div><main>
-<div class="cmd"><span>חיפוש או פקודה: "אשר Maya", "בריאות", "אנשים"…</span><kbd>⌘K</kbd></div>
+<div class="cmd"><span>חיפוש או פקודה, למשל "אשר Maya"</span><kbd>⌘K</kbd></div>
 <div class="cmdv"><div class="res"><div class="on"><span>אשר: Maya Lieberman</span><kbd>↵</kbd></div><div><span>עבור אל: אמנים</span><kbd>G A</kbd></div><div><span>עבור אל: תקינות</span><kbd>G H</kbd></div><div><span>תערוכת אוצרות חדשה</span><kbd>N</kbd></div></div></div>
 <div class="prog"><i class="d"></i><i class="n"></i><i></i></div><p class="mono">2 מתוך 3 · אמנים מחכים</p>
 <article class="card f1" style="margin-top:8px"><div><span class="flag">מחכה</span><h2>{A1['name']}</h2><p class="m">{A1['disc']} · {A1['city']} · נשלח {A1['since']}</p></div>

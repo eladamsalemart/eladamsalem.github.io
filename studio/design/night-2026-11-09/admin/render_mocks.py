@@ -10,7 +10,7 @@ CHROME = next(p for p in (r'C:\Program Files\Google\Chrome\Application\chrome.ex
 
 def shot(url, out, w, h):
     subprocess.run([CHROME, '--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-device-scale-factor=2', f'--window-size={w},{h}',
-                    '--virtual-time-budget=9000', f'--screenshot={out}', url], check=True, timeout=120, capture_output=True)
+                    '--virtual-time-budget=20000', f'--screenshot={out}', url], check=True, timeout=120, capture_output=True)
 
 
 if __name__ == '__main__':
