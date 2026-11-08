@@ -112,6 +112,9 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    labels, sockets, sprinklers, exit signs, benches; the Japanese room's shoji open on a garden. Local test: Blender
    4.5.15 portable in C:\Users\elada\blender, `ROOMS_HDRI=2k` for speed. Research notes (assets, IES, web tech): the
    subagent's report is summarised in this item; IES not used yet (no free direct library found).
+   4.11 night: architraves, thresholds, window boards and casement frames, dusty glass, floor sheen wipes, orange-peel plaster,
+   plastered ceilings, rain runs on concrete/brick, tatami edging. Cost +35%/sample: samples x0.7 (loft x0.45, loft surfaces x0.5;
+   it timed out at 5.5 h otherwise): keep jobs under 5 h. Details: studio/design/virtual-spaces/night-2026-11-04.md.
 11. On View (owner's decision 3.11: every artist shows their exhibition now in one of the ten spaces, at the top of their
    page). "Studio rooms" with surfaces=yes also photographs each empty single-room variant's six surfaces (walls by a
    perspective camera framing the wall exactly, so windows show the view; floor/ceiling orthographic) into
