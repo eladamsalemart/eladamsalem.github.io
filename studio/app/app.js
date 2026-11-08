@@ -195,7 +195,7 @@ function span(dates, year) {
 }
 const DAY = 86400000;
 const today = () => { const t = new Date(); t.setHours(0, 0, 0, 0); return t; };
-const inDays = (n, time) => { const t = new Date(+today() + n * DAY); if (time) { const [h, mi] = time.split(':'); t.setHours(+h, +mi); } return t; };
+const inDays = (n, time) => { const t = today(); t.setDate(t.getDate() + n); if (time) { const [h, mi] = time.split(':'); t.setHours(+h, +mi); } return t; };
 
 // the demo world joins the real content: its artists, works, shows (dates as days from today), the studio
 // clips on artists' pages, and the galleries listed on the map that aren't on Open Studio

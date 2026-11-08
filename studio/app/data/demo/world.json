@@ -3604,7 +3604,7 @@
    "artist": "paul-cezanne",
    "title": "The Card Players",
    "year": "1893",
-   "medium": "",
+   "medium": "Oil on canvas",
    "size": [
     57.0,
     47.5
@@ -4942,20 +4942,19 @@
    "real": true,
    "hours": "",
    "events": [],
-   "text": "A real exhibition: 15 April to 15 May 1874, thirty artists who had left the official Salon showed their own work. A critic mocked Monet's Impression, Sunrise, and the name Impressionism was born.",
+   "text": "A real exhibition: 15 April to 15 May 1874, thirty artists who had left the official Salon showed their own work. A critic mocked Monet's Impression, Sunrise, and the name Impressionism was born. The works listed are by these artists and were made by then; they are not the show's catalogue.",
    "start": -55724,
    "end": -55694,
    "works": [
     "impression-sunrise",
     "garden-at-sainte-adresse",
+    "women-in-the-garden",
     "the-cradle",
-    "summer-s-day",
-    "l-absinthe",
+    "in-a-park",
+    "the-port-at-lorient",
     "the-bellelli-family",
-    "the-card-players",
-    "les-grandes-baigneuses",
-    "hay-harvest-at-eragny",
-    "the-red-roofs-cote-saint-denis-at-pontoise-winte"
+    "the-ballet-class",
+    "interior"
    ],
    "images": [
     "data/demo/works/impression-sunrise.jpg",
@@ -4980,18 +4979,21 @@
    "real": true,
    "hours": "",
    "events": [],
-   "text": "A real exhibition: 15 May to 15 June 1886, the last of the group. Seurat's A Sunday Afternoon on La Grande Jatte was shown here.",
+   "text": "A real exhibition: 15 May to 15 June 1886, the last of the group. Seurat's A Sunday Afternoon on La Grande Jatte was shown here. The works listed are by these artists and were made by then; they are not the show's catalogue.",
    "start": -51311,
    "end": -51280,
    "works": [
     "the-cradle",
     "summer-s-day",
+    "the-psyche-mirror",
     "l-absinthe",
     "the-bellelli-family",
-    "hay-harvest-at-eragny",
+    "the-ballet-class",
     "the-red-roofs-cote-saint-denis-at-pontoise-winte",
-    "the-child-s-bath",
-    "woman-with-a-pearl-necklace-in-a-loge"
+    "the-cote-des-bufs-pontoise",
+    "woman-with-a-pearl-necklace-in-a-loge",
+    "little-girl-in-a-blue-armchair",
+    "the-cup-of-tea"
    ],
    "images": [
     "data/demo/works/the-cradle.jpg",
@@ -5013,22 +5015,21 @@
    "country": "France",
    "at": null,
    "real": true,
+   "skip": [
+    "olympia"
+   ],
    "hours": "",
    "events": [],
-   "text": "A real exhibition: opened 15 May 1863 (the closing date here is approximate), by order of Napoleon III, for the paintings the official Salon jury had refused. Manet's Luncheon on the Grass was the scandal of it.",
+   "text": "A real exhibition: opened 15 May 1863 (the closing date here is approximate), by order of Napoleon III, for the paintings the official Salon jury had refused. Manet's Luncheon on the Grass was the scandal of it. The works listed are by these artists and were made by then; they are not the show's catalogue.",
    "start": -59712,
    "end": -59661,
    "works": [
     "luncheon-on-the-grass",
-    "olympia",
-    "the-card-players",
-    "les-grandes-baigneuses",
-    "hay-harvest-at-eragny",
-    "the-red-roofs-cote-saint-denis-at-pontoise-winte"
+    "music-in-the-tuileries"
    ],
    "images": [
     "data/demo/works/luncheon-on-the-grass.jpg",
-    "data/demo/works/olympia.jpg"
+    "data/demo/works/music-in-the-tuileries.jpg"
    ]
   },
   {
@@ -5051,22 +5052,27 @@
    "real": true,
    "hours": "",
    "events": [],
-   "text": "A real exhibition: 17 February to 15 March 1913, the first large show of European modern art in America, with some 1,300 works. Many Americans met Van Gogh, Matisse and Cézanne here.",
+   "text": "A real exhibition: 17 February to 15 March 1913, the first large show of European modern art in America, with some 1,300 works. Many Americans met Van Gogh, Matisse and Cézanne here. The works listed are by these artists and were made by then; they are not the show's catalogue.",
    "start": -41537,
    "end": -41511,
    "works": [
     "the-starry-night",
     "the-potato-eaters",
+    "sunflowers",
     "dance",
     "woman-with-a-hat",
+    "the-dessert-harmony-in-red-the-red-room",
     "the-card-players",
     "les-grandes-baigneuses",
+    "mardi-gras",
     "the-child-s-bath",
     "woman-with-a-pearl-necklace-in-a-loge",
+    "little-girl-in-a-blue-armchair",
     "composition-vii",
-    "on-white-ii",
+    "composition-iv",
     "vase-of-flowers",
-    "mrs-atkinson"
+    "mrs-atkinson",
+    "self-portrait"
    ],
    "images": [
     "data/demo/works/the-starry-night.jpg",
@@ -5090,16 +5096,19 @@
    "real": true,
    "hours": "",
    "events": [],
-   "text": "A real exhibition: 25 May to 30 September 1912, in which Van Gogh, Cézanne and Munch were shown among the young painters who followed them.",
+   "text": "A real exhibition: 25 May to 30 September 1912, in which Van Gogh, Cézanne and Munch were shown among the young painters who followed them. The works listed are by these artists and were made by then; they are not the show's catalogue.",
    "start": -41805,
    "end": -41677,
    "works": [
     "the-scream",
     "madonna",
+    "vampire",
     "the-starry-night",
     "the-potato-eaters",
+    "sunflowers",
     "the-card-players",
-    "les-grandes-baigneuses"
+    "les-grandes-baigneuses",
+    "mardi-gras"
    ],
    "images": [
     "data/demo/works/the-scream.jpg",
@@ -5121,20 +5130,14 @@
    "real": true,
    "hours": "",
    "events": [],
-   "text": "A real exhibition: 18 December 1911 to 1 January 1912, the first show of the Blue Rider group that Kandinsky founded with Franz Marc.",
+   "text": "A real exhibition: 18 December 1911 to 1 January 1912, the first show of the Blue Rider group that Kandinsky founded with Franz Marc. The works listed are by these artists and were made by then; they are not the show's catalogue.",
    "start": -41964,
    "end": -41950,
    "works": [
-    "composition-vii",
-    "on-white-ii",
-    "yellow-red-blue",
-    "composition-viii",
-    "several-circles",
     "composition-iv"
    ],
    "images": [
-    "data/demo/works/composition-vii.jpg",
-    "data/demo/works/on-white-ii.jpg"
+    "data/demo/works/composition-iv.jpg"
    ]
   }
  ],

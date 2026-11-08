@@ -110,7 +110,7 @@ FIXES = {
     'reseskiss-studie-av-balustrad': dict(title='Travel Sketch: Study of a Balustrade'),
     'zertretene-leichnam-und-frauenakt-am-pfahl-the-d': dict(title='The Downtrodden', medium='Etching on paper'),
     'brot-bread': dict(title='Bread!', medium='Lithograph'), 'gefallen-killed-in-action-or-news-from-the-front': dict(title='Killed in Action', medium='Woodcut'),
-    'lovers-ii': dict(medium='Woodcut'),
+    'lovers-ii': dict(medium='Woodcut'), 'the-card-players': dict(medium='Oil on canvas'),
     'selbstbildnis-self-portrait': dict(title='Self-Portrait', medium='Woodcut'),
     'woman-with-a-parasol-madame-monet-and-her-son': dict(collection='National Gallery of Art'),
     'little-girl-in-a-blue-armchair': dict(collection='National Gallery of Art'), 'the-boating-party': dict(collection='National Gallery of Art'),
@@ -197,7 +197,7 @@ SHOWS = [
          text='A real exhibition: 15 May to 15 June 1886, the last of the group. Seurat\'s A Sunday Afternoon on La Grande Jatte was shown here.'),
     dict(slug='salon-des-refuses-1863', title='Salon des Refusés', artists=['edouard-manet', 'paul-cezanne', 'camille-pissarro'],
          kind='gallery', venue="Palais de l'Industrie", address="Palais de l'Industrie, Champs-Élysées, Paris", city='Paris', country='France', at=None,
-         date=((1863, 5, 15), (1863, 7, 5)), real=True, hours='', events=[],
+         date=((1863, 5, 15), (1863, 7, 5)), real=True, skip=['olympia'], hours='', events=[],
          text='A real exhibition: opened 15 May 1863 (the closing date here is approximate), by order of Napoleon III, for the paintings the official Salon jury had refused. Manet\'s Luncheon on the Grass was the scandal of it.'),
     dict(slug='armory-show-1913', title='The Armory Show', artists=['vincent-van-gogh', 'henri-matisse', 'paul-cezanne', 'mary-cassatt', 'wassily-kandinsky', 'gwen-john'],
          kind='gallery', venue='69th Regiment Armory', address='Lexington Avenue at 25th Street, New York', city='New York', country='United States', at=None,
@@ -357,14 +357,20 @@ def main():
             thumbs[w['image']] = small
             works.append(w)
         print(f'{name}: {len(mine)} works', flush=True)
-    by = {}
+    by, year_of = {}, {w['slug']: w['year'] for w in works}
     for w in works: by.setdefault(w['artist'], []).append(w['slug'])
     shows = []
     for s in SHOWS:
         s = dict(s); n = 6 if len(s['artists']) == 1 else (2 if len(s['artists']) <= 4 else 2)
-        if 'date' in s: s['start'], s['end'] = (days(d) for d in s.pop('date'))
-        s['works'] = [x for a in s['artists'] for x in by.get(a, [])[:n]]
+        if 'date' in s: s['start_year'] = s['date'][0][0]; s['start'], s['end'] = (days(d) for d in s.pop('date'))
+        if s.get('real'):          # a real show lists works the artists had made by then (not the catalogue of the show)
+            yr = s['start_year']
+            s['works'] = [x for a in s['artists'] for x in [x for x in by.get(a, []) if 0 < int(year_of[x] or 0) <= yr and x not in s.get('skip', ())][:3]]
+            s['text'] += ' The works listed are by these artists and were made by then; they are not the show\'s catalogue.'
+        else:
+            s['works'] = [x for a in s['artists'] for x in by.get(a, [])[:n]]
         s['images'] = [f'data/demo/works/{x}.jpg' for x in s['works'][:2]]
+        s.pop('start_year', None)
         shows.append(s)
     world = dict(_note='Demo content: real artists from art history, their works in the public domain (facts from Wikidata, images from '
                        'Wikimedia Commons). Most galleries and shows are made up; the ones marked real are historical exhibitions, with their real dates and places. '
