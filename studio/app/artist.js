@@ -258,6 +258,7 @@ const plan = (r, on) => {
 };
 // On View: the artist's exhibition now, in one of the ten spaces, at the top of their page
 const kindsOf = () => { const k = {}; for (const [slug, r] of Object.entries(ROOMS)) if (r.baked) (k[r.kind] = k[r.kind] || []).push([slug, r]); return k; };
+const SEVERAL = new Set(['white-cube', 'salon', 'concrete']);   // kinds whose medium size is several rooms (not yet photographed for the app)
 const SIZE_ORDER = ['small', 'medium', 'large'];
 const firstOf = list => (list.find(([, r]) => r.variant === 'medium') || list[0])[0];
 function onView() {
@@ -271,7 +272,8 @@ function spacePicker(v) {
   const sizes = kind ? kinds[kind].slice().sort(([, a], [, b]) => SIZE_ORDER.indexOf(a.variant) - SIZE_ORDER.indexOf(b.variant)) : [];
   return `<fieldset><legend>1. The space</legend><div class="ov-kinds">${Object.entries(kinds).map(([k, list]) => { const r = ROOMS[firstOf(list)];
       return `<label class="ov-kind"><input type="radio" name="kind" value="${k}" ${kind === k ? 'checked' : ''}><img src="${esc(r.cover)}" alt="" loading="lazy"><b>${esc(r.name)}</b><span class="m small">${esc(r.blurb)}</span></label>`; }).join('')}</div></fieldset>
-    ${kind ? `<fieldset><legend>2. Its size</legend><div class="ov-sizes">${sizes.map(([slug, r]) => `<label class="ov-size"><input type="radio" name="room" value="${slug}" ${v.room === slug ? 'checked' : ''}><b>${esc(r.sizeName)}</b><span class="m small">${esc(r.size)}</span></label>`).join('')}</div></fieldset>` : ''}`;
+    <input type="hidden" name="room" value="${esc(v.room)}">
+    ${kind ? `<fieldset><legend>2. Its size</legend><p class="m small">Tap a size to walk the empty space before you choose.</p><div class="ov-sizes">${sizes.map(([slug, r]) => `<button type="button" class="ov-size ${v.room === slug ? 'on' : ''}" data-preview="${slug}" aria-pressed="${v.room === slug}"><b>${esc(r.sizeName)}</b><span class="m small">${esc(r.size)}</span></button>`).join('')}${SEVERAL.has(kind) ? '<span class="ov-size soon" title="Several connected rooms: being prepared"><b>Several rooms</b><span class="m small">Being prepared</span></span>' : ''}</div></fieldset>` : ''}`;
 }
 function designer(id, onview = false) {
   const isNew = id === 'new';
@@ -282,7 +284,9 @@ function designer(id, onview = false) {
   const rest = S.works.filter(w => !v.works.includes(w.id));
   const drawn = Object.entries(ROOMS).filter(([, r]) => !r.baked);
   return `<div class="wrap gut st">${onview ? head('On View') + nav('onview') : head(isNew ? 'A virtual exhibition' : v.title || 'Untitled', '#/studio/exhibitions')}
-    <p class="m">${onview ? 'Your exhibition now. Choose a space and its size, then the works, in the order a visitor walks past them: each hangs at its real size, in the light of the room. It opens your page, so the people who find you walk into your work first.' : 'Choose a room, the colour of its walls and the works, in the order a visitor will walk past them. The room is built around them, every work at its real size.'}</p>
+    ${onview ? `<div class="m ov-why"><p><b>What it is.</b> The exhibition of the art that matters to you right now. Pick a space, hang a few works in it, and walk it yourself before anyone else does.</p>
+      <p><b>Why it matters.</b> It goes out in Open Studio’s feed, and it shows first on your artist page: people who find you walk into your work before anything else.</p></div>`
+      : '<p class="m">Choose a room, the colour of its walls and the works, in the order a visitor will walk past them. The room is built around them, every work at its real size.</p>'}
     <form class="st-form st-vx" id="vxForm" data-id="${esc(v.id)}" ${onview ? 'data-onview="1"' : ''}>
       ${onview ? spacePicker(v) : ''}
       <label>${onview ? '3. ' : ''}Title<input name="title" required value="${esc(v.title)}" placeholder="The exhibition's title"></label>
@@ -316,6 +320,13 @@ async function fitNote(app, v) {
   el.textContent = (left.length ? `${ws.length - left.length} of ${ws.length} works fit on the walls of the ${roomName(v.room)}: choose a larger room, or fewer works.` : `All ${ws.length} works fit on the walls, with room to breathe.`)
     + (guessed ? ` ${guessed} without a size: hung at about 90 cm; add their sizes in Works.` : '');
   el.classList.toggle('warn', !!left.length);
+}
+// the empty space, walked before it is chosen: "Choose this space" keeps it
+async function previewSpace(slug, onChoose) {
+  const [{ buildRoom }, { openSpace }] = await Promise.all([synth(), import('./space/space.js')]);
+  const made = await buildRoom({ title: ROOMS[slug].name, room: slug, works: [] }, u => u);
+  const view = await openSpace({ spec: made.spec, works: [], src: u => u, onClose: () => made.revoke(), choose: { label: 'Choose this space', onChoose } });
+  window.__spaceView = view;
 }
 async function walkIn(v) {
   const [{ buildRoom }, { openSpace }] = await Promise.all([synth(), import('./space/space.js')]);
@@ -747,6 +758,10 @@ function wire(app, go) {
     // (a change redraws the screen where the artist is, not at its top)
     const redo = () => { if (restoreY == null) restoreY = scrollY; const k = keep(); go(onview ? '#/studio/onview' : `#/studio/virtual/${k.id}`, true); };
     vx.querySelectorAll('input[name=kind]').forEach(i => i.onchange = () => redo());
+    vx.querySelectorAll('[data-preview]').forEach(b => b.onclick = async () => {
+      const slug = b.dataset.preview, t = b.innerHTML; b.disabled = true; b.querySelector('b').textContent = 'Opening…';
+      try { await previewSpace(slug, () => { vx.elements.room.value = slug; redo(); }); } finally { b.disabled = false; b.innerHTML = t; }
+    });
     vx.querySelectorAll('input[name=room], input[name=paint]').forEach(i => i.onchange = () => {
       if (i.name === 'room') { const p = vx.querySelector('input[name=paint]:checked'); if (p && p.value === (ROOMS[(v || {}).room] || ROOMS['white-cube']).paint) p.checked = false; }
       redo();
