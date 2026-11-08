@@ -11,7 +11,7 @@
 
 const EYE = 1.6, WALK = 1.3, MARGIN = 0.3;
 
-export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
+export async function openSpace({ spec, works, src, onClose, onOpenWork, choose }) {
   const THREE = await import('three');
   const { Reflector } = await import('three/addons/objects/Reflector.js');
   const R = spec.room;
@@ -33,6 +33,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     <div class="sv-hint">Drag to look around<br>Joystick to walk · Tap the floor to go there</div>
     <div class="sv-card" hidden><div class="sv-info"></div>
       <div class="sv-nav"><button type="button" class="sv-prev" aria-label="Previous">←</button><span class="sv-count"></span><button type="button" class="sv-play" aria-pressed="false" aria-label="Play: go from work to work">▶</button><button type="button" class="sv-next" aria-label="Next">→</button></div></div>
+    ${choose ? `<div class="sv-choose"><button type="button" class="btn f">${choose.label}</button></div>` : ''}
     <div class="sv-loading">Building the room…</div>`;
   document.body.append(root);
   const $ = s => root.querySelector(s);
@@ -986,6 +987,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   }
   function close() { stop(); onClose(); }
   $('.sv-x').onclick = close;
+  if (choose) $('.sv-choose button').onclick = () => { close(); choose.onChoose(); };
+  if (!(spec.works || []).length) { $('[data-mode="works"]').hidden = true; }
   $('.sv-loading').hidden = true;
   setMode('walk'); show();
   // for the inspection stage: render the room from any point, exactly as a visitor's screen shows it, and
