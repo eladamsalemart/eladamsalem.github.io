@@ -1,0 +1,33 @@
+{
+ "slug": "studio-small",
+ "type": "studio",
+ "label": "Small studio, 5 \u00d7 4 m",
+ "w": 5,
+ "d": 4,
+ "h": 3.2,
+ "door": {
+  "from": 2.55,
+  "to": 3.45,
+  "height": 2.2
+ },
+ "blocks": {
+  "wall-z0": [
+   [
+    0.75,
+    4.25
+   ]
+  ],
+  "wall-x1": [
+   [
+    2.55,
+    3.45
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.0,
+  0.0
+ ],
+ "ppm": 110
+}
