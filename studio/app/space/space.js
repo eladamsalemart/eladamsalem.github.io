@@ -11,9 +11,10 @@
 
 const EYE = 1.6, WALK = 1.3, MARGIN = 0.3;
 
-export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
+export async function openSpace({ spec, works, src, onClose, onOpenWork, choose, editor, exitLabel }) {
   const THREE = await import('three');
   const { Reflector } = await import('three/addons/objects/Reflector.js');
+  const { addPlinths } = await import('./plinths.js');
   const R = spec.room;
 
   // --- overlay -------------------------------------------------------------
@@ -33,6 +34,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     <div class="sv-hint">Drag to look around<br>Joystick to walk · Tap the floor to go there</div>
     <div class="sv-card" hidden><div class="sv-info"></div>
       <div class="sv-nav"><button type="button" class="sv-prev" aria-label="Previous">←</button><span class="sv-count"></span><button type="button" class="sv-play" aria-pressed="false" aria-label="Play: go from work to work">▶</button><button type="button" class="sv-next" aria-label="Next">→</button></div></div>
+    ${choose ? `<div class="sv-choose"><button type="button" class="btn f">${choose.label}</button></div>` : ''}
     <div class="sv-loading">Building the room…</div>`;
   document.body.append(root);
   const $ = s => root.querySelector(s);
@@ -222,10 +224,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   }
 
   // --- where you may stand: inside the room, and into an opening to look through ---------
-  const keepOut = (spec.works || []).map(h => {
+  let keepOut = [];
+  const buildKeepOut = () => { keepOut = (spec.works || []).map(h => {
     const n = V(h.axes[2]).setY(0).normalize(), x = new THREE.Vector3(-n.z, 0, n.x);
     return { c: V(h.centre).setY(EYE), n, x, hw: h.measured[0] / 200, stop: 0.6 };
-  });
+  }); };
+  buildKeepOut();
+  const plinthList = [];                              // (set below, once drawn: a visitor does not walk through one)
   const ops = surfaces.filter(s => s.kind === 'wall').flatMap(s => (s.openings || []).map(o => ({ s, o })));
   function clampStand(p, from) {
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -241,6 +246,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
       }
     }
     if (!inRoom(p)) { p.x = clamp(p.x, R.x0 + MARGIN, R.x1 - MARGIN); p.z = clamp(p.z, R.z0 + MARGIN, R.z1 - MARGIN); }
+    for (const q of plinthList) {
+      const dx = p.x - q.group.position.x, dz = p.z - q.group.position.z, r = Math.hypot(q.spec.size[0], q.spec.size[1]) / 200 + 0.35, m = Math.hypot(dx, dz);
+      if (m < r) { if (m < 1e-4) p.x += r; else { p.x += dx / m * (r - m); p.z += dz / m * (r - m); } }
+    }
     // and not into a work: stop where its image is still sharp (about 60 cm), as a visitor would
     for (const k of keepOut) {
       const rel = p.clone().sub(k.c), a = rel.dot(k.x), d = rel.dot(k.n);
@@ -430,9 +439,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     const facing = new THREE.Vector3(Z.x, 0, Z.z).normalize();
     const dist = Math.min(Math.max(1.5 * Math.max(wM, hM), 1.4), 5);
     const stand = clampStand(centre.clone().addScaledVector(facing, dist).setY(EYE), centre.clone().addScaledVector(facing, 0.5));
-    pieces.push({ w, h, mesh: box, centre, stand, facing, order, size: { w: h.measured[0], h: h.measured[1] } });
+    pieces.push({ w, h, mesh: box, g, spot, centre, stand, facing, order, size: { w: h.measured[0], h: h.measured[1] } });
   }));
   // in the order the show was hung (a designed show: as its artist or curator set it), else along the room
+  const plinths = addPlinths(THREE, scene, spec.plinths, loadTex);
+  plinthList.push(...plinths);
   pieces.sort(spec.ordered ? (a, b) => a.order - b.order : (a, b) => (a.centre.x - b.centre.x) || (a.centre.z - b.centre.z));
 
   // --- the photos, projected back onto the room -------------------------------------------------------
@@ -803,12 +814,14 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   const touches = new Map(); let pinch = null;
   const spread = () => { const [a, b] = [...touches.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
   canvas.addEventListener('pointerdown', e => {
+    if (editor && editor.pointer('down', e)) { canvas.setPointerCapture(e.pointerId); return; }
     stopPlay();
     touches.set(e.pointerId, { x: e.clientX, y: e.clientY }); canvas.setPointerCapture(e.pointerId);
     if (touches.size === 2) { pinch = { d: spread(), fov: tFov }; drag = null; moved = 99; return; }
     drag = { x: e.clientX, y: e.clientY }; moved = 0;
   });
   canvas.addEventListener('pointermove', e => {
+    if (editor && editor.pointer('move', e)) return;
     if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pinch && touches.size === 2) { tFov = Math.max(22, Math.min(75, pinch.fov * pinch.d / Math.max(20, spread()))); dropHint(); return; }
     if (!drag) return;
@@ -819,8 +832,9 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     }
   });
   const lift = e => { touches.delete(e.pointerId); if (touches.size < 2) pinch = null; };
-  canvas.addEventListener('pointercancel', e => { lift(e); drag = null; });
+  canvas.addEventListener('pointercancel', e => { if (editor && editor.pointer('up', e)) return; lift(e); drag = null; });
   canvas.addEventListener('pointerup', e => {
+    if (editor && editor.pointer('up', e)) return;
     lift(e);
     if (!drag) return; drag = null; if (moved > 6) return;
     const r = canvas.getBoundingClientRect();
@@ -936,6 +950,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
     if (renderer.xr.isPresenting) { rig.position.set(pos.x, 0, pos.z); rig.rotation.y = yaw; }
     else { camera.position.copy(pos); camera.up.copy(up); camera.lookAt(look); }
     updateMap();
+    for (const q of plinths) if (q.face) { const f = q.face; f.rotation.y = Math.atan2(camera.position.x - q.group.position.x, camera.position.z - q.group.position.z); }
     if (person) person.traverse(o => { if (o.userData.billboard) { o.lookAt(camera.position.x, o.getWorldPosition(new THREE.Vector3()).y, camera.position.z); } });
     // nothing moved and nothing new to show: the last frame still stands (a phone keeps its battery)
     const still = !renderer.xr.isPresenting && pos.distanceToSquared(lastPos) < 1e-10 && look.distanceToSquared(lastLook) < 1e-10 && Math.abs(camera.fov - lastFov) < 1e-4;
@@ -986,8 +1001,33 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   }
   function close() { stop(); onClose(); }
   $('.sv-x').onclick = close;
+  if (choose) $('.sv-choose button').onclick = () => { close(); choose.onChoose(); };
+  if (!(spec.works || []).length) { $('[data-mode="works"]').hidden = true; }
   $('.sv-loading').hidden = true;
   setMode('walk'); show();
+  if (exitLabel) $('.sv-x').textContent = exitLabel;
+  if (editor) {
+    $('.sv-modes').hidden = true; $('.sv-hint').innerHTML = 'Tap a work or a plinth, then drag it<br>Drag the wall behind to look around';
+    // what the hang editor may do to the room: move a work to a place on a wall, a plinth on the floor
+    const dM = 0.035 + 0.004;
+    editor.attach({
+      THREE, scene, camera, canvas, root, pieces, plinths, floor: floorMesh, EYE, surfaces, R, ray,
+      dirty() { dirty = true; },
+      pose() { return { at: pos.toArray(), to: look.toArray() }; },
+      setPose(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },
+      clamp: p => clampStand(p),
+      movePiece(p, wall, a, y) {
+        const U = V(wall.u), N = V(wall.normal), O = V(wall.origin), h = p.h, dp = h.depth || 0.035;
+        const c = O.clone().addScaledVector(U, a).addScaledVector(N, dp + 0.004).setY(y);
+        p.g.matrix.makeBasis(U, new THREE.Vector3(0, 1, 0), N).setPosition(c.clone().addScaledVector(N, -dp / 2)); p.g.updateMatrixWorld(true);
+        p.centre.copy(c); p.facing.set(N.x, 0, N.z).normalize();
+        p.spot.position.copy(c).addScaledVector(N, 1.6).setY(Math.min(R.height - 0.15, y + 2)); p.spot.target.position.copy(c);
+        h.centre = c.toArray(); h.axes = [U.toArray(), [0, 1, 0], N.toArray()];
+        buildKeepOut(); dirty = true;
+      },
+      movePlinth(q, x, z) { q.group.position.set(x, 0, z); dirty = true; },
+    });
+  }
   // for the inspection stage: render the room from any point, exactly as a visitor's screen shows it, and
   // (ids) the same view with every surface in a flat colour saying what it is, to tell walls from works
   const ID = { work: '#ff0000', workbody: '#0000ff', shadow: '#ff8000', wall: '#00ff00', ceiling: '#008000', floor: '#ffff00', reveal: '#00ffff', beyond: '#808080' };

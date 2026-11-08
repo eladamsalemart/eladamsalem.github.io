@@ -32,6 +32,15 @@ const shots = process.argv[3]; // a folder for a screenshot when something fails
   catch { bad.push('the sky has fewer than 8 stars after 30 s'); }
   try { await p.waitForFunction(() => { const n = document.getElementById('hsNear'); return n && !n.hidden; }, null, { timeout: 20000 }); }
   catch { bad.push('"On now, near you" never appeared (the art map\'s data, or Home stopped before it)'); }
+  // the sky is easy to use: zoom and move by buttons, every star named when it fits, a tap opens a card with Open
+  await p.waitForTimeout(3000);
+  const ui = await p.evaluate(() => ({ ctl: document.querySelectorAll('.hs .sky-ctl button').length, named: document.querySelectorAll('.hs .star.named').length }));
+  if (ui.ctl < 4) bad.push(`the sky has ${ui.ctl} controls (zoom in, zoom out, back to the start, Wander)`);
+  if (ui.named < 3) bad.push(`only ${ui.named} stars show their name`);
+  await p.locator('.hs .star.r0 .sp').first().tap({ timeout: 8000 }).catch(() => {});
+  try { await p.waitForFunction(() => { const c = document.querySelector('.hs .pick'); return c && !c.hidden && c.querySelector('.go') && c.querySelector('.nx'); }, null, { timeout: 5000 }); }
+  catch { bad.push('tapping a star did not open its card (Open, Related)'); }
+  await p.locator('.hs .sky-ctl [data-z=fit]').tap({ timeout: 5000 }).catch(() => {});
   // the room's film, as the browser receives it: playing, and as sharp as a phone shows it
   await p.evaluate(() => document.querySelector('.hs .tour') && document.querySelector('.hs .tour').scrollIntoView({ block: 'center', behavior: 'instant' }));
   const plays = () => p.waitForFunction(() => { const v = document.querySelector('.hs .tour video'); return v && !v.paused && v.readyState >= 3 && v.videoWidth; }, null, { timeout: 30000 }).then(() => true, () => false);

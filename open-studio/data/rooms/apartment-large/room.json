@@ -1,0 +1,33 @@
+{
+ "slug": "apartment-large",
+ "type": "apartment",
+ "label": "Large living room, 9 \u00d7 6 m",
+ "w": 9,
+ "d": 6,
+ "h": 3.2,
+ "door": {
+  "from": 4.55,
+  "to": 5.45,
+  "height": 2.2
+ },
+ "blocks": {
+  "wall-z0": [
+   [
+    4.78,
+    6.38
+   ]
+  ],
+  "wall-x1": [
+   [
+    4.55,
+    5.45
+   ]
+  ]
+ },
+ "light": "spots",
+ "floorReflect": [
+  0.03,
+  0.14
+ ],
+ "ppm": 110
+}

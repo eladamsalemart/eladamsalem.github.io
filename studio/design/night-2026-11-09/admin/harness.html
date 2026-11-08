@@ -1,0 +1,14 @@
+<!doctype html><html lang="he"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>admin harness</title>
+<!-- Runs studio/app/admin.js against an in-memory fake of the database (demo images), to look at the control room without signing in. -->
+<script type="importmap">{"imports":{"../../../app/auth.js":"./fake-auth.js"}}</script>
+</head><body><div id="app"></div>
+<script type="module">
+const html = await (await fetch('../../../app/index.html')).text();
+const st = document.createElement('style'); st.textContent = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m => m[1]).join(' '); document.head.appendChild(st);
+const lk = document.createElement('link'); lk.rel = 'stylesheet'; lk.href = (html.match(/https:\/\/fonts\.googleapis\.com\/css2[^"]*/) || [''])[0].replace(/&amp;/g, '&'); document.head.appendChild(lk);
+const { admin } = await import('../../../app/admin.js');
+const app = document.getElementById('app');
+const go = (h, same) => { if (same || h === location.hash) render(); else location.hash = h; };
+const render = () => admin(location.hash || '#/admin', app, go, { works: [], artists: [], media: {} });
+addEventListener('hashchange', render); render();
+</script></body></html>

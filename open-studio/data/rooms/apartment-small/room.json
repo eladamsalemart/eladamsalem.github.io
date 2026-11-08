@@ -1,0 +1,33 @@
+{
+ "slug": "apartment-small",
+ "type": "apartment",
+ "label": "Studio flat, 5 \u00d7 4.5 m",
+ "w": 5,
+ "d": 4.5,
+ "h": 2.8,
+ "door": {
+  "from": 3.05,
+  "to": 3.95,
+  "height": 2.2
+ },
+ "blocks": {
+  "wall-z0": [
+   [
+    2.3,
+    3.9
+   ]
+  ],
+  "wall-x1": [
+   [
+    3.05,
+    3.95
+   ]
+  ]
+ },
+ "light": "spots",
+ "floorReflect": [
+  0.03,
+  0.14
+ ],
+ "ppm": 110
+}

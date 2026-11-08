@@ -15,7 +15,7 @@ export async function session() {
 
 const rowToWork = r => ({ id: r.id, title: r.title, year: r.year || '', medium: r.medium || '', width: r.width ?? '', height: r.height ?? '', depth: r.depth ?? '', kind: r.kind || 'work',
   image: r.image, thumb: r.thumb || r.image, source: r.source || '', framed: 'no', check: { W: 2000, H: 2000, long: 2000, mean: 120, clipped: 0, sharp: 0.5, backdrop: false } });
-const rowToShow = r => ({ id: r.id, title: r.title, room: r.room, paint: r.paint || '', centre: r.centre, text: r.text || '', status: r.status, slug: r.slug,
+const rowToShow = r => ({ id: r.id, title: r.title, room: r.room, paint: r.paint || '', centre: r.centre, text: r.text || '', status: r.status, slug: r.slug, onview: !!r.on_view,
   works: (r.works || []).map(w => w.id) });
 
 // a past exhibition as the studio edits it (kept in artists.exhibitions)
@@ -123,7 +123,7 @@ async function push(S) {
     const works = v.works.map(id => S.works.find(w => w.id === id)).filter(Boolean)
       .map(w => ({ id: w.id, title: w.title, image: w.image, thumb: w.thumb, width: +w.width || null, height: +w.height || null, year: w.year, medium: w.medium }));
     const { error } = await c.from('virtual_shows').upsert({ id: v.id, owner_id: user.id, kind: 'artist', title: v.title || 'Untitled', room: v.room, paint: v.paint || null,
-      centre: +v.centre || 150, text: v.text || null, works, status: v.status === 'published' ? 'published' : 'draft', slug: v.slug || null });
+      centre: +v.centre || 150, text: v.text || null, works, status: v.status === 'published' ? 'published' : 'draft', slug: v.slug || null, on_view: !!v.onview });
     if (error) throw error;
   }
   const goneV = (was.virtual || []).filter(v => !(S.virtual || []).some(x => x.id === v.id)).map(v => v.id);

@@ -1,0 +1,33 @@
+{
+ "slug": "concrete-large",
+ "type": "concrete",
+ "label": "Tall volume with a slot window, 8 \u00d7 8 \u00d7 6 m",
+ "w": 8,
+ "d": 8,
+ "h": 6,
+ "door": {
+  "from": 5.7,
+  "to": 7.1,
+  "height": 2.6
+ },
+ "blocks": {
+  "wall-z0": [
+   [
+    0.7,
+    7.3
+   ]
+  ],
+  "wall-x1": [
+   [
+    5.7,
+    7.1
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.04,
+  0.18
+ ],
+ "ppm": 110
+}

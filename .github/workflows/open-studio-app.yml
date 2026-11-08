@@ -40,12 +40,12 @@ jobs:
           git worktree add /tmp/studio origin/studio
           src=/tmp/studio/studio/app
           rm -rf open-studio && mkdir -p open-studio/space open-studio/data/spaces
-          cp $src/index.html $src/privacy.html $src/data-deletion.html $src/app.js $src/sky.js $src/artist.js $src/studio-cloud.js $src/admin.js $src/artmap.js $src/auth.js $src/sw.js $src/manifest.webmanifest open-studio/
+          cp $src/index.html $src/privacy.html $src/data-deletion.html $src/app.js $src/sky.js $src/artist.js $src/studio-cloud.js $src/studio-page.js $src/admin.js $src/artmap.js $src/auth.js $src/sw.js $src/manifest.webmanifest open-studio/
           cp -r $src/vendor open-studio/
           cp -r $src/icons open-studio/
           cp -r $src/data/demo open-studio/data/
           cp $src/data/spaces/*.status.json open-studio/data/spaces/ 2>/dev/null || true
-          cp $src/space/space.js $src/space/synth.js open-studio/space/
+          cp $src/space/space.js $src/space/synth.js $src/space/plinths.js $src/space/hang-editor.js open-studio/space/
           cp $src/data/studio.json $src/data/virtual.json open-studio/data/
           cp -r $src/data/art open-studio/data/ 2>/dev/null || true
           cp $src/data/spaces/index.json open-studio/data/spaces/
@@ -70,7 +70,7 @@ jobs:
           import re, sys
           from pathlib import Path
           out = Path('open-studio'); missing = []
-          for f in ('app.js', 'artmap.js', 'auth.js', 'artist.js', 'studio-cloud.js', 'admin.js', 'index.html', 'sw.js'):
+          for f in ('app.js', 'artmap.js', 'auth.js', 'artist.js', 'studio-cloud.js', 'studio-page.js', 'admin.js', 'index.html', 'sw.js'):
               if not (out / f).exists():
                   continue                                  # (one that's missing is named by what loads it)
               src = (out / f).read_text(encoding='utf-8')
