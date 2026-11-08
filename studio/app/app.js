@@ -197,7 +197,7 @@ function span(dates, year) {
 }
 const DAY = 86400000;
 const today = () => { const t = new Date(); t.setHours(0, 0, 0, 0); return t; };
-const inDays = (n, time) => { const t = new Date(+today() + n * DAY); if (time) { const [h, mi] = time.split(':'); t.setHours(+h, +mi); } return t; };
+const inDays = (n, time) => { const t = today(); t.setDate(t.getDate() + n); if (time) { const [h, mi] = time.split(':'); t.setHours(+h, +mi); } return t; };
 
 // the demo world joins the real content: its artists, works, shows (dates as days from today), the studio
 // clips on artists' pages, and the galleries listed on the map that aren't on Open Studio
@@ -220,7 +220,7 @@ function addWorld(m, w, uniq, seen) {
     const fmt = t => t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     m.exhibitions.push({
       slug: uniq(v.slug), title: v.title, year: String(start.getFullYear()), venue: v.venue, address: v.address || '',
-      dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: [v.text], images: v.images || [], city: v.city, country: v.city ? 'Israel' : '',
+      dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: [v.text], images: v.images || [], city: v.city, country: v.country || (v.city ? 'Israel' : ''),
       confirmed: true, artist: A.get(v.artists[0]), artists: v.artists.map(s => A.get(s)), works: v.works.map(s => W.get(s)).filter(Boolean), maybe: [],
       space: null, kind: v.kind, start, end, hours: v.hours, at: v.at, curator: v.curator || '', demo: true,
       events: (v.events || []).map(e => ({ at: inDays(e.day, e.time), what: e.what })),
@@ -632,7 +632,7 @@ function artistPage(slug) {
   <div class="wrap gut">
     <div class="btns" style="padding-block:18px 0"><button type="button" class="btn ${followed ? 'g' : 'f'}" data-follow="${esc(a.slug)}" aria-pressed="${followed}">${followed ? 'Following' : 'Follow'}</button>${own ? '<a class="btn g" href="#/about">About & CV</a>' : a.bio || a.portrait || (a.cv && a.cv.length) ? `<a class="btn g" href="#/artist/${esc(a.slug)}/about">About & CV</a>` : ''}</div>
     <p class="statement">${esc(curly(a.statement))}</p>
-    ${a.demo ? '<p class="note" style="margin-top:14px">A real artist from art history, shown to see Open Studio full: the works are in the public domain (images from Wikimedia Commons). The galleries and shows they appear in here are made up.</p>' : ''}
+    ${a.demo ? '<p class="note" style="margin-top:14px">A real artist from art history, shown to see Open Studio full: the works are in the public domain (images from Wikimedia Commons). Most of the galleries and shows they appear in here are made up; the exhibitions of history (the Impressionists in 1874, the Armory Show) are real.</p>' : ''}
     ${posts.length ? `<section class="sec" style="margin-top:28px"><div class="sec-h"><h2>Live from the studio</h2><span class="more">${posts.length} new</span></div>
       <div class="studio-log">${posts.map((p, i) => `<button type="button" class="log" data-log="${esc(a.slug)}:${i}">
         ${p.kind === 'video' ? `<video src="${esc(p.video)}" poster="${esc(p.poster)}" muted playsinline loop preload="none" aria-hidden="true"></video>` : im(p.frames[0], '', '', '40vw')}

@@ -1,5 +1,5 @@
 {
- "_note": "Demo content: real artists from art history, their works in the public domain (facts from Wikidata, images from Wikimedia Commons); the galleries and shows are made up. Dates are days from today. Made by studio/app/make_world.py.",
+ "_note": "Demo content: real artists from art history, their works in the public domain (facts from Wikidata, images from Wikimedia Commons). Most galleries and shows are made up; the ones marked real are historical exhibitions, with their real dates and places. Dates are days from today. Made by studio/app/make_world.py.",
  "artists": [
   {
    "slug": "vincent-van-gogh",
@@ -110,6 +110,292 @@
    "portrait": "data/demo/people/paula-modersohn-becker.jpg",
    "wikidata": "Q234370",
    "portrait_source": "https://commons.wikimedia.org/wiki/File:Paula Modersohn-Becker.jpg"
+  },
+  {
+   "slug": "artemisia-gentileschi",
+   "name": "Artemisia Gentileschi",
+   "discipline": "Painting",
+   "city": "Naples",
+   "country": "Italy",
+   "statement": "The first woman admitted to the academy in Florence; her heroines, Judith and Susanna, hold the canvas with a force few men matched.",
+   "portrait": "data/demo/people/artemisia-gentileschi.jpg",
+   "wikidata": "Q212657",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Artemisia Gentileschi Selfportrait Martyr.jpg"
+  },
+  {
+   "slug": "elisabeth-vigee-le-brun",
+   "name": "Élisabeth Vigée Le Brun",
+   "discipline": "Painting",
+   "city": "Paris",
+   "country": "France",
+   "statement": "Painter to Marie Antoinette; she lived by portraits and carried her studio through the Revolution and across Europe.",
+   "portrait": "data/demo/people/elisabeth-vigee-le-brun.jpg",
+   "wikidata": "Q213163",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Self-portrait in a Straw Hat by Elisabeth-Louise Vigée-Lebrun.jpg"
+  },
+  {
+   "slug": "judith-leyster",
+   "name": "Judith Leyster",
+   "discipline": "Painting",
+   "city": "Haarlem",
+   "country": "Netherlands",
+   "statement": "A master in the Haarlem guild with her own workshop: lively musicians, drinkers and children, lit by a candle.",
+   "portrait": "data/demo/people/judith-leyster.jpg",
+   "wikidata": "Q232423",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Self-portrait by Judith Leyster.jpg"
+  },
+  {
+   "slug": "angelica-kauffman",
+   "name": "Angelica Kauffman",
+   "discipline": "Painting",
+   "city": "Rome",
+   "country": "Switzerland",
+   "statement": "A founding member of the Royal Academy in London, she painted myth and history, a field then closed to most women.",
+   "portrait": "data/demo/people/angelica-kauffman.jpg",
+   "wikidata": "Q123098",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Angelika Kauffmann - Self Portrait - 1784.jpg"
+  },
+  {
+   "slug": "rosa-bonheur",
+   "name": "Rosa Bonheur",
+   "discipline": "Painting",
+   "city": "Thomery",
+   "country": "France",
+   "statement": "The most famous animal painter of her century, who studied horses in the markets and slaughterhouses of Paris.",
+   "portrait": "data/demo/people/rosa-bonheur.jpg",
+   "wikidata": "Q241732",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:André Adolphe-Eugène Disdéri (French - (Rosa Bonheur) - Google Art Project.jpg"
+  },
+  {
+   "slug": "anna-ancher",
+   "name": "Anna Ancher",
+   "discipline": "Painting",
+   "city": "Skagen",
+   "country": "Denmark",
+   "statement": "Painted the fishing village of Skagen from inside its rooms: the light in a blue room, a seamstress, a maid at work.",
+   "portrait": "data/demo/people/anna-ancher.jpg",
+   "wikidata": "Q253446",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Anna Ancher Royal Library of Denmark1.jpg"
+  },
+  {
+   "slug": "harriet-backer",
+   "name": "Harriet Backer",
+   "discipline": "Painting",
+   "city": "Oslo",
+   "country": "Norway",
+   "statement": "Norway's great painter of interiors: lamp-lit rooms and church pews, in a colour that is all her own.",
+   "portrait": "data/demo/people/harriet-backer.jpg",
+   "wikidata": "Q263025",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Portrett av Harriet Backer (1845-1932) (9390378423).jpg"
+  },
+  {
+   "slug": "gwen-john",
+   "name": "Gwen John",
+   "discipline": "Painting",
+   "city": "Meudon",
+   "country": "United Kingdom",
+   "statement": "A Welsh painter who lived in Paris and made small, quiet pictures of women in rooms, with a very still gaze.",
+   "portrait": "data/demo/people/gwen-john.jpg",
+   "wikidata": "Q274339",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Gwen John - Self-portrait (1900).jpg"
+  },
+  {
+   "slug": "sofonisba-anguissola",
+   "name": "Sofonisba Anguissola",
+   "discipline": "Painting",
+   "city": "Cremona",
+   "country": "Italy",
+   "statement": "A noblewoman from Cremona who became a court painter in Madrid; her family portraits and self-portraits seem to speak.",
+   "portrait": "data/demo/people/sofonisba-anguissola.jpg",
+   "wikidata": "Q236038",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Sofonisba Anguissola, Selvportræt ved staffeliet, 1556, Museum Castle in Łańcut.jpg"
+  },
+  {
+   "slug": "eva-gonzales",
+   "name": "Eva Gonzalès",
+   "discipline": "Painting",
+   "city": "Paris",
+   "country": "France",
+   "statement": "Manet's only formal pupil, who painted boxes at the theatre, girls and mirrors; she died at thirty-four.",
+   "portrait": "data/demo/people/eva-gonzales.jpg",
+   "wikidata": "Q464300",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Eva Gonzalès (1849-1883).jpg"
+  },
+  {
+   "slug": "marianne-von-werefkin",
+   "name": "Marianne von Werefkin",
+   "discipline": "Painting",
+   "city": "Ascona",
+   "country": "Switzerland",
+   "statement": "A Russian painter in Munich whose flat colours and dark outlines helped to shape German Expressionism.",
+   "portrait": "data/demo/people/marianne-von-werefkin.jpg",
+   "wikidata": "Q464016",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Werefkin, Selbstbildnis in Matrosenbluse.jpg"
+  },
+  {
+   "slug": "kathe-kollwitz",
+   "name": "Käthe Kollwitz",
+   "discipline": "Prints & drawing",
+   "city": "Berlin",
+   "country": "Germany",
+   "statement": "Her etchings and lithographs of hunger, grief and mothers are some of the strongest social art of her century.",
+   "portrait": "data/demo/people/kathe-kollwitz.jpg",
+   "wikidata": "Q142472",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Denkmal für Käthe Kollwitz, Straße der Erinnerung, Berlin, 2013.jpg"
+  },
+  {
+   "slug": "clara-peeters",
+   "name": "Clara Peeters",
+   "discipline": "Painting",
+   "city": "Antwerp",
+   "country": "Belgium",
+   "statement": "One of the first painters of still life: cheeses, fish and goblets in cool light, with her own face in the reflection.",
+   "portrait": "data/demo/people/clara-peeters.jpg",
+   "wikidata": "Q265398",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Clara Peeters - Presumed self-portrait with a vanitas still life and flowers in a glass vase.jpg"
+  },
+  {
+   "slug": "albrecht-durer",
+   "name": "Albrecht Dürer",
+   "discipline": "Prints & painting",
+   "city": "Nuremberg",
+   "country": "Germany",
+   "statement": "Made the print a great art: engravings and woodcuts of a precision, and a rhinoceros, that Europe had not seen.",
+   "portrait": "data/demo/people/albrecht-durer.jpg",
+   "wikidata": "Q5580",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Dürer Alte Pinakothek.jpg"
+  },
+  {
+   "slug": "rembrandt",
+   "name": "Rembrandt van Rijn",
+   "discipline": "Painting & prints",
+   "city": "Amsterdam",
+   "country": "Netherlands",
+   "statement": "The master of light and shadow and of the human face, in portraits, biblical scenes and, to the end, himself.",
+   "portrait": "data/demo/people/rembrandt.jpg",
+   "wikidata": "Q5598",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Rembrandt van Rijn - Self-Portrait - Google Art Project.jpg"
+  },
+  {
+   "slug": "johannes-vermeer",
+   "name": "Johannes Vermeer",
+   "discipline": "Painting",
+   "city": "Delft",
+   "country": "Netherlands",
+   "statement": "About thirty-six paintings survive: quiet rooms, a window, one or two people, and a light you can almost touch.",
+   "portrait": "data/demo/people/johannes-vermeer.jpg",
+   "wikidata": "Q41264",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Cropped version of Jan Vermeer van Delft 002.jpg"
+  },
+  {
+   "slug": "francisco-goya",
+   "name": "Francisco Goya",
+   "discipline": "Painting & prints",
+   "city": "Madrid",
+   "country": "Spain",
+   "statement": "A court painter who turned to war, madness and dreams, in paintings and prints made at the edge of what could be shown.",
+   "portrait": "data/demo/people/francisco-goya.jpg",
+   "wikidata": "Q5432",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Vicente López Portaña - el pintor Francisco de Goya.jpg"
+  },
+  {
+   "slug": "utagawa-hiroshige",
+   "name": "Utagawa Hiroshige",
+   "discipline": "Prints",
+   "city": "Edo",
+   "country": "Japan",
+   "statement": "Made the roads, rain and snow of Japan into woodblock prints; Van Gogh copied him.",
+   "portrait": "data/demo/people/utagawa-hiroshige.jpg",
+   "wikidata": "Q200798",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Memorial Portrait of Hiroshige, by Kunisada.jpg"
+  },
+  {
+   "slug": "edouard-manet",
+   "name": "Édouard Manet",
+   "discipline": "Painting",
+   "city": "Paris",
+   "country": "France",
+   "statement": "The painter who shocked Paris with a picnic and a nude, and opened the way for the Impressionists.",
+   "portrait": "data/demo/people/edouard-manet.jpg",
+   "wikidata": "Q40599",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Édouard Manet, en buste, de face - Nadar.jpg"
+  },
+  {
+   "slug": "edgar-degas",
+   "name": "Edgar Degas",
+   "discipline": "Painting & pastel",
+   "city": "Paris",
+   "country": "France",
+   "statement": "Dancers, bathers, a café: modern Paris seen from an odd angle, with a draughtsman's line and a gift for pastel.",
+   "portrait": "data/demo/people/edgar-degas.jpg",
+   "wikidata": "Q46373",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Edgar Degas self portrait 1855FXD.jpg"
+  },
+  {
+   "slug": "paul-cezanne",
+   "name": "Paul Cézanne",
+   "discipline": "Painting",
+   "city": "Aix-en-Provence",
+   "country": "France",
+   "statement": "Built pictures from patches of colour: apples, card players and a mountain, the root of modern painting.",
+   "portrait": "data/demo/people/paul-cezanne.jpg",
+   "wikidata": "Q35548",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Paul-Cezanne.jpg"
+  },
+  {
+   "slug": "camille-pissarro",
+   "name": "Camille Pissarro",
+   "discipline": "Painting",
+   "city": "Éragny",
+   "country": "France",
+   "statement": "The elder of the Impressionists, who showed in all eight of their exhibitions: fields, rivers and rainy boulevards.",
+   "portrait": "data/demo/people/camille-pissarro.jpg",
+   "wikidata": "Q134741",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Pissarro-portrait-c1900.jpg"
+  },
+  {
+   "slug": "edvard-munch",
+   "name": "Edvard Munch",
+   "discipline": "Painting & prints",
+   "city": "Oslo",
+   "country": "Norway",
+   "statement": "Painted fear, longing and jealousy as the colours of a landscape; The Scream is only the best known.",
+   "portrait": "data/demo/people/edvard-munch.jpg",
+   "wikidata": "Q41406",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Edvard Munch 1933-2.jpg"
+  },
+  {
+   "slug": "wassily-kandinsky",
+   "name": "Wassily Kandinsky",
+   "discipline": "Painting",
+   "city": "Munich",
+   "country": "Russia",
+   "statement": "Left a career in law at thirty and made some of the first pictures with no subject but colour and line.",
+   "portrait": "data/demo/people/wassily-kandinsky.jpg",
+   "wikidata": "Q61064",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Wassily kandinsky.jpg"
+  },
+  {
+   "slug": "ilya-repin",
+   "name": "Ilya Repin",
+   "discipline": "Painting",
+   "city": "Saint Petersburg",
+   "country": "Russia",
+   "statement": "Painted Russia at work, in protest and in prayer, on large canvases crowded with faces.",
+   "portrait": "data/demo/people/ilya-repin.jpg",
+   "wikidata": "Q172911",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Ilya Repin (1909).jpg"
+  },
+  {
+   "slug": "raja-ravi-varma",
+   "name": "Raja Ravi Varma",
+   "discipline": "Painting",
+   "city": "Kilimanoor",
+   "country": "India",
+   "statement": "Brought oil painting and European realism to Indian subjects: queens, gods and women, printed for the whole country.",
+   "portrait": "data/demo/people/raja-ravi-varma.jpg",
+   "wikidata": "Q333453",
+   "portrait_source": "https://commons.wikimedia.org/wiki/File:Ravivarma1b.jpg"
   }
  ],
  "works": [
@@ -210,6 +496,38 @@
    "image": "data/demo/works/bedroom-in-arles.jpg"
   },
   {
+   "slug": "cafe-terrace-at-night",
+   "artist": "vincent-van-gogh",
+   "title": "Café Terrace at Night",
+   "year": "1888",
+   "medium": "Oil on canvas",
+   "size": [
+    65.3,
+    80.7
+   ],
+   "collection": "Kröller-Müller Museum",
+   "wikidata": "Q1025704",
+   "source": "https://commons.wikimedia.org/wiki/File:Van Gogh - Terrace of a Café at Night (Place du Forum) 1888.jpg",
+   "file": "Van Gogh - Terrace of a Café at Night (Place du Forum) 1888.jpg",
+   "image": "data/demo/works/cafe-terrace-at-night.jpg"
+  },
+  {
+   "slug": "the-night-cafe",
+   "artist": "vincent-van-gogh",
+   "title": "The Night Café",
+   "year": "1888",
+   "medium": "Oil on canvas",
+   "size": [
+    92.1,
+    72.4
+   ],
+   "collection": "Yale University Art Gallery",
+   "wikidata": "Q674846",
+   "source": "https://commons.wikimedia.org/wiki/File:Van Gogh - The Night Café (1888).jpg",
+   "file": "Van Gogh - The Night Café (1888).jpg",
+   "image": "data/demo/works/the-night-cafe.jpg"
+  },
+  {
    "slug": "dance",
    "artist": "henri-matisse",
    "title": "Dance",
@@ -306,11 +624,43 @@
    "image": "data/demo/works/the-open-window.jpg"
   },
   {
+   "slug": "music",
+   "artist": "henri-matisse",
+   "title": "Music",
+   "year": "1910",
+   "medium": "Oil on canvas",
+   "size": [
+    389.0,
+    260.0
+   ],
+   "collection": "Hermitage Museum",
+   "wikidata": "Q1999166",
+   "source": "https://commons.wikimedia.org/wiki/File:La Musique, par Henri Matisse (1910).jpg",
+   "file": "La Musique, par Henri Matisse (1910).jpg",
+   "image": "data/demo/works/music.jpg"
+  },
+  {
+   "slug": "blue-nude",
+   "artist": "henri-matisse",
+   "title": "Blue Nude",
+   "year": "1907",
+   "medium": "Oil on canvas",
+   "size": [
+    140.3,
+    92.1
+   ],
+   "collection": "Baltimore Museum of Art",
+   "wikidata": "Q882584",
+   "source": "https://commons.wikimedia.org/wiki/File:Nu bleu (souvenir de Biskra), par Henri Matisse.jpg",
+   "file": "Nu bleu (souvenir de Biskra), par Henri Matisse.jpg",
+   "image": "data/demo/works/blue-nude.jpg"
+  },
+  {
    "slug": "medieval-castle",
    "artist": "victor-hugo",
    "title": "Medieval Castle",
    "year": "",
-   "medium": "",
+   "medium": "Drawing on paper",
    "size": [
     15.6,
     19.9
@@ -326,7 +676,7 @@
    "artist": "victor-hugo",
    "title": "A Magistrate",
    "year": "1835",
-   "medium": "",
+   "medium": "Drawing on paper",
    "size": [
     9.5,
     11.6
@@ -342,7 +692,7 @@
    "artist": "victor-hugo",
    "title": "Steep Street in Moonlight",
    "year": "",
-   "medium": "",
+   "medium": "Drawing on paper",
    "size": [
     12.3,
     22.7
@@ -358,7 +708,7 @@
    "artist": "victor-hugo",
    "title": "Gust of Wind",
    "year": "1869",
-   "medium": "",
+   "medium": "Drawing on paper",
    "size": [
     19.2,
     12.2
@@ -374,7 +724,7 @@
    "artist": "victor-hugo",
    "title": "Landscape with a Group of Trees",
    "year": "1855",
-   "medium": "",
+   "medium": "Drawing on paper",
    "size": [
     10.4,
     19.3
@@ -390,7 +740,7 @@
    "artist": "victor-hugo",
    "title": "Imaginary Figure",
    "year": "1865",
-   "medium": "",
+   "medium": "Drawing on paper",
    "size": [
     11.0,
     14.2
@@ -400,6 +750,38 @@
    "source": "https://commons.wikimedia.org/wiki/File:Victor Hugo - Imaginär person - NMH 33-1981 - Nationalmuseum.jpg",
    "file": "Victor Hugo - Imaginär person - NMH 33-1981 - Nationalmuseum.jpg",
    "image": "data/demo/works/imaginary-figure.jpg"
+  },
+  {
+   "slug": "reseskiss-studie-av-balustrad",
+   "artist": "victor-hugo",
+   "title": "Travel Sketch: Study of a Balustrade",
+   "year": "1840",
+   "medium": "Drawing on paper",
+   "size": [
+    27.9,
+    22.8
+   ],
+   "collection": "Nationalmuseum",
+   "wikidata": "Q110782796",
+   "source": "https://commons.wikimedia.org/wiki/File:Victor Hugo - Reseskiss, studie av balustrad - NMH 35-1981 - Nationalmuseum.jpg",
+   "file": "Victor Hugo - Reseskiss, studie av balustrad - NMH 35-1981 - Nationalmuseum.jpg",
+   "image": "data/demo/works/reseskiss-studie-av-balustrad.jpg"
+  },
+  {
+   "slug": "spots-and-frottage",
+   "artist": "victor-hugo",
+   "title": "Spots and Frottage",
+   "year": "1856",
+   "medium": "Drawing on paper",
+   "size": [
+    11.3,
+    22.1
+   ],
+   "collection": "Nationalmuseum",
+   "wikidata": "Q110782801",
+   "source": "https://commons.wikimedia.org/wiki/File:Victor Hugo - Spots and Frottage - NMH 32-1981 - Nationalmuseum.jpg",
+   "file": "Victor Hugo - Spots and Frottage - NMH 32-1981 - Nationalmuseum.jpg",
+   "image": "data/demo/works/spots-and-frottage.jpg"
   },
   {
    "slug": "impression-sunrise",
@@ -443,7 +825,7 @@
     82.0,
     100.0
    ],
-   "collection": "",
+   "collection": "National Gallery of Art",
    "wikidata": "Q2395218",
    "source": "https://commons.wikimedia.org/wiki/File:Claude Monet - Woman with a Parasol - Madame Monet and Her Son - Google Art Project.jpg",
    "file": "Claude Monet - Woman with a Parasol - Madame Monet and Her Son - Google Art Project.jpg",
@@ -496,6 +878,38 @@
    "source": "https://commons.wikimedia.org/wiki/File:Claude Monet 022.jpg",
    "file": "Claude Monet 022.jpg",
    "image": "data/demo/works/woman-in-the-garden.jpg"
+  },
+  {
+   "slug": "la-grenouillere",
+   "artist": "claude-monet",
+   "title": "La Grenouillère",
+   "year": "1869",
+   "medium": "Oil on canvas",
+   "size": [
+    99.7,
+    74.6
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q941549",
+   "source": "https://commons.wikimedia.org/wiki/File:Claude Monet La Grenouillére.jpg",
+   "file": "Claude Monet La Grenouillére.jpg",
+   "image": "data/demo/works/la-grenouillere.jpg"
+  },
+  {
+   "slug": "regatta-at-sainte-adresse",
+   "artist": "claude-monet",
+   "title": "Regatta at Sainte-Adresse",
+   "year": "1867",
+   "medium": "Oil on canvas",
+   "size": [
+    101.6,
+    75.2
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q734082",
+   "source": "https://commons.wikimedia.org/wiki/File:Claude Monet, 1867, Regatta at Sainte-Adresse, Metropolitan Museum of Art.jpg",
+   "file": "Claude Monet, 1867, Regatta at Sainte-Adresse, Metropolitan Museum of Art.jpg",
+   "image": "data/demo/works/regatta-at-sainte-adresse.jpg"
   },
   {
    "slug": "the-great-wave-off-kanagawa",
@@ -594,6 +1008,38 @@
    "image": "data/demo/works/morning-after-a-snowfall-at-koishikawa.jpg"
   },
   {
+   "slug": "fuji-from-ushibori-province-of-hitachi",
+   "artist": "katsushika-hokusai",
+   "title": "Fuji from Ushibori, Province of Hitachi",
+   "year": "1831",
+   "medium": "Woodcut on paper",
+   "size": [
+    38.7,
+    26.4
+   ],
+   "collection": "Chester Beatty Library",
+   "wikidata": "Q18173405",
+   "source": "https://commons.wikimedia.org/wiki/File:Ushibori in the Hitachi province.jpg",
+   "file": "Ushibori in the Hitachi province.jpg",
+   "image": "data/demo/works/fuji-from-ushibori-province-of-hitachi.jpg"
+  },
+  {
+   "slug": "the-kazusa-sea-route",
+   "artist": "katsushika-hokusai",
+   "title": "The Kazusa sea route",
+   "year": "1831",
+   "medium": "Woodcut on paper",
+   "size": [
+    36.2,
+    24.8
+   ],
+   "collection": "Vanderbilt Museum of Art",
+   "wikidata": "Q18173418",
+   "source": "https://commons.wikimedia.org/wiki/File:The Kazusa sea route.jpg",
+   "file": "The Kazusa sea route.jpg",
+   "image": "data/demo/works/the-kazusa-sea-route.jpg"
+  },
+  {
    "slug": "the-cradle",
    "artist": "berthe-morisot",
    "title": "The Cradle",
@@ -683,11 +1129,43 @@
     73.0,
     43.5
    ],
-   "collection": "",
+   "collection": "National Gallery of Art",
    "wikidata": "Q3225805",
    "source": "https://commons.wikimedia.org/wiki/File:Berthe Morisot, The Harbor at Lorient, 1869, NGA 52192.jpg",
    "file": "Berthe Morisot, The Harbor at Lorient, 1869, NGA 52192.jpg",
    "image": "data/demo/works/the-port-at-lorient.jpg"
+  },
+  {
+   "slug": "the-mother-and-sister-of-the-artist",
+   "artist": "berthe-morisot",
+   "title": "The Mother and Sister of the Artist",
+   "year": "1869",
+   "medium": "Oil on canvas",
+   "size": [
+    81.8,
+    101.0
+   ],
+   "collection": "National Gallery of Art",
+   "wikidata": "Q20188721",
+   "source": "https://commons.wikimedia.org/wiki/File:Berthe Morisot 006.jpg",
+   "file": "Berthe Morisot 006.jpg",
+   "image": "data/demo/works/the-mother-and-sister-of-the-artist.jpg"
+  },
+  {
+   "slug": "young-girl-in-a-ball-gown",
+   "artist": "berthe-morisot",
+   "title": "Young Girl in a Ball Gown",
+   "year": "1879",
+   "medium": "Oil on canvas",
+   "size": [
+    54.0,
+    71.5
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q17491778",
+   "source": "https://commons.wikimedia.org/wiki/File:Berthe Morisot - Young Girl in a Ball Gown - Google Art Project.jpg",
+   "file": "Berthe Morisot - Young Girl in a Ball Gown - Google Art Project.jpg",
+   "image": "data/demo/works/young-girl-in-a-ball-gown.jpg"
   },
   {
    "slug": "the-child-s-bath",
@@ -731,7 +1209,7 @@
     129.8,
     89.5
    ],
-   "collection": "",
+   "collection": "National Gallery of Art",
    "wikidata": "Q3640080",
    "source": "https://commons.wikimedia.org/wiki/File:Cassat - Blue Armchair NGA.jpg",
    "file": "Cassat - Blue Armchair NGA.jpg",
@@ -763,7 +1241,7 @@
     62.5,
     75.1
    ],
-   "collection": "",
+   "collection": "National Gallery of Art",
    "wikidata": "Q3633620",
    "source": "https://commons.wikimedia.org/wiki/File:Mary Cassatt - Girl Arranging Her Hair - Google Art Project.jpg",
    "file": "Mary Cassatt - Girl Arranging Her Hair - Google Art Project.jpg",
@@ -779,11 +1257,43 @@
     117.3,
     90.0
    ],
-   "collection": "",
+   "collection": "National Gallery of Art",
    "wikidata": "Q15876324",
    "source": "https://commons.wikimedia.org/wiki/File:Mary Cassatt - The Boating Party - Google Art Project.jpg",
    "file": "Mary Cassatt - The Boating Party - Google Art Project.jpg",
    "image": "data/demo/works/the-boating-party.jpg"
+  },
+  {
+   "slug": "woman-with-a-sunflower",
+   "artist": "mary-cassatt",
+   "title": "Woman with a Sunflower",
+   "year": "1905",
+   "medium": "Oil on canvas",
+   "size": [
+    73.7,
+    92.1
+   ],
+   "collection": "National Gallery of Art",
+   "wikidata": "Q20190957",
+   "source": "https://commons.wikimedia.org/wiki/File:Mother and Child - Cassatt 1905.jpg",
+   "file": "Mother and Child - Cassatt 1905.jpg",
+   "image": "data/demo/works/woman-with-a-sunflower.jpg"
+  },
+  {
+   "slug": "in-the-loge",
+   "artist": "mary-cassatt",
+   "title": "In the Loge",
+   "year": "1878",
+   "medium": "Oil on canvas",
+   "size": [
+    66.0,
+    81.3
+   ],
+   "collection": "Museum of Fine Arts Boston",
+   "wikidata": "Q14915747",
+   "source": "https://commons.wikimedia.org/wiki/File:Mary Stevenson Cassatt - In the Loge - Google Art Project.jpg",
+   "file": "Mary Stevenson Cassatt - In the Loge - Google Art Project.jpg",
+   "image": "data/demo/works/in-the-loge.jpg"
   },
   {
    "slug": "the-ten-largest-no-2-childhood",
@@ -882,6 +1392,38 @@
    "image": "data/demo/works/the-ten-largest-no-6.jpg"
   },
   {
+   "slug": "tree-of-knowledge-no-1",
+   "artist": "hilma-af-klint",
+   "title": "Tree of Knowledge, No. 1",
+   "year": "1915",
+   "medium": "Watercolour on paper",
+   "size": [
+    30.0,
+    46.0
+   ],
+   "collection": "Glenstone",
+   "wikidata": "Q123538239",
+   "source": "https://commons.wikimedia.org/wiki/File:Tree of Knowledge No. 1, Hilma af Klint, 1913-1915, Glenstone 2023.jpg",
+   "file": "Tree of Knowledge No. 1, Hilma af Klint, 1913-1915, Glenstone 2023.jpg",
+   "image": "data/demo/works/tree-of-knowledge-no-1.jpg"
+  },
+  {
+   "slug": "tree-of-knowledge-no-2",
+   "artist": "hilma-af-klint",
+   "title": "Tree of Knowledge, No. 2",
+   "year": "1915",
+   "medium": "Watercolour on paper",
+   "size": [
+    30.0,
+    46.0
+   ],
+   "collection": "Glenstone",
+   "wikidata": "Q124038989",
+   "source": "https://commons.wikimedia.org/wiki/File:Tree of Knowledge No. 2, Hilma af Klint, 1913-1915, Glenstone 2023.jpg",
+   "file": "Tree of Knowledge No. 2, Hilma af Klint, 1913-1915, Glenstone 2023.jpg",
+   "image": "data/demo/works/tree-of-knowledge-no-2.jpg"
+  },
+  {
    "slug": "the-abandoned-doll",
    "artist": "suzanne-valadon",
    "title": "The Abandoned Doll",
@@ -978,6 +1520,38 @@
    "image": "data/demo/works/the-bathers.jpg"
   },
   {
+   "slug": "black-venus",
+   "artist": "suzanne-valadon",
+   "title": "Black Venus",
+   "year": "1919",
+   "medium": "Oil on canvas",
+   "size": [
+    97.0,
+    162.0
+   ],
+   "collection": "Musée des Beaux-Arts de Menton",
+   "wikidata": "Q131564532",
+   "source": "https://commons.wikimedia.org/wiki/File:(Barcelona) La Vénus noire - Suzanne Valadon.jpg",
+   "file": "(Barcelona) La Vénus noire - Suzanne Valadon.jpg",
+   "image": "data/demo/works/black-venus.jpg"
+  },
+  {
+   "slug": "la-couturiere",
+   "artist": "suzanne-valadon",
+   "title": "La Couturière",
+   "year": "1914",
+   "medium": "Oil on canvas",
+   "size": [
+    65.0,
+    80.0
+   ],
+   "collection": "Musée National d'Art Moderne",
+   "wikidata": "Q17491929",
+   "source": "https://commons.wikimedia.org/wiki/File:(Barcelona) La couturière - Suzanne Valadon 1914 - Centre Pompidou Paris.jpg",
+   "file": "(Barcelona) La couturière - Suzanne Valadon 1914 - Centre Pompidou Paris.jpg",
+   "image": "data/demo/works/la-couturiere.jpg"
+  },
+  {
    "slug": "self-portrait-at-6th-wedding-anniversary",
    "artist": "paula-modersohn-becker",
    "title": "Self-portrait at 6th wedding anniversary",
@@ -1072,6 +1646,2534 @@
    "source": "https://commons.wikimedia.org/wiki/File:1903 Modersohn-Becker Alte Moorbäuerin anagoria.JPG",
    "file": "1903 Modersohn-Becker Alte Moorbäuerin anagoria.JPG",
    "image": "data/demo/works/old-peasant-woman-1903.jpg"
+  },
+  {
+   "slug": "mother-and-child",
+   "artist": "paula-modersohn-becker",
+   "title": "Mother and Child",
+   "year": "1903",
+   "medium": "Oil and tempera on canvas",
+   "size": [
+    58.0,
+    69.0
+   ],
+   "collection": "Hamburger Kunsthalle",
+   "wikidata": "Q111799323",
+   "source": "https://commons.wikimedia.org/wiki/File:Paula Modersohn-Becker - Mutter mit Kind (ca. 1903).jpg",
+   "file": "Paula Modersohn-Becker - Mutter mit Kind (ca. 1903).jpg",
+   "image": "data/demo/works/mother-and-child.jpg"
+  },
+  {
+   "slug": "self-portrait-with-two-flowers-in-her-raised-lef",
+   "artist": "paula-modersohn-becker",
+   "title": "Self-Portrait with Two Flowers in Her Raised Left Hand",
+   "year": "1907",
+   "medium": "Oil on canvas",
+   "size": [
+    24.8,
+    55.2
+   ],
+   "collection": "Museum of Modern Art",
+   "wikidata": "Q136008942",
+   "source": "https://commons.wikimedia.org/wiki/File:Moderson-Becker - Selbstbildnis mit zwei Blumen in der erhobenen linken Hand - 1907.jpeg",
+   "file": "Moderson-Becker - Selbstbildnis mit zwei Blumen in der erhobenen linken Hand - 1907.jpeg",
+   "image": "data/demo/works/self-portrait-with-two-flowers-in-her-raised-lef.jpg"
+  },
+  {
+   "slug": "judith-slaying-holofernes",
+   "artist": "artemisia-gentileschi",
+   "title": "Judith Slaying Holofernes",
+   "year": "1613",
+   "medium": "Oil on canvas",
+   "size": [
+    125.4,
+    158.8
+   ],
+   "collection": "Museo di Capodimonte",
+   "wikidata": "Q2247406",
+   "source": "https://commons.wikimedia.org/wiki/File:Artemisia Gentileschi - Judith Beheading Holofernes - WGA8563.jpg",
+   "file": "Artemisia Gentileschi - Judith Beheading Holofernes - WGA8563.jpg",
+   "image": "data/demo/works/judith-slaying-holofernes.jpg"
+  },
+  {
+   "slug": "susanna-and-the-elders",
+   "artist": "artemisia-gentileschi",
+   "title": "Susanna and the Elders",
+   "year": "1610",
+   "medium": "Oil on canvas",
+   "size": [
+    121.0,
+    170.0
+   ],
+   "collection": "Schloss Weißenstein",
+   "wikidata": "Q3978274",
+   "source": "https://commons.wikimedia.org/wiki/File:Susanna and the Elders (1610), Artemisia GentileschiFXD.jpg",
+   "file": "Susanna and the Elders (1610), Artemisia GentileschiFXD.jpg",
+   "image": "data/demo/works/susanna-and-the-elders.jpg"
+  },
+  {
+   "slug": "judith-and-her-maidservant",
+   "artist": "artemisia-gentileschi",
+   "title": "Judith and Her Maidservant",
+   "year": "1610",
+   "medium": "Oil on canvas",
+   "size": [
+    93.5,
+    114.0
+   ],
+   "collection": "Galleria Palatina",
+   "wikidata": "Q532486",
+   "source": "https://commons.wikimedia.org/wiki/File:Gentileschi judith1.jpg",
+   "file": "Gentileschi judith1.jpg",
+   "image": "data/demo/works/judith-and-her-maidservant.jpg"
+  },
+  {
+   "slug": "self-portrait-as-the-allegory-of-painting",
+   "artist": "artemisia-gentileschi",
+   "title": "Self-Portrait as the Allegory of Painting",
+   "year": "1638",
+   "medium": "Oil on canvas",
+   "size": [
+    75.2,
+    98.6
+   ],
+   "collection": "Royal Collection",
+   "wikidata": "Q3630745",
+   "source": "https://commons.wikimedia.org/wiki/File:Self-Portrait as the Allegory of Painting (La Pittura) - Artemisia Gentileschi.jpg",
+   "file": "Self-Portrait as the Allegory of Painting (La Pittura) - Artemisia Gentileschi.jpg",
+   "image": "data/demo/works/self-portrait-as-the-allegory-of-painting.jpg"
+  },
+  {
+   "slug": "judith-beheading-holofernes",
+   "artist": "artemisia-gentileschi",
+   "title": "Judith Beheading Holofernes",
+   "year": "1620",
+   "medium": "Oil on canvas",
+   "size": [
+    162.5,
+    199.0
+   ],
+   "collection": "Uffizi Gallery",
+   "wikidata": "Q3769169",
+   "source": "https://commons.wikimedia.org/wiki/File:Judith Beheading Holofernes.jpg",
+   "file": "Judith Beheading Holofernes.jpg",
+   "image": "data/demo/works/judith-beheading-holofernes.jpg"
+  },
+  {
+   "slug": "danae",
+   "artist": "artemisia-gentileschi",
+   "title": "Danaë",
+   "year": "1612",
+   "medium": "Oil",
+   "size": [
+    52.7,
+    41.3
+   ],
+   "collection": "Saint Louis Art Museum",
+   "wikidata": "Q3701418",
+   "source": "https://commons.wikimedia.org/wiki/File:Artemisia Gentileschi - Danaë - 93-1986 - Saint Louis Art Museum.jpg",
+   "file": "Artemisia Gentileschi - Danaë - 93-1986 - Saint Louis Art Museum.jpg",
+   "image": "data/demo/works/danae.jpg"
+  },
+  {
+   "slug": "marie-antoinette-and-her-children",
+   "artist": "elisabeth-vigee-le-brun",
+   "title": "Marie Antoinette and Her Children",
+   "year": "1787",
+   "medium": "Oil on canvas",
+   "size": [
+    210.0,
+    271.0
+   ],
+   "collection": "Musée de l'Histoire de France",
+   "wikidata": "Q3937621",
+   "source": "https://commons.wikimedia.org/wiki/File:Louise Elisabeth Vigée-Lebrun - Marie-Antoinette de Lorraine-Habsbourg, reine de France et ses enfants - Google Art Project.jpg",
+   "file": "Louise Elisabeth Vigée-Lebrun - Marie-Antoinette de Lorraine-Habsbourg, reine de France et ses enfants - Google Art Project.jpg",
+   "image": "data/demo/works/marie-antoinette-and-her-children.jpg"
+  },
+  {
+   "slug": "marie-antoinette-with-a-rose",
+   "artist": "elisabeth-vigee-le-brun",
+   "title": "Marie Antoinette with a Rose",
+   "year": "1783",
+   "medium": "Oil on canvas",
+   "size": [
+    87.0,
+    113.0
+   ],
+   "collection": "Musée de l'Histoire de France",
+   "wikidata": "Q3937618",
+   "source": "https://commons.wikimedia.org/wiki/File:Louise Elisabeth Vigée-Lebrun - Marie-Antoinette dit « à la Rose » - Google Art Project.jpg",
+   "file": "Louise Elisabeth Vigée-Lebrun - Marie-Antoinette dit « à la Rose » - Google Art Project.jpg",
+   "image": "data/demo/works/marie-antoinette-with-a-rose.jpg"
+  },
+  {
+   "slug": "self-portrait-in-a-straw-hat",
+   "artist": "elisabeth-vigee-le-brun",
+   "title": "Self Portrait in a Straw Hat",
+   "year": "1782",
+   "medium": "Oil on canvas",
+   "size": [
+    70.5,
+    97.8
+   ],
+   "collection": "National Gallery",
+   "wikidata": "Q18719540",
+   "source": "https://commons.wikimedia.org/wiki/File:Self-portrait in a Straw Hat by Elisabeth-Louise Vigée-Lebrun.jpg",
+   "file": "Self-portrait in a Straw Hat by Elisabeth-Louise Vigée-Lebrun.jpg",
+   "image": "data/demo/works/self-portrait-in-a-straw-hat.jpg"
+  },
+  {
+   "slug": "self-portrait-with-her-daughter-julie",
+   "artist": "elisabeth-vigee-le-brun",
+   "title": "Self-Portrait with Her Daughter, Julie",
+   "year": "1789",
+   "medium": "Oil on panel",
+   "size": [
+    94.0,
+    130.0
+   ],
+   "collection": "Department of Paintings of the Louvre",
+   "wikidata": "Q19273424",
+   "source": "https://commons.wikimedia.org/wiki/File:Self-portrait with Her Daughter by Elisabeth-Louise Vigée Le Brun.jpg",
+   "file": "Self-portrait with Her Daughter by Elisabeth-Louise Vigée Le Brun.jpg",
+   "image": "data/demo/works/self-portrait-with-her-daughter-julie.jpg"
+  },
+  {
+   "slug": "self-portrait-of-elisabeth-louise-vigee-le-brun",
+   "artist": "elisabeth-vigee-le-brun",
+   "title": "Self-portrait of Élisabeth Louise Vigée Le Brun",
+   "year": "1790",
+   "medium": "Oil on canvas",
+   "size": [
+    81.0,
+    100.0
+   ],
+   "collection": "Uffizi Gallery",
+   "wikidata": "Q19361572",
+   "source": "https://commons.wikimedia.org/wiki/File:Self-portrait (by Elisabeth Vigée-Lebrun) – Galleria degli Uffizi, Florence.jpg",
+   "file": "Self-portrait (by Elisabeth Vigée-Lebrun) – Galleria degli Uffizi, Florence.jpg",
+   "image": "data/demo/works/self-portrait-of-elisabeth-louise-vigee-le-brun.jpg"
+  },
+  {
+   "slug": "madame-grand-noel-catherine-verlee-17611835",
+   "artist": "elisabeth-vigee-le-brun",
+   "title": "Madame Grand (Noël Catherine Verlée, 1761–1835)",
+   "year": "1783",
+   "medium": "Oil on canvas",
+   "size": [
+    72.0,
+    92.0
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q19905205",
+   "source": "https://commons.wikimedia.org/wiki/File:Madame Grand (Noël Catherine Vorlée, 1761–1835) MET DP320094.jpg",
+   "file": "Madame Grand (Noël Catherine Vorlée, 1761–1835) MET DP320094.jpg",
+   "image": "data/demo/works/madame-grand-noel-catherine-verlee-17611835.jpg"
+  },
+  {
+   "slug": "the-proposition",
+   "artist": "judith-leyster",
+   "title": "The Proposition",
+   "year": "1631",
+   "medium": "Oil on panel",
+   "size": [
+    24.2,
+    30.8
+   ],
+   "collection": "Mauritshuis",
+   "wikidata": "Q5901183",
+   "source": "https://commons.wikimedia.org/wiki/File:Judith Leyster - Man Offering Money to a Young Woman - 564 - Mauritshuis.jpg",
+   "file": "Judith Leyster - Man Offering Money to a Young Woman - 564 - Mauritshuis.jpg",
+   "image": "data/demo/works/the-proposition.jpg"
+  },
+  {
+   "slug": "self-portrait-by-judith-leyster",
+   "artist": "judith-leyster",
+   "title": "Self-portrait",
+   "year": "1630",
+   "medium": "Oil on canvas",
+   "size": [
+    65.1,
+    74.6
+   ],
+   "collection": "National Gallery of Art",
+   "wikidata": "Q18888002",
+   "source": "https://commons.wikimedia.org/wiki/File:Self-portrait by Judith Leyster.jpg",
+   "file": "Self-portrait by Judith Leyster.jpg",
+   "image": "data/demo/works/self-portrait-by-judith-leyster.jpg"
+  },
+  {
+   "slug": "the-jolly-toper",
+   "artist": "judith-leyster",
+   "title": "The Jolly Toper",
+   "year": "1629",
+   "medium": "Oil on canvas",
+   "size": [
+    81.5,
+    87.0
+   ],
+   "collection": "Rijksmuseum",
+   "wikidata": "Q17324463",
+   "source": "https://commons.wikimedia.org/wiki/File:De vrolijke drinker Rijksmuseum SK-A-1685.jpeg",
+   "file": "De vrolijke drinker Rijksmuseum SK-A-1685.jpeg",
+   "image": "data/demo/works/the-jolly-toper.jpg"
+  },
+  {
+   "slug": "the-serenade",
+   "artist": "judith-leyster",
+   "title": "The Serenade",
+   "year": "1629",
+   "medium": "Oil on panel",
+   "size": [
+    34.5,
+    47.0
+   ],
+   "collection": "Rijksmuseum",
+   "wikidata": "Q17328328",
+   "source": "https://commons.wikimedia.org/wiki/File:De serenade Rijksmuseum SK-A-2326.jpeg",
+   "file": "De serenade Rijksmuseum SK-A-2326.jpeg",
+   "image": "data/demo/works/the-serenade.jpg"
+  },
+  {
+   "slug": "merry-trio",
+   "artist": "judith-leyster",
+   "title": "Merry Trio",
+   "year": "1631",
+   "medium": "Oil on canvas",
+   "size": [
+    60.3,
+    72.0
+   ],
+   "collection": "Kunsthandel P. de Boer",
+   "wikidata": "Q4109849",
+   "source": "https://commons.wikimedia.org/wiki/File:Judith Leyster Merry Trio.jpg",
+   "file": "Judith Leyster Merry Trio.jpg",
+   "image": "data/demo/works/merry-trio.jpg"
+  },
+  {
+   "slug": "a-boy-and-a-girl-with-a-cat-and-an-eel",
+   "artist": "judith-leyster",
+   "title": "A boy and a girl with a cat and an eel",
+   "year": "1635",
+   "medium": "Oil on panel",
+   "size": [
+    49.0,
+    59.0
+   ],
+   "collection": "National Gallery",
+   "wikidata": "Q19327893",
+   "source": "https://commons.wikimedia.org/wiki/File:Judith Leyster A Boy and a Girl with a Cat and an Eel.jpg",
+   "file": "Judith Leyster A Boy and a Girl with a Cat and an Eel.jpg",
+   "image": "data/demo/works/a-boy-and-a-girl-with-a-cat-and-an-eel.jpg"
+  },
+  {
+   "slug": "ariadne-abandoned-by-theseus",
+   "artist": "angelica-kauffman",
+   "title": "Ariadne Abandoned by Theseus",
+   "year": "1774",
+   "medium": "Oil on canvas",
+   "size": [
+    90.9,
+    63.8
+   ],
+   "collection": "Museum of Fine Arts, Houston",
+   "wikidata": "Q5703908",
+   "source": "https://commons.wikimedia.org/wiki/File:Angelica Kauffmann, Ariadne Abandoned by Theseus, 1774.jpg",
+   "file": "Angelica Kauffmann, Ariadne Abandoned by Theseus, 1774.jpg",
+   "image": "data/demo/works/ariadne-abandoned-by-theseus.jpg"
+  },
+  {
+   "slug": "the-sorrow-of-telemachus",
+   "artist": "angelica-kauffman",
+   "title": "The Sorrow of Telemachus",
+   "year": "1783",
+   "medium": "Oil on canvas",
+   "size": [
+    114.3,
+    83.2
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q19912047",
+   "source": "https://commons.wikimedia.org/wiki/File:The Sorrow of Telemachus MET DP169392.jpg",
+   "file": "The Sorrow of Telemachus MET DP169392.jpg",
+   "image": "data/demo/works/the-sorrow-of-telemachus.jpg"
+  },
+  {
+   "slug": "telemachus-and-the-nymphs-of-calypso",
+   "artist": "angelica-kauffman",
+   "title": "Telemachus and the Nymphs of Calypso",
+   "year": "1782",
+   "medium": "Oil on canvas",
+   "size": [
+    112.4,
+    82.6
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q19912157",
+   "source": "https://commons.wikimedia.org/wiki/File:Telemachus and the Nymphs of Calypso MET DP169393.jpg",
+   "file": "Telemachus and the Nymphs of Calypso MET DP169393.jpg",
+   "image": "data/demo/works/telemachus-and-the-nymphs-of-calypso.jpg"
+  },
+  {
+   "slug": "sappho-inspired-by-love",
+   "artist": "angelica-kauffman",
+   "title": "Sappho Inspired by Love",
+   "year": "1775",
+   "medium": "Oil on canvas",
+   "size": [
+    145.1,
+    132.1
+   ],
+   "collection": "John and Mable Ringling Museum of Art",
+   "wikidata": "Q79358025",
+   "source": "https://commons.wikimedia.org/wiki/File:Sappho Inspired by Love by Angelica Kauffmann.jpg",
+   "file": "Sappho Inspired by Love by Angelica Kauffmann.jpg",
+   "image": "data/demo/works/sappho-inspired-by-love.jpg"
+  },
+  {
+   "slug": "venus-induces-helen-to-fall-in-love-with-paris",
+   "artist": "angelica-kauffman",
+   "title": "Venus Induces Helen to Fall in Love with Paris",
+   "year": "1790",
+   "medium": "Oil on canvas",
+   "size": [
+    127.5,
+    102.0
+   ],
+   "collection": "Hermitage Museum",
+   "wikidata": "Q16038758",
+   "source": "https://commons.wikimedia.org/wiki/File:Angelica Kauffmann - Venus Induces Helen to Fall in Love with Paris - WGA12099.jpg",
+   "file": "Angelica Kauffmann - Venus Induces Helen to Fall in Love with Paris - WGA12099.jpg",
+   "image": "data/demo/works/venus-induces-helen-to-fall-in-love-with-paris.jpg"
+  },
+  {
+   "slug": "hector-calling-up-paris-to-a-battle",
+   "artist": "angelica-kauffman",
+   "title": "Hector Calling Up Paris to a Battle",
+   "year": "1775",
+   "medium": "Oil on canvas",
+   "size": [
+    178.0,
+    137.0
+   ],
+   "collection": "Hermitage Museum",
+   "wikidata": "Q21715901",
+   "source": "https://commons.wikimedia.org/wiki/File:Angelica Kauffmann - Hector reproving Paris (Hermitage).jpg",
+   "file": "Angelica Kauffmann - Hector reproving Paris (Hermitage).jpg",
+   "image": "data/demo/works/hector-calling-up-paris-to-a-battle.jpg"
+  },
+  {
+   "slug": "the-horse-fair",
+   "artist": "rosa-bonheur",
+   "title": "The Horse Fair",
+   "year": "1853",
+   "medium": "Oil on canvas",
+   "size": [
+    506.7,
+    244.5
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q40432",
+   "source": "https://commons.wikimedia.org/wiki/File:Rosa Bonheur, The Horse Fair, 1852–55.jpg",
+   "file": "Rosa Bonheur, The Horse Fair, 1852–55.jpg",
+   "image": "data/demo/works/the-horse-fair.jpg"
+  },
+  {
+   "slug": "ploughing-in-the-nivernais",
+   "artist": "rosa-bonheur",
+   "title": "Ploughing in the Nivernais",
+   "year": "1849",
+   "medium": "Oil on canvas",
+   "size": [
+    260.0,
+    133.0
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q14127232",
+   "source": "https://commons.wikimedia.org/wiki/File:Rosa Bonheur - Ploughing in Nevers - Google Art Project.jpg",
+   "file": "Rosa Bonheur - Ploughing in Nevers - Google Art Project.jpg",
+   "image": "data/demo/works/ploughing-in-the-nivernais.jpg"
+  },
+  {
+   "slug": "berger-des-pyrenees",
+   "artist": "rosa-bonheur",
+   "title": "Berger des Pyrénées",
+   "year": "1864",
+   "medium": "Oil",
+   "size": [
+    100.0,
+    68.0
+   ],
+   "collection": "Condé Museum",
+   "wikidata": "Q23008971",
+   "source": "https://commons.wikimedia.org/wiki/File:Château de Chantilly, Rosa Bonheur, sheeps in the Pyrenees.JPG",
+   "file": "Château de Chantilly, Rosa Bonheur, sheeps in the Pyrenees.JPG",
+   "image": "data/demo/works/berger-des-pyrenees.jpg"
+  },
+  {
+   "slug": "king-of-the-forest",
+   "artist": "rosa-bonheur",
+   "title": "King of the Forest",
+   "year": "1878",
+   "medium": "Oil on canvas",
+   "size": [
+    175.0,
+    244.8
+   ],
+   "collection": "",
+   "wikidata": "Q118435736",
+   "source": "https://commons.wikimedia.org/wiki/File:Rosa Bonheur - Le Roi de la forêt.jpg",
+   "file": "Rosa Bonheur - Le Roi de la forêt.jpg",
+   "image": "data/demo/works/king-of-the-forest.jpg"
+  },
+  {
+   "slug": "weaning-the-calves",
+   "artist": "rosa-bonheur",
+   "title": "Weaning the Calves",
+   "year": "1879",
+   "medium": "Oil on canvas",
+   "size": [
+    81.3,
+    65.1
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q19912677",
+   "source": "https://commons.wikimedia.org/wiki/File:Rosa Bonheur Calves 1879.jpg",
+   "file": "Rosa Bonheur Calves 1879.jpg",
+   "image": "data/demo/works/weaning-the-calves.jpg"
+  },
+  {
+   "slug": "deer-in-repose",
+   "artist": "rosa-bonheur",
+   "title": "Deer in Repose",
+   "year": "1867",
+   "medium": "Oil on canvas",
+   "size": [
+    82.2,
+    101.0
+   ],
+   "collection": "Detroit Institute of Arts",
+   "wikidata": "Q64570765",
+   "source": "https://commons.wikimedia.org/wiki/File:Rosa Bonheur - Deer in Repose - 20.93 - Detroit Institute of Arts.jpg",
+   "file": "Rosa Bonheur - Deer in Repose - 20.93 - Detroit Institute of Arts.jpg",
+   "image": "data/demo/works/deer-in-repose.jpg"
+  },
+  {
+   "slug": "sunlight-in-the-blue-room",
+   "artist": "anna-ancher",
+   "title": "Sunlight in the Blue Room",
+   "year": "1891",
+   "medium": "Oil on canvas",
+   "size": [
+    58.8,
+    65.2
+   ],
+   "collection": "Skagens Museum",
+   "wikidata": "Q18386367",
+   "source": "https://commons.wikimedia.org/wiki/File:Anna Ancher - Sunlight in the blue room - Google Art Project.jpg",
+   "file": "Anna Ancher - Sunlight in the blue room - Google Art Project.jpg",
+   "image": "data/demo/works/sunlight-in-the-blue-room.jpg"
+  },
+  {
+   "slug": "the-artist-s-mother-ane-hedvig-brndum-in-the-red",
+   "artist": "anna-ancher",
+   "title": "The Artist's Mother Ane Hedvig Brøndum in the Red Room",
+   "year": "1909",
+   "medium": "Oil on canvas",
+   "size": [
+    56.8,
+    38.8
+   ],
+   "collection": "Statens Museum for Kunst",
+   "wikidata": "Q20438955",
+   "source": "https://commons.wikimedia.org/wiki/File:Anna Ancher, Kunstnerens mor Ane Hedvig Brøndum i den røde stue, 1909, KMS8654, Statens Museum for Kunst.jpg",
+   "file": "Anna Ancher, Kunstnerens mor Ane Hedvig Brøndum i den røde stue, 1909, KMS8654, Statens Museum for Kunst.jpg",
+   "image": "data/demo/works/the-artist-s-mother-ane-hedvig-brndum-in-the-red.jpg"
+  },
+  {
+   "slug": "the-maid-in-the-kitchen",
+   "artist": "anna-ancher",
+   "title": "The maid in the kitchen",
+   "year": "1883",
+   "medium": "Oil on canvas",
+   "size": [
+    68.5,
+    87.7
+   ],
+   "collection": "Hirschsprung Collection",
+   "wikidata": "Q21044818",
+   "source": "https://commons.wikimedia.org/wiki/File:Girl in the Kitchen (Anna Ancher).jpg",
+   "file": "Girl in the Kitchen (Anna Ancher).jpg",
+   "image": "data/demo/works/the-maid-in-the-kitchen.jpg"
+  },
+  {
+   "slug": "harvesters",
+   "artist": "anna-ancher",
+   "title": "Harvesters",
+   "year": "1905",
+   "medium": "Oil on canvas",
+   "size": [
+    72.0,
+    58.6
+   ],
+   "collection": "Skagens Museum",
+   "wikidata": "Q20890314",
+   "source": "https://commons.wikimedia.org/wiki/File:Anna Ancher - Harvesters - Google Art Project.jpg",
+   "file": "Anna Ancher - Harvesters - Google Art Project.jpg",
+   "image": "data/demo/works/harvesters.jpg"
+  },
+  {
+   "slug": "a-funeral",
+   "artist": "anna-ancher",
+   "title": "A Funeral",
+   "year": "1891",
+   "medium": "Oil on canvas",
+   "size": [
+    124.5,
+    103.5
+   ],
+   "collection": "Statens Museum for Kunst",
+   "wikidata": "Q20491541",
+   "source": "https://commons.wikimedia.org/wiki/File:Anna Ancher, En begravelse, 1891, KMS1433, Statens Museum for Kunst.jpg",
+   "file": "Anna Ancher, En begravelse, 1891, KMS1433, Statens Museum for Kunst.jpg",
+   "image": "data/demo/works/a-funeral.jpg"
+  },
+  {
+   "slug": "a-blind-woman-in-her-room",
+   "artist": "anna-ancher",
+   "title": "A blind woman in her room",
+   "year": "1883",
+   "medium": "Oil on canvas",
+   "size": [
+    46.5,
+    58.5
+   ],
+   "collection": "Hirschsprung Collection",
+   "wikidata": "Q21044798",
+   "source": "https://commons.wikimedia.org/wiki/File:Ancher, Anna- En blind kone i sin stue.jpg",
+   "file": "Ancher, Anna- En blind kone i sin stue.jpg",
+   "image": "data/demo/works/a-blind-woman-in-her-room.jpg"
+  },
+  {
+   "slug": "christening-in-tanum-church",
+   "artist": "harriet-backer",
+   "title": "Christening in Tanum Church",
+   "year": "1892",
+   "medium": "Oil on canvas",
+   "size": [
+    142.0,
+    109.0
+   ],
+   "collection": "National Museum of Art, Architecture and Design",
+   "wikidata": "Q21177097",
+   "source": "https://commons.wikimedia.org/wiki/File:Harriet Backer - Christening in Tanum Church - Google Art Project.jpg",
+   "file": "Harriet Backer - Christening in Tanum Church - Google Art Project.jpg",
+   "image": "data/demo/works/christening-in-tanum-church.jpg"
+  },
+  {
+   "slug": "a-country-cobbler",
+   "artist": "harriet-backer",
+   "title": "A Country Cobbler",
+   "year": "1887",
+   "medium": "Oil on canvas",
+   "size": [
+    89.0,
+    66.0
+   ],
+   "collection": "Nationalmuseum",
+   "wikidata": "Q18574549",
+   "source": "https://commons.wikimedia.org/wiki/File:A Country Cobbler (Harriet Backer) - Nationalmuseum - 19518.tif",
+   "file": "A Country Cobbler (Harriet Backer) - Nationalmuseum - 19518.tif",
+   "image": "data/demo/works/a-country-cobbler.jpg"
+  },
+  {
+   "slug": "blue-interior",
+   "artist": "harriet-backer",
+   "title": "Blue Interior",
+   "year": "1883",
+   "medium": "Oil on canvas",
+   "size": [
+    66.0,
+    84.0
+   ],
+   "collection": "National Museum of Art, Architecture and Design",
+   "wikidata": "Q22303213",
+   "source": "https://commons.wikimedia.org/wiki/File:Harriet Backer - Blue Interior - Google Art Project.jpg",
+   "file": "Harriet Backer - Blue Interior - Google Art Project.jpg",
+   "image": "data/demo/works/blue-interior.jpg"
+  },
+  {
+   "slug": "landscape-eggedal",
+   "artist": "harriet-backer",
+   "title": "Landscape, Eggedal",
+   "year": "1888",
+   "medium": "Oil on canvas",
+   "size": [
+    67.0,
+    54.0
+   ],
+   "collection": "Nationalmuseum",
+   "wikidata": "Q18599691",
+   "source": "https://commons.wikimedia.org/wiki/File:Landscape, Eggedal (Harriet Backer) - Nationalmuseum - 21698.tif",
+   "file": "Landscape, Eggedal (Harriet Backer) - Nationalmuseum - 21698.tif",
+   "image": "data/demo/works/landscape-eggedal.jpg"
+  },
+  {
+   "slug": "by-lamp-light",
+   "artist": "harriet-backer",
+   "title": "By Lamp Light",
+   "year": "1890",
+   "medium": "Oil on canvas",
+   "size": [
+    44.0,
+    36.0
+   ],
+   "collection": "National Museum of Art, Architecture and Design",
+   "wikidata": "Q22304362",
+   "source": "https://commons.wikimedia.org/wiki/File:Harriet Backer - By Lamp Light - Google Art Project.jpg",
+   "file": "Harriet Backer - By Lamp Light - Google Art Project.jpg",
+   "image": "data/demo/works/by-lamp-light.jpg"
+  },
+  {
+   "slug": "the-farewell",
+   "artist": "harriet-backer",
+   "title": "The Farewell",
+   "year": "1878",
+   "medium": "Oil on canvas",
+   "size": [
+    99.0,
+    81.5
+   ],
+   "collection": "National Museum of Art, Architecture and Design",
+   "wikidata": "Q22309255",
+   "source": "https://commons.wikimedia.org/wiki/File:Harriet Backer - The Farewell - NG.M.02836 - National Museum of Art, Architecture and Design.jpg",
+   "file": "Harriet Backer - The Farewell - NG.M.02836 - National Museum of Art, Architecture and Design.jpg",
+   "image": "data/demo/works/the-farewell.jpg"
+  },
+  {
+   "slug": "vase-of-flowers",
+   "artist": "gwen-john",
+   "title": "Vase of flowers",
+   "year": "1910",
+   "medium": "Oil",
+   "size": [
+    32.0,
+    40.0
+   ],
+   "collection": "National Library of Wales",
+   "wikidata": "Q22977148",
+   "source": "https://commons.wikimedia.org/wiki/File:Vase of Flowers - Gwen John.jpg",
+   "file": "Vase of Flowers - Gwen John.jpg",
+   "image": "data/demo/works/vase-of-flowers.jpg"
+  },
+  {
+   "slug": "mrs-atkinson",
+   "artist": "gwen-john",
+   "title": "Mrs. Atkinson",
+   "year": "1897",
+   "medium": "Oil on panel",
+   "size": [
+    31.1,
+    30.5
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q19917749",
+   "source": "https://commons.wikimedia.org/wiki/File:Mrs. Atkinson MET 1979.135.27.jpg",
+   "file": "Mrs. Atkinson MET 1979.135.27.jpg",
+   "image": "data/demo/works/mrs-atkinson.jpg"
+  },
+  {
+   "slug": "girl-with-a-cat",
+   "artist": "gwen-john",
+   "title": "Girl with a Cat",
+   "year": "1920",
+   "medium": "Oil on canvas",
+   "size": [
+    26.7,
+    33.7
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q20191121",
+   "source": "https://commons.wikimedia.org/wiki/File:Girl with a Cat MET 1976.201.25.jpg",
+   "file": "Girl with a Cat MET 1976.201.25.jpg",
+   "image": "data/demo/works/girl-with-a-cat.jpg"
+  },
+  {
+   "slug": "self-portrait",
+   "artist": "gwen-john",
+   "title": "Self-portrait",
+   "year": "1902",
+   "medium": "Oil on canvas",
+   "size": [
+    44.8,
+    34.9
+   ],
+   "collection": "National Gallery",
+   "wikidata": "Q23028489",
+   "source": "https://commons.wikimedia.org/wiki/File:Gwen John - Self-portrait (1902).jpg",
+   "file": "Gwen John - Self-portrait (1902).jpg",
+   "image": "data/demo/works/self-portrait.jpg"
+  },
+  {
+   "slug": "young-woman-holding-a-black-cat",
+   "artist": "gwen-john",
+   "title": "Young Woman Holding a Black Cat",
+   "year": "1920",
+   "medium": "Oil on canvas",
+   "size": [
+    46.0,
+    29.8
+   ],
+   "collection": "National Gallery",
+   "wikidata": "Q28532560",
+   "source": "https://commons.wikimedia.org/wiki/File:Gwen John - Young Woman Holding a Black Cat (Tate).jpg",
+   "file": "Gwen John - Young Woman Holding a Black Cat (Tate).jpg",
+   "image": "data/demo/works/young-woman-holding-a-black-cat.jpg"
+  },
+  {
+   "slug": "dorelia-in-a-black-dress",
+   "artist": "gwen-john",
+   "title": "Dorelia in a Black Dress",
+   "year": "1903",
+   "medium": "Oil on canvas",
+   "size": [
+    73.0,
+    48.9
+   ],
+   "collection": "National Gallery",
+   "wikidata": "Q28533054",
+   "source": "https://commons.wikimedia.org/wiki/File:Gwen John - Dorelia in a Black Dress, c.1903–4, N05910.jpg",
+   "file": "Gwen John - Dorelia in a Black Dress, c.1903–4, N05910.jpg",
+   "image": "data/demo/works/dorelia-in-a-black-dress.jpg"
+  },
+  {
+   "slug": "portrait-of-the-artist-s-sisters-playing-chess",
+   "artist": "sofonisba-anguissola",
+   "title": "Portrait of the Artist's Sisters Playing Chess",
+   "year": "1555",
+   "medium": "Oil and tempera on canvas",
+   "size": [
+    97.0,
+    72.0
+   ],
+   "collection": "National Museum in Poznań",
+   "wikidata": "Q23008305",
+   "source": "https://commons.wikimedia.org/wiki/File:The Chess Game (Sofonisba Anguissola) 1555 (4096x3236px).jpg",
+   "file": "The Chess Game (Sofonisba Anguissola) 1555 (4096x3236px).jpg",
+   "image": "data/demo/works/portrait-of-the-artist-s-sisters-playing-chess.jpg"
+  },
+  {
+   "slug": "portrait-group-with-the-artists-father-brother-a",
+   "artist": "sofonisba-anguissola",
+   "title": "Portrait Group with the Artist’s Father, Brother and Sister",
+   "year": "1559",
+   "medium": "Oil on canvas",
+   "size": [
+    122.0,
+    157.0
+   ],
+   "collection": "Nivaagaard Museum",
+   "wikidata": "Q21204021",
+   "source": "https://commons.wikimedia.org/wiki/File:Sofonisba Anguissola, Portrætgruppe med kunstnerens fader Amilcare Anguissola og hendes søskende Minerva og Astrubale, ca. 1559, 0001NMK, Nivaagaards Malerisamling.jpg",
+   "file": "Sofonisba Anguissola, Portrætgruppe med kunstnerens fader Amilcare Anguissola og hendes søskende Minerva og Astrubale, ca. 1559, 0001NMK, Nivaagaards Malerisamling.jpg",
+   "image": "data/demo/works/portrait-group-with-the-artists-father-brother-a.jpg"
+  },
+  {
+   "slug": "self-portrait-at-the-spinnet",
+   "artist": "sofonisba-anguissola",
+   "title": "Self-portrait at the Spinnet",
+   "year": "1555",
+   "medium": "Oil on canvas",
+   "size": [
+    48.0,
+    56.0
+   ],
+   "collection": "Museo di Capodimonte",
+   "wikidata": "Q23012270",
+   "source": "https://commons.wikimedia.org/wiki/File:Autoritratto alla spinetta, Sofonisba Anguissola 001.JPG",
+   "file": "Autoritratto alla spinetta, Sofonisba Anguissola 001.JPG",
+   "image": "data/demo/works/self-portrait-at-the-spinnet.jpg"
+  },
+  {
+   "slug": "portrait-of-bianca-ponzoni-anguissola",
+   "artist": "sofonisba-anguissola",
+   "title": "Portrait of Bianca Ponzoni Anguissola",
+   "year": "1557",
+   "medium": "Oil on canvas",
+   "size": [
+    75.0,
+    98.0
+   ],
+   "collection": "Gemäldegalerie Berlin",
+   "wikidata": "Q23012274",
+   "source": "https://commons.wikimedia.org/wiki/File:Sofonisba Anguissola (um 1532-35 - 1625) - Bianca Ponzoni Anguissola - 1705 - Gemäldegalerie.jpg",
+   "file": "Sofonisba Anguissola (um 1532-35 - 1625) - Bianca Ponzoni Anguissola - 1705 - Gemäldegalerie.jpg",
+   "image": "data/demo/works/portrait-of-bianca-ponzoni-anguissola.jpg"
+  },
+  {
+   "slug": "portrait-of-marquess-massimiliano-stampa",
+   "artist": "sofonisba-anguissola",
+   "title": "Portrait of Marquess Massimiliano Stampa",
+   "year": "1557",
+   "medium": "Oil on canvas",
+   "size": [
+    71.1,
+    134.9
+   ],
+   "collection": "Walters Art Museum",
+   "wikidata": "Q23011335",
+   "source": "https://commons.wikimedia.org/wiki/File:MassimilianoStampa.jpg",
+   "file": "MassimilianoStampa.jpg",
+   "image": "data/demo/works/portrait-of-marquess-massimiliano-stampa.jpg"
+  },
+  {
+   "slug": "self-portrait-at-an-easel",
+   "artist": "sofonisba-anguissola",
+   "title": "Self-portrait at an Easel",
+   "year": "1556",
+   "medium": "Oil on canvas",
+   "size": [
+    57.0,
+    66.0
+   ],
+   "collection": "Łańcut Castle",
+   "wikidata": "Q23009844",
+   "source": "https://commons.wikimedia.org/wiki/File:Sofonisba Anguissola, Selvportræt ved staffeliet, 1556, Museum Castle in Łańcut.jpg",
+   "file": "Sofonisba Anguissola, Selvportræt ved staffeliet, 1556, Museum Castle in Łańcut.jpg",
+   "image": "data/demo/works/self-portrait-at-an-easel.jpg"
+  },
+  {
+   "slug": "a-box-at-the-theatre-des-italiens",
+   "artist": "eva-gonzales",
+   "title": "A Box at the Theatre des Italiens",
+   "year": "1873",
+   "medium": "Oil on canvas",
+   "size": [
+    130.0,
+    97.7
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q13575429",
+   "source": "https://commons.wikimedia.org/wiki/File:Eva Gonzalès - Une loge aux Italiens - 1873.jpg",
+   "file": "Eva Gonzalès - Une loge aux Italiens - 1873.jpg",
+   "image": "data/demo/works/a-box-at-the-theatre-des-italiens.jpg"
+  },
+  {
+   "slug": "morning-awakening",
+   "artist": "eva-gonzales",
+   "title": "Morning Awakening",
+   "year": "1877",
+   "medium": "Oil on canvas",
+   "size": [
+    100.1,
+    81.1
+   ],
+   "collection": "Kunsthalle Bremen",
+   "wikidata": "Q22340346",
+   "source": "https://commons.wikimedia.org/wiki/File:Eva Gonzales Morning Awakening.jpg",
+   "file": "Eva Gonzales Morning Awakening.jpg",
+   "image": "data/demo/works/morning-awakening.jpg"
+  },
+  {
+   "slug": "the-full-length-mirror",
+   "artist": "eva-gonzales",
+   "title": "The Full-length Mirror",
+   "year": "1869",
+   "medium": "Oil on canvas",
+   "size": [
+    26.5,
+    39.0
+   ],
+   "collection": "National Gallery",
+   "wikidata": "Q137821932",
+   "source": "https://commons.wikimedia.org/wiki/File:Eva Gonzalès - The Full-lenght Mirror.jpg",
+   "file": "Eva Gonzalès - The Full-lenght Mirror.jpg",
+   "image": "data/demo/works/the-full-length-mirror.jpg"
+  },
+  {
+   "slug": "girl-with-cherries",
+   "artist": "eva-gonzales",
+   "title": "Girl with Cherries",
+   "year": "1870",
+   "medium": "Oil on canvas",
+   "size": [
+    47.4,
+    56.2
+   ],
+   "collection": "Art Institute of Chicago",
+   "wikidata": "Q20268611",
+   "source": "https://commons.wikimedia.org/wiki/File:Eva Gonzalès - Girl with Cherries - 1940.32 - Art Institute of Chicago.jpg",
+   "file": "Eva Gonzalès - Girl with Cherries - 1940.32 - Art Institute of Chicago.jpg",
+   "image": "data/demo/works/girl-with-cherries.jpg"
+  },
+  {
+   "slug": "the-donkey-ride",
+   "artist": "eva-gonzales",
+   "title": "The Donkey Ride",
+   "year": "1880",
+   "medium": "Oil on canvas",
+   "size": [
+    100.0,
+    80.0
+   ],
+   "collection": "Bristol City Museum & Art Gallery",
+   "wikidata": "Q90735785",
+   "source": "https://commons.wikimedia.org/wiki/File:A La Promenade à âne, 1880, Eva Gonzalès - Parcours d'une artiste libre, 12.jpg",
+   "file": "A La Promenade à âne, 1880, Eva Gonzalès - Parcours d'une artiste libre, 12.jpg",
+   "image": "data/demo/works/the-donkey-ride.jpg"
+  },
+  {
+   "slug": "children-on-the-sand-dunes-grandcamp",
+   "artist": "eva-gonzales",
+   "title": "Children on the Sand Dunes, Grandcamp",
+   "year": "1877",
+   "medium": "Oil on canvas",
+   "size": [
+    56.0,
+    46.0
+   ],
+   "collection": "National Gallery of Ireland",
+   "wikidata": "Q77949964",
+   "source": "https://commons.wikimedia.org/wiki/File:Children on the Sand Dunes, Grandcamp .PNG",
+   "file": "Children on the Sand Dunes, Grandcamp .PNG",
+   "image": "data/demo/works/children-on-the-sand-dunes-grandcamp.jpg"
+  },
+  {
+   "slug": "self-portrait-i",
+   "artist": "marianne-von-werefkin",
+   "title": "Self-portrait I",
+   "year": "1910",
+   "medium": "Tempera on paper",
+   "size": [
+    34.0,
+    51.0
+   ],
+   "collection": "Lenbachhaus",
+   "wikidata": "Q24035276",
+   "source": "https://commons.wikimedia.org/wiki/File:Werefkin, Marianne von - Selfportrait I - Google Art Project.jpg",
+   "file": "Werefkin, Marianne von - Selfportrait I - Google Art Project.jpg",
+   "image": "data/demo/works/self-portrait-i.jpg"
+  },
+  {
+   "slug": "into-the-night",
+   "artist": "marianne-von-werefkin",
+   "title": "Into the Night",
+   "year": "1910",
+   "medium": "Tempera on paper",
+   "size": [
+    102.3,
+    75.3
+   ],
+   "collection": "Lenbachhaus",
+   "wikidata": "Q65238680",
+   "source": "https://commons.wikimedia.org/wiki/File:Marianne von Werefkin - In die Nacht hinein (ca.1911).jpg",
+   "file": "Marianne von Werefkin - In die Nacht hinein (ca.1911).jpg",
+   "image": "data/demo/works/into-the-night.jpg"
+  },
+  {
+   "slug": "portrait-of-alexej-von-jawlensky",
+   "artist": "marianne-von-werefkin",
+   "title": "Portrait of Alexej von Jawlensky",
+   "year": "1896",
+   "medium": "",
+   "size": [
+    24.7,
+    42.8
+   ],
+   "collection": "Lenbachhaus",
+   "wikidata": "Q75422910",
+   "source": "https://commons.wikimedia.org/wiki/File:Marianne von Werefkin - Bildnis Alexej von Jawlensky - G 13582 - Lenbachhaus.jpg",
+   "file": "Marianne von Werefkin - Bildnis Alexej von Jawlensky - G 13582 - Lenbachhaus.jpg",
+   "image": "data/demo/works/portrait-of-alexej-von-jawlensky.jpg"
+  },
+  {
+   "slug": "bathhouse",
+   "artist": "marianne-von-werefkin",
+   "title": "Bathhouse",
+   "year": "1911",
+   "medium": "Tempera on cardboard",
+   "size": [
+    70.0,
+    46.0
+   ],
+   "collection": "Museum Wiesbaden",
+   "wikidata": "Q138009142",
+   "source": "https://commons.wikimedia.org/wiki/File:Marianne von Werefkin - Badehaus (1911).jpg",
+   "file": "Marianne von Werefkin - Badehaus (1911).jpg",
+   "image": "data/demo/works/bathhouse.jpg"
+  },
+  {
+   "slug": "the-factory",
+   "artist": "marianne-von-werefkin",
+   "title": "The Factory",
+   "year": "1910",
+   "medium": "On paper",
+   "size": [
+    27.0,
+    37.0
+   ],
+   "collection": "",
+   "wikidata": "Q19937702",
+   "source": "https://commons.wikimedia.org/wiki/File:Marianne von Werefkin - Die Fabrik.jpeg",
+   "file": "Marianne von Werefkin - Die Fabrik.jpeg",
+   "image": "data/demo/works/the-factory.jpg"
+  },
+  {
+   "slug": "lago-maggiore",
+   "artist": "marianne-von-werefkin",
+   "title": "Lago Maggiore",
+   "year": "1922",
+   "medium": "Oil and tempera on cardboard",
+   "size": [
+    35.6,
+    45.5
+   ],
+   "collection": "",
+   "wikidata": "Q141595996",
+   "source": "https://commons.wikimedia.org/wiki/File:Marianne von Werefkin Lago Maggiore ca. 1922.jpg",
+   "file": "Marianne von Werefkin Lago Maggiore ca. 1922.jpg",
+   "image": "data/demo/works/lago-maggiore.jpg"
+  },
+  {
+   "slug": "woman-with-dead-child",
+   "artist": "kathe-kollwitz",
+   "title": "Woman with Dead Child",
+   "year": "1903",
+   "medium": "Etching on paper",
+   "size": [
+    47.2,
+    41.7
+   ],
+   "collection": "Prints in the National Gallery of Art",
+   "wikidata": "Q22049133",
+   "source": "https://commons.wikimedia.org/wiki/File:Kollwitz.jpg",
+   "file": "Kollwitz.jpg",
+   "image": "data/demo/works/woman-with-dead-child.jpg"
+  },
+  {
+   "slug": "zertretene-leichnam-und-frauenakt-am-pfahl-the-d",
+   "artist": "kathe-kollwitz",
+   "title": "The Downtrodden",
+   "year": "1901",
+   "medium": "Etching on paper",
+   "size": [
+    61.6,
+    23.5
+   ],
+   "collection": "Vanderbilt Museum of Art",
+   "wikidata": "Q102977559",
+   "source": "https://commons.wikimedia.org/wiki/File:Zertretene - Leichnam und Frauenakt am Pfahl (The Downtrodden - Corpse and Nude Woman at a Post) - Vanderbilt Fine Arts Gallery - 1966.003.tif",
+   "file": "Zertretene - Leichnam und Frauenakt am Pfahl (The Downtrodden - Corpse and Nude Woman at a Post) - Vanderbilt Fine Arts Gallery - 1966.003.tif",
+   "image": "data/demo/works/zertretene-leichnam-und-frauenakt-am-pfahl-the-d.jpg"
+  },
+  {
+   "slug": "brot-bread",
+   "artist": "kathe-kollwitz",
+   "title": "Bread!",
+   "year": "1924",
+   "medium": "Lithograph",
+   "size": [
+    39.4,
+    51.4
+   ],
+   "collection": "Vanderbilt Museum of Art",
+   "wikidata": "Q103297795",
+   "source": "https://commons.wikimedia.org/wiki/File:Brot! (Bread!) - Vanderbilt Fine Arts Gallery - 1977.011.tif",
+   "file": "Brot! (Bread!) - Vanderbilt Fine Arts Gallery - 1977.011.tif",
+   "image": "data/demo/works/brot-bread.jpg"
+  },
+  {
+   "slug": "gefallen-killed-in-action-or-news-from-the-front",
+   "artist": "kathe-kollwitz",
+   "title": "Killed in Action",
+   "year": "1921",
+   "medium": "Woodcut",
+   "size": [
+    40.0,
+    47.6
+   ],
+   "collection": "Vanderbilt Museum of Art",
+   "wikidata": "Q103300447",
+   "source": "https://commons.wikimedia.org/wiki/File:Gefallen (Killed in Action, or News from the Front) - Vanderbilt Fine Arts Gallery - 1992.333.tif",
+   "file": "Gefallen (Killed in Action, or News from the Front) - Vanderbilt Fine Arts Gallery - 1992.333.tif",
+   "image": "data/demo/works/gefallen-killed-in-action-or-news-from-the-front.jpg"
+  },
+  {
+   "slug": "selbstbildnis-self-portrait",
+   "artist": "kathe-kollwitz",
+   "title": "Self-Portrait",
+   "year": "1921",
+   "medium": "Woodcut",
+   "size": [
+    44.5,
+    35.6
+   ],
+   "collection": "Vanderbilt Museum of Art",
+   "wikidata": "Q104032329",
+   "source": "https://commons.wikimedia.org/wiki/File:Selbstbildnis (Self-Portrait) - Vanderbilt Fine Arts Gallery - 1979.0353P.lg.jpg",
+   "file": "Selbstbildnis (Self-Portrait) - Vanderbilt Fine Arts Gallery - 1979.0353P.lg.jpg",
+   "image": "data/demo/works/selbstbildnis-self-portrait.jpg"
+  },
+  {
+   "slug": "lovers-ii",
+   "artist": "kathe-kollwitz",
+   "title": "Lovers II",
+   "year": "1913",
+   "medium": "Woodcut",
+   "size": [
+    49.5,
+    71.0
+   ],
+   "collection": "Neue Nationalgalerie",
+   "wikidata": "Q131613039",
+   "source": "https://commons.wikimedia.org/wiki/File:Kollwitz - Liebespaar II.jpg",
+   "file": "Kollwitz - Liebespaar II.jpg",
+   "image": "data/demo/works/lovers-ii.jpg"
+  },
+  {
+   "slug": "still-life-with-cheeses-almonds-and-pretzels",
+   "artist": "clara-peeters",
+   "title": "Still Life with Cheeses, Almonds and Pretzels",
+   "year": "1615",
+   "medium": "Oil on panel",
+   "size": [
+    49.5,
+    34.5
+   ],
+   "collection": "Mauritshuis",
+   "wikidata": "Q19318363",
+   "source": "https://commons.wikimedia.org/wiki/File:Clara Peeters - Still Life with Cheeses, Almonds and Pretzels.jpg",
+   "file": "Clara Peeters - Still Life with Cheeses, Almonds and Pretzels.jpg",
+   "image": "data/demo/works/still-life-with-cheeses-almonds-and-pretzels.jpg"
+  },
+  {
+   "slug": "still-life-with-fish",
+   "artist": "clara-peeters",
+   "title": "Still Life with Fish",
+   "year": "1615",
+   "medium": "Oil on panel",
+   "size": [
+    49.9,
+    37.7
+   ],
+   "collection": "Royal Museum of Fine Arts Antwerp",
+   "wikidata": "Q19318258",
+   "source": "https://commons.wikimedia.org/wiki/File:Clara Peeters - Still life of fish.jpg",
+   "file": "Clara Peeters - Still life of fish.jpg",
+   "image": "data/demo/works/still-life-with-fish.jpg"
+  },
+  {
+   "slug": "still-life-with-flowers-and-gilt-goblets",
+   "artist": "clara-peeters",
+   "title": "Still life with flowers and gilt goblets",
+   "year": "1612",
+   "medium": "Oil on panel",
+   "size": [
+    49.0,
+    59.5
+   ],
+   "collection": "Staatliche Kunsthalle Karlsruhe",
+   "wikidata": "Q19318865",
+   "source": "https://commons.wikimedia.org/wiki/File:Still Life with Flowers and Gold Cups of Honour - Clara Peeters - Google Cultural Institute.jpg",
+   "file": "Still Life with Flowers and Gold Cups of Honour - Clara Peeters - Google Cultural Institute.jpg",
+   "image": "data/demo/works/still-life-with-flowers-and-gilt-goblets.jpg"
+  },
+  {
+   "slug": "still-life-of-fish-with-a-candlestick",
+   "artist": "clara-peeters",
+   "title": "Still life of fish with a candlestick",
+   "year": "1611",
+   "medium": "Oil on panel",
+   "size": [
+    72.0,
+    50.0
+   ],
+   "collection": "Museo del Prado",
+   "wikidata": "Q19318245",
+   "source": "https://commons.wikimedia.org/wiki/File:Clara Peeters - Bodegón (Prado) 02.jpg",
+   "file": "Clara Peeters - Bodegón (Prado) 02.jpg",
+   "image": "data/demo/works/still-life-of-fish-with-a-candlestick.jpg"
+  },
+  {
+   "slug": "still-life-with-flowers-goblet-and-dainties",
+   "artist": "clara-peeters",
+   "title": "Still life with flowers, goblet and dainties",
+   "year": "1611",
+   "medium": "Oil on panel",
+   "size": [
+    73.0,
+    52.0
+   ],
+   "collection": "Museo del Prado",
+   "wikidata": "Q19318502",
+   "source": "https://commons.wikimedia.org/wiki/File:Clara Peeters - Mesa (Prado) 01.jpg",
+   "file": "Clara Peeters - Mesa (Prado) 01.jpg",
+   "image": "data/demo/works/still-life-with-flowers-goblet-and-dainties.jpg"
+  },
+  {
+   "slug": "still-life-with-tazza-stoneware-jug-saltcellar-a",
+   "artist": "clara-peeters",
+   "title": "Still life with tazza, stoneware jug, saltcellar and dainties",
+   "year": "1611",
+   "medium": "Oil on panel",
+   "size": [
+    73.0,
+    55.0
+   ],
+   "collection": "Museo del Prado",
+   "wikidata": "Q19318833",
+   "source": "https://commons.wikimedia.org/wiki/File:Mesa (Clara Peeters).jpg",
+   "file": "Mesa (Clara Peeters).jpg",
+   "image": "data/demo/works/still-life-with-tazza-stoneware-jug-saltcellar-a.jpg"
+  },
+  {
+   "slug": "the-rhinoceros",
+   "artist": "albrecht-durer",
+   "title": "The Rhinoceros",
+   "year": "1515",
+   "medium": "Woodcut on paper",
+   "size": [
+    29.8,
+    23.5
+   ],
+   "collection": "British Museum",
+   "wikidata": "Q748518",
+   "source": "https://commons.wikimedia.org/wiki/File:Albrecht Dürer, The Rhinoceros, 1515, NGA 47903.jpg",
+   "file": "Albrecht Dürer, The Rhinoceros, 1515, NGA 47903.jpg",
+   "image": "data/demo/works/the-rhinoceros.jpg"
+  },
+  {
+   "slug": "self-portrait-with-fur-trimmed-robe",
+   "artist": "albrecht-durer",
+   "title": "Self-Portrait with Fur-Trimmed Robe",
+   "year": "1500",
+   "medium": "Oil on panel",
+   "size": [
+    48.9,
+    67.1
+   ],
+   "collection": "Bavarian State Painting Collections",
+   "wikidata": "Q2546309",
+   "source": "https://commons.wikimedia.org/wiki/File:Dürer Alte Pinakothek.jpg",
+   "file": "Dürer Alte Pinakothek.jpg",
+   "image": "data/demo/works/self-portrait-with-fur-trimmed-robe.jpg"
+  },
+  {
+   "slug": "melencolia-i",
+   "artist": "albrecht-durer",
+   "title": "Melencolia I",
+   "year": "1514",
+   "medium": "Engraving on paper",
+   "size": [
+    18.8,
+    24.2
+   ],
+   "collection": "British Museum",
+   "wikidata": "Q1362177",
+   "source": "https://commons.wikimedia.org/wiki/File:Albrecht Dürer - Melencolia I - Google Art Project (427760).jpg",
+   "file": "Albrecht Dürer - Melencolia I - Google Art Project (427760).jpg",
+   "image": "data/demo/works/melencolia-i.jpg"
+  },
+  {
+   "slug": "the-four-apostles",
+   "artist": "albrecht-durer",
+   "title": "The Four Apostles",
+   "year": "1526",
+   "medium": "Oil on panel",
+   "size": [
+    76.2,
+    212.8
+   ],
+   "collection": "Bavarian State Painting Collections",
+   "wikidata": "Q829270",
+   "source": "https://commons.wikimedia.org/wiki/File:Albrecht Dürer - The Four Apostles, Saints John, Peter, Mark and Paul.jpg",
+   "file": "Albrecht Dürer - The Four Apostles, Saints John, Peter, Mark and Paul.jpg",
+   "image": "data/demo/works/the-four-apostles.jpg"
+  },
+  {
+   "slug": "adoration-of-the-magi",
+   "artist": "albrecht-durer",
+   "title": "Adoration of the Magi",
+   "year": "1504",
+   "medium": "Oil on panel",
+   "size": [
+    113.5,
+    99.0
+   ],
+   "collection": "Uffizi Gallery",
+   "wikidata": "Q2628761",
+   "source": "https://commons.wikimedia.org/wiki/File:Albrecht Dürer - Adorazione dei Magi - Google Art Project.jpg",
+   "file": "Albrecht Dürer - Adorazione dei Magi - Google Art Project.jpg",
+   "image": "data/demo/works/adoration-of-the-magi.jpg"
+  },
+  {
+   "slug": "knight-death-and-the-devil",
+   "artist": "albrecht-durer",
+   "title": "Knight, Death, and the Devil",
+   "year": "1513",
+   "medium": "Engraving on paper",
+   "size": [
+    19.0,
+    24.8
+   ],
+   "collection": "British Museum",
+   "wikidata": "Q1755464",
+   "source": "https://commons.wikimedia.org/wiki/File:Albrecht Dürer, Knight, Death and Devil, 1513, NGA 6637.jpg",
+   "file": "Albrecht Dürer, Knight, Death and Devil, 1513, NGA 6637.jpg",
+   "image": "data/demo/works/knight-death-and-the-devil.jpg"
+  },
+  {
+   "slug": "the-night-watch",
+   "artist": "rembrandt",
+   "title": "The Night Watch",
+   "year": "1642",
+   "medium": "Oil on canvas",
+   "size": [
+    437.0,
+    363.0
+   ],
+   "collection": "Rijksmuseum",
+   "wikidata": "Q219831",
+   "source": "https://commons.wikimedia.org/wiki/File:La ronda de noche, por Rembrandt van Rijn.jpg",
+   "file": "La ronda de noche, por Rembrandt van Rijn.jpg",
+   "image": "data/demo/works/the-night-watch.jpg"
+  },
+  {
+   "slug": "the-anatomy-lesson-of-dr-nicolaes-tulp",
+   "artist": "rembrandt",
+   "title": "The Anatomy Lesson of Dr. Nicolaes Tulp",
+   "year": "1632",
+   "medium": "Oil on canvas",
+   "size": [
+    216.5,
+    169.5
+   ],
+   "collection": "Mauritshuis",
+   "wikidata": "Q661378",
+   "source": "https://commons.wikimedia.org/wiki/File:Rembrandt - The Anatomy Lesson of Dr Nicolaes Tulp.jpg",
+   "file": "Rembrandt - The Anatomy Lesson of Dr Nicolaes Tulp.jpg",
+   "image": "data/demo/works/the-anatomy-lesson-of-dr-nicolaes-tulp.jpg"
+  },
+  {
+   "slug": "the-jewish-bride",
+   "artist": "rembrandt",
+   "title": "The Jewish Bride",
+   "year": "1667",
+   "medium": "Oil on canvas",
+   "size": [
+    166.5,
+    121.5
+   ],
+   "collection": "Rijksmuseum",
+   "wikidata": "Q766782",
+   "source": "https://commons.wikimedia.org/wiki/File:Rembrandt Harmensz. van Rijn - Portret van een paar als oudtestamentische figuren, genaamd 'Het Joodse bruidje' - Google Art Project.jpg",
+   "file": "Rembrandt Harmensz. van Rijn - Portret van een paar als oudtestamentische figuren, genaamd 'Het Joodse bruidje' - Google Art Project.jpg",
+   "image": "data/demo/works/the-jewish-bride.jpg"
+  },
+  {
+   "slug": "the-storm-on-the-sea-of-galilee",
+   "artist": "rembrandt",
+   "title": "The Storm on the Sea of Galilee",
+   "year": "1633",
+   "medium": "Oil on canvas",
+   "size": [
+    128.0,
+    160.0
+   ],
+   "collection": "Isabella Stewart Gardner Museum",
+   "wikidata": "Q2246489",
+   "source": "https://commons.wikimedia.org/wiki/File:Rembrandt Christ in the Storm on the Lake of Galilee.jpg",
+   "file": "Rembrandt Christ in the Storm on the Lake of Galilee.jpg",
+   "image": "data/demo/works/the-storm-on-the-sea-of-galilee.jpg"
+  },
+  {
+   "slug": "el-retorno-del-hijo-gey",
+   "artist": "rembrandt",
+   "title": "The Return of the Prodigal Son",
+   "year": "1668",
+   "medium": "Oil on canvas",
+   "size": [
+    205.0,
+    262.0
+   ],
+   "collection": "Hermitage Museum",
+   "wikidata": "Q512755",
+   "source": "https://commons.wikimedia.org/wiki/File:Rembrandt Harmensz van Rijn - Return of the Prodigal Son - Google Art Project.jpg",
+   "file": "Rembrandt Harmensz van Rijn - Return of the Prodigal Son - Google Art Project.jpg",
+   "image": "data/demo/works/el-retorno-del-hijo-gey.jpg"
+  },
+  {
+   "slug": "danae-1636",
+   "artist": "rembrandt",
+   "title": "Danaë",
+   "year": "1636",
+   "medium": "Oil on canvas",
+   "size": [
+    202.5,
+    185.0
+   ],
+   "collection": "Hermitage Museum",
+   "wikidata": "Q2294441",
+   "source": "https://commons.wikimedia.org/wiki/File:Rembrandt Harmensz. van Rijn 026.jpg",
+   "file": "Rembrandt Harmensz. van Rijn 026.jpg",
+   "image": "data/demo/works/danae-1636.jpg"
+  },
+  {
+   "slug": "girl-with-a-pearl-earring",
+   "artist": "johannes-vermeer",
+   "title": "Girl with a Pearl Earring",
+   "year": "1665",
+   "medium": "Oil on canvas",
+   "size": [
+    39.0,
+    44.5
+   ],
+   "collection": "Mauritshuis",
+   "wikidata": "Q185372",
+   "source": "https://commons.wikimedia.org/wiki/File:1665 Girl with a Pearl Earring.jpg",
+   "file": "1665 Girl with a Pearl Earring.jpg",
+   "image": "data/demo/works/girl-with-a-pearl-earring.jpg"
+  },
+  {
+   "slug": "the-milkmaid",
+   "artist": "johannes-vermeer",
+   "title": "The Milkmaid",
+   "year": "1660",
+   "medium": "Oil on canvas",
+   "size": [
+    41.0,
+    45.5
+   ],
+   "collection": "Rijksmuseum",
+   "wikidata": "Q167605",
+   "source": "https://commons.wikimedia.org/wiki/File:Johannes Vermeer - Het melkmeisje - Google Art Project.jpg",
+   "file": "Johannes Vermeer - Het melkmeisje - Google Art Project.jpg",
+   "image": "data/demo/works/the-milkmaid.jpg"
+  },
+  {
+   "slug": "view-of-delft",
+   "artist": "johannes-vermeer",
+   "title": "View of Delft",
+   "year": "1661",
+   "medium": "Oil on canvas",
+   "size": [
+    115.7,
+    96.5
+   ],
+   "collection": "Mauritshuis",
+   "wikidata": "Q523974",
+   "source": "https://commons.wikimedia.org/wiki/File:Johannes Vermeer - View of Delft - 92 - Mauritshuis.jpg",
+   "file": "Johannes Vermeer - View of Delft - 92 - Mauritshuis.jpg",
+   "image": "data/demo/works/view-of-delft.jpg"
+  },
+  {
+   "slug": "the-art-of-painting",
+   "artist": "johannes-vermeer",
+   "title": "The Art of Painting",
+   "year": "1667",
+   "medium": "Oil on canvas",
+   "size": [
+    100.0,
+    120.0
+   ],
+   "collection": "Kunsthistorisches Museum",
+   "wikidata": "Q588695",
+   "source": "https://commons.wikimedia.org/wiki/File:Jan Vermeer - The Art of Painting - Google Art Project.jpg",
+   "file": "Jan Vermeer - The Art of Painting - Google Art Project.jpg",
+   "image": "data/demo/works/the-art-of-painting.jpg"
+  },
+  {
+   "slug": "the-astronomer",
+   "artist": "johannes-vermeer",
+   "title": "The Astronomer",
+   "year": "1664",
+   "medium": "Oil on canvas",
+   "size": [
+    46.3,
+    50.8
+   ],
+   "collection": "Department of Paintings of the Louvre",
+   "wikidata": "Q544315",
+   "source": "https://commons.wikimedia.org/wiki/File:Johannes Vermeer - The Astronomer - 1668.jpg",
+   "file": "Johannes Vermeer - The Astronomer - 1668.jpg",
+   "image": "data/demo/works/the-astronomer.jpg"
+  },
+  {
+   "slug": "the-little-street",
+   "artist": "johannes-vermeer",
+   "title": "The Little Street",
+   "year": "1658",
+   "medium": "Oil on canvas",
+   "size": [
+    44.0,
+    54.3
+   ],
+   "collection": "Rijksmuseum",
+   "wikidata": "Q586035",
+   "source": "https://commons.wikimedia.org/wiki/File:Johannes Vermeer - Gezicht op huizen in Delft, bekend als 'Het straatje' - Google Art Project.jpg",
+   "file": "Johannes Vermeer - Gezicht op huizen in Delft, bekend als 'Het straatje' - Google Art Project.jpg",
+   "image": "data/demo/works/the-little-street.jpg"
+  },
+  {
+   "slug": "la-maja-desnuda",
+   "artist": "francisco-goya",
+   "title": "La maja desnuda",
+   "year": "1800",
+   "medium": "Oil on canvas",
+   "size": [
+    191.0,
+    98.0
+   ],
+   "collection": "Museo del Prado",
+   "wikidata": "Q152867",
+   "source": "https://commons.wikimedia.org/wiki/File:Maja desnuda (museo del Prado).jpg",
+   "file": "Maja desnuda (museo del Prado).jpg",
+   "image": "data/demo/works/la-maja-desnuda.jpg"
+  },
+  {
+   "slug": "the-third-of-may-1808",
+   "artist": "francisco-goya",
+   "title": "The Third of May 1808",
+   "year": "1814",
+   "medium": "Oil on canvas",
+   "size": [
+    347.0,
+    268.0
+   ],
+   "collection": "Museo del Prado",
+   "wikidata": "Q1091086",
+   "source": "https://commons.wikimedia.org/wiki/File:Francisco de Goya y Lucientes - Los fusilamientos del tres de mayo - 1814.jpg",
+   "file": "Francisco de Goya y Lucientes - Los fusilamientos del tres de mayo - 1814.jpg",
+   "image": "data/demo/works/the-third-of-may-1808.jpg"
+  },
+  {
+   "slug": "saturn-devouring-his-son",
+   "artist": "francisco-goya",
+   "title": "Saturn Devouring His Son",
+   "year": "1820",
+   "medium": "On canvas",
+   "size": [
+    81.4,
+    143.5
+   ],
+   "collection": "Museo del Prado",
+   "wikidata": "Q1150997",
+   "source": "https://commons.wikimedia.org/wiki/File:Francisco de Goya, Saturno devorando a su hijo (1819-1823).jpg",
+   "file": "Francisco de Goya, Saturno devorando a su hijo (1819-1823).jpg",
+   "image": "data/demo/works/saturn-devouring-his-son.jpg"
+  },
+  {
+   "slug": "charles-iv-of-spain-and-his-family",
+   "artist": "francisco-goya",
+   "title": "Charles IV of Spain and His Family",
+   "year": "1800",
+   "medium": "Oil on canvas",
+   "size": [
+    336.0,
+    280.0
+   ],
+   "collection": "Museo del Prado",
+   "wikidata": "Q920030",
+   "source": "https://commons.wikimedia.org/wiki/File:La familia de Carlos IV, por Francisco de Goya.jpg",
+   "file": "La familia de Carlos IV, por Francisco de Goya.jpg",
+   "image": "data/demo/works/charles-iv-of-spain-and-his-family.jpg"
+  },
+  {
+   "slug": "the-clothed-maja",
+   "artist": "francisco-goya",
+   "title": "The Clothed Maja",
+   "year": "1800",
+   "medium": "Oil on canvas",
+   "size": [
+    190.0,
+    95.0
+   ],
+   "collection": "Museo del Prado",
+   "wikidata": "Q2735507",
+   "source": "https://commons.wikimedia.org/wiki/File:Goya Maja ubrana2.jpg",
+   "file": "Goya Maja ubrana2.jpg",
+   "image": "data/demo/works/the-clothed-maja.jpg"
+  },
+  {
+   "slug": "the-second-of-may-1808",
+   "artist": "francisco-goya",
+   "title": "The Second of May 1808",
+   "year": "1814",
+   "medium": "Oil on canvas",
+   "size": [
+    347.5,
+    268.5
+   ],
+   "collection": "Museo del Prado",
+   "wikidata": "Q2983399",
+   "source": "https://commons.wikimedia.org/wiki/File:El dos de mayo de 1808 en Madrid.jpg",
+   "file": "El dos de mayo de 1808 en Madrid.jpg",
+   "image": "data/demo/works/the-second-of-may-1808.jpg"
+  },
+  {
+   "slug": "the-sea-at-satta-in-suruga-province",
+   "artist": "utagawa-hiroshige",
+   "title": "The Sea at Satta in Suruga Province",
+   "year": "1858",
+   "medium": "Woodcut on paper",
+   "size": [
+    22.2,
+    33.8
+   ],
+   "collection": "",
+   "wikidata": "Q131295642",
+   "source": "https://commons.wikimedia.org/wiki/File:23 - The Sea off Satta.jpg",
+   "file": "23 - The Sea off Satta.jpg",
+   "image": "data/demo/works/the-sea-at-satta-in-suruga-province.jpg"
+  },
+  {
+   "slug": "naruto-whirlpools",
+   "artist": "utagawa-hiroshige",
+   "title": "Naruto Whirlpools",
+   "year": "1853",
+   "medium": "Woodblock print",
+   "size": [
+    24.4,
+    35.6
+   ],
+   "collection": "",
+   "wikidata": "Q131629216",
+   "source": "https://commons.wikimedia.org/wiki/File:The Famous Scenes of the Sixty States 55 Awa.jpg",
+   "file": "The Famous Scenes of the Sixty States 55 Awa.jpg",
+   "image": "data/demo/works/naruto-whirlpools.jpg"
+  },
+  {
+   "slug": "tokaido-gojusan-tsui-kanaya",
+   "artist": "utagawa-hiroshige",
+   "title": "Kanaya, from the Fifty-three Stations of the Tōkaidō",
+   "year": "1845",
+   "medium": "Woodcut on paper",
+   "size": [
+    24.9,
+    36.9
+   ],
+   "collection": "Walters Art Museum",
+   "wikidata": "Q106535024",
+   "source": "https://commons.wikimedia.org/wiki/File:Ebiya Rinnosuke - Tokaido gojusan tsui - Walters 95567.jpg",
+   "file": "Ebiya Rinnosuke - Tokaido gojusan tsui - Walters 95567.jpg",
+   "image": "data/demo/works/tokaido-gojusan-tsui-kanaya.jpg"
+  },
+  {
+   "slug": "ishibe-megawa-village-ishibe-megawa-no-sato",
+   "artist": "utagawa-hiroshige",
+   "title": "Ishibe: Megawa Village (Ishibe, Megawa no sato)",
+   "year": "1834",
+   "medium": "Woodblock print",
+   "size": [
+    34.3,
+    21.6
+   ],
+   "collection": "Vanderbilt Museum of Art",
+   "wikidata": "Q102966507",
+   "source": "https://commons.wikimedia.org/wiki/File:Ishibe- Megawa Village (Ishibe, Megawa no sato) - Vanderbilt Fine Arts Gallery - 1956.058.tif",
+   "file": "Ishibe- Megawa Village (Ishibe, Megawa no sato) - Vanderbilt Fine Arts Gallery - 1956.058.tif",
+   "image": "data/demo/works/ishibe-megawa-village-ishibe-megawa-no-sato.jpg"
+  },
+  {
+   "slug": "ishiyakushi-ishiyakushi-temple-ishiyakushi-ishiy",
+   "artist": "utagawa-hiroshige",
+   "title": "Ishiyakushi: Ishiyakushi Temple (Ishiyakushi, Ishiyakushi-ji)",
+   "year": "1834",
+   "medium": "Woodblock print",
+   "size": [
+    34.3,
+    22.2
+   ],
+   "collection": "Vanderbilt Museum of Art",
+   "wikidata": "Q102966512",
+   "source": "https://commons.wikimedia.org/wiki/File:Ishiyakushi- Ishiyakushi Temple (Ishiyakushi, Ishiyakushi-ji) - Vanderbilt Fine Arts Gallery - 1972.023.tif",
+   "file": "Ishiyakushi- Ishiyakushi Temple (Ishiyakushi, Ishiyakushi-ji) - Vanderbilt Fine Arts Gallery - 1972.023.tif",
+   "image": "data/demo/works/ishiyakushi-ishiyakushi-temple-ishiyakushi-ishiy.jpg"
+  },
+  {
+   "slug": "numazu-twilight-numazu-tasogare-zu",
+   "artist": "utagawa-hiroshige",
+   "title": "Numazu: Twilight (Numazu, tasogare zu)",
+   "year": "1834",
+   "medium": "Woodblock print",
+   "size": [
+    34.3,
+    22.2
+   ],
+   "collection": "Vanderbilt Museum of Art",
+   "wikidata": "Q102969115",
+   "source": "https://commons.wikimedia.org/wiki/File:Numazu- Twilight (Numazu, tasogare zu) - Vanderbilt Fine Arts Gallery - 1972.022.tif",
+   "file": "Numazu- Twilight (Numazu, tasogare zu) - Vanderbilt Fine Arts Gallery - 1972.022.tif",
+   "image": "data/demo/works/numazu-twilight-numazu-tasogare-zu.jpg"
+  },
+  {
+   "slug": "luncheon-on-the-grass",
+   "artist": "edouard-manet",
+   "title": "Luncheon on the Grass",
+   "year": "1863",
+   "medium": "Oil on canvas",
+   "size": [
+    264.5,
+    208.0
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q152509",
+   "source": "https://commons.wikimedia.org/wiki/File:Edouard Manet - Luncheon on the Grass - Google Art Project.jpg",
+   "file": "Edouard Manet - Luncheon on the Grass - Google Art Project.jpg",
+   "image": "data/demo/works/luncheon-on-the-grass.jpg"
+  },
+  {
+   "slug": "olympia",
+   "artist": "edouard-manet",
+   "title": "Olympia",
+   "year": "1863",
+   "medium": "Oil on canvas",
+   "size": [
+    191.0,
+    130.5
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q737062",
+   "source": "https://commons.wikimedia.org/wiki/File:Edouard Manet - Olympia - Google Art Project 3.jpg",
+   "file": "Edouard Manet - Olympia - Google Art Project 3.jpg",
+   "image": "data/demo/works/olympia.jpg"
+  },
+  {
+   "slug": "a-bar-at-the-folies-bergere",
+   "artist": "edouard-manet",
+   "title": "A Bar at the Folies-Bergère",
+   "year": "1882",
+   "medium": "Oil on canvas",
+   "size": [
+    130.0,
+    96.0
+   ],
+   "collection": "Courtauld Gallery",
+   "wikidata": "Q1245354",
+   "source": "https://commons.wikimedia.org/wiki/File:Un bar aux Folies-Bergère d'E. Manet (Fondation Vuitton, Paris) (33539037428).jpg",
+   "file": "Un bar aux Folies-Bergère d'E. Manet (Fondation Vuitton, Paris) (33539037428).jpg",
+   "image": "data/demo/works/a-bar-at-the-folies-bergere.jpg"
+  },
+  {
+   "slug": "the-balcony",
+   "artist": "edouard-manet",
+   "title": "The Balcony",
+   "year": "1868",
+   "medium": "Oil on canvas",
+   "size": [
+    124.5,
+    170.0
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q775407",
+   "source": "https://commons.wikimedia.org/wiki/File:Edouard Manet - The Balcony - Google Art Project.jpg",
+   "file": "Edouard Manet - The Balcony - Google Art Project.jpg",
+   "image": "data/demo/works/the-balcony.jpg"
+  },
+  {
+   "slug": "music-in-the-tuileries",
+   "artist": "edouard-manet",
+   "title": "Music in the Tuileries",
+   "year": "1862",
+   "medium": "Oil on canvas",
+   "size": [
+    118.1,
+    76.2
+   ],
+   "collection": "National Gallery",
+   "wikidata": "Q210277",
+   "source": "https://commons.wikimedia.org/wiki/File:Édouard Manet - Music in the Tuileries Gardens.jpg",
+   "file": "Édouard Manet - Music in the Tuileries Gardens.jpg",
+   "image": "data/demo/works/music-in-the-tuileries.jpg"
+  },
+  {
+   "slug": "the-fif",
+   "artist": "edouard-manet",
+   "title": "The Fifer",
+   "year": "1866",
+   "medium": "Oil on canvas",
+   "size": [
+    97.0,
+    160.5
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q26250",
+   "source": "https://commons.wikimedia.org/wiki/File:Manet, Edouard - Young Flautist, or The Fifer, 1866 (2).jpg",
+   "file": "Manet, Edouard - Young Flautist, or The Fifer, 1866 (2).jpg",
+   "image": "data/demo/works/the-fif.jpg"
+  },
+  {
+   "slug": "l-absinthe",
+   "artist": "edgar-degas",
+   "title": "L'Absinthe",
+   "year": "1876",
+   "medium": "Oil on canvas",
+   "size": [
+    68.0,
+    92.0
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q1239950",
+   "source": "https://commons.wikimedia.org/wiki/File:Edgar Degas - In a Café - Google Art Project 2.jpg",
+   "file": "Edgar Degas - In a Café - Google Art Project 2.jpg",
+   "image": "data/demo/works/l-absinthe.jpg"
+  },
+  {
+   "slug": "the-bellelli-family",
+   "artist": "edgar-degas",
+   "title": "The Bellelli Family",
+   "year": "1867",
+   "medium": "Oil on canvas",
+   "size": [
+    253.0,
+    200.0
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q2622172",
+   "source": "https://commons.wikimedia.org/wiki/File:Edgar Degas - The Bellelli Family - Google Art Project.jpg",
+   "file": "Edgar Degas - The Bellelli Family - Google Art Project.jpg",
+   "image": "data/demo/works/the-bellelli-family.jpg"
+  },
+  {
+   "slug": "blue-dancers",
+   "artist": "edgar-degas",
+   "title": "Blue Dancers",
+   "year": "1898",
+   "medium": "Pastel on paper",
+   "size": [
+    65.0,
+    65.0
+   ],
+   "collection": "Pushkin Museum of Fine Arts",
+   "wikidata": "Q3633419",
+   "source": "https://commons.wikimedia.org/wiki/File:Edgar Degas - Blue Dancers (1898 Pushkin Museum).jpg",
+   "file": "Edgar Degas - Blue Dancers (1898 Pushkin Museum).jpg",
+   "image": "data/demo/works/blue-dancers.jpg"
+  },
+  {
+   "slug": "the-ballet-class",
+   "artist": "edgar-degas",
+   "title": "The Ballet Class",
+   "year": "1871",
+   "medium": "Oil on canvas",
+   "size": [
+    75.0,
+    85.0
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q3821820",
+   "source": "https://commons.wikimedia.org/wiki/File:Edgar Degas - The Ballet Class - Google Art Project.jpg",
+   "file": "Edgar Degas - The Ballet Class - Google Art Project.jpg",
+   "image": "data/demo/works/the-ballet-class.jpg"
+  },
+  {
+   "slug": "interior",
+   "artist": "edgar-degas",
+   "title": "Interior",
+   "year": "1868",
+   "medium": "Oil on canvas",
+   "size": [
+    114.3,
+    81.3
+   ],
+   "collection": "Philadelphia Museum of Art",
+   "wikidata": "Q6046671",
+   "source": "https://commons.wikimedia.org/wiki/File:Edgar Degas - Interior - Google Art Project.jpg",
+   "file": "Edgar Degas - Interior - Google Art Project.jpg",
+   "image": "data/demo/works/interior.jpg"
+  },
+  {
+   "slug": "miss-la-la-at-the-cirque-fernando",
+   "artist": "edgar-degas",
+   "title": "Miss La La at the Cirque Fernando",
+   "year": "1879",
+   "medium": "Oil on canvas",
+   "size": [
+    77.5,
+    117.2
+   ],
+   "collection": "National Gallery",
+   "wikidata": "Q3842349",
+   "source": "https://commons.wikimedia.org/wiki/File:Edgar Degas, Miss La La at the Cirque Fernando, 1879.jpg",
+   "file": "Edgar Degas, Miss La La at the Cirque Fernando, 1879.jpg",
+   "image": "data/demo/works/miss-la-la-at-the-cirque-fernando.jpg"
+  },
+  {
+   "slug": "the-card-players",
+   "artist": "paul-cezanne",
+   "title": "The Card Players",
+   "year": "1893",
+   "medium": "Oil on canvas",
+   "size": [
+    57.0,
+    47.5
+   ],
+   "collection": "Courtauld Institute of Art",
+   "wikidata": "Q17277950",
+   "source": "https://commons.wikimedia.org/wiki/File:Paul Cézanne, Les joueurs de carte (1892-95).jpg",
+   "file": "Paul Cézanne, Les joueurs de carte (1892-95).jpg",
+   "image": "data/demo/works/the-card-players.jpg"
+  },
+  {
+   "slug": "les-grandes-baigneuses",
+   "artist": "paul-cezanne",
+   "title": "Les Grandes Baigneuses",
+   "year": "1906",
+   "medium": "Oil on canvas",
+   "size": [
+    250.8,
+    210.5
+   ],
+   "collection": "Philadelphia Museum of Art",
+   "wikidata": "Q2270938",
+   "source": "https://commons.wikimedia.org/wiki/File:Paul Cézanne, French - The Large Bathers - Google Art Project.jpg",
+   "file": "Paul Cézanne, French - The Large Bathers - Google Art Project.jpg",
+   "image": "data/demo/works/les-grandes-baigneuses.jpg"
+  },
+  {
+   "slug": "mardi-gras",
+   "artist": "paul-cezanne",
+   "title": "Mardi Gras",
+   "year": "1888",
+   "medium": "Oil on canvas",
+   "size": [
+    81.0,
+    102.0
+   ],
+   "collection": "Pushkin Museum of Fine Arts",
+   "wikidata": "Q3138984",
+   "source": "https://commons.wikimedia.org/wiki/File:Mardi gras, par Paul Cézanne, Yorck.jpg",
+   "file": "Mardi gras, par Paul Cézanne, Yorck.jpg",
+   "image": "data/demo/works/mardi-gras.jpg"
+  },
+  {
+   "slug": "the-boy-in-the-red-vest",
+   "artist": "paul-cezanne",
+   "title": "The Boy in the Red Vest",
+   "year": "1889",
+   "medium": "Oil on canvas",
+   "size": [
+    64.0,
+    79.5
+   ],
+   "collection": "Foundation E.G. Bührle Collection",
+   "wikidata": "Q2270805",
+   "source": "https://commons.wikimedia.org/wiki/File:Paul Cézanne - Le Garçon au gilet rouge - Bührle.jpg",
+   "file": "Paul Cézanne - Le Garçon au gilet rouge - Bührle.jpg",
+   "image": "data/demo/works/the-boy-in-the-red-vest.jpg"
+  },
+  {
+   "slug": "the-basket-of-apples",
+   "artist": "paul-cezanne",
+   "title": "The Basket of Apples",
+   "year": "1893",
+   "medium": "Oil on canvas",
+   "size": [
+    80.0,
+    65.0
+   ],
+   "collection": "Art Institute of Chicago",
+   "wikidata": "Q3956440",
+   "source": "https://commons.wikimedia.org/wiki/File:Paul Cézanne - The Basket of Apples - 1926.252 - Art Institute of Chicago.jpg",
+   "file": "Paul Cézanne - The Basket of Apples - 1926.252 - Art Institute of Chicago.jpg",
+   "image": "data/demo/works/the-basket-of-apples.jpg"
+  },
+  {
+   "slug": "lady-in-blue",
+   "artist": "paul-cezanne",
+   "title": "Lady in Blue",
+   "year": "1904",
+   "medium": "Oil on canvas",
+   "size": [
+    73.5,
+    90.0
+   ],
+   "collection": "Hermitage Museum",
+   "wikidata": "Q3824214",
+   "source": "https://commons.wikimedia.org/wiki/File:Paul Cézanne 138.jpg",
+   "file": "Paul Cézanne 138.jpg",
+   "image": "data/demo/works/lady-in-blue.jpg"
+  },
+  {
+   "slug": "hay-harvest-at-eragny",
+   "artist": "camille-pissarro",
+   "title": "Hay Harvest at Éragny",
+   "year": "1901",
+   "medium": "Oil on canvas",
+   "size": [
+    64.7,
+    53.9
+   ],
+   "collection": "National Gallery of Canada",
+   "wikidata": "Q5407253",
+   "source": "https://commons.wikimedia.org/wiki/File:Hay Harvest at Éragny, 1901, Camille Pissarro.jpg",
+   "file": "Hay Harvest at Éragny, 1901, Camille Pissarro.jpg",
+   "image": "data/demo/works/hay-harvest-at-eragny.jpg"
+  },
+  {
+   "slug": "the-red-roofs-cote-saint-denis-at-pontoise-winte",
+   "artist": "camille-pissarro",
+   "title": "The Red Roofs, Côte Saint-Denis at Pontoise, Winter Effect",
+   "year": "1877",
+   "medium": "Oil on canvas",
+   "size": [
+    65.0,
+    54.0
+   ],
+   "collection": "Musée d'Orsay",
+   "wikidata": "Q2843906",
+   "source": "https://commons.wikimedia.org/wiki/File:Camille Pissarro 011.jpg",
+   "file": "Camille Pissarro 011.jpg",
+   "image": "data/demo/works/the-red-roofs-cote-saint-denis-at-pontoise-winte.jpg"
+  },
+  {
+   "slug": "steamboats-in-the-port-of-rouen",
+   "artist": "camille-pissarro",
+   "title": "Steamboats in the Port of Rouen",
+   "year": "1896",
+   "medium": "Oil on canvas",
+   "size": [
+    54.6,
+    45.7
+   ],
+   "collection": "Metropolitan Museum of Art",
+   "wikidata": "Q19905366",
+   "source": "https://commons.wikimedia.org/wiki/File:Steamboats in the Port of Rouen.jpg",
+   "file": "Steamboats in the Port of Rouen.jpg",
+   "image": "data/demo/works/steamboats-in-the-port-of-rouen.jpg"
+  },
+  {
+   "slug": "the-cote-des-bufs-pontoise",
+   "artist": "camille-pissarro",
+   "title": "The Côte des Bœufs, Pontoise",
+   "year": "1877",
+   "medium": "Oil on canvas",
+   "size": [
+    87.6,
+    114.9
+   ],
+   "collection": "National Gallery",
+   "wikidata": "Q7728560",
+   "source": "https://commons.wikimedia.org/wiki/File:Camille Pissarro - The Côte des Bœufs at L'Hermitage - National Gallery London.jpg",
+   "file": "Camille Pissarro - The Côte des Bœufs at L'Hermitage - National Gallery London.jpg",
+   "image": "data/demo/works/the-cote-des-bufs-pontoise.jpg"
+  },
+  {
+   "slug": "rue-saint-honore-in-the-afternoon-effect-of-rain",
+   "artist": "camille-pissarro",
+   "title": "Rue Saint-Honoré in the Afternoon. Effect of Rain",
+   "year": "1897",
+   "medium": "Oil on canvas",
+   "size": [
+    65.0,
+    81.0
+   ],
+   "collection": "Thyssen-Bornemisza Museum",
+   "wikidata": "Q21191272",
+   "source": "https://commons.wikimedia.org/wiki/File:Camille Pissarro - Rue Saint-Honoré, dans l'après-midi. Effet de pluie.jpg",
+   "file": "Camille Pissarro - Rue Saint-Honoré, dans l'après-midi. Effet de pluie.jpg",
+   "image": "data/demo/works/rue-saint-honore-in-the-afternoon-effect-of-rain.jpg"
+  },
+  {
+   "slug": "boulevard-montmartre-mardi-gras",
+   "artist": "camille-pissarro",
+   "title": "Boulevard Montmartre, Mardi Gras",
+   "year": "1897",
+   "medium": "Oil on canvas",
+   "size": [
+    81.3,
+    65.1
+   ],
+   "collection": "Hammer Museum",
+   "wikidata": "Q4949655",
+   "source": "https://commons.wikimedia.org/wiki/File:Camille Pissarro - Boulevard Montmartre, Mardi Gras (1897).jpg",
+   "file": "Camille Pissarro - Boulevard Montmartre, Mardi Gras (1897).jpg",
+   "image": "data/demo/works/boulevard-montmartre-mardi-gras.jpg"
+  },
+  {
+   "slug": "the-scream",
+   "artist": "edvard-munch",
+   "title": "The Scream",
+   "year": "1893",
+   "medium": "Tempera and crayon on cardboard",
+   "size": [
+    73.5,
+    91.0
+   ],
+   "collection": "National Museum of Art, Architecture and Design",
+   "wikidata": "Q471379",
+   "source": "https://commons.wikimedia.org/wiki/File:Edvard Munch, 1893, The Scream, oil, tempera and pastel on cardboard, 91 x 73 cm, National Gallery of Norway.jpg",
+   "file": "Edvard Munch, 1893, The Scream, oil, tempera and pastel on cardboard, 91 x 73 cm, National Gallery of Norway.jpg",
+   "image": "data/demo/works/the-scream.jpg"
+  },
+  {
+   "slug": "madonna",
+   "artist": "edvard-munch",
+   "title": "Madonna",
+   "year": "1894",
+   "medium": "Oil on canvas",
+   "size": [
+    70.5,
+    91.0
+   ],
+   "collection": "",
+   "wikidata": "Q1989780",
+   "source": "https://commons.wikimedia.org/wiki/File:Edvard Munch - Madonna (1894-1895).jpg",
+   "file": "Edvard Munch - Madonna (1894-1895).jpg",
+   "image": "data/demo/works/madonna.jpg"
+  },
+  {
+   "slug": "vampire",
+   "artist": "edvard-munch",
+   "title": "Vampire",
+   "year": "1893",
+   "medium": "Oil on canvas",
+   "size": [
+    98.0,
+    77.5
+   ],
+   "collection": "Munch Museum",
+   "wikidata": "Q1683743",
+   "source": "https://commons.wikimedia.org/wiki/File:Edvard Munch - Vampire - MM.M.00292 - Munch Museum.jpg",
+   "file": "Edvard Munch - Vampire - MM.M.00292 - Munch Museum.jpg",
+   "image": "data/demo/works/vampire.jpg"
+  },
+  {
+   "slug": "the-kiss",
+   "artist": "edvard-munch",
+   "title": "The Kiss",
+   "year": "1897",
+   "medium": "Oil on canvas",
+   "size": [
+    81.0,
+    99.0
+   ],
+   "collection": "Munch Museum",
+   "wikidata": "Q18891111",
+   "source": "https://commons.wikimedia.org/wiki/File:Edvard Munch - The Kiss - Google Art Project.jpg",
+   "file": "Edvard Munch - The Kiss - Google Art Project.jpg",
+   "image": "data/demo/works/the-kiss.jpg"
+  },
+  {
+   "slug": "anxiety",
+   "artist": "edvard-munch",
+   "title": "Anxiety",
+   "year": "1894",
+   "medium": "Oil on canvas",
+   "size": [
+    74.0,
+    94.0
+   ],
+   "collection": "Munch Museum",
+   "wikidata": "Q18208623",
+   "source": "https://commons.wikimedia.org/wiki/File:Edvard Munch - Anxiety - Google Art Project.jpg",
+   "file": "Edvard Munch - Anxiety - Google Art Project.jpg",
+   "image": "data/demo/works/anxiety.jpg"
+  },
+  {
+   "slug": "puberty",
+   "artist": "edvard-munch",
+   "title": "Puberty",
+   "year": "1895",
+   "medium": "Oil on canvas",
+   "size": [
+    110.0,
+    151.5
+   ],
+   "collection": "National Museum of Art, Architecture and Design",
+   "wikidata": "Q3432673",
+   "source": "https://commons.wikimedia.org/wiki/File:Edvard Munch - Puberty - NG.M.00807 - National Museum of Art, Architecture and Design.jpg",
+   "file": "Edvard Munch - Puberty - NG.M.00807 - National Museum of Art, Architecture and Design.jpg",
+   "image": "data/demo/works/puberty.jpg"
+  },
+  {
+   "slug": "composition-vii",
+   "artist": "wassily-kandinsky",
+   "title": "Composition VII",
+   "year": "1913",
+   "medium": "Oil on canvas",
+   "size": [
+    300.0,
+    200.0
+   ],
+   "collection": "Tretyakov Gallery",
+   "wikidata": "Q2990634",
+   "source": "https://commons.wikimedia.org/wiki/File:Composition VII - Wassily Kandinsky, GAC.jpg",
+   "file": "Composition VII - Wassily Kandinsky, GAC.jpg",
+   "image": "data/demo/works/composition-vii.jpg"
+  },
+  {
+   "slug": "on-white-ii",
+   "artist": "wassily-kandinsky",
+   "title": "On White II",
+   "year": "1923",
+   "medium": "Oil on canvas",
+   "size": [
+    98.0,
+    105.0
+   ],
+   "collection": "Musée National d'Art Moderne",
+   "wikidata": "Q18705520",
+   "source": "https://commons.wikimedia.org/wiki/File:Vassily Kandinsky, 1923 - On White II.jpg",
+   "file": "Vassily Kandinsky, 1923 - On White II.jpg",
+   "image": "data/demo/works/on-white-ii.jpg"
+  },
+  {
+   "slug": "yellow-red-blue",
+   "artist": "wassily-kandinsky",
+   "title": "Yellow-Red-Blue",
+   "year": "1925",
+   "medium": "Oil on canvas",
+   "size": [
+    201.5,
+    128.0
+   ],
+   "collection": "Musée National d'Art Moderne",
+   "wikidata": "Q18705525",
+   "source": "https://commons.wikimedia.org/wiki/File:Kandinsky - Jaune Rouge Bleu.jpg",
+   "file": "Kandinsky - Jaune Rouge Bleu.jpg",
+   "image": "data/demo/works/yellow-red-blue.jpg"
+  },
+  {
+   "slug": "composition-viii",
+   "artist": "wassily-kandinsky",
+   "title": "Composition VIII",
+   "year": "1923",
+   "medium": "Oil on canvas",
+   "size": [
+    201.0,
+    140.0
+   ],
+   "collection": "Solomon R. Guggenheim Museum",
+   "wikidata": "Q19609199",
+   "source": "https://commons.wikimedia.org/wiki/File:Kandinsky - Composition 8, July 1923.jpg",
+   "file": "Kandinsky - Composition 8, July 1923.jpg",
+   "image": "data/demo/works/composition-viii.jpg"
+  },
+  {
+   "slug": "several-circles",
+   "artist": "wassily-kandinsky",
+   "title": "Several Circles",
+   "year": "1926",
+   "medium": "Oil on canvas",
+   "size": [
+    140.3,
+    140.7
+   ],
+   "collection": "Solomon R. Guggenheim Museum",
+   "wikidata": "Q3609042",
+   "source": "https://commons.wikimedia.org/wiki/File:Vassily Kandinsky, 1926 - Several Circles, Gugg 0910 25.jpg",
+   "file": "Vassily Kandinsky, 1926 - Several Circles, Gugg 0910 25.jpg",
+   "image": "data/demo/works/several-circles.jpg"
+  },
+  {
+   "slug": "composition-iv",
+   "artist": "wassily-kandinsky",
+   "title": "Composition IV",
+   "year": "1911",
+   "medium": "Oil on canvas",
+   "size": [
+    250.5,
+    159.5
+   ],
+   "collection": "Kunstsammlung Nordrhein-Westfalen",
+   "wikidata": "Q8348832",
+   "source": "https://commons.wikimedia.org/wiki/File:Vassily Kandinsky, 1911 - Composition No 4.jpg",
+   "file": "Vassily Kandinsky, 1911 - Composition No 4.jpg",
+   "image": "data/demo/works/composition-iv.jpg"
+  },
+  {
+   "slug": "reply-of-the-zaporozhian-cossacks",
+   "artist": "ilya-repin",
+   "title": "Reply of the Zaporozhian Cossacks",
+   "year": "1890",
+   "medium": "Oil on canvas",
+   "size": [
+    358.0,
+    203.0
+   ],
+   "collection": "Russian Museum",
+   "wikidata": "Q478271",
+   "source": "https://commons.wikimedia.org/wiki/File:Ilja Jefimowitsch Repin - Reply of the Zaporozhian Cossacks - Yorck.jpg",
+   "file": "Ilja Jefimowitsch Repin - Reply of the Zaporozhian Cossacks - Yorck.jpg",
+   "image": "data/demo/works/reply-of-the-zaporozhian-cossacks.jpg"
+  },
+  {
+   "slug": "barge-haulers-on-the-volga",
+   "artist": "ilya-repin",
+   "title": "Barge Haulers on the Volga",
+   "year": "1870",
+   "medium": "Oil on canvas",
+   "size": [
+    281.0,
+    131.5
+   ],
+   "collection": "Russian Museum",
+   "wikidata": "Q175628",
+   "source": "https://commons.wikimedia.org/wiki/File:Ilya Repin - Barge Haulers on the Volga - Google Art Project.jpg",
+   "file": "Ilya Repin - Barge Haulers on the Volga - Google Art Project.jpg",
+   "image": "data/demo/works/barge-haulers-on-the-volga.jpg"
+  },
+  {
+   "slug": "ivan-the-terrible-and-his-son-ivan-on-november-1",
+   "artist": "ilya-repin",
+   "title": "Ivan the Terrible and his son Ivan on November 16, 1581",
+   "year": "1883",
+   "medium": "Oil on canvas",
+   "size": [
+    254.0,
+    199.5
+   ],
+   "collection": "Tretyakov Gallery",
+   "wikidata": "Q4195595",
+   "source": "https://commons.wikimedia.org/wiki/File:Iván el Terrible y su hijo, por Iliá Repin.jpg",
+   "file": "Iván el Terrible y su hijo, por Iliá Repin.jpg",
+   "image": "data/demo/works/ivan-the-terrible-and-his-son-ivan-on-november-1.jpg"
+  },
+  {
+   "slug": "they-did-not-expect-him",
+   "artist": "ilya-repin",
+   "title": "They Did Not Expect Him",
+   "year": "1888",
+   "medium": "Oil on canvas",
+   "size": [
+    167.5,
+    160.5
+   ],
+   "collection": "Tretyakov Gallery",
+   "wikidata": "Q11791202",
+   "source": "https://commons.wikimedia.org/wiki/File:Ilya Repin Unexpected visitors.jpg",
+   "file": "Ilya Repin Unexpected visitors.jpg",
+   "image": "data/demo/works/they-did-not-expect-him.jpg"
+  },
+  {
+   "slug": "religious-procession-in-kursk-province",
+   "artist": "ilya-repin",
+   "title": "Religious Procession in Kursk Province",
+   "year": "1880",
+   "medium": "Oil on canvas",
+   "size": [
+    280.0,
+    175.0
+   ],
+   "collection": "Tretyakov Gallery",
+   "wikidata": "Q2354033",
+   "source": "https://commons.wikimedia.org/wiki/File:Ilya Repin - Крестный ход в Курской губернии - Google Art Project.jpg",
+   "file": "Ilya Repin - Крестный ход в Курской губернии - Google Art Project.jpg",
+   "image": "data/demo/works/religious-procession-in-kursk-province.jpg"
+  },
+  {
+   "slug": "sadko",
+   "artist": "ilya-repin",
+   "title": "Sadko",
+   "year": "1876",
+   "medium": "Oil on canvas",
+   "size": [
+    230.0,
+    323.0
+   ],
+   "collection": "Russian Museum",
+   "wikidata": "Q4404599",
+   "source": "https://commons.wikimedia.org/wiki/File:Ilya Repin - Sadko - Google Art Project levels adjustment 2.jpg",
+   "file": "Ilya Repin - Sadko - Google Art Project levels adjustment 2.jpg",
+   "image": "data/demo/works/sadko.jpg"
+  },
+  {
+   "slug": "shakuntala",
+   "artist": "raja-ravi-varma",
+   "title": "Shakuntala",
+   "year": "1898",
+   "medium": "Oil on canvas",
+   "size": [
+    181.0,
+    110.0
+   ],
+   "collection": "Sree Chitra Art Gallery",
+   "wikidata": "Q7487097",
+   "source": "https://commons.wikimedia.org/wiki/File:Raja Ravi Varma - Mahabharata - Shakuntala.jpg",
+   "file": "Raja Ravi Varma - Mahabharata - Shakuntala.jpg",
+   "image": "data/demo/works/shakuntala.jpg"
+  },
+  {
+   "slug": "there-comes-papa",
+   "artist": "raja-ravi-varma",
+   "title": "There Comes Papa",
+   "year": "1893",
+   "medium": "Oil on canvas",
+   "size": [
+    81.0,
+    125.0
+   ],
+   "collection": "Kowdiar Palace",
+   "wikidata": "Q55373382",
+   "source": "https://commons.wikimedia.org/wiki/File:Raja Ravi Varma, There Comes Papa (1893).jpg",
+   "file": "Raja Ravi Varma, There Comes Papa (1893).jpg",
+   "image": "data/demo/works/there-comes-papa.jpg"
+  },
+  {
+   "slug": "reclining-woman",
+   "artist": "raja-ravi-varma",
+   "title": "Reclining Woman",
+   "year": "1902",
+   "medium": "Oil",
+   "size": [
+    104.4,
+    73.7
+   ],
+   "collection": "",
+   "wikidata": "Q55465440",
+   "source": "https://commons.wikimedia.org/wiki/File:Raja Ravi Varma, Reclining Woman.jpg",
+   "file": "Raja Ravi Varma, Reclining Woman.jpg",
+   "image": "data/demo/works/reclining-woman.jpg"
+  },
+  {
+   "slug": "kerala-varma-valiya-koil-thampuran",
+   "artist": "raja-ravi-varma",
+   "title": "Kerala Varma Valiya Koil Thampuran",
+   "year": "1880",
+   "medium": "Oil on canvas",
+   "size": [
+    106.0,
+    137.0
+   ],
+   "collection": "Sree Chitra Art Gallery",
+   "wikidata": "Q107433652",
+   "source": "https://commons.wikimedia.org/wiki/File:Kerala Varma Valiya Koil Thampuran Changanassery Lakshmipuram Palace.jpg",
+   "file": "Kerala Varma Valiya Koil Thampuran Changanassery Lakshmipuram Palace.jpg",
+   "image": "data/demo/works/kerala-varma-valiya-koil-thampuran.jpg"
+  },
+  {
+   "slug": "maharani-lakshmi-bayi",
+   "artist": "raja-ravi-varma",
+   "title": "Maharani Lakshmi Bayi",
+   "year": "1883",
+   "medium": "Oil on canvas",
+   "size": [
+    105.0,
+    135.0
+   ],
+   "collection": "Sree Chitra Art Gallery",
+   "wikidata": "Q107438882",
+   "source": "https://commons.wikimedia.org/wiki/File:Rani Bharani Thirunal Lakshmi Bayi of Travancore (1848–1901).jpg",
+   "file": "Rani Bharani Thirunal Lakshmi Bayi of Travancore (1848–1901).jpg",
+   "image": "data/demo/works/maharani-lakshmi-bayi.jpg"
+  },
+  {
+   "slug": "damayanti-untitled",
+   "artist": "raja-ravi-varma",
+   "title": "Damayanti (Untitled)",
+   "year": "1900",
+   "medium": "Oil on canvas",
+   "size": [
+    52.7,
+    73.0
+   ],
+   "collection": "",
+   "wikidata": "Q113487268",
+   "source": "https://commons.wikimedia.org/wiki/File:Ladies in the moonlight by RRV.jpg",
+   "file": "Ladies in the moonlight by RRV.jpg",
+   "image": "data/demo/works/damayanti-untitled.jpg"
   }
  ],
  "shows": [
@@ -1394,6 +4496,649 @@
     "data/demo/works/self-portrait-at-6th-wedding-anniversary.jpg",
     "data/demo/works/portrait-of-rainer-maria-rilke.jpg"
    ]
+  },
+  {
+   "slug": "lamplight-and-window",
+   "title": "Lamplight and Window",
+   "artists": [
+    "johannes-vermeer",
+    "rembrandt",
+    "judith-leyster",
+    "clara-peeters"
+   ],
+   "kind": "gallery",
+   "venue": "Stone House Gallery",
+   "address": "Alkabetz St 12, Safed",
+   "city": "Safed",
+   "at": [
+    32.9646,
+    35.496
+   ],
+   "start": -8,
+   "end": 52,
+   "hours": "Sun–Thu 10:00–17:00, Fri 10:00–13:00",
+   "events": [
+    {
+     "day": 3,
+     "time": "18:30",
+     "what": "Talk"
+    }
+   ],
+   "text": "The Dutch Golden Age indoors: a window, a candle, a table laid, and the people and things in their light.",
+   "works": [
+    "girl-with-a-pearl-earring",
+    "the-milkmaid",
+    "the-night-watch",
+    "the-anatomy-lesson-of-dr-nicolaes-tulp",
+    "the-proposition",
+    "self-portrait-by-judith-leyster",
+    "still-life-with-cheeses-almonds-and-pretzels",
+    "still-life-with-fish"
+   ],
+   "images": [
+    "data/demo/works/girl-with-a-pearl-earring.jpg",
+    "data/demo/works/the-milkmaid.jpg"
+   ]
+  },
+  {
+   "slug": "courage-on-canvas",
+   "title": "Courage on Canvas",
+   "artists": [
+    "artemisia-gentileschi",
+    "sofonisba-anguissola",
+    "angelica-kauffman",
+    "elisabeth-vigee-le-brun"
+   ],
+   "kind": "gallery",
+   "venue": "Lantern Room",
+   "address": "Mamilla Ave 9, Jerusalem",
+   "city": "Jerusalem",
+   "at": [
+    31.7787,
+    35.2236
+   ],
+   "start": 3,
+   "end": 44,
+   "hours": "Sun–Thu 11:00–19:00, Fri 10:00–13:00",
+   "events": [
+    {
+     "day": 3,
+     "time": "19:00",
+     "what": "Opening"
+    }
+   ],
+   "text": "Four women who made themselves painters in the courts and studios of Europe, from the 1550s to the 1780s.",
+   "works": [
+    "judith-slaying-holofernes",
+    "susanna-and-the-elders",
+    "portrait-of-the-artist-s-sisters-playing-chess",
+    "portrait-group-with-the-artists-father-brother-a",
+    "ariadne-abandoned-by-theseus",
+    "the-sorrow-of-telemachus",
+    "marie-antoinette-and-her-children",
+    "marie-antoinette-with-a-rose"
+   ],
+   "images": [
+    "data/demo/works/judith-slaying-holofernes.jpg",
+    "data/demo/works/susanna-and-the-elders.jpg"
+   ]
+  },
+  {
+   "slug": "north-light",
+   "title": "North Light",
+   "artists": [
+    "anna-ancher",
+    "harriet-backer",
+    "edvard-munch"
+   ],
+   "kind": "gallery",
+   "venue": "Wadi Gallery",
+   "address": "Ha-Hagana St 8, Haifa",
+   "city": "Haifa",
+   "at": [
+    32.8225,
+    34.991
+   ],
+   "start": -20,
+   "end": 9,
+   "hours": "Tue–Sat 11:00–19:00",
+   "events": [
+    {
+     "day": 8,
+     "time": "19:00",
+     "what": "Closing night"
+    }
+   ],
+   "text": "Three painters of the north: the quiet rooms of Skagen and Oslo, and the same long evenings turned into fear.",
+   "works": [
+    "sunlight-in-the-blue-room",
+    "the-artist-s-mother-ane-hedvig-brndum-in-the-red",
+    "christening-in-tanum-church",
+    "a-country-cobbler",
+    "the-scream",
+    "madonna"
+   ],
+   "images": [
+    "data/demo/works/sunlight-in-the-blue-room.jpg",
+    "data/demo/works/the-artist-s-mother-ane-hedvig-brndum-in-the-red.jpg"
+   ]
+  },
+  {
+   "slug": "people-at-work",
+   "title": "People at Work",
+   "artists": [
+    "ilya-repin",
+    "rosa-bonheur",
+    "kathe-kollwitz"
+   ],
+   "kind": "gallery",
+   "venue": "Carmel Market Loft",
+   "address": "Ha-Carmel St 25, Tel Aviv",
+   "city": "Tel Aviv",
+   "at": [
+    32.0688,
+    34.7685
+   ],
+   "start": -3,
+   "end": 25,
+   "hours": "Wed–Sat 12:00–20:00",
+   "events": [
+    {
+     "day": 4,
+     "time": "19:00",
+     "what": "Talk"
+    }
+   ],
+   "text": "Haulers, ploughmen, mothers: painters and printers who looked at labour and hardship and did not look away.",
+   "works": [
+    "reply-of-the-zaporozhian-cossacks",
+    "barge-haulers-on-the-volga",
+    "the-horse-fair",
+    "ploughing-in-the-nivernais",
+    "woman-with-dead-child",
+    "zertretene-leichnam-und-frauenakt-am-pfahl-the-d"
+   ],
+   "images": [
+    "data/demo/works/reply-of-the-zaporozhian-cossacks.jpg",
+    "data/demo/works/barge-haulers-on-the-volga.jpg"
+   ]
+  },
+  {
+   "slug": "prints-across-the-sea",
+   "title": "Prints Across the Sea",
+   "artists": [
+    "albrecht-durer",
+    "utagawa-hiroshige",
+    "kathe-kollwitz"
+   ],
+   "kind": "gallery",
+   "venue": "Musrara Lane Gallery",
+   "address": "Ha-Neviim St 60, Jerusalem",
+   "city": "Jerusalem",
+   "at": [
+    31.7838,
+    35.2265
+   ],
+   "start": 10,
+   "end": 70,
+   "hours": "Sun–Thu 10:00–18:00, Fri 10:00–13:00",
+   "events": [
+    {
+     "day": 10,
+     "time": "18:30",
+     "what": "Opening"
+    }
+   ],
+   "text": "The woodcut, the engraving, the woodblock print and the lithograph, from Nuremberg to Edo to Berlin.",
+   "works": [
+    "the-rhinoceros",
+    "self-portrait-with-fur-trimmed-robe",
+    "the-sea-at-satta-in-suruga-province",
+    "naruto-whirlpools",
+    "woman-with-dead-child",
+    "zertretene-leichnam-und-frauenakt-am-pfahl-the-d"
+   ],
+   "images": [
+    "data/demo/works/the-rhinoceros.jpg",
+    "data/demo/works/self-portrait-with-fur-trimmed-robe.jpg"
+   ]
+  },
+  {
+   "slug": "a-room-of-her-own",
+   "title": "A Room of Her Own",
+   "artists": [
+    "gwen-john",
+    "marianne-von-werefkin",
+    "eva-gonzales",
+    "anna-ancher"
+   ],
+   "kind": "online",
+   "venue": "Online",
+   "city": "",
+   "at": null,
+   "start": -1,
+   "end": 90,
+   "hours": "Open all the time",
+   "events": [],
+   "curator": "Open Studio",
+   "text": "A concept exhibition: women painters and the rooms, windows and mirrors they made their own. Curated on Open Studio.",
+   "works": [
+    "vase-of-flowers",
+    "mrs-atkinson",
+    "self-portrait-i",
+    "into-the-night",
+    "a-box-at-the-theatre-des-italiens",
+    "morning-awakening",
+    "sunlight-in-the-blue-room",
+    "the-artist-s-mother-ane-hedvig-brndum-in-the-red"
+   ],
+   "images": [
+    "data/demo/works/vase-of-flowers.jpg",
+    "data/demo/works/mrs-atkinson.jpg"
+   ]
+  },
+  {
+   "slug": "colour-without-a-subject",
+   "title": "Colour Without a Subject",
+   "artists": [
+    "wassily-kandinsky",
+    "marianne-von-werefkin",
+    "hilma-af-klint"
+   ],
+   "kind": "online",
+   "venue": "Online",
+   "city": "",
+   "at": null,
+   "start": -6,
+   "end": 40,
+   "hours": "Open all the time",
+   "events": [
+    {
+     "day": 6,
+     "time": "20:00",
+     "what": "Online talk"
+    }
+   ],
+   "curator": "Open Studio",
+   "text": "Where painting leaves the world behind: Kandinsky's improvisations beside Hilma af Klint, and Werefkin's flat, dark colour. Curated on Open Studio.",
+   "works": [
+    "composition-vii",
+    "on-white-ii",
+    "self-portrait-i",
+    "into-the-night",
+    "the-ten-largest-no-2-childhood",
+    "the-ten-largest-no-1-childhood"
+   ],
+   "images": [
+    "data/demo/works/composition-vii.jpg",
+    "data/demo/works/on-white-ii.jpg"
+   ]
+  },
+  {
+   "slug": "dark-rooms",
+   "title": "Dark Rooms",
+   "artists": [
+    "francisco-goya",
+    "rembrandt",
+    "artemisia-gentileschi"
+   ],
+   "kind": "gallery",
+   "venue": "Salt Room",
+   "address": "Yefet St 30, Jaffa",
+   "city": "Jaffa",
+   "at": [
+    32.05,
+    34.7537
+   ],
+   "start": -40,
+   "end": -5,
+   "hours": "",
+   "events": [],
+   "text": "Violence, grief and a single source of light: three painters who worked in the dark.",
+   "works": [
+    "la-maja-desnuda",
+    "the-third-of-may-1808",
+    "the-night-watch",
+    "the-anatomy-lesson-of-dr-nicolaes-tulp",
+    "judith-slaying-holofernes",
+    "susanna-and-the-elders"
+   ],
+   "images": [
+    "data/demo/works/la-maja-desnuda.jpg",
+    "data/demo/works/the-third-of-may-1808.jpg"
+   ]
+  },
+  {
+   "slug": "gods-and-queens",
+   "title": "Gods and Queens",
+   "artists": [
+    "raja-ravi-varma"
+   ],
+   "kind": "gallery",
+   "venue": "Rope Street Gallery",
+   "address": "Rope St 7, Jaffa",
+   "city": "Jaffa",
+   "at": [
+    32.0527,
+    34.7563
+   ],
+   "start": 15,
+   "end": 60,
+   "hours": "Mon–Fri 10:00–18:00, Sat 11:00–14:00",
+   "events": [
+    {
+     "day": 15,
+     "time": "19:00",
+     "what": "Opening"
+    }
+   ],
+   "text": "Raja Ravi Varma, who brought oil painting to Indian myth and portrait.",
+   "works": [
+    "shakuntala",
+    "there-comes-papa",
+    "reclining-woman",
+    "kerala-varma-valiya-koil-thampuran",
+    "maharani-lakshmi-bayi",
+    "damayanti-untitled"
+   ],
+   "images": [
+    "data/demo/works/shakuntala.jpg",
+    "data/demo/works/there-comes-papa.jpg"
+   ]
+  },
+  {
+   "slug": "rain-and-wave",
+   "title": "Rain and Wave",
+   "artists": [
+    "utagawa-hiroshige",
+    "katsushika-hokusai"
+   ],
+   "kind": "gallery",
+   "venue": "Harbour Gallery",
+   "address": "Ha-Atsmaut Rd 41, Haifa",
+   "city": "Haifa",
+   "at": [
+    32.8193,
+    34.999
+   ],
+   "start": 20,
+   "end": 80,
+   "hours": "Tue–Sat 11:00–19:00",
+   "events": [
+    {
+     "day": 20,
+     "time": "19:30",
+     "what": "Opening"
+    }
+   ],
+   "text": "Two masters of the Japanese landscape print, a generation apart, and the weather in them.",
+   "works": [
+    "the-sea-at-satta-in-suruga-province",
+    "naruto-whirlpools",
+    "the-great-wave-off-kanagawa",
+    "the-dream-of-the-fisherman-s-wife"
+   ],
+   "images": [
+    "data/demo/works/the-sea-at-satta-in-suruga-province.jpg",
+    "data/demo/works/naruto-whirlpools.jpg"
+   ]
+  },
+  {
+   "slug": "modern-paris",
+   "title": "Modern Paris",
+   "artists": [
+    "edouard-manet",
+    "edgar-degas",
+    "eva-gonzales"
+   ],
+   "kind": "gallery",
+   "venue": "Studio 5",
+   "address": "Levontin St 5, Tel Aviv",
+   "city": "Tel Aviv",
+   "at": [
+    32.0628,
+    34.774
+   ],
+   "start": -14,
+   "end": 18,
+   "hours": "Wed–Sat 12:00–20:00",
+   "events": [
+    {
+     "day": 5,
+     "time": "19:00",
+     "what": "Talk"
+    }
+   ],
+   "text": "Cafés, theatre boxes and ballet rehearsals: the city that Manet taught his friends and his pupil to see.",
+   "works": [
+    "luncheon-on-the-grass",
+    "olympia",
+    "l-absinthe",
+    "the-bellelli-family",
+    "a-box-at-the-theatre-des-italiens",
+    "morning-awakening"
+   ],
+   "images": [
+    "data/demo/works/luncheon-on-the-grass.jpg",
+    "data/demo/works/olympia.jpg"
+   ]
+  },
+  {
+   "slug": "first-impressionist-exhibition-1874",
+   "title": "The First Impressionist Exhibition",
+   "artists": [
+    "claude-monet",
+    "berthe-morisot",
+    "edgar-degas",
+    "paul-cezanne",
+    "camille-pissarro"
+   ],
+   "kind": "gallery",
+   "venue": "Nadar's former studio",
+   "address": "35 Boulevard des Capucines, Paris",
+   "city": "Paris",
+   "country": "France",
+   "at": null,
+   "real": true,
+   "hours": "",
+   "events": [],
+   "text": "A real exhibition: 15 April to 15 May 1874, thirty artists who had left the official Salon showed their own work. A critic mocked Monet's Impression, Sunrise, and the name Impressionism was born. The works listed are by these artists and were made by then; they are not the show's catalogue.",
+   "start": -55724,
+   "end": -55694,
+   "works": [
+    "impression-sunrise",
+    "garden-at-sainte-adresse",
+    "women-in-the-garden",
+    "the-cradle",
+    "in-a-park",
+    "the-port-at-lorient",
+    "the-bellelli-family",
+    "the-ballet-class",
+    "interior"
+   ],
+   "images": [
+    "data/demo/works/impression-sunrise.jpg",
+    "data/demo/works/garden-at-sainte-adresse.jpg"
+   ]
+  },
+  {
+   "slug": "eighth-impressionist-exhibition-1886",
+   "title": "The Eighth Impressionist Exhibition",
+   "artists": [
+    "berthe-morisot",
+    "edgar-degas",
+    "camille-pissarro",
+    "mary-cassatt"
+   ],
+   "kind": "gallery",
+   "venue": "1 rue Laffitte",
+   "address": "1 rue Laffitte, Paris",
+   "city": "Paris",
+   "country": "France",
+   "at": null,
+   "real": true,
+   "hours": "",
+   "events": [],
+   "text": "A real exhibition: 15 May to 15 June 1886, the last of the group. Seurat's A Sunday Afternoon on La Grande Jatte was shown here. The works listed are by these artists and were made by then; they are not the show's catalogue.",
+   "start": -51311,
+   "end": -51280,
+   "works": [
+    "the-cradle",
+    "summer-s-day",
+    "the-psyche-mirror",
+    "l-absinthe",
+    "the-bellelli-family",
+    "the-ballet-class",
+    "the-red-roofs-cote-saint-denis-at-pontoise-winte",
+    "the-cote-des-bufs-pontoise",
+    "woman-with-a-pearl-necklace-in-a-loge",
+    "little-girl-in-a-blue-armchair",
+    "the-cup-of-tea"
+   ],
+   "images": [
+    "data/demo/works/the-cradle.jpg",
+    "data/demo/works/summer-s-day.jpg"
+   ]
+  },
+  {
+   "slug": "salon-des-refuses-1863",
+   "title": "Salon des Refusés",
+   "artists": [
+    "edouard-manet",
+    "paul-cezanne",
+    "camille-pissarro"
+   ],
+   "kind": "gallery",
+   "venue": "Palais de l'Industrie",
+   "address": "Palais de l'Industrie, Champs-Élysées, Paris",
+   "city": "Paris",
+   "country": "France",
+   "at": null,
+   "real": true,
+   "skip": [
+    "olympia"
+   ],
+   "hours": "",
+   "events": [],
+   "text": "A real exhibition: opened 15 May 1863 (the closing date here is approximate), by order of Napoleon III, for the paintings the official Salon jury had refused. Manet's Luncheon on the Grass was the scandal of it. The works listed are by these artists and were made by then; they are not the show's catalogue.",
+   "start": -59712,
+   "end": -59661,
+   "works": [
+    "luncheon-on-the-grass",
+    "music-in-the-tuileries"
+   ],
+   "images": [
+    "data/demo/works/luncheon-on-the-grass.jpg",
+    "data/demo/works/music-in-the-tuileries.jpg"
+   ]
+  },
+  {
+   "slug": "armory-show-1913",
+   "title": "The Armory Show",
+   "artists": [
+    "vincent-van-gogh",
+    "henri-matisse",
+    "paul-cezanne",
+    "mary-cassatt",
+    "wassily-kandinsky",
+    "gwen-john"
+   ],
+   "kind": "gallery",
+   "venue": "69th Regiment Armory",
+   "address": "Lexington Avenue at 25th Street, New York",
+   "city": "New York",
+   "country": "United States",
+   "at": null,
+   "real": true,
+   "hours": "",
+   "events": [],
+   "text": "A real exhibition: 17 February to 15 March 1913, the first large show of European modern art in America, with some 1,300 works. Many Americans met Van Gogh, Matisse and Cézanne here. The works listed are by these artists and were made by then; they are not the show's catalogue.",
+   "start": -41537,
+   "end": -41511,
+   "works": [
+    "the-starry-night",
+    "the-potato-eaters",
+    "sunflowers",
+    "dance",
+    "woman-with-a-hat",
+    "the-dessert-harmony-in-red-the-red-room",
+    "the-card-players",
+    "les-grandes-baigneuses",
+    "mardi-gras",
+    "the-child-s-bath",
+    "woman-with-a-pearl-necklace-in-a-loge",
+    "little-girl-in-a-blue-armchair",
+    "composition-vii",
+    "composition-iv",
+    "vase-of-flowers",
+    "mrs-atkinson",
+    "self-portrait"
+   ],
+   "images": [
+    "data/demo/works/the-starry-night.jpg",
+    "data/demo/works/the-potato-eaters.jpg"
+   ]
+  },
+  {
+   "slug": "sonderbund-1912",
+   "title": "Sonderbund International Art Exhibition",
+   "artists": [
+    "edvard-munch",
+    "vincent-van-gogh",
+    "paul-cezanne"
+   ],
+   "kind": "gallery",
+   "venue": "Ausstellungshalle am Aachener Tor",
+   "address": "Aachener Tor, Cologne",
+   "city": "Cologne",
+   "country": "Germany",
+   "at": null,
+   "real": true,
+   "hours": "",
+   "events": [],
+   "text": "A real exhibition: 25 May to 30 September 1912, in which Van Gogh, Cézanne and Munch were shown among the young painters who followed them. The works listed are by these artists and were made by then; they are not the show's catalogue.",
+   "start": -41805,
+   "end": -41677,
+   "works": [
+    "the-scream",
+    "madonna",
+    "vampire",
+    "the-starry-night",
+    "the-potato-eaters",
+    "sunflowers",
+    "the-card-players",
+    "les-grandes-baigneuses",
+    "mardi-gras"
+   ],
+   "images": [
+    "data/demo/works/the-scream.jpg",
+    "data/demo/works/madonna.jpg"
+   ]
+  },
+  {
+   "slug": "blue-rider-1911",
+   "title": "First Exhibition of the Blue Rider",
+   "artists": [
+    "wassily-kandinsky"
+   ],
+   "kind": "gallery",
+   "venue": "Moderne Galerie Thannhauser",
+   "address": "Theatinerstraße 7, Munich",
+   "city": "Munich",
+   "country": "Germany",
+   "at": null,
+   "real": true,
+   "hours": "",
+   "events": [],
+   "text": "A real exhibition: 18 December 1911 to 1 January 1912, the first show of the Blue Rider group that Kandinsky founded with Franz Marc. The works listed are by these artists and were made by then; they are not the show's catalogue.",
+   "start": -41964,
+   "end": -41950,
+   "works": [
+    "composition-iv"
+   ],
+   "images": [
+    "data/demo/works/composition-iv.jpg"
+   ]
   }
  ],
  "live": [],
@@ -1407,59 +5152,235 @@
   "data/demo/works/wheatfield-with-crows.jpg": "data/demo/works/wheatfield-with-crows-s.jpg",
   "data/demo/works/irises.jpg": "data/demo/works/irises-s.jpg",
   "data/demo/works/bedroom-in-arles.jpg": "data/demo/works/bedroom-in-arles-s.jpg",
+  "data/demo/works/cafe-terrace-at-night.jpg": "data/demo/works/cafe-terrace-at-night-s.jpg",
+  "data/demo/works/the-night-cafe.jpg": "data/demo/works/the-night-cafe-s.jpg",
   "data/demo/works/dance.jpg": "data/demo/works/dance-s.jpg",
   "data/demo/works/woman-with-a-hat.jpg": "data/demo/works/woman-with-a-hat-s.jpg",
   "data/demo/works/the-dessert-harmony-in-red-the-red-room.jpg": "data/demo/works/the-dessert-harmony-in-red-the-red-room-s.jpg",
   "data/demo/works/the-joy-of-life.jpg": "data/demo/works/the-joy-of-life-s.jpg",
   "data/demo/works/the-green-stripe.jpg": "data/demo/works/the-green-stripe-s.jpg",
   "data/demo/works/the-open-window.jpg": "data/demo/works/the-open-window-s.jpg",
+  "data/demo/works/music.jpg": "data/demo/works/music-s.jpg",
+  "data/demo/works/blue-nude.jpg": "data/demo/works/blue-nude-s.jpg",
   "data/demo/works/medieval-castle.jpg": "data/demo/works/medieval-castle-s.jpg",
   "data/demo/works/a-magistrate.jpg": "data/demo/works/a-magistrate-s.jpg",
   "data/demo/works/steep-street-in-moonlight.jpg": "data/demo/works/steep-street-in-moonlight-s.jpg",
   "data/demo/works/gust-of-wind.jpg": "data/demo/works/gust-of-wind-s.jpg",
   "data/demo/works/landscape-with-a-group-of-trees.jpg": "data/demo/works/landscape-with-a-group-of-trees-s.jpg",
   "data/demo/works/imaginary-figure.jpg": "data/demo/works/imaginary-figure-s.jpg",
+  "data/demo/works/reseskiss-studie-av-balustrad.jpg": "data/demo/works/reseskiss-studie-av-balustrad-s.jpg",
+  "data/demo/works/spots-and-frottage.jpg": "data/demo/works/spots-and-frottage-s.jpg",
   "data/demo/works/impression-sunrise.jpg": "data/demo/works/impression-sunrise-s.jpg",
   "data/demo/works/garden-at-sainte-adresse.jpg": "data/demo/works/garden-at-sainte-adresse-s.jpg",
   "data/demo/works/woman-with-a-parasol-madame-monet-and-her-son.jpg": "data/demo/works/woman-with-a-parasol-madame-monet-and-her-son-s.jpg",
   "data/demo/works/women-in-the-garden.jpg": "data/demo/works/women-in-the-garden-s.jpg",
   "data/demo/works/the-magpie.jpg": "data/demo/works/the-magpie-s.jpg",
   "data/demo/works/woman-in-the-garden.jpg": "data/demo/works/woman-in-the-garden-s.jpg",
+  "data/demo/works/la-grenouillere.jpg": "data/demo/works/la-grenouillere-s.jpg",
+  "data/demo/works/regatta-at-sainte-adresse.jpg": "data/demo/works/regatta-at-sainte-adresse-s.jpg",
   "data/demo/works/the-great-wave-off-kanagawa.jpg": "data/demo/works/the-great-wave-off-kanagawa-s.jpg",
   "data/demo/works/the-dream-of-the-fisherman-s-wife.jpg": "data/demo/works/the-dream-of-the-fisherman-s-wife-s.jpg",
   "data/demo/works/fine-wind-clear-morning.jpg": "data/demo/works/fine-wind-clear-morning-s.jpg",
   "data/demo/works/sundai-edo.jpg": "data/demo/works/sundai-edo-s.jpg",
   "data/demo/works/sazai-hall-temple-of-five-hundred-rakan.jpg": "data/demo/works/sazai-hall-temple-of-five-hundred-rakan-s.jpg",
   "data/demo/works/morning-after-a-snowfall-at-koishikawa.jpg": "data/demo/works/morning-after-a-snowfall-at-koishikawa-s.jpg",
+  "data/demo/works/fuji-from-ushibori-province-of-hitachi.jpg": "data/demo/works/fuji-from-ushibori-province-of-hitachi-s.jpg",
+  "data/demo/works/the-kazusa-sea-route.jpg": "data/demo/works/the-kazusa-sea-route-s.jpg",
   "data/demo/works/the-cradle.jpg": "data/demo/works/the-cradle-s.jpg",
   "data/demo/works/summer-s-day.jpg": "data/demo/works/summer-s-day-s.jpg",
   "data/demo/works/the-psyche-mirror.jpg": "data/demo/works/the-psyche-mirror-s.jpg",
   "data/demo/works/in-a-park.jpg": "data/demo/works/in-a-park-s.jpg",
   "data/demo/works/eugene-manet-on-isle-of-wight.jpg": "data/demo/works/eugene-manet-on-isle-of-wight-s.jpg",
   "data/demo/works/the-port-at-lorient.jpg": "data/demo/works/the-port-at-lorient-s.jpg",
+  "data/demo/works/the-mother-and-sister-of-the-artist.jpg": "data/demo/works/the-mother-and-sister-of-the-artist-s.jpg",
+  "data/demo/works/young-girl-in-a-ball-gown.jpg": "data/demo/works/young-girl-in-a-ball-gown-s.jpg",
   "data/demo/works/the-child-s-bath.jpg": "data/demo/works/the-child-s-bath-s.jpg",
   "data/demo/works/woman-with-a-pearl-necklace-in-a-loge.jpg": "data/demo/works/woman-with-a-pearl-necklace-in-a-loge-s.jpg",
   "data/demo/works/little-girl-in-a-blue-armchair.jpg": "data/demo/works/little-girl-in-a-blue-armchair-s.jpg",
   "data/demo/works/the-cup-of-tea.jpg": "data/demo/works/the-cup-of-tea-s.jpg",
   "data/demo/works/girl-arranging-her-hair.jpg": "data/demo/works/girl-arranging-her-hair-s.jpg",
   "data/demo/works/the-boating-party.jpg": "data/demo/works/the-boating-party-s.jpg",
+  "data/demo/works/woman-with-a-sunflower.jpg": "data/demo/works/woman-with-a-sunflower-s.jpg",
+  "data/demo/works/in-the-loge.jpg": "data/demo/works/in-the-loge-s.jpg",
   "data/demo/works/the-ten-largest-no-2-childhood.jpg": "data/demo/works/the-ten-largest-no-2-childhood-s.jpg",
   "data/demo/works/the-ten-largest-no-1-childhood.jpg": "data/demo/works/the-ten-largest-no-1-childhood-s.jpg",
   "data/demo/works/the-ten-largest-no-3-youth.jpg": "data/demo/works/the-ten-largest-no-3-youth-s.jpg",
   "data/demo/works/the-ten-largest-no-4-youth.jpg": "data/demo/works/the-ten-largest-no-4-youth-s.jpg",
   "data/demo/works/the-ten-largest-no-5-adulthood.jpg": "data/demo/works/the-ten-largest-no-5-adulthood-s.jpg",
   "data/demo/works/the-ten-largest-no-6.jpg": "data/demo/works/the-ten-largest-no-6-s.jpg",
+  "data/demo/works/tree-of-knowledge-no-1.jpg": "data/demo/works/tree-of-knowledge-no-1-s.jpg",
+  "data/demo/works/tree-of-knowledge-no-2.jpg": "data/demo/works/tree-of-knowledge-no-2-s.jpg",
   "data/demo/works/the-abandoned-doll.jpg": "data/demo/works/the-abandoned-doll-s.jpg",
   "data/demo/works/the-blue-room.jpg": "data/demo/works/the-blue-room-s.jpg",
   "data/demo/works/adam-and-eve.jpg": "data/demo/works/adam-and-eve-s.jpg",
   "data/demo/works/joy-of-life.jpg": "data/demo/works/joy-of-life-s.jpg",
   "data/demo/works/nu-au-chale-bleu.jpg": "data/demo/works/nu-au-chale-bleu-s.jpg",
   "data/demo/works/the-bathers.jpg": "data/demo/works/the-bathers-s.jpg",
+  "data/demo/works/black-venus.jpg": "data/demo/works/black-venus-s.jpg",
+  "data/demo/works/la-couturiere.jpg": "data/demo/works/la-couturiere-s.jpg",
   "data/demo/works/self-portrait-at-6th-wedding-anniversary.jpg": "data/demo/works/self-portrait-at-6th-wedding-anniversary-s.jpg",
   "data/demo/works/portrait-of-rainer-maria-rilke.jpg": "data/demo/works/portrait-of-rainer-maria-rilke-s.jpg",
   "data/demo/works/self-portrait-with-hat-and-veil.jpg": "data/demo/works/self-portrait-with-hat-and-veil-s.jpg",
   "data/demo/works/old-peasant-woman.jpg": "data/demo/works/old-peasant-woman-s.jpg",
   "data/demo/works/self-portrait-looking-slightly-left.jpg": "data/demo/works/self-portrait-looking-slightly-left-s.jpg",
-  "data/demo/works/old-peasant-woman-1903.jpg": "data/demo/works/old-peasant-woman-1903-s.jpg"
+  "data/demo/works/old-peasant-woman-1903.jpg": "data/demo/works/old-peasant-woman-1903-s.jpg",
+  "data/demo/works/mother-and-child.jpg": "data/demo/works/mother-and-child-s.jpg",
+  "data/demo/works/self-portrait-with-two-flowers-in-her-raised-lef.jpg": "data/demo/works/self-portrait-with-two-flowers-in-her-raised-lef-s.jpg",
+  "data/demo/works/judith-slaying-holofernes.jpg": "data/demo/works/judith-slaying-holofernes-s.jpg",
+  "data/demo/works/susanna-and-the-elders.jpg": "data/demo/works/susanna-and-the-elders-s.jpg",
+  "data/demo/works/judith-and-her-maidservant.jpg": "data/demo/works/judith-and-her-maidservant-s.jpg",
+  "data/demo/works/self-portrait-as-the-allegory-of-painting.jpg": "data/demo/works/self-portrait-as-the-allegory-of-painting-s.jpg",
+  "data/demo/works/judith-beheading-holofernes.jpg": "data/demo/works/judith-beheading-holofernes-s.jpg",
+  "data/demo/works/danae.jpg": "data/demo/works/danae-s.jpg",
+  "data/demo/works/marie-antoinette-and-her-children.jpg": "data/demo/works/marie-antoinette-and-her-children-s.jpg",
+  "data/demo/works/marie-antoinette-with-a-rose.jpg": "data/demo/works/marie-antoinette-with-a-rose-s.jpg",
+  "data/demo/works/self-portrait-in-a-straw-hat.jpg": "data/demo/works/self-portrait-in-a-straw-hat-s.jpg",
+  "data/demo/works/self-portrait-with-her-daughter-julie.jpg": "data/demo/works/self-portrait-with-her-daughter-julie-s.jpg",
+  "data/demo/works/self-portrait-of-elisabeth-louise-vigee-le-brun.jpg": "data/demo/works/self-portrait-of-elisabeth-louise-vigee-le-brun-s.jpg",
+  "data/demo/works/madame-grand-noel-catherine-verlee-17611835.jpg": "data/demo/works/madame-grand-noel-catherine-verlee-17611835-s.jpg",
+  "data/demo/works/the-proposition.jpg": "data/demo/works/the-proposition-s.jpg",
+  "data/demo/works/self-portrait-by-judith-leyster.jpg": "data/demo/works/self-portrait-by-judith-leyster-s.jpg",
+  "data/demo/works/the-jolly-toper.jpg": "data/demo/works/the-jolly-toper-s.jpg",
+  "data/demo/works/the-serenade.jpg": "data/demo/works/the-serenade-s.jpg",
+  "data/demo/works/merry-trio.jpg": "data/demo/works/merry-trio-s.jpg",
+  "data/demo/works/a-boy-and-a-girl-with-a-cat-and-an-eel.jpg": "data/demo/works/a-boy-and-a-girl-with-a-cat-and-an-eel-s.jpg",
+  "data/demo/works/ariadne-abandoned-by-theseus.jpg": "data/demo/works/ariadne-abandoned-by-theseus-s.jpg",
+  "data/demo/works/the-sorrow-of-telemachus.jpg": "data/demo/works/the-sorrow-of-telemachus-s.jpg",
+  "data/demo/works/telemachus-and-the-nymphs-of-calypso.jpg": "data/demo/works/telemachus-and-the-nymphs-of-calypso-s.jpg",
+  "data/demo/works/sappho-inspired-by-love.jpg": "data/demo/works/sappho-inspired-by-love-s.jpg",
+  "data/demo/works/venus-induces-helen-to-fall-in-love-with-paris.jpg": "data/demo/works/venus-induces-helen-to-fall-in-love-with-paris-s.jpg",
+  "data/demo/works/hector-calling-up-paris-to-a-battle.jpg": "data/demo/works/hector-calling-up-paris-to-a-battle-s.jpg",
+  "data/demo/works/the-horse-fair.jpg": "data/demo/works/the-horse-fair-s.jpg",
+  "data/demo/works/ploughing-in-the-nivernais.jpg": "data/demo/works/ploughing-in-the-nivernais-s.jpg",
+  "data/demo/works/berger-des-pyrenees.jpg": "data/demo/works/berger-des-pyrenees-s.jpg",
+  "data/demo/works/king-of-the-forest.jpg": "data/demo/works/king-of-the-forest-s.jpg",
+  "data/demo/works/weaning-the-calves.jpg": "data/demo/works/weaning-the-calves-s.jpg",
+  "data/demo/works/deer-in-repose.jpg": "data/demo/works/deer-in-repose-s.jpg",
+  "data/demo/works/sunlight-in-the-blue-room.jpg": "data/demo/works/sunlight-in-the-blue-room-s.jpg",
+  "data/demo/works/the-artist-s-mother-ane-hedvig-brndum-in-the-red.jpg": "data/demo/works/the-artist-s-mother-ane-hedvig-brndum-in-the-red-s.jpg",
+  "data/demo/works/the-maid-in-the-kitchen.jpg": "data/demo/works/the-maid-in-the-kitchen-s.jpg",
+  "data/demo/works/harvesters.jpg": "data/demo/works/harvesters-s.jpg",
+  "data/demo/works/a-funeral.jpg": "data/demo/works/a-funeral-s.jpg",
+  "data/demo/works/a-blind-woman-in-her-room.jpg": "data/demo/works/a-blind-woman-in-her-room-s.jpg",
+  "data/demo/works/christening-in-tanum-church.jpg": "data/demo/works/christening-in-tanum-church-s.jpg",
+  "data/demo/works/a-country-cobbler.jpg": "data/demo/works/a-country-cobbler-s.jpg",
+  "data/demo/works/blue-interior.jpg": "data/demo/works/blue-interior-s.jpg",
+  "data/demo/works/landscape-eggedal.jpg": "data/demo/works/landscape-eggedal-s.jpg",
+  "data/demo/works/by-lamp-light.jpg": "data/demo/works/by-lamp-light-s.jpg",
+  "data/demo/works/the-farewell.jpg": "data/demo/works/the-farewell-s.jpg",
+  "data/demo/works/vase-of-flowers.jpg": "data/demo/works/vase-of-flowers-s.jpg",
+  "data/demo/works/mrs-atkinson.jpg": "data/demo/works/mrs-atkinson-s.jpg",
+  "data/demo/works/girl-with-a-cat.jpg": "data/demo/works/girl-with-a-cat-s.jpg",
+  "data/demo/works/self-portrait.jpg": "data/demo/works/self-portrait-s.jpg",
+  "data/demo/works/young-woman-holding-a-black-cat.jpg": "data/demo/works/young-woman-holding-a-black-cat-s.jpg",
+  "data/demo/works/dorelia-in-a-black-dress.jpg": "data/demo/works/dorelia-in-a-black-dress-s.jpg",
+  "data/demo/works/portrait-of-the-artist-s-sisters-playing-chess.jpg": "data/demo/works/portrait-of-the-artist-s-sisters-playing-chess-s.jpg",
+  "data/demo/works/portrait-group-with-the-artists-father-brother-a.jpg": "data/demo/works/portrait-group-with-the-artists-father-brother-a-s.jpg",
+  "data/demo/works/self-portrait-at-the-spinnet.jpg": "data/demo/works/self-portrait-at-the-spinnet-s.jpg",
+  "data/demo/works/portrait-of-bianca-ponzoni-anguissola.jpg": "data/demo/works/portrait-of-bianca-ponzoni-anguissola-s.jpg",
+  "data/demo/works/portrait-of-marquess-massimiliano-stampa.jpg": "data/demo/works/portrait-of-marquess-massimiliano-stampa-s.jpg",
+  "data/demo/works/self-portrait-at-an-easel.jpg": "data/demo/works/self-portrait-at-an-easel-s.jpg",
+  "data/demo/works/a-box-at-the-theatre-des-italiens.jpg": "data/demo/works/a-box-at-the-theatre-des-italiens-s.jpg",
+  "data/demo/works/morning-awakening.jpg": "data/demo/works/morning-awakening-s.jpg",
+  "data/demo/works/the-full-length-mirror.jpg": "data/demo/works/the-full-length-mirror-s.jpg",
+  "data/demo/works/girl-with-cherries.jpg": "data/demo/works/girl-with-cherries-s.jpg",
+  "data/demo/works/the-donkey-ride.jpg": "data/demo/works/the-donkey-ride-s.jpg",
+  "data/demo/works/children-on-the-sand-dunes-grandcamp.jpg": "data/demo/works/children-on-the-sand-dunes-grandcamp-s.jpg",
+  "data/demo/works/self-portrait-i.jpg": "data/demo/works/self-portrait-i-s.jpg",
+  "data/demo/works/into-the-night.jpg": "data/demo/works/into-the-night-s.jpg",
+  "data/demo/works/portrait-of-alexej-von-jawlensky.jpg": "data/demo/works/portrait-of-alexej-von-jawlensky-s.jpg",
+  "data/demo/works/bathhouse.jpg": "data/demo/works/bathhouse-s.jpg",
+  "data/demo/works/the-factory.jpg": "data/demo/works/the-factory-s.jpg",
+  "data/demo/works/lago-maggiore.jpg": "data/demo/works/lago-maggiore-s.jpg",
+  "data/demo/works/woman-with-dead-child.jpg": "data/demo/works/woman-with-dead-child-s.jpg",
+  "data/demo/works/zertretene-leichnam-und-frauenakt-am-pfahl-the-d.jpg": "data/demo/works/zertretene-leichnam-und-frauenakt-am-pfahl-the-d-s.jpg",
+  "data/demo/works/brot-bread.jpg": "data/demo/works/brot-bread-s.jpg",
+  "data/demo/works/gefallen-killed-in-action-or-news-from-the-front.jpg": "data/demo/works/gefallen-killed-in-action-or-news-from-the-front-s.jpg",
+  "data/demo/works/selbstbildnis-self-portrait.jpg": "data/demo/works/selbstbildnis-self-portrait-s.jpg",
+  "data/demo/works/lovers-ii.jpg": "data/demo/works/lovers-ii-s.jpg",
+  "data/demo/works/still-life-with-cheeses-almonds-and-pretzels.jpg": "data/demo/works/still-life-with-cheeses-almonds-and-pretzels-s.jpg",
+  "data/demo/works/still-life-with-fish.jpg": "data/demo/works/still-life-with-fish-s.jpg",
+  "data/demo/works/still-life-with-flowers-and-gilt-goblets.jpg": "data/demo/works/still-life-with-flowers-and-gilt-goblets-s.jpg",
+  "data/demo/works/still-life-of-fish-with-a-candlestick.jpg": "data/demo/works/still-life-of-fish-with-a-candlestick-s.jpg",
+  "data/demo/works/still-life-with-flowers-goblet-and-dainties.jpg": "data/demo/works/still-life-with-flowers-goblet-and-dainties-s.jpg",
+  "data/demo/works/still-life-with-tazza-stoneware-jug-saltcellar-a.jpg": "data/demo/works/still-life-with-tazza-stoneware-jug-saltcellar-a-s.jpg",
+  "data/demo/works/the-rhinoceros.jpg": "data/demo/works/the-rhinoceros-s.jpg",
+  "data/demo/works/self-portrait-with-fur-trimmed-robe.jpg": "data/demo/works/self-portrait-with-fur-trimmed-robe-s.jpg",
+  "data/demo/works/melencolia-i.jpg": "data/demo/works/melencolia-i-s.jpg",
+  "data/demo/works/the-four-apostles.jpg": "data/demo/works/the-four-apostles-s.jpg",
+  "data/demo/works/adoration-of-the-magi.jpg": "data/demo/works/adoration-of-the-magi-s.jpg",
+  "data/demo/works/knight-death-and-the-devil.jpg": "data/demo/works/knight-death-and-the-devil-s.jpg",
+  "data/demo/works/the-night-watch.jpg": "data/demo/works/the-night-watch-s.jpg",
+  "data/demo/works/the-anatomy-lesson-of-dr-nicolaes-tulp.jpg": "data/demo/works/the-anatomy-lesson-of-dr-nicolaes-tulp-s.jpg",
+  "data/demo/works/the-jewish-bride.jpg": "data/demo/works/the-jewish-bride-s.jpg",
+  "data/demo/works/the-storm-on-the-sea-of-galilee.jpg": "data/demo/works/the-storm-on-the-sea-of-galilee-s.jpg",
+  "data/demo/works/el-retorno-del-hijo-gey.jpg": "data/demo/works/el-retorno-del-hijo-gey-s.jpg",
+  "data/demo/works/danae-1636.jpg": "data/demo/works/danae-1636-s.jpg",
+  "data/demo/works/girl-with-a-pearl-earring.jpg": "data/demo/works/girl-with-a-pearl-earring-s.jpg",
+  "data/demo/works/the-milkmaid.jpg": "data/demo/works/the-milkmaid-s.jpg",
+  "data/demo/works/view-of-delft.jpg": "data/demo/works/view-of-delft-s.jpg",
+  "data/demo/works/the-art-of-painting.jpg": "data/demo/works/the-art-of-painting-s.jpg",
+  "data/demo/works/the-astronomer.jpg": "data/demo/works/the-astronomer-s.jpg",
+  "data/demo/works/the-little-street.jpg": "data/demo/works/the-little-street-s.jpg",
+  "data/demo/works/la-maja-desnuda.jpg": "data/demo/works/la-maja-desnuda-s.jpg",
+  "data/demo/works/the-third-of-may-1808.jpg": "data/demo/works/the-third-of-may-1808-s.jpg",
+  "data/demo/works/saturn-devouring-his-son.jpg": "data/demo/works/saturn-devouring-his-son-s.jpg",
+  "data/demo/works/charles-iv-of-spain-and-his-family.jpg": "data/demo/works/charles-iv-of-spain-and-his-family-s.jpg",
+  "data/demo/works/the-clothed-maja.jpg": "data/demo/works/the-clothed-maja-s.jpg",
+  "data/demo/works/the-second-of-may-1808.jpg": "data/demo/works/the-second-of-may-1808-s.jpg",
+  "data/demo/works/the-sea-at-satta-in-suruga-province.jpg": "data/demo/works/the-sea-at-satta-in-suruga-province-s.jpg",
+  "data/demo/works/naruto-whirlpools.jpg": "data/demo/works/naruto-whirlpools-s.jpg",
+  "data/demo/works/tokaido-gojusan-tsui-kanaya.jpg": "data/demo/works/tokaido-gojusan-tsui-kanaya-s.jpg",
+  "data/demo/works/ishibe-megawa-village-ishibe-megawa-no-sato.jpg": "data/demo/works/ishibe-megawa-village-ishibe-megawa-no-sato-s.jpg",
+  "data/demo/works/ishiyakushi-ishiyakushi-temple-ishiyakushi-ishiy.jpg": "data/demo/works/ishiyakushi-ishiyakushi-temple-ishiyakushi-ishiy-s.jpg",
+  "data/demo/works/numazu-twilight-numazu-tasogare-zu.jpg": "data/demo/works/numazu-twilight-numazu-tasogare-zu-s.jpg",
+  "data/demo/works/luncheon-on-the-grass.jpg": "data/demo/works/luncheon-on-the-grass-s.jpg",
+  "data/demo/works/olympia.jpg": "data/demo/works/olympia-s.jpg",
+  "data/demo/works/a-bar-at-the-folies-bergere.jpg": "data/demo/works/a-bar-at-the-folies-bergere-s.jpg",
+  "data/demo/works/the-balcony.jpg": "data/demo/works/the-balcony-s.jpg",
+  "data/demo/works/music-in-the-tuileries.jpg": "data/demo/works/music-in-the-tuileries-s.jpg",
+  "data/demo/works/the-fif.jpg": "data/demo/works/the-fif-s.jpg",
+  "data/demo/works/l-absinthe.jpg": "data/demo/works/l-absinthe-s.jpg",
+  "data/demo/works/the-bellelli-family.jpg": "data/demo/works/the-bellelli-family-s.jpg",
+  "data/demo/works/blue-dancers.jpg": "data/demo/works/blue-dancers-s.jpg",
+  "data/demo/works/the-ballet-class.jpg": "data/demo/works/the-ballet-class-s.jpg",
+  "data/demo/works/interior.jpg": "data/demo/works/interior-s.jpg",
+  "data/demo/works/miss-la-la-at-the-cirque-fernando.jpg": "data/demo/works/miss-la-la-at-the-cirque-fernando-s.jpg",
+  "data/demo/works/the-card-players.jpg": "data/demo/works/the-card-players-s.jpg",
+  "data/demo/works/les-grandes-baigneuses.jpg": "data/demo/works/les-grandes-baigneuses-s.jpg",
+  "data/demo/works/mardi-gras.jpg": "data/demo/works/mardi-gras-s.jpg",
+  "data/demo/works/the-boy-in-the-red-vest.jpg": "data/demo/works/the-boy-in-the-red-vest-s.jpg",
+  "data/demo/works/the-basket-of-apples.jpg": "data/demo/works/the-basket-of-apples-s.jpg",
+  "data/demo/works/lady-in-blue.jpg": "data/demo/works/lady-in-blue-s.jpg",
+  "data/demo/works/hay-harvest-at-eragny.jpg": "data/demo/works/hay-harvest-at-eragny-s.jpg",
+  "data/demo/works/the-red-roofs-cote-saint-denis-at-pontoise-winte.jpg": "data/demo/works/the-red-roofs-cote-saint-denis-at-pontoise-winte-s.jpg",
+  "data/demo/works/steamboats-in-the-port-of-rouen.jpg": "data/demo/works/steamboats-in-the-port-of-rouen-s.jpg",
+  "data/demo/works/the-cote-des-bufs-pontoise.jpg": "data/demo/works/the-cote-des-bufs-pontoise-s.jpg",
+  "data/demo/works/rue-saint-honore-in-the-afternoon-effect-of-rain.jpg": "data/demo/works/rue-saint-honore-in-the-afternoon-effect-of-rain-s.jpg",
+  "data/demo/works/boulevard-montmartre-mardi-gras.jpg": "data/demo/works/boulevard-montmartre-mardi-gras-s.jpg",
+  "data/demo/works/the-scream.jpg": "data/demo/works/the-scream-s.jpg",
+  "data/demo/works/madonna.jpg": "data/demo/works/madonna-s.jpg",
+  "data/demo/works/vampire.jpg": "data/demo/works/vampire-s.jpg",
+  "data/demo/works/the-kiss.jpg": "data/demo/works/the-kiss-s.jpg",
+  "data/demo/works/anxiety.jpg": "data/demo/works/anxiety-s.jpg",
+  "data/demo/works/puberty.jpg": "data/demo/works/puberty-s.jpg",
+  "data/demo/works/composition-vii.jpg": "data/demo/works/composition-vii-s.jpg",
+  "data/demo/works/on-white-ii.jpg": "data/demo/works/on-white-ii-s.jpg",
+  "data/demo/works/yellow-red-blue.jpg": "data/demo/works/yellow-red-blue-s.jpg",
+  "data/demo/works/composition-viii.jpg": "data/demo/works/composition-viii-s.jpg",
+  "data/demo/works/several-circles.jpg": "data/demo/works/several-circles-s.jpg",
+  "data/demo/works/composition-iv.jpg": "data/demo/works/composition-iv-s.jpg",
+  "data/demo/works/reply-of-the-zaporozhian-cossacks.jpg": "data/demo/works/reply-of-the-zaporozhian-cossacks-s.jpg",
+  "data/demo/works/barge-haulers-on-the-volga.jpg": "data/demo/works/barge-haulers-on-the-volga-s.jpg",
+  "data/demo/works/ivan-the-terrible-and-his-son-ivan-on-november-1.jpg": "data/demo/works/ivan-the-terrible-and-his-son-ivan-on-november-1-s.jpg",
+  "data/demo/works/they-did-not-expect-him.jpg": "data/demo/works/they-did-not-expect-him-s.jpg",
+  "data/demo/works/religious-procession-in-kursk-province.jpg": "data/demo/works/religious-procession-in-kursk-province-s.jpg",
+  "data/demo/works/sadko.jpg": "data/demo/works/sadko-s.jpg",
+  "data/demo/works/shakuntala.jpg": "data/demo/works/shakuntala-s.jpg",
+  "data/demo/works/there-comes-papa.jpg": "data/demo/works/there-comes-papa-s.jpg",
+  "data/demo/works/reclining-woman.jpg": "data/demo/works/reclining-woman-s.jpg",
+  "data/demo/works/kerala-varma-valiya-koil-thampuran.jpg": "data/demo/works/kerala-varma-valiya-koil-thampuran-s.jpg",
+  "data/demo/works/maharani-lakshmi-bayi.jpg": "data/demo/works/maharani-lakshmi-bayi-s.jpg",
+  "data/demo/works/damayanti-untitled.jpg": "data/demo/works/damayanti-untitled-s.jpg"
  }
 }
