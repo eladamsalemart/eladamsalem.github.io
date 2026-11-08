@@ -992,6 +992,7 @@ def formwork(r, walls='nswe', panel=(1.8, 0.9)):
     joint = mat('form-joint', (0.33, 0.33, 0.32), 0.85, wear=0.5)
     hole = mat('tie-hole', (0.12, 0.12, 0.115), 0.7, wear=0)
     rim = mat('tie-rim', (0.42, 0.42, 0.4), 0.6, wear=0)
+    if os.environ.get("ROOMS_GEOM_FORM") != "1": return        # the joints and plugs are in the concrete material now (cast_concrete)
     pw, ph = panel
     for wall in walls:
         for p0, p1, n in r.wall_runs(wall, margin=0.0) or []:
@@ -1021,9 +1022,128 @@ def disc(c, n, rad, material, k=16):
     return mesh('disc', vs, [face], material)
 
 
+class NB:
+    """A few shorthands for building shader node trees in code."""
+    def __init__(self, nt): self.nt = nt
+    def n(self, kind, **kw):
+        x = self.nt.nodes.new(kind)
+        for k, v in kw.items(): setattr(x, k, v)
+        return x
+    def link(self, a, b): self.nt.links.new(a, b)
+    def m(self, op, a, b=None, clamp=False):
+        x = self.n('ShaderNodeMath', operation=op, use_clamp=clamp)
+        for i, v in enumerate((a, b)):
+            if v is None: continue
+            if isinstance(v, (int, float)): x.inputs[i].default_value = v
+            else: self.link(v, x.inputs[i])
+        return x.outputs[0]
+    def rng(self, v, a0, a1, b0, b1, clamp=True, kind='SMOOTHSTEP'):
+        x = self.n('ShaderNodeMapRange', interpolation_type=kind, clamp=clamp)
+        x.inputs['From Min'].default_value, x.inputs['From Max'].default_value = a0, a1
+        x.inputs['To Min'].default_value, x.inputs['To Max'].default_value = b0, b1
+        self.link(v, x.inputs['Value']); return x.outputs[0]
+    def xyz(self, x, y, z=0.0):
+        c = self.n('ShaderNodeCombineXYZ')
+        for i, v in enumerate((x, y, z)):
+            if isinstance(v, (int, float)): c.inputs[i].default_value = v
+            else: self.link(v, c.inputs[i])
+        return c.outputs[0]
+    def image(self, path, vec, colour=False, scale=1.0):
+        t = self.n('ShaderNodeTexImage'); t.image = bpy.data.images.load(path, check_existing=True)
+        if not colour: t.image.colorspace_settings.name = 'Non-Color'
+        mp = self.n('ShaderNodeMapping'); mp.inputs['Scale'].default_value = (1 / scale, 1 / scale, 1 / scale)
+        self.link(vec, mp.inputs[0]); self.link(mp.outputs[0], t.inputs[0]); return t
+    def hash3(self, vec):
+        w = self.n('ShaderNodeTexWhiteNoise', noise_dimensions='3D'); self.link(vec, w.inputs['Vector'])
+        s = self.n('ShaderNodeSeparateColor'); self.link(w.outputs['Color'], s.inputs[0])
+        return s.outputs[0], s.outputs[1], s.outputs[2]
+    def hash1(self, f):
+        w = self.n('ShaderNodeTexWhiteNoise', noise_dimensions='1D'); self.link(f, w.inputs['W']); return w.outputs['Value']
+
+
+def cast_concrete(name, floor=False, tone=0.40, warm=(1.03, 1.0, 0.95), pw=1.8, ph=0.9, ties=True):
+    """Cast-in-place concrete as Ando's builders pour it: each formwork panel (1.8 x 0.9 m) a little lighter or darker
+    than the next and cut from a different place on the texture, joints as thin V-grooves that wander by a millimetre and
+    step a few millimetres from panel to panel, tie holes in a lattice (recessed plugs, dark in the middle, a faint ring),
+    bug holes from the scan, and a silky satin sheen over a rougher body. floor=True: a ground slab with saw cuts."""
+    if name in MATS: return MATS[name]
+    m = bpy.data.materials.new(name); m.use_nodes = True
+    nt = m.node_tree; nt.nodes.clear(); B = NB(nt)
+    out = B.n('ShaderNodeOutputMaterial'); bsdf = B.n('ShaderNodeBsdfPrincipled'); B.link(bsdf.outputs[0], out.inputs[0])
+    t = ambientcg('Concrete002') if not floor else ambientcg('Concrete006')
+    g = B.n('ShaderNodeNewGeometry')
+    sep = B.n('ShaderNodeSeparateXYZ'); B.link(g.outputs['Position'], sep.inputs[0])
+    nsep = B.n('ShaderNodeSeparateXYZ'); B.link(g.outputs['Normal'], nsep.inputs[0])
+    x, y, z = sep.outputs
+    if floor:
+        u, v = x, y
+    else:
+        ax = B.m('GREATER_THAN', B.m('ABSOLUTE', nsep.outputs[0]), 0.5); az = B.m('GREATER_THAN', B.m('ABSOLUTE', nsep.outputs[2]), 0.5)
+        u = B.m('ADD', x, B.m('MULTIPLY', B.m('SUBTRACT', y, x), ax))
+        v = B.m('ADD', z, B.m('MULTIPLY', B.m('SUBTRACT', y, z), az))
+    # a joint wanders about a millimetre
+    wob = B.n('ShaderNodeTexNoise', noise_dimensions='2D'); wob.inputs['Scale'].default_value = 3.0
+    B.link(B.xyz(u, v), wob.inputs['Vector'])
+    wj = B.m('MULTIPLY', B.m('SUBTRACT', wob.outputs['Fac'], 0.5), 0.003)
+    # the row sets the sideways step of its vertical joints, the column the vertical step of its horizontal joints
+    cv0 = B.m('FLOOR', B.m('DIVIDE', v, ph))
+    u2 = B.m('ADD', B.m('ADD', u, B.m('MULTIPLY', B.m('SUBTRACT', B.hash1(cv0), 0.5), 0.007)), wj)
+    cu = B.m('FLOOR', B.m('DIVIDE', u2, pw))
+    v2 = B.m('ADD', B.m('ADD', v, B.m('MULTIPLY', B.m('SUBTRACT', B.hash1(B.m('ADD', cu, 31.0)), 0.5), 0.007)), wj)
+    cv = B.m('FLOOR', B.m('DIVIDE', v2, ph))
+    r1, r2, r3 = B.hash3(B.xyz(cu, cv, 3.7)); r4, r5, r6 = B.hash3(B.xyz(cv, cu, 11.1))
+    lu = B.m('SUBTRACT', u2, B.m('MULTIPLY', cu, pw)); lv = B.m('SUBTRACT', v2, B.m('MULTIPLY', cv, ph))
+    du = B.m('MINIMUM', lu, B.m('SUBTRACT', pw, lu)); dv = B.m('MINIMUM', lv, B.m('SUBTRACT', ph, lv))
+    d = B.m('MINIMUM', du, dv)
+    groove = B.rng(d, 0.0008, 0.0055 if not floor else 0.0025, 1.0, 0.0)
+    # the panel's own cut of the texture, and its own tone (a few percent) and warmth
+    off = B.xyz(B.m('ADD', u2, B.m('MULTIPLY', r3, 9.3)), B.m('ADD', v2, B.m('MULTIPLY', r4, 7.1)))
+    ts = 2.3
+    col = B.image(t['Color'], off, True, ts); disp = B.image(t['Displacement'], off, False, ts); rough = B.image(t['Roughness'], off, False, ts)
+    lift = B.hash1(B.m('FLOOR', B.m('DIVIDE', v2, 2.7 if not floor else 9.0)))   # each pour (lift) of the wall
+    tone_f = B.m('MULTIPLY', B.m('MULTIPLY', B.m('ADD', B.m('MULTIPLY', B.m('SUBTRACT', r1, 0.5), 0.12), 1.0), B.m('ADD', B.m('MULTIPLY', B.m('SUBTRACT', lift, 0.5), 0.07), 1.0)), tone / 0.33)
+    hue = B.m('MULTIPLY', B.m('SUBTRACT', r2, 0.5), 0.05)
+    mixc = B.n('ShaderNodeMix', data_type='RGBA', blend_type='MULTIPLY'); mixc.inputs[0].default_value = 1.0
+    B.link(col.outputs['Color'], mixc.inputs[6])
+    tint = B.n('ShaderNodeCombineColor')
+    B.link(B.m('MULTIPLY', tone_f, B.m('ADD', warm[0], hue)), tint.inputs[0]); B.link(B.m('MULTIPLY', tone_f, warm[1]), tint.inputs[1]); B.link(B.m('MULTIPLY', tone_f, B.m('SUBTRACT', warm[2], hue)), tint.inputs[2])
+    B.link(tint.outputs[0], mixc.inputs[7]); colour = mixc.outputs[2]
+    # tie holes: a lattice of six per panel, a plug 22 mm across sunk in the face, a darker core, a faint ring and a drip below
+    if ties and not floor:
+        hu = B.m('SUBTRACT', B.m('FLOORED_MODULO', lu, pw / 3), pw / 6); hv = B.m('SUBTRACT', B.m('FLOORED_MODULO', lv, ph / 2), ph / 4)
+        rr = B.m('SQRT', B.m('ADD', B.m('MULTIPLY', hu, hu), B.m('MULTIPLY', hv, hv)))
+        hole = B.rng(rr, 0.0085, 0.0135, 1.0, 0.0)
+        ring = B.rng(rr, 0.012, 0.019, 1.0, 0.0)
+        drip = B.m('MULTIPLY', B.rng(B.m('ABSOLUTE', hu), 0.0, 0.012, 1.0, 0.0), B.rng(hv, -0.2, 0.0, 0.0, 1.0))
+        dk = B.m('MULTIPLY', B.m('SUBTRACT', 1.0, B.m('MULTIPLY', hole, 0.7)), B.m('SUBTRACT', 1.0, B.m('MULTIPLY', B.m('MAXIMUM', ring, B.m('MULTIPLY', drip, 0.5)), 0.10)))
+        mk = B.n('ShaderNodeMix', data_type='RGBA', blend_type='MULTIPLY'); mk.inputs[0].default_value = 1.0
+        B.link(colour, mk.inputs[6]); c3 = B.n('ShaderNodeCombineColor'); [B.link(dk, c3.inputs[i]) for i in range(3)]; B.link(c3.outputs[0], mk.inputs[7]); colour = mk.outputs[2]
+        heights = B.m('SUBTRACT', B.m('MULTIPLY', groove, -0.7), B.m('MULTIPLY', B.m('MINIMUM', hole, 1.0), 1.6))
+    else:
+        heights = B.m('MULTIPLY', groove, -1.0)
+    # the groove darkens a little (a shadow line the camera can't resolve)
+    mg = B.n('ShaderNodeMix', data_type='RGBA', blend_type='MULTIPLY'); mg.inputs[0].default_value = 1.0
+    B.link(colour, mg.inputs[6]); c4 = B.n('ShaderNodeCombineColor'); [B.link(B.m('SUBTRACT', 1.0, B.m('MULTIPLY', groove, 0.5)), c4.inputs[i]) for i in range(3)]; B.link(c4.outputs[0], mg.inputs[7])
+    B.link(mg.outputs[2], bsdf.inputs['Base Color'])
+    # sheen: a rougher body, satin over it, patchy
+    rm = B.n('ShaderNodeMapRange'); rm.inputs['From Min'].default_value = 0.2; rm.inputs['From Max'].default_value = 0.8; rm.inputs['To Min'].default_value = 0.30 if floor else 0.46; rm.inputs['To Max'].default_value = 0.52 if floor else 0.74
+    B.link(rough.outputs['Color'], rm.inputs['Value']); B.link(rm.outputs[0], bsdf.inputs['Roughness'])
+    bsdf.inputs['Specular IOR Level'].default_value = 0.55
+    bsdf.inputs['Coat Weight'].default_value = 0.16 if not floor else 0.25; bsdf.inputs['Coat Roughness'].default_value = 0.30 if not floor else 0.12
+    # normal: the scan's relief (bug holes, pores) then the formwork's grooves and plugs
+    b1 = B.n('ShaderNodeBump'); b1.inputs['Strength'].default_value = 0.55; b1.inputs['Distance'].default_value = 0.0025
+    B.link(disp.outputs['Color'], b1.inputs['Height'])
+    b2 = B.n('ShaderNodeBump'); b2.inputs['Strength'].default_value = 1.0; b2.inputs['Distance'].default_value = 0.0035
+    B.link(heights, b2.inputs['Height']); B.link(b1.outputs[0], b2.inputs['Normal']); B.link(b2.outputs[0], bsdf.inputs['Normal'])
+    MATS[name] = m
+    weather(m, 0.7, runs=not floor, streaks=floor)
+    if floor: smudge(m, 'SurfaceImperfections003', 2.5, 0.5)
+    return m
+
+
 def concrete(v):
-    conc = mat('formwork-concrete', tex='concrete_wall_004', scale=2.4, tint=(0.6, 0.6, 0.58), tint_mix=0.4, rough_mul=1.0, bump=0.5, runs=True)
-    floor = mat('concrete-floor', tex='concrete_floor_02', scale=3.0, tint=(0.42, 0.42, 0.41), tint_mix=0.4, rough_mul=0.6, coat=0.1, bump=0.3, streaks=True)
+    conc = cast_concrete('formwork-concrete')
+    floor = cast_concrete('concrete-floor', floor=True, tone=0.30, pw=3.0, ph=3.0)
     world()
     if v == 'large':           # a tall volume 8 x 8 x 6 with a slot window high in the wall
         world(hdri=hdri('overcast'), strength=WIN_STRENGTH)
