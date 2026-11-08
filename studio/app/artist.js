@@ -279,7 +279,7 @@ async function walkIn(v) {
 // --- a real artist's first visit: their page, in a minute ---------------------------------------------------------------
 function setup(u) {
   return `<div class="wrap gut st">${head('Your studio')}
-    <p class="m">Two steps to a page of your own: who you are, then your work, brought in from where it already is (your website, Instagram, a Drive folder or your phone). Open Studio looks at every new page before it goes live.</p>
+    <p class="m">Who you are, then your work, and you have a page of your own: you build it right on the page. Open Studio looks at every new page before it goes live.</p>
     <form class="st-form" id="setup">
       <label>Your name, as an artist, in English letters (the app is in English)<input name="name" required value="${esc(/^[\x00-\u024f\s'.-]+$/.test(u.name || '') ? u.name : '')}" autocomplete="name" placeholder="e.g. Maya Cohen"></label>
       <div class="st-row"><label>You make<input name="discipline" placeholder="Painting"></label><label>City<input name="city" placeholder="Tel Aviv"></label></div>
@@ -297,7 +297,7 @@ function importer() {
   if (!S.cloud && !S.preview) return `<div class="wrap gut st">${head('Bring work in')}${nav('import')}<p class="m">In the demo studio nothing is brought in. <a href="#/welcome">Join as an artist</a> to bring your own work from your website, Instagram, a Drive folder or your phone.</p></div>`;
   const site = S.artist.link || '';
   return `<div class="wrap gut st">${head('Bring work in')}${nav('import')}
-    <p class="m">From wherever your work already is. You choose what comes in, and fix titles and sizes after, in Works.</p>
+    <p class="m">From wherever your work already is. You choose what comes in, and fix titles and sizes after, on your page. <a href="#/studio">Skip, go to my page</a>.</p>
     <div class="im-ways">
       <form class="st-card im-way" data-kind="site"><h2>Your website</h2><p class="m small">We look at the page and its gallery pages for your images and their titles.</p>
         <label class="vh" for="imSite">Website address</label><input id="imSite" name="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="yourname.com" value="${esc(site)}" required>
@@ -608,7 +608,7 @@ function wire(app, go) {
     const f = Object.fromEntries(new FormData(su)), b = su.querySelector('button[type=submit]');
     b.disabled = true; b.textContent = 'Making your page…';
     if (previewing()) {
-      S = { preview: true, cloud: false, status: 'pending', note: '', artist: { name: f.name, discipline: f.discipline || '', city: f.city || '', photo: '', statement: '', bio: '', link: f.link || '', instagram: f.instagram || '', cover: '' }, works: [], exhibitions: [], virtual: [] };
+      S = { preview: true, cloud: false, status: 'draft', note: '', artist: { name: f.name, discipline: f.discipline || '', city: f.city || '', photo: '', statement: '', bio: '', link: f.link || '', instagram: f.instagram || '', cover: '' }, works: [], exhibitions: [], virtual: [] };
       return go('#/studio/import');
     }
     try { S = await cloud.create(f); go('#/studio/import'); }
