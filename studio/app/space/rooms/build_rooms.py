@@ -34,7 +34,11 @@ def args():
         if k in ('blend', 'surfaces'): o[k] = True; i += 1; continue
         o[k] = a[i + 1]; i += 2
     o['samples'] = int(o['samples'])
-    if o['samples'] >= 100: o['samples'] = int(o['samples'] * (0.45 if o['type'] == 'loft' else 0.7))   # the richer materials cost ~35% more per sample; the denoiser keeps 180 clean, and the job stays under 5 h
+    # the richer materials cost ~35% more per sample; the denoiser keeps 180 clean, and the job stays under 5 h. The outside
+    # (models behind the windows) costs ~50% per sample and the cast concrete ~35%: those types give back as much in samples
+    f = {'loft': 0.45, 'concrete': 0.56, 'glass-pavilion': 0.47, 'japanese': 0.47, 'studio': 0.47, 'apartment': 0.47}.get(o['type'], 0.7)
+    if o['samples'] >= 100: o['samples'] = int(o['samples'] * f)
+    if 'surface_samples' in o and o['type'] != 'loft': o['surface_samples'] = int(int(o['surface_samples']) * f / 0.7)
     o['w'], o['h'] = map(int, o['size'].split('x'))
     return o
 
@@ -66,6 +70,9 @@ def reset(o):
     return s
 
 
+HAZE = {}                # the sky of the world (path, rotation, strength): what distant things fade into
+
+
 def world(strength=0.0, hdri=None, rot=0.0, sky=None):
     """The outside: black (a closed room), a Nishita sky (skylights), or a photographed place (windows, a garden)."""
     w = bpy.context.scene.world; w.use_nodes = True
@@ -73,7 +80,9 @@ def world(strength=0.0, hdri=None, rot=0.0, sky=None):
     out = nt.nodes.new('ShaderNodeOutputWorld'); bg = nt.nodes.new('ShaderNodeBackground')
     bg.inputs['Strength'].default_value = strength
     nt.links.new(bg.outputs[0], out.inputs[0])
+    HAZE.clear()
     if hdri:
+        HAZE.update(path=hdri, rot=rot, strength=strength)
         tex = nt.nodes.new('ShaderNodeTexEnvironment'); tex.image = bpy.data.images.load(hdri)
         mp = nt.nodes.new('ShaderNodeMapping'); tc = nt.nodes.new('ShaderNodeTexCoord')
         mp.inputs['Rotation'].default_value[2] = math.radians(rot)
@@ -260,14 +269,16 @@ def emission(name, strength, kelvin=6500, visible_only=False):
     return m
 
 
-def glass(name='glass', tint=(0.92, 0.96, 0.95)):
+def glass(name='glass', tint=(0.92, 0.96, 0.95), double=False):
     """Window glass: refracts for the eye, lets light straight through for shadows (no dark caustic noise)."""
+    name = name + '-dg' if double else name
     if name in MATS: return MATS[name]
     m = bpy.data.materials.new(name); m.use_nodes = True
     nt = m.node_tree; nt.nodes.clear()
     out = nt.nodes.new('ShaderNodeOutputMaterial'); g = nt.nodes.new('ShaderNodeBsdfPrincipled')
     g.inputs['Transmission Weight'].default_value = 1.0; g.inputs['Roughness'].default_value = 0.012; g.inputs['IOR'].default_value = 1.5
     g.inputs['Base Color'].default_value = (*tint, 1)
+    if double: g.inputs['Coat Weight'].default_value = 1.0; g.inputs['Coat Roughness'].default_value = 0.02; g.inputs['Coat IOR'].default_value = 1.5   # the second pane of a double-glazed window: a second faint reflection (not on roofs: costs a third)
     tr = nt.nodes.new('ShaderNodeBsdfTransparent'); tr.inputs[0].default_value = (*tint, 1)
     lp = nt.nodes.new('ShaderNodeLightPath'); mix = nt.nodes.new('ShaderNodeMixShader')
     nt.links.new(lp.outputs['Is Shadow Ray'], mix.inputs[0]); nt.links.new(g.outputs[0], mix.inputs[1]); nt.links.new(tr.outputs[0], mix.inputs[2])
@@ -739,6 +750,8 @@ def camera(pos, look, lens=20, shift=(0, 0)):
     """An architecture photographer's camera: level, so verticals stay vertical, framed up or down by shifting the
     lens (two-point perspective); never wider than 20 mm, whose stretched corners give a render away."""
     lens = max(lens + 3, 20)
+    if os.environ.get('ROOMS_CAM'):      # a test viewpoint: x,y,z,look x,y,z,lens
+        c = [float(t) for t in os.environ['ROOMS_CAM'].split(',')]; pos, look, lens = c[:3], c[3:6], c[6]
     d = Vector(look) - Vector(pos); flat = Vector((d.x, d.y, 0))
     pitch = math.atan2(d.z, flat.length)
     cam = bpy.data.cameras.new('cam'); cam.lens = lens; cam.sensor_width = 36; cam.sensor_fit = 'HORIZONTAL'
@@ -1082,7 +1095,7 @@ def cast_concrete(name, floor=False, tone=0.40, warm=(1.03, 1.0, 0.95), pw=1.8, 
         u = B.m('ADD', x, B.m('MULTIPLY', B.m('SUBTRACT', y, x), ax))
         v = B.m('ADD', z, B.m('MULTIPLY', B.m('SUBTRACT', y, z), az))
     # a joint wanders about a millimetre
-    wob = B.n('ShaderNodeTexNoise', noise_dimensions='2D'); wob.inputs['Scale'].default_value = 3.0
+    wob = B.n('ShaderNodeTexNoise', noise_dimensions='2D'); wob.inputs['Scale'].default_value = 3.0; wob.inputs['Detail'].default_value = 0.0
     B.link(B.xyz(u, v), wob.inputs['Vector'])
     wj = B.m('MULTIPLY', B.m('SUBTRACT', wob.outputs['Fac'], 0.5), 0.003)
     # the row sets the sideways step of its vertical joints, the column the vertical step of its horizontal joints
@@ -1130,11 +1143,11 @@ def cast_concrete(name, floor=False, tone=0.40, warm=(1.03, 1.0, 0.95), pw=1.8, 
     B.link(rough.outputs['Color'], rm.inputs['Value']); B.link(rm.outputs[0], bsdf.inputs['Roughness'])
     bsdf.inputs['Specular IOR Level'].default_value = 0.55
     bsdf.inputs['Coat Weight'].default_value = 0.16 if not floor else 0.25; bsdf.inputs['Coat Roughness'].default_value = 0.30 if not floor else 0.12
-    # normal: the scan's relief (bug holes, pores) then the formwork's grooves and plugs
-    b1 = B.n('ShaderNodeBump'); b1.inputs['Strength'].default_value = 0.55; b1.inputs['Distance'].default_value = 0.0025
-    B.link(disp.outputs['Color'], b1.inputs['Height'])
+    # normal: the scan's relief (bug holes, pores) and the formwork's grooves and plugs, in one bump (each is costly)
+    hh = B.m('ADD', heights, B.m('MULTIPLY', B.m('SUBTRACT', disp.outputs['Color'], 0.5), 0.45 * 0.0025 / 0.0035 * 2.0))
     b2 = B.n('ShaderNodeBump'); b2.inputs['Strength'].default_value = 1.0; b2.inputs['Distance'].default_value = 0.0035
-    B.link(heights, b2.inputs['Height']); B.link(b1.outputs[0], b2.inputs['Normal']); B.link(b2.outputs[0], bsdf.inputs['Normal'])
+    B.link(hh, b2.inputs['Height'])
+    if not os.environ.get('CC_NOBUMP'): B.link(b2.outputs[0], bsdf.inputs['Normal'])
     MATS[name] = m
     weather(m, 0.7, runs=not floor, streaks=floor)
     if floor: smudge(m, 'SurfaceImperfections003', 2.5, 0.5)
@@ -1148,6 +1161,11 @@ def concrete(v):
     if v == 'large':           # a tall volume 8 x 8 x 6 with a slot window high in the wall
         world(hdri=hdri('overcast'), strength=WIN_STRENGTH)
         r = Room(0, 0, 8, 8, 6, floor, conc, conc, doors=[('e', 1.6, 1.4, 2.6)], windows=[('n', 4, 6.6, 4.9, 5.4)])
+        import random
+        rnd = random.Random(8)       # what the slot shows: crowns of trees at 10-25 m over a lawn
+        ground(-0.02, 8.4, 700, -700, 700, outside_mat('lawn', 'leafy_grass', 3.5, tint=(0.24, 0.29, 0.11), tint_mix=0.7, bump=0.5, L=110))
+        for i in range(9):
+            place(rnd.choice(['island_tree_01', 'island_tree_01', 'island_tree_02']), rnd.uniform(-8, 16), 8 + rnd.uniform(10, 26), height=rnd.uniform(12, 21), rot=rnd.uniform(0, 360))
         mesh('slot.glass', [(0.7, 8.02, 4.9), (7.3, 8.02, 4.9), (7.3, 8.02, 5.4), (0.7, 8.02, 5.4)], [(0, 1, 2, 3)], glass())
         area('slot.sky', (4, 8.5, 5.15), (6.6, 0.5), 1200, 6500, rot=(math.radians(-90), 0, 0), spread=120)
         portal((4, 8.05, 5.15), (6.6, 0.5), rot=(math.radians(-90), 0, 0))
@@ -1173,6 +1191,64 @@ def concrete(v):
     return camera((0.8, 1.0, EYE), (16, 4.6, 1.9), lens=20)
 
 
+def street_outside(W, D, xc, zg=-4.2, seed=11, rot=0.0):
+    """A street seen from a first-floor window: a front garden, a pavement with trees whose crowns come up to the sill,
+    a road, and a terrace of brick and stucco houses across it (gables, chimneys, sash windows, doors), each at its own
+    depth, the photographed street only for the sky and the far end."""
+    import random
+    rnd = random.Random(seed)
+    L = 120
+    asph = outside_mat('road', 'asphalt_04', 4.0, tint=(0.55, 0.55, 0.57), tint_mix=0.3, bump=0.8, L=L)
+    pave = outside_mat('pavement', 'concrete_pavement_03', 2.1, tint=(0.6, 0.6, 0.58), tint_mix=0.3, bump=0.6, L=L)
+    lawn = outside_mat('front-garden', 'leafy_grass', 3.0, tint=(0.24, 0.29, 0.11), tint_mix=0.7, bump=0.5, L=L)
+    ground(zg, D, 400, -400, 400, lawn)
+    X0, X1 = -80, 80
+    def strip(y0, y1, m, dz=0.0): mesh('street', [(X0, y0, zg + dz), (X1, y0, zg + dz), (X1, y1, zg + dz), (X0, y1, zg + dz)], [(0, 1, 2, 3)], m)
+    strip(D + 5.0, D + 7.2, pave, 0.12); strip(D + 7.2, D + 14.2, asph, 0.0); strip(D + 14.2, D + 16.4, pave, 0.12)
+    kerb = outside_mat('kerb', 'concrete_pavers_02', 1.0, tint=(0.62, 0.62, 0.6), tint_mix=0.2, L=L)
+    for yk in (D + 7.2, D + 14.2): box('kerb', X0, yk - (0.0 if yk < D + 10 else 0.2), zg, X1, yk + (0.2 if yk < D + 10 else 0.0), zg + 0.12, kerb)
+    # a low brick wall and a hedge along the front garden
+    brick_low = outside_mat('garden-wall', 'brick_wall_003', 2.0, tint=(0.55, 0.40, 0.32), tint_mix=0.3, L=L)
+    box('garden-wall', X0, D + 4.75, zg, X1, D + 5.0, zg + 1.0, brick_low)
+    # the terrace across the street
+    yf = D + 22.0
+    bricks = [outside_mat('brick-a', 'brick_wall_003', 3.0, tint=(0.58, 0.40, 0.31), tint_mix=0.35, L=L),
+              outside_mat('brick-b', 'brick_wall_003', 3.0, tint=(0.52, 0.45, 0.38), tint_mix=0.35, L=L),
+              outside_mat('stucco', 'white_stucco', 2.0, tint=(0.72, 0.66, 0.54), tint_mix=0.25, L=L)]
+    box('own-house', -3, -3, zg, W + 3, D, -0.25, bricks[0])      # the house the room is in, below its floor
+    roof = outside_mat('slate-roof', 'ceramic_roof_01', 3.0, tint=(0.25, 0.22, 0.22), tint_mix=0.5, bump=0.8, L=L)
+    trim = outside_mat('sash', 'painted_plaster_wall', 2.0, tint=(0.8, 0.8, 0.78), tint_mix=0.1, L=L)
+    gl = bpy.data.materials.new('opp-glass'); gl.use_nodes = True
+    b = gl.node_tree.nodes['Principled BSDF']; b.inputs['Base Color'].default_value = (0.02, 0.025, 0.03, 1); b.inputs['Roughness'].default_value = 0.04; b.inputs['Specular IOR Level'].default_value = 0.9
+    haze(gl, L)
+    x = X0
+    while x < X1:
+        w = rnd.choice([5.0, 5.5, 6.0]); h = rnd.choice([9.0, 9.6, 10.2]); m = rnd.choice(bricks)
+        box('house', x, yf, zg, x + w, yf + 9, zg + h, m)
+        # a hipped slate roof
+        rz = zg + h; rh = 2.6
+        mesh('roof', [(x - 0.2, yf - 0.3, rz), (x + w + 0.2, yf - 0.3, rz), (x + w + 0.2, yf + 9.2, rz), (x - 0.2, yf + 9.2, rz), (x + 0.4, yf + 4.45, rz + rh), (x + w - 0.4, yf + 4.45, rz + rh)], [(0, 1, 5, 4), (2, 3, 4, 5), (0, 4, 3), (1, 2, 5)], roof)
+        box('chimney', x + w * 0.2, yf + 4, rz, x + w * 0.2 + 0.7, yf + 4.8, rz + rh + 1.2, bricks[0])
+        for fl in range(3):
+            z0 = zg + 0.9 + fl * 3.0 + (0.6 if fl == 0 else 0.0)
+            for k in range(2):
+                cx = x + w * (0.27 + 0.46 * k); ww, hh = 0.95, 1.55
+                box('sash', cx - ww / 2 - 0.07, yf - 0.06, z0 - 0.07, cx + ww / 2 + 0.07, yf, z0 + hh + 0.07, trim)
+                box('glass', cx - ww / 2, yf - 0.1, z0, cx + ww / 2, yf - 0.05, z0 + hh, gl)
+                box('bar', cx - 0.02, yf - 0.1, z0, cx + 0.02, yf - 0.04, z0 + hh, trim); box('bar', cx - ww / 2, yf - 0.1, z0 + hh * 0.5 - 0.02, cx + ww / 2, yf - 0.04, z0 + hh * 0.5 + 0.02, trim)
+        box('door', x + w * 0.4, yf - 0.08, zg + 0.3, x + w * 0.4 + 1.0, yf, zg + 2.5, mat('door-' + str(len(MATS) % 4), (0.05 + 0.1 * rnd.random(), 0.1 + 0.1 * rnd.random(), 0.12 + 0.08 * rnd.random()), 0.4, wear=0.3))
+        x += w
+    # trees on the pavement: crowns at the sill, more behind the houses
+    k = -6
+    while k < 8:
+        place(rnd.choice(['island_tree_01', 'island_tree_01', 'island_tree_02']), xc + k * 11 + rnd.uniform(-2, 2), D + 6.1 + rnd.uniform(-0.3, 0.3), height=rnd.uniform(8.5, 11.5), z=zg + 0.12, rot=rnd.uniform(0, 360))
+        k += 1
+    for i in range(7):
+        place('shrub_02', xc + rnd.uniform(-14, 14), D + rnd.uniform(1.4, 4.2), height=rnd.uniform(0.9, 1.8), z=zg, rot=rnd.uniform(0, 360))
+    for i in range(2):
+        place('jacaranda_tree', xc + rnd.uniform(-40, 40), yf + 18 + rnd.uniform(0, 14), height=rnd.uniform(14, 19), z=zg, rot=rnd.uniform(0, 360))
+
+
 def studio(v):
     brick = mat('limewash-brick', tex='whitewashed_brick', scale=2.0, tint=(0.88, 0.87, 0.84), tint_mix=0.3, bump=0.7, runs=True)
     boards = mat('painted-boards', tex='old_wooden_floor_03', scale=2.4, tint=(0.62, 0.6, 0.56), tint_mix=0.35, rough_mul=1.0, bump=0.5, smudges=('SurfaceImperfections004', 2.0, 0.5), streaks=True)
@@ -1191,11 +1267,12 @@ def studio(v):
     else:
         W, D, H = (5, 4, 3.2) if v == 'small' else (8, 6, 3.6)
         r = Room(0, 0, W, D, H, boards, brick, ceil, doors=[('e', 1.0, 0.9, 2.2)], windows=[('n', W / 2, W * 0.7, 0.9, H - 0.2)], shadow_gap=False)
-        mesh('window.glass', [(W * 0.15, D + 0.02, 0.9), (W * 0.85, D + 0.02, 0.9), (W * 0.85, D + 0.02, H - 0.2), (W * 0.15, D + 0.02, H - 0.2)], [(0, 1, 2, 3)], glass())
+        mesh('window.glass', [(W * 0.15, D + 0.02, 0.9), (W * 0.85, D + 0.02, 0.9), (W * 0.85, D + 0.02, H - 0.2), (W * 0.15, D + 0.02, H - 0.2)], [(0, 1, 2, 3)], glass(double=True))
         for k in range(1, 4):
             box('mullion', W * 0.15 + k * W * 0.7 / 4 - 0.025, D, 0.9, W * 0.15 + k * W * 0.7 / 4 + 0.025, D + 0.06, H - 0.2, mat('window-frame', (0.85, 0.85, 0.83), 0.5))
         box('transom', W * 0.15, D, 2.2, W * 0.85, D + 0.06, 2.25, mat('window-frame', (0.85, 0.85, 0.83), 0.5))
         portal((W / 2, D + 0.05, (0.9 + H - 0.2) / 2), (W * 0.7, H - 1.1), rot=(math.radians(-90), 0, 0))
+        street_outside(W, D, W / 2)
     # a trestle table, works leaning on the wall, a stool
     tw = 2.2
     box('table.top', 0.8, 1.0, 0.86, 0.8 + tw, 1.9, 0.9, wood, bevel=0.005)
@@ -1223,9 +1300,10 @@ def apartment(v):
     W, D, H = {'small': (5, 4.5, 2.8), 'large': (9, 6, 3.2)}.get(v, (7, 5, 3.0))
     r = Room(0, 0, W, D, H, herring, walls, ceil, doors=[('e', 1.0, 0.9, 2.2)], windows=[('n', W * 0.62, 1.6, 0.6, H - 0.35)],
              base=(0.12, skirt), shadow_gap=False)
-    mesh('window.glass', [(W * 0.62 - 0.8, D + 0.02, 0.6), (W * 0.62 + 0.8, D + 0.02, 0.6), (W * 0.62 + 0.8, D + 0.02, H - 0.35), (W * 0.62 - 0.8, D + 0.02, H - 0.35)], [(0, 1, 2, 3)], glass())
+    mesh('window.glass', [(W * 0.62 - 0.8, D + 0.02, 0.6), (W * 0.62 + 0.8, D + 0.02, 0.6), (W * 0.62 + 0.8, D + 0.02, H - 0.35), (W * 0.62 - 0.8, D + 0.02, H - 0.35)], [(0, 1, 2, 3)], glass(double=True))
     box('window.frame', W * 0.62 - 0.03, D, 0.6, W * 0.62 + 0.03, D + 0.07, H - 0.35, skirt)
     portal((W * 0.62, D + 0.05, (0.6 + H - 0.35) / 2), (1.6, H - 0.95), rot=(math.radians(-90), 0, 0))
+    street_outside(W, D, W * 0.62, seed=21)
     # a picture rail, a sofa, a rug, a low table, a floor lamp
     for (a0, b0, a1, b1) in ((0, 0, W, 0.02), (0, D - 0.02, W, D), (0, 0, 0.02, D), (W - 0.02, 0, W, D)):
         box('picture-rail', a0, b0, H - 0.4, a1, b1, H - 0.37, skirt)
@@ -1291,6 +1369,29 @@ def black_box(v):
     return camera((W - 0.7, 0.8, EYE), (1.0, D - 1.5, 1.5), lens=17)
 
 
+def garden_outside(W, D, sides, zg=-0.2, seed=3):
+    """The park outside a glass pavilion: a lawn that runs to the horizon, shrubs and grass at 3-8 m, trees of several
+    kinds at 8-30 m (the photographed park stays as the far distance and the sky), all fading toward it."""
+    import random
+    rnd = random.Random(seed)
+    lawn = outside_mat('lawn', 'leafy_grass', 3.5, tint=(0.24, 0.29, 0.11), tint_mix=0.7, bump=0.5, L=110)
+    ground(zg, -700, 700, -700, 700, lawn)
+    ctr = Vector((W / 2, D / 2, 0))
+    def at(side, along, out):      # a point `out` metres off the side's glass, `along` metres along it
+        return {'n': (along, D + out), 's': (along, -out), 'e': (W + out, along), 'w': (-out, along)}[side]
+    for side in sides:
+        L = W if side in 'ns' else D
+        for i in range(7):         # shrubs and grass clumps close to the glass
+            x, y = at(side, rnd.uniform(-3, L + 3), rnd.uniform(3.5, 9))
+            place(rnd.choice(['shrub_02', 'shrub_02', 'island_tree_02']), x, y, height=rnd.uniform(1.4, 3.2), z=zg, rot=rnd.uniform(0, 360))
+        for i in range(10):
+            x, y = at(side, rnd.uniform(-6, L + 6), rnd.uniform(2.5, 12))
+            place(rnd.choice(['grass_medium_01', 'grass_medium_02', 'fern_02']), x, y, height=rnd.uniform(0.5, 1.0), z=zg, rot=rnd.uniform(0, 360))
+        for i, out in enumerate((9, 14, 19, 26)):
+            x, y = at(side, rnd.uniform(-6, L + 6), out + rnd.uniform(-2, 2))
+            place('jacaranda_tree' if (side == sides[0] and i == 1) else rnd.choice(['island_tree_01', 'island_tree_02']), x, y, height=rnd.uniform(9, 16), z=zg, rot=rnd.uniform(0, 360))   # one big tree is the heavy one: the rest are the light kind
+
+
 def glass_pavilion(v):
     granite = mat('terrazzo', tex='terrazzo_tiles', scale=2.0, rough_mul=0.6, coat=0.2, bump=0.2, smudges=('SurfaceImperfections003', 2.5, 0.6), streaks=True)
     white = mat('pavilion-wall', (0.84, 0.84, 0.82), 0.9, tex='painted_plaster_wall', scale=2.5, tint=(0.85, 0.85, 0.83), tint_mix=0.06, bump=0.2)
@@ -1301,10 +1402,11 @@ def glass_pavilion(v):
     box('floor', -2, -2, -0.2, W + 2, D + 2, 0, granite)
     box('roof', -2, -2, H, W + 2, D + 2, H + 0.6, ceil)
     sides = 'nesw' if v == 'large' else ('n' if v == 'small' else 'n')
+    garden_outside(W, D, sides)
     # glass walls with black steel mullions every 2 m; solid white walls where there is no glass
     for wall, (p0, p1) in {'s': ((0, 0), (W, 0)), 'n': ((W, D), (0, D)), 'w': ((0, D), (0, 0)), 'e': ((W, 0), (W, D))}.items():
         if wall in sides:
-            mesh('glass.' + wall, [(p0[0], p0[1], 0), (p1[0], p1[1], 0), (p1[0], p1[1], H), (p0[0], p0[1], H)], [(0, 1, 2, 3)], glass())
+            mesh('glass.' + wall, [(p0[0], p0[1], 0), (p1[0], p1[1], 0), (p1[0], p1[1], H), (p0[0], p0[1], H)], [(0, 1, 2, 3)], glass(double=True))
             mid = ((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2, H / 2); L = math.dist(p0, p1)
             facing = {'n': (math.radians(-90), 0, 0), 's': (math.radians(90), 0, 0), 'e': (0, math.radians(-90), 0), 'w': (0, math.radians(90), 0)}[wall]
             portal(mid, (L, H) if wall in 'ns' else (H, L), rot=facing)
@@ -1331,6 +1433,35 @@ def glass_pavilion(v):
 def _fake_room(x0, y0, x1, y1, h):
     r = Room.__new__(Room); r.x0, r.y0, r.x1, r.y1, r.h, r.doors, r.windows = x0, y0, x1, y1, h, [], []
     return r
+
+
+def jp_garden(W, D, zg=-0.6, seed=5):
+    """The garden beyond the engawa: raked pale gravel, then moss and grass; stones, clipped shrubs, a pine; at 11 m an
+    earthen wall with a tiled cap (a tsuiji), over which the maples and a conifer of the next garden show (borrowed
+    scenery), and the photographed park only for the far sky."""
+    import random
+    rnd = random.Random(seed)
+    far = outside_mat('moss-ground', 'sparse_grass', 2.5, tint=(0.22, 0.28, 0.10), tint_mix=0.6, bump=0.5, L=80)
+    gravel = outside_mat('raked-gravel', 'gravel_floor_02', 2.0, tint=(0.46, 0.44, 0.40), tint_mix=0.3, bump=0.8, L=80)
+    ground(zg - 0.03, D + 1.3, 700, -700, 700, far)
+    mesh('gravel', [(-12, D + 1.3, zg), (W + 12, D + 1.3, zg), (W + 12, D + 6.8, zg), (-12, D + 6.8, zg)], [(0, 1, 2, 3)], gravel)
+    y0 = D + 11
+    plast = outside_mat('tsuiji', 'white_plaster_rough_02', 2.0, tint=(0.40, 0.34, 0.25), tint_mix=0.5, bump=0.5, L=80)
+    cap = outside_mat('tsuiji-cap', 'clay_roof_tiles_03', 1.2, tint=(0.2, 0.2, 0.21), tint_mix=0.6, bump=0.8, L=80)
+    box('tsuiji', -40, y0, zg, W + 40, y0 + 0.4, zg + 2.3, plast)
+    box('tsuiji.cap', -40, y0 - 0.12, zg + 2.3, W + 40, y0 + 0.52, zg + 2.5, cap)
+    for k in range(7):        # stepping stones in a line across the moss
+        x = W / 2 + 0.2 + k * 0.1 + rnd.uniform(-0.1, 0.1); y = D + 2.0 + k * 0.85
+        cylinder('step', (x, y), 0.26, zg, zg + 0.07, mat('step-stone', tex='mossy_rock', scale=1.0, tint=(0.5, 0.5, 0.48), tint_mix=0.2, wear=0.3), n=24)
+    for i, (dx, dy, h, a) in enumerate([(-1.8, 3.0, 0.9, 'boulder_01'), (2.2, 4.4, 0.7, 'boulder_01'), (-3.6, 6.2, 1.1, 'boulder_01'), (4.8, 3.2, 0.5, 'boulder_01')]):
+        place(a, W / 2 + dx, D + dy, height=h, z=zg - 0.05, rot=rnd.uniform(0, 360))
+    for i in range(10):       # clipped shrubs (azalea) in clumps, round
+        place('shrub_02', rnd.uniform(-4, W + 4), D + rnd.uniform(5.0, 9.5), height=rnd.uniform(0.7, 1.4), z=zg, rot=rnd.uniform(0, 360))
+    place('pine_sapling_small', W / 2 - 2.6, D + 5.2, height=4.2, z=zg, rot=40)
+    place('pine_sapling_small', W / 2 + 3.3, D + 7.0, height=5.5, z=zg, rot=130)
+    for x in (-6, W / 2 - 4, W / 2 + 2, W + 3):
+        place(rnd.choice(['island_tree_01', 'island_tree_02']), x + rnd.uniform(-1, 1), y0 + rnd.uniform(3, 6), height=rnd.uniform(8, 11), z=zg, rot=rnd.uniform(0, 360))
+    place('jacaranda_tree', W / 2 + 6, y0 + 16, height=17, z=zg, rot=90)
 
 
 def japanese(v):
@@ -1360,7 +1491,7 @@ def japanese(v):
             box('kumiko', a0, D - 0.01, z - 0.008, a1, D + 0.005, z + 0.008, hinoki)
         box('shoji.frame', a0, D - 0.015, 0, a0 + 0.03, D + 0.01, H - 0.4, hinoki); box('shoji.frame', a1 - 0.03, D - 0.015, 0, a1, D + 0.01, H - 0.4, hinoki)
     box('engawa', -0.3, D + 0.02, -0.06, W + 0.3, D + 1.3, -0.02, mat('engawa', tex='hinoki_planks', scale=1.2, tint=(0.36, 0.27, 0.18), tint_mix=0.5, rough_mul=0.8, bump=0.3))
-    box('ground', -30, D + 1.3, -0.6, W + 30, D + 40, -0.55, mat('garden-ground', tex='forest_ground_04', scale=3.0, bump=0.6))
+    jp_garden(W, D)
     portal((W / 2, D + 0.05, (H - 0.4) / 2), (o1 - o0, H - 0.4), rot=(math.radians(-90), 0, 0))
     box('kamoi', 0, D - 0.06, H - 0.45, W, D, H - 0.38, hinoki)
     area('garden.light', (W / 2, D + 1.0, (H - 0.4) / 2), (W - 0.4, H - 0.6), 120, 6200, rot=(math.radians(-90), 0, 0), spread=150)
@@ -1373,6 +1504,86 @@ def japanese(v):
     if v != 'small':
         hang_wall(ws[1:4], (W - 0.4, 0.002, 0), (1.2, 0.002, 0), (0, 1, 0), z=1.35, ceiling=H, lux=50, spot_kelvin=2800, frame=mat('frame-black', (0.03, 0.03, 0.03), 0.4))
     return camera((W - 0.5, 0.5, 1.2 if v == 'small' else EYE), (0.4, D * 0.6, 1.2), lens=16)
+
+
+# --- the outside: real depth behind a window ----------------------------------------------------------------------------
+def haze(m, L=90.0, p=1.5):
+    """Atmospheric falloff for what is seen outside: seen by the eye (also through glass), a surface fades toward the
+    sky's own colour in that direction, a little at 25 m, almost wholly at 200 m, so the ground melts into the horizon
+    of the photographed sky and trees at 30 m stand a touch paler than those at 8 m."""
+    if not HAZE or not m.use_nodes: return
+    nt = m.node_tree; B = NB(nt)
+    outs = [n for n in nt.nodes if n.type == 'OUTPUT_MATERIAL']
+    if not outs: return
+    out = next((n for n in outs if n.is_active_output), outs[0]); src = out.inputs['Surface'].links
+    if not src: return
+    orig = src[0].from_socket
+    cam = B.n('ShaderNodeCameraData'); lp = B.n('ShaderNodeLightPath'); g = B.n('ShaderNodeNewGeometry')
+    dist = B.m('POWER', B.m('DIVIDE', cam.outputs['View Distance'], L), p)
+    fac = B.m('SUBTRACT', 1.0, B.m('EXPONENT', B.m('MULTIPLY', dist, -1.0)))
+    seen = B.m('MINIMUM', B.m('ADD', lp.outputs['Is Camera Ray'], lp.outputs['Is Transmission Ray']), 1.0)
+    fac = B.m('MULTIPLY', fac, seen)
+    vd = B.n('ShaderNodeVectorMath', operation='SCALE'); vd.inputs['Scale'].default_value = -1.0; B.link(g.outputs['Incoming'], vd.inputs[0])
+    mp = B.n('ShaderNodeMapping'); mp.inputs['Rotation'].default_value[2] = math.radians(HAZE['rot']); B.link(vd.outputs[0], mp.inputs[0])
+    env = B.n('ShaderNodeTexEnvironment'); env.image = bpy.data.images.load(HAZE['path'], check_existing=True); B.link(mp.outputs[0], env.inputs[0])
+    em = B.n('ShaderNodeEmission'); em.inputs['Strength'].default_value = HAZE['strength']; B.link(env.outputs[0], em.inputs[0])
+    mix = B.n('ShaderNodeMixShader'); B.link(fac, mix.inputs[0]); B.link(orig, mix.inputs[1]); B.link(em.outputs[0], mix.inputs[2])
+    B.link(mix.outputs[0], out.inputs['Surface'])
+
+
+def outside_mat(name, tex, scale, tint=None, tint_mix=0.0, bump=0.6, rough_mul=1.0, L=90.0):
+    m = mat(name, tex=tex, scale=scale, tint=tint, tint_mix=tint_mix, bump=bump, rough_mul=rough_mul, wear=0)
+    if not m.get('hazed'): haze(m, L); m['hazed'] = True
+    return m
+
+
+def polymodel(asset, res='1k'):
+    """A Poly Haven (CC0) 3D model as a glTF with its textures, downloaded once."""
+    d = os.path.join(CACHE, 'models', asset); gl = os.path.join(d, asset + '.gltf')
+    if os.path.exists(gl): return gl
+    files = json.loads(urllib.request.urlopen(urllib.request.Request(f'https://api.polyhaven.com/files/{asset}', headers=UA), timeout=60).read())
+    g = files['gltf'][res]['gltf']
+    for rel, node in [(asset + '.gltf', g)] + list(g['include'].items()):
+        p = os.path.join(d, rel); os.makedirs(os.path.dirname(p), exist_ok=True)
+        open(p, 'wb').write(urllib.request.urlopen(urllib.request.Request(node['url'], headers=UA), timeout=300).read())
+    return gl
+
+
+PROTO = {}
+
+
+def proto(asset):
+    """Import a model once, hidden; place() then drops linked copies of it where they are wanted."""
+    if asset in PROTO: return PROTO[asset]
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=polymodel(asset))
+    new = [o for o in bpy.data.objects if o not in before]
+    meshes = [o for o in new if o.type == 'MESH']
+    pts = [o.matrix_world @ Vector(c) for o in meshes for c in o.bound_box]
+    lo = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts))); hi = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
+    items = [(o, o.matrix_world.copy()) for o in meshes]
+    for o in new: o.hide_render = True; o.hide_viewport = True
+    for o in meshes:
+        for sl in o.material_slots:
+            if sl.material and not sl.material.get('hazed'):
+                haze(sl.material); sl.material['hazed'] = True
+    PROTO[asset] = dict(items=items, lo=lo, hi=hi, h=hi.z - lo.z, w=max(hi.x - lo.x, hi.y - lo.y))
+    return PROTO[asset]
+
+
+def place(asset, x, y, height=None, z=0.0, rot=0.0, scale=1.0, flip=False):
+    """A copy of a model standing at (x, y), its base at z, `height` metres tall (or scaled), turned by rot degrees."""
+    from mathutils import Matrix
+    P = proto(asset); s = (height / P['h'] if height else scale)
+    base = Matrix.Translation((x, y, z)) @ Matrix.Rotation(math.radians(rot), 4, 'Z') @ Matrix.Diagonal((-s if flip else s, s, s, 1)) @ Matrix.Translation(-Vector(((P['lo'].x + P['hi'].x) / 2, (P['lo'].y + P['hi'].y) / 2, P['lo'].z)))
+    for o, m0 in P['items']:
+        c = o.copy(); c.parent = None; c.hide_render = False; c.hide_viewport = False
+        bpy.context.collection.objects.link(c); c.matrix_world = base @ m0
+    return base
+
+
+def ground(z, y0, ymax=700, x0=-700, x1=700, material=None):
+    return mesh('ground', [(x0, y0, z), (x1, y0, z), (x1, ymax, z), (x0, ymax, z)], [(0, 1, 2, 3)], material)
 
 
 HDRIS = {'garden': 'killesberg_park', 'lebombo': 'lebombo', 'japanese-garden': 'ninomaru_teien',
