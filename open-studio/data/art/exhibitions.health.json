@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-03",
+ "updated": "2026-11-08",
  "sources": [
   {
    "source": "haifa-museum",
@@ -50,7 +50,7 @@
    "url": "https://www.cca.org.il/exhibitions-hebrew",
    "read": "browser",
    "status": "ok",
-   "shows": 5,
+   "shows": 8,
    "events": 0
   },
   {
@@ -139,8 +139,9 @@
    "place": "jerusalem-artists-house",
    "url": "https://art.org.il/%d7%aa%d7%a2%d7%a8%d7%95%d7%9b%d7%95%d7%aa-%d7%a8%d7%a6%d7%95%d7%aa/",
    "read": "browser",
+   "via": "wordpress",
    "status": "ok",
-   "shows": 3,
+   "shows": 1,
    "events": 0
   },
   {
@@ -346,8 +347,8 @@
    "place": "ein-hod-art-gallery",
    "url": "https://www.ein-hod.org/גלריית-האמנים/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -382,7 +383,7 @@
    "place": "hamidrasha-gallery",
    "url": "https://www.beitberl.ac.il/academic/faculties/art/exhbitions_galleries/hayarkun",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -401,7 +402,7 @@
    "url": "https://hansen.co.il/",
    "auto": true,
    "status": "ok",
-   "shows": 4,
+   "shows": 3,
    "events": 0
   },
   {
@@ -418,8 +419,8 @@
    "place": "helena-rubinstein-pavilion",
    "url": "https://www.tamuseum.org.il/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -508,8 +509,8 @@
    "place": "mamuta-art-and-research-center",
    "url": "https://mamuta.org/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "unreachable: Error",
+   "shows": 0,
    "events": 0
   },
   {
@@ -518,7 +519,7 @@
    "url": "https://www.hms.org.il/",
    "auto": true,
    "status": "ok",
-   "shows": 8,
+   "shows": 6,
    "events": 1
   },
   {
@@ -535,8 +536,8 @@
    "place": "meyerhoff-art-education-center",
    "url": "http://www.tamuseum.org.il/master/he/education-lobby",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -562,7 +563,7 @@
    "place": "museum-for-islamic-art",
    "url": "https://www.islamicart.co.il/",
    "auto": true,
-   "status": "unreachable: TimeoutError",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -571,7 +572,7 @@
    "place": "museum-for-islamic-art-2",
    "url": "https://www.islamicart.co.il/",
    "auto": true,
-   "status": "unreachable: TimeoutError",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -670,7 +671,7 @@
    "place": "rosenfeld-gallery",
    "url": "https://rg.co.il",
    "auto": true,
-   "status": "unreachable: TimeoutError",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -742,8 +743,8 @@
    "place": "wikidata-Q135407831",
    "url": "https://tivon-lib.co.il/gallery/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -760,8 +761,8 @@
    "place": "wilfrid-israel-museum",
    "url": "http://www.wilfrid.org.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -778,11 +779,11 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 25,
-   "matched": 2,
-   "unmatched": 1,
+   "messages": 29,
+   "matched": 4,
+   "unmatched": 2,
    "shows": 2,
-   "events": 0
+   "events": 2
   },
   {
    "source": "mail:sommer-contemporary-art-2",
@@ -793,16 +794,16 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 104,
-   "seconds": 8674,
-   "status": "time budget of 180 minutes used"
+   "calls": 2,
+   "seconds": 115,
+   "status": "TimeoutError: timed out"
   },
   {
    "source": "makore",
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 24
+   "events": 22
   }
  ]
 }

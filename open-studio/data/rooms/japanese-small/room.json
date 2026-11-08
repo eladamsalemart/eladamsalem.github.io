@@ -1,0 +1,33 @@
+{
+ "slug": "japanese-small",
+ "type": "japanese",
+ "label": "Tea room, 3.6 \u00d7 3.6 m",
+ "w": 3.6,
+ "d": 3.6,
+ "h": 2.5,
+ "door": {
+  "from": 1.35,
+  "to": 2.25,
+  "height": 1.9
+ },
+ "blocks": {
+  "wall-z0": [
+   [
+    0.2,
+    3.4
+   ]
+  ],
+  "wall-x1": [
+   [
+    1.35,
+    2.25
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.0,
+  0.0
+ ],
+ "ppm": 110
+}

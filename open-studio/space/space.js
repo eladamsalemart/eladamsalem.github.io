@@ -189,7 +189,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork }) {
   function floorMaterial(w, l, withLight = true) {
     const i = surfaces.indexOf(floorS);
     const tile = texs[i] ? texs[i].clone() : null;
-    if (tile) { tile.wrapS = tile.wrapT = THREE.RepeatWrapping; tile.repeat.set(w / (floorS.tile || 1), l / (floorS.tile || 1)); tile.needsUpdate = true; }
+    if (tile) { const [tx, tz] = floorS.tileXY || [floorS.tile || 1, floorS.tile || 1]; tile.wrapS = tile.wrapT = THREE.RepeatWrapping; tile.repeat.set(w / tx, l / tz); tile.needsUpdate = true; }
     const c = floorS.color || [140, 120, 100];
     const m = room(new THREE.MeshBasicMaterial({ map: tile, color: tile ? 0xffffff : new THREE.Color(`rgb(${c.join(',')})`), toneMapped: false }));
     if (withLight && lights[i]) { m.lightMap = lights[i]; m.lightMapIntensity = Math.PI * (floorS.lightScale || 1); }

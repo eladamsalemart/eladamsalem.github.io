@@ -1,0 +1,27 @@
+{
+ "slug": "loft-large",
+ "type": "loft",
+ "label": "Long nave, 40 \u00d7 10 m",
+ "w": 40,
+ "d": 10,
+ "h": 8.6,
+ "door": {
+  "from": 3.5,
+  "to": 6.5,
+  "height": 3.6
+ },
+ "blocks": {
+  "wall-x1": [
+   [
+    3.5,
+    6.5
+   ]
+  ]
+ },
+ "light": "spots",
+ "floorReflect": [
+  0.03,
+  0.14
+ ],
+ "ppm": 110
+}

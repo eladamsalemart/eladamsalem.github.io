@@ -1,0 +1,764 @@
+{
+ "apartment": {
+  "slug": "apartment",
+  "type": "apartment",
+  "label": "Living room, 7 \u00d7 5 m",
+  "w": 7,
+  "d": 5,
+  "h": 3.0,
+  "door": {
+   "from": 3.55,
+   "to": 4.45,
+   "height": 2.2
+  },
+  "blocks": {
+   "wall-z0": [
+    [
+     3.54,
+     5.14
+    ]
+   ],
+   "wall-x1": [
+    [
+     3.55,
+     4.45
+    ]
+   ]
+  },
+  "light": "spots",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "apartment-large": {
+  "slug": "apartment-large",
+  "type": "apartment",
+  "label": "Large living room, 9 \u00d7 6 m",
+  "w": 9,
+  "d": 6,
+  "h": 3.2,
+  "door": {
+   "from": 4.55,
+   "to": 5.45,
+   "height": 2.2
+  },
+  "blocks": {
+   "wall-z0": [
+    [
+     4.78,
+     6.38
+    ]
+   ],
+   "wall-x1": [
+    [
+     4.55,
+     5.45
+    ]
+   ]
+  },
+  "light": "spots",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "apartment-small": {
+  "slug": "apartment-small",
+  "type": "apartment",
+  "label": "Studio flat, 5 \u00d7 4.5 m",
+  "w": 5,
+  "d": 4.5,
+  "h": 2.8,
+  "door": {
+   "from": 3.05,
+   "to": 3.95,
+   "height": 2.2
+  },
+  "blocks": {
+   "wall-z0": [
+    [
+     2.3,
+     3.9
+    ]
+   ],
+   "wall-x1": [
+    [
+     3.05,
+     3.95
+    ]
+   ]
+  },
+  "light": "spots",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "black-box": {
+  "slug": "black-box",
+  "type": "black-box",
+  "label": "Projection hall, 14 \u00d7 10 m",
+  "w": 14,
+  "d": 10,
+  "h": 5,
+  "door": {
+   "from": 4.4,
+   "to": 5.6,
+   "height": 2.4
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     4.4,
+     5.6
+    ]
+   ]
+  },
+  "light": "narrow",
+  "floorReflect": [
+   0.08,
+   0.34
+  ],
+  "ppm": 110
+ },
+ "black-box-small": {
+  "slug": "black-box-small",
+  "type": "black-box",
+  "label": "Dark cell, 8 \u00d7 6 m",
+  "w": 8,
+  "d": 6,
+  "h": 3.5,
+  "door": {
+   "from": 2.4,
+   "to": 3.6,
+   "height": 2.4
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     2.4,
+     3.6
+    ]
+   ]
+  },
+  "light": "narrow",
+  "floorReflect": [
+   0.08,
+   0.34
+  ],
+  "ppm": 110
+ },
+ "concrete-large": {
+  "slug": "concrete-large",
+  "type": "concrete",
+  "label": "Tall volume with a slot window, 8 \u00d7 8 \u00d7 6 m",
+  "w": 8,
+  "d": 8,
+  "h": 6,
+  "door": {
+   "from": 5.7,
+   "to": 7.1,
+   "height": 2.6
+  },
+  "blocks": {
+   "wall-z0": [
+    [
+     0.7,
+     7.3
+    ]
+   ],
+   "wall-x1": [
+    [
+     5.7,
+     7.1
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.04,
+   0.18
+  ],
+  "ppm": 110
+ },
+ "concrete-small": {
+  "slug": "concrete-small",
+  "type": "concrete",
+  "label": "Under a daylight ceiling, 8 \u00d7 8 m",
+  "w": 8,
+  "d": 8,
+  "h": 4.25,
+  "door": {
+   "from": 5.7,
+   "to": 7.1,
+   "height": 2.6
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     5.7,
+     7.1
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.04,
+   0.18
+  ],
+  "ppm": 110
+ },
+ "glass-pavilion": {
+  "slug": "glass-pavilion",
+  "type": "glass-pavilion",
+  "label": "Gallery with a glass end, 14 \u00d7 9 m",
+  "w": 14,
+  "d": 9,
+  "h": 4.5,
+  "door": null,
+  "blocks": {
+   "wall-z0": [
+    [
+     0,
+     14
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.06,
+   0.28
+  ],
+  "ppm": 110
+ },
+ "glass-pavilion-large": {
+  "slug": "glass-pavilion-large",
+  "type": "glass-pavilion",
+  "label": "Glass hall, 24 \u00d7 16 m",
+  "w": 24,
+  "d": 16,
+  "h": 5,
+  "door": null,
+  "blocks": {
+   "wall-z0": [
+    [
+     0,
+     24
+    ]
+   ],
+   "wall-x0": [
+    [
+     0,
+     16
+    ]
+   ],
+   "wall-z1": [
+    [
+     0,
+     24
+    ]
+   ],
+   "wall-x1": [
+    [
+     0,
+     16
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.06,
+   0.28
+  ],
+  "ppm": 110
+ },
+ "glass-pavilion-small": {
+  "slug": "glass-pavilion-small",
+  "type": "glass-pavilion",
+  "label": "Pavilion with a glass wall, 10 \u00d7 8 m",
+  "w": 10,
+  "d": 8,
+  "h": 4,
+  "door": null,
+  "blocks": {
+   "wall-z0": [
+    [
+     0,
+     10
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.06,
+   0.28
+  ],
+  "ppm": 110
+ },
+ "japanese": {
+  "slug": "japanese",
+  "type": "japanese",
+  "label": "Gallery with a tokonoma, 9 \u00d7 6 m",
+  "w": 9,
+  "d": 6,
+  "h": 3.2,
+  "door": {
+   "from": 2.55,
+   "to": 3.45,
+   "height": 1.9
+  },
+  "blocks": {
+   "wall-z0": [
+    [
+     0.2,
+     8.8
+    ]
+   ],
+   "wall-x1": [
+    [
+     2.55,
+     3.45
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.0,
+   0.0
+  ],
+  "ppm": 110
+ },
+ "japanese-large": {
+  "slug": "japanese-large",
+  "type": "japanese",
+  "label": "Long engawa room, 12 \u00d7 4.5 m",
+  "w": 12,
+  "d": 4.5,
+  "h": 3.0,
+  "door": {
+   "from": 1.8,
+   "to": 2.7,
+   "height": 1.9
+  },
+  "blocks": {
+   "wall-z0": [
+    [
+     0.2,
+     11.8
+    ]
+   ],
+   "wall-x1": [
+    [
+     1.8,
+     2.7
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.0,
+   0.0
+  ],
+  "ppm": 110
+ },
+ "japanese-small": {
+  "slug": "japanese-small",
+  "type": "japanese",
+  "label": "Tea room, 3.6 \u00d7 3.6 m",
+  "w": 3.6,
+  "d": 3.6,
+  "h": 2.5,
+  "door": {
+   "from": 1.35,
+   "to": 2.25,
+   "height": 1.9
+  },
+  "blocks": {
+   "wall-z0": [
+    [
+     0.2,
+     3.4
+    ]
+   ],
+   "wall-x1": [
+    [
+     1.35,
+     2.25
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.0,
+   0.0
+  ],
+  "ppm": 110
+ },
+ "loft": {
+  "slug": "loft",
+  "type": "loft",
+  "label": "Two bays and a free wall, 24 \u00d7 12 m",
+  "w": 24,
+  "d": 12,
+  "h": 7.6,
+  "door": {
+   "from": 4.5,
+   "to": 7.5,
+   "height": 3.6
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     4.5,
+     7.5
+    ]
+   ]
+  },
+  "light": "spots",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "loft-large": {
+  "slug": "loft-large",
+  "type": "loft",
+  "label": "Long nave, 40 \u00d7 10 m",
+  "w": 40,
+  "d": 10,
+  "h": 8.6,
+  "door": {
+   "from": 3.5,
+   "to": 6.5,
+   "height": 3.6
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     3.5,
+     6.5
+    ]
+   ]
+  },
+  "light": "spots",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "loft-small": {
+  "slug": "loft-small",
+  "type": "loft",
+  "label": "Loft with columns, 20 \u00d7 12 m",
+  "w": 20,
+  "d": 12,
+  "h": 7.6,
+  "door": {
+   "from": 4.5,
+   "to": 7.5,
+   "height": 3.6
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     4.5,
+     7.5
+    ]
+   ]
+  },
+  "light": "spots",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "salon-large": {
+  "slug": "salon-large",
+  "type": "salon",
+  "label": "Long gallery with lanterns, 16 \u00d7 5.5 m",
+  "w": 16,
+  "d": 5.5,
+  "h": 5,
+  "door": {
+   "from": 1.95,
+   "to": 3.55,
+   "height": 2.8
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     1.95,
+     3.55
+    ]
+   ]
+  },
+  "light": "narrow",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "salon-small": {
+  "slug": "salon-small",
+  "type": "salon",
+  "label": "One salon, 6 \u00d7 5 m",
+  "w": 6,
+  "d": 5,
+  "h": 4.2,
+  "door": {
+   "from": 1.85,
+   "to": 3.15,
+   "height": 2.5
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     1.85,
+     3.15
+    ]
+   ]
+  },
+  "light": "narrow",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "skylit-hall": {
+  "slug": "skylit-hall",
+  "type": "skylit-hall",
+  "label": "Vaulted hall, 20 \u00d7 8 m",
+  "w": 20,
+  "d": 8,
+  "h": 4.8,
+  "door": {
+   "from": 2.9,
+   "to": 5.1,
+   "height": 3.2
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     2.9,
+     5.1
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "skylit-hall-large": {
+  "slug": "skylit-hall-large",
+  "type": "skylit-hall",
+  "label": "Three vaults, 24 \u00d7 7 m",
+  "w": 24,
+  "d": 7,
+  "h": 4.6,
+  "door": {
+   "from": 2.4,
+   "to": 4.6,
+   "height": 3.2
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     2.4,
+     4.6
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "skylit-hall-small": {
+  "slug": "skylit-hall-small",
+  "type": "skylit-hall",
+  "label": "Skylit square, 10 \u00d7 10 m",
+  "w": 10,
+  "d": 10,
+  "h": 5.5,
+  "door": {
+   "from": 3.9,
+   "to": 6.1,
+   "height": 3.2
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     3.9,
+     6.1
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.03,
+   0.14
+  ],
+  "ppm": 110
+ },
+ "studio": {
+  "slug": "studio",
+  "type": "studio",
+  "label": "Studio with a tall window, 8 \u00d7 6 m",
+  "w": 8,
+  "d": 6,
+  "h": 3.6,
+  "door": {
+   "from": 4.55,
+   "to": 5.45,
+   "height": 2.2
+  },
+  "blocks": {
+   "wall-z0": [
+    [
+     1.2,
+     6.8
+    ]
+   ],
+   "wall-x1": [
+    [
+     4.55,
+     5.45
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.0,
+   0.0
+  ],
+  "ppm": 110
+ },
+ "studio-large": {
+  "slug": "studio-large",
+  "type": "studio",
+  "label": "Sawtooth studio, 10 \u00d7 7 m",
+  "w": 10,
+  "d": 7,
+  "h": 6.3,
+  "door": {
+   "from": 4.8,
+   "to": 6.2,
+   "height": 2.5
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     4.8,
+     6.2
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.0,
+   0.0
+  ],
+  "ppm": 110
+ },
+ "studio-small": {
+  "slug": "studio-small",
+  "type": "studio",
+  "label": "Small studio, 5 \u00d7 4 m",
+  "w": 5,
+  "d": 4,
+  "h": 3.2,
+  "door": {
+   "from": 2.55,
+   "to": 3.45,
+   "height": 2.2
+  },
+  "blocks": {
+   "wall-z0": [
+    [
+     0.75,
+     4.25
+    ]
+   ],
+   "wall-x1": [
+    [
+     2.55,
+     3.45
+    ]
+   ]
+  },
+  "light": "daylight",
+  "floorReflect": [
+   0.0,
+   0.0
+  ],
+  "ppm": 110
+ },
+ "white-cube-large": {
+  "slug": "white-cube-large",
+  "type": "white-cube",
+  "label": "Hall under a skylight, 15 \u00d7 10 m",
+  "w": 15,
+  "d": 10,
+  "h": 5.5,
+  "door": {
+   "from": 6.9,
+   "to": 9.1,
+   "height": 3.0
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     6.9,
+     9.1
+    ]
+   ]
+  },
+  "light": "spots",
+  "floorReflect": [
+   0.06,
+   0.26
+  ],
+  "ppm": 110
+ },
+ "white-cube-small": {
+  "slug": "white-cube-small",
+  "type": "white-cube",
+  "label": "Project room, 6 \u00d7 5 m",
+  "w": 6,
+  "d": 5,
+  "h": 3.2,
+  "door": {
+   "from": 3.1,
+   "to": 4.5,
+   "height": 2.4
+  },
+  "blocks": {
+   "wall-x1": [
+    [
+     3.1,
+     4.5
+    ]
+   ]
+  },
+  "light": "spots",
+  "floorReflect": [
+   0.06,
+   0.26
+  ],
+  "ppm": 110
+ }
+}

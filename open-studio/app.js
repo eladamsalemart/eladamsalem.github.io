@@ -44,7 +44,7 @@ async function communityData() {
   const [artists, works, shows] = await Promise.all([
     q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,link,instagram,cv,exhibitions&status=eq.approved'),
     q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position,kind&order=position'),
-    q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,starts,ends,owner_id,created_at&status=eq.published'),
+    q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,starts,ends,owner_id,created_at,on_view&status=eq.published'),
   ]);
   return { artists, works, shows };
 }
@@ -157,12 +157,17 @@ const showOf = m => v => {
   const keys = (v.works || []).map(w => (m.works.find(x => (w.id && x.id === w.id) || (w.slug && x.slug === w.slug)) || {}).slug).filter(Boolean);
   const artists = [...new Set(keys.map(k => m.works.find(x => x.slug === k).artist.slug))];
   return { slug: v.slug || `show-${v.id.slice(0, 8)}`, kind: v.kind, title: v.title, artists: v.kind === 'artist' && owner ? [owner.slug] : artists, curator: v.curator || '',
-    room: v.room, paint: v.paint, centre: v.centre, start: v.starts || made.slice(0, 10), end: v.ends || `${+made.slice(0, 4) + 1}${made.slice(4, 10)}`,
+    room: v.room, paint: v.paint, centre: v.centre, onview: !!v.on_view, start: v.starts || made.slice(0, 10), end: v.ends || `${+made.slice(0, 4) + 1}${made.slice(4, 10)}`,
     text: v.text ? v.text.split(/\n\s*\n/) : [], works: keys };
 };
 
 // a virtual exhibition is an online show whose room is drawn here (space/synth.js) around the works it hangs
 const ROOM_NAMES = { 'white-cube': 'White Cube', 'long-hall': 'Long Hall', vault: 'The Vault' };
+// the ten spaces built in Blender (data/rooms/<slug>/, named <kind>[-small|-large])
+const SPACE_KINDS = { 'white-cube': 'White cube', loft: 'Industrial loft', 'skylit-hall': 'Skylit museum hall', salon: 'Salon', concrete: 'Raw concrete',
+  studio: 'Artist studio', apartment: "Collector's home", 'black-box': 'Black box', 'glass-pavilion': 'Glass pavilion', japanese: 'Japanese room' };
+const roomTitle = r => ROOM_NAMES[r] || SPACE_KINDS[String(r).replace(/-(small|large)$/, '')] || 'A virtual room';
+const bakedRoom = r => !ROOM_NAMES[r] && SPACE_KINDS[String(r).replace(/-(small|large)$/, '')] ? r : null;
 function addVirtual(m, v, uniq) {
   for (const x of v.shows || []) {
     const works = x.works.map(s => m.works.find(w => w.slug === s)).filter(Boolean);
@@ -170,7 +175,7 @@ function addVirtual(m, v, uniq) {
     if (!works.length || !artists.length) continue;
     const start = new Date(`${x.start}T00:00`), end = new Date(`${x.end}T23:59`);
     const fmt = t => t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-    const room = ROOM_NAMES[x.room] || 'A virtual room';
+    const room = roomTitle(x.room);
     m.exhibitions.push({
       slug: uniq(x.slug), title: x.title, year: String(start.getFullYear()), venue: `Open Studio · ${room}`, address: '',
       dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: x.text || [], images: x.cover ? [x.cover] : [works[0].image], city: '', country: '',
@@ -548,7 +553,9 @@ function artistPage(slug) {
   const posts = M.live.filter(p => p.artist === a).sort((x, y) => y.at - x.at);
   const followed = following().includes(a.slug), own = a === M.artist;
   const hero = a.hero || (last && last.images[0]) || (works[0] && works[0].image);
+  const now = shows.find(e => e.virtual && e.virtual.onview && e.space);
   return `
+  ${now ? onViewBlock(now) : ''}
   <section class="hero">${im(hero, last ? `Installation view, ${last.title}` : a.name, 'loading="eager"', '100vw')}
     <div class="ov gut"><div class="wrap"><h1>${esc(a.name)}</h1><div class="k">${esc(a.label)}</div></div></div></section>
   <div class="wrap gut">
@@ -574,6 +581,16 @@ function artistPage(slug) {
     ${!own && objectsOf(a).length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
       <div class="covers">${objectsOf(a).map(o => `<a href="#/work/${o.slug}">${im(o.image, '')}<div><b>${esc(o.title)}</b><div class="m">${esc([o.medium, o.year].filter(Boolean).join(' · '))}</div></div></a>`).join('')}</div></section>` : ''}
   </div>`;
+}
+// On View: the artist's exhibition now, on the wall of the space it hangs in; one tap and you walk in
+function onViewBlock(e) {
+  const r = e.virtual.room, wall = bakedRoom(r) ? `data/rooms/${r}/wall-z0.jpg` : '', w = e.works[0];
+  return `<section class="ov-now" aria-label="On view now">
+    <a class="ov-wall" href="#/exhibition/${e.slug}/space" ${wall ? `style="background-image:url('${wall}')"` : ''}>${w ? im(w.image, w.title, 'loading="eager"', '60vw') : ''}</a>
+    <div class="wrap gut"><div class="k"><span class="dot" aria-hidden="true"></span>&nbsp; On view · ${esc(roomTitle(r))}</div><h2>${esc(e.title)}</h2>
+      ${e.text && e.text[0] ? `<p class="m">${esc(e.text[0])}</p>` : ''}
+      <div class="btns"><a class="btn f" href="#/exhibition/${e.slug}/space">Walk in</a><a class="btn g" href="#/exhibition/${e.slug}">About the exhibition</a></div></div>
+  </section>`;
 }
 const ago = t => { const h = Math.round((Date.now() - t) / 3600000); return h < 1 ? 'just now' : h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`; };
 
