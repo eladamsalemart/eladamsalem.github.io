@@ -1,0 +1,33 @@
+{
+ "slug": "apartment",
+ "type": "apartment",
+ "label": "Living room, 7 \u00d7 5 m",
+ "w": 7,
+ "d": 5,
+ "h": 3.0,
+ "door": {
+  "from": 3.55,
+  "to": 4.45,
+  "height": 2.2
+ },
+ "blocks": {
+  "wall-z0": [
+   [
+    3.54,
+    5.14
+   ]
+  ],
+  "wall-x1": [
+   [
+    3.55,
+    4.45
+   ]
+  ]
+ },
+ "light": "spots",
+ "floorReflect": [
+  0.03,
+  0.14
+ ],
+ "ppm": 110
+}

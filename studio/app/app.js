@@ -133,7 +133,7 @@ function addCommunity(m, c, uniq, seen) {
     // their past exhibitions, as shows of the past (with their installation photos)
     for (const e of a.exhibitions || []) {
       const lines = String(e.text || '').split(/\n+/).map(t => t.trim()).filter(Boolean);
-      m.exhibitions.push({ slug: uniq(slugify(`${e.title}-${slug}`)), title: e.title, year: e.year || '', venue: e.venue || '', dates: e.dates || '', text: lines,
+      m.exhibitions.push({ id: e.id, slug: uniq(slugify(`${e.title}-${slug}`)), title: e.title, year: e.year || '', venue: e.venue || '', dates: e.dates || '', text: lines,
         images: (e.photos || []).map(p => p.src || p).filter(Boolean), city: e.city || '', country: '', confirmed: true, artist: x, artists: [x], works: [], maybe: [],
         space: (e.tour === 'live' && e.space && m.spaces[e.space.slug]) || null, workIds: e.works || [], kind: 'gallery', ...span(e.dates || '', e.year), events: [], community: true });
     }
@@ -158,7 +158,9 @@ const showOf = m => v => {
   const artists = [...new Set(keys.map(k => m.works.find(x => x.slug === k).artist.slug))];
   return { slug: v.slug || `show-${v.id.slice(0, 8)}`, kind: v.kind, title: v.title, artists: v.kind === 'artist' && owner ? [owner.slug] : artists, curator: v.curator || '',
     room: v.room, paint: v.paint, centre: v.centre, onview: !!v.on_view, start: v.starts || made.slice(0, 10), end: v.ends || `${+made.slice(0, 4) + 1}${made.slice(4, 10)}`,
-    text: v.text ? v.text.split(/\n\s*\n/) : [], works: keys };
+    text: v.text ? v.text.split(/\n\s*\n/) : [], works: keys,
+    // where the artist hung each work (wall, a, y) and stood the plinths: the room hangs the rest itself
+    placements: Object.fromEntries((v.works || []).filter(w => w.id && w.wall).map(w => [w.id, { wall: w.wall, a: w.a, y: w.y }])), plinths: v.plinths || [] };
 };
 
 // a virtual exhibition is an online show whose room is drawn here (space/synth.js) around the works it hangs
@@ -181,7 +183,7 @@ function addVirtual(m, v, uniq) {
       dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: x.text || [], images: x.cover ? [x.cover] : [works[0].image], city: '', country: '',
       confirmed: true, artist: artists[0], artists, works, maybe: [], kind: 'online', start, end, hours: '', curator: x.curator || '',
       events: [], virtual: x,
-      space: { source: `${room}, a virtual room`, virtual: { title: x.title, room: x.room, paint: x.paint, centre: x.centre } },
+      space: { source: `${room}, a virtual room`, virtual: { title: x.title, room: x.room, paint: x.paint, centre: x.centre, placements: x.placements, plinths: x.plinths } },
     });
   }
 }
@@ -195,7 +197,7 @@ function span(dates, year) {
 }
 const DAY = 86400000;
 const today = () => { const t = new Date(); t.setHours(0, 0, 0, 0); return t; };
-const inDays = (n, time) => { const t = new Date(+today() + n * DAY); if (time) { const [h, mi] = time.split(':'); t.setHours(+h, +mi); } return t; };
+const inDays = (n, time) => { const t = today(); t.setDate(t.getDate() + n); if (time) { const [h, mi] = time.split(':'); t.setHours(+h, +mi); } return t; };
 
 // the demo world joins the real content: its artists, works, shows (dates as days from today), the studio
 // clips on artists' pages, and the galleries listed on the map that aren't on Open Studio
@@ -218,7 +220,7 @@ function addWorld(m, w, uniq, seen) {
     const fmt = t => t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     m.exhibitions.push({
       slug: uniq(v.slug), title: v.title, year: String(start.getFullYear()), venue: v.venue, address: v.address || '',
-      dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: [v.text], images: v.images || [], city: v.city, country: v.city ? 'Israel' : '',
+      dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: [v.text], images: v.images || [], city: v.city, country: v.country || (v.city ? 'Israel' : ''),
       confirmed: true, artist: A.get(v.artists[0]), artists: v.artists.map(s => A.get(s)), works: v.works.map(s => W.get(s)).filter(Boolean), maybe: [],
       space: null, kind: v.kind, start, end, hours: v.hours, at: v.at, curator: v.curator || '', demo: true,
       events: (v.events || []).map(e => ({ at: inDays(e.day, e.time), what: e.what })),
@@ -245,7 +247,8 @@ const cvOf = cv => {
 const status = e => { const now = Date.now(); return now < e.start ? 'soon' : now > e.end ? 'past' : 'on'; };
 const isOn = e => status(e) === 'on';
 const nextEvent = e => e.events.filter(v => +v.at > Date.now() - 3 * 3600000).sort((a, b) => a.at - b.at)[0];
-const worksOf = a => M.works.filter(w => w.artist === a && w.kind !== 'object');
+// (an artist on Open Studio keeps their own order; the site's artists go newest first)
+const worksOf = a => { const l = M.works.filter(w => w.artist === a && w.kind !== 'object'); return a.community ? l.sort((x, y) => x.i - y.i) : l; };
 const objectsOf = a => M.works.filter(w => w.artist === a && w.kind === 'object');
 // an artist's shows, their own first (a group show after)
 const showsOf = a => M.exhibitions.filter(e => (e.artists || [e.artist]).includes(a)).sort((x, y) => (y.artist === a) - (x.artist === a));
@@ -339,17 +342,26 @@ function newsOf(a) {
 const noteOf = e => e.kind === 'online' && isOn(e) ? 'online now' : when(e);
 // a title as the art map read it, without what the place's site wrote round it ("title | dates | prize")
 const cleanTitle = t => String(t || '').split(/\s+\|\s+/)[0].trim();
+// the far sky: each artist you haven't met is the centre of a small cluster (their show, a work of theirs beside them),
+// the clusters laid out on a spiral, so what is near on the map is also kin
+const clusterAt = i => { const th = i * 2.39996 + 0.6, r = 250 + 150 * Math.sqrt(i); return [Math.cos(th) * r * 0.95, Math.sin(th) * r * 1.3, 20 + seeded(i + 3) * 110]; };
+const KIND_NAME = { artist: 'Artist', show: 'Show', tour: 'In 3D', place: 'Place', work: 'Work' };
+const SIZE = { artist: [66, 54, 50], show: [62, 52, 48], tour: [62, 52, 48], work: [58, 50, 46], place: [44, 40, 34] };
 function skyOf() {
   const stars = [], ties = [], by = new Map(), slot = [0, 0, 0];
   const put = (id, s) => {
     if (by.has(id)) return by.get(id);
-    const r = s.ring, at = SLOTS[r][slot[r]]; if (!at) return null;
-    slot[r]++; const x = { id, ...s, x: at[0], y: at[1], z: at[2] }; by.set(id, x); stars.push(x); return x;
+    const r = s.ring; let at = s.at;
+    if (!at) { at = r === 2 ? clusterAt(slot[2]) : SLOTS[r][slot[r]]; if (!at) return null; slot[r]++; }
+    const sz = SIZE[s.kind] || SIZE.show;
+    const x = { id, ...s, kindName: KIND_NAME[s.kind], d: s.real ? 30 : sz[r], lw: Math.min(150, 28 + Math.max(String(s.name).length * 7.4, String(s.sub || '').length * 5.6)), x: at[0], y: at[1], z: at[2] };
+    by.set(id, x); stars.push(x); return x;
   };
-  const artist = (a, ring, note) => put('a:' + a.slug, { kind: 'artist', ring, name: a.name, sub: [a.discipline, a.city].filter(Boolean).join(' · '), note, img: pic(a.portrait), href: `#/artist/${a.slug}`, go: 'Open' });
-  const show = (e, ring, note) => put('e:' + e.slug, { kind: 'show', ring, name: e.title, sub: [byOf(e), e.kind === 'online' ? 'Online' : (e.venue || '').split(' — ')[0]].filter(Boolean).join(' · '), note, img: pic(e.images[0]), href: `#/exhibition/${e.slug}`, go: 'Open', e });
-  const room = (e, ring, note) => put('t:' + e.slug, { kind: 'tour', ring, name: e.title, sub: `${byOf(e)} · in 3D`, note, img: pic(e.images[0]), href: `#/exhibition/${e.slug}/space`, go: 'Walk in', e });
-  const piece = (w, ring, note) => put('w:' + w.slug, { kind: 'work', ring, name: w.title, sub: [w.artist.name, w.year].filter(Boolean).join(', '), note, img: pic(w.image), href: `#/work/${w.slug}`, go: 'Open', w });
+  const off = (a, dx, dy) => a ? [a.x + dx, a.y + dy, a.z + 10] : null;
+  const artist = (a, ring, note) => put('a:' + a.slug, { kind: 'artist', ring, name: a.name, sub: [a.discipline, a.city].filter(Boolean).join(' · '), note, img: pic(a.portrait), href: `#/artist/${a.slug}`, go: 'Open', slug: a.slug, tags: [a.city, a.discipline].filter(Boolean) });
+  const show = (e, ring, note, at) => put('e:' + e.slug, { kind: 'show', ring, at, name: e.title, sub: [byOf(e), e.kind === 'online' ? 'Online' : (e.venue || '').split(' — ')[0]].filter(Boolean).join(' · '), note, img: pic(e.images[0]), href: `#/exhibition/${e.slug}`, go: 'Open', e, tags: [e.city].filter(Boolean) });
+  const room = (e, ring, note, at) => put('t:' + e.slug, { kind: 'tour', ring, at, name: e.title, sub: `${byOf(e)} · in 3D`, note, img: pic(e.images[0]), href: `#/exhibition/${e.slug}/space`, go: 'Walk in', e, tags: [e.city].filter(Boolean) });
+  const piece = (w, ring, note, at) => put('w:' + w.slug, { kind: 'work', ring, at, name: w.title, sub: [w.artist.name, w.year].filter(Boolean).join(', '), note, img: pic(w.image), href: `#/work/${w.slug}`, go: 'Open', w, tags: [w.artist.city].filter(Boolean) });
   // where you were, newest first
   const near = [], seen = new Set();
   for (const r of recent()) {
@@ -374,8 +386,9 @@ function skyOf() {
   }
   // further out: who and what you haven't met yet
   for (const a of M.artists) if (!following().includes(a.slug)) {
-    artist(a, 2, newsOf(a));
-    const e = showsOf(a).filter(x => status(x) !== 'past')[0]; if (e) show(e, 2, noteOf(e));
+    const c = artist(a, 2, newsOf(a)); if (!c) continue;
+    const e = showsOf(a).filter(x => status(x) !== 'past')[0] || showsOf(a)[0]; if (e) show(e, 2, noteOf(e), off(c, 105, 70));
+    const w = worksOf(a).find(x => x.image); if (w) piece(w, 2, '', off(c, -105, 80));
   }
   for (const e of M.exhibitions) if (e.space) room(e, 2, 'walk it in 3D');
   // the ties: an artist to their shows, rooms and works
@@ -397,9 +410,17 @@ function home() {
       <div class="hs-top"><span class="brand-h">${LOGO}</span><span class="hs-day">${esc(day)}</span>${me ? `<a class="me" href="#/account" aria-label="Your account">${esc((me.name || me.email || '?')[0].toUpperCase())}</a>` : ''}</div>
       <h1 class="vh">Open Studio</h1>
       <div id="hsSky" class="skybox"></div>
-      <div class="sky-ui"><span class="hint">drag to turn · pinch or tap twice to go further</span></div>
+      <div class="sky-ctl" role="group" aria-label="Move around the sky">
+        <button type="button" data-z="in" aria-label="Zoom in"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button type="button" data-z="out" aria-label="Zoom out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+        <button type="button" data-z="fit" aria-label="Back to the start"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></button>
+        <button type="button" class="wander-b" aria-pressed="false">Wander</button>
+      </div>
+      <div class="sky-ui"><span class="hint">tap a face · drag · + / − to zoom</span></div>
       <div class="pick" hidden aria-live="polite"></div>
+      <button type="button" class="sky-down"><span class="hand">your artists, shows and what’s near</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10l6 6 6-6"/></svg></button>
     </section>
+    <section class="hs-sec hs-new" id="hsNew" aria-labelledby="hsNewH" hidden></section>
     ${live ? `<section class="hs-sec" aria-labelledby="hsLive">
       <div class="hs-h"><h2 id="hsLive">Walk in now</h2><span class="hand side">you can walk in from here</span></div>
       <div class="tour-wrap"><div class="tour" data-slug="${esc(live.slug)}">
@@ -449,51 +470,101 @@ const seeded = i => { const x = Math.sin(i * 999.7) * 43758.5453; return x - Mat
 // a pencil circle, gone round a little more than once, never quite closed
 const pencilRing = i => { const a = seeded(i) * 6; let d = ''; for (let k = 0; k <= 30; k++) { const t = a + k / 26 * Math.PI * 2, rr = 50 + Math.sin(k * 0.9 + i) * 1.6 + k * .05; d += `${k ? 'L' : 'M'}${(50 + Math.cos(t) * rr).toFixed(1)} ${(50 + Math.sin(t) * rr).toFixed(1)}`; } return `<svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><path d="${d}"/></svg>`; };
 const heb = s => /[֐-׿]/.test(s) ? ' dir="rtl"' : '';
-const skyStar = s => `<span class="wash"></span><span class="sp"${s.img ? ` style="background-image:url('${esc(s.img)}')"` : ''}></span>${s.ring === 0 ? pencilRing([...s.id].reduce((h, c) => h + c.charCodeAt(0), 0)) : ''}<span class="lab"><b${heb(s.name)}>${esc(s.name)}</b>${s.sub ? `<small>${esc(s.sub)}</small>` : ''}${s.note ? `<span class="hand">${esc(s.note)}</span>` : ''}</span>`;
+const skyStar = s => `<span class="wash"></span><span class="sp"${s.img ? ` style="background-image:url('${esc(s.img)}')"` : ''}${s.img ? '' : ` data-l="${esc([...String(s.name)][0] || '')}"`}>${s.kind === 'tour' ? '<i class="b3">3D</i>' : ''}</span>${s.ring === 0 ? pencilRing([...s.id].reduce((h, c) => h + c.charCodeAt(0), 0)) : ''}<span class="lab"><b${heb(s.name)}>${esc(s.name)}</b><small>${esc([s.kindName, s.sub].filter(Boolean).join(' · '))}</small></span>`;
 const KIND = { artist: 'Artist', show: 'Show', tour: 'In 3D', place: 'Place', work: 'Work' };
 const MOTES = Array.from({ length: 70 }, (_, i) => ({ x: (seeded(i + 1) - .5) * 1900, y: (seeded(i + 51) - .5) * 2300, z: (seeded(i + 101) - .5) * 1900, r: 0.6 + seeded(i + 151) * 1.6 }));
 
-let homeSky = null;
+let homeSky = null, wanderTimer = 0;
 async function mountHome(root) {
   if (!document.getElementById('hsDefs')) document.body.insertAdjacentHTML('afterbegin', HS_DEFS);
+  clearInterval(wanderTimer);
   const H = new Date().getHours(), sk = [...SKIES].reverse().find(([h]) => H >= h) || SKIES[3];
   root.style.setProperty('--hs-sky', `linear-gradient(180deg,${sk[1]} 100%)`);
   const hero = root.querySelector('.hs-hero'), pick = root.querySelector('.pick'), box = root.querySelector('#hsSky');
   const { stars, ties, slot } = skyOf();
+  fillNew(root.querySelector('#hsNew'));
+  root.querySelector('.sky-down').onclick = () => (root.querySelector('#hsNew:not([hidden])') || root.querySelector('.hs-sec')).scrollIntoView({ behavior: 'smooth', block: 'start' });
   const { sky } = await import('./sky.js');
   if (!box.isConnected) return;
+  const seen = new Set();                                         // what Wander has shown, so it keeps finding new ones
+  const stopWander = () => { clearInterval(wanderTimer); wanderTimer = 0; const b = root.querySelector('.wander-b'); b.setAttribute('aria-pressed', 'false'); b.textContent = 'Wander'; };
   const S = homeSky = sky(box, {
-    stars, ties, node: skyStar,
-    cam: { D: 560, pitch: 0 }, F: 560, cy: 0.535, limits: { yaw: 0.8, pitch: 0.45, Dmin: 300, Dmax: 1500 }, intro: 1.9, zoomEase: .05, farZoom: 1.9,
-    farFrom: 560, fogStart: 60, fogRange: 1500, minOp: .1, labelAt: 0.7, bigAt: 0.86, maxScale: 1.3, bow: 0.1, ink: .8, pickLift: 90,
+    stars, ties, node: skyStar, D: 560, F: 560, cy: 0.5, pickY: 0.3, focusD: 400, intro: 1.8, ease: .1,
+    limits: { Dmin: 240, Dmax: 2600 }, minOp: .8, minScale: .55, maxScale: 2.2, fog: 2200, bow: 0.1, ink: .8, top: 60, bottom: 100,
     inks: { tie: '#565B95', maybe: '#8F93C2' },
-    extra(ctx, project) {                                       // pale motes far out, so the sky has depth before you step back
+    extra(ctx, project) {                                       // pale motes far out, so the sky has depth
       ctx.fillStyle = '#fff';
       for (const m of MOTES) { const q = project(m); if (q.behind) continue;
         ctx.globalAlpha = Math.min(.9, .25 + q.k * .6); ctx.beginPath(); ctx.arc(q.x, q.y, Math.min(3, m.r * q.k), 0, 6.283); ctx.fill(); }
       ctx.globalAlpha = 1;
     },
-    onChoose(s) {
-      hero.classList.toggle('picking', !!s);
-      if (!s) { pick.hidden = true; return; }
-      pick.innerHTML = `${s.img ? `<img src="${esc(s.img)}" alt="">` : `<i class="pk-dot k-${s.kind}"></i>`}<div><span class="pk-k">${KIND[s.kind]}${s.ago ? ` · ${esc(s.ago)}` : ''}</span><b${heb(s.name)}>${esc(s.name)}</b><span>${esc(s.sub || '')}</span>${s.note ? `<span class="hand">${esc(s.note)}</span>` : ''}</div>${s.href ? `<a class="go" href="${esc(s.href)}">${esc(s.go || 'Open')}</a>` : ''}<button type="button" class="x" aria-label="Close">×</button>`;
-      pick.hidden = false;
-      pick.querySelector('.x').onclick = () => { pick.hidden = true; S.clear(); hero.classList.remove('picking'); };
-    },
+    onTouch() { hero.classList.add('used'); if (wanderTimer) stopWander(); },
+    onChoose(s) { card(s); },
+  });
+  // the card of whoever you tapped: a face, a name, and what you can do (Follow an artist, Open, go on to what is related)
+  function card(s) {
+    hero.classList.toggle('picking', !!s);
+    if (!s) { pick.hidden = true; return; }
+    seen.add(s.id);
+    const fol = s.slug && following().includes(s.slug);
+    pick.innerHTML = `<div class="pk-row">${s.img ? `<img src="${esc(s.img)}" alt="">` : `<i class="pk-dot k-${s.kind}"></i>`}<div class="pk-t"><span class="pk-k">${KIND[s.kind]}${s.ago ? ` · ${esc(s.ago)}` : ''}</span><b${heb(s.name)}>${esc(s.name)}</b><span${heb(s.sub || '')}>${esc(s.sub || '')}</span>${s.note ? `<span class="hand">${esc(s.note)}</span>` : ''}</div><button type="button" class="x" aria-label="Close">×</button></div>
+      <div class="pk-do">${s.slug ? `<button type="button" class="fo${fol ? ' on' : ''}" aria-pressed="${!!fol}">${fol ? 'Following' : 'Follow'}</button>` : ''}${s.href ? `<a class="go" href="${esc(s.href)}">${esc(s.go || 'Open')}</a>` : ''}<button type="button" class="nx">Related</button></div>`;
+    pick.hidden = false;
+    pick.querySelector('.x').onclick = () => { stopWander(); S.clear(true); };
+    pick.querySelector('.nx').onclick = () => { stopWander(); step(); };
+    const fb = pick.querySelector('.fo');
+    if (fb) fb.onclick = () => { const on = fb.getAttribute('aria-pressed') !== 'true'; setFollow(s.slug, on); fb.setAttribute('aria-pressed', on); fb.classList.toggle('on', on); fb.textContent = on ? 'Following' : 'Follow'; };
+  }
+  // the next star to go to: something tied or kin to this one that you haven't seen, else anything you haven't
+  function step() {
+    const f = S.focus, pool = f ? S.neighbors(f).filter(x => !seen.has(x.id)) : [];
+    let next = pool.length ? pool[Math.floor(Math.random() * Math.min(pool.length, 3))] : null;
+    if (!next) { const rest = S.stars.filter(x => !seen.has(x.id) && x.kind !== 'place' && x.op > 0); if (!rest.length) seen.clear(); const all = rest.length ? rest : S.stars; next = all[Math.floor(Math.random() * all.length)]; }
+    if (next) S.choose(next);
+  }
+  const ctl = root.querySelector('.sky-ctl');
+  ctl.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    hero.classList.add('used');
+    if (b.dataset.z === 'in') S.zoom(0.68); else if (b.dataset.z === 'out') S.zoom(1.5); else if (b.dataset.z === 'fit') { stopWander(); S.home(); }
+    else if (b.classList.contains('wander-b')) {
+      if (wanderTimer) { stopWander(); return; }
+      b.setAttribute('aria-pressed', 'true'); b.textContent = 'Stop'; step();
+      wanderTimer = setInterval(() => { if (!box.isConnected) { stopWander(); return; } step(); }, 4800);
+    }
   });
   // the far sky: shows on now at the places nearest you, from the art map
-  nearShows(14 - slot[2]).then(list => {
+  nearShows(8).then(list => {
     if (!box.isConnected) return;
     const more = [], tie = [];
     list.forEach(({ s, p, d }) => {
-      const at = SLOTS[2][slot[2]++]; if (!at) return;
-      const id = 'r:' + s.id; more.push({ id, kind: 'show', ring: 2, real: true, name: cleanTitle(s.title), sub: `${p.name} · ${far(d)}`, note: untilOf(s), href: `#/map/place/${encodeURIComponent(p.id)}`, go: 'On the map', x: at[0], y: at[1], z: at[2] });
+      const at = clusterAt(slot[2]++);
+      const id = 'r:' + s.id; more.push({ id, kind: 'show', ring: 2, real: true, kindName: 'On now', name: cleanTitle(s.title), sub: `${p.name} · ${far(d)}`, note: untilOf(s), href: `#/map/place/${encodeURIComponent(p.id)}`, go: 'On the map', d: 30, lw: 150, tags: ['near'], x: at[0], y: at[1], z: at[2] });
     });
     for (let i = 1; i < more.length; i++) if (seeded(i * 7) > .45) tie.push([more[i - 1].id, more[i].id, 'maybe']);
     S.add(more, tie);
   });
   wireTour(root);
   fillNear(root.querySelector('#hsNear'));
+}
+
+// a calm shelf under the sky: who and what you haven't met, to scroll through without moving the sky
+function fillNew(box) {
+  if (!box) return;
+  const fol = following(), items = [];
+  const mine = new Set(fol);
+  for (const a of M.artists) {
+    if (mine.has(a.slug)) continue;
+    const w = worksOf(a).find(x => x.image), e = showsOf(a).find(x => status(x) !== 'past') || showsOf(a)[0];
+    items.push({ k: 'Artist', n: a.name, s: [a.discipline, a.city].filter(Boolean).join(' · '), img: a.portrait || (w && w.image), href: `#/artist/${a.slug}`, round: 1 });
+    if (e && e.images[0]) items.push({ k: 'Show', n: e.title, s: byOf(e), img: e.images[0], href: `#/exhibition/${e.slug}` });
+    if (w) items.push({ k: 'Work', n: w.title, s: [a.name, w.year].filter(Boolean).join(', '), img: w.image, href: `#/work/${w.slug}` });
+  }
+  const list = items.filter(i => i.img).slice(0, 18);
+  if (!list.length) return;
+  box.innerHTML = `<div class="hs-h"><h2 id="hsNewH">Meet someone new</h2><a class="hs-more" href="#/artists">All</a></div>
+    <ul class="meet">${list.map(i => `<li><a href="${esc(i.href)}">${im(i.img, '', i.round ? 'class="rd"' : '', '40vw')}<span class="mk">${i.k}</span><b${heb(i.n)}>${esc(i.n)}</b><span class="ms"${heb(i.s || '')}>${esc(i.s || '')}</span></a></li>`).join('')}</ul>`;
+  box.hidden = false;
 }
 
 // the room you can walk into, on Home: a short film of it turning (shown from the start as its own first frame, the
@@ -561,7 +632,7 @@ function artistPage(slug) {
   <div class="wrap gut">
     <div class="btns" style="padding-block:18px 0"><button type="button" class="btn ${followed ? 'g' : 'f'}" data-follow="${esc(a.slug)}" aria-pressed="${followed}">${followed ? 'Following' : 'Follow'}</button>${own ? '<a class="btn g" href="#/about">About & CV</a>' : a.bio || a.portrait || (a.cv && a.cv.length) ? `<a class="btn g" href="#/artist/${esc(a.slug)}/about">About & CV</a>` : ''}</div>
     <p class="statement">${esc(curly(a.statement))}</p>
-    ${a.demo ? '<p class="note" style="margin-top:14px">A real artist from art history, shown to see Open Studio full: the works are in the public domain (images from Wikimedia Commons). The galleries and shows they appear in here are made up.</p>' : ''}
+    ${a.demo ? '<p class="note" style="margin-top:14px">A real artist from art history, shown to see Open Studio full: the works are in the public domain (images from Wikimedia Commons). Most of the galleries and shows they appear in here are made up; the exhibitions of history (the Impressionists in 1874, the Armory Show) are real.</p>' : ''}
     ${posts.length ? `<section class="sec" style="margin-top:28px"><div class="sec-h"><h2>Live from the studio</h2><span class="more">${posts.length} new</span></div>
       <div class="studio-log">${posts.map((p, i) => `<button type="button" class="log" data-log="${esc(a.slug)}:${i}">
         ${p.kind === 'video' ? `<video src="${esc(p.video)}" poster="${esc(p.poster)}" muted playsinline loop preload="none" aria-hidden="true"></video>` : im(p.frames[0], '', '', '40vw')}
@@ -911,20 +982,35 @@ function reviewBar() {
   const close = '<button type="button" data-rv="close">×</button>';
   if (r.admin && !r.own) {
     bar.className = 'rv-bar'; bar.dir = 'rtl'; bar.lang = 'he';
-    bar.innerHTML = `<span>בדיקת העמוד של <b>${esc(r.name)}</b>, כמו שמבקרים יראו אותו</span><span class="rv-b"><a href="#/admin/artists">לאשר או לבקש שינויים</a>${close}</span>`;
+    bar.innerHTML = `<span>בדיקת העמוד של <b>${esc(r.name)}</b>, כמו שמבקרים יראו אותו</span><span class="rv-b"><a href="#/admin">לאשר או לבקש שינויים</a>${close}</span>`;
   } else {
     bar.className = 'rv-bar'; bar.dir = 'ltr'; bar.lang = 'en';
     const what = r.status === 'approved' ? 'Your page, live' : r.status === 'pending' ? 'Your page, as visitors will see it. Sent for review.' : 'Your page, as visitors will see it once approved.';
     bar.innerHTML = `<span>${what}</span><span class="rv-b"><a href="#/studio">Edit in your studio</a>${close}</span>`;
   }
-  bar.querySelector('[data-rv=close]').onclick = () => { try { sessionStorage.removeItem(REVIEW); } catch {} location.hash = r.admin && !r.own ? '#/admin/artists' : '#/studio'; };
+  bar.querySelector('[data-rv=close]').onclick = () => { try { sessionStorage.removeItem(REVIEW); } catch {} location.hash = r.admin && !r.own ? '#/admin' : '#/studio'; };
   document.body.classList.add('reviewing');
 }
+
+// the artist's own page while they edit it (artist.js): their studio joined to the app's content as a visitor will see it
+function ownPage(S) {
+  const uid = S.uid || 'local-artist', a = S.artist;
+  M.artists = M.artists.filter(x => x.uid !== uid); M.works = M.works.filter(w => !(w.artist && w.artist.uid === uid));
+  M.exhibitions = M.exhibitions.filter(e => !(e.artist && e.artist.uid === uid));
+  const seen = new Set([...M.artists.map(x => x.slug), ...M.works.map(w => w.slug), ...M.exhibitions.map(e => e.slug)]);
+  const uniq = base => { let s = base, i = 2; while (seen.has(s)) s = `${base}-${i++}`; seen.add(s); return s; };
+  const row = { id: uid, slug: S.slug || slugify(a.name) || 'artist', name: a.name, discipline: a.discipline, city: a.city, photo: a.photo, statement: a.statement, bio: a.bio, link: a.link,
+    instagram: a.instagram, cv: a.cv || [], exhibitions: (S.exhibitions || []).map(e => ({ ...e, photos: (e.photos || []).length ? e.photos : e.cover ? [{ src: e.cover }] : [] })) };
+  addCommunity(M, { artists: [row], works: S.works.map(w => ({ ...w, artist_id: uid })), shows: [] }, uniq, seen);
+  return M.artists.find(x => x.uid === uid);
+}
+const STUDIO_TOOLS = { ownPage, artistPage: a => artistPage(a.slug), about: a => aboutOf(a.slug), wire: () => wire(), im, curly: s => curly(s) };
 
 let prevHash = null, lastHash = null;
 function render() {
   const hash = location.hash || '#/';
   const rv = hash.match(/^#\/preview\/([^/]+)$/);
+  if (rv && rv[1] === 'me') { location.replace('#/studio'); return; }       // (an artist's own page is their studio)
   if (rv) {
     app.innerHTML = '<div class="wrap gut loading"><p>Opening the page…</p></div>';
     loadReview(rv[1]).then(r => r ? location.replace(`#/artist/${r.slug}`) : (app.innerHTML = '<div class="wrap gut"><p class="m">This page can’t be opened here. Sign in first.</p></div>'));
@@ -972,7 +1058,7 @@ function render() {
     if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }
     document.querySelector('.bar').hidden = true; document.querySelector('.tabs').hidden = true; document.body.classList.remove('has-tabs');
     const go = (h, same) => { if (same || h === location.hash) render(); else location.hash = h; };
-    (window.__studio || import('./artist.js').then(m => m.studio)).then(f => { window.__studio = Promise.resolve(f); f(hash, app, go, M); window.scrollTo(0, 0); });
+    (window.__studio || import('./artist.js').then(m => m.studio)).then(f => { window.__studio = Promise.resolve(f); f(hash, app, go, M, STUDIO_TOOLS); window.scrollTo(0, 0); });
     return;
   }
   let html = notFound(), tab = null;

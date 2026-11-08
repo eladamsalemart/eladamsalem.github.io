@@ -1,0 +1,27 @@
+{
+ "slug": "studio-large",
+ "type": "studio",
+ "label": "Sawtooth studio, 10 \u00d7 7 m",
+ "w": 10,
+ "d": 7,
+ "h": 6.3,
+ "door": {
+  "from": 4.8,
+  "to": 6.2,
+  "height": 2.5
+ },
+ "blocks": {
+  "wall-x1": [
+   [
+    4.8,
+    6.2
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.0,
+  0.0
+ ],
+ "ppm": 110
+}

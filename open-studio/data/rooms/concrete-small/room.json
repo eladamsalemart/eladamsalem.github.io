@@ -1,0 +1,27 @@
+{
+ "slug": "concrete-small",
+ "type": "concrete",
+ "label": "Under a daylight ceiling, 8 \u00d7 8 m",
+ "w": 8,
+ "d": 8,
+ "h": 4.25,
+ "door": {
+  "from": 5.7,
+  "to": 7.1,
+  "height": 2.6
+ },
+ "blocks": {
+  "wall-x1": [
+   [
+    5.7,
+    7.1
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.04,
+  0.18
+ ],
+ "ppm": 110
+}

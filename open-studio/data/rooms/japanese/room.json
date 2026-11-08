@@ -1,0 +1,33 @@
+{
+ "slug": "japanese",
+ "type": "japanese",
+ "label": "Gallery with a tokonoma, 9 \u00d7 6 m",
+ "w": 9,
+ "d": 6,
+ "h": 3.2,
+ "door": {
+  "from": 2.55,
+  "to": 3.45,
+  "height": 1.9
+ },
+ "blocks": {
+  "wall-z0": [
+   [
+    0.2,
+    8.8
+   ]
+  ],
+  "wall-x1": [
+   [
+    2.55,
+    3.45
+   ]
+  ]
+ },
+ "light": "daylight",
+ "floorReflect": [
+  0.0,
+  0.0
+ ],
+ "ppm": 110
+}

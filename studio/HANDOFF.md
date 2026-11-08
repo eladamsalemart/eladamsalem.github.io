@@ -123,3 +123,7 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    (#/studio/onview: space, size, title, works, words; `virtual_shows.on_view`); app.js `onViewBlock` opens the artist's
    page with it. Multi-room variants and the round black box have no surfaces (not one rectangle). Later: GLB with
    baked lightmaps for full geometry (columns, vaults, furniture).
+   9.11 night: the tab explains On View; each empty size is walked before it is chosen (`openSpace({choose})`); the hang editor
+   `space/hang-editor.js` works inside the room (drag with snapping, line up, even spacing, undo, add/remove works, plinths S/M/L with
+   objects at real size via `space/plinths.js`); `v.placements` {id:{wall,a,y}} in `virtual_shows.works`, `v.plinths` in the new
+   `virtual_shows.plinths` column; `hang()` stays the default. Several connected rooms: NOT done, see studio/design/night-2026-11-09/onview.md.

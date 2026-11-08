@@ -1,0 +1,33 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>D: שורת פקודות</title><style>
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Heebo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+:root{--wall:#EFE9DD;--paper:#F6F1E7;--ink:#1B1A17;--muted:#5E594F;--line:#CFC7B6;--card:#E6DFD0;--dot:#2F6B4F;--warn:#9A5B1E;
+ --serif:"Fraunces",serif;--sans:"Heebo",sans-serif;--mono:"IBM Plex Mono",monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--wall);color:var(--ink);font:400 15px/1.45 var(--sans);direction:rtl}
+a{color:inherit;text-decoration:none}h1,h2,h3,p{margin:0;font-weight:400}
+.m{color:var(--muted);font-size:13px}.mono{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:14px;padding:0 16px;min-height:44px;font:600 14px var(--sans);border:1.5px solid var(--ink);background:transparent;color:var(--ink)}
+.btn.f{background:var(--dot);border-color:var(--dot);color:#F6F1E7}.btn.g{border-color:var(--line);font-weight:500}.btn.t{border:0;color:var(--muted);font-weight:500}
+.th{display:grid;gap:4px}.th img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;display:block}
+.flag{display:inline-block;font:500 10.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
+.flag.ok{background:color-mix(in srgb,var(--dot) 14%,transparent);color:var(--dot)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:10px}
+.badge{background:var(--dot);color:#F6F1E7;border-radius:99px;font:600 11px var(--sans);min-width:18px;height:18px;display:inline-grid;place-items:center;padding:0 5px}
+.serif{font-family:var(--serif)}
+
+.top{display:flex;justify-content:space-between;align-items:center;padding:6px 16px;min-height:44px}.top a{color:var(--muted);font-size:14px}
+main{padding:0 16px 120px;max-width:760px;margin:auto}
+.cmd{display:flex;align-items:center;gap:10px;border:1.5px solid var(--ink);border-radius:14px;padding:0 14px;min-height:48px;background:var(--paper);color:var(--muted)}.cmd kbd{margin-inline-start:auto;font:500 11px var(--mono);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+.prog{display:flex;gap:4px;padding:14px 0}.prog i{flex:1;height:4px;border-radius:2px;background:var(--line)}.prog i.d{background:var(--dot)}.prog i.n{background:var(--ink)}
+.f1 h2{font:500 30px/1.1 var(--serif)}.f1{gap:12px}.big{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.big img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}
+.dock{position:fixed;inset:auto 0 0;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--wall) 30%);display:grid;grid-template-columns:1fr 1fr 44px;gap:8px}
+.dock .btn{min-height:52px}.menu{display:none}
+.res{margin-top:10px;border:1px solid var(--line);border-radius:14px;background:var(--paper);overflow:hidden}.res div{display:flex;justify-content:space-between;padding:0 14px;min-height:44px;align-items:center;border-bottom:1px solid var(--line)}.res div:last-child{border:0}.res .on{background:var(--card)}
+kbd{font:500 11px var(--mono);border:1px solid var(--line);border-radius:6px;padding:2px 6px;background:var(--wall)}
+.cmdv{display:none}
+@media(min-width:900px){.dock{position:static;background:none;padding:14px 0;grid-template-columns:auto auto auto 1fr;justify-content:start}.dock .btn{min-height:44px}.cmdv{display:block}.big{grid-template-columns:repeat(6,1fr)}main{padding-top:26px}}</style></head><body><div class="top"><a>→ לאפליקציה</a><span class="mono">חדר בקרה</span></div><main>
+<div class="cmd"><span>חיפוש או פקודה, למשל "אשר Maya"</span><kbd>⌘K</kbd></div>
+<div class="cmdv"><div class="res"><div class="on"><span>אשר: Maya Lieberman</span><kbd>↵</kbd></div><div><span>עבור אל: אמנים</span><kbd>G A</kbd></div><div><span>עבור אל: תקינות</span><kbd>G H</kbd></div><div><span>תערוכת אוצרות חדשה</span><kbd>N</kbd></div></div></div>
+<div class="prog"><i class="d"></i><i class="n"></i><i></i></div><p class="mono">2 מתוך 3 · אמנים מחכים</p>
+<article class="card f1" style="margin-top:8px"><div><span class="flag">מחכה</span><h2>Yosef Haim</h2><p class="m">Printmaker · Haifa · נשלח לפני 5 ימים</p></div>
+<p dir="ltr" style="text-align:left">Woodblock prints of the port, in the evening, by hand.</p><div class="big"><img src="../../../app/data/demo/works/the-great-wave-off-kanagawa-s.jpg" alt=""><img src="../../../app/data/demo/works/sundai-edo-s.jpg" alt=""><img src="../../../app/data/demo/works/steep-street-in-moonlight-s.jpg" alt=""><img src="../../../app/data/demo/works/the-port-at-lorient-s.jpg" alt=""></div></article>
+<div class="dock"><button class="btn f">אשר <kbd style="color:#222">A</kbd></button><button class="btn g">שינויים <kbd>C</kbd></button><button class="btn g" aria-label="עוד">⋯</button></div></main></body></html>
