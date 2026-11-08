@@ -133,7 +133,7 @@ function addCommunity(m, c, uniq, seen) {
     // their past exhibitions, as shows of the past (with their installation photos)
     for (const e of a.exhibitions || []) {
       const lines = String(e.text || '').split(/\n+/).map(t => t.trim()).filter(Boolean);
-      m.exhibitions.push({ slug: uniq(slugify(`${e.title}-${slug}`)), title: e.title, year: e.year || '', venue: e.venue || '', dates: e.dates || '', text: lines,
+      m.exhibitions.push({ id: e.id, slug: uniq(slugify(`${e.title}-${slug}`)), title: e.title, year: e.year || '', venue: e.venue || '', dates: e.dates || '', text: lines,
         images: (e.photos || []).map(p => p.src || p).filter(Boolean), city: e.city || '', country: '', confirmed: true, artist: x, artists: [x], works: [], maybe: [],
         space: (e.tour === 'live' && e.space && m.spaces[e.space.slug]) || null, workIds: e.works || [], kind: 'gallery', ...span(e.dates || '', e.year), events: [], community: true });
     }
@@ -247,7 +247,8 @@ const cvOf = cv => {
 const status = e => { const now = Date.now(); return now < e.start ? 'soon' : now > e.end ? 'past' : 'on'; };
 const isOn = e => status(e) === 'on';
 const nextEvent = e => e.events.filter(v => +v.at > Date.now() - 3 * 3600000).sort((a, b) => a.at - b.at)[0];
-const worksOf = a => M.works.filter(w => w.artist === a && w.kind !== 'object');
+// (an artist on Open Studio keeps their own order; the site's artists go newest first)
+const worksOf = a => { const l = M.works.filter(w => w.artist === a && w.kind !== 'object'); return a.community ? l.sort((x, y) => x.i - y.i) : l; };
 const objectsOf = a => M.works.filter(w => w.artist === a && w.kind === 'object');
 // an artist's shows, their own first (a group show after)
 const showsOf = a => M.exhibitions.filter(e => (e.artists || [e.artist]).includes(a)).sort((x, y) => (y.artist === a) - (x.artist === a));
@@ -991,10 +992,25 @@ function reviewBar() {
   document.body.classList.add('reviewing');
 }
 
+// the artist's own page while they edit it (artist.js): their studio joined to the app's content as a visitor will see it
+function ownPage(S) {
+  const uid = S.uid || 'local-artist', a = S.artist;
+  M.artists = M.artists.filter(x => x.uid !== uid); M.works = M.works.filter(w => !(w.artist && w.artist.uid === uid));
+  M.exhibitions = M.exhibitions.filter(e => !(e.artist && e.artist.uid === uid));
+  const seen = new Set([...M.artists.map(x => x.slug), ...M.works.map(w => w.slug), ...M.exhibitions.map(e => e.slug)]);
+  const uniq = base => { let s = base, i = 2; while (seen.has(s)) s = `${base}-${i++}`; seen.add(s); return s; };
+  const row = { id: uid, slug: S.slug || slugify(a.name) || 'artist', name: a.name, discipline: a.discipline, city: a.city, photo: a.photo, statement: a.statement, bio: a.bio, link: a.link,
+    instagram: a.instagram, cv: a.cv || [], exhibitions: (S.exhibitions || []).map(e => ({ ...e, photos: (e.photos || []).length ? e.photos : e.cover ? [{ src: e.cover }] : [] })) };
+  addCommunity(M, { artists: [row], works: S.works.map(w => ({ ...w, artist_id: uid })), shows: [] }, uniq, seen);
+  return M.artists.find(x => x.uid === uid);
+}
+const STUDIO_TOOLS = { ownPage, artistPage: a => artistPage(a.slug), about: a => aboutOf(a.slug), wire: () => wire(), im, curly: s => curly(s) };
+
 let prevHash = null, lastHash = null;
 function render() {
   const hash = location.hash || '#/';
   const rv = hash.match(/^#\/preview\/([^/]+)$/);
+  if (rv && rv[1] === 'me') { location.replace('#/studio'); return; }       // (an artist's own page is their studio)
   if (rv) {
     app.innerHTML = '<div class="wrap gut loading"><p>Opening the page…</p></div>';
     loadReview(rv[1]).then(r => r ? location.replace(`#/artist/${r.slug}`) : (app.innerHTML = '<div class="wrap gut"><p class="m">This page can’t be opened here. Sign in first.</p></div>'));
@@ -1042,7 +1058,7 @@ function render() {
     if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }
     document.querySelector('.bar').hidden = true; document.querySelector('.tabs').hidden = true; document.body.classList.remove('has-tabs');
     const go = (h, same) => { if (same || h === location.hash) render(); else location.hash = h; };
-    (window.__studio || import('./artist.js').then(m => m.studio)).then(f => { window.__studio = Promise.resolve(f); f(hash, app, go, M); window.scrollTo(0, 0); });
+    (window.__studio || import('./artist.js').then(m => m.studio)).then(f => { window.__studio = Promise.resolve(f); f(hash, app, go, M, STUDIO_TOOLS); window.scrollTo(0, 0); });
     return;
   }
   let html = notFound(), tab = null;
