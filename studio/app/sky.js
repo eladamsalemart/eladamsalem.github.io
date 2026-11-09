@@ -1,5 +1,5 @@
 // Home's sky (app.js, home): a map of DOM stars and drawn ties, made for a phone and a thumb.
-// One finger moves it, two fingers (or the + and - buttons, or the wheel) zoom, a tap turns to a star and asks the page
+// One finger moves it sideways (up and down scrolls the page), two fingers zoom, a tap turns to a star and asks the page
 // for its card. Every star keeps a face (or a work's picture) at a size you can read, and its name beneath, as long as the
 // name fits without lying on another; the labels that don't fit wait until you come closer. It draws only while something
 // moves (a touch, its glide, a zoom, a turn to a star); at rest the sky costs nothing.
@@ -133,7 +133,7 @@ export function sky(el, o) {
   // --- gestures: one finger moves, two zoom ---
   let raf0 = 0; void raf0;
   const pts = new Map(); let start = null, pinch0 = 0, Dp = D0, mid0 = null, moved = 0, lastTap = 0;
-  el.style.touchAction = 'none';
+  el.style.touchAction = 'pan-y';                 // a vertical swipe scrolls the page; a clearly sideways drag moves the sky; two fingers zoom
   const zoomAt = (f, sx, sy) => {                 // keep the point under (sx, sy) still while the zoom changes
     const D1 = clamp(goal.D * f, lim.Dmin, widest()), k1 = kPlane(goal.D), k2 = kPlane(D1);
     const r = el.getBoundingClientRect(), px = sx - r.left - W / 2, py = sy - r.top - H * (o.cy || 0.5);
@@ -180,7 +180,7 @@ export function sky(el, o) {
   for (const g of ['gesturestart', 'gesturechange']) el.addEventListener(g, e => e.preventDefault());   // Safari's own pinch would zoom the page
   el.addEventListener('pointerup', end);
   el.addEventListener('pointercancel', e => { pts.delete(e.pointerId); if (!pts.size) { drag = false; start = null; wake(); } });
-  el.addEventListener('wheel', e => { e.preventDefault(); o.onTouch && o.onTouch(); zoomAt(Math.exp(e.deltaY * 0.0016), e.clientX, e.clientY); }, { passive: false });
+  el.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); o.onTouch && o.onTouch(); zoomAt(Math.exp(e.deltaY * 0.01), e.clientX, e.clientY); }, { passive: false });   // a trackpad pinch zooms; a plain wheel scrolls the page
   el.addEventListener('keydown', e => { const s = e.target.closest?.('.star'); if (s && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); choose(by[s.dataset.id]); } });
 
   function choose(s, o2 = {}) {
