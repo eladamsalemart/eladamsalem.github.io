@@ -32,19 +32,19 @@ const shots = process.argv[3]; // a folder for a screenshot when something fails
   catch { bad.push('the sky has fewer than 8 stars after 30 s'); }
   try { await p.waitForFunction(() => { const n = document.getElementById('hsNear'); return n && !n.hidden; }, null, { timeout: 20000 }); }
   catch { bad.push('"On now, near you" never appeared (the art map\'s data, or Home stopped before it)'); }
-  // the sky is easy to use: zoom and move by buttons, every star named when it fits, a tap opens a card with Open
+  // the sky is easy to use: a vertical swipe scrolls the page (touch-action pan-y), no zoom buttons or Wander, every star named when it fits, a tap opens a card
   await p.waitForTimeout(3000);
-  const ui = await p.evaluate(() => ({ ctl: document.querySelectorAll('.hs .sky-ctl button').length, named: document.querySelectorAll('.hs .star.named').length }));
-  if (ui.ctl < 4) bad.push(`the sky has ${ui.ctl} controls (zoom in, zoom out, back to the start, Wander)`);
+  const ui = await p.evaluate(() => ({ named: document.querySelectorAll('.hs .star.named').length }));
+  const ta = await p.evaluate(() => getComputedStyle(document.querySelector('.hs .sky')).touchAction + (document.querySelector('.hs .sky-ctl') ? ' +buttons' : ''));
+  if (ta !== 'pan-y') bad.push(`the sky takes vertical swipes (${ta}): the page can't be scrolled over it`);
   if (ui.named < 3) bad.push(`only ${ui.named} stars show their name`);
   await p.locator('.hs .star.r0 .sp').first().tap({ timeout: 8000 }).catch(() => {});
   try { await p.waitForFunction(() => { const c = document.querySelector('.hs .pick'); return c && !c.hidden && c.querySelector('.go') && c.querySelector('.nx'); }, null, { timeout: 5000 }); }
   catch { bad.push('tapping a star did not open its card (Open, Related)'); }
-  await p.locator('.hs .sky-ctl [data-z=fit]').tap({ timeout: 5000 }).catch(() => {});
   // the room's film, as the browser receives it: playing, and as sharp as a phone shows it
-  await p.evaluate(() => document.querySelector('.hs .tour') && document.querySelector('.hs .tour').scrollIntoView({ block: 'center', behavior: 'instant' }));
-  const plays = () => p.waitForFunction(() => { const v = document.querySelector('.hs .tour video'); return v && !v.paused && v.readyState >= 3 && v.videoWidth; }, null, { timeout: 30000 }).then(() => true, () => false);
-  const why = () => p.evaluate(() => { const v = document.querySelector('.hs .tour video'); if (!v) return 'no video: Home took it away, every source failed';
+  await p.evaluate(() => document.querySelector('.hs .wc') && document.querySelector('.hs .wc').scrollIntoView({ block: 'center', behavior: 'instant' }));
+  const plays = () => p.waitForFunction(() => { const v = document.querySelector('.hs .wc video'); return v && !v.paused && v.readyState >= 3 && v.videoWidth; }, null, { timeout: 30000 }).then(() => true, () => false);
+  const why = () => p.evaluate(() => { const v = document.querySelector('.hs .wc video'); if (!v) return 'no video: Home took it away, every source failed';
     const r = v.getBoundingClientRect(); return `paused ${v.paused}, readyState ${v.readyState}, networkState ${v.networkState}, error ${v.error ? v.error.code : 'none'}, src ${v.currentSrc.split('/').slice(-2).join('/') || 'none'}, at y ${Math.round(r.top)} of ${innerHeight}`; });
   const answers = () => filmNet.map(([st, u]) => `${st} ${u.split('/').slice(-2).join('/')}`).join(', ') || 'no request';
   if (!await plays()) {
@@ -52,15 +52,15 @@ const shots = process.argv[3]; // a folder for a screenshot when something fails
     bad.push(`the room's film never played on Home (${await why()}; answers: ${answers()})`);
     if (shots) await p.screenshot({ path: require('path').join(shots, 'home-film.png') }).catch(() => {});
   }
-  const film = await p.evaluate(() => { const v = document.querySelector('.hs .tour video'); return v ? { w: v.videoWidth, h: v.videoHeight, src: v.currentSrc.split('/').pop() } : null; });
+  const film = await p.evaluate(() => { const v = document.querySelector('.hs .wc video'); return v ? { w: v.videoWidth, h: v.videoHeight, src: v.currentSrc.split('/').pop() } : null; });
   // the film is the picture from the first moment (its poster is its first frame): faded in over another picture, it
   // showed a ghost of the one in the other
-  const fade = await p.evaluate(() => { const v = document.querySelector('.hs .tour video'); if (!v) return null; const cs = getComputedStyle(v); return cs.transitionDuration !== '0s' && cs.transitionProperty.includes('opacity') ? cs.transitionDuration : (v.poster ? null : 'no poster'); });
+  const fade = await p.evaluate(() => { const v = document.querySelector('.hs .wc video'); if (!v) return null; const cs = getComputedStyle(v); return cs.transitionDuration !== '0s' && cs.transitionProperty.includes('opacity') ? cs.transitionDuration : (v.poster ? null : 'no poster'); });
   if (fade) bad.push(`the room's film fades in over the photo (${fade}): a ghost of one picture in the other`);
   if (film && film.w && film.w < 1000) bad.push(`the room's film is ${film.w}px wide (${film.src}): soft on a phone`);
   const got = await p.evaluate(() => ({
     stars: document.querySelectorAll('.hs .star').length, sky: !!document.querySelector('.hs canvas.sky-g'),
-    near: document.querySelectorAll('.hs .star.r0').length, room: !!document.querySelector('.hs .tour .step'),
+    near: document.querySelectorAll('.hs .star.r0').length, room: !!document.querySelector('.hs .wc .step'),
     artists: document.querySelectorAll('.hs .ppl li').length, wide: document.documentElement.scrollWidth,
   }));
   if (!got.sky) bad.push('the sky has no canvas for its ties');

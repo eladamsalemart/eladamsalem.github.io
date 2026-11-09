@@ -509,14 +509,14 @@ function exhibitionPage(id) {
   const isNew = id === 'new';
   const ex = isNew ? { id: '', title: '', venue: '', city: '', year: String(new Date().getFullYear()), dates: '', curator: '', text: '', works: [], photos: [], video: '', space: {}, tour: 'none' }
     : S.exhibitions.find(x => x.id === id);
-  if (!ex) return `<div class="wrap gut st">${head('Not found', '#/studio/exhibitions')}</div>`;
+  if (!ex) return `<div class="wrap gut st">${head('Not found', '#/studio')}</div>`;
   const r = readiness(ex, S.works), sp = ex.space || {};
   const status = ex.real ? ex.real : null;
   const extra = ex.tourFiles || [], hasVideo = ex.video || extra.some(f => f.kind === 'video');
   // (always worth a try: with any photo or a video the tour is attempted, and the checks say what would make it better)
   const canAsk = !status && ex.tour !== 'live' && ex.tour !== 'requested' && ex.tour !== 'building' && (ex.photos.length || extra.length || hasVideo);
-  return `<div class="wrap gut st">${head(isNew ? 'Add an exhibition' : ex.title, '#/studio/exhibitions')}
-    <div class="st-step"><span class="n">1</span><div><h2>Your exhibition</h2><p class="m small">What visitors see on your page: the details, a few words, the installation photos and the works that were in the show.</p></div></div>
+  return `<div class="wrap gut st">${head(isNew ? 'Add an exhibition' : ex.title, '#/studio')}
+    <div class="st-step"><span class="n">1</span><div><h2>The exhibition</h2><p class="m small">What visitors see on your page: the details, a few words, the photos of the show and the works that were in it.</p></div></div>
     <form class="st-form" id="exForm" data-id="${esc(ex.id)}">
       <label>Title<input name="title" required value="${esc(ex.title)}"></label>
       <div class="st-row"><label>Venue<input name="venue" value="${esc(ex.venue)}"></label><label>City<input name="city" value="${esc(ex.city)}"></label></div>
@@ -524,13 +524,17 @@ function exhibitionPage(id) {
       <label>About the exhibition<textarea name="text" rows="5">${esc(ex.text)}</textarea></label>
       <fieldset><legend>Works in the show</legend>
         <div class="st-pick">${S.works.map(w => `<label><input type="checkbox" name="works" value="${w.id}" ${ex.works.includes(w.id) ? 'checked' : ''}><img src="${esc(w.thumb || w.image)}" alt=""><span>${esc(w.title)}</span></label>`).join('')}</div></fieldset>
-      <fieldset><legend>Installation photos</legend>
+      <fieldset><legend>Photos of the show (these appear on the exhibition page)</legend>
         <div class="st-photos">${ex.photos.map((p, i) => `<figure><img src="${esc(p.src)}" alt="Installation photo ${i + 1}"><button type="button" data-delphoto="${i}" aria-label="Remove">×</button></figure>`).join('')}
           <label class="st-add"><input type="file" accept="image/*" multiple name="photos" hidden>+ Add photos</label></div>
         <p class="m small">Wide views, each with 2–3 works and a corner of the room, so that every wall is in at least two photos. Natural light, no people in front of the works.</p></fieldset>
-      <div class="btns"><button class="btn f" type="submit">${isNew ? 'Save, then on to the tour' : 'Save'}</button>${isNew ? '' : '<button class="btn g" type="button" id="delEx">Delete</button>'}</div>
+      <div class="btns"><button class="btn f" type="submit">${isNew ? 'Save the exhibition' : 'Save'}</button>${isNew ? '' : '<button class="btn g" type="button" id="delEx">Delete</button>'}</div>
     </form>
-    ${isNew ? '' : `<div class="st-step"><span class="n">2</span><div><h2>A walk-through tour <span class="m">(optional)</span></h2><p class="m small">Visitors walk through the show in 3D, every work at its real size and place. Open Studio builds it from your installation photos and the works' sizes, and checks it view by view before it goes up.</p></div></div>
+    ${isNew ? '<p class="m st-after">After you save, “A walk-through tour” opens here, at the bottom: you can ask for a 3D tour of this show.</p>' : `<div class="st-step"><span class="n">2</span><div><h2>A walk-through tour <span class="m">(optional)</span></h2>
+      <p class="m">Visitors walk through your show in 3D, every work at its real size and place. Open Studio builds it for you, and checks it view by view before it goes up. To make a good tour:</p>
+      <ol class="st-how"><li><b>Upload as many photos and videos of the space and the show as you can.</b> Every wall, from several angles, wide views with the corners of the room. A slow walk-through video helps most.</li>
+        <li><b>The details of the works must be very exact.</b> Width, height and depth in centimetres, the year and the medium. A work with a wrong size hangs wrong in the tour.</li></ol>
+      <p class="m"><b>The photos and videos you add below only help build the tour. They do not appear on the exhibition page.</b></p></div></div>
     <section class="st-card st-tour">
       <div class="sec-h"><h3>Where it stands</h3><span class="st-flag ${tourFlag(ex)[0]}">${tourFlag(ex)[1]}</span></div>
       ${ex.tour === 'live' && ex.space && ex.space.slug ? `<p class="m">This exhibition has a walkable tour.</p><div class="btns"><a class="btn f" href="#/exhibition/${esc(ex.space.slug)}/space">Walk through the tour</a></div>`
@@ -538,8 +542,8 @@ function exhibitionPage(id) {
         : status ? `<p class="m">${esc(status.summary)}</p>${checks(status.items)}`
         : `<p class="m">${r.ready ? 'Everything a tour needs is here.' : 'You can ask for a tour now: it is always tried. These would make it surer:'}</p>${checks(r.items)}`}
       ${ex.tour === 'more' && ex.tourNote ? `<p class="st-status no">${esc(ex.tourNote)}</p>` : ''}
-      <h3>Material for the tour only</h3>
-      <p class="m small">More installation photos, and a walk-through video if you have one. They help build the tour and are <b>never shown on your page</b>. Photos: wide, 2–3 works and a corner of the room in each. Video: phone sideways, walk slowly down the middle and back, filming every wall (up to 50 MB).</p>
+      <h3>Photos and videos for the tour</h3>
+      <p class="m small">Kept apart from the exhibition's own photos, and <b>never shown on your page</b>. Photos: wide, 2–3 works and a corner of the room in each. Video: phone sideways, walk slowly down the middle and back, filming every wall (up to 50 MB).</p>
       <div class="st-files">${extra.map((f, i) => `<div class="st-file"><span>${f.kind === 'video' ? '▶' : '▣'} ${esc(f.name)}</span><button type="button" data-deltour="${i}" aria-label="Remove ${esc(f.name)}">×</button></div>`).join('') || '<p class="m small">Nothing yet.</p>'}</div>
       <div class="btns"><label class="btn g"><input type="file" accept="image/*,video/*" multiple id="tourFiles" hidden>+ Add photos or a video</label></div>
       <p class="m small" id="tourMsg" role="status"></p>
@@ -689,7 +693,7 @@ function wire(app, go) {
     }
     xf.onsubmit = e => { e.preventDefault(); store(true); };
     const del = $('#delEx');
-    if (del) del.onclick = () => { if (!confirm('Delete this exhibition?')) return; S.exhibitions = S.exhibitions.filter(x => x.id !== id); save(); go('#/studio/exhibitions'); };
+    if (del) del.onclick = () => { if (!confirm('Delete this exhibition?')) return; S.exhibitions = S.exhibitions.filter(x => x.id !== id); save(); go('#/studio'); };
   }
   app.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
     const input = b.previousElementSibling;
