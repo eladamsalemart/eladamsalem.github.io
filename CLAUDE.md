@@ -132,6 +132,8 @@ ones show in the app like any show), Ask for a change (`change_requests` → the
 an `owner-request` issue the nightly session takes up), health. Tested end to end with the app's mailbox (sign in by
 the emailed code via the Gmail connector); clean the test data afterwards.
 
+**Home is fixed (owner, 10.11)** — after the night of 10.11 (stars; Walk in now as a sideways row of shows right under them; Meet someone new; the rest as it was) Home's look is final: change nothing there the owner did not ask for in words.
+
 **Owner's decisions (3.11)** — No "Curated" row on Home for now. Later, once there are real artists and shows: the
 "Walk in now" place under the stars becomes a row of exhibitions (curated and artists' virtual ones) moving slowly
 past, each one you can step into. Instagram's direct connection waits for a Meta developer app (the owner's); until
