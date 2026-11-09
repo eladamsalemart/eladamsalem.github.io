@@ -141,3 +141,15 @@ main{padding:30px 44px 80px;min-width:0;max-width:1500px}
 @media(max-width:1399px){main{padding:26px 28px 80px}.shell{grid-template-columns:196px minmax(0,1fr)}.issue{grid-template-columns:repeat(2,minmax(0,1fr))}.ed{grid-template-columns:minmax(0,1fr) 290px}.md{grid-template-columns:minmax(300px,340px) minmax(0,1fr)}}
 @media(max-width:1099px){.q,.two,.cols{grid-template-columns:1fr}.ed{grid-template-columns:1fr}.lib{position:static;max-height:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* sections added with the restructure: exhibitions groups, conversations */
+.grp{margin-bottom:22px}.grp h3{font:500 1.15rem var(--serif);padding:6px 0 8px;border-bottom:2px solid var(--ink)}
+.grp .run{min-height:56px}
+.sec h2 .small{font:400 .86rem var(--sans);margin-inline-start:8px}
+.soon{background:#FFF3D6;border:1px solid #E4CE92;border-radius:12px;padding:12px 14px;font-size:.9rem;margin:0}
+.note{padding:24px;border:1px dashed var(--line);border-radius:var(--r);display:grid;gap:6px}.note b{font:400 1.5rem var(--serif)}
+.row.th2{grid-template-columns:44px minmax(0,1fr) auto}.row.th2 .chip{grid-column:auto;margin:0}
+.av{width:44px;height:44px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font:500 1.1rem var(--serif)}
+.thread{display:grid;gap:10px;max-height:calc(100vh - 480px);min-height:120px;overflow:auto;padding:4px}
+.msg{max-width:78%;background:var(--soft);border-radius:14px;padding:10px 14px;display:grid;gap:2px;justify-self:start}.msg p{margin:0}
+.msg.me{background:#DCEBDF;justify-self:end}
