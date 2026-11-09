@@ -174,11 +174,24 @@ def depot():
         g.d['slabs'].append(dict(poly=rect(-16, 14, 32, 2), z=z - .2)); g.d['slabs'].append(dict(poly=rect(-16, -16, 32, 2), z=z - .2))
         g.d['slabs'].append(dict(poly=rect(14, -14, 2, 28), z=z - .2)); g.d['slabs'].append(dict(poly=rect(-16, -14, 2, 28), z=z - .2))
     g.d['future'] = [rect(-26, -26, 52, 52)]
-    g.d['cams'] = dict(axon=dict(az=32, el=38), ints=[dict(name='המחסן', loc=[-13, -13.5, 1.65], tgt=[7, 10, 8.5], lens=15, people=[[-3,-6,0],[2,0,0],[5,5,0],[-6,8,0]])])
+    g.d['cams'] = dict(axon=dict(az=32, el=38), ints=[dict(name='המחסן', loc=[-14.2, -14.6, 1.65], tgt=[7, 15.5, 10.5], lens=14, people=[[-3,-6,0],[2,0,0],[5,5,0],[-6,8,0]])])
     g.room_cam('תא 2', 15)
     return g.out()
 
-ALL = (street, void, garden, descent, depot)
+# ---------------------------------------------------------------- F. the recommended campus: the garden with the street's great hall at its gate
+def campus():
+    import copy
+    d = copy.deepcopy(garden()); d['key'] = 'F'; d['title'] = 'הקמפוס'
+    d['spaces'].append(dict(id='s_hall', name='האולם הגדול (מהאפליקציה)', kind='loft', poly=rect(-20, -13, 40, 13), h=7, z=0, roof='slot', role='app', art=True, walls=True, light='sky'))
+    d['doors'].append(dict(x=0, y=-13, w=4, z=0, h=3.6))
+    d['paths'].append(dict(pts=[[0, -22], [0, -13]], w=3.5))
+    d['future'] += [rect(62, 30, 30, 26), rect(-96, 30, 30, 30)]
+    d['cams'] = dict(axon=dict(az=205, el=34), ints=[dict(name='האולם הגדול בשער', loc=[-17.5, -6.5, 1.65], tgt=[14, -6.0, 3.0], lens=17, people=[[-4, -4, 0], [-2.5, -9, 0], [8, -5, 0]])])
+    d['flow'] = [[0, -22], [0, 14], [0, 20]]
+    json.dump(d, open(os.path.join(HERE, 'data', 'F.json'), 'w', encoding='utf-8'), ensure_ascii=False)
+    return d
+
+ALL = (street, void, garden, descent, depot, campus)
 
 
 def graph(d):
