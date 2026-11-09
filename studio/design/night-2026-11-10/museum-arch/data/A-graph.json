@@ -1,0 +1,244 @@
+{
+ "direction": "A",
+ "nodes": [
+  {
+   "id": "s0",
+   "kind": "public",
+   "role": "public",
+   "name": "הרחוב",
+   "x": 48.0,
+   "y": 4.0,
+   "z": 0
+  },
+  {
+   "id": "s1",
+   "kind": "glass-pavilion",
+   "role": "public",
+   "name": "שער זכוכית",
+   "x": -7.0,
+   "y": 4.0,
+   "z": 0
+  },
+  {
+   "id": "s2",
+   "kind": "loft",
+   "role": "app",
+   "name": "האולם הגדול (מהאפליקציה)",
+   "x": 24.0,
+   "y": 13.0,
+   "z": 0
+  },
+  {
+   "id": "s3",
+   "kind": "white-cube",
+   "role": "app",
+   "name": "גלריה מתחלפת",
+   "x": 55.5,
+   "y": 13.0,
+   "z": 0
+  },
+  {
+   "id": "s4",
+   "kind": "skylit-hall",
+   "role": "app",
+   "name": "חדר העונה",
+   "x": 71.0,
+   "y": 13.0,
+   "z": 0
+  },
+  {
+   "id": "s5",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "וידאו",
+   "x": 85.0,
+   "y": 13.0,
+   "z": 0
+  },
+  {
+   "id": "s6",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "אמן 1",
+   "x": 8.0,
+   "y": -3.0,
+   "z": 0
+  },
+  {
+   "id": "s7",
+   "kind": "salon",
+   "role": "artist",
+   "name": "אמן 2",
+   "x": 17.0,
+   "y": -3.0,
+   "z": 0
+  },
+  {
+   "id": "s8",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "אמן 3",
+   "x": 26.0,
+   "y": -3.0,
+   "z": 0
+  },
+  {
+   "id": "s9",
+   "kind": "japanese",
+   "role": "artist",
+   "name": "אמן 4",
+   "x": 35.0,
+   "y": -3.0,
+   "z": 0
+  },
+  {
+   "id": "s10",
+   "kind": "studio",
+   "role": "artist",
+   "name": "אמן 5",
+   "x": 44.0,
+   "y": -3.0,
+   "z": 0
+  },
+  {
+   "id": "s11",
+   "kind": "apartment",
+   "role": "artist",
+   "name": "אמן 6",
+   "x": 53.0,
+   "y": -3.0,
+   "z": 0
+  },
+  {
+   "id": "s12",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "אמן 7",
+   "x": 62.0,
+   "y": -3.0,
+   "z": 0
+  },
+  {
+   "id": "s13",
+   "kind": "salon",
+   "role": "artist",
+   "name": "אמן 8",
+   "x": 71.0,
+   "y": -3.0,
+   "z": 0
+  },
+  {
+   "id": "s14",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "אמן 9",
+   "x": 80.0,
+   "y": -3.0,
+   "z": 0
+  }
+ ],
+ "portals": [
+  {
+   "a": "s0",
+   "b": "s1",
+   "kind": "door",
+   "width": 4
+  },
+  {
+   "a": "s1",
+   "b": "outside",
+   "kind": "door",
+   "width": 3.5
+  },
+  {
+   "a": "s0",
+   "b": "s2",
+   "kind": "door",
+   "width": 3.2
+  },
+  {
+   "a": "s0",
+   "b": "s2",
+   "kind": "door",
+   "width": 3.2
+  },
+  {
+   "a": "s0",
+   "b": "s2",
+   "kind": "door",
+   "width": 3.2
+  },
+  {
+   "a": "s0",
+   "b": "s3",
+   "kind": "door",
+   "width": 3.2
+  },
+  {
+   "a": "s0",
+   "b": "s4",
+   "kind": "door",
+   "width": 2.8
+  },
+  {
+   "a": "s0",
+   "b": "s5",
+   "kind": "door",
+   "width": 2.4
+  },
+  {
+   "a": "s0",
+   "b": "s6",
+   "kind": "door",
+   "width": 1.8
+  },
+  {
+   "a": "s0",
+   "b": "s7",
+   "kind": "door",
+   "width": 1.8
+  },
+  {
+   "a": "s0",
+   "b": "s8",
+   "kind": "door",
+   "width": 1.8
+  },
+  {
+   "a": "s0",
+   "b": "s9",
+   "kind": "door",
+   "width": 1.8
+  },
+  {
+   "a": "s0",
+   "b": "s10",
+   "kind": "door",
+   "width": 1.8
+  },
+  {
+   "a": "s0",
+   "b": "s11",
+   "kind": "door",
+   "width": 1.8
+  },
+  {
+   "a": "s0",
+   "b": "s12",
+   "kind": "door",
+   "width": 1.8
+  },
+  {
+   "a": "s0",
+   "b": "s13",
+   "kind": "door",
+   "width": 1.8
+  },
+  {
+   "a": "s0",
+   "b": "s14",
+   "kind": "door",
+   "width": 1.8
+  }
+ ]
+}

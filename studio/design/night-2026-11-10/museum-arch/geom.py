@@ -30,6 +30,21 @@ class D:
         sid = f's{len(s.d["spaces"])}'
         s.d['spaces'].append(dict(id=sid, name=name, kind=kind, poly=poly, h=h, z=z, roof=roof, role=role, art=art, walls=walls, light=light)); return sid
     def door(s, x, y, w=1.8, z=0, h=2.7): s.d['doors'].append(dict(x=x, y=y, w=w, z=z, h=h))
+    def room_cam(s, name, lens=16, up=0.0):
+        """Second interior view: stand just inside the named room's door and look at its far side."""
+        sp = next(x for x in s.d['spaces'] if x['name'] == name)
+        P = sp['poly']; cx = sum(p[0] for p in P) / len(P); cy = sum(p[1] for p in P) / len(P)
+        def edge_d(dr):
+            best = 9
+            for i in range(len(P)):
+                a, b = P[i], P[(i + 1) % len(P)]; L = math.hypot(b[0] - a[0], b[1] - a[1])
+                t = ((dr['x'] - a[0]) * (b[0] - a[0]) + (dr['y'] - a[1]) * (b[1] - a[1])) / L
+                best = min(best, math.hypot(a[0] + (b[0] - a[0]) * t / L - dr['x'], a[1] + (b[1] - a[1]) * t / L - dr['y']) if -.3 <= t <= L + .3 else 9)
+            return best
+        dr = min((d for d in s.d['doors'] if abs(d['z'] - sp['z']) < .01), key=edge_d)
+        vx, vy = cx - dr['x'], cy - dr['y']; L = math.hypot(vx, vy); vx, vy = vx / L, vy / L
+        ppl = [[cx + vy * 1.2, cy - vx * 1.2, sp['z']], [cx - vy * .6 + vx * 1.5, cy + vx * .6 + vy * 1.5, sp['z']]]
+        s.d['cams']['ints'].append(dict(name=name, loc=[dr['x'] + vx * 1.1, dr['y'] + vy * 1.1, sp['z'] + 1.65 + up], tgt=[cx + vx * L * .6, cy + vy * L * .6, sp['z'] + 1.7], lens=lens, people=ppl))
     def out(s):
         os.makedirs(os.path.join(HERE, 'data'), exist_ok=True)
         json.dump(s.d, open(os.path.join(HERE, 'data', s.d['key'] + '.json'), 'w', encoding='utf-8'), ensure_ascii=False)
@@ -51,8 +66,9 @@ def street():
         x = 4 + 9 * i
         g.sp(f'אמן {i+1}', k, rect(x, -6, 8, 6), 4.2, roof='solid', role='artist', art=True); g.door(x + 4, 0, 1.8)
     g.d['future'] = [rect(4 + 9 * i, -6, 8, 6) for i in (9, 10)] + [rect(96, 0, 24, 8)] + [rect(94, 8, 22, 10)]
-    g.d['cams'] = dict(axon=dict(az=38, el=36), ints=[dict(name='הרחוב', loc=[3, 4, 1.65], tgt=[70, 4.5, 3.2], lens=17)])
+    g.d['cams'] = dict(axon=dict(az=38, el=36), ints=[dict(name='הרחוב', loc=[3, 4, 1.65], tgt=[70, 4.5, 3.2], lens=17, people=[[12,3.5,0],[14.5,5,0],[30,2.2,0],[31.2,2.8,0],[44,5.5,0]])])
     g.d['flow'] = [[-14, 4], [0, 4], [90, 4]]
+    g.room_cam('האולם הגדול (מהאפליקציה)', 18)
     return g.out()
 
 # ---------------------------------------------------------------- B. the void
@@ -73,7 +89,8 @@ def void():
             am = math.radians(a_s + 22.5); g.door(R0 * math.cos(am), R0 * math.sin(am), 4.2, z=z, h=min(h - .6, 3.6))
             if L == 0 and k == 'public': g.door(R1 * math.cos(am), R1 * math.sin(am), 4, z=z, h=3.6)
     g.d['extras'].append(dict(type='helix', cx=0, cy=0, r=7.2, z0=0, z1=16.8, turns=1.6, w=1.6))
-    g.d['cams'] = dict(axon=dict(az=30, el=40), ints=[dict(name='החלל', loc=[0, -4.5, 1.65], tgt=[1.5, 5, 9.5], lens=14)])
+    g.d['cams'] = dict(axon=dict(az=30, el=40), ints=[dict(name='החלל', loc=[0, -4.5, 1.65], tgt=[1.5, 5, 9.5], lens=14, people=[[-3,0.5,0],[4,2,0],[1,-1.5,0]])])
+    g.room_cam('קומה 1 · 2', 17)
     return g.out()
 
 # ---------------------------------------------------------------- C. garden of pavilions
@@ -105,7 +122,8 @@ def garden():
         x, y = cx + (ax + 14) * r * math.cos(a), cy + (ay + 14) * r * math.sin(a)
         if (x / (ax + 4)) ** 2 + ((y - cy) / (ay + 4)) ** 2 > 0.45 and (x ** 2 + (y - 8) ** 2) > 140:
             g.d['trees'].append([x, y, rnd.uniform(2.2, 4.2)])
-    g.d['cams'] = dict(axon=dict(az=210, el=38), ints=[dict(name='מהשביל', loc=[2, 15, 1.7], tgt=[0, 62, 4.5], lens=22)])
+    g.d['cams'] = dict(axon=dict(az=210, el=38), ints=[dict(name='מהשביל', loc=[2, 15, 1.7], tgt=[0, 62, 4.5], lens=22, people=[[0,26,0],[3.5,24,0],[-4,33,0]])])
+    g.room_cam('ביתן 2', 16)
     return g.out()
 
 # ---------------------------------------------------------------- D. the descent
@@ -127,8 +145,9 @@ def descent():
     for i, (poly, k, dp) in enumerate(cells):
         g.sp(f'תא {i+1}', k, poly, 5, z=-8, roof='solid', role='artist', art=True); g.door(dp[0], dp[1], 1.8, z=-8)
     g.d['future'] = [rect(50, -84, 16, 18), rect(72, -48, 8, 18)]
-    g.d['cams'] = dict(axon=dict(az=35, el=42), ints=[dict(name='האולם התחתון', loc=[12.6, -37.5, -6.4], tgt=[33, -37, -5.3], lens=18)])
+    g.d['cams'] = dict(axon=dict(az=35, el=42), ints=[dict(name='האולם התחתון', loc=[12.6, -37.5, -6.4], tgt=[33, -37, -5.3], lens=18, people=[[20,-37.5,-8],[22,-39.2,-8],[30,-36,-8]])])
     g.d['flow'] = [[4, 3], [4, -16], [4, -19], [24, -19.25], [24, -37], [40, -39.25], [58, -39]]
+    g.d['cams']['ints'].append(dict(name='חצר האור', loc=[50.6, -39.25, -6.3], tgt=[66, -38.5, -5.6], lens=17, people=[[56, -41, -8], [58, -37.5, -8]]))
     return g.out()
 
 # ---------------------------------------------------------------- E. the open depot
@@ -155,9 +174,33 @@ def depot():
         g.d['slabs'].append(dict(poly=rect(-16, 14, 32, 2), z=z - .2)); g.d['slabs'].append(dict(poly=rect(-16, -16, 32, 2), z=z - .2))
         g.d['slabs'].append(dict(poly=rect(14, -14, 2, 28), z=z - .2)); g.d['slabs'].append(dict(poly=rect(-16, -14, 2, 28), z=z - .2))
     g.d['future'] = [rect(-26, -26, 52, 52)]
-    g.d['cams'] = dict(axon=dict(az=32, el=38), ints=[dict(name='המחסן', loc=[0, -13, 1.65], tgt=[1.5, 14, 7], lens=15)])
+    g.d['cams'] = dict(axon=dict(az=32, el=38), ints=[dict(name='המחסן', loc=[-13, -13.5, 1.65], tgt=[7, 10, 8.5], lens=15, people=[[-3,-6,0],[2,0,0],[5,5,0],[-6,8,0]])])
+    g.room_cam('תא 2', 15)
     return g.out()
 
 ALL = (street, void, garden, descent, depot)
+
+
+def graph(d):
+    """The museum as a graph (what the app would store): spaces are nodes, doors are portals between the spaces they touch."""
+    def near(s, x, y):
+        P = s['poly']
+        for i in range(len(P)):
+            a, b = P[i], P[(i + 1) % len(P)]; L = math.hypot(b[0] - a[0], b[1] - a[1])
+            t = ((x - a[0]) * (b[0] - a[0]) + (y - a[1]) * (b[1] - a[1])) / L
+            if -.3 <= t <= L + .3 and math.hypot(a[0] + (b[0] - a[0]) * t / L - x, a[1] + (b[1] - a[1]) * t / L - y) < .45: return True
+        return False
+    nodes = [dict(id=s['id'], kind=s['kind'], role=s['role'], name=s['name'], x=round(sum(p[0] for p in s['poly']) / len(s['poly']), 1),
+                  y=round(sum(p[1] for p in s['poly']) / len(s['poly']), 1), z=s['z']) for s in d['spaces']]
+    portals = []
+    for dr in d['doors']:
+        ids = [s['id'] for s in d['spaces'] if abs(s['z'] - dr['z']) < .01 and near(s, dr['x'], dr['y'])]
+        if len(ids) >= 2: portals.append(dict(a=ids[0], b=ids[1], kind='door', width=dr['w']))
+        elif len(ids) == 1: portals.append(dict(a=ids[0], b='outside', kind='door', width=dr['w']))
+    return dict(direction=d['key'], nodes=nodes, portals=portals)
+
+
 if __name__ == '__main__':
-    for f in ALL: d = f(); print(d['key'], len(d['spaces']), 'spaces', len(d['doors']), 'doors')
+    for f in ALL:
+        d = f(); g = graph(d); print(d['key'], len(d['spaces']), 'spaces', len(d['doors']), 'doors ->', len(g['portals']), 'portals')
+        json.dump(g, open(os.path.join(HERE, 'data', d['key'] + '-graph.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)

@@ -1,0 +1,1165 @@
+{
+ "direction": "E",
+ "nodes": [
+  {
+   "id": "s0",
+   "kind": "white-cube",
+   "role": "app",
+   "name": "הבמה (תערוכה נשלפת)",
+   "x": 0.0,
+   "y": 0.0,
+   "z": 0
+  },
+  {
+   "id": "s1",
+   "kind": "public",
+   "role": "public",
+   "name": "חלל המחסן",
+   "x": 0.0,
+   "y": 0.0,
+   "z": 0
+  },
+  {
+   "id": "s2",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "תא 1",
+   "x": -12.5,
+   "y": 18.5,
+   "z": 0
+  },
+  {
+   "id": "s3",
+   "kind": "japanese",
+   "role": "artist",
+   "name": "תא 2",
+   "x": -7.5,
+   "y": 18.5,
+   "z": 0
+  },
+  {
+   "id": "s4",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "תא 3",
+   "x": -2.5,
+   "y": 18.5,
+   "z": 0
+  },
+  {
+   "id": "s5",
+   "kind": "loft",
+   "role": "artist",
+   "name": "תא 4",
+   "x": 2.5,
+   "y": 18.5,
+   "z": 0
+  },
+  {
+   "id": "s6",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "תא 5",
+   "x": 7.5,
+   "y": 18.5,
+   "z": 0
+  },
+  {
+   "id": "s7",
+   "kind": "apartment",
+   "role": "artist",
+   "name": "תא 6",
+   "x": 12.5,
+   "y": 18.5,
+   "z": 0
+  },
+  {
+   "id": "s8",
+   "kind": "glass-pavilion",
+   "role": "artist",
+   "name": "תא 7",
+   "x": -12.5,
+   "y": -18.5,
+   "z": 0
+  },
+  {
+   "id": "s9",
+   "kind": "salon",
+   "role": "artist",
+   "name": "תא 8",
+   "x": -7.5,
+   "y": -18.5,
+   "z": 0
+  },
+  {
+   "id": "s10",
+   "kind": "studio",
+   "role": "artist",
+   "name": "תא 9",
+   "x": -2.5,
+   "y": -18.5,
+   "z": 0
+  },
+  {
+   "id": "s11",
+   "kind": "skylit-hall",
+   "role": "artist",
+   "name": "תא 10",
+   "x": 2.5,
+   "y": -18.5,
+   "z": 0
+  },
+  {
+   "id": "s12",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "תא 11",
+   "x": 7.5,
+   "y": -18.5,
+   "z": 0
+  },
+  {
+   "id": "s13",
+   "kind": "japanese",
+   "role": "artist",
+   "name": "תא 12",
+   "x": 12.5,
+   "y": -18.5,
+   "z": 0
+  },
+  {
+   "id": "s14",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "תא 13",
+   "x": 18.5,
+   "y": -12.5,
+   "z": 0
+  },
+  {
+   "id": "s15",
+   "kind": "loft",
+   "role": "artist",
+   "name": "תא 14",
+   "x": 18.5,
+   "y": -7.5,
+   "z": 0
+  },
+  {
+   "id": "s16",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "תא 15",
+   "x": 18.5,
+   "y": -2.5,
+   "z": 0
+  },
+  {
+   "id": "s17",
+   "kind": "apartment",
+   "role": "artist",
+   "name": "תא 16",
+   "x": 18.5,
+   "y": 2.5,
+   "z": 0
+  },
+  {
+   "id": "s18",
+   "kind": "glass-pavilion",
+   "role": "artist",
+   "name": "תא 17",
+   "x": 18.5,
+   "y": 7.5,
+   "z": 0
+  },
+  {
+   "id": "s19",
+   "kind": "salon",
+   "role": "artist",
+   "name": "תא 18",
+   "x": 18.5,
+   "y": 12.5,
+   "z": 0
+  },
+  {
+   "id": "s20",
+   "kind": "studio",
+   "role": "artist",
+   "name": "תא 19",
+   "x": -18.5,
+   "y": -12.5,
+   "z": 0
+  },
+  {
+   "id": "s21",
+   "kind": "skylit-hall",
+   "role": "artist",
+   "name": "תא 20",
+   "x": -18.5,
+   "y": -7.5,
+   "z": 0
+  },
+  {
+   "id": "s22",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "תא 21",
+   "x": -18.5,
+   "y": -2.5,
+   "z": 0
+  },
+  {
+   "id": "s23",
+   "kind": "japanese",
+   "role": "artist",
+   "name": "תא 22",
+   "x": -18.5,
+   "y": 2.5,
+   "z": 0
+  },
+  {
+   "id": "s24",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "תא 23",
+   "x": -18.5,
+   "y": 7.5,
+   "z": 0
+  },
+  {
+   "id": "s25",
+   "kind": "loft",
+   "role": "artist",
+   "name": "תא 24",
+   "x": -18.5,
+   "y": 12.5,
+   "z": 0
+  },
+  {
+   "id": "s26",
+   "kind": "japanese",
+   "role": "artist",
+   "name": "תא 25",
+   "x": -12.5,
+   "y": 18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s27",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "תא 26",
+   "x": -7.5,
+   "y": 18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s28",
+   "kind": "loft",
+   "role": "artist",
+   "name": "תא 27",
+   "x": -2.5,
+   "y": 18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s29",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "תא 28",
+   "x": 2.5,
+   "y": 18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s30",
+   "kind": "apartment",
+   "role": "artist",
+   "name": "תא 29",
+   "x": 7.5,
+   "y": 18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s31",
+   "kind": "glass-pavilion",
+   "role": "artist",
+   "name": "תא 30",
+   "x": 12.5,
+   "y": 18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s32",
+   "kind": "salon",
+   "role": "artist",
+   "name": "תא 31",
+   "x": -12.5,
+   "y": -18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s33",
+   "kind": "studio",
+   "role": "artist",
+   "name": "תא 32",
+   "x": -7.5,
+   "y": -18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s34",
+   "kind": "skylit-hall",
+   "role": "artist",
+   "name": "תא 33",
+   "x": -2.5,
+   "y": -18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s35",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "תא 34",
+   "x": 2.5,
+   "y": -18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s36",
+   "kind": "japanese",
+   "role": "artist",
+   "name": "תא 35",
+   "x": 7.5,
+   "y": -18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s37",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "תא 36",
+   "x": 12.5,
+   "y": -18.5,
+   "z": 4.2
+  },
+  {
+   "id": "s38",
+   "kind": "loft",
+   "role": "artist",
+   "name": "תא 37",
+   "x": 18.5,
+   "y": -12.5,
+   "z": 4.2
+  },
+  {
+   "id": "s39",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "תא 38",
+   "x": 18.5,
+   "y": -7.5,
+   "z": 4.2
+  },
+  {
+   "id": "s40",
+   "kind": "apartment",
+   "role": "artist",
+   "name": "תא 39",
+   "x": 18.5,
+   "y": -2.5,
+   "z": 4.2
+  },
+  {
+   "id": "s41",
+   "kind": "glass-pavilion",
+   "role": "artist",
+   "name": "תא 40",
+   "x": 18.5,
+   "y": 2.5,
+   "z": 4.2
+  },
+  {
+   "id": "s42",
+   "kind": "salon",
+   "role": "artist",
+   "name": "תא 41",
+   "x": 18.5,
+   "y": 7.5,
+   "z": 4.2
+  },
+  {
+   "id": "s43",
+   "kind": "studio",
+   "role": "artist",
+   "name": "תא 42",
+   "x": 18.5,
+   "y": 12.5,
+   "z": 4.2
+  },
+  {
+   "id": "s44",
+   "kind": "skylit-hall",
+   "role": "artist",
+   "name": "תא 43",
+   "x": -18.5,
+   "y": -12.5,
+   "z": 4.2
+  },
+  {
+   "id": "s45",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "תא 44",
+   "x": -18.5,
+   "y": -7.5,
+   "z": 4.2
+  },
+  {
+   "id": "s46",
+   "kind": "japanese",
+   "role": "artist",
+   "name": "תא 45",
+   "x": -18.5,
+   "y": -2.5,
+   "z": 4.2
+  },
+  {
+   "id": "s47",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "תא 46",
+   "x": -18.5,
+   "y": 2.5,
+   "z": 4.2
+  },
+  {
+   "id": "s48",
+   "kind": "loft",
+   "role": "artist",
+   "name": "תא 47",
+   "x": -18.5,
+   "y": 7.5,
+   "z": 4.2
+  },
+  {
+   "id": "s49",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "תא 48",
+   "x": -18.5,
+   "y": 12.5,
+   "z": 4.2
+  },
+  {
+   "id": "s50",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "תא 49",
+   "x": -12.5,
+   "y": 18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s51",
+   "kind": "loft",
+   "role": "artist",
+   "name": "תא 50",
+   "x": -7.5,
+   "y": 18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s52",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "תא 51",
+   "x": -2.5,
+   "y": 18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s53",
+   "kind": "apartment",
+   "role": "artist",
+   "name": "תא 52",
+   "x": 2.5,
+   "y": 18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s54",
+   "kind": "glass-pavilion",
+   "role": "artist",
+   "name": "תא 53",
+   "x": 7.5,
+   "y": 18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s55",
+   "kind": "salon",
+   "role": "artist",
+   "name": "תא 54",
+   "x": 12.5,
+   "y": 18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s56",
+   "kind": "studio",
+   "role": "artist",
+   "name": "תא 55",
+   "x": -12.5,
+   "y": -18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s57",
+   "kind": "skylit-hall",
+   "role": "artist",
+   "name": "תא 56",
+   "x": -7.5,
+   "y": -18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s58",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "תא 57",
+   "x": -2.5,
+   "y": -18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s59",
+   "kind": "japanese",
+   "role": "artist",
+   "name": "תא 58",
+   "x": 2.5,
+   "y": -18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s60",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "תא 59",
+   "x": 7.5,
+   "y": -18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s61",
+   "kind": "loft",
+   "role": "artist",
+   "name": "תא 60",
+   "x": 12.5,
+   "y": -18.5,
+   "z": 8.4
+  },
+  {
+   "id": "s62",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "תא 61",
+   "x": 18.5,
+   "y": -12.5,
+   "z": 8.4
+  },
+  {
+   "id": "s63",
+   "kind": "apartment",
+   "role": "artist",
+   "name": "תא 62",
+   "x": 18.5,
+   "y": -7.5,
+   "z": 8.4
+  },
+  {
+   "id": "s64",
+   "kind": "glass-pavilion",
+   "role": "artist",
+   "name": "תא 63",
+   "x": 18.5,
+   "y": -2.5,
+   "z": 8.4
+  },
+  {
+   "id": "s65",
+   "kind": "salon",
+   "role": "artist",
+   "name": "תא 64",
+   "x": 18.5,
+   "y": 2.5,
+   "z": 8.4
+  },
+  {
+   "id": "s66",
+   "kind": "studio",
+   "role": "artist",
+   "name": "תא 65",
+   "x": 18.5,
+   "y": 7.5,
+   "z": 8.4
+  },
+  {
+   "id": "s67",
+   "kind": "skylit-hall",
+   "role": "artist",
+   "name": "תא 66",
+   "x": 18.5,
+   "y": 12.5,
+   "z": 8.4
+  },
+  {
+   "id": "s68",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "תא 67",
+   "x": -18.5,
+   "y": -12.5,
+   "z": 8.4
+  },
+  {
+   "id": "s69",
+   "kind": "japanese",
+   "role": "artist",
+   "name": "תא 68",
+   "x": -18.5,
+   "y": -7.5,
+   "z": 8.4
+  },
+  {
+   "id": "s70",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "תא 69",
+   "x": -18.5,
+   "y": -2.5,
+   "z": 8.4
+  },
+  {
+   "id": "s71",
+   "kind": "loft",
+   "role": "artist",
+   "name": "תא 70",
+   "x": -18.5,
+   "y": 2.5,
+   "z": 8.4
+  },
+  {
+   "id": "s72",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "תא 71",
+   "x": -18.5,
+   "y": 7.5,
+   "z": 8.4
+  },
+  {
+   "id": "s73",
+   "kind": "apartment",
+   "role": "artist",
+   "name": "תא 72",
+   "x": -18.5,
+   "y": 12.5,
+   "z": 8.4
+  },
+  {
+   "id": "s74",
+   "kind": "stair",
+   "role": "public",
+   "name": "מדרגות",
+   "x": -18.5,
+   "y": -18.5,
+   "z": 0
+  },
+  {
+   "id": "s75",
+   "kind": "stair",
+   "role": "public",
+   "name": "מדרגות",
+   "x": -18.5,
+   "y": 18.5,
+   "z": 0
+  },
+  {
+   "id": "s76",
+   "kind": "stair",
+   "role": "public",
+   "name": "מדרגות",
+   "x": 18.5,
+   "y": -18.5,
+   "z": 0
+  },
+  {
+   "id": "s77",
+   "kind": "stair",
+   "role": "public",
+   "name": "מדרגות",
+   "x": 18.5,
+   "y": 18.5,
+   "z": 0
+  }
+ ],
+ "portals": [
+  {
+   "a": "s0",
+   "b": "outside",
+   "kind": "door",
+   "width": 3.2
+  },
+  {
+   "a": "s0",
+   "b": "outside",
+   "kind": "door",
+   "width": 3.2
+  },
+  {
+   "a": "s0",
+   "b": "outside",
+   "kind": "door",
+   "width": 3.2
+  },
+  {
+   "a": "s0",
+   "b": "outside",
+   "kind": "door",
+   "width": 3.2
+  },
+  {
+   "a": "s1",
+   "b": "s2",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s3",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s4",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s5",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s6",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s7",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s8",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s9",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s10",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s11",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s12",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s13",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s14",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s15",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s16",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s17",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s18",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s19",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s20",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s21",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s22",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s23",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s24",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s1",
+   "b": "s25",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s26",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s27",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s28",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s29",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s30",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s31",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s32",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s33",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s34",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s35",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s36",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s37",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s38",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s39",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s40",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s41",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s42",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s43",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s44",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s45",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s46",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s47",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s48",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s49",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s50",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s51",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s52",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s53",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s54",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s55",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s56",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s57",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s58",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s59",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s60",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s61",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s62",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s63",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s64",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s65",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s66",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s67",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s68",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s69",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s70",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s71",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s72",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  },
+  {
+   "a": "s73",
+   "b": "outside",
+   "kind": "door",
+   "width": 1.6
+  }
+ ]
+}

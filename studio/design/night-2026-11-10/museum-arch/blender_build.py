@@ -10,9 +10,9 @@ O = dict(dir='A', shot='axon', samples=48, size='1400x900')
 for i in range(0, len(a), 2): O[a[i].lstrip('-')] = a[i + 1]
 W, H = map(int, O['size'].split('x')); O['samples'] = int(O['samples'])
 G = json.load(open(os.path.join(HERE, 'data', O['dir'] + '.json'), encoding='utf-8'))
-INT = O['shot'] == 'int'
+INT = O['shot'].startswith('int'); IDX = (int(O['shot'][3:] or 1) - 1) if INT else 0
 KIND = {'white-cube': ('#ECE9E2', '#F4F2EC'), 'loft': ('#B7AE9F', '#E6E1D6'), 'skylit-hall': ('#D8CBB1', '#EFE8D8'), 'salon': ('#8A5446', '#9A3F38'),
-        'concrete': ('#8F8F8B', '#A5A5A0'), 'studio': ('#D6C7A5', '#EFE9DC'), 'apartment': ('#C4A98C', '#E9DFD0'), 'black-box': ('#1E1E1E', '#181818'),
+        'concrete': ('#8F8F8B', '#A5A5A0'), 'studio': ('#D6C7A5', '#EFE9DC'), 'apartment': ('#C4A98C', '#E9DFD0'), 'black-box': ('#262626', '#303030'),
         'glass-pavilion': ('#A9C9C4', '#DCEBE8'), 'japanese': ('#B9A27A', '#E4D8BE'), 'public': ('#F1EDE3', '#F6F3EC'), 'tunnel': ('#3A3836', '#55524D'),
         'court': ('#C9D6C0', '#D9D5CA'), 'stair': ('#D8D2C4', '#E8E3D8')}
 ROLE_TINT = {'app': '#B5532F', 'artist': None, 'public': None}
@@ -29,9 +29,54 @@ def mat(name, col, rough=.85, emit=None):
     b.inputs['Base Color'].default_value = col; b.inputs['Roughness'].default_value = rough
     if emit:
         b.inputs['Emission Color'].default_value = col; b.inputs['Emission Strength'].default_value = emit
-    em = float(os.environ.get('EM', 0.07 if INT else 0.13))
+    em = float(os.environ.get('EM', 0.0 if INT else 0.13))
     if em and name not in ('water',): b.inputs['Emission Color'].default_value = col; b.inputs['Emission Strength'].default_value = em
     MATS[name] = m; return m
+
+
+PH = os.environ.get('POLYHAVEN', r'C:\Users\elada\Documents\site-work\.cache\polyhaven')
+def tmat(name, tex, tint=None, scale=0.5, nstr=0.5, rough=None):
+    """Poly Haven (CC0) material, box-projected from object coordinates (the meshes have no UVs); None when the scan is not cached."""
+    if name in MATS: return MATS[name]
+    d = os.path.join(PH, tex)
+    if not os.path.exists(os.path.join(d, 'diff.jpg')): return None
+    m = bpy.data.materials.new(name); m.use_nodes = True; nt = m.node_tree; b = nt.nodes['Principled BSDF']
+    tc = nt.nodes.new('ShaderNodeTexCoord'); mp = nt.nodes.new('ShaderNodeMapping'); mp.inputs['Scale'].default_value = (scale, scale, scale)
+    nt.links.new(tc.outputs['Object'], mp.inputs['Vector'])
+    def img(fn, cs):
+        n = nt.nodes.new('ShaderNodeTexImage'); n.image = bpy.data.images.load(os.path.join(d, fn)); n.image.colorspace_settings.name = cs
+        n.projection = 'BOX'; n.projection_blend = .25; nt.links.new(mp.outputs['Vector'], n.inputs['Vector']); return n
+    out = img('diff.jpg', 'sRGB').outputs['Color']
+    if tint:
+        mx = nt.nodes.new('ShaderNodeMixRGB'); mx.blend_type = 'MULTIPLY'; mx.inputs['Fac'].default_value = 1; mx.inputs['Color2'].default_value = tint
+        nt.links.new(out, mx.inputs['Color1']); out = mx.outputs['Color']
+    nt.links.new(out, b.inputs['Base Color'])
+    if os.path.exists(os.path.join(d, 'nor.jpg')):
+        nm = nt.nodes.new('ShaderNodeNormalMap'); nm.inputs['Strength'].default_value = nstr; nt.links.new(img('nor.jpg', 'Non-Color').outputs['Color'], nm.inputs['Color']); nt.links.new(nm.outputs['Normal'], b.inputs['Normal'])
+    b.inputs['Roughness'].default_value = rough if rough is not None else .6
+    MATS[name] = m; return m
+FLOOR_TEX = {'white-cube': ('oak_wood_planks', None, .6), 'loft': ('concrete_floor_worn_001', None, .4), 'skylit-hall': ('herringbone_parquet', None, .6), 'salon': ('herringbone_parquet', '#8A6A55', .6),
+             'concrete': ('concrete_floor_02', None, .4), 'studio': ('old_wooden_floor_03', None, .5), 'apartment': ('oak_wood_planks', '#CDBFAF', .6), 'japanese': ('hinoki_planks', None, .6),
+             'glass-pavilion': ('concrete_floor_02', '#D8DDDC', .4), 'public': ('concrete_floor_02', '#E9E4DA', .4), 'stair': ('concrete_floor_02', '#E0DBD0', .4)}
+def floor_mat(kind, fl):
+    t = FLOOR_TEX.get(kind)
+    if INT and t:
+        m = tmat('ft' + kind, t[0], hexc(t[1]) if t[1] else None, t[2], rough=.45 if kind != 'concrete' else .7)
+        if m: return m
+    return mat('f' + kind, hexc(fl), .55 if kind != 'concrete' else .8)
+def wall_mat(kind, wl):
+    if INT:
+        if kind in ('concrete', 'tunnel'): m = tmat('wt' + kind, 'concrete_wall_004', hexc('#BDBDB8') if kind == 'tunnel' else None, .4, rough=.8)
+        elif kind != 'black-box': m = tmat('wt' + kind, 'painted_plaster_wall', hexc(wl), .6, .25, rough=.9)
+        else: m = None
+        if m: return m
+    return mat('w' + kind, hexc(wl), .9)
+def person(x, y, z, rnd):
+    cols = ['#2B3A55', '#6B4E3D', '#3A3A3A', '#8A3B3B', '#4E6B5A', '#D4C2A0']
+    m = mat('p' + str(rnd.randrange(len(cols))), hexc(rnd.choice(cols)), .8)
+    bpy.ops.mesh.primitive_cylinder_add(radius=.24, depth=1.2, location=(x, y, z + .95)); o = bpy.context.object; o.scale.y = .75; o.data.materials.append(m)
+    bpy.ops.mesh.primitive_cylinder_add(radius=.16, depth=.8, location=(x, y, z + .4)); bpy.context.object.data.materials.append(mat('plegs', hexc('#2A2A2E'), .8))
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=.115, location=(x, y, z + 1.66)); bpy.context.object.data.materials.append(mat('phead', hexc('#D9B99B'), .7))
 
 def obj_from(name, verts, faces, m):
     me = bpy.data.meshes.new(name); me.from_pydata(verts, [], faces); me.update()
@@ -65,10 +110,30 @@ def doors_on(p, q, z):
             gaps.append((max(0, t - d['w'] / 2), min(L, t + d['w'] / 2), d['h']))
     return sorted(gaps), L
 
+def covered(sp, p, q):
+    """True when another space's wall already runs along (all of) this edge: one wall between two rooms, not two on top of each other."""
+    Lq = math.hypot(q[0] - p[0], q[1] - p[1])
+    for o in G['spaces']:
+        if o is sp or not o['walls'] or abs(o['z'] - sp['z']) > .01: continue
+        better = (o['h'] > sp['h']) or (o['h'] == sp['h'] and G['spaces'].index(o) < G['spaces'].index(sp))
+        if not better: continue
+        Q = o['poly']
+        for j in range(len(Q)):
+            a, b = Q[j], Q[(j + 1) % len(Q)]; La = math.hypot(b[0] - a[0], b[1] - a[1])
+            if La < Lq - .3: continue
+            ok = True
+            for pt in (p, q):
+                t = ((pt[0] - a[0]) * (b[0] - a[0]) + (pt[1] - a[1]) * (b[1] - a[1])) / La
+                if not (-.2 <= t <= La + .2) or math.hypot(a[0] + (b[0] - a[0]) * t / La - pt[0], a[1] + (b[1] - a[1]) * t / La - pt[1]) > .2: ok = False
+            if ok: return True
+    return False
+
 def walls(sp, wm):
     P = sp['poly']; n = len(P); z0, z1 = sp['z'], sp['z'] + sp['h']
     for i in range(n):
-        p, q = P[i], P[(i + 1) % n]; gaps, L = doors_on(p, q, sp['z'])
+        p, q = P[i], P[(i + 1) % n]
+        if covered(sp, p, q): continue
+        gaps, L = doors_on(p, q, sp['z'])
         ux, uy = (q[0] - p[0]) / L, (q[1] - p[1]) / L; at = lambda t: [p[0] + ux * t, p[1] + uy * t]
         cur = 0
         for g0, g1, h in gaps:
@@ -117,20 +182,20 @@ rnd = random.Random(3)
 zmin = min(s['z'] for s in G['spaces'])
 white = mat('white', hexc('#F2EFE8'), .9); roofm = mat('roofm', hexc('#EEEAE0'), .9)
 xs = [p[0] for s in G['spaces'] for p in s['poly']]; ys = [p[1] for s in G['spaces'] for p in s['poly']]
-bx0, bx1, by0, by1 = min(xs) - 30, max(xs) + 30, min(ys) - 30, max(ys) + 30
-ground_m = mat('ground', hexc('#E4E0D4' if not INT else '#CFCBBE'), 1)
+bx0, bx1, by0, by1 = min(xs) - 160, max(xs) + 160, min(ys) - 160, max(ys) + 160
+ground_m = (tmat('gr', 'leafy_grass', None, .18, rough=1) if (INT and G['key'] == 'C') else None) or mat('ground', hexc('#E4E0D4' if not INT else '#CFCBBE'), 1)
 if G['key'] != 'D' or INT is False:
     prism('ground', [[bx0, by0], [bx1, by0], [bx1, by1], [bx0, by1]], zmin - .6, zmin - .05, ground_m) if G['key'] != 'D' else None
 if G['key'] == 'D':   # underground: a pale earth floor far below, no cover
     prism('ground', [[bx0, by0], [bx1, by0], [bx1, by1], [bx0, by1]], -9.6, -8.3, ground_m)
 for s in G['spaces']:
     fl, wl = KIND[s['kind']]
-    fm = mat('f' + s['kind'], hexc(fl), .55 if s['kind'] != 'concrete' else .8)
-    prism('floor', s['poly'], s['z'] - .25, s['z'], fm)
+    fm = floor_mat(s['kind'], fl)
+    k_ = G['spaces'].index(s) * .002; prism('floor', s['poly'], s['z'] - .25 - k_, s['z'] - k_, fm)
     if s['role'] == 'app' and not INT:
         prism('mark', s['poly'], s['z'], s['z'] + .02, mat('mark', hexc('#C4673F'), .6))
     if s['walls']:
-        walls(s, mat('w' + s['kind'], hexc(wl), .9))
+        walls(s, wall_mat(s['kind'], wl))
         if INT or s['kind'] in ('tunnel',): roof(s, roofm if s['kind'] != 'black-box' else mat('wblack-box', hexc('#181818')))
         if s['kind'] == 'tunnel' and not INT: pass
     elif INT and s['roof'] == 'solid': roof(s, roofm)
@@ -149,8 +214,8 @@ for e in G['extras']:
             prism('step', [pa, pb, pc, pd], za, za + .28, hm)
 # garden: paths, water, trees
 pm = mat('path', hexc('#CFC6B0'), 1)
-for p in G['paths']:
-    for a_, b_ in zip(p['pts'][:-1], p['pts'][1:]): box('p', a_, b_, p['w'], zmin + .0, zmin + .04, pm)
+for pi_, p in enumerate(G['paths']):
+    for a_, b_ in zip(p['pts'][:-1], p['pts'][1:]): box('p', a_, b_, p['w'], zmin + pi_ * .003, zmin + .04 + pi_ * .003, pm)
 if G['water']: prism('water', G['water'], zmin - .04, zmin + .06, mat('water', hexc('#7FA3B0'), .05))
 for x, y, r in G['trees']:
     bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=r, location=(x, y, zmin + r * 2.0)); o = bpy.context.object; o.scale.z = 1.2
@@ -167,17 +232,27 @@ if INT:   # soft ceiling lights in rooms that are lit by lamps and have roofs (t
         if s['roof'] == 'solid' and s['walls'] and s['light'] != 'dark':
             xs_ = [p[0] for p in s['poly']]; ys_ = [p[1] for p in s['poly']]
             L = bpy.data.lights.new('l', 'AREA'); L.shape = 'RECTANGLE'; L.size = max(xs_) - min(xs_) - 1; L.size_y = max(ys_) - min(ys_) - 1
-            L.energy = 40 * (L.size * L.size_y) ** .5 * (0.6 if s['kind'] == 'salon' else 1); L.color = (1, .93, .82)
-            lo = bpy.data.objects.new('l', L); bpy.context.collection.objects.link(lo); lo.location = ((min(xs_) + max(xs_)) / 2, (min(ys_) + max(ys_)) / 2, s['z'] + s['h'] - .05); lo.rotation_euler = (math.pi, 0, 0)
-        elif s['light'] == 'dark' and s['walls']:
+            L.energy = 120 * (L.size * L.size_y) ** .5 * (0.6 if s['kind'] == 'salon' else 1); L.color = (1, .93, .82)
+            lo = bpy.data.objects.new('l', L); bpy.context.collection.objects.link(lo); lo.location = ((min(xs_) + max(xs_)) / 2, (min(ys_) + max(ys_)) / 2, s['z'] + s['h'] - .05); lo.rotation_euler = (0, 0, 0)
+        if s['roof'] == 'slot' and s['walls']:
+            xs_ = [p[0] for p in s['poly']]; ys_ = [p[1] for p in s['poly']]; wide = (max(xs_) - min(xs_)) >= (max(ys_) - min(ys_))
+            L = bpy.data.lights.new('sl', 'AREA'); L.shape = 'RECTANGLE'
+            L.size, L.size_y = ((max(xs_) - min(xs_)) * .9, 3.0) if wide else (3.0, (max(ys_) - min(ys_)) * .9)
+            L.energy = 90 * L.size * L.size_y; L.color = (.85, .92, 1)
+            lo = bpy.data.objects.new('sl', L); bpy.context.collection.objects.link(lo); lo.location = ((min(xs_) + max(xs_)) / 2, (min(ys_) + max(ys_)) / 2, s['z'] + s['h'] - .1)
+        if s['light'] == 'dark' and s['walls']:
             xs_ = [p[0] for p in s['poly']]; ys_ = [p[1] for p in s['poly']]
             L = bpy.data.lights.new('l', 'SPOT'); L.energy = 900; L.spot_size = math.radians(40); L.color = (1, .9, .75)
             lo = bpy.data.objects.new('l', L); bpy.context.collection.objects.link(lo); lo.location = ((min(xs_) + max(xs_)) / 2, (min(ys_) + max(ys_)) / 2, s['z'] + s['h'] - .1)
 
+if INT:
+    for (px_, py_, pz_) in G['cams']['ints'][IDX].get('people', []): person(px_, py_, pz_, rnd)
 # camera
 cam = bpy.data.cameras.new('c'); cam.clip_end = 3000; cam.clip_start = 0.1; co = bpy.data.objects.new('c', cam); bpy.context.collection.objects.link(co); sc.camera = co
 if INT:
-    c = G['cams']['ints'][0]; co.location = Vector(c['loc']); cam.lens = c['lens']; cam.sensor_width = 36
+    c = G['cams']['ints'][IDX]
+    if os.environ.get('INTCAM'): v = list(map(float, os.environ['INTCAM'].split(','))); c = dict(c, loc=v[:3], tgt=v[3:6])
+    co.location = Vector(c['loc']); cam.lens = c['lens']; cam.sensor_width = 36
     d = Vector(c['tgt']) - co.location; co.rotation_euler = d.to_track_quat('-Z', 'Y').to_euler()
 else:
     c = G['cams']['axon']; cam.type = 'ORTHO'
@@ -195,7 +270,7 @@ else:
     mx = (max(p.x for p in pts) - min(p.x for p in pts)) * 1.08 + 4; my = (max(p.y for p in pts) - min(p.y for p in pts)) * 1.08 + 4
     ox = (max(p.x for p in pts) + min(p.x for p in pts)) / 2; oy = (max(p.y for p in pts) + min(p.y for p in pts)) / 2
     co.location = co.location + co.matrix_world.to_3x3() @ Vector((ox, oy, 0)); bpy.context.view_layer.update()
-    cam.ortho_scale = max(mx, my * W / H)
+    cam.ortho_scale = max(mx, my * W / H) * 0.95
     sc.render.film_transparent = False
 if os.environ.get('RAY'):
     from bpy_extras.object_utils import world_to_camera_view
@@ -206,6 +281,6 @@ if os.environ.get('RAY'):
     mw = co.matrix_world; org = mw @ Vector((fx, fy, 0)); dr = (mw.to_3x3() @ Vector((0, 0, -1))).normalized()
     hit, loc, nor, idx, ob, _ = bpy.context.scene.ray_cast(dg, org, dr)
     print('RAYHIT', ob.data.materials[0].node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value[:], [ (m.name) for m in ob.data.materials], len(ob.data.polygons), [round(v.co.z,2) for v in ob.data.vertices][:8], hit, ob.name if ob else None, ob.data.materials[0].name if ob else None, loc, nor)
-out = os.path.join(HERE, 'renders', f"{O['dir']}-{O['shot']}.png")
+out = os.path.join(HERE, 'renders', f"{O['dir']}-{O['shot']}{os.environ.get('SUF', '')}.png")
 sc.render.filepath = out; sc.render.image_settings.file_format = 'PNG'
 bpy.ops.render.render(write_still=True); print('done', out)

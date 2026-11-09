@@ -2,7 +2,7 @@
     python studio/design/night-2026-11-10/museum_arch_build.py
 Geometry: museum-arch/geom.py. Renders: museum-arch/blender_build.py (render_all.py). Plans/sections: museum-arch/svg_build.py.
 Research: museum-arch/research.py, directions.py."""
-import os, sys, subprocess, pathlib, html
+import os, sys, subprocess, pathlib, html, json
 HERE = pathlib.Path(__file__).resolve().parent
 AR = HERE / 'museum-arch'
 sys.path.insert(0, str(AR))
@@ -13,6 +13,7 @@ try:
 except ImportError: Image = None
 
 for f in geom.ALL: f()
+gC = geom.graph(sb.load('C'))
 RDIR = AR / 'renders'
 
 def jpg(name):
@@ -144,6 +145,13 @@ def legend_html(d, zsel=None, limit=22):
     rest = len(sb.legend(d, zsel)) - limit
     return f'<div class="leg">{out}</div>' + (f'<p style="font-size:7.5pt;color:var(--muted)">ועוד {rest} חדרים דומים.</p>' if rest > 0 else '')
 
+KEYNOTE = '<p style="font-size:7.5pt;color:var(--muted)"><span class="n app">1</span> חלל של האפליקציה, <span class="n public">1</span> חלל ציבורי, <span class="n">1</span> חדר אמן. הקו הירוק המנוקד הוא המסלול.</p>'
+def wide_plan(k, d, plan_html, leg):
+    xs = [p[0] for s in d['spaces'] for p in s['poly']]; ys = [p[1] for s in d['spaces'] for p in s['poly']]
+    if (max(xs) - min(xs)) / (max(ys) - min(ys)) > 2.2:
+        return f'<h3>תוכנית</h3>{plan_html}<div style="margin-top:2mm">{leg}{KEYNOTE}</div>'
+    return f'<div class="cols" style="grid-template-columns:1.25fr 1fr;align-items:start"><div><h3>תוכנית</h3>{plan_html}</div><div><h3>מקרא</h3>{leg}{KEYNOTE}</div></div>'
+
 def dir_pages(k):
     d = sb.load(k); X = DIRS[k]; sec = sb.SECTIONS[k]()
     if k == 'B': plan_html = f'<div class="cols">{sb.plan(d, 0, 330, True)}{sb.plan(d, 10.8, 330, False, flow=False)}</div><p style="font-size:7.5pt;color:var(--muted);margin:1mm 0">קומה 1 (משמאל למעלה: כניסה ולובי) וקומה 3 (פלחים חסרים הם מרפסות גג).</p>'; leg = legend_html(d, 0)
@@ -153,19 +161,21 @@ def dir_pages(k):
 <p><span class="tag">בהשראת</span> {X["inspired"]}</p>
 {fig(k+"-axon", "אקסונומטריה של דגם החימר, בלי גג. הצבע הכתום מסמן את חללי האפליקציה, האחרים לאמנים.")}
 <p style="margin-top:2.5mm">{X["concept"]}</p>
-<div class="cols" style="grid-template-columns:1.25fr 1fr;align-items:start"><div><h3>תוכנית</h3>{plan_html}</div><div><h3>מקרא</h3>{leg}<p style="font-size:7.5pt;color:var(--muted)"><span class="n app">1</span> חלל של האפליקציה, <span class="n public">1</span> חלל ציבורי, <span class="n">1</span> חדר אמן. הקו הירוק המנוקד הוא המסלול.</p></div></div>''')
+{wide_plan(k, d, plan_html, leg)}''')
     seq = ''.join(f'<tr><td>{i+1}</td><td><b>{a}</b></td><td>{b}. {c}</td></tr>' for i, (a, b, c) in enumerate(X['seq']))
     pros = ''.join(f'<li>{p}</li>' for p in X['pros']); cons = ''.join(f'<li>{p}</li>' for p in X['cons'])
-    page(f'''<div class="kick">כיוון {LET[k]} · המשך</div><h2>{X["name"]}: חתך, רצף ואופן הגדילה</h2>
+    page(f'''<div class="kick">כיוון {LET[k]} · המשך</div><h2>{X["name"]}: חתך ורצף החללים</h2>
 <h3 style="margin-top:0">חתך</h3>{sec}
-<div class="cols" style="grid-template-columns:1fr 1fr;align-items:start;margin-top:2.5mm">{fig(k+"-int", "מבט בגובה העין (דגם חימר עם אור, לא רינדור סופי של חדר)")}<div><h3 style="margin-top:0">רצף החללים</h3><table class="m"><tr><th style="width:5mm">#</th><th style="width:22mm">חלל</th><th>סוג ואופי</th></tr>{seq}</table></div></div>
-<div class="cols" style="margin-top:2.5mm"><div class="card"><h3>אור</h3><p style="margin:0">{X["light"]}</p><h3>חומרים</h3><p style="margin:0">{X["materials"]}</p><h3>איך גדל</h3><p style="margin:0">{X["growth"]}</p></div>
+<div class="cols" style="margin-top:3mm;grid-template-columns:1.1fr 1fr;align-items:start">{fig(k+"-int", "מבט בגובה העין (דגם חימר עם אור, לא רינדור סופי של חדר)")}<div><h3 style="margin-top:0">רצף החללים</h3><table class="m"><tr><th style="width:5mm">#</th><th style="width:22mm">חלל</th><th>סוג ואופי</th></tr>{seq}</table></div></div>''')
+    page(f'''<div class="kick">כיוון {LET[k]} · פרטים</div><h2>{X["name"]}: אור, גדילה וחיבור לאפליקציה</h2>
+<div class="cols"><div class="card"><h3>אור</h3><p style="margin:0">{X["light"]}</p><h3>חומרים</h3><p style="margin:0">{X["materials"]}</p><h3>איך גדל</h3><p style="margin:0">{X["growth"]}</p></div>
 <div class="card"><h3>ניווט בטלפון</h3><p style="margin:0">{X["phone"]}</p><h3>חיבור לאפליקציה ולשולחן העבודה</h3><p style="margin:0">{X["app"]}</p><h3>קיבולת</h3><p style="margin:0">{X["cap"]}</p></div></div>
-<div class="cols" style="margin-top:2.5mm"><div><b class="pro">חוזקות</b><ul>{pros}</ul></div><div><b class="con">סיכונים</b><ul>{cons}</ul></div></div>''')
+<div class="cols" style="margin-top:2.5mm"><div><b class="pro">חוזקות</b><ul>{pros}</ul></div><div><b class="con">סיכונים</b><ul>{cons}</ul></div></div>
+{fig(k+"-int2", "מבט שני: " + html.escape(sb.load(k)['cams']['ints'][-1]['name']))}''')
 for k in 'ABCDE': dir_pages(k)
 
 # ---------------------------------------------------------------- comparison
-def bars(v): return f'<span class="bar" style="width:{v*5.4}mm"></span> {v}'
+def bars(v): return f'<span class="bar" style="width:{v*3.6}mm"></span> {v}'
 head = ''.join(f'<th>{LET[k]} {DIRS[k]["name"]}</th>' for k in 'ABCDE')
 rows = ''.join(f'<tr><td><b>{t}</b></td>' + ''.join(f'<td>{bars(DIRS[k]["scores"][key])}</td>' for k in 'ABCDE') + '</tr>' for key, t in CRIT)
 tot = '<tr><td><b>סך הכול</b></td>' + ''.join(f'<td><b>{sum(DIRS[k]["scores"].values())}</b> מתוך 30</td>' for k in 'ABCDE') + '</tr>'
@@ -193,7 +203,7 @@ def campus():
         a = math.radians(-80 + i * 36); x, y = 300 + 150 * math.cos(a), 170 + 95 * math.sin(a)
         o.append(f'<rect x="{x-12:.0f}" y="{y-9:.0f}" width="24" height="18" fill="#fff" stroke="#1B1A17" stroke-width="1.5"/>')
     o.append('<rect x="30" y="140" width="95" height="60" fill="#F4D9C9" stroke="#B5532F" stroke-width="2"/><text x="77" y="166" font-size="11" text-anchor="middle" font-weight="700" fill="#B5532F">שער + האולם</text><text x="77" y="181" font-size="9" text-anchor="middle" fill="#5E594F">הגדול (מא׳)</text>')
-    o.append('<text x="300" y="173" font-size="10" text-anchor="middle" fill="#35505A">בריכה</text><text x="300" y="82" font-size="10" text-anchor="middle" fill="#2F6B4F" font-weight="700">ג׳: ביתן לכל אמן</text>')
+    o.append('<text x="300" y="173" font-size="10" text-anchor="middle" fill="#35505A">בריכה</text><text x="300" y="118" font-size="10" text-anchor="middle" fill="#2F6B4F" font-weight="700">ג׳: ביתן לכל אמן</text>')
     o.append('<rect x="430" y="255" width="110" height="55" fill="#4A4743" stroke="#1B1A17" stroke-width="2"/><text x="485" y="278" font-size="11" text-anchor="middle" fill="#fff" font-weight="700">ד׳: אגף הירידה</text><text x="485" y="294" font-size="9" text-anchor="middle" fill="#ddd">תערוכות יחיד, שלב 2</text>')
     o.append('<rect x="430" y="25" width="110" height="55" fill="#EFE8D8" stroke="#1B1A17" stroke-width="2" stroke-dasharray="6 3"/><text x="485" y="48" font-size="11" text-anchor="middle" font-weight="700">ה׳: המחסן</text><text x="485" y="64" font-size="9" text-anchor="middle" fill="#5E594F">ארכיון, שלב 3</text>')
     o.append('<path d="M125 170 H150" stroke="#2F6B4F" stroke-width="3"/><path d="M420 212 L458 255" stroke="#1B1A17" stroke-width="2" stroke-dasharray="3 3"/><path d="M420 135 L458 80" stroke="#1B1A17" stroke-width="2" stroke-dasharray="3 3"/></svg>')
@@ -201,10 +211,33 @@ def campus():
 page(f'''<div class="kick">המלצה</div><h2>גן עם שער, ואגפים שנוספים בשלבים</h2>
 <p class="lede">לא לבחור כיוון אחד אלא לבנות <b>קמפוס</b>: בסיס אחד ויציב שאפשר להוסיף לו, בלי להתחייב מראש לעיצוב הסופי.</p>
 {campus()}
-<div class="cols" style="margin-top:3mm"><div class="card"><h3>למה גן</h3><ul><li>כל ביתן הוא חדר שכבר קיים: חצי מהעבודה כבר נעשתה.</li><li>אין תחרות בין אמנים: כל אחד מקבל ביתן, וביתן חדש לא מזיז אף אחד.</li><li>אין תקרה בגדילה, בניגוד לרחוב ולחלל.</li><li>גם חוץ, גם פנים: מוכר אתר צילום חזק לשיווק.</li><li>בדיוק כמו Inhotim ו־Louvre Abu Dhabi: חדרים כמבנים עצמאיים.</li></ul></div>
+<div class="cols" style="margin-top:3mm"><div class="card"><h3>למה גן</h3><ul><li>כל ביתן הוא חדר שכבר קיים: חצי מהעבודה כבר נעשתה.</li><li>אין תחרות בין אמנים: כל אחד מקבל ביתן, וביתן חדש לא מזיז אף אחד.</li><li>אין תקרה בגדילה, בניגוד לרחוב ולחלל.</li><li>גם חוץ וגם פנים: חומר צילום חזק לשיווק.</li><li>בדיוק כמו Inhotim ו־Louvre Abu Dhabi: חדרים כמבנים עצמאיים.</li></ul></div>
 <div class="card"><h3>למה שער ואולם גדול</h3><ul><li>האפליקציה צריכה "בית" משלה, גדול ובולט, כמו בא׳: האולם הגדול הוא התערוכה שהאפליקציה יוצרת בעצמה.</li><li>השער הוא גם הלובי: מפה, ספר אורחים וקול.</li><li>בלי השער הגן מרגיש כרשימת חדרים.</li></ul></div></div>
 <div class="note"><b>מה שלא ממליץ עליו:</b> לבנות את ב׳ (החלל) כבסיס. הוא מרשים, אבל קומה לעונה הופכת את התערוכות הישנות לארכיון אפל, ו־8 פלחים בקומה פירושו שאמנים מתחרים עליהם.</div>
 <h3>הערה על ד׳ וה׳</h3><p>שני אלה לא מתחרים עם הגן: ד׳ הוא <b>אגף</b> לתערוכות יחיד, חוויה נבחרת ומזוהה (לא כל אמן יקבל תא בו). ה׳ הוא <b>אינדקס</b>: הארכיון של כל מה שנעשה, ונבנה כשיהיו מאות תערוכות.</p>''')
+
+# ---------------------------------------------------------------- the visit on a phone (storyboard)
+VS = HERE.parent / 'virtual-spaces' / 'renders'
+def vs(n): return (VS / f'{n}.jpg').as_uri() if (VS / f'{n}.jpg').exists() else ''
+def phone(inner, cap, step):
+    return f'''<div><div style="width:44mm;height:94mm;border:1.3mm solid #1B1A17;border-radius:6mm;overflow:hidden;background:#fff;position:relative;margin:0 auto">{inner}</div>
+<div style="text-align:center;font-size:8.2pt;margin-top:1.5mm"><b>{step}</b><br><span style="color:var(--muted)">{cap}</span></div></div>'''
+dC = sb.load('C')
+img_ = lambda u, pos='center': f'<div style="width:100%;height:100%;background:url({u}) {pos}/cover"></div>'
+pill = lambda t, x='50%': f'<div style="position:absolute;bottom:3mm;left:50%;transform:translateX(-50%);background:#1B1A17;color:#fff;font-size:7pt;padding:1mm 3mm;border-radius:4mm;white-space:nowrap">{t}</div>'
+page(f'''<div class="kick">מבקר בטלפון</div><h2>איך נראה ביקור בגן (כיוון ג׳)</h2>
+<p class="lede">ארבעה מסכים, ודקה אחת. המוזיאון הוא <b>מפה</b> שמובילה ל<b>חדרים</b>, ובין לבין "מפתן" של שנייה או שתיים.</p>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;margin:4mm 0">
+{phone('<div style="padding:3mm 2mm;font-size:7pt;text-align:center"><b>המוזיאון · עונת החורף</b></div><div style="padding:0 1.5mm">' + sb.plan(dC, None, 300, False, flow=False) + '</div><div style="padding:2mm;font-size:6.6pt;color:#5E594F;text-align:center">נוגעים בביתן. הכתום הוא האולם של האפליקציה.</div>', 'המפה היא תוכנית הגן', '1. מפה')}
+{phone(img_(jpg('C-int')) + pill('ממשיכים לביתן 4'), 'פנורמה מרונדרת של השביל; שנייה אחת, נקודה חמה על הדלת', '2. שביל')}
+{phone(img_(vs('japanese') or vs('white-cube'), '40% 50%') + pill('לוחצים על עבודה'), 'החדר הקיים בצופה, העבודות בגודלן', '3. חדר')}
+{phone('<div style="height:62%;background:url(' + vs('white-cube') + ') center/cover"></div><div style="padding:2.5mm;font-size:7pt"><b>שם העבודה</b><br><span style="color:#5E594F">שמן על בד, 120×90 ס״מ<br>אלעד אמסלם</span></div>' + pill('חזרה לגן'), 'תקריב חד, מידות, טקסט', '4. עבודה')}</div>
+<h3>מה קורה בין המסכים</h3>
+<table class="m"><tr><th style="width:36mm">מעבר</th><th>מה המבקר רואה</th><th>מה האפליקציה עושה</th></tr>
+<tr><td><b>מפה אל שביל</b></td><td>הקרנה קצרה של השביל, 1 עד 2 שניות</td><td>טוענת את החדר הבא ברקע (בלי עיכוב נראה)</td></tr>
+<tr><td><b>שביל אל חדר</b></td><td>פתיחת דלת והחלפת האור</td><td>מחליפה לחדר הקיים בצופה (space.js)</td></tr>
+<tr><td><b>חדר אל חדר</b></td><td>"חזרה לגן" או "לביתן הבא" (מצב מודרך)</td><td>טוענת את הבא; מפה תמיד במרחק נגיעה</td></tr></table>
+<div class="note">המסכים כאן הם איור: המפה והפנורמה נבנו מהגיאומטריה והרינדור של הלילה, והחדר והתקריב הם החדרים שכבר קיימים באפליקציה. אין כאן ממשק שנבנה בקוד.</div>''')
 
 # ---------------------------------------------------------------- next steps
 page(f'''<div class="kick">המשך</div><h2>איך בונים את זה באפליקציה</h2>
@@ -214,6 +247,8 @@ page(f'''<div class="kick">המשך</div><h2>איך בונים את זה באפ�
 <tr><td><b>museums</b></td><td>id, כיוון (garden / street / void / descent / depot), עונה, פורסם</td><td>מוזיאון אחד פעיל בכל זמן</td></tr>
 <tr><td><b>museum_spaces</b></td><td>id, museum_id, סוג חלל (אחד מעשרה או hub), וריאנט, x, y, z, סיבוב, תפקיד (app / artist / public), show_id, סטטוס</td><td>המיקום הוא מה שמצוין בתוכניות כאן</td></tr>
 <tr><td><b>museum_portals</b></td><td>from, to, סוג (דלת, מדרגה, שביל, מעלית), רוחב, "כהות" (דחיסה), משך מעבר</td><td>המפתן. מחליט איך נראה מעבר</td></tr></table>
+<p style="margin:2mm 0 1mm;font-size:8.3pt">דוגמה אמיתית: הגן של ג׳ כגרף (נוצר מאותה גיאומטריה, {len(gC['nodes'])} צמתים ו־{len(gC['portals'])} מפתנים):</p>
+<pre dir="ltr" style="font-size:6.8pt;line-height:1.35;background:#fff;border:1px solid var(--line);border-radius:2mm;padding:2mm;margin:0 0 2mm;white-space:pre-wrap">{html.escape(json.dumps(dict(nodes=gC['nodes'][:2], portals=gC['portals'][:2]), ensure_ascii=False))}</pre>
 <h3>שלבים</h3>
 <div class="phase"><div class="pn">1<small>2 עד 3 שבועות</small></div><div class="card"><b>גרף ומפה.</b><ul><li>טבלאות הגרף, ושרטוט המפה מאותו SVG כמו התוכניות כאן (ג׳ בלבד).</li><li>המבקר מקבל מפה וביתנים עם נגיעה: כל ביתן נפתח בצופה הקיים (space.js).</li><li>שער ואולם גדול כשני חדרים ראשונים.</li></ul></div></div>
 <div class="phase"><div class="pn">2<small>3 שבועות</small></div><div class="card"><b>עורך מוזיאון בשולחן העבודה (Desk).</b><ul><li>עורך הגן: גוררים ביתן על המפה, בוחרים סוג חלל ותערוכה.</li><li>אותו עורך גם לתצוגת הרחוב והחלל כשהכיוון מתחלף.</li><li>הרשאות לפי עבודה (כפי שהוצע ב־9.11): אישור האמן מתבצע בכל טעינה.</li></ul></div></div>

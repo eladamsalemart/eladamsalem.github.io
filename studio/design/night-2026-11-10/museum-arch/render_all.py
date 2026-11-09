@@ -6,7 +6,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 keys = [a for a in sys.argv[1:] if len(a) == 1] or list('ABCDE')
 samples = sys.argv[sys.argv.index('--samples') + 1] if '--samples' in sys.argv else '64'
 for k in keys:
-    for shot, size in (('axon', '1500x960'), ('int', '1300x860')):
+    for shot, size in [s_ for s_ in (('axon', '1500x960'), ('int', '1300x860'), ('int2', '1300x860')) if s_[0] in (sys.argv[sys.argv.index('--shots') + 1] if '--shots' in sys.argv else 'axon,int,int2').split(',')]:
         t = time.time()
         r = subprocess.run([B, '-b', '--factory-startup', '-P', os.path.join(HERE, 'blender_build.py'), '--', '--dir', k, '--shot', shot, '--samples', samples, '--size', size], capture_output=True, text=True)
         print(k, shot, round(time.time() - t), 's', 'ok' if 'done' in r.stdout else r.stdout[-300:] + r.stderr[-300:], flush=True)

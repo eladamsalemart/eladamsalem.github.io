@@ -1,0 +1,337 @@
+{
+ "direction": "B",
+ "nodes": [
+  {
+   "id": "s0",
+   "kind": "public",
+   "role": "public",
+   "name": "החלל המרכזי",
+   "x": -0.0,
+   "y": 0.0,
+   "z": 0
+  },
+  {
+   "id": "s1",
+   "kind": "public",
+   "role": "public",
+   "name": "הלובי והכניסה",
+   "x": 9.5,
+   "y": -9.5,
+   "z": 0
+  },
+  {
+   "id": "s2",
+   "kind": "loft",
+   "role": "app",
+   "name": "קומה 1 · 2",
+   "x": 13.5,
+   "y": 0.0,
+   "z": 0
+  },
+  {
+   "id": "s3",
+   "kind": "skylit-hall",
+   "role": "app",
+   "name": "קומה 1 · 3",
+   "x": 9.5,
+   "y": 9.5,
+   "z": 0
+  },
+  {
+   "id": "s4",
+   "kind": "white-cube",
+   "role": "app",
+   "name": "קומה 1 · 4",
+   "x": 0.0,
+   "y": 13.5,
+   "z": 0
+  },
+  {
+   "id": "s5",
+   "kind": "salon",
+   "role": "artist",
+   "name": "קומה 1 · 5",
+   "x": -9.5,
+   "y": 9.5,
+   "z": 0
+  },
+  {
+   "id": "s6",
+   "kind": "glass-pavilion",
+   "role": "artist",
+   "name": "קומה 1 · 6",
+   "x": -13.5,
+   "y": 0.0,
+   "z": 0
+  },
+  {
+   "id": "s7",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "קומה 1 · 7",
+   "x": -9.5,
+   "y": -9.5,
+   "z": 0
+  },
+  {
+   "id": "s8",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "קומה 1 · 8",
+   "x": -0.0,
+   "y": -13.5,
+   "z": 0
+  },
+  {
+   "id": "s9",
+   "kind": "japanese",
+   "role": "artist",
+   "name": "קומה 2 · 1",
+   "x": 9.5,
+   "y": -9.5,
+   "z": 6.4
+  },
+  {
+   "id": "s10",
+   "kind": "salon",
+   "role": "artist",
+   "name": "קומה 2 · 2",
+   "x": 13.5,
+   "y": 0.0,
+   "z": 6.4
+  },
+  {
+   "id": "s11",
+   "kind": "studio",
+   "role": "artist",
+   "name": "קומה 2 · 4",
+   "x": 0.0,
+   "y": 13.5,
+   "z": 6.4
+  },
+  {
+   "id": "s12",
+   "kind": "apartment",
+   "role": "artist",
+   "name": "קומה 2 · 5",
+   "x": -9.5,
+   "y": 9.5,
+   "z": 6.4
+  },
+  {
+   "id": "s13",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "קומה 2 · 6",
+   "x": -13.5,
+   "y": 0.0,
+   "z": 6.4
+  },
+  {
+   "id": "s14",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "קומה 2 · 7",
+   "x": -9.5,
+   "y": -9.5,
+   "z": 6.4
+  },
+  {
+   "id": "s15",
+   "kind": "concrete",
+   "role": "artist",
+   "name": "קומה 2 · 8",
+   "x": -0.0,
+   "y": -13.5,
+   "z": 6.4
+  },
+  {
+   "id": "s16",
+   "kind": "white-cube",
+   "role": "artist",
+   "name": "קומה 3 · 2",
+   "x": 13.5,
+   "y": 0.0,
+   "z": 10.8
+  },
+  {
+   "id": "s17",
+   "kind": "salon",
+   "role": "artist",
+   "name": "קומה 3 · 3",
+   "x": 9.5,
+   "y": 9.5,
+   "z": 10.8
+  },
+  {
+   "id": "s18",
+   "kind": "japanese",
+   "role": "artist",
+   "name": "קומה 3 · 5",
+   "x": -9.5,
+   "y": 9.5,
+   "z": 10.8
+  },
+  {
+   "id": "s19",
+   "kind": "studio",
+   "role": "artist",
+   "name": "קומה 3 · 6",
+   "x": -13.5,
+   "y": 0.0,
+   "z": 10.8
+  },
+  {
+   "id": "s20",
+   "kind": "black-box",
+   "role": "artist",
+   "name": "קומה 3 · 7",
+   "x": -9.5,
+   "y": -9.5,
+   "z": 10.8
+  },
+  {
+   "id": "s21",
+   "kind": "skylit-hall",
+   "role": "artist",
+   "name": "קומה 3 · 8",
+   "x": -0.0,
+   "y": -13.5,
+   "z": 10.8
+  }
+ ],
+ "portals": [
+  {
+   "a": "s0",
+   "b": "s1",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s1",
+   "b": "outside",
+   "kind": "door",
+   "width": 4
+  },
+  {
+   "a": "s0",
+   "b": "s2",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s0",
+   "b": "s3",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s0",
+   "b": "s4",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s0",
+   "b": "s5",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s0",
+   "b": "s6",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s0",
+   "b": "s7",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s0",
+   "b": "s8",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s9",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s10",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s11",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s12",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s13",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s14",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s15",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s16",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s17",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s18",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s19",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s20",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  },
+  {
+   "a": "s21",
+   "b": "outside",
+   "kind": "door",
+   "width": 4.2
+  }
+ ]
+}
