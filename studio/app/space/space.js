@@ -65,7 +65,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
 
   // --- surfaces: the photos' own light on measured planes ---------------------
   const surfaces = spec.surfaces || [];
-  const texs = await Promise.all(surfaces.map(s => loadTex(s.texture)));
+  const texs = await Promise.all(surfaces.map(async s => {
+    const t = await loadTex(s.texture);
+    if (!t || !s.repeat) return t;
+    const c = t.clone(); c.wrapS = c.wrapT = THREE.RepeatWrapping; c.repeat.set(s.repeat[0], s.repeat[1]); c.needsUpdate = true; return c;     // (several rooms in a row: one photograph, again)
+  }));
   const lights = await Promise.all(surfaces.map(s => loadTex(s.light, false)));
   let floorMesh = null;
   const wallColor = new THREE.Color('#f2f2ef');
@@ -119,7 +123,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     mat.onBeforeCompile = sh => {
       if (prev) prev(sh);
       sh.uniforms.hqTex = { value: new THREE.Vector2(tex.image.width, tex.image.height) };
-      sh.uniforms.hqSize = { value: new THREE.Vector2(size[0], size[1]) };
+      sh.uniforms.hqSize = { value: new THREE.Vector2(size[0] / (tex.repeat ? tex.repeat.x : 1), size[1] / (tex.repeat ? tex.repeat.y : 1)) };
       sh.uniforms.hqAmp = { value: amp };
       sh.uniforms.hqMask = { value: mk };
       sh.fragmentShader = sh.fragmentShader.replace('void main() {', HQ_FRAG + '\nvoid main() {')
@@ -194,7 +198,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     const depth = o.depth || 0.3;
     const U = V(s.u), N = V(s.normal), O = V(s.origin);
     const bottom = O.clone().addScaledVector(V(s.v), s.size[1]);  // the wall's foot at u = 0
-    if (o.arch || !surfaces.some(x => x.kind === 'reveal')) {
+    if (!o.bare && (o.arch || !surfaces.some(x => x.kind === 'reveal'))) {
       // an arch's curved inside (or, in older spaces, any opening's sides): modelled, in the room's plaster
       const geo = new THREE.ExtrudeGeometry(openingPath(o, new THREE.Shape(), -0.05), { depth, bevelEnabled: false, curveSegments: 48 });
       const basis = new THREE.Matrix4().makeBasis(U, new THREE.Vector3(0, 1, 0), N.clone().negate());
@@ -206,6 +210,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const rev = new THREE.Mesh(geo, [new THREE.MeshBasicMaterial({ visible: false }), side]);
       rev.applyMatrix4(basis); rev.position.copy(bottom); rev.userData.kind = 'reveal'; scene.add(rev);
     }
+    if (o.through) return;                    // (a doorway between two rooms: the other room is really there)
     if (o.view && !shots.length) {          // (with the photos projected, the room beyond shows as they saw it)
       // what the photos show through the opening, just behind it: the room beyond as it really is
       loadTex(o.view).then(t => {
@@ -309,7 +314,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   }); };
   buildKeepOut();
   const plinthList = [];                              // (set below, once drawn: a visitor does not walk through one)
-  const ops = surfaces.filter(s => s.kind === 'wall').flatMap(s => (s.openings || []).map(o => ({ s, o })));
+  const ops = surfaces.filter(s => s.kind === 'wall').flatMap(s => (s.openings || []).filter(o => !o.through).map(o => ({ s, o })));
+  const parts = spec.partitions || [];                // walls inside the room, with a doorway: no walking through them elsewhere
   function clampStand(p, from) {
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     const inRoom = q => q.x > R.x0 + MARGIN - 1e-6 && q.x < R.x1 - MARGIN + 1e-6 && q.z > R.z0 + MARGIN - 1e-6 && q.z < R.z1 - MARGIN + 1e-6;
@@ -324,6 +330,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       }
     }
     if (!inRoom(p)) { p.x = clamp(p.x, R.x0 + MARGIN, R.x1 - MARGIN); p.z = clamp(p.z, R.z0 + MARGIN, R.z1 - MARGIN); }
+    for (const w of parts) {
+      const h = w.t / 2 + 0.4, dx = p.x - w.x;
+      if (Math.abs(dx) < h && !(p.z > w.door[0] + 0.3 && p.z < w.door[1] - 0.3)) {
+        const side = from && Math.abs(from.x - w.x) >= h * 0.9 ? Math.sign(from.x - w.x) : (dx >= 0 ? 1 : -1);
+        p.x = w.x + side * h;
+      }
+    }
     for (const q of plinthList) {
       const dx = p.x - q.group.position.x, dz = p.z - q.group.position.z, r = Math.hypot(q.spec.size[0], q.spec.size[1]) / 200 + 0.35, m = Math.hypot(dx, dz);
       if (m < r) { if (m < 1e-4) p.x += r; else { p.x += dx / m * (r - m); p.z += dz / m * (r - m); } }

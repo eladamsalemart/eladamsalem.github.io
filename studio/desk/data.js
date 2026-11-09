@@ -80,6 +80,22 @@ const real = {
   async setShowStatus(id, status) { const c = await client(); ok(await c.from('virtual_shows').update({ status }).eq('id', id)); },
   async deleteShow(id) { const c = await client(); ok(await c.from('virtual_shows').delete().eq('id', id)); },
 
+  // conversations: a user sees only their own (RLS), an admin sees all. Nothing here sends an email.
+  async conversations() {
+    const c = await client(), cs = ok(await c.from('conversations').select('*').order('updated_at', { ascending: false }).limit(100));
+    if (!cs.length) return [];
+    const [ps, ms] = await Promise.all([c.from('profiles').select('id, first_name, last_name, role').in('id', [...new Set(cs.map(x => x.user_id))]).then(ok),
+      c.from('messages').select('conversation_id, body, from_admin, created_at').in('conversation_id', cs.map(x => x.id)).order('created_at', { ascending: false }).limit(400).then(ok)]);
+    return cs.map(x => { const p = ps.find(y => y.id === x.user_id) || {}; return { ...x, name: [p.first_name, p.last_name].filter(Boolean).join(' '), role: p.role, last: (ms.find(m => m.conversation_id === x.id) || {}).body }; });
+  },
+  async messages(id) { const c = await client(); return ok(await c.from('messages').select('*').eq('conversation_id', id).order('created_at')); },
+  async reply(id, body) {
+    const c = await client(), { data } = await c.auth.getUser();
+    ok(await c.from('messages').insert({ conversation_id: id, sender_id: data.user.id, from_admin: true, body }));
+    ok(await c.from('conversations').update({ status: 'answered', updated_at: new Date().toISOString() }).eq('id', id));
+  },
+  async setConversation(id, status) { const c = await client(); ok(await c.from('conversations').update({ status, updated_at: new Date().toISOString() }).eq('id', id)); },
+
   async health() { const [issues, runs] = await Promise.all([gh('issues?labels=app-health&state=open'), gh('actions/runs?per_page=40')]); return { issues, runs: runs && runs.workflow_runs }; },
   async requests() { const c = await client(); return ok(await c.from('change_requests').select('*').order('created_at', { ascending: false }).limit(30)); },
   async addRequest(body) { const c = await client(); ok(await c.from('change_requests').insert({ body })); },
@@ -102,10 +118,17 @@ async function world() {
       works: ws.map((w, j) => ({ id: `w${i}_${j}`, artist_id: id, title: w.title, year: w.year, medium: w.medium, width: w.size ? w.size[1] : null, height: w.size ? w.size[0] : null, depth: null, kind: 'work',
         image: abs(w.image), thumb: abs(w.image.replace(/\.jpg$/, '-s.jpg')), hidden: false, reviewed_at: status === 'approved' && j >= ws.length - 3 && i % 5 === 0 ? null : 'x', created_at: day(j) })) };
   });
-  W = { artists, requests: [{ id: 1, body: 'Add a way to see who followed which artist.', status: 'open', created_at: day(2) }],
+  const msg = (n, from_admin, body) => ({ from_admin, body, created_at: day(n) });
+  const convs = [
+    { id: 'c1', name: 'Noa Levi', role: 'artist', subject: 'How do I add sizes to my works?', status: 'open', created_at: day(1), updated_at: day(0.2), msgs: [msg(1, false, 'Hi, I uploaded my works but I cannot find where to put the sizes. Can you point me?'), msg(0.2, false, 'Never mind the first part, I found the edit button. Is there a limit on the number of works?')] },
+    { id: 'c2', name: 'Omer Katz', role: 'lover', subject: 'Following artists', status: 'answered', created_at: day(5), updated_at: day(4), msgs: [msg(5, false, 'Can I get a note when an artist I follow opens a show?'), msg(4, true, 'Not yet, but it is on our list. Thank you for asking.')] },
+    { id: 'c3', name: 'Dana Mor', role: 'artist', subject: 'Request to remove a work', status: 'closed', created_at: day(12), updated_at: day(10), msgs: [msg(12, false, 'Please hide the blue triptych, it was sold.'), msg(10, true, 'Done, it is hidden.')] }];
+  W = { convs, artists, requests: [{ id: 1, body: 'Add a way to see who followed which artist.', status: 'open', created_at: day(2) }],
     shows: [
       { id: 's1', kind: 'curated', title: 'Quiet Rooms', curator: 'Elad Amsalem', room: 'long-hall', paint: 'bone', centre: 148, status: 'published', created_at: day(6), plinths: [],
         text: 'Interiors where nobody is home.\n\nA short walk through rooms that hold their breath.', works: artists[5].works.slice(0, 4).map(w => ({ id: w.id, title: w.title, image: w.image, thumb: w.thumb, width: w.width, height: w.height, artist: artists[5].name })) },
+      { id: 's3', kind: 'artist', owner_id: artists[6].id, title: 'Small Weather', status: 'published', created_at: day(9), room: 'white-cube', paint: '', centre: 150, plinths: [], text: '', works: artists[6].works.slice(0, 3).map(w => ({ id: w.id, title: w.title, image: w.image, thumb: w.thumb })) },
+      { id: 's4', kind: 'artist', owner_id: artists[7].id, title: 'Before the Rain', status: 'draft', created_at: day(1), room: 'long-hall', paint: '', centre: 150, plinths: [], text: '', works: artists[7].works.slice(0, 5).map(w => ({ id: w.id, title: w.title, image: w.image, thumb: w.thumb })) },
       { id: 's2', kind: 'curated', title: 'Night Studies', curator: 'Elad Amsalem', room: 'black-box', paint: '', centre: 148, status: 'draft', created_at: day(2), plinths: [], text: '', works: [] }],
     profiles: Array.from({ length: 42 }, (_, i) => ({ first_name: ['Noa', 'Dana', 'Omer', 'Lior', 'Maya', 'Yoav'][i % 6], last_name: ['Levi', 'Cohen', 'Katz', 'Mor'][i % 4], role: i % 4 === 0 ? 'artist' : i % 7 === 0 ? '' : 'lover',
       country: ['Israel', 'Israel', 'USA', 'Germany', 'France'][i % 5], provider: i % 3 ? 'email' : 'google', created_at: day(i * 0.7) })) };
@@ -138,6 +161,10 @@ const mock = {
   },
   async setShowStatus(id, status) { (await world()).shows.find(x => x.id === id).status = status; },
   async deleteShow(id) { const w = await world(); w.shows = w.shows.filter(x => x.id !== id); },
+  async conversations() { const w = await world(); await wait(); return w.convs.map(c => ({ ...c, last: c.msgs[c.msgs.length - 1].body })).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)); },
+  async messages(id) { return [...(await world()).convs.find(c => c.id === id).msgs]; },
+  async reply(id, body) { const c = (await world()).convs.find(x => x.id === id); c.msgs.push({ from_admin: true, body, created_at: new Date().toISOString() }); c.status = 'answered'; c.updated_at = new Date().toISOString(); },
+  async setConversation(id, status) { (await world()).convs.find(c => c.id === id).status = status; },
   async health() {
     const t = n => new Date(Date.now() - n * 36e5).toISOString();
     return { issues: [], runs: [{ name: 'Open Studio app', status: 'completed', conclusion: 'success', created_at: t(3), html_url: '#' }, { name: 'Studio rooms', status: 'completed', conclusion: 'success', created_at: t(30), html_url: '#' },

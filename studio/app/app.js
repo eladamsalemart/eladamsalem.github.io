@@ -168,8 +168,8 @@ const ROOM_NAMES = { 'white-cube': 'White Cube', 'long-hall': 'Long Hall', vault
 // the ten spaces built in Blender (data/rooms/<slug>/, named <kind>[-small|-large])
 const SPACE_KINDS = { 'white-cube': 'White cube', loft: 'Industrial loft', 'skylit-hall': 'Skylit museum hall', salon: 'Salon', concrete: 'Raw concrete',
   studio: 'Artist studio', apartment: "Collector's home", 'black-box': 'Black box', 'glass-pavilion': 'Glass pavilion', japanese: 'Japanese room' };
-const roomTitle = r => ROOM_NAMES[r] || SPACE_KINDS[String(r).replace(/-(small|large)$/, '')] || 'A virtual room';
-const bakedRoom = r => !ROOM_NAMES[r] && SPACE_KINDS[String(r).replace(/-(small|large)$/, '')] ? r : null;
+const roomTitle = r => ROOM_NAMES[r] || SPACE_KINDS[String(r).replace(/(-[23]r)?$/, '').replace(/-(small|large)$/, '')] || 'A virtual room';
+const bakedRoom = r => !ROOM_NAMES[r] && SPACE_KINDS[String(r).replace(/(-[23]r)?$/, '').replace(/-(small|large)$/, '')] ? r : null;
 function addVirtual(m, v, uniq) {
   for (const x of v.shows || []) {
     const works = x.works.map(s => m.works.find(w => w.slug === s)).filter(Boolean);
