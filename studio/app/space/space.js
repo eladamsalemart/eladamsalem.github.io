@@ -279,7 +279,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (rLow > 0.03) {
       floorMesh.material.transparent = true;
       const hqPrev = floorMesh.material.onBeforeCompile;
-      floorMesh.material.customProgramCacheKey = () => 'hq1r' + rNear + '_' + rLow;     // (the values are in the shader's text)
+      if (BK) floorMesh.material.customProgramCacheKey = () => 'hq1r' + rNear + '_' + rLow;     // (the values are in the shader's text)
       floorMesh.material.onBeforeCompile = sh => {
         if (hqPrev) hqPrev(sh);
         sh.vertexShader = sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorldP = (modelMatrix * vec4(transformed, 1.0)).xyz;').replace('void main() {', 'varying vec3 vWorldP;\nvoid main() {');
