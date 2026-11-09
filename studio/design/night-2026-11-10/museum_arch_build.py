@@ -152,6 +152,11 @@ def wide_plan(k, d, plan_html, leg):
         return f'<h3>תוכנית</h3>{plan_html}<div style="margin-top:2mm">{leg}{KEYNOTE}</div>'
     return f'<div class="cols" style="grid-template-columns:1.25fr 1fr;align-items:start"><div><h3>תוכנית</h3>{plan_html}</div><div><h3>מקרא</h3>{leg}{KEYNOTE}</div></div>'
 
+def hero_fig(k):
+    if (RDIR / f'{k}-hero1.png').exists() or (RDIR / f'{k}-hero1.jpg').exists():
+        return fig(k + '-hero1', 'הדמיה בחומרים אמיתיים (Poly Haven, CC0) ועם יצירות מנתוני ההדגמה של האפליקציה: ' + html.escape(sb.load(k)['cams']['heroes'][0]['name']))
+    return fig(k + '-int2', 'מבט שני: ' + html.escape(sb.load(k)['cams']['ints'][-1]['name']))
+
 def dir_pages(k):
     d = sb.load(k); X = DIRS[k]; sec = sb.SECTIONS[k]()
     if k == 'B': plan_html = f'<div class="cols">{sb.plan(d, 0, 330, True)}{sb.plan(d, 10.8, 330, False, flow=False)}</div><p style="font-size:7.5pt;color:var(--muted);margin:1mm 0">קומה 1 (משמאל למעלה: כניסה ולובי) וקומה 3 (פלחים חסרים הם מרפסות גג).</p>'; leg = legend_html(d, 0)
@@ -171,7 +176,7 @@ def dir_pages(k):
 <div class="cols"><div class="card"><h3>אור</h3><p style="margin:0">{X["light"]}</p><h3>חומרים</h3><p style="margin:0">{X["materials"]}</p><h3>איך גדל</h3><p style="margin:0">{X["growth"]}</p></div>
 <div class="card"><h3>ניווט בטלפון</h3><p style="margin:0">{X["phone"]}</p><h3>חיבור לאפליקציה ולשולחן העבודה</h3><p style="margin:0">{X["app"]}</p><h3>קיבולת</h3><p style="margin:0">{X["cap"]}</p></div></div>
 <div class="cols" style="margin-top:2.5mm"><div><b class="pro">חוזקות</b><ul>{pros}</ul></div><div><b class="con">סיכונים</b><ul>{cons}</ul></div></div>
-{fig(k+"-int2", "מבט שני: " + html.escape(sb.load(k)['cams']['ints'][-1]['name']))}''')
+{hero_fig(k)}''')
 for k in 'ABCDE': dir_pages(k)
 
 # ---------------------------------------------------------------- comparison
@@ -192,7 +197,7 @@ page(f'''<div class="kick">השוואה</div><h2>חמשת הכיוונים זה 
 <tr><td><b>ג׳</b></td><td>סקיילייט, לופט בביתן המרכזי</td><td>כל עשרת הסוגים, ביתן לכל אחד</td></tr>
 <tr><td><b>ד׳</b></td><td>בטון (באר האור, האולם הגדול)</td><td>קובייה, סטודיו, דירה, סלון, יפני, קופסה שחורה, בטון</td></tr>
 <tr><td><b>ה׳</b></td><td>קובייה לבנה גדולה (הבמה)</td><td>כל התאים מקבלים את אחד מעשרת הסוגים</td></tr></table>
-<div class="cols" style="margin-top:3mm">{fig("A-int","א׳: מבט לאורך הרחוב")}{fig("E-int","ה׳: מבט בתוך המחסן")}</div>''')
+<div class="cols" style="margin-top:3mm">{fig("A-hero1","א׳: האולם הגדול")}{fig("E-hero1","ה׳: תא במחסן")}</div>''')
 
 # ---------------------------------------------------------------- recommendation (campus diagram)
 def campus():
@@ -223,6 +228,14 @@ page(f'''<div class="kick">המלצה · בדגם</div><h2>הקמפוס: הגן 
 {fig("F-axon", "אקסונומטריה של הקמפוס (דגם חימר, בלי גג). הכתום מסמן את האולם הגדול והביתן המרכזי.")}
 <div class="cols" style="margin-top:3mm;align-items:start"><div>{fig("F-int", "האולם הגדול בשער, מבט פנימה")}</div><div><h3 style="margin-top:0">תוכנית</h3>{sb.plan(dF, None, 360, False, flow=True)}</div></div>
 <div class="note">המסלול: כניסה דרך האולם הגדול (מה שהאפליקציה מציגה), אחר כך השער והגן, ובו ביתן לכל אמן. אולם אחד גדול נותן "מקום להתחיל בו" לכל מבקר, והגן נותן "מקום לשוטט בו". האולם הגדול יכול להיות גם התערוכה שמתחלפת כל עונה, והגן נשאר יציב.</div>''')
+
+# ---------------------------------------------------------------- the campus in real materials
+if (RDIR / 'F-hero1.png').exists() or (RDIR / 'F-hero1.jpg').exists():
+    page(f'''<div class="kick">המלצה · הדמיות</div><h2>הקמפוס בחומרים ובאור אמיתיים</h2>
+<p class="lede">ארבע הדמיות של ההמלצה, ב־Cycles, עם חומרי Poly Haven (CC0), שמי HDRI ויצירות אמיתיות מנתוני ההדגמה של האפליקציה על הקירות. עדיין הדמיית קונספט: הצמחייה, האור והחומרים הם כיוון, לא החדרים הסופיים.</p>
+{fig("F-hero1", "הקמפוס מלמעלה: האולם הגדול בשער, והגן עם ביתן לכל אמן")}
+<div class="cols" style="margin-top:3mm">{fig("F-hero2", "האולם הגדול של האפליקציה, מתחת לרצועת סקיילייט")}{fig("F-hero3", "ביתן של אמן: קובייה לבנה")}</div>
+{fig("F-hero4", "השביל אל הגן: מבט מהשער")}''')
 
 # ---------------------------------------------------------------- the visit on a phone (storyboard)
 VS = HERE.parent / 'virtual-spaces' / 'renders'

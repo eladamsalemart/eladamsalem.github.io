@@ -46,6 +46,8 @@ class D:
         ppl = [[cx + vy * 1.2, cy - vx * 1.2, sp['z']], [cx - vy * .6 + vx * 1.5, cy + vx * .6 + vy * 1.5, sp['z']]]
         s.d['cams']['ints'].append(dict(name=name, loc=[dr['x'] + vx * 1.1, dr['y'] + vy * 1.1, sp['z'] + 1.65 + up], tgt=[cx + vx * L * .6, cy + vy * L * .6, sp['z'] + 1.7], lens=lens, people=ppl))
     def out(s):
+        c = s.d.get('cams', {})
+        if c.get('ints') and 'heroes' not in c: c['heroes'] = [c['ints'][dict(A=1, B=1, C=1, D=0, E=1).get(s.d['key'], 0)]]
         os.makedirs(os.path.join(HERE, 'data'), exist_ok=True)
         json.dump(s.d, open(os.path.join(HERE, 'data', s.d['key'] + '.json'), 'w', encoding='utf-8'), ensure_ascii=False)
         return s.d
@@ -186,8 +188,10 @@ def campus():
     d['doors'].append(dict(x=0, y=-13, w=4, z=0, h=3.6))
     d['paths'].append(dict(pts=[[0, -22], [0, -13]], w=3.5))
     d['future'] += [rect(62, 30, 30, 26), rect(-96, 30, 30, 30)]
+    old = d['cams']['ints']
     d['cams'] = dict(axon=dict(az=205, el=34), ints=[dict(name='האולם הגדול בשער', loc=[-17.5, -6.5, 1.65], tgt=[14, -6.0, 3.0], lens=17, people=[[-4, -4, 0], [-2.5, -9, 0], [8, -5, 0]])])
     d['flow'] = [[0, -22], [0, 14], [0, 20]]
+    d['cams']['heroes'] = [dict(name='מלמעלה', loc=[-62, -50, 34], tgt=[0, 40, -6], lens=36, people=[]), d['cams']['ints'][0], dict(old[1], people=[]), dict(old[0], loc=[3, 16, 1.7], tgt=[2, 62, 4.2], lens=22)]
     json.dump(d, open(os.path.join(HERE, 'data', 'F.json'), 'w', encoding='utf-8'), ensure_ascii=False)
     return d
 

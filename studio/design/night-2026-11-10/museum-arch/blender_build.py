@@ -10,7 +10,11 @@ O = dict(dir='A', shot='axon', samples=48, size='1400x900')
 for i in range(0, len(a), 2): O[a[i].lstrip('-')] = a[i + 1]
 W, H = map(int, O['size'].split('x')); O['samples'] = int(O['samples'])
 G = json.load(open(os.path.join(HERE, 'data', O['dir'] + '.json'), encoding='utf-8'))
-INT = O['shot'].startswith('int'); IDX = (int(O['shot'][3:] or 1) - 1) if INT else 0
+HERO = O['shot'].startswith('hero'); REAL = HERO or bool(os.environ.get('REAL'))
+INT = O['shot'].startswith('int') or HERO
+IDX = (int(O['shot'][4:] if HERO else O['shot'][3:] or 1) - 1) if INT else 0
+CAMS = G['cams']['heroes'] if HERO else G['cams']['ints'] if INT else []
+DEMO = os.path.join(HERE, '..', '..', '..', 'app', 'data', 'demo', 'works')
 KIND = {'white-cube': ('#ECE9E2', '#F4F2EC'), 'loft': ('#B7AE9F', '#E6E1D6'), 'skylit-hall': ('#D8CBB1', '#EFE8D8'), 'salon': ('#8A5446', '#9A3F38'),
         'concrete': ('#8F8F8B', '#A5A5A0'), 'studio': ('#D6C7A5', '#EFE9DC'), 'apartment': ('#C4A98C', '#E9DFD0'), 'black-box': ('#262626', '#303030'),
         'glass-pavilion': ('#A9C9C4', '#DCEBE8'), 'japanese': ('#B9A27A', '#E4D8BE'), 'public': ('#F1EDE3', '#F6F3EC'), 'tunnel': ('#3A3836', '#55524D'),
@@ -55,7 +59,7 @@ def tmat(name, tex, tint=None, scale=0.5, nstr=0.5, rough=None):
         nm = nt.nodes.new('ShaderNodeNormalMap'); nm.inputs['Strength'].default_value = nstr; nt.links.new(img('nor.jpg', 'Non-Color').outputs['Color'], nm.inputs['Color']); nt.links.new(nm.outputs['Normal'], b.inputs['Normal'])
     b.inputs['Roughness'].default_value = rough if rough is not None else .6
     MATS[name] = m; return m
-FLOOR_TEX = {'white-cube': ('oak_wood_planks', None, .6), 'loft': ('concrete_floor_worn_001', None, .4), 'skylit-hall': ('herringbone_parquet', None, .6), 'salon': ('herringbone_parquet', '#8A6A55', .6),
+FLOOR_TEX = {'white-cube': ('oak_wood_planks', None, .6), 'loft': ('oak_wood_planks', '#C9B79F', .6), 'skylit-hall': ('herringbone_parquet', None, .6), 'salon': ('herringbone_parquet', '#8A6A55', .6),
              'concrete': ('concrete_floor_02', None, .4), 'studio': ('old_wooden_floor_03', None, .5), 'apartment': ('oak_wood_planks', '#CDBFAF', .6), 'japanese': ('hinoki_planks', None, .6),
              'glass-pavilion': ('concrete_floor_02', '#D8DDDC', .4), 'public': ('concrete_floor_02', '#E9E4DA', .4), 'stair': ('concrete_floor_02', '#E0DBD0', .4)}
 def floor_mat(kind, fl):
@@ -141,6 +145,19 @@ def walls(sp, wm):
             box('l', at(g0), at(g1), .3, z0 + h, z1, wm); cur = max(cur, g1)
         if cur < L - .01: box('w', at(cur), at(L), .3, z0, z1, wm)
 
+import glob
+WORKS = sorted(f for f in glob.glob(os.path.join(DEMO, '*.jpg')) if not f.endswith('-s.jpg'))
+def real_work(rnd):
+    f = rnd.choice(WORKS)
+    return bpy.data.images.get(os.path.basename(f)) or bpy.data.images.load(f)
+def picture_mat(img):
+    name = 'pm_' + img.name
+    if name in MATS: return MATS[name]
+    m = bpy.data.materials.new(name); m.use_nodes = True; nt = m.node_tree; b = nt.nodes['Principled BSDF']
+    t = nt.nodes.new('ShaderNodeTexImage'); t.image = img; nt.links.new(t.outputs['Color'], b.inputs['Base Color'])
+    nt.links.new(t.outputs['Color'], b.inputs['Emission Color']); b.inputs['Emission Strength'].default_value = .12; b.inputs['Roughness'].default_value = .45
+    MATS[name] = m; return m
+
 def frames(sp, rnd):
     P = sp['poly']; n = len(P); cols = ['#C8553D', '#2F4B6E', '#E1B04A', '#3F6B57', '#1B1B1B', '#D9CDB5', '#8A5E9A', '#4C8DA3']
     for i in range(n):
@@ -152,12 +169,26 @@ def frames(sp, rnd):
         t = 1.5
         while t < L - 1.5:
             w = rnd.choice([1.0, 1.4, 0.8, 1.8, 2.4]); h = rnd.choice([1.2, 1.6, 1.0, 1.4])
+            if REAL:
+                img = real_work(rnd); asp = img.size[0] / max(1, img.size[1]); h = rnd.choice([.9, 1.2, 1.5, 1.8]); w = h * asp
+                if w > 2.6: w = 2.6; h = w / asp
             if any(g0 - .8 < t + w / 2 and t - w / 2 < g1 + .8 for g0, g1, _ in gaps) or t + w / 2 > L - 1: t += 1.2; continue
             ox, oy = p[0] + ux * t + nx * .17, p[1] + uy * t + ny * .17
             a_ = [ox - ux * w / 2, oy - uy * w / 2]; b_ = [ox + ux * w / 2, oy + uy * w / 2]
             zc = sp['z'] + (1.55 if sp['kind'] != 'salon' else 1.8) + rnd.uniform(-.1, .2)
-            m = mat('art' + str(rnd.randrange(len(cols))), hexc(rnd.choice(cols)), .5)
-            box('art', a_, b_, .06, zc - h / 2, zc + h / 2, m); t += w + rnd.choice([1.4, 2.2, 3])
+            if REAL:
+                fm = mat('frame', hexc('#23211E'), .5)
+                box('art', [a_[0] - ux * .05, a_[1] - uy * .05], [b_[0] + ux * .05, b_[1] + uy * .05], .07, zc - h / 2 - .05, zc + h / 2 + .05, fm)
+                rx, ry = -ny, nx   # the viewer's right-hand direction, looking at the wall
+                l_, r_ = (a_, b_) if (b_[0] - a_[0]) * rx + (b_[1] - a_[1]) * ry > 0 else (b_, a_)
+                px_, py_ = nx * .045, ny * .045
+                me = bpy.data.meshes.new('pic'); me.from_pydata([(l_[0] + px_, l_[1] + py_, zc - h / 2), (r_[0] + px_, r_[1] + py_, zc - h / 2), (r_[0] + px_, r_[1] + py_, zc + h / 2), (l_[0] + px_, l_[1] + py_, zc + h / 2)], [], [(0, 1, 2, 3)])
+                uv = me.uv_layers.new(); [setattr(uv.data[k_], 'uv', v_) for k_, v_ in enumerate(((0, 0), (1, 0), (1, 1), (0, 1)))]
+                me.materials.append(picture_mat(img)); ob = bpy.data.objects.new('pic', me); bpy.context.collection.objects.link(ob)
+            else:
+                m = mat('art' + str(rnd.randrange(len(cols))), hexc(rnd.choice(cols)), .5)
+                box('art', a_, b_, .06, zc - h / 2, zc + h / 2, m)
+            t += w + rnd.choice([1.4, 2.2, 3])
 
 def roof(sp, m):
     P = sp['poly']; z1 = sp['z'] + sp['h']
@@ -182,8 +213,8 @@ rnd = random.Random(3)
 zmin = min(s['z'] for s in G['spaces'])
 white = mat('white', hexc('#F2EFE8'), .9); roofm = mat('roofm', hexc('#EEEAE0'), .9)
 xs = [p[0] for s in G['spaces'] for p in s['poly']]; ys = [p[1] for s in G['spaces'] for p in s['poly']]
-bx0, bx1, by0, by1 = min(xs) - 160, max(xs) + 160, min(ys) - 160, max(ys) + 160
-ground_m = (tmat('gr', 'leafy_grass', None, .18, rough=1) if (INT and G['key'] == 'C') else None) or mat('ground', hexc('#E4E0D4' if not INT else '#CFCBBE'), 1)
+bx0, bx1, by0, by1 = min(xs) - 1200, max(xs) + 1200, min(ys) - 1200, max(ys) + 1200
+ground_m = (tmat('gr', 'leafy_grass', hexc('#B7C694'), .25, rough=1) if (INT and G['key'] in ('C', 'F')) else None) or mat('ground', hexc('#E4E0D4' if not INT else '#CFCBBE'), 1)
 if G['key'] != 'D' or INT is False:
     prism('ground', [[bx0, by0], [bx1, by0], [bx1, by1], [bx0, by1]], zmin - .6, zmin - .05, ground_m) if G['key'] != 'D' else None
 if G['key'] == 'D':   # underground: a pale earth floor far below, no cover
@@ -215,9 +246,30 @@ for e in G['extras']:
 # garden: paths, water, trees
 pm = mat('path', hexc('#CFC6B0'), 1)
 for pi_, p in enumerate(G['paths']):
-    for a_, b_ in zip(p['pts'][:-1], p['pts'][1:]): box('p', a_, b_, p['w'], zmin + pi_ * .003, zmin + .04 + pi_ * .003, pm)
+    for j_, (a_, b_) in enumerate(zip(p['pts'][:-1], p['pts'][1:])): box('p', a_, b_, p['w'], zmin + pi_ * .003 + j_ * .0006, zmin + .04 + pi_ * .003 + j_ * .0006, pm)
 if G['water']: prism('water', G['water'], zmin - .04, zmin + .06, mat('water', hexc('#7FA3B0'), .05))
-for x, y, r in G['trees']:
+def tree_proto(asset):
+    f = os.path.join(PH, '..', 'polyhaven', 'models', asset, asset + '.gltf') if False else os.path.join(os.path.dirname(PH), 'polyhaven', 'models', asset, asset + '.gltf')
+    f = os.path.join(PH, 'models', asset, asset + '.gltf')
+    if not os.path.exists(f): return None
+    before = set(bpy.data.objects); bpy.ops.import_scene.gltf(filepath=f)
+    new = [o for o in bpy.data.objects if o not in before]; meshes = [o for o in new if o.type == 'MESH']
+    pts = [o.matrix_world @ Vector(c) for o in meshes for c in o.bound_box]
+    lo = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts))); hi = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
+    for o in new: o.hide_render = True; o.hide_viewport = True
+    return dict(items=[(o, o.matrix_world.copy()) for o in meshes], lo=lo, hi=hi)
+def tree_at(P, x, y, z, height, rot):
+    from mathutils import Matrix
+    sc_ = height / max(.01, P['hi'].z - P['lo'].z)
+    base = Matrix.Translation((x, y, z)) @ Matrix.Rotation(math.radians(rot), 4, 'Z') @ Matrix.Diagonal((sc_, sc_, sc_, 1)) @ Matrix.Translation(-Vector(((P['lo'].x + P['hi'].x) / 2, (P['lo'].y + P['hi'].y) / 2, P['lo'].z)))
+    for o, m0 in P['items']:
+        c = o.copy(); c.parent = None; c.hide_render = False; c.hide_viewport = False; bpy.context.collection.objects.link(c); c.matrix_world = base @ m0
+REAL_TREES = [tree_proto(a) for a in ('island_tree_01', 'island_tree_02')] if (REAL and G['trees']) else []
+REAL_TREES = [t for t in REAL_TREES if t]
+for ti_, (x, y, r) in enumerate(G['trees']):
+    if REAL_TREES and ti_ % 2: continue
+    if REAL_TREES:
+        tree_at(rnd.choice(REAL_TREES), x, y, zmin, r * rnd.uniform(2.0, 2.7), rnd.uniform(0, 360)); continue
     bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=r, location=(x, y, zmin + r * 2.0)); o = bpy.context.object; o.scale.z = 1.2
     o.data.materials.append(mat('tree', hexc('#7E9B6A'), 1)); bpy.ops.object.shade_smooth()
     box('trunk', [x, y], [x, y + .01], .4, zmin, zmin + r * 1.5, mat('trunk', hexc('#6B5A48')))
@@ -225,6 +277,11 @@ for x, y, r in G['trees']:
 # world + light
 wd = bpy.data.worlds.new('w'); sc.world = wd; wd.use_nodes = True; bg = wd.node_tree.nodes['Background']
 bg.inputs['Color'].default_value = hexc('#EDEBE6' if not INT else '#BFD3E6'); bg.inputs['Strength'].default_value = float(os.environ.get('WS', 1.1 if not INT else 1.3)); print('WORLD', bg.inputs['Color'].default_value[:], sc.world)
+if REAL:
+    hp = os.path.join(PH, 'hdri', os.environ.get('HDRI', 'killesberg_park_2k.hdr'))
+    if os.path.exists(hp):
+        et = wd.node_tree.nodes.new('ShaderNodeTexEnvironment'); et.image = bpy.data.images.load(hp)
+        wd.node_tree.links.new(et.outputs['Color'], bg.inputs['Color']); bg.inputs['Strength'].default_value = float(os.environ.get('WS', 1.0))
 sun = bpy.data.lights.new('sun', 'SUN'); sun.energy = 5.0 if not INT else 4.5; sun.angle = math.radians(4)
 so = bpy.data.objects.new('sun', sun); bpy.context.collection.objects.link(so); so.rotation_euler = (math.radians(48), math.radians(8), math.radians(float(os.environ.get('SUNZ', -35))))
 if INT:   # soft ceiling lights in rooms that are lit by lamps and have roofs (the sky does the rest)
@@ -246,11 +303,11 @@ if INT:   # soft ceiling lights in rooms that are lit by lamps and have roofs (t
             lo = bpy.data.objects.new('l', L); bpy.context.collection.objects.link(lo); lo.location = ((min(xs_) + max(xs_)) / 2, (min(ys_) + max(ys_)) / 2, s['z'] + s['h'] - .1)
 
 if INT:
-    for (px_, py_, pz_) in G['cams']['ints'][IDX].get('people', []): person(px_, py_, pz_, rnd)
+    for (px_, py_, pz_) in CAMS[IDX].get('people', []): person(px_, py_, pz_, rnd)
 # camera
 cam = bpy.data.cameras.new('c'); cam.clip_end = 3000; cam.clip_start = 0.1; co = bpy.data.objects.new('c', cam); bpy.context.collection.objects.link(co); sc.camera = co
 if INT:
-    c = G['cams']['ints'][IDX]
+    c = CAMS[IDX]
     if os.environ.get('INTCAM'): v = list(map(float, os.environ['INTCAM'].split(','))); c = dict(c, loc=v[:3], tgt=v[3:6])
     co.location = Vector(c['loc']); cam.lens = c['lens']; cam.sensor_width = 36
     d = Vector(c['tgt']) - co.location; co.rotation_euler = d.to_track_quat('-Z', 'Y').to_euler()
@@ -281,6 +338,6 @@ if os.environ.get('RAY'):
     mw = co.matrix_world; org = mw @ Vector((fx, fy, 0)); dr = (mw.to_3x3() @ Vector((0, 0, -1))).normalized()
     hit, loc, nor, idx, ob, _ = bpy.context.scene.ray_cast(dg, org, dr)
     print('RAYHIT', ob.data.materials[0].node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value[:], [ (m.name) for m in ob.data.materials], len(ob.data.polygons), [round(v.co.z,2) for v in ob.data.vertices][:8], hit, ob.name if ob else None, ob.data.materials[0].name if ob else None, loc, nor)
-out = os.path.join(HERE, 'renders', f"{O['dir']}-{O['shot']}{os.environ.get('SUF', '')}.png")
+out = os.path.join(HERE, 'renders', f"{O['dir']}-{O['shot']}{'-real' if REAL and not HERO else ''}{os.environ.get('SUF', '')}.png")
 sc.render.filepath = out; sc.render.image_settings.file_format = 'PNG'
 bpy.ops.render.render(write_still=True); print('done', out)
