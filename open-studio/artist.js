@@ -133,7 +133,7 @@ function readiness(ex, works) {
 // --- screens --------------------------------------------------------------------------------------------
 // (a studio page without a page to go back to leads out to the app itself, its Home)
 const head = (title, back) => `<div class="st-head"><a class="back" href="${back || '#/'}">← ${back ? 'Back' : 'Open Studio'}</a><span class="tag">Open Studio for Artists</span></div><h1 class="st-h1">${esc(title)}</h1>`;
-const nav = cur => `<nav class="st-nav" aria-label="Studio">${[['', 'Home'], ['onview', 'On View'], ['works', 'Works'], ['import', 'Bring work in'], ['exhibitions', 'Exhibitions'], ['profile', 'Profile']].map(([k, t]) => `<a href="#/studio${k ? '/' + k : ''}" ${cur === k ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
+const nav = cur => `<nav class="st-nav" aria-label="Studio">${[['', 'Your page'], ['onview', 'On View'], ['exhibitions', 'Exhibitions and tours'], ['import', 'Bring work in']].map(([k, t]) => `<a href="#/studio${k ? '/' + k : ''}" ${cur === k ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
 
 function signIn() {
   return `<div class="wrap gut st">
@@ -150,41 +150,6 @@ function signIn() {
   </div>`;
 }
 
-function home() {
-  const ready = S.works.filter(w => w.check && tourReady(verdict(w.check, w))).length;
-  const profile = [S.artist.photo, S.artist.statement, S.artist.bio, S.artist.city].filter(Boolean).length;
-  const todo = [];
-  if (profile < 4) todo.push([`Finish your profile (${profile} of 4)`, '#/studio/profile']);
-  const fix = S.works.filter(w => !(w.check && tourReady(verdict(w.check, w))));
-  if (fix.length) todo.push([`${fix.length} ${fix.length === 1 ? 'work needs' : 'works need'} attention`, '#/studio/works']);
-  for (const ex of S.exhibitions) {
-    if (ex.tour === 'live') continue;
-    const n = ex.real ? ex.real.items.filter(([l]) => l === 'no').length : readiness(ex, S.works).blocking;
-    if (n) todo.push([`${ex.title}: ${n} ${n === 1 ? 'thing' : 'things'} before a tour`, `#/studio/exhibition/${ex.id}`]);
-  }
-  const see = '<a class="btn g" href="#/preview/me">See your page</a>';
-  const status = !S.cloud ? '' : S.status === 'approved' ? `<p class="st-status ok">Your page is live: <a href="#/preview/me">see it as visitors do</a>.</p>`
-    : S.status === 'hidden' ? `<p class="st-status no">Your page is not shown at the moment.${S.note ? ' ' + esc(S.note) : ''}</p>`
-    : S.status === 'pending' ? `<div class="st-status"><p>Sent for review: Open Studio is looking at your page and will write here if anything should change. You can go on editing.</p><div class="btns">${see}<button type="button" class="btn g" data-review="draft">Take it back</button></div></div>`
-    : S.status === 'changes' ? `<div class="st-status no"><p><b>Open Studio asks for a few changes:</b> ${esc(S.note || '')}</p><div class="btns">${see}<button type="button" class="btn f" data-review="pending">Send again</button></div></div>`
-    : `<div class="st-status"><p>Your page is a draft: only you see it. Bring your work in, check how your page looks, then send it to Open Studio to go live.</p><div class="btns">${see}<button type="button" class="btn f" data-review="pending">Send for review</button></div></div>`;
-  return `<div class="wrap gut st">${head(`Hello, ${S.artist.name.split(' ')[0]}`)}${nav('')}${status}
-    <div class="st-stats">
-      <div><b>${S.works.length}</b><span>works</span></div>
-      <div><b>${S.exhibitions.length}</b><span>exhibitions</span></div>
-      <div><b>${S.exhibitions.filter(e => e.tour === 'live').length}</b><span>walkable tours</span></div>
-    </div>
-    <section class="sec"><div class="sec-h"><h2>To do</h2></div>
-      ${todo.length ? `<div class="list">${todo.map(([t, h]) => `<a class="st-todo" href="${h}">${esc(t)}<span aria-hidden="true">→</span></a>`).join('')}</div>` : '<p class="m">Nothing: everything is in order.</p>'}
-    </section>
-    <section class="sec"><div class="sec-h"><h2>Quick add</h2></div>
-      <div class="btns">${S.cloud ? '<a class="btn f" href="#/studio/import">Bring your work in</a><a class="btn g" href="#/studio/works/new">Add a work</a>' : '<a class="btn f" href="#/studio/works/new">Add a work</a><a class="btn g" href="#/studio/exhibitions/new">Add an exhibition</a>'}<a class="btn g" href="#/studio/exhibitions/new">Add an exhibition</a><a class="btn g" href="#/studio/virtual/new">Design a virtual exhibition</a><a class="btn g" href="${S.cloud ? '#/preview/me' : '#/studio/preview'}">See your page</a></div>
-      <p class="m small">${ready} of ${S.works.length} works are ready for a walkable tour.</p>
-    </section>
-    <section class="sec"><button type="button" class="more" id="signOut">Sign out</button></section>
-  </div>`;
-}
-
 // works in groups, as an artist's site shows them: the newest year first, objects apart
 function byYear(list) {
   const objects = list.filter(w => w.kind === 'object'), wall = list.filter(w => w.kind !== 'object');
@@ -192,44 +157,6 @@ function byYear(list) {
   return [...years.map(y => [y, wall.filter(w => (String(w.year || '').slice(0, 4) || 'Undated') === y)]), ...(objects.length ? [['Objects', objects]] : [])];
 }
 const detail = w => [w.medium, w.width && w.height ? `${w.height} × ${w.width}${w.depth ? ` × ${w.depth}` : ''} cm` : '', w.kind === 'object' ? w.year : ''].filter(Boolean).join(' · ');
-
-function works() {
-  return `<div class="wrap gut st">${head('Works')}${nav('works')}
-    <div class="btns" style="padding-block:6px 18px"><a class="btn f" href="#/studio/works/new">Add a work</a></div>
-    <p class="m small">${S.works.length} works. Sizes are height × width.</p>
-    ${byYear(S.works).map(([y, ws]) => `<section class="sec st-year"><div class="sec-h"><h2>${esc(y)}</h2><span class="more">${ws.length}</span></div>
-    <div class="grid">${ws.map(w => {
-      const v = w.check ? verdict(w.check, w) : verdict(null, w), ok = tourReady(v);
-      return `<a href="#/studio/work/${w.id}"><div class="im"><img src="${esc(w.thumb || w.image)}" alt="" loading="lazy"></div>
-        <div class="c"><b>${esc(w.title)}</b><div class="m">${esc(detail(w))}</div>
-        <div class="st-flag ${ok ? 'ok' : 'no'}">${ok ? 'Ready' : 'Needs attention'}</div></div></a>`;
-    }).join('')}</div></section>`).join('')}
-  </div>`;
-}
-
-function workForm(id) {
-  const w = id ? S.works.find(x => x.id === id) : { id: '', title: '', year: String(new Date().getFullYear()), medium: '', width: '', height: '', depth: '', framed: 'no', image: '', check: null };
-  if (!w) return `<div class="wrap gut st">${head('Not found', '#/studio/works')}</div>`;
-  const v = verdict(w.check, w);
-  return `<div class="wrap gut st">${head(id ? w.title : 'Add a work', '#/studio/works')}
-    <form class="st-form" id="workForm" data-id="${esc(w.id)}">
-      <label class="st-drop"><input type="file" accept="image/jpeg,image/png,image/heic,image/webp" name="file" hidden>
-        <img id="wPreview" src="${esc(w.thumb || w.image || '')}" alt="" ${w.thumb || w.image ? '' : 'hidden'}>
-        <span id="wDropText" ${w.thumb || w.image ? 'hidden' : ''}>Choose the work's photo<br><small>Straight on, the whole work, in even light. 6000 px on the long side is best.</small></span></label>
-      <div id="wChecks">${checks(v)}</div>
-      <label>Title<input name="title" required value="${esc(w.title)}"></label>
-      <div class="st-row"><label>Year<input name="year" inputmode="numeric" value="${esc(w.year)}"></label>
-        <label>Medium<input name="medium" placeholder="Oil on canvas" value="${esc(w.medium)}"></label></div>
-      <fieldset><legend>Size, in cm</legend><div class="st-row three">
-        <label>Width<input name="width" inputmode="decimal" value="${esc(w.width)}"></label>
-        <label>Height<input name="height" inputmode="decimal" value="${esc(w.height)}"></label>
-        <label>Depth<input name="depth" inputmode="decimal" placeholder="3.5" value="${esc(w.depth)}"></label></div>
-        <p class="m small">Depth is how far the work stands off the wall (a canvas's stretcher, a frame): the tour shows its sides.</p></fieldset>
-      <label>Frame<select name="framed">${[['no', 'No frame'], ['thin', 'Thin frame'], ['float', 'Floating frame'], ['box', 'Box frame']].map(([k, t]) => `<option value="${k}" ${w.framed === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
-      <div class="btns"><button class="btn f" type="submit">Save</button>${id ? '<button class="btn g" type="button" id="delWork">Delete</button>' : ''}</div>
-    </form>
-  </div>`;
-}
 
 function exhibitions() {
   return `<div class="wrap gut st">${head('Exhibitions')}${nav('exhibitions')}
@@ -352,7 +279,7 @@ async function walkIn(v) {
 // --- a real artist's first visit: their page, in a minute ---------------------------------------------------------------
 function setup(u) {
   return `<div class="wrap gut st">${head('Your studio')}
-    <p class="m">Two steps to a page of your own: who you are, then your work, brought in from where it already is (your website, Instagram, a Drive folder or your phone). Open Studio looks at every new page before it goes live.</p>
+    <p class="m">Who you are, then your work, and you have a page of your own: you build it right on the page. Open Studio looks at every new page before it goes live.</p>
     <form class="st-form" id="setup">
       <label>Your name, as an artist, in English letters (the app is in English)<input name="name" required value="${esc(/^[\x00-\u024f\s'.-]+$/.test(u.name || '') ? u.name : '')}" autocomplete="name" placeholder="e.g. Maya Cohen"></label>
       <div class="st-row"><label>You make<input name="discipline" placeholder="Painting"></label><label>City<input name="city" placeholder="Tel Aviv"></label></div>
@@ -370,7 +297,7 @@ function importer() {
   if (!S.cloud && !S.preview) return `<div class="wrap gut st">${head('Bring work in')}${nav('import')}<p class="m">In the demo studio nothing is brought in. <a href="#/welcome">Join as an artist</a> to bring your own work from your website, Instagram, a Drive folder or your phone.</p></div>`;
   const site = S.artist.link || '';
   return `<div class="wrap gut st">${head('Bring work in')}${nav('import')}
-    <p class="m">From wherever your work already is. You choose what comes in, and fix titles and sizes after, in Works.</p>
+    <p class="m">From wherever your work already is. You choose what comes in, and fix titles and sizes after, on your page. <a href="#/studio">Skip, go to my page</a>.</p>
     <div class="im-ways">
       <form class="st-card im-way" data-kind="site"><h2>Your website</h2><p class="m small">We look at the page and its gallery pages for your images and their titles.</p>
         <label class="vh" for="imSite">Website address</label><input id="imSite" name="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="yourname.com" value="${esc(site)}" required>
@@ -389,6 +316,7 @@ function importer() {
         <label class="btn g"><input type="file" accept="image/*" multiple id="imFiles" hidden>Choose images</label></div>
     </div>
     <section class="sec" id="imFound" aria-live="polite">${foundList()}</section>
+    <p class="m small"><a href="#/studio">Skip for now: go to my page</a></p>
   </div>`;
 }
 function foundList(msg = '') {
@@ -497,7 +425,7 @@ function wireImport(app, go) {
       found = []; extra = null;
       show(`${done} ${done === 1 ? 'work' : 'works'} brought in${failed ? `; ${failed} couldn’t be fetched` : ''}${more.length ? `, and ${more.join(', ')}` : ''}.
         ${tour ? `<a class="btn f" href="#/studio/virtual/${tour.id}">Walk into your exhibition in 3D</a>` : ''}
-        <a href="#/studio/works">See them in Works</a>${more.length ? ' · <a href="#/studio/exhibitions">Your exhibitions</a> · <a href="#/studio/profile">Your profile</a>' : ''}. Works without a size are left out of the 3D room: add their sizes in Works and they hang at their real size.`);
+        <a class="btn f" href="#/studio">See them on your page</a> Works without a size are left out of the 3D room: add their sizes (tap a work on your page) and they hang at their real size.`);
     };
   }
   wireFound();
@@ -581,14 +509,14 @@ function exhibitionPage(id) {
   const isNew = id === 'new';
   const ex = isNew ? { id: '', title: '', venue: '', city: '', year: String(new Date().getFullYear()), dates: '', curator: '', text: '', works: [], photos: [], video: '', space: {}, tour: 'none' }
     : S.exhibitions.find(x => x.id === id);
-  if (!ex) return `<div class="wrap gut st">${head('Not found', '#/studio/exhibitions')}</div>`;
+  if (!ex) return `<div class="wrap gut st">${head('Not found', '#/studio')}</div>`;
   const r = readiness(ex, S.works), sp = ex.space || {};
   const status = ex.real ? ex.real : null;
   const extra = ex.tourFiles || [], hasVideo = ex.video || extra.some(f => f.kind === 'video');
   // (always worth a try: with any photo or a video the tour is attempted, and the checks say what would make it better)
   const canAsk = !status && ex.tour !== 'live' && ex.tour !== 'requested' && ex.tour !== 'building' && (ex.photos.length || extra.length || hasVideo);
-  return `<div class="wrap gut st">${head(isNew ? 'Add an exhibition' : ex.title, '#/studio/exhibitions')}
-    <div class="st-step"><span class="n">1</span><div><h2>Your exhibition</h2><p class="m small">What visitors see on your page: the details, a few words, the installation photos and the works that were in the show.</p></div></div>
+  return `<div class="wrap gut st">${head(isNew ? 'Add an exhibition' : ex.title, '#/studio')}
+    <div class="st-step"><span class="n">1</span><div><h2>The exhibition</h2><p class="m small">What visitors see on your page: the details, a few words, the photos of the show and the works that were in it.</p></div></div>
     <form class="st-form" id="exForm" data-id="${esc(ex.id)}">
       <label>Title<input name="title" required value="${esc(ex.title)}"></label>
       <div class="st-row"><label>Venue<input name="venue" value="${esc(ex.venue)}"></label><label>City<input name="city" value="${esc(ex.city)}"></label></div>
@@ -596,13 +524,17 @@ function exhibitionPage(id) {
       <label>About the exhibition<textarea name="text" rows="5">${esc(ex.text)}</textarea></label>
       <fieldset><legend>Works in the show</legend>
         <div class="st-pick">${S.works.map(w => `<label><input type="checkbox" name="works" value="${w.id}" ${ex.works.includes(w.id) ? 'checked' : ''}><img src="${esc(w.thumb || w.image)}" alt=""><span>${esc(w.title)}</span></label>`).join('')}</div></fieldset>
-      <fieldset><legend>Installation photos</legend>
+      <fieldset><legend>Photos of the show (these appear on the exhibition page)</legend>
         <div class="st-photos">${ex.photos.map((p, i) => `<figure><img src="${esc(p.src)}" alt="Installation photo ${i + 1}"><button type="button" data-delphoto="${i}" aria-label="Remove">×</button></figure>`).join('')}
           <label class="st-add"><input type="file" accept="image/*" multiple name="photos" hidden>+ Add photos</label></div>
         <p class="m small">Wide views, each with 2–3 works and a corner of the room, so that every wall is in at least two photos. Natural light, no people in front of the works.</p></fieldset>
-      <div class="btns"><button class="btn f" type="submit">${isNew ? 'Save, then on to the tour' : 'Save'}</button>${isNew ? '' : '<button class="btn g" type="button" id="delEx">Delete</button>'}</div>
+      <div class="btns"><button class="btn f" type="submit">${isNew ? 'Save the exhibition' : 'Save'}</button>${isNew ? '' : '<button class="btn g" type="button" id="delEx">Delete</button>'}</div>
     </form>
-    ${isNew ? '' : `<div class="st-step"><span class="n">2</span><div><h2>A walk-through tour <span class="m">(optional)</span></h2><p class="m small">Visitors walk through the show in 3D, every work at its real size and place. Open Studio builds it from your installation photos and the works' sizes, and checks it view by view before it goes up.</p></div></div>
+    ${isNew ? '<p class="m st-after">After you save, “A walk-through tour” opens here, at the bottom: you can ask for a 3D tour of this show.</p>' : `<div class="st-step"><span class="n">2</span><div><h2>A walk-through tour <span class="m">(optional)</span></h2>
+      <p class="m">Visitors walk through your show in 3D, every work at its real size and place. Open Studio builds it for you, and checks it view by view before it goes up. To make a good tour:</p>
+      <ol class="st-how"><li><b>Upload as many photos and videos of the space and the show as you can.</b> Every wall, from several angles, wide views with the corners of the room. A slow walk-through video helps most.</li>
+        <li><b>The details of the works must be very exact.</b> Width, height and depth in centimetres, the year and the medium. A work with a wrong size hangs wrong in the tour.</li></ol>
+      <p class="m"><b>The photos and videos you add below only help build the tour. They do not appear on the exhibition page.</b></p></div></div>
     <section class="st-card st-tour">
       <div class="sec-h"><h3>Where it stands</h3><span class="st-flag ${tourFlag(ex)[0]}">${tourFlag(ex)[1]}</span></div>
       ${ex.tour === 'live' && ex.space && ex.space.slug ? `<p class="m">This exhibition has a walkable tour.</p><div class="btns"><a class="btn f" href="#/exhibition/${esc(ex.space.slug)}/space">Walk through the tour</a></div>`
@@ -610,8 +542,8 @@ function exhibitionPage(id) {
         : status ? `<p class="m">${esc(status.summary)}</p>${checks(status.items)}`
         : `<p class="m">${r.ready ? 'Everything a tour needs is here.' : 'You can ask for a tour now: it is always tried. These would make it surer:'}</p>${checks(r.items)}`}
       ${ex.tour === 'more' && ex.tourNote ? `<p class="st-status no">${esc(ex.tourNote)}</p>` : ''}
-      <h3>Material for the tour only</h3>
-      <p class="m small">More installation photos, and a walk-through video if you have one. They help build the tour and are <b>never shown on your page</b>. Photos: wide, 2–3 works and a corner of the room in each. Video: phone sideways, walk slowly down the middle and back, filming every wall (up to 50 MB).</p>
+      <h3>Photos and videos for the tour</h3>
+      <p class="m small">Kept apart from the exhibition's own photos, and <b>never shown on your page</b>. Photos: wide, 2–3 works and a corner of the room in each. Video: phone sideways, walk slowly down the middle and back, filming every wall (up to 50 MB).</p>
       <div class="st-files">${extra.map((f, i) => `<div class="st-file"><span>${f.kind === 'video' ? '▶' : '▣'} ${esc(f.name)}</span><button type="button" data-deltour="${i}" aria-label="Remove ${esc(f.name)}">×</button></div>`).join('') || '<p class="m small">Nothing yet.</p>'}</div>
       <div class="btns"><label class="btn g"><input type="file" accept="image/*,video/*" multiple id="tourFiles" hidden>+ Add photos or a video</label></div>
       <p class="m small" id="tourMsg" role="status"></p>
@@ -639,37 +571,6 @@ const cvList = cv => {
   const groups = [...new Set(cv.map(l => l.group || ''))];
   return groups.map(g => `<section class="cv-g">${g ? `<h3>${esc(g)}</h3>` : ''}<dl>${cv.filter(l => (l.group || '') === g).map(l => `<div><dt>${esc(l.year)}</dt><dd>${esc(l.title)}${l.venue ? `<span>${esc(l.venue)}</span>` : ''}</dd></div>`).join('')}</dl></section>`).join('');
 };
-
-function profile() {
-  const a = S.artist;
-  return `<div class="wrap gut st">${head('Profile')}${nav('profile')}
-    <form class="st-form" id="profForm">
-      <label class="st-avatar"><input type="file" accept="image/*" name="photo" hidden><img src="${esc(a.photo || '')}" alt="" ${a.photo ? '' : 'hidden'}><span ${a.photo ? 'hidden' : ''}>+ Photo</span></label>
-      <label>Name<input name="name" required value="${esc(a.name)}"></label>
-      <div class="st-row"><label>Discipline<input name="discipline" placeholder="Painter" value="${esc(a.discipline)}"></label><label>City<input name="city" value="${esc(a.city)}"></label></div>
-      <label>Artist statement<textarea name="statement" rows="4" placeholder="A few sentences, in your own voice: what you make and why.">${esc(a.statement)}</textarea></label>
-      <label>Bio<textarea name="bio" rows="5" placeholder="Studies, shows, residencies...">${esc(a.bio)}</textarea></label>
-      <label>Website or Instagram<input name="link" value="${esc(a.link)}"></label>
-      <div class="btns"><button class="btn f" type="submit">Save</button><a class="btn g" href="#/studio/preview">See your page</a></div>
-    </form>
-    ${(a.cv || []).length ? `<section class="sec"><div class="sec-h"><h2>CV</h2><span class="more">from your website</span></div><div class="cv">${cvList(a.cv)}</div>
-      <p class="m small">Bring your website in again to update it.</p></section>` : ''}
-  </div>`;
-}
-
-function preview() {
-  const a = S.artist;
-  return `<div class="st-preview-bar gut"><span class="tag">Preview: your page, as visitors see it</span><a class="more" href="#/studio">Back to studio</a></div>
-  <section class="hero">${a.cover || (S.works[0] && S.works[0].image) ? `<img src="${esc(a.cover || S.works[0].image)}" alt="">` : ''}<div class="ov gut"><div class="wrap"><h1>${esc(a.name)}</h1><div class="k">${esc([a.discipline, a.city].filter(Boolean).join(' · '))}</div></div></div></section>
-  <div class="wrap gut">
-    ${a.statement ? `<p class="statement">“${esc(a.statement)}”</p>` : ''}
-    ${byYear(S.works).map(([y, ws]) => `<section class="sec"><div class="sec-h"><h2>${esc(y)}</h2><span class="more">${ws.length}</span></div>
-      <div class="grid">${ws.map(w => `<div><div class="im"><img src="${esc(w.thumb || w.image)}" alt="${esc(w.title)}"></div><div class="c"><b>${esc(w.title)}</b><div class="m">${esc(detail(w))}</div></div></div>`).join('')}</div></section>`).join('')}
-    ${S.exhibitions.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2></div><div class="covers">${S.exhibitions.map(ex => `<div><img src="${esc(ex.cover || (ex.photos[0] || {}).src || '')}" alt=""><div><b>${esc(ex.title)}</b><div class="m">${esc([ex.venue, ex.year].filter(Boolean).join(' · '))}</div></div></div>`).join('')}</div></section>` : ''}
-    ${a.bio || a.photo ? `<section class="sec st-about"><div class="sec-h"><h2>About</h2></div>${a.photo ? `<img class="st-portrait" src="${esc(a.photo)}" alt="${esc(a.name)}">` : ''}${a.bio ? `<div class="prose">${a.bio.split(/\n+/).map(p => `<p>${esc(p)}</p>`).join('')}</div>` : ''}</section>` : ''}
-    ${(a.cv || []).length ? `<section class="sec"><div class="sec-h"><h2>CV</h2></div><div class="cv">${cvList(a.cv)}</div></section>` : ''}
-  </div>`;
-}
 
 // --- reading files ----------------------------------------------------------------------------------------
 const asDataURL = (file, edge = 1600) => new Promise((res, rej) => {
@@ -711,7 +612,7 @@ function wire(app, go) {
     const f = Object.fromEntries(new FormData(su)), b = su.querySelector('button[type=submit]');
     b.disabled = true; b.textContent = 'Making your page…';
     if (previewing()) {
-      S = { preview: true, cloud: false, status: 'pending', note: '', artist: { name: f.name, discipline: f.discipline || '', city: f.city || '', photo: '', statement: '', bio: '', link: f.link || '', instagram: f.instagram || '', cover: '' }, works: [], exhibitions: [], virtual: [] };
+      S = { preview: true, cloud: false, status: 'draft', note: '', artist: { name: f.name, discipline: f.discipline || '', city: f.city || '', photo: '', statement: '', bio: '', link: f.link || '', instagram: f.instagram || '', cover: '' }, works: [], exhibitions: [], virtual: [] };
       return go('#/studio/import');
     }
     try { S = await cloud.create(f); go('#/studio/import'); }
@@ -720,35 +621,6 @@ function wire(app, go) {
   wireImport(app, go);
   const pub = $('#vxPub');
   if (pub) pub.onclick = () => { const v = S.virtual.find(x => x.id === $('#vxForm').dataset.id); if (!v) return; v.status = v.status === 'published' ? 'draft' : 'published'; save(); go(v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`, true); };
-
-  const wf = $('#workForm');
-  if (wf) {
-    let pending = null;
-    const file = wf.querySelector('input[type=file]');
-    const sizeNow = () => ({ width: +wf.width.value, height: +wf.height.value });
-    const refresh = () => { const w = wf.dataset.id && S.works.find(x => x.id === wf.dataset.id); $('#wChecks').innerHTML = checks(verdict(pending ? pending.check : w ? w.check : null, sizeNow())); };
-    file.onchange = async () => {
-      if (!file.files[0]) return;
-      $('#wChecks').innerHTML = '<p class="m small">Checking the image…</p>';
-      try {
-        const m = await checkImage(file.files[0]);
-        pending = { check: { W: m.W, H: m.H, long: m.long, mean: m.mean, clipped: m.clipped, sharp: m.sharp, backdrop: m.backdrop }, thumb: await asDataURL(file.files[0]) };
-        $('#wPreview').src = pending.thumb; $('#wPreview').hidden = false; $('#wDropText').hidden = true;
-      } catch { $('#wChecks').innerHTML = checks([['no', "This file couldn't be read as an image."]]); return; }
-      refresh();
-    };
-    wf.width.oninput = wf.height.oninput = refresh;
-    wf.onsubmit = e => {
-      e.preventDefault();
-      const f = new FormData(wf), id = wf.dataset.id || uid();
-      const old = S.works.find(x => x.id === id) || {};
-      const w = { ...old, id, title: f.get('title').trim(), year: f.get('year'), medium: f.get('medium'), width: +f.get('width') || '', height: +f.get('height') || '', depth: +f.get('depth') || '', framed: f.get('framed'), ...(pending || {}) };
-      if (!old.id) S.works.unshift(w); else Object.assign(old, w);
-      save(); go('#/studio/works');
-    };
-    const del = $('#delWork');
-    if (del) del.onclick = () => { if (!confirm('Delete this work?')) return; S.works = S.works.filter(x => x.id !== wf.dataset.id); S.exhibitions.forEach(ex => ex.works = ex.works.filter(i => i !== wf.dataset.id)); save(); go('#/studio/works'); };
-  }
 
   const vx = $('#vxForm');
   if (vx) {
@@ -821,7 +693,7 @@ function wire(app, go) {
     }
     xf.onsubmit = e => { e.preventDefault(); store(true); };
     const del = $('#delEx');
-    if (del) del.onclick = () => { if (!confirm('Delete this exhibition?')) return; S.exhibitions = S.exhibitions.filter(x => x.id !== id); save(); go('#/studio/exhibitions'); };
+    if (del) del.onclick = () => { if (!confirm('Delete this exhibition?')) return; S.exhibitions = S.exhibitions.filter(x => x.id !== id); save(); go('#/studio'); };
   }
   app.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
     const input = b.previousElementSibling;
@@ -853,16 +725,7 @@ function wire(app, go) {
   const bt = $('#buildTour');
   if (bt) bt.onclick = () => { const ex = thisEx(); if (ex) { ex.tour = 'requested'; ex.tourRequested = new Date().toISOString(); ex.tourNote = ''; save(); go(location.hash, true); } };
 
-  const pf = $('#profForm');
-  if (pf) {
-    pf.querySelector('input[name=photo]').onchange = async e => { const f = e.target.files[0]; if (!f) return; S.artist.photo = await asDataURL(f, 800); save(); go(location.hash, true); };
-    pf.onsubmit = e => {
-      e.preventDefault();
-      const f = new FormData(pf);
-      Object.assign(S.artist, { name: f.get('name').trim(), discipline: f.get('discipline'), city: f.get('city'), statement: f.get('statement').trim(), bio: f.get('bio').trim(), link: f.get('link') });
-      save(); go('#/studio');
-    };
-  }
+
 }
 
 // the artist's side answers every #/studio route
@@ -886,7 +749,7 @@ async function realArtist(M) {
   return { artist: { name: a.name, discipline: a.discipline || 'Painter', city: a.city, photo: a.portrait, statement: a.statement, bio: '', link: '', cover: a.hero }, works, exhibitions, virtual };
 }
 
-export async function studio(hash, app, go, M) {
+export async function studio(hash, app, go, M, tools) {
   model = M || null;
   // signed in as an artist: the studio is the account's own, in the database
   const u = me();
@@ -901,11 +764,21 @@ export async function studio(hash, app, go, M) {
   } else if (!(u && u.role === 'artist')) load();
   const m = hash.replace(/^#\/studio\/?/, '');
   let html;
+  // your page is your studio: the old Works, Profile and Preview screens are the page itself, in edit or view mode
+  const onPage = S && tools && (!m || m === 'works' || m === 'works/new' || m === 'exhibitions/new' || m === 'profile' || m === 'preview' || m.startsWith('work/'));
+  if (onPage) {
+    const act = !m ? '' : m === 'works/new' ? 'work-new' : m === 'exhibitions/new' ? 'ex-new' : m.startsWith('work/') ? `work:${m.slice(5)}` : m;
+    if (m === 'preview') { try { sessionStorage.setItem('os-studio-mode', 'view'); } catch {} }
+    if (m) history.replaceState(null, '', '#/studio');
+    const page = await import('./studio-page.js');
+    cloud = cloud || (S.cloud ? await import('./studio-cloud.js') : null);
+    app.scrollTop = 0;
+    page.mount({ app, S, tools, M, go, save, act: act === 'preview' ? '' : act,
+      h: { esc, uid, asDataURL, checkImage, verdict, checks }, cloud: async () => cloud || (cloud = await import('./studio-cloud.js')),
+      signOut: () => { const b = document.createElement('button'); b.id = 'signOut'; app.append(b); wire(app, go); b.click(); } });
+    return;
+  }
   if (!S) html = signIn();
-  else if (!m) html = home();
-  else if (m === 'works') html = works();
-  else if (m === 'works/new') html = workForm(null);
-  else if (m.startsWith('work/')) html = workForm(m.slice(5));
   else if (m === 'exhibitions/new') html = exhibitionPage('new');
   else if (m.startsWith('exhibition/')) html = exhibitionPage(m.slice(11));
   else if (m.startsWith('virtual/') || m === 'exhibitions' || m === 'onview') {
@@ -913,9 +786,7 @@ export async function studio(hash, app, go, M) {
     html = m === 'exhibitions' ? exhibitions() : m === 'onview' ? onView() : designer(m.slice(8));
   }
   else if (m === 'import') html = importer();
-  else if (m === 'profile') html = profile();
-  else if (m === 'preview') html = preview();
-  else html = home();
+  else { go('#/studio'); return; }
   app.innerHTML = html;
   wire(app, go);
   if (restoreY != null) { const y = restoreY; restoreY = null; requestAnimationFrame(() => scrollTo({ top: y, behavior: 'instant' })); }

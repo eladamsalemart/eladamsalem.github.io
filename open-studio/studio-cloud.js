@@ -13,7 +13,7 @@ export async function session() {
   return data.session ? { c, user: data.session.user, token: data.session.access_token } : null;
 }
 
-const rowToWork = r => ({ id: r.id, title: r.title, year: r.year || '', medium: r.medium || '', width: r.width ?? '', height: r.height ?? '', depth: r.depth ?? '', kind: r.kind || 'work',
+const rowToWork = r => ({ id: r.id, title: r.title, year: r.year || '', medium: r.medium || '', width: r.width ?? '', height: r.height ?? '', depth: r.depth ?? '', kind: r.kind || 'work', category: r.category || '',
   image: r.image, thumb: r.thumb || r.image, source: r.source || '', framed: 'no', check: { W: 2000, H: 2000, long: 2000, mean: 120, clipped: 0, sharp: 0.5, backdrop: false } });
 const rowToShow = r => ({ id: r.id, title: r.title, room: r.room, paint: r.paint || '', centre: r.centre, text: r.text || '', status: r.status, slug: r.slug, onview: !!r.on_view,
   works: (r.works || []).map(w => w.id), plinths: r.plinths || [],
@@ -35,7 +35,7 @@ export async function load() {
     c.from('virtual_shows').select('*').eq('owner_id', user.id).eq('kind', 'artist').order('created_at', { ascending: false }),
   ]);
   const S = { cloud: true, status: a.status, note: a.note || '', slug: a.slug,
-    artist: { name: a.name, discipline: a.discipline || '', city: a.city || '', photo: a.photo || '', statement: a.statement || '', bio: a.bio || '', link: a.link || '', instagram: a.instagram || '', cover: '', cv: a.cv || [] },
+    artist: { name: a.name, discipline: a.discipline || '', city: a.city || '', photo: a.photo || '', hero: a.hero || '', heroPos: a.hero_pos || '', statement: a.statement || '', bio: a.bio || '', link: a.link || '', instagram: a.instagram || '', cover: '', cv: a.cv || [] },
     works: (works || []).map(rowToWork), exhibitions: (a.exhibitions || []).map(exhibitionOf), virtual: (shows || []).map(rowToShow) };
   last = JSON.stringify(S);
   return S;
@@ -89,8 +89,9 @@ async function push(S) {
   const was = last ? JSON.parse(last) : { artist: {}, works: [], virtual: [] };
   const a = S.artist;
   if (JSON.stringify(a) !== JSON.stringify(was.artist)) {
+    if (isLocal(a.hero)) { const u = await upload(await toBlob(a.hero)); a.hero = u.image; if (!a.photo || isLocal(a.photo)) a.photo = u.thumb; }
     if (isLocal(a.photo)) a.photo = (await upload(await toBlob(a.photo))).thumb;
-    const { error } = await c.from('artists').update({ name: a.name, discipline: a.discipline || null, city: a.city || null, statement: a.statement || null, bio: a.bio || null, photo: a.photo || null, link: a.link || null, instagram: a.instagram || null, cv: a.cv || [] }).eq('id', user.id);
+    const { error } = await c.from('artists').update({ name: a.name, discipline: a.discipline || null, city: a.city || null, statement: a.statement || null, bio: a.bio || null, photo: a.photo || null, hero: a.hero || null, hero_pos: a.heroPos || null, link: a.link || null, instagram: a.instagram || null, cv: a.cv || [] }).eq('id', user.id);
     if (error) throw error;
   }
   // past exhibitions, with their installation photos (a photo chosen on the phone is uploaded first)
@@ -110,7 +111,7 @@ async function push(S) {
     if (old.get(w.id) === JSON.stringify(w) && i === was.works.findIndex(x => x.id === w.id)) continue;
     if (isLocal(w.image) || isLocal(w.thumb)) Object.assign(w, await upload(await toBlob(isLocal(w.image) ? w.image : w.thumb)));
     const row = { id: w.id, artist_id: user.id, title: w.title || 'Untitled', year: w.year || null, medium: w.medium || null, width: +w.width || null, height: +w.height || null,
-      depth: +w.depth || null, image: w.image, thumb: w.thumb || null, source: w.source || null, position: i, kind: w.kind === 'object' ? 'object' : 'work' };
+      depth: +w.depth || null, image: w.image, thumb: w.thumb || null, source: w.source || null, position: i, kind: w.kind === 'object' ? 'object' : 'work', category: w.category || null };
     const { error } = await c.from('works').upsert(row);
     if (error) throw error;
   }
