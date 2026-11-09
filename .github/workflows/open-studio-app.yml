@@ -9,6 +9,7 @@ on:
     branches: [studio]
     paths:
       - 'studio/app/**'
+      - 'studio/desk/**'
       - '!studio/app/space/pipeline/**'
   workflow_run:
     workflows: [Studio spaces, Studio rooms, "Art map: exhibitions", "Art map: places"]
@@ -62,6 +63,10 @@ jobs:
           cp -r $src/data/rooms open-studio/data/ 2>/dev/null || true
           # small versions of the site's images, for grids and lists on a phone
           python3 /tmp/studio/studio/app/thumbs.py media open-studio
+          # Open Studio Desk: the owner's control room for a computer and an iPad, at /open-studio-desk/ (it borrows the rooms and
+          # the 3D viewer from /open-studio/, so nothing but its own four files is copied)
+          rm -rf open-studio-desk && mkdir -p open-studio-desk
+          cp /tmp/studio/studio/desk/index.html /tmp/studio/studio/desk/desk.css /tmp/studio/studio/desk/desk.js /tmp/studio/studio/desk/data.js open-studio-desk/
           # a new cache name with every version, so an installed app drops what it kept from the last one
           sed -i "s/const VERSION = '[^']*'/const VERSION = 'open-studio-$(git -C /tmp/studio rev-parse --short HEAD)'/" open-studio/sw.js
       - name: Every file the app loads is published (a script left out of the copy above fails here, not on a phone)
@@ -98,7 +103,7 @@ jobs:
         run: |
           git config user.name "open-studio"
           git config user.email "open-studio@users.noreply.github.com"
-          git add -A open-studio
+          git add -A open-studio open-studio-desk
           git diff --cached --quiet && exit 0
           git commit -m "Open Studio: publish the app from studio"
           for i in 1 2 3; do
