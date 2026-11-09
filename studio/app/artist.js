@@ -184,8 +184,7 @@ const plan = (r, on) => {
   return `<svg viewBox="-3 -3 ${W + 6} ${D + 6}" width="${W + 6}" height="${D + 6}" aria-hidden="true"><path d="M${W} ${D / 2 + d / 2}V${D}H0V0H${W}V${D / 2 - d / 2}" fill="${on ? 'var(--card)' : 'none'}" stroke="currentColor" stroke-width="1.5"/></svg>`;
 };
 // On View: the artist's exhibition now, in one of the ten spaces, at the top of their page
-const kindsOf = () => { const k = {}; for (const [slug, r] of Object.entries(ROOMS)) if (r.baked) (k[r.kind] = k[r.kind] || []).push([slug, r]); return k; };
-const SEVERAL = new Set(['white-cube', 'salon', 'concrete']);   // kinds whose medium size is several rooms (not yet photographed for the app)
+const kindsOf = () => { const k = {}; for (const [slug, r] of Object.entries(ROOMS)) if (r.baked && !r.cells) (k[r.kind] = k[r.kind] || []).push([slug, r]); return k; };
 const SIZE_ORDER = ['small', 'medium', 'large'];
 const firstOf = list => (list.find(([, r]) => r.variant === 'medium') || list[0])[0];
 function onView() {
@@ -195,12 +194,13 @@ function onView() {
   return designer(cur ? cur.id : 'new', true);
 }
 function spacePicker(v) {
-  const kinds = kindsOf(), room = ROOMS[v.room] && ROOMS[v.room].baked ? ROOMS[v.room] : null, kind = room ? room.kind : '';
+  const kinds = kindsOf(), room = ROOMS[v.room] && ROOMS[v.room].baked ? ROOMS[v.room] : null, kind = room ? room.kind : '', base = String(v.room).replace(/-[23]r$/, '');
   const sizes = kind ? kinds[kind].slice().sort(([, a], [, b]) => SIZE_ORDER.indexOf(a.variant) - SIZE_ORDER.indexOf(b.variant)) : [];
   return `<fieldset><legend>1. The space</legend><div class="ov-kinds">${Object.entries(kinds).map(([k, list]) => { const r = ROOMS[firstOf(list)];
       return `<label class="ov-kind"><input type="radio" name="kind" value="${k}" ${kind === k ? 'checked' : ''}><img src="${esc(r.cover)}" alt="" loading="lazy"><b>${esc(r.name)}</b><span class="m small">${esc(r.blurb)}</span></label>`; }).join('')}</div></fieldset>
     <input type="hidden" name="room" value="${esc(v.room)}">
-    ${kind ? `<fieldset><legend>2. Its size</legend><p class="m small">Tap a size to walk the empty space before you choose.</p><div class="ov-sizes">${sizes.map(([slug, r]) => `<button type="button" class="ov-size ${v.room === slug ? 'on' : ''}" data-preview="${slug}" aria-pressed="${v.room === slug}"><b>${esc(r.sizeName)}</b><span class="m small">${esc(r.size)}</span></button>`).join('')}${SEVERAL.has(kind) ? '<span class="ov-size soon" title="Several connected rooms: being prepared"><b>Several rooms</b><span class="m small">Being prepared</span></span>' : ''}</div></fieldset>` : ''}`;
+    ${kind ? `<fieldset><legend>2. Its size and rooms</legend><p class="m small">Tap a size, or 2 or 3 rooms, to walk the empty space before you choose.</p><div class="ov-sizes">${sizes.map(([slug, r]) => `<button type="button" class="ov-size ${base === slug ? 'on' : ''}" data-preview="${slug}" aria-pressed="${base === slug}"><b>${esc(r.sizeName)}</b><span class="m small">${esc(r.size)}</span></button>`).join('')}</div>
+      <div class="ov-rooms" role="group" aria-label="Number of rooms"><span class="m small">Rooms</span>${[1, 2, 3].map(n => { const sl = n === 1 ? base : `${base}-${n}r`; return ROOMS[sl] ? `<button type="button" class="ov-size ov-n ${v.room === sl ? 'on' : ''}" data-preview="${sl}" aria-pressed="${v.room === sl}"><b>${n}</b></button>` : ''; }).join('')}</div></fieldset>` : ''}`;
 }
 function designer(id, onview = false) {
   const isNew = id === 'new';

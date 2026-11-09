@@ -2,8 +2,9 @@
 // as the phone app (data.js) and borrows the phone app's rooms and 3D viewer (APP). Hebrew, right to left, for its owner;
 // the exhibitions' own text stays English, as in the app.
 //
-// Places: תור (decisions), אמנים (find, follow the new ones, approve), אנשים, תערוכות (the museum: every exhibition is an
-// article, and every article is a 3D room), מערכת (health, requests).
+// Sections: אמנים, חובבי אמנות, תערוכות (the approved ones: artists', galleries and institutions', the app's own), מוזיאון (the articles: every one is a 3D room),
+// אישורים (the queue of decisions), מערכת, שיחות (talking with users).
+
 import { api, APP, guest, abs } from './data.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -29,8 +30,8 @@ function viewerCss() {
     const el = document.createElement('style'); el.textContent = out.join(' ') + ' .sv{left:0!important;transform:none!important;width:100%!important}'; document.head.append(el);
   }).catch(e => console.warn('viewer styles', e)));
 }
-const NAV = [['queue', 'תור'], ['artists', 'אמנים'], ['people', 'אנשים'], ['shows', 'תערוכות'], ['system', 'מערכת']];
-const TITLES = { queue: 'תור', artists: 'אמנים', people: 'אנשים', shows: 'תערוכות', system: 'מערכת' };
+const NAV = [['artists', 'אמנים'], ['lovers', 'חובבי אמנות'], ['exhibitions', 'תערוכות'], ['museum', 'מוזיאון'], ['approvals', 'אישורים'], ['system', 'מערכת'], ['talk', 'שיחות']];
+const TITLES = { approvals: 'אישורים', artists: 'אמנים', lovers: 'חובבי אמנות', exhibitions: 'תערוכות', museum: 'מוזיאון', system: 'מערכת', talk: 'שיחות' };
 let me = null, QN = 0, KEYS = null;
 
 // --- small helpers ------------------------------------------------------------------------------------------------------
@@ -81,7 +82,7 @@ function gate(notAdmin) {
 function shell(tab, title, sub, body) {
   return `${guest ? '<div class="demo">מצב הדגמה: אמנים ויצירות לדוגמה, שום דבר לא נשמר ולא נשלח.</div>' : ''}
   <div class="shell"><aside class="rail"><div class="brand">Open Studio<small>Desk · חדר בקרה</small></div>
-    <nav aria-label="ראשי">${NAV.map(([k, t]) => `<a class="nv" href="#/${k}" ${k === tab ? 'aria-current="page"' : ''}><span>${t}</span>${k === 'queue' ? `<i class="badge" data-q>${QN || ''}</i>` : k === 'system' ? '<i class="dot" data-h hidden></i>' : ''}</a>`).join('')}</nav>
+    <nav aria-label="ראשי">${NAV.map(([k, t]) => `<a class="nv" href="#/${k}" ${k === tab ? 'aria-current="page"' : ''}><span>${t}</span>${k === 'approvals' ? `<i class="badge" data-q>${QN || ''}</i>` : k === 'system' ? '<i class="dot" data-h hidden></i>' : ''}</a>`).join('')}</nav>
     <div class="who"><span dir="ltr">${esc(me.email)}</span><a href="${APP}" target="_blank" rel="noopener">האפליקציה בטלפון ↗</a><button type="button" id="out">יציאה</button></div></aside>
     <main><div class="top"><div><h1>${esc(title)}</h1>${sub ? `<p>${sub}</p>` : ''}</div></div>${body}</main></div>`;
 }
@@ -93,21 +94,30 @@ function page(tab, title, sub, body) {
 }
 
 async function route() {
-  const [tab = 'queue', id] = location.hash.replace(/^#\//, '').split('/');
+  const [tab = 'approvals', id] = location.hash.replace(/^#\//, '').split('/');
   window.scrollTo(0, 0);
   try {
     if (tab === 'artists') await artistsView(id);
-    else if (tab === 'people') await peopleView();
-    else if (tab === 'shows') await (id ? editor(id) : showsView());
+    else if (tab === 'lovers' || tab === 'people') await peopleView();
+    else if (tab === 'museum') await (id ? editor(id) : museumView());
     else if (tab === 'system') await systemView();
+    else if (tab === 'exhibitions') await exhibitionsView();
+    else if (tab === 'talk') await talkView(id);
     else await queueView();
-  } catch (e) { console.error(e); page(tab, TITLES[tab] || 'תור', '', `<p class="status no">משהו לא נטען: ${esc(e.message || e)}</p>`); }
+  } catch (e) { console.error(e); page(tab, TITLES[tab] || 'אישורים', '', `<p class="status no">משהו לא נטען: ${esc(e.message || e)}</p>`); }
 }
 
 // --- the queue: everything that waits for a decision -----------------------------------------------------------------------
 const heading = n => n === 0 ? 'הכל מטופל' : n === 1 ? 'דבר אחד מחכה לך' : `${n} דברים מחכים לך`;
 async function queueView() {
-  const q = await api.queue(), n = q.waiting.length + q.groups.length + q.tours.length; badge(n);
+  const q = await api.queue(), allShows = await api.shows(), names = new Map((await api.artists()).map(a => [a.id, a.name]));
+  q.shows = allShows.filter(s => s.kind === 'artist' && s.status !== 'published' && (s.works || []).length);        // an artist's exhibition that waits to go up
+  const n = q.waiting.length + q.groups.length + q.tours.length + q.shows.length; badge(n);
+  const showCard = s => `<article class="card" tabindex="0" data-kind="show" data-id="${esc(s.id)}" data-name="${esc(s.title)}">
+    <div class="hd"><div><div class="kind">תערוכה של אמן/ית מחכה לפרסום</div><h2 dir="auto">${esc(s.title)}</h2></div><span class="chip">${esc(names.get(s.owner_id) || '')}</span></div>
+    <p class="meta">${(s.works || []).length} עבודות · ${ago(s.created_at)}</p>
+    <div class="th">${(s.works || []).slice(0, 8).map(w => `<img src="${esc(abs(w.thumb || w.image))}" alt="" loading="lazy">`).join('')}</div>
+    <div class="acts"><button class="btn p" data-act="pub-show">אשר פרסום</button><a class="btn q" target="_blank" rel="noopener" href="${APP}#/preview/${esc(s.owner_id)}">צפה ↗</a></div></article>`;
   const artist = a => `<article class="card" tabindex="0" data-kind="artist" data-id="${esc(a.id)}" data-name="${esc(a.name)}" data-note="${esc(a.note || '')}">
     <div class="hd"><div><div class="kind">אמן/ית מחכה לאישור</div><h2>${esc(a.name)}</h2></div><span class="chip">נשלח ${ago(a.sent_at || a.created_at)}</span></div>
     <p class="meta"><bdi>${esc([a.discipline, a.city, a.country].filter(Boolean).join(' · '))}</bdi> · ${a.works.length} עבודות${a.instagram ? ` · <a dir="ltr" target="_blank" rel="noopener" href="https://instagram.com/${esc(a.instagram.replace(/^@/, ''))}">${esc(a.instagram)}</a>` : ''}${a.link ? ` · <a target="_blank" rel="noopener" href="${esc(a.link)}">אתר</a>` : ''}</p>
@@ -124,8 +134,8 @@ async function queueView() {
   const tour = t => `<article class="card" tabindex="0"><div class="hd"><div><div class="kind">בקשת סיור תלת־ממדי</div><h2>${esc(t.title)}</h2></div><span class="chip">${t.building ? 'בבנייה' : 'ביקש סיור'}</span></div>
     <p class="meta"><bdi>${esc(t.name)}</bdi> · ${t.photos} צילומי הצבה · ${t.extra} קבצים · ${t.video ? 'יש סרטון · ' : ''}${ago(t.at)}</p>
     <div class="acts"><a class="btn p" target="_blank" rel="noopener" href="${APP}#/preview/${esc(t.uid)}">פתח את התערוכה ↗</a></div></article>`;
-  page('queue', heading(n), n ? '' : 'כל מה שנשלח אליך טופל.', `<div class="q" id="q">${[...q.waiting.map(artist), ...q.groups.map(works), ...q.tours.map(tour)].join('')}</div>
-    <div class="empty" id="empty" ${n ? 'hidden' : ''}><b>אין מה לעשות</b><div class="acts"><a class="btn" href="#/artists">לכל האמנים</a><a class="btn" href="#/shows">לתערוכות</a></div></div>
+  page('approvals', heading(n), n ? '' : 'כל מה שנשלח אליך טופל.', `<div class="q" id="q">${[...q.waiting.map(artist), ...q.shows.map(showCard), ...q.groups.map(works), ...q.tours.map(tour)].join('')}</div>
+    <div class="empty" id="empty" ${n ? 'hidden' : ''}><b>אין מה לעשות</b><div class="acts"><a class="btn" href="#/artists">לכל האמנים</a><a class="btn" href="#/exhibitions">לתערוכות</a></div></div>
     <div class="keys" ${n ? '' : 'hidden'}><span><kbd>J</kbd> <kbd>K</kbd> מעבר בין פריטים</span><span><kbd>A</kbd> אשר</span><span><kbd>C</kbd> בקש שינויים</span></div>`);
   const qEl = $('#q');
   const recount = () => { const k = $$('#q > .card').length; $('.top h1').textContent = heading(k); badge(k); $('#empty').hidden = k > 0; const ks = $('.keys'); if (ks) ks.hidden = !k; };
@@ -139,6 +149,7 @@ async function queueView() {
         $('[data-act=ok-works]', card).textContent = !bad ? 'הכל נראה טוב' : bad === all ? 'הסתר את כולן' : `אשר ${all - bad}, הסתר ${bad}`; }
       else if (act === 'ask') { $('[data-ask]', card).hidden = false; $('[data-main]', card).hidden = true; $('input', card).focus(); }
       else if (act === 'cancel-ask') { $('[data-ask]', card).hidden = true; $('[data-main]', card).hidden = false; }
+      else if (act === 'pub-show') { const id = card.dataset.id; b.disabled = true; await api.setShowStatus(id, 'published'); leave(card, `פורסמה: ${card.dataset.name}`, () => api.setShowStatus(id, 'draft')); }
       else if (act === 'approve' || act === 'send-ask') {
         const id = card.dataset.id; b.disabled = true;
         if (act === 'approve') { const ids = await api.approveArtist(id); leave(card, `אושר/ה: ${card.dataset.name}`, () => api.undoApprove(id, ids, card.dataset.note)); }
@@ -155,7 +166,7 @@ async function queueView() {
     const cards = $$('#q > .card'); if (!cards.length) return; let i = cards.findIndex(c => c.classList.contains('key'));
     const k = e.key.toLowerCase();
     if (k === 'j' || k === 'k') { cards[i]?.classList.remove('key'); i = k === 'j' ? Math.min(cards.length - 1, i + 1) : Math.max(0, i - 1); cards[i].classList.add('key'); cards[i].scrollIntoView({ block: 'center', behavior: 'smooth' }); }
-    else if (i >= 0 && k === 'a') (cards[i].querySelector('[data-act=approve],[data-act=ok-works]') || {}).click?.();
+    else if (i >= 0 && k === 'a') (cards[i].querySelector('[data-act=approve],[data-act=ok-works],[data-act=pub-show]') || {}).click?.();
     else if (i >= 0 && k === 'c') (cards[i].querySelector('[data-act=ask]') || {}).click?.();
   };
   document.addEventListener('keydown', KEYS);
@@ -211,11 +222,11 @@ async function artistsView(sel) {
 
 // --- people -------------------------------------------------------------------------------------------------------------------
 async function peopleView() {
-  const rows = await api.people();
+  const rows = (await api.people()).filter(r => r.role !== 'artist');   // artists have their own place
   const count = f => Object.entries(rows.reduce((o, r) => { const k = f(r) || '—'; o[k] = (o[k] || 0) + 1; return o; }, {})).sort((a, b) => b[1] - a[1]);
   const week = rows.filter(r => Date.now() - new Date(r.created_at) < 7 * 864e5).length, today = rows.filter(r => Date.now() - new Date(r.created_at) < 864e5).length;
   const kv = (t, l) => `<div class="card"><h2 style="font-size:1.1rem">${t}</h2><div>${l.map(([k, v]) => `<div class="kv"><span>${esc(k)}</span><b>${v}</b></div>`).join('')}</div></div>`;
-  page('people', 'אנשים', 'מי הצטרף ומאיפה', `<div class="sum"><div><b>${today}</b><span>היום</span></div><div><b>${week}</b><span>השבוע</span></div><div><b>${rows.length}</b><span>בסך הכל</span></div></div>
+  page('lovers', 'חובבי אמנות', 'מי הצטרף ומאיפה', `<div class="sum"><div><b>${today}</b><span>היום</span></div><div><b>${week}</b><span>השבוע</span></div><div><b>${rows.length}</b><span>בסך הכל</span></div></div>
     <div class="cols">${kv('נרשמו בתור', count(r => roleName(r.role)))}${kv('נכנסו עם', count(r => r.provider === 'google' ? 'Google' : 'מייל'))}${kv('מאיפה', count(r => r.country).slice(0, 6))}</div>
     <section class="sec" style="margin-top:28px"><h2>האחרונים</h2><div class="tbl">${rows.slice(0, 40).map(r => `<div><b>${esc(who(r))}</b><span>${r.role ? roleName(r.role) : '—'}</span><span>${esc(r.country || '')}</span><span class="muted">${ago(r.created_at)}</span></div>`).join('')}</div></section>`);
 }
@@ -239,21 +250,86 @@ async function systemView() {
 }
 
 // --- the museum: a magazine whose every article is a room ------------------------------------------------------------------------
-async function showsView() {
+async function museumView() {
   const { ROOMS } = await synth();
   const rows = await api.shows();
-  const mine = rows.filter(r => r.kind === 'curated'), theirs = rows.filter(r => r.kind === 'artist' && r.status === 'published');
+  const mine = rows.filter(r => r.kind === 'curated');
   const pub = mine.filter(r => r.status === 'published').length;
-  page('shows', 'תערוכות', `המוזיאון: כל תערוכה היא כתבה, וכל כתבה היא חדר תלת־ממדי · ${pub} מפורסמות, ${mine.length - pub} טיוטות`, `<div class="issue">
-    ${mine.map((r, i) => { const w = (r.works || [])[0], R = ROOMS[r.room]; return `<a class="art" href="#/shows/${esc(r.id)}"><div class="cov" style="background-image:url('${esc(w ? abs(w.thumb || w.image) : (R && R.cover) || '')}')"><span class="no">${String(mine.length - i).padStart(2, '0')}</span></div>
+  page('museum', 'מוזיאון', `כתבות: כל תערוכה היא כתבה, וכל כתבה היא חדר תלת־ממדי · ${pub} מפורסמות, ${mine.length - pub} טיוטות`, `<div class="issue">
+    ${mine.map((r, i) => { const w = (r.works || [])[0], R = ROOMS[r.room]; return `<a class="art" href="#/museum/${esc(r.id)}"><div class="cov" style="background-image:url('${esc(w ? abs(w.thumb || w.image) : (R && R.cover) || '')}')"><span class="no">${String(mine.length - i).padStart(2, '0')}</span></div>
       <div class="bd"><div style="display:flex;justify-content:space-between;gap:8px"><h3>${esc(r.title)}</h3><span class="chip ${r.status === 'published' ? 'ok' : ''}">${r.status === 'published' ? 'מפורסמת' : 'טיוטה'}</span></div>
       <span class="meta">${esc(R ? R.name : r.room)} · ${(r.works || []).length} עבודות</span></div></a>`; }).join('')}
-    <a class="art new" href="#/shows/new"><b style="font:400 2.4rem var(--serif)">+</b><span>כתבה חדשה</span></a></div>
-    ${theirs.length ? `<section class="sec" style="margin-top:34px"><h2>של האמנים עצמם</h2>${theirs.map(r => `<div class="run"><span><b>${esc(r.title)}</b> <span class="muted small">${(r.works || []).length} עבודות</span></span><button class="btn q" data-un="${esc(r.id)}">הורד מהאפליקציה</button></div>`).join('')}</section>` : ''}`);
-  $$('[data-un]').forEach(b => b.onclick = async () => { try { await api.setShowStatus(b.dataset.un, 'draft'); toast('הורדה מהאפליקציה', async () => { await api.setShowStatus(b.dataset.un, 'published'); showsView(); }); showsView(); } catch (x) { fail(x); } });
+    <a class="art new" href="#/museum/new"><b style="font:400 2.4rem var(--serif)">+</b><span>כתבה חדשה</span></a></div>
+  `);
 }
 
-let LIB = null;                                                       // every approved artist's visible works, for choosing
+// --- exhibitions: the approved ones, by artists, by galleries and institutions (the art map), and the app's own --------------------------
+let ARTMAP = null;
+const artMap = () => ARTMAP || (ARTMAP = Promise.all(['exhibitions', 'places'].map(f => fetch(APP + `data/art/${f}.json`).then(r => r.json()))).then(([e, p]) => ({ shows: e.shows || [], places: new Map((p.places || []).map(x => [x.id, x])), updated: e.updated })));
+const PKIND = { museum: 'מוזיאונים', commercial: 'גלריות', public: 'מוסדות ציבוריים' };
+let XF = { src: 'all', kind: 'all', old: false, q: '' };                   // the filters stay while you move between sections
+async function exhibitionsView() {
+  const [rows, artists, am] = await Promise.all([api.shows(), api.artists(), artMap().catch(() => ({ shows: [], places: new Map() }))]);
+  const names = new Map(artists.map(a => [a.id, a.name]));
+  const today = new Date().toISOString().slice(0, 10);
+  const own = rows.filter(r => r.kind === 'curated' && r.status === 'published');
+  const byArtist = rows.filter(r => r.kind === 'artist' && r.status === 'published');
+  const places = am.shows.filter(s => s.place && am.places.has(s.place) && (XF.old || !s.end || s.end >= today));
+  const nPlaces = new Set(places.map(s => s.place)).size;
+  const seg = [['all', 'הכל'], ['app', `של האפליקציה · ${own.length}`], ['artists', `של האמנים · ${byArtist.length}`], ['places', `גלריות ומוסדות · ${places.length}`]];
+  const dates = s => [s.start, s.end].filter(Boolean).map(d => new Date(d).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' })).join(' – ');
+  const cover = r => { const w = (r.works || [])[0]; return w ? abs(w.thumb || w.image) : ''; };
+  const appBlock = () => `<section class="sec" data-s="app"><h2>של האפליקציה <span class="muted small">תערוכות שאוצרות כאן, כתבות מהמוזיאון</span></h2>${own.length ? `<div class="issue">${own.map(r => `<a class="art" href="#/museum/${esc(r.id)}"><div class="cov" style="background-image:url('${esc(cover(r))}')"></div><div class="bd"><h3 dir="auto">${esc(r.title)}</h3><span class="meta">${(r.works || []).length} עבודות</span></div></a>`).join('')}</div>` : '<p class="muted">עוד אין תערוכה מפורסמת של האפליקציה. כתבות נוצרות במוזיאון.</p>'}</section>`;
+  const artistBlock = () => {
+    const g = new Map(); for (const r of byArtist) { const k = names.get(r.owner_id) || '—'; (g.get(k) || g.set(k, []).get(k)).push(r); }
+    return `<section class="sec" data-s="artists"><h2>של האמנים <span class="muted small">תערוכות וירטואליות של אמנים מאושרים</span></h2>${g.size ? [...g].sort((a, b) => a[0].localeCompare(b[0], 'he')).map(([n, l]) => `<div class="grp"><h3>${esc(n)} <span class="muted small">${l.length}</span></h3>${l.map(r => `<div class="run"><span><b dir="auto">${esc(r.title)}</b> <span class="muted small">${(r.works || []).length} עבודות</span></span><span class="acts"><a class="btn q" target="_blank" rel="noopener" href="${APP}#/preview/${esc(r.owner_id)}">צפה ↗</a><button class="btn q" data-un="${esc(r.id)}">הורד מהאפליקציה</button></span></div>`).join('')}</div>`).join('') : '<p class="muted">עוד אין תערוכות מאושרות של אמנים.</p>'}</section>`;
+  };
+  const placeBlock = () => {
+    const l = places.filter(s => (XF.kind === 'all' || am.places.get(s.place).kind === XF.kind) && (!XF.q || ((am.places.get(s.place).name_he || '') + am.places.get(s.place).name + s.title + (s.artists || []).join(' ')).toLowerCase().includes(XF.q)));
+    const g = new Map(); for (const s of l) (g.get(s.place) || g.set(s.place, []).get(s.place)).push(s);
+    const head = `<div class="acts" style="margin-bottom:12px"><input class="search" id="xq" type="search" placeholder="חיפוש גלריה, מוסד או תערוכה" aria-label="חיפוש" dir="auto" value="${esc(XF.q)}" style="max-width:380px"><div class="chips" style="padding:0">${[['all', 'כל המקומות'], ...Object.entries(PKIND)].map(([k, t]) => `<button type="button" data-k="${k}" aria-pressed="${XF.kind === k}">${t}</button>`).join('')}<button type="button" id="xo" aria-pressed="${XF.old}">כולל שהסתיימו</button></div></div>`;
+    return `<section class="sec" data-s="places"><h2>גלריות ומוסדות <span class="muted small">${l.length} תערוכות ב־${g.size} מקומות (מפת האמנות, מתעדכנת כל יום)</span></h2>${head}${g.size ? [...g].sort((a, b) => (am.places.get(a[0]).name_he || am.places.get(a[0]).name).localeCompare(am.places.get(b[0]).name_he || am.places.get(b[0]).name, 'he')).map(([id, ss]) => { const p = am.places.get(id); return `<div class="grp"><h3>${esc(p.name_he || p.name)} <span class="muted small">${esc(PKIND[p.kind] || '')}${p.city ? ' · ' + esc(p.city) : ''} · ${ss.length}</span></h3>${ss.sort((a, b) => (a.start || '').localeCompare(b.start || '')).map(s => `<a class="run" ${s.url ? `href="${esc(s.url)}" target="_blank" rel="noopener"` : ''}><span><b dir="auto">${esc(s.title)}</b>${(s.artists || []).length ? ` <span class="muted small" dir="auto">${esc(s.artists.join(', '))}</span>` : ''}</span><span class="muted small">${esc(dates(s))}</span></a>`).join('')}</div>`; }).join('') : '<p class="muted">לא נמצאו תערוכות לפי הסינון.</p>'}</section>`;
+  };
+  const draw = () => {
+    const box = $('#xbody');
+    box.innerHTML = (XF.src === 'all' || XF.src === 'app' ? appBlock() : '') + (XF.src === 'all' || XF.src === 'artists' ? artistBlock() : '') + (XF.src === 'all' || XF.src === 'places' ? placeBlock() : '');
+    const xq = $('#xq'); if (xq) { xq.oninput = e => { XF.q = e.target.value.trim().toLowerCase(); const pos = e.target.selectionStart; draw(); const n = $('#xq'); n.focus(); n.setSelectionRange(pos, pos); }; }
+    $$('[data-k]', box).forEach(b => b.onclick = () => { XF.kind = b.dataset.k; draw(); });
+    const xo = $('#xo'); if (xo) xo.onclick = () => { XF.old = !XF.old; exhibitionsView(); };
+    $$('[data-un]', box).forEach(b => b.onclick = async () => { try { await api.setShowStatus(b.dataset.un, 'draft'); toast('הורדה מהאפליקציה', async () => { await api.setShowStatus(b.dataset.un, 'published'); exhibitionsView(); }); exhibitionsView(); } catch (x) { fail(x); } });
+  };
+  page('exhibitions', 'תערוכות', `רק מה שמאושר ופועל · ${own.length + byArtist.length} באפליקציה, ${places.length} בגלריות ובמוסדות (${nPlaces} מקומות)`, `<div class="chips" id="xseg" role="group" aria-label="סינון לפי מקור">${seg.map(([k, t]) => `<button type="button" data-src="${k}" aria-pressed="${XF.src === k}">${t}</button>`).join('')}</div><div id="xbody"></div>`);
+  $('#xseg').onclick = e => { const b = e.target.closest('[data-src]'); if (!b) return; XF.src = b.dataset.src; $$('#xseg button').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(); };
+  draw();
+}
+
+// --- conversations: talking with users, like customer service ------------------------------------------------------------------------
+const CST = { open: ['warn', 'מחכה לתשובה'], answered: ['ok', 'נענתה'], closed: ['', 'סגורה'] };
+async function talkView(sel) {
+  const rows = await api.conversations();
+  const list = rows.map(c => `<a class="row th2" href="#/talk/${esc(c.id)}" data-id="${esc(c.id)}" ${c.id === sel ? 'aria-current="true"' : ''}><span class="av">${esc((c.name || '?').slice(0, 1))}</span><span><b dir="auto">${esc(c.name || 'משתמש/ת')}</b><span class="meta" dir="auto" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.subject || c.last || '')}</span></span><span class="chip ${CST[c.status] ? CST[c.status][0] : ''}">${CST[c.status] ? CST[c.status][1] : c.status}</span></a>`).join('');
+  page('talk', 'שיחות', rows.length ? `${rows.filter(c => c.status === 'open').length} מחכות לתשובה מתוך ${rows.length}` : 'כאן מדברים עם המשתמשים, כמו שירות לקוחות', `<div class="md"><div><div class="list" id="rows">${list || '<div class="note"><b>אין עדיין שיחות</b><p class="muted">כשמשתמש/ת יכתבו מהאפליקציה, כל שיחה תופיע כאן עם הודעות ומקום להשיב.</p></div>'}</div></div>
+    <div id="detail">${sel ? '' : `<div class="detail"><h2>בחר/י שיחה</h2><p class="muted">רשימת השיחות בצד, השיחה עצמה כאן.</p><p class="soon"><b>בקרוב:</b> כתיבה מהאפליקציה בטלפון (משתמש/ת רואים רק את השיחות שלהם), התראה במייל על תשובה, תבניות תשובה. התשובות כאן נשמרות במסד הנתונים; לא נשלח שום מייל אמיתי.</p></div>`}</div></div>`);
+  const show = async id => {
+    $$('#rows .row').forEach(r => r.toggleAttribute('aria-current', r.dataset.id === id));
+    const c = rows.find(x => x.id === id), box = $('#detail'); if (!c) { box.innerHTML = ''; return; }
+    const draw = async () => {
+      const ms = await api.messages(id);
+      box.innerHTML = `<div class="detail"><div class="hd" style="display:flex;justify-content:space-between;gap:12px;align-items:start"><div><h2 dir="auto">${esc(c.subject || 'ללא נושא')}</h2><p class="meta">${esc(c.name || '')} · ${c.role ? roleName(c.role) : ''} · נפתחה ${ago(c.created_at)}</p></div><span class="chip ${CST[c.status] ? CST[c.status][0] : ''}">${CST[c.status] ? CST[c.status][1] : c.status}</span></div>
+        <div class="thread">${ms.map(m => `<div class="msg ${m.from_admin ? 'me' : ''}"><p dir="auto">${esc(m.body)}</p><span class="muted small">${m.from_admin ? 'אתה' : esc(c.name || 'משתמש/ת')} · ${ago(m.created_at)}</span></div>`).join('') || '<p class="muted">אין הודעות.</p>'}</div>
+        <form id="rp" class="sec" style="margin:0"><label class="field">תשובה<textarea name="body" dir="auto" rows="3" required ${c.status === 'closed' ? 'disabled' : ''} placeholder="${c.status === 'closed' ? 'השיחה סגורה' : ''}"></textarea></label>
+          <div class="acts"><button class="btn p" type="submit" ${c.status === 'closed' ? 'disabled' : ''}>שמור תשובה</button><button class="btn" type="button" id="cl">${c.status === 'closed' ? 'פתח מחדש' : 'סגור שיחה'}</button></div>
+          <p class="soon"><b>בקרוב:</b> התשובה תגיע למשתמש/ת באפליקציה ובמייל. בינתיים היא נשמרת בשיחה בלבד.</p></form></div>`;
+      $('#rp').onsubmit = async e => { e.preventDefault(); const f = e.target; try { await api.reply(id, f.body.value.trim()); c.status = 'answered'; toast('התשובה נשמרה'); await draw(); $$('#rows .row').forEach(r => { if (r.dataset.id === id) { const ch = $('.chip', r); ch.className = 'chip ok'; ch.textContent = CST.answered[1]; } }); } catch (x) { fail(x); } };
+      $('#cl').onclick = async () => { try { const s = c.status === 'closed' ? 'open' : 'closed'; await api.setConversation(id, s); c.status = s; await draw(); } catch (x) { fail(x); } };
+    };
+    await draw();
+  };
+  if (sel) await show(sel);
+  $('#rows').addEventListener('click', e => { const r = e.target.closest('.row'); if (r) { e.preventDefault(); history.replaceState(null, '', '#/talk/' + r.dataset.id); show(r.dataset.id); } });
+}
+
+let LIB = null;                                                      // every approved artist's visible works, for choosing
 async function library() {
   if (LIB) return LIB;
   const artists = (await api.artists()).filter(a => a.status === 'approved');
@@ -267,7 +343,7 @@ const shape = w => ({ id: w.id, kind: w.kind || 'work', title: w.title, image: a
 async function editor(id) {
   const [{ ROOMS, PAINTS }, lib] = await Promise.all([synth(), library()]);
   let row = null;
-  if (id !== 'new') { row = await api.show(id); if (!row) return page('shows', 'תערוכות', '', '<p class="muted">הכתבה לא נמצאה. <a href="#/shows">לכל הכתבות</a></p>'); }
+  if (id !== 'new') { row = await api.show(id); if (!row) return page('museum', 'תערוכות', '', '<p class="muted">הכתבה לא נמצאה. <a href="#/museum">לכל הכתבות</a></p>'); }
   const E = row ? { ...row, text: row.text || '', works: (row.works || []).map(w => ({ ...w })), plinths: row.plinths || [] }
     : { id: null, title: '', curator: 'Elad Amsalem', room: 'long-hall', paint: '', centre: 148, text: '', works: [], plinths: [], status: 'draft' };
   let dirty = false, saving = false, savedAt = row ? Date.now() : 0, timer;
@@ -289,11 +365,11 @@ async function editor(id) {
       <div class="ct"><button type="button" data-o="${i}:-1" aria-label="מוקדם יותר" ${i ? '' : 'disabled'}>→</button><button type="button" data-o="${i}:1" aria-label="מאוחר יותר" ${i < list.length - 1 ? '' : 'disabled'}>←</button><button type="button" data-x="${i}" aria-label="הוצא">×</button></div></figure>`).join('')}</div>
       <p class="fit" id="fit"></p>` : '<p class="muted">בוחרים עבודות בספרייה משמאל. הסדר כאן הוא סדר ההליכה בחדר.</p>';
   };
-  const barBox = () => `<div class="l"><a class="btn q" href="#/shows">→ כל הכתבות</a><span class="chip ${E.status === 'published' ? 'ok' : ''}">${E.status === 'published' ? 'מפורסמת' : 'טיוטה'}</span><span class="muted small" id="saved">${saving ? 'שומר…' : dirty ? (E.id && E.status === 'draft' ? 'משנה…' : 'יש שינויים שלא נשמרו') : savedAt ? 'נשמר' : 'עוד לא נשמר'}</span></div>
+  const barBox = () => `<div class="l"><a class="btn q" href="#/museum">→ כל הכתבות</a><span class="chip ${E.status === 'published' ? 'ok' : ''}">${E.status === 'published' ? 'מפורסמת' : 'טיוטה'}</span><span class="muted small" id="saved">${saving ? 'שומר…' : dirty ? (E.id && E.status === 'draft' ? 'משנה…' : 'יש שינויים שלא נשמרו') : savedAt ? 'נשמר' : 'עוד לא נשמר'}</span></div>
     <div class="acts"><button class="btn" id="walk" ${E.works.length ? '' : 'disabled'}>להיכנס לחלל</button><button class="btn" id="hang" ${E.works.some(w => w.id) ? '' : 'disabled'}>לתלות בחלל</button>
       <button class="btn" id="save">${E.id ? 'שמור' : 'שמור טיוטה'}</button><button class="btn p" id="pub" ${E.id ? '' : 'disabled'}>${E.status === 'published' ? 'הורד מהאפליקציה' : 'פרסם'}</button>${E.id ? '<button class="btn q d" id="del">מחק</button>' : ''}</div>`;
 
-  page('shows', E.title || 'כתבה חדשה', 'כתבה אחת, חדר אחד', `<div class="bar" id="bar">${barBox()}</div><div class="ed"><div>
+  page('museum', E.title || 'כתבה חדשה', 'כתבה אחת, חדר אחד', `<div class="bar" id="bar">${barBox()}</div><div class="ed"><div>
     <section class="panel"><h2>הכתבה <span class="muted small">באנגלית, כמו באפליקציה</span></h2>
       <label class="field">כותרת<input class="title-in" name="title" dir="auto" value="${esc(E.title)}" placeholder="The title of the show"></label>
       <label class="field">אוצר/ת<input name="curator" dir="auto" value="${esc(E.curator || '')}"></label>
@@ -320,7 +396,7 @@ async function editor(id) {
     clearTimeout(timer); read(); saving = true; redraw();
     const body = { kind: 'curated', title: E.title || 'Untitled', curator: E.curator || null, room: E.room, paint: E.paint || null, centre: E.centre || 148, text: E.text || null, works: E.works, plinths: E.plinths, status: status || E.status };
     try { const d = await api.saveShow(body, E.id); E.id = d.id; E.status = d.status; dirty = false; savedAt = Date.now();
-      if (location.hash.endsWith('/new')) history.replaceState(null, '', '#/shows/' + d.id);
+      if (location.hash.endsWith('/new')) history.replaceState(null, '', '#/museum/' + d.id);
       const h = $('.top h1'); if (h) h.textContent = E.title || 'Untitled'; }
     catch (x) { fail(x); }
     saving = false; redraw();
@@ -328,7 +404,7 @@ async function editor(id) {
   const wireBar = () => {
     $('#save').onclick = () => store();
     $('#pub').onclick = async () => { const to = E.status === 'published' ? 'draft' : 'published'; await store(to); toast(to === 'published' ? 'פורסמה: היא עכשיו באפליקציה בטלפון' : 'הורדה מהאפליקציה'); };
-    const d = $('#del'); if (d) d.onclick = async () => { if (!confirm('למחוק את הכתבה? אי אפשר לבטל.')) return; try { await api.deleteShow(E.id); location.hash = '#/shows'; } catch (x) { fail(x); } };
+    const d = $('#del'); if (d) d.onclick = async () => { if (!confirm('למחוק את הכתבה? אי אפשר לבטל.')) return; try { await api.deleteShow(E.id); location.hash = '#/museum'; } catch (x) { fail(x); } };
     $('#walk').onclick = async e => {
       e.currentTarget.disabled = true; e.currentTarget.textContent = 'בונה את החדר…'; setTimeout(redraw, 15000);
       read(); const [{ buildRoom }, { openSpace }] = await Promise.all([synth(), import(APP + 'space/space.js'), viewerCss()]);

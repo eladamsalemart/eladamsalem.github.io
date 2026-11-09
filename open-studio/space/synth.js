@@ -46,7 +46,7 @@ try {
     ROOMS[slug] = {
       name: (KINDS[m.type] || [m.type])[0], size: m.label, blurb: (KINDS[m.type] || ['', ''])[1], kind: m.type, variant, sizeName: SIZE[variant] || variant,
       w: m.w, d: m.d, h: m.h, door: m.door ? m.door.to - m.door.from : 0, doorSpan: m.door ? [m.door.from, m.door.to] : null,
-      doorHeight: m.door ? m.door.height : 0, blocks: m.blocks || {}, light: m.light, floorReflect: m.floorReflect,
+      doorHeight: m.door ? m.door.height : 0, blocks: m.blocks || {}, plates: m.plates || [], light: m.light, floorReflect: m.floorReflect,
       baked: BAKED + slug + '/', cover: BAKED + slug + '/view.jpg', paint: 'white',
     };
   }
@@ -458,7 +458,7 @@ export async function buildRoom(design, src) {
   });
   const floorReflect = R.floorReflect || (R.floor === 'oak' ? [0.03, 0.12] : R.floor === 'stone' ? [0.08, 0.34] : [0.06, 0.26]);
   const spec = {
-    version: 2, title: design.title, source: `${ROOMS[design.room].name}, a virtual room`, virtual: true, ordered: true,
+    version: 2, title: design.title, source: `${ROOMS[design.room].name}, a virtual room`, virtual: true, ordered: true, ...(R.baked ? { baked: { kind: R.kind, plates: (R.plates || []).map(p => ({ ...p, texture: R.baked + p.file })) } } : {}),
     room: { x0: 0, x1: R.w, z0: 0, z1: R.d, height: R.h }, surfaces, works, views: [], floorReflect, plaster: await keep(plaster),
     plinths: plinths.map(p => { const x = objSized.find(q => q.o.id === p.work); return { id: p.id, x: p.x, z: p.z, size: PLINTHS[p.size], key: p.size, work: p.work || null,
       obj: x ? { id: x.o.id, title: x.o.title, image: x.o.image, w: x.w, h: x.h } : null }; }),
