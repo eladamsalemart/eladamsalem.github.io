@@ -42,8 +42,8 @@ async function communityData() {
   const signal = AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
   const q = path => fetch(DB + path, { headers: { apikey: DB_KEY }, signal }).then(r => r.ok ? r.json() : []);
   const [artists, works, shows] = await Promise.all([
-    q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,link,instagram,cv,exhibitions&status=eq.approved'),
-    q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position,kind&order=position'),
+    q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,hero,hero_pos,link,instagram,cv,exhibitions&status=eq.approved'),
+    q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position,kind,category&order=position'),
     q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,starts,ends,owner_id,created_at,on_view&status=eq.published'),
   ]);
   return { artists, works, shows };
@@ -128,7 +128,7 @@ function addCommunity(m, c, uniq, seen) {
     const slug = uniq(a.slug); seen.add(slug);
     const x = { slug, name: a.name, discipline: a.discipline || '', city: a.city || '', country: a.country || '', statement: a.statement || '', bio: a.bio || '',
       portrait: a.photo || '', label: [a.discipline, a.city].filter(Boolean).join(' · '), link: a.link || '', instagram: a.instagram || '', community: true, uid: a.id,
-      cv: a.cv || [] };
+      cv: a.cv || [], hero: a.hero || '', heroPos: a.hero_pos || '' };
     A.set(a.id, x); m.artists.push(x);
     // their past exhibitions, as shows of the past (with their installation photos)
     for (const e of a.exhibitions || []) {
@@ -142,7 +142,7 @@ function addCommunity(m, c, uniq, seen) {
   for (const w of c.works) {
     const a = A.get(w.artist_id); if (!a) continue;
     const pairs = w.width && w.height ? [[+w.height, +w.width]] : [];
-    m.works.push({ i: m.works.length, slug: uniq(slugify(`${w.title}-${a.slug}`)), id: w.id, title: w.title, year: w.year || '', medium: w.medium || '', pairs, kind: w.kind || 'work',
+    m.works.push({ i: m.works.length, slug: uniq(slugify(`${w.title}-${a.slug}`)), id: w.id, title: w.title, year: w.year || '', medium: w.medium || '', pairs, kind: w.kind || 'work', category: w.category || '',
       size: pairs.length ? `${pairs[0][0]} × ${pairs[0][1]} cm` : '', image: w.image, artist: a, community: true });
     if (w.thumb) m.thumbs[w.image] = w.thumb;
   }
@@ -248,7 +248,7 @@ const status = e => { const now = Date.now(); return now < e.start ? 'soon' : no
 const isOn = e => status(e) === 'on';
 const nextEvent = e => e.events.filter(v => +v.at > Date.now() - 3 * 3600000).sort((a, b) => a.at - b.at)[0];
 // (an artist on Open Studio keeps their own order; the site's artists go newest first)
-const worksOf = a => { const l = M.works.filter(w => w.artist === a && w.kind !== 'object'); return a.community ? l.sort((x, y) => x.i - y.i) : l; };
+const worksOf = a => { const l = M.works.filter(w => w.artist === a && w.kind !== 'object'); return a.community ? l.sort((x, y) => (+y.year || 0) - (+x.year || 0) || x.i - y.i) : l; };   // newest year first; inside a year, the artist's own order
 const objectsOf = a => M.works.filter(w => w.artist === a && w.kind === 'object');
 // an artist's shows, their own first (a group show after)
 const showsOf = a => M.exhibitions.filter(e => (e.artists || [e.artist]).includes(a)).sort((x, y) => (y.artist === a) - (x.artist === a));
@@ -617,6 +617,18 @@ function cityCard(c) {
   return `<a class="place" href="#/place/${c.slug}"><b>${esc(c.name)}</b><span class="m">${esc(bits.join(' · ') || c.country)}</span></a>`;
 }
 
+// the works after the first five: by kind (when there is more than one), then by year, newest first, each year in the artist's own order
+const KINDS = [['Painting', /oil|acrylic|canvas|paint|gouache|tempera|watercolou?r|pastel/i], ['Sculpture', /ceramic|clay|bronze|sculpt|stone|marble|plaster|wood|steel|resin/i], ['Drawing', /pencil|charcoal|ink|drawing|graphite|marker/i],
+  ['Print', /print|etching|lithograph|screen|woodcut|linocut/i], ['Photography', /photo/i], ['Installation', /install/i]];
+const kindOf = w => w.category || (KINDS.find(([, re]) => re.test(w.medium || '')) || [''])[0];
+function worksMore(list) {
+  const kinds = [...new Set(list.map(kindOf))].sort((a, b) => !a - !b || a.localeCompare(b)), byYear = l => {
+    const ys = [...new Set(l.map(w => w.year || ''))].sort((a, b) => (+b || 0) - (+a || 0));
+    return ys.map(y => `<div class="wk-y"><h4>${esc(y || 'Undated')}</h4><div class="list">${l.filter(w => (w.year || '') === y).map(workRow).join('')}</div></div>`).join('');
+  };
+  const body = kinds.length > 1 ? kinds.map(k => `<div class="wk-k"><h3>${esc(k || 'Other')}</h3>${byYear(list.filter(w => kindOf(w) === k))}</div>`).join('') : byYear(list);
+  return `<details class="wk-more"><summary>${list.length} more ${list.length === 1 ? 'work' : 'works'}</summary>${body}</details>`;
+}
 function artistPage(slug) {
   const a = M.artists.find(x => x.slug === slug);
   if (!a) return notFound();
@@ -627,7 +639,7 @@ function artistPage(slug) {
   const now = shows.find(e => e.virtual && e.virtual.onview && e.space);
   return `
   ${now ? onViewBlock(now) : ''}
-  <section class="hero">${im(hero, last ? `Installation view, ${last.title}` : a.name, 'loading="eager"', '100vw')}
+  <section class="hero" ${own && a.community ? 'data-hero' : ''}>${im(hero, last ? `Installation view, ${last.title}` : a.name, `loading="eager"${a.heroPos ? ` style="object-position:${esc(a.heroPos)}"` : ''}`, '100vw')}
     <div class="ov gut"><div class="wrap"><h1>${esc(a.name)}</h1><div class="k">${esc(a.label)}</div></div></div></section>
   <div class="wrap gut">
     <div class="btns" style="padding-block:18px 0"><button type="button" class="btn ${followed ? 'g' : 'f'}" data-follow="${esc(a.slug)}" aria-pressed="${followed}">${followed ? 'Following' : 'Follow'}</button>${own ? '<a class="btn g" href="#/about">About & CV</a>' : a.bio || a.portrait || (a.cv && a.cv.length) ? `<a class="btn g" href="#/artist/${esc(a.slug)}/about">About & CV</a>` : ''}</div>
@@ -642,9 +654,9 @@ function artistPage(slug) {
     ${live ? `<section class="sec"><h2 class="live-h"><span class="dot" aria-hidden="true"></span>${lh(when(live))}</h2>
       <a class="onview" href="#/exhibition/${live.slug}">${im(live.images[0], '')}<div><h3>${esc(live.title)}</h3>
       <div class="m">${esc(live.kind === 'online' ? 'Online exhibition' : [live.venue, live.city].filter(Boolean).join(' · '))}</div></div></a></section>` : ''}
-    <section class="sec"><div class="sec-h"><h2>Latest works</h2><a class="more" href="${own ? '#/works' : `#/artist/${a.slug}/works`}">All ${works.length} →</a></div>
-      <div class="list" data-more-list>${works.map((w, k) => k < 5 ? workRow(w) : workRow(w).replace('<a class="row"', '<a class="row" hidden')).join('')}</div>
-      ${works.length > 5 ? '<button type="button" class="btn g" data-more style="justify-self:start">Show more</button>' : ''}</section>
+    <section class="sec" id="works"><div class="sec-h"><h2>Recent works</h2><span class="more">${works.length}</span></div>
+      <div class="list">${works.slice(0, 5).map(workRow).join('')}</div>
+      ${works.length > 5 ? worksMore(works.slice(5)) : ''}</section>
     ${shows.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">${shows.length}</span></div>
       <div class="covers">${[...shows].sort((x, y) => y.end - x.end).map(e => cover(e)).join('')}</div></section>` : ''}
     ${own && M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
@@ -999,7 +1011,7 @@ function ownPage(S) {
   M.exhibitions = M.exhibitions.filter(e => !(e.artist && e.artist.uid === uid));
   const seen = new Set([...M.artists.map(x => x.slug), ...M.works.map(w => w.slug), ...M.exhibitions.map(e => e.slug)]);
   const uniq = base => { let s = base, i = 2; while (seen.has(s)) s = `${base}-${i++}`; seen.add(s); return s; };
-  const row = { id: uid, slug: S.slug || slugify(a.name) || 'artist', name: a.name, discipline: a.discipline, city: a.city, photo: a.photo, statement: a.statement, bio: a.bio, link: a.link,
+  const row = { id: uid, slug: S.slug || slugify(a.name) || 'artist', name: a.name, discipline: a.discipline, city: a.city, photo: a.photo, hero: a.hero, hero_pos: a.heroPos, statement: a.statement, bio: a.bio, link: a.link,
     instagram: a.instagram, cv: a.cv || [], exhibitions: (S.exhibitions || []).map(e => ({ ...e, photos: (e.photos || []).length ? e.photos : e.cover ? [{ src: e.cover }] : [] })) };
   addCommunity(M, { artists: [row], works: S.works.map(w => ({ ...w, artist_id: uid })), shows: [] }, uniq, seen);
   return M.artists.find(x => x.uid === uid);
@@ -1044,6 +1056,8 @@ function render() {
     if (!me.role) { location.replace('#/welcome/role'); return; }
     // (an artist sees the same app as everyone; their studio is a tap away, from their account)
   }
+  // where people edit (the studio, the control room): always the light, high-contrast look, whatever the phone's setting
+  document.documentElement.classList.toggle('lite', hash.startsWith('#/admin') || hash.startsWith('#/studio'));
   // the control room, for the people who run Open Studio (admin.js; the database decides who may)
   if (hash.startsWith('#/admin')) {
     if (openSpaceView) { openSpaceView.close(); openSpaceView = null; }

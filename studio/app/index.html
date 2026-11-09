@@ -975,6 +975,32 @@ body.reviewing{padding-top:calc(56px + env(safe-area-inset-top,0px))}
 .pv-bar button{min-height:44px;padding:0 14px;border-radius:99px;border:1.5px solid #F6F1E7;background:transparent;color:inherit;font:600 13px var(--sans);cursor:pointer}
 body.previewing{padding-top:calc(56px + env(safe-area-inset-top,0px))}
 .adm-steps{display:grid;gap:8px;padding-inline-start:20px}.adm-steps code{font-size:13px;word-break:break-all}
+/* --- the works after the first five, by kind and year --- */
+.wk-more{margin-top:8px}
+.wk-more summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border:1.5px solid var(--ink);border-radius:14px;font:600 16px var(--sans)}
+.wk-more summary::-webkit-details-marker{display:none}
+.wk-more summary::after{content:"+";margin-left:12px;font-size:22px}.wk-more[open] summary::after{content:"−"}
+.wk-more[open] summary{margin-bottom:6px}
+.wk-k{margin-top:30px}.wk-k h3{font:500 28px var(--serif);padding-bottom:6px;border-bottom:1.5px solid var(--rule)}
+.wk-y h4{font:600 14px var(--mono);letter-spacing:.08em;color:var(--muted);margin:20px 0 0}
+/* --- where people edit: light, large, high contrast (WCAG AA and better), 44px targets --- */
+:root.lite:root{--wall:#FBFAF6;--paper:#FFFFFF;--ink:#16140F;--muted:#463F33;--line:#BDB5A3;--edge:#6F675A;--rule:#16140F;--card:#EEEAE0;--dot:#1B5E3F;--stage:#F4F1EA;--shade:rgba(20,18,14,.72);color-scheme:light}
+.lite body{font-size:17px;line-height:1.55}
+.lite .st,.lite .adm,.lite .ed,.lite .sh{font-size:17px}
+.lite .st .small,.lite .st .m,.lite .ed .m,.lite .adm .m,.lite .sh .m,.lite .sh .small{font-size:16px}
+.lite .st-form label{font-size:16px;font-weight:600;color:var(--ink);gap:7px}
+.lite .st-form legend{font-size:16px}
+.lite .st-form input:not([type=checkbox]):not([type=file]),.lite .st-form textarea,.lite .st-form select,.lite .ax-ask input,.lite .ax-search{border:1.5px solid var(--edge);min-height:48px;font-size:17px;background:#fff}
+.lite .st-form fieldset{border:1.5px solid var(--edge)}
+.lite input::placeholder,.lite textarea::placeholder{color:#5E564A;opacity:1}
+.lite :focus-visible{outline:3px solid #0B4FD6;outline-offset:2px}
+.lite .btn{font-size:16px;min-height:48px;border-width:2px}.lite .btn.g{border-color:var(--edge)}
+.lite .k,.lite .tag,.lite .st-flag,.lite .ed-chip{font-size:13px;color:var(--muted)}
+.lite .st-flag.ok,.lite .ed-chip.ok{color:#14532D}.lite .st-flag.no,.lite .ed-chip.no{color:#7A2E0E;background:color-mix(in srgb,#B3421F 12%,transparent)}
+.lite .st-nav a,.lite .ax-seg a,.lite .ax-chips button{font-size:16px;min-height:44px;display:inline-flex;align-items:center}
+.lite .ax-t i{background:#7A4410}
+.st-how{margin:10px 0;padding-left:22px;display:grid;gap:10px;font-size:16px}.st-how li::marker{font-weight:700}.st-after{padding:14px;border:1.5px dashed var(--edge,var(--line));border-radius:12px}
+.st-step h2{font-size:26px}
 </style>
 
 <!-- app:head-end -->
