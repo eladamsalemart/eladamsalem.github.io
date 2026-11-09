@@ -1643,33 +1643,62 @@ def surfaces(slug, o, label):
     try: s.use_nodes = False            # no lens: a surface is not a photograph's frame
     except Exception: pass
     out = os.path.join(o['out'], 'surfaces', slug); os.makedirs(out, exist_ok=True)
-    ppm = int(o.get('ppm', 110))
+    ppm = int(o.get('ppm', 300))
     s.cycles.samples = int(int(o.get('surface_samples', 128)) * (0.5 if o['type'] == 'loft' else 1))
     cam = bpy.data.cameras.new('surface'); cam.type = 'ORTHO'
     ob = bpy.data.objects.new('surface', cam); bpy.context.collection.objects.link(ob); s.camera = ob
-    def shoot(name, pos, rot, w, h, clip, dist=None):
+    # per-surface resolution budget (phones): a wall up to 3072 px wide, a floor or ceiling up to 2560 (seen at a slant), each
+    # at most `ppm` pixels a metre (walls) or two thirds of it (floor, ceiling); a window plate up to 4096 px at 520 px/m
+    PPM_PLATE = int(o.get('ppm_plate', 520))
+    def shoot(name, pos, rot, w, h, clip, dist=None, cap=3072, ppm_=None, shift=(0, 0)):
         # a wall: a perspective camera framing exactly the wall (parallel to it, so the wall keeps its scale) shows
-        # through a window what a visitor in the room would see; the floor and the ceiling: straight down and up
-        k = min(1.0, 4096 / max(w * ppm, h * ppm))
-        s.render.resolution_x, s.render.resolution_y = max(16, round(w * ppm * k)), max(16, round(h * ppm * k))
+        # through a window what a visitor in the room would see; the floor and the ceiling: straight down and up.
+        # shift: frames only a part of the wall (a window plate), same projection, so it lies exactly over the wall's picture
+        pm = min(ppm_ or ppm, cap / max(w, h))
+        s.render.resolution_x, s.render.resolution_y = max(16, round(w * pm)), max(16, round(h * pm))
         cam.sensor_fit = 'HORIZONTAL' if w >= h else 'VERTICAL'
         if dist:
             cam.type = 'PERSP'; cam.sensor_width = 36; cam.lens = 36 * dist / max(w, h)
+            cam.shift_x, cam.shift_y = shift
         else:
-            cam.type = 'ORTHO'; cam.ortho_scale = max(w, h)
+            cam.type = 'ORTHO'; cam.ortho_scale = max(w, h); cam.shift_x = cam.shift_y = 0
         cam.clip_start, cam.clip_end = clip
         ob.location = pos; ob.rotation_euler = rot
         s.render.filepath = os.path.join(out, name + '.jpg')
-        print(f'  {name}: {s.render.resolution_x}x{s.render.resolution_y}', flush=True)
+        s.render.image_settings.quality = 92
+        print(f'  {name}: {s.render.resolution_x}x{s.render.resolution_y} ({pm:.0f} px/m)', flush=True)
         bpy.ops.render.render(write_still=True)
     cx, cy = (r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2
+    base_samples = s.cycles.samples
     # walls, from the far side of the room, seeing only the last 30 cm before the wall
-    shoot('wall-z0', (cx, r.y0 + 0.05, H / 2), (math.pi / 2, 0, 0), W, H, (D - 0.17, D + 0.5), D - 0.05)                  # north
-    shoot('wall-x0', (r.x1 - 0.05, cy, H / 2), (math.pi / 2, 0, math.pi / 2), D, H, (W - 0.17, W + 0.5), W - 0.05)       # west
-    shoot('wall-z1', (cx, r.y1 - 0.05, H / 2), (math.pi / 2, 0, math.pi), W, H, (D - 0.17, D + 0.5), D - 0.05)           # south
-    shoot('wall-x1', (r.x0 + 0.05, cy, H / 2), (math.pi / 2, 0, -math.pi / 2), D, H, (W - 0.17, W + 0.5), W - 0.05)      # east
-    shoot('floor', (cx, cy, H - 0.02), (0, 0, 0), W, D, (H - 0.04, H + 0.2))
-    shoot('ceiling', (cx, cy, 0.02), (math.pi, 0, 0), W, D, (H - 0.4, 60))
+    WALLS = {'n': ('wall-z0', (cx, r.y0 + 0.05, H / 2), (math.pi / 2, 0, 0), W, (D - 0.17, D + 0.5), D - 0.05),                      # north
+             'w': ('wall-x0', (r.x1 - 0.05, cy, H / 2), (math.pi / 2, 0, math.pi / 2), D, (W - 0.17, W + 0.5), W - 0.05),           # west
+             's': ('wall-z1', (cx, r.y1 - 0.05, H / 2), (math.pi / 2, 0, math.pi), W, (D - 0.17, D + 0.5), D - 0.05),               # south
+             'e': ('wall-x1', (r.x0 + 0.05, cy, H / 2), (math.pi / 2, 0, -math.pi / 2), D, (W - 0.17, W + 0.5), W - 0.05)}          # east
+    for nm, pos, rot, ln, clip, dist in WALLS.values():
+        shoot(nm, pos, rot, ln, H, clip, dist)
+    # window plates: each window, and each glass wall, again alone at high resolution (the app lays them over the wall's picture)
+    plates = []
+    def a_to(wall, c):
+        return {'n': c - r.x0, 'w': c - r.y0, 's': r.x1 - c, 'e': r.y1 - c}[wall]
+    spans = []
+    for wall, c, wd, z0, z1 in getattr(r, 'windows', []) or []:
+        a = a_to(wall, c); spans.append((wall, a - wd / 2, a + wd / 2, max(0.0, z0), min(H, z1)))
+    for wall in getattr(r, 'glass', ''):
+        spans.append((wall, 0.0, WALLS[wall][3], 0.0, H))
+    s.cycles.samples = int(os.environ.get('PLATE_SAMPLES', max(96, base_samples)))
+    for i, (wall, a0, a1, z0, z1) in enumerate(spans):
+        nm, pos, rot, ln, clip, dist = WALLS[wall]
+        a0, a1 = max(0.0, a0), min(ln, a1); wdt, hgt = a1 - a0, z1 - z0
+        if wdt < 0.3 or hgt < 0.3: continue
+        sh = ((a0 + a1) / 2 - ln / 2) / max(wdt, hgt), ((z0 + z1) / 2 - H / 2) / max(wdt, hgt)
+        fn = f'win-{nm}-{i}'
+        shoot(fn, pos, rot, wdt, hgt, clip, dist, cap=4096, ppm_=PPM_PLATE, shift=sh)
+        plates.append({'wall': nm, 'from': round(a0, 3), 'to': round(a1, 3), 'z0': round(z0, 3), 'z1': round(z1, 3), 'file': fn + '.jpg'})
+    s.cycles.samples = base_samples
+    FL = min(200, ppm * 2 // 3)
+    shoot('floor', (cx, cy, H - 0.02), (0, 0, 0), W, D, (H - 0.04, H + 0.2), cap=2560, ppm_=FL)
+    shoot('ceiling', (cx, cy, 0.02), (math.pi, 0, 0), W, D, (H - 0.4, 60), cap=2560, ppm_=FL)
     # what the app needs besides: the size, the door, and where no work can hang (windows, glass, doors)
     def a_of(wall, c):
         return {'n': c - r.x0, 'w': c - r.y0, 's': r.x1 - c, 'e': r.y1 - c}[wall]
@@ -1684,7 +1713,7 @@ def surfaces(slug, o, label):
         blocks[name[wall]].append([0, round(W if wall in 'ns' else D, 3)])
     meta = {'slug': slug, 'type': o['type'], 'label': label, 'w': round(W, 3), 'd': round(D, 3), 'h': round(H, 3),
             'door': door, 'blocks': {k: v for k, v in blocks.items() if v}, 'light': LIGHTING.get(o['type'], 'spots'),
-            'floorReflect': REFLECT.get(o['type'], [0.04, 0.18]), 'ppm': ppm}
+            'floorReflect': REFLECT.get(o['type'], [0.04, 0.18]), 'ppm': ppm, 'plates': plates}
     json.dump(meta, open(os.path.join(out, 'room.json'), 'w'), indent=1)
 
 

@@ -9,7 +9,7 @@
 // - a polished floor reflects the room live, more at a low angle than straight down, as stone does.
 // Coordinates are metres, y up, floor at 0.
 
-const EYE = 1.6, WALK = 1.3, MARGIN = 0.3;
+const EYE = 1.6, WALK = 1.9, MARGIN = 0.3;     // WALK: metres a second (was 1.3: too slow in a 24 m hall; a stroll through a gallery)
 
 export async function openSpace({ spec, works, src, onClose, onOpenWork, choose, editor, exitLabel }) {
   const THREE = await import('three');
@@ -70,6 +70,65 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   let floorMesh = null;
   const wallColor = new THREE.Color('#f2f2ef');
 
+  // --- baked rooms (built in Blender, data/rooms/<slug>): the surfaces are photographs of an empty room at a
+  // few hundred pixels a metre, which a phone, held up close, magnifies three or four times. Two cheap helps in the
+  // shader: the texture is read with a bicubic (Catmull-Rom) filter when magnified, so edges stay crisp instead of
+  // melting, and a fine procedural grain (plaster, concrete, brick, boards) of the real surface's scale is laid over
+  // it, fading out as it gets smaller than a pixel. Real tours (spec.baked absent) are untouched.
+  const BK = spec.baked || null;
+  const DETAIL = {                       // grain strength: [walls, floor, ceiling]
+    'white-cube': [0.02, 0.028, 0.016], 'loft': [0.055, 0.06, 0.04], 'skylit-hall': [0.035, 0.03, 0.025], 'salon': [0.035, 0.03, 0.02],
+    'concrete': [0.06, 0.055, 0.05], 'studio': [0.05, 0.04, 0.03], 'apartment': [0.025, 0.03, 0.02], 'black-box': [0.015, 0.02, 0.012],
+    'glass-pavilion': [0.022, 0.03, 0.02], 'japanese': [0.05, 0.04, 0.03],
+  };
+  const HQ_FRAG = `
+    uniform vec2 hqTex; uniform vec2 hqSize; uniform float hqAmp; uniform vec2 hqMask[4];
+    float hqH(vec2 p) { vec3 q = fract(vec3(p.xyx) * .1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
+    float hqN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+      return mix(mix(hqH(i), hqH(i + vec2(1., 0.)), f.x), mix(hqH(i + vec2(0., 1.)), hqH(i + vec2(1., 1.)), f.x), f.y); }
+    vec4 hqRead(sampler2D t, vec2 uv) {
+      vec2 px = uv * hqTex, mag = fwidth(px);
+      vec4 lin = texture2D(t, uv);
+      vec2 tc = floor(px - 0.5) + 0.5, f = px - tc;
+      vec2 w0 = f * (-0.5 + f * (1.0 - 0.5 * f)), w1 = 1.0 + f * f * (-2.5 + 1.5 * f), w2 = f * (0.5 + f * (2.0 - 1.5 * f)), w3 = f * f * (-0.5 + 0.5 * f);
+      vec2 w12 = w1 + w2, t0 = (tc - 1.0) / hqTex, t3 = (tc + 2.0) / hqTex, t12 = (tc + w2 / w12) / hqTex;
+      vec4 c = texture2D(t, vec2(t12.x, t0.y)) * (w12.x * w0.y) + texture2D(t, vec2(t0.x, t12.y)) * (w0.x * w12.y) + texture2D(t, t12) * (w12.x * w12.y)
+             + texture2D(t, vec2(t3.x, t12.y)) * (w3.x * w12.y) + texture2D(t, vec2(t12.x, t3.y)) * (w12.x * w3.y);
+      c /= (w12.x * w0.y + w0.x * w12.y + w12.x * w12.y + w3.x * w12.y + w12.x * w3.y);
+      c = max(c, 0.0);
+      return mix(lin, c, 1.0 - smoothstep(0.75, 1.0, max(mag.x, mag.y)));      // minified: the mipmaps already do it right
+    }
+    float hqGrain(vec2 uv) {
+      vec2 p = uv * hqSize, fw = fwidth(p); float px = max(fw.x, fw.y) + 1e-6, g = 0.0;
+      // four scales: 17 cm, 4.5 cm, 1.2 cm, 3.5 mm; each fades out as its cell shrinks to a pixel or two
+      g += (hqN(p * 6.0) - 0.5) * 0.7 * (1.0 - smoothstep(0.15, 0.5, px * 6.0));
+      g += (hqN(p * 22.0 + 7.3) - 0.5) * 0.9 * (1.0 - smoothstep(0.15, 0.5, px * 22.0));
+      g += (hqN(p * 80.0 + 3.1) - 0.5) * 1.0 * (1.0 - smoothstep(0.15, 0.5, px * 80.0));
+      g += (hqN(p * 290.0 + 9.7) - 0.5) * 1.0 * (1.0 - smoothstep(0.15, 0.5, px * 290.0));
+      float m = 1.0;
+      for (int i = 0; i < 4; i++) m *= 1.0 - (smoothstep(hqMask[i].x - 0.03, hqMask[i].x + 0.03, p.x) - smoothstep(hqMask[i].y - 0.03, hqMask[i].y + 0.03, p.x));
+      return 1.0 + hqAmp * g * 2.0 * m;
+    }`;
+  // kind: 0 walls, 1 floor, 2 ceiling; size: the surface (or its repeating tile) in metres; masks: stretches of a wall
+  // along u that show something else (windows: the outside must not get plaster grain)
+  function enhance(mat, tex, kind, size, masks = [], key = '') {
+    if (!BK || !tex || !tex.image) return mat;
+    const amp = 1.6 * (DETAIL[BK.kind] || [0.03, 0.03, 0.02])[kind];
+    const prev = mat.onBeforeCompile;
+    const mk = [0, 1, 2, 3].map(i => masks[i] ? new THREE.Vector2(masks[i][0], masks[i][1]) : new THREE.Vector2(-9, -9));
+    mat.onBeforeCompile = sh => {
+      if (prev) prev(sh);
+      sh.uniforms.hqTex = { value: new THREE.Vector2(tex.image.width, tex.image.height) };
+      sh.uniforms.hqSize = { value: new THREE.Vector2(size[0], size[1]) };
+      sh.uniforms.hqAmp = { value: amp };
+      sh.uniforms.hqMask = { value: mk };
+      sh.fragmentShader = sh.fragmentShader.replace('void main() {', HQ_FRAG + '\nvoid main() {')
+        .replace('#include <map_fragment>', '#ifdef USE_MAP\n vec4 sampledDiffuseColor = hqRead(map, vMapUv);\n diffuseColor *= sampledDiffuseColor;\n diffuseColor.rgb *= hqGrain(vMapUv);\n#endif');
+    };
+    mat.customProgramCacheKey = () => 'hq' + kind + key;
+    return mat;
+  }
+
   // a flat surface with holes, as triangles in its own (along, up-from-bottom) coordinates
   // pad: how far the surface runs on past its sides and top (and 1 cm under the floor), hidden behind its
   // neighbours: two planes that just meet leave a hairline between them, at a room's corner, a wall's foot or top
@@ -108,11 +167,27 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   surfaces.forEach((s, i) => {
     if (s.kind === 'reveal') { const r = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide }))); r.userData.kind = 'reveal'; scene.add(r); return; }
     if (s.kind === 'wall' || s.kind === 'ceiling') {
-      const m = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), s.openings || [], s.kind === 'wall' ? 0.03 : 0);
+      const masks = s.kind === 'wall' ? ((spec.blocks || {})[s.name] || []) : [];
+      const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks), s.openings || [], s.kind === 'wall' ? 0.03 : 0);
       m.userData.kind = s.kind; scene.add(m);
       for (const o of s.openings || []) addOpening(s, o);
     }
   });
+
+  // window plates: each window (or glass wall) of a baked room photographed again, alone, at several times the wall's
+  // resolution (the outside is what a phone magnifies most); laid over the same place in the wall's picture
+  for (const p of (BK && BK.plates) || []) {
+    const s = surfaces.find(x => x.name === p.wall); if (!s) continue;
+    loadTex(p.texture).then(t => {
+      if (!t) return;
+      const U = V(s.u), N = V(s.normal), O = V(s.origin), mid = (p.from + p.to) / 2;
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(p.to - p.from, p.z1 - p.z0),
+        new THREE.MeshBasicMaterial({ map: t, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+      const c = O.clone().addScaledVector(U, mid).addScaledVector(N, 0.004).setY((p.z0 + p.z1) / 2);
+      m.matrixAutoUpdate = false; m.matrix.makeBasis(U, new THREE.Vector3(0, 1, 0), N).setPosition(c);
+      m.userData.kind = 'wall'; scene.add(m); dirty = true;
+    });
+  }
 
   // through an opening: the wall's thickness, and a plain room beyond with the same floor
   function addOpening(s, o) {
@@ -193,7 +268,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     const tile = texs[i] ? texs[i].clone() : null;
     if (tile) { const [tx, tz] = floorS.tileXY || [floorS.tile || 1, floorS.tile || 1]; tile.wrapS = tile.wrapT = THREE.RepeatWrapping; tile.repeat.set(w / tx, l / tz); tile.needsUpdate = true; }
     const c = floorS.color || [140, 120, 100];
-    const m = room(new THREE.MeshBasicMaterial({ map: tile, color: tile ? 0xffffff : new THREE.Color(`rgb(${c.join(',')})`), toneMapped: false }));
+    const m = enhance(room(new THREE.MeshBasicMaterial({ map: tile, color: tile ? 0xffffff : new THREE.Color(`rgb(${c.join(',')})`), toneMapped: false })), tile, 1, floorS.tileXY || [floorS.tile || 1, floorS.tile || 1]);
     if (withLight && lights[i]) { m.lightMap = lights[i]; m.lightMapIntensity = Math.PI * (floorS.lightScale || 1); }
     return m;
   }
@@ -203,7 +278,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     floorMesh.userData.kind = 'floor'; scene.add(floorMesh);
     if (rLow > 0.03) {
       floorMesh.material.transparent = true;
+      const hqPrev = floorMesh.material.onBeforeCompile;
+      floorMesh.material.customProgramCacheKey = () => 'hq1r' + rNear + '_' + rLow;     // (the values are in the shader's text)
       floorMesh.material.onBeforeCompile = sh => {
+        if (hqPrev) hqPrev(sh);
         sh.vertexShader = sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorldP = (modelMatrix * vec4(transformed, 1.0)).xyz;').replace('void main() {', 'varying vec3 vWorldP;\nvoid main() {');
         sh.fragmentShader = sh.fragmentShader.replace('void main() {', 'varying vec3 vWorldP;\nvoid main() {').replace('#include <dithering_fragment>',
           `float facing = clamp(normalize(cameraPosition - vWorldP).y, 0.0, 1.0);
@@ -940,7 +1018,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
         tPos.copy(clampStand(tPos, was));
       } else if (walkTo) {
         const d = new THREE.Vector3().subVectors(walkTo, tPos), n = d.length();
-        if (n < 0.02) walkTo = null; else tPos.addScaledVector(d, Math.min(1, WALK * 1.6 * dt / n));
+        if (n < 0.02) walkTo = null; else tPos.addScaledVector(d, Math.min(1, WALK * 1.7 * dt / n));
       }
       tLook.set(tPos.x - Math.sin(yaw) * Math.cos(pitch), tPos.y + Math.sin(pitch), tPos.z - Math.cos(yaw) * Math.cos(pitch));
     }
