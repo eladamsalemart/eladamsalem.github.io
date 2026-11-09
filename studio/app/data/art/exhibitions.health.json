@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-08",
+ "updated": "2026-11-09",
  "sources": [
   {
    "source": "haifa-museum",
@@ -231,7 +231,7 @@
    "url": "https://gallerybeeri.co.il/",
    "auto": true,
    "status": "ok",
-   "shows": 3,
+   "shows": 2,
    "events": 0
   },
   {
@@ -311,8 +311,8 @@
    "place": "braverman-gallery",
    "url": "https://bravermangallery.com/",
    "auto": true,
-   "status": "ok",
-   "shows": 2,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -375,7 +375,7 @@
    "url": "http://www.gordongallery.co.il",
    "auto": true,
    "status": "ok",
-   "shows": 7,
+   "shows": 5,
    "events": 0
   },
   {
@@ -402,7 +402,7 @@
    "url": "https://hansen.co.il/",
    "auto": true,
    "status": "ok",
-   "shows": 3,
+   "shows": 5,
    "events": 0
   },
   {
@@ -794,8 +794,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 2,
-   "seconds": 115,
+   "calls": 1,
+   "seconds": 0,
    "status": "TimeoutError: timed out"
   },
   {
