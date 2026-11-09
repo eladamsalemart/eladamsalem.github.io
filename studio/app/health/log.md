@@ -2,6 +2,10 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-09: issue #7, a tap target on Shows
+
+- Issue #7 (opened 11-08 19:37): Shows' "On the map" link (`.nx-sh a.more`, new section header) was 82x18, missed by a finger at 44 px. Cause: the invisible touch-area list in index.html named `.sec-h a.more` but not `.nx-sh a.more`. Added it to both lists. Proof: with the fix health.cjs (local, phone) passes; without it, fails with the same message. Everything else passes on the live site; no improvement tonight (maplibre was 11-08).
+
 ## 2026-11-08: maplibre-gl 6.16.0 → 6.17.0
 
 - Looked: no open issues or owner requests; App health green on every run since 11-04; health.cjs, check_home, check_app, deps.py pass on the live site (Home 2.2s, 17 ms frames). Four nightly runs had queued (11-05 to 11-08); this one run covers them.

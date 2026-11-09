@@ -880,9 +880,9 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
    how it looks: a transparent area round its centre takes the touch. The gaps to the next control leave room for it
    (measured). health.cjs taps each control at 21 px from its centre, on every page, and fails a miss. */
 :is(.hs-more, .seg button, .am-mark, .am-x, .am-kinds button, .am-follow, .am-go, .am-links a, .am-links button, .am-dlinks a,
-  .bar .brand, .sec-h a.more, .by, .visit a, .chip, .contact a){position:relative}
+  .bar .brand, .sec-h a.more, .nx-sh a.more, .by, .visit a, .chip, .contact a){position:relative}
 :is(.hs-more, .seg button, .am-mark, .am-x, .am-kinds button, .am-follow, .am-go, .am-links a, .am-links button, .am-dlinks a,
-  .bar .brand, .sec-h a.more, .by, .visit a, .chip, .contact a, .maplibregl-ctrl-attrib-button)::after{
+  .bar .brand, .sec-h a.more, .nx-sh a.more, .by, .visit a, .chip, .contact a, .maplibregl-ctrl-attrib-button)::after{
   content:"";position:absolute;left:calc(50% - max(50%,22px));top:calc(50% - max(50%,22px));width:max(100%,44px);height:max(100%,44px);z-index:1;
   background:none!important;border:0!important;box-shadow:none!important;pointer-events:auto}
 .seg button{min-width:46px}                    /* (side by side, no room round them: the one that changes how it looks, by a few px) */
