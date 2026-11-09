@@ -168,7 +168,7 @@ async function artistsView(sel) {
   const rows = await api.artists();
   const order = { pending: 0, changes: 1, draft: 2, approved: 3, hidden: 4 };
   rows.sort((a, b) => order[a.status] - order[b.status] || new Date(b.created_at) - new Date(a.created_at));
-  const isNew = a => new Date(a.created_at).getTime() > PREV || Date.now() - new Date(a.created_at) < 14 * 864e5;
+  const isNew = a => (PREV > 0 && new Date(a.created_at).getTime() > PREV) || Date.now() - new Date(a.created_at) < 14 * 864e5;
   const newN = rows.filter(isNew).length;
   const cnt = f => rows.filter(a => f === 'all' ? true : f === 'new' ? isNew(a) : a.status === f).length;
   const chips = [['all', 'הכל'], ['new', 'חדשים (שבועיים)'], ['pending', 'מחכים'], ['approved', 'באוויר'], ['changes', 'מחכים לאמן'], ['hidden', 'מוסתרים']].filter(([k]) => k === 'all' || cnt(k));
@@ -186,10 +186,10 @@ async function artistsView(sel) {
   const show = id => {
     $$('#rows .row').forEach(r => r.toggleAttribute('aria-current', r.dataset.id === id));
     const a = rows.find(x => x.id === id), box = $('#detail'); if (!a) { box.innerHTML = ''; return; }
-    box.innerHTML = `<div class="detail"><div class="hd" style="display:flex;justify-content:space-between;gap:12px"><div><h2>${esc(a.name)}</h2><p class="meta"><bdi>${esc([a.discipline, a.city, a.country].filter(Boolean).join(' · '))}</bdi></p></div><span class="chip ${flagOf(a.status)}">${STATUS[a.status] || a.status}</span></div>
+    box.innerHTML = `<div class="detail"><div class="hd" style="display:flex;justify-content:space-between;gap:12px;align-items:start"><div><h2>${esc(a.name)}</h2><p class="meta"><bdi>${esc([a.discipline, a.city, a.country].filter(Boolean).join(' · '))}</bdi></p></div><span class="chip ${flagOf(a.status)}">${STATUS[a.status] || a.status}</span></div>
       <p class="meta">הצטרף/ה ${day(a.created_at)}${a.sent_at ? ` · נשלח לבדיקה ${day(a.sent_at)}` : ''}${a.instagram ? ` · <a dir="ltr" target="_blank" rel="noopener" href="https://instagram.com/${esc(a.instagram.replace(/^@/, ''))}">${esc(a.instagram)}</a>` : ''}${a.link ? ` · <a target="_blank" rel="noopener" href="${esc(a.link)}">אתר</a>` : ''}</p>
       ${a.statement ? `<p dir="auto">${esc(a.statement)}</p>` : ''}
-      ${a.works.length ? `<div class="wk">${a.works.slice(0, 24).map(w => `<figure><img src="${esc(w.thumb || w.image)}" alt="" loading="lazy"><span dir="auto">${esc(w.title)}${w.hidden ? ' (מוסתרת)' : ''}</span></figure>`).join('')}</div>` : '<p class="muted">עוד אין עבודות.</p>'}
+      ${a.works.length ? `<div class="wk">${a.works.slice(0, 24).map(w => `<figure><img src="${esc(w.thumb || w.image)}" alt=""><span dir="auto">${esc(w.title)}${w.hidden ? ' (מוסתרת)' : ''}</span></figure>`).join('')}</div>` : '<p class="muted">עוד אין עבודות.</p>'}
       ${a.status !== 'approved' && a.status !== 'hidden' ? `<label class="field">הערה לאמן/ית, או מה לשנות (עדיף באנגלית)<input id="dnote" dir="auto" value="${esc(a.note || '')}" placeholder="e.g. Add sizes to your works, then we'll put you live"></label>` : ''}
       <div class="acts"><a class="btn" target="_blank" rel="noopener" href="${APP}#/preview/${esc(a.id)}">צפה בעמוד ↗</a>
         ${a.status !== 'approved' ? `<button class="btn p" data-s="approved">${a.status === 'hidden' ? 'החזר לאוויר' : 'אשר'}</button>` : ''}
