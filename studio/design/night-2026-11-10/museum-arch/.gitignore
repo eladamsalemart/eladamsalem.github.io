@@ -1,0 +1,5 @@
+renders/*.png
+svg/peek.*
+peek-pdf.png
+render*.log
+__pycache__/
