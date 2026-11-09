@@ -50,6 +50,13 @@ try {
       baked: BAKED + slug + '/', cover: BAKED + slug + '/view.jpg', paint: 'white',
     };
   }
+  // several rooms: the same room, 2 or 3 times in a row, joined by a doorway in a partition wall (see wallsOf)
+  for (const [slug, r] of Object.entries(ROOMS)) {
+    if (!r.baked || r.cells) continue;
+    const bl = r.blocks || {};
+    if (Object.keys(bl).length > 3 || ((bl['wall-x0'] || []).length && (bl['wall-z1'] || []).length)) continue;      // (glass on every side: no wall to partition with)
+    for (const n of [2, 3]) ROOMS[`${slug}-${n}r`] = { ...r, cells: n, cell: r.w, w: r.w * n, rooms: n, size: `${n} rooms in a row · ${r.size}`, sizeName: `${r.sizeName}, ${n} rooms` };
+  }
 } catch { /* no rooms published yet: the three drawn ones */ }
 const loadImg = u => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = u; });
 
@@ -139,8 +146,25 @@ export async function sizeOf(work, src) {
 }
 
 // --- the walls, in walking order from the door --------------------------------------------------------
+const PART = 0.3;                                   // a partition wall's thickness
 function wallsOf(R) {
   const { w: W, d: D, h: H } = R, door = R.door;
+  if (R.baked && R.cells > 1) {
+    // several rooms in a row (x): the long walls in one piece per room, partitions between, the door at the far end
+    const N = R.cells, C = R.cell, bl = R.blocks || {}, span = R.doorSpan || [D / 2 - 0.7, D / 2 + 0.7];
+    const src = (bl['wall-x0'] || []).length ? 'wall-z1' : 'wall-x0';        // a wall without windows, for the partitions
+    const out = [], seg = (name, file, o) => ({ name, file, blocks: bl[file] || [], ...o });
+    for (let k = N - 1; k >= 0; k--) out.push(seg(`wall-z0-c${k}`, 'wall-z0', { origin: [k * C, H, 0], u: [1, 0, 0], normal: [0, 0, 1], len: C }));
+    out.push(seg('wall-x0', 'wall-x0', { origin: [0, H, D], u: [0, 0, -1], normal: [1, 0, 0], len: D }));
+    for (let k = 0; k < N; k++) out.push(seg(`wall-z1-c${k}`, 'wall-z1', { origin: [(k + 1) * C, H, D], u: [-1, 0, 0], normal: [0, 0, -1], len: C }));
+    out.push(seg('wall-x1', 'wall-x1', { origin: [W, H, 0], u: [0, 0, 1], normal: [-1, 0, 0], len: D, ...(R.doorSpan ? { door: R.doorSpan } : {}) }));
+    for (let p = 1; p < N; p++) {
+      const x = p * C;
+      out.push({ name: `part-${p}a`, file: src, flip: true, blocks: [], origin: [x - PART / 2, H, 0], u: [0, 0, 1], normal: [-1, 0, 0], len: D, door: span, partition: p });
+      out.push({ name: `part-${p}b`, file: src, blocks: [], origin: [x + PART / 2, H, D], u: [0, 0, -1], normal: [1, 0, 0], len: D, door: [D - span[1], D - span[0]], partition: p, bare: true });
+    }
+    return out;
+  }
   if (R.baked) return [
     { name: 'wall-z0', origin: [0, H, 0], u: [1, 0, 0], normal: [0, 0, 1], len: W },
     { name: 'wall-x0', origin: [0, H, D], u: [0, 0, -1], normal: [1, 0, 0], len: D },
@@ -161,7 +185,7 @@ function stretches(walls, R = {}) {
   if (R.baked) {
     // the free stretches of each wall, between its windows, glass and door, each walked from high a to low a
     for (const wl of walls) {
-      const cut = [...(R.blocks[wl.name] || []), ...(wl.door ? [wl.door] : [])].map(([a, b]) => [a - 0.4, b + 0.4]).sort((p, q) => q[0] - p[0]);
+      const cut = [...(wl.blocks || R.blocks[wl.name] || []), ...(wl.door ? [wl.door] : [])].map(([a, b]) => [a - 0.4, b + 0.4]).sort((p, q) => q[0] - p[0]);
       let hi = wl.len - MARGIN;
       for (const [a, b] of cut) { if (hi - Math.max(b, MARGIN) >= 0.6) out.push({ wall: wl, from: hi, to: Math.max(b, MARGIN), ...(wl.door ? { last: true } : {}) }); hi = Math.min(hi, a); }
       if (hi - MARGIN >= 0.6) out.push({ wall: wl, from: hi, to: MARGIN, ...(wl.door ? { last: true } : {}) });
@@ -226,14 +250,17 @@ export function hang(design, sized) {
 export function blocksOf(roomSlug) {
   const R = ROOMS[roomSlug], out = {};
   if (!R || !R.baked) return out;
-  for (const wl of wallsOf(R)) out[wl.name] = [...(R.blocks[wl.name] || []), ...(wl.door ? [wl.door] : [])].map(([a, b]) => [a - 0.3, b + 0.3]);
+  for (const wl of wallsOf(R)) out[wl.name] = [...(wl.blocks || R.blocks[wl.name] || []), ...(wl.door ? [wl.door] : [])].map(([a, b]) => [a - 0.3, b + 0.3]);
   return out;
 }
 
 // --- drawing the room -----------------------------------------------------------------------------------
 function drawBakedWall(R, wl, works, img, editing) {
-  const c = canvas(img.naturalWidth, img.naturalHeight), ctx = c.getContext('2d'), k = c.width / wl.len;
-  ctx.drawImage(img, 0, 0);
+  const cap = wl.partition ? Math.min(1, 2304 / img.naturalWidth) : 1;           // (partitions at a little less: there are up to four)
+  const c = canvas(img.naturalWidth * cap, img.naturalHeight * cap), ctx = c.getContext('2d'), k = c.width / wl.len;
+  if (wl.flip) { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  if (wl.flip) ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (R.light === 'daylight' || editing) return c;   // daylight is already on the wall: nothing aims at a work (and while hanging, the pools wait)
   ctx.globalCompositeOperation = 'lighter';
   for (const p of works) {
@@ -425,17 +452,19 @@ export async function buildRoom(design, src) {
   const surfaces = [];
   for (const wl of walls) {
     const on = placed.filter(p => p.wall === wl);
-    const img = R.baked ? await loadImg(R.baked + wl.name + '.jpg').catch(() => null) : null;
+    const file = R.baked + (wl.file || wl.name) + '.jpg';
+    const plain = R.baked && !wl.flip && !wl.partition && (!on.length || R.light === 'daylight' || design.editing);   // (nothing to add to the photograph)
+    const img = R.baked && !plain ? await loadImg(file).catch(() => null) : null;
     surfaces.push({
-      name: wl.name, kind: 'wall', texture: await keep(img ? drawBakedWall(R, wl, on, img, design.editing) : drawWall(R, wl, on, paint, seed + surfaces.length)),
+      name: wl.name, kind: 'wall', texture: plain ? file : await keep(img ? drawBakedWall(R, wl, on, img, design.editing) : drawWall(R, wl, on, paint, seed + surfaces.length)),
       origin: wl.origin, u: wl.u, v: [0, -1, 0], size: [wl.len, R.h], normal: wl.normal,
-      openings: wl.door ? [{ from: wl.door[0], to: wl.door[1], height: R.doorHeight || Math.min(2.7, R.h - 0.6), arch: false, depth: 0.3 }] : [],
+      openings: wl.door ? [{ from: wl.door[0], to: wl.door[1], height: R.doorHeight || Math.min(2.7, R.h - 0.6), arch: false, depth: PART, ...(wl.partition ? { through: true, bare: !!wl.bare } : {}) }] : [],
     });
   }
   if (R.baked) {
     // the floor and the ceiling as photographed (the floor whole, not a repeating tile)
-    surfaces.push({ name: 'floor', kind: 'floor', texture: R.baked + 'floor.jpg', tileXY: [R.w, R.d], origin: [0, 0, 0], u: [1, 0, 0], v: [0, 0, 1], size: [R.w, R.d], normal: [0, 1, 0], openings: [] });
-    surfaces.push({ name: 'ceiling', kind: 'ceiling', texture: R.baked + 'ceiling.jpg', origin: [0, R.h, R.d], u: [1, 0, 0], v: [0, 0, -1], size: [R.w, R.d], normal: [0, -1, 0], openings: [] });
+    surfaces.push({ name: 'floor', kind: 'floor', texture: R.baked + 'floor.jpg', tileXY: [R.w, R.d], origin: [0, 0, 0], u: [1, 0, 0], v: [0, 0, 1], size: [R.w, R.d], normal: [0, 1, 0], openings: [], ...(R.cells > 1 ? { repeat: [R.cells, 1] } : {}) });
+    surfaces.push({ name: 'ceiling', kind: 'ceiling', texture: R.baked + 'ceiling.jpg', origin: [0, R.h, R.d], u: [1, 0, 0], v: [0, 0, -1], size: [R.w, R.d], normal: [0, -1, 0], openings: [], ...(R.cells > 1 ? { repeat: [R.cells, 1] } : {}) });
   } else {
     const tile = drawFloorTile(R.floor, seed);
     surfaces.push({
@@ -458,7 +487,8 @@ export async function buildRoom(design, src) {
   });
   const floorReflect = R.floorReflect || (R.floor === 'oak' ? [0.03, 0.12] : R.floor === 'stone' ? [0.08, 0.34] : [0.06, 0.26]);
   const spec = {
-    version: 2, title: design.title, source: `${ROOMS[design.room].name}, a virtual room`, virtual: true, ordered: true, ...(R.baked ? { baked: { kind: R.kind, plates: (R.plates || []).map(p => ({ ...p, texture: R.baked + p.file })) } } : {}),
+    version: 2, title: design.title, source: `${ROOMS[design.room].name}, a virtual room`, virtual: true, ordered: true, ...(R.baked ? { baked: { kind: R.kind, plates: (R.plates || []).flatMap(p => R.cells > 1 && p.wall !== 'wall-x0' && p.wall !== 'wall-x1' ? Array.from({ length: R.cells }, (_, k) => ({ ...p, wall: `${p.wall}-c${k}`, texture: R.baked + p.file })) : [{ ...p, texture: R.baked + p.file }]) },
+      ...(R.cells > 1 ? { partitions: Array.from({ length: R.cells - 1 }, (_, i) => ({ x: (i + 1) * R.cell, t: PART, door: (R.doorSpan || [R.d / 2 - 0.7, R.d / 2 + 0.7]) })) } : {}) } : {}),
     room: { x0: 0, x1: R.w, z0: 0, z1: R.d, height: R.h }, surfaces, works, views: [], floorReflect, plaster: await keep(plaster),
     plinths: plinths.map(p => { const x = objSized.find(q => q.o.id === p.work); return { id: p.id, x: p.x, z: p.z, size: PLINTHS[p.size], key: p.size, work: p.work || null,
       obj: x ? { id: x.o.id, title: x.o.title, image: x.o.image, w: x.w, h: x.h } : null }; }),
