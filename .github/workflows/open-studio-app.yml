@@ -66,7 +66,8 @@ jobs:
           # Open Studio Desk: the owner's control room for a computer and an iPad, at /open-studio-desk/ (it borrows the rooms and
           # the 3D viewer from /open-studio/, so nothing but its own four files is copied)
           rm -rf open-studio-desk && mkdir -p open-studio-desk
-          cp /tmp/studio/studio/desk/index.html /tmp/studio/studio/desk/desk.css /tmp/studio/studio/desk/desk.js /tmp/studio/studio/desk/data.js open-studio-desk/
+          cp /tmp/studio/studio/desk/index.html /tmp/studio/studio/desk/desk.css /tmp/studio/studio/desk/desk.js /tmp/studio/studio/desk/data.js /tmp/studio/studio/desk/manifest.webmanifest open-studio-desk/
+          cp -r /tmp/studio/studio/desk/icons open-studio-desk/
           # a new cache name with every version, so an installed app drops what it kept from the last one
           sed -i "s/const VERSION = '[^']*'/const VERSION = 'open-studio-$(git -C /tmp/studio rev-parse --short HEAD)'/" open-studio/sw.js
       - name: Every file the app loads is published (a script left out of the copy above fails here, not on a phone)
