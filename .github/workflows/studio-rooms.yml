@@ -84,7 +84,7 @@ jobs:
             --samples "${{ github.event.inputs.samples || '256' }}" --size "${{ github.event.inputs.size || '1600x1000' }}" 2>&1 \
             | grep -v -E '^(Fra:|Remaining|Sample|Rendered|Path Tracing|Updating|Loading|Synchronizing)' | tail -80
           if [ "${{ github.event.inputs.surfaces || 'yes' }}" = yes ]; then
-            ~/blender/$BLENDER/blender -b --factory-startup -P studio/app/space/rooms/build_rooms.py --               --type "${{ matrix.type }}" --variant all --out out --surfaces --surface_samples 128 --ppm 110 2>&1               | grep -v -E '^(Fra:|Remaining|Sample|Rendered|Path Tracing|Updating|Loading|Synchronizing)' | tail -40
+            ~/blender/$BLENDER/blender -b --factory-startup -P studio/app/space/rooms/build_rooms.py --               --type "${{ matrix.type }}" --variant all --out out --surfaces --surface_samples 128 --ppm 300 2>&1               | grep -v -E '^(Fra:|Remaining|Sample|Rendered|Path Tracing|Updating|Loading|Synchronizing)' | tail -40
           fi
           ls -la out
       - uses: actions/upload-artifact@v4
