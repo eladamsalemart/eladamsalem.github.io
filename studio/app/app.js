@@ -657,7 +657,7 @@ function artistPage(slug) {
       <div class="list" data-more-list>${works.map((w, k) => k < 5 ? workRow(w) : workRow(w).replace('<a class="row"', '<a class="row" hidden')).join('')}</div>
       ${works.length > 5 ? '<button type="button" class="btn g" data-more style="justify-self:start">Show more</button>' : ''}</section>
     ${shows.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">${shows.length}</span></div>
-      <div class="covers">${[...shows].sort((x, y) => y.end - x.end).map(e => cover(e)).join('')}</div></section>` : ''}
+      <div class="walkbox">${walkRow([...shows].sort((x, y) => (status(y) !== 'past') - (status(x) !== 'past') || y.end - x.end), `${a.name}: exhibitions`)}</div></section>` : ''}
     ${own && M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
       <div class="covers">${M.objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
     ${!own && objectsOf(a).length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
@@ -1142,6 +1142,7 @@ function wire() {
   if (am) openArtMap(am);
   const hs = app.querySelector('.hs');
   if (hs) mountHome(hs).catch(e => console.error('home:', e));
+  app.querySelectorAll('.walkbox').forEach(wireWalk);     // the artist page's Exhibitions (the same row as Home's Walk in now)
   // a list that opens five more at a time
   document.querySelectorAll('[data-more]').forEach(b => b.onclick = () => {
     const rest = [...b.parentNode.querySelectorAll('[data-more-list] > [hidden]')];
