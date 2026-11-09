@@ -399,9 +399,55 @@ function skyOf() {
   return { stars, ties, slot };
 }
 
+// A sideways row of exhibitions, one component for Home ("Walk in now") and the artist page (Exhibitions): each an
+// arch in pencil; where a room exists, its short film turns on the card while it is on screen (data/spaces/<slug>/
+// preview.*, else the picture of the show), and "Step inside" walks in; the whole card opens the exhibition.
+function walkRow(list, label) {
+  const card = e => {
+    const on = isOn(e), room = e.virtual && bakedRoom(e.virtual.room);
+    const alt = e.images[0] ? src(e.images[0]) : room ? `data/rooms/${room}/view.jpg` : '';
+    const first = e.space ? `data/spaces/${e.slug}/preview.jpg` : '';
+    const pill = e.space ? `<span class="livepill"><i></i>${on ? 'Live now' : 'In 3D'}</span>` : on ? `<span class="livepill"><i></i>On now</span>` : '';
+    return `<li><div class="wc${e.space ? ' has-room' : ''}" data-slug="${esc(e.slug)}">
+      <div class="wc-arch">${first ? `<img class="wc-poster" src="${esc(first)}" data-alt="${esc(alt)}" alt="" loading="lazy" onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt='';this.closest('.wc').classList.add('nofilm')}">` : alt ? `<img class="wc-poster" src="${esc(alt)}" alt="" loading="lazy">` : ''}
+        ${pill}
+        <div class="wc-cap"><a class="wc-t" href="#/exhibition/${esc(e.slug)}"><b${heb(e.title)}>${esc(e.title)}</b></a><span>${esc([byOf(e), e.city].filter(Boolean).join(' · '))}</span></div>
+      </div>
+      ${e.space ? `<a class="step" href="#/exhibition/${esc(e.slug)}/space">Step inside</a>` : ''}</div></li>`;
+  };
+  return `<ul class="walk" role="list" aria-label="${esc(label || 'Exhibitions')}">${list.map(card).join('')}</ul>`;
+}
+// the pencil arch round each card, and the films: made when a card is mostly on screen, played only while it is
+function wireWalk(root) {
+  const cards = [...root.querySelectorAll('.wc')]; if (!cards.length) return;
+  const draw = () => cards.forEach(c => sketchArch(c.querySelector('.wc-arch'), c));
+  draw(); requestAnimationFrame(draw);
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const io = new IntersectionObserver(es => {
+    for (const en of es) {
+      const c = en.target; if (!c.isConnected) { io.unobserve(c); continue; }
+      let v = c.querySelector('video');
+      if (!en.isIntersecting) { if (v) v.pause(); continue; }
+      if (!c.classList.contains('has-room') || c.classList.contains('nofilm')) continue;
+      if (!v) {
+        const s = esc(c.dataset.slug), a = c.querySelector('.wc-arch');
+        a.insertAdjacentHTML('afterbegin', `<video class="wc-film" muted loop playsinline preload="auto" poster="data/spaces/${s}/preview.jpg" aria-hidden="true"><source src="data/spaces/${s}/preview.hevc.mp4" type='video/mp4; codecs="hvc1"'><source src="data/spaces/${s}/preview.webm" type='video/webm; codecs="vp9"'><source src="data/spaces/${s}/preview.mp4" type="video/mp4"></video>`);
+        v = a.firstElementChild;
+        v.addEventListener('playing', () => c.classList.add('ready'), { once: true });
+        [...v.querySelectorAll('source')].pop().addEventListener('error', () => v.remove());   // no film: the picture stays
+      }
+      v.play().catch(() => {});
+    }
+  }, { threshold: .6 });
+  cards.forEach(c => io.observe(c));
+}
+
 function home() {
-  const me = signedIn(), live = M.exhibitions.find(e => e.space && isOn(e))
-    || M.exhibitions.find(e => e.space && recent().some(r => r.k === 'space' && r.id === e.slug)) || M.exhibitions.find(e => e.space);
+  const me = signedIn();
+  // what you can walk into now: the running shows with a room (tours, artists' On View, the demo's virtual shows); else the rooms there are
+  const rooms = M.exhibitions.filter(e => e.space), seenRoom = s => recent().some(r => r.k === 'space' && r.id === s.slug);
+  const running = rooms.filter(isOn).sort((a, b) => seenRoom(b) - seenRoom(a));
+  const walk = running.length >= 4 ? running.slice(0, 8) : [...running, ...rooms.filter(e => !running.includes(e)).sort((a, b) => seenRoom(b) - seenRoom(a))].slice(0, 5);
   const mine = following().map(s => M.artists.find(a => a.slug === s)).filter(Boolean);
   const theirs = [...new Set(mine.flatMap(a => showsOf(a).filter(e => status(e) !== 'past')))].sort((a, b) => a.start - b.start).slice(0, 6);
   const d0 = new Date(), day = `${d0.toLocaleDateString('en-GB', { weekday: 'short' })} ${d0.getDate()} ${d0.toLocaleDateString('en-GB', { month: 'short' })}`;
@@ -410,26 +456,14 @@ function home() {
       <div class="hs-top"><span class="brand-h">${LOGO}</span><span class="hs-day">${esc(day)}</span>${me ? `<a class="me" href="#/account" aria-label="Your account">${esc((me.name || me.email || '?')[0].toUpperCase())}</a>` : ''}</div>
       <h1 class="vh">Open Studio</h1>
       <div id="hsSky" class="skybox"></div>
-      <div class="sky-ctl" role="group" aria-label="Move around the sky">
-        <button type="button" data-z="in" aria-label="Zoom in"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
-        <button type="button" data-z="out" aria-label="Zoom out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
-        <button type="button" data-z="fit" aria-label="Back to the start"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></button>
-        <button type="button" class="wander-b" aria-pressed="false">Wander</button>
-      </div>
-      <div class="sky-ui"><span class="hint">tap a face · drag · + / − to zoom</span></div>
+      <div class="sky-ui"><span class="hint">tap a face · pinch to zoom · drag sideways</span></div>
       <div class="pick" hidden aria-live="polite"></div>
       <button type="button" class="sky-down"><span class="hand">your artists, shows and what’s near</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10l6 6 6-6"/></svg></button>
     </section>
-    <section class="hs-sec hs-new" id="hsNew" aria-labelledby="hsNewH" hidden></section>
-    ${live ? `<section class="hs-sec" aria-labelledby="hsLive">
+    ${walk.length ? `<section class="hs-sec hs-walk" aria-labelledby="hsLive">
       <div class="hs-h"><h2 id="hsLive">Walk in now</h2><span class="hand side">you can walk in from here</span></div>
-      <div class="tour-wrap"><div class="tour" data-slug="${esc(live.slug)}">
-        ${im(live.images[0], '', 'class="tour-poster"', '100vw')}
-        <video class="tour-film" muted loop playsinline preload="none" poster="data/spaces/${esc(live.slug)}/preview.jpg" aria-label="${esc(live.title)}: the room, turning slowly"><source src="data/spaces/${esc(live.slug)}/preview.hevc.mp4" type='video/mp4; codecs="hvc1"'><source src="data/spaces/${esc(live.slug)}/preview.webm" type='video/webm; codecs="vp9"'><source src="data/spaces/${esc(live.slug)}/preview.mp4" type="video/mp4"></video>
-        <span class="livepill"><i></i>${isOn(live) ? 'Live now' : 'In 3D'}</span>
-        <div class="tour-cap"><b>${esc(live.title)}</b><span>${esc([byOf(live), live.city].filter(Boolean).join(' · '))}</span></div>
-        <a class="step" href="#/exhibition/${esc(live.slug)}/space">Step inside</a>
-      </div></div></section>` : ''}
+      ${walkRow(walk, 'Exhibitions you can walk into')}</section>` : ''}
+    <section class="hs-sec hs-new" id="hsNew" aria-labelledby="hsNewH" hidden></section>
     ${mine.length ? `<section class="hs-sec" aria-labelledby="hsArtists">
       <div class="hs-h"><h2 id="hsArtists">Your artists</h2><a class="hs-more" href="#/artists">All</a></div>
       <ul class="ppl">${mine.map((a, i) => `<li style="--c:var(--hs-${['artist', 'show', 'place', 'tour'][i % 4]})"><a href="#/artist/${a.slug}">${im(a.portrait, '', 'width="64" height="64"', '64px')}<b>${esc(a.name)}</b><span class="what">${esc([a.discipline, a.city].filter(Boolean).join(' · '))}</span>${newsOf(a) ? `<span class="hand now">${esc(newsOf(a))}</span>` : ''}</a></li>`).join('')}</ul>
@@ -474,10 +508,9 @@ const skyStar = s => `<span class="wash"></span><span class="sp"${s.img ? ` styl
 const KIND = { artist: 'Artist', show: 'Show', tour: 'In 3D', place: 'Place', work: 'Work' };
 const MOTES = Array.from({ length: 70 }, (_, i) => ({ x: (seeded(i + 1) - .5) * 1900, y: (seeded(i + 51) - .5) * 2300, z: (seeded(i + 101) - .5) * 1900, r: 0.6 + seeded(i + 151) * 1.6 }));
 
-let homeSky = null, wanderTimer = 0;
+let homeSky = null;
 async function mountHome(root) {
   if (!document.getElementById('hsDefs')) document.body.insertAdjacentHTML('afterbegin', HS_DEFS);
-  clearInterval(wanderTimer);
   const H = new Date().getHours(), sk = [...SKIES].reverse().find(([h]) => H >= h) || SKIES[3];
   root.style.setProperty('--hs-sky', `linear-gradient(180deg,${sk[1]} 100%)`);
   const hero = root.querySelector('.hs-hero'), pick = root.querySelector('.pick'), box = root.querySelector('#hsSky');
@@ -487,7 +520,6 @@ async function mountHome(root) {
   const { sky } = await import('./sky.js');
   if (!box.isConnected) return;
   const seen = new Set();                                         // what Wander has shown, so it keeps finding new ones
-  const stopWander = () => { clearInterval(wanderTimer); wanderTimer = 0; const b = root.querySelector('.wander-b'); b.setAttribute('aria-pressed', 'false'); b.textContent = 'Wander'; };
   const S = homeSky = sky(box, {
     stars, ties, node: skyStar, D: 560, F: 560, cy: 0.5, pickY: 0.3, focusD: 400, intro: 1.8, ease: .1,
     limits: { Dmin: 240, Dmax: 2600 }, minOp: .8, minScale: .55, maxScale: 2.2, fog: 2200, bow: 0.1, ink: .8, top: 60, bottom: 100,
@@ -498,7 +530,7 @@ async function mountHome(root) {
         ctx.globalAlpha = Math.min(.9, .25 + q.k * .6); ctx.beginPath(); ctx.arc(q.x, q.y, Math.min(3, m.r * q.k), 0, 6.283); ctx.fill(); }
       ctx.globalAlpha = 1;
     },
-    onTouch() { hero.classList.add('used'); if (wanderTimer) stopWander(); },
+    onTouch() { hero.classList.add('used'); },
     onChoose(s) { card(s); },
   });
   // the card of whoever you tapped: a face, a name, and what you can do (Follow an artist, Open, go on to what is related)
@@ -510,8 +542,8 @@ async function mountHome(root) {
     pick.innerHTML = `<div class="pk-row">${s.img ? `<img src="${esc(s.img)}" alt="">` : `<i class="pk-dot k-${s.kind}"></i>`}<div class="pk-t"><span class="pk-k">${KIND[s.kind]}${s.ago ? ` · ${esc(s.ago)}` : ''}</span><b${heb(s.name)}>${esc(s.name)}</b><span${heb(s.sub || '')}>${esc(s.sub || '')}</span>${s.note ? `<span class="hand">${esc(s.note)}</span>` : ''}</div><button type="button" class="x" aria-label="Close">×</button></div>
       <div class="pk-do">${s.slug ? `<button type="button" class="fo${fol ? ' on' : ''}" aria-pressed="${!!fol}">${fol ? 'Following' : 'Follow'}</button>` : ''}${s.href ? `<a class="go" href="${esc(s.href)}">${esc(s.go || 'Open')}</a>` : ''}<button type="button" class="nx">Related</button></div>`;
     pick.hidden = false;
-    pick.querySelector('.x').onclick = () => { stopWander(); S.clear(true); };
-    pick.querySelector('.nx').onclick = () => { stopWander(); step(); };
+    pick.querySelector('.x').onclick = () => S.clear(true);
+    pick.querySelector('.nx').onclick = () => step();
     const fb = pick.querySelector('.fo');
     if (fb) fb.onclick = () => { const on = fb.getAttribute('aria-pressed') !== 'true'; setFollow(s.slug, on); fb.setAttribute('aria-pressed', on); fb.classList.toggle('on', on); fb.textContent = on ? 'Following' : 'Follow'; };
   }
@@ -522,17 +554,6 @@ async function mountHome(root) {
     if (!next) { const rest = S.stars.filter(x => !seen.has(x.id) && x.kind !== 'place' && x.op > 0); if (!rest.length) seen.clear(); const all = rest.length ? rest : S.stars; next = all[Math.floor(Math.random() * all.length)]; }
     if (next) S.choose(next);
   }
-  const ctl = root.querySelector('.sky-ctl');
-  ctl.addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    hero.classList.add('used');
-    if (b.dataset.z === 'in') S.zoom(0.68); else if (b.dataset.z === 'out') S.zoom(1.5); else if (b.dataset.z === 'fit') { stopWander(); S.home(); }
-    else if (b.classList.contains('wander-b')) {
-      if (wanderTimer) { stopWander(); return; }
-      b.setAttribute('aria-pressed', 'true'); b.textContent = 'Stop'; step();
-      wanderTimer = setInterval(() => { if (!box.isConnected) { stopWander(); return; } step(); }, 4800);
-    }
-  });
   // the far sky: shows on now at the places nearest you, from the art map
   nearShows(8).then(list => {
     if (!box.isConnected) return;
@@ -544,7 +565,7 @@ async function mountHome(root) {
     for (let i = 1; i < more.length; i++) if (seeded(i * 7) > .45) tie.push([more[i - 1].id, more[i].id, 'maybe']);
     S.add(more, tie);
   });
-  wireTour(root);
+  wireWalk(root);
   fillNear(root.querySelector('#hsNear'));
 }
 
@@ -571,21 +592,11 @@ function fillNew(box) {
 // poster: never faded in over the show's photo, which made a ghost of the one in the other) (made from the room itself, space/preview.cjs), played
 // only while it is on screen; "Step inside" opens the real room. (A live room in a frame here made Home slow on a phone.)
 // the arch drawn round the room, in pencil, twice, not quite on its line
-function sketchArch(tour) {
+function sketchArch(tour, wrap = tour.parentElement) {
   const w = tour.clientWidth, h = tour.clientHeight, r = w / 2; if (!w) return;
   const path = (dx, dy, s) => `M${4 + dx} ${h - 2 + dy}L${3 + dx} ${r + dy}A${r - 3 + s} ${r - 3 + s} 0 0 1 ${w - 3 + dx} ${r - 2 + dy}L${w - 4 + dx} ${h - 6 + dy}`;
-  const old = tour.parentElement.querySelector('.sketch-arch'); if (old) old.remove();
+  const old = wrap.querySelector('.sketch-arch'); if (old) old.remove();
   tour.insertAdjacentHTML('afterend', `<svg class="sketch-arch" viewBox="-9 -9 ${w + 16} ${h + 15}" aria-hidden="true"><path d="${path(-8, -9, 9)}"/><path d="${path(4, -3, 3)}" opacity=".5"/></svg>`);
-}
-function wireTour(root) {
-  const tour = root.querySelector('.tour'); if (!tour) return;
-  sketchArch(tour);
-  const film = tour.querySelector('video');
-  film.addEventListener('playing', () => tour.classList.add('ready'), { once: true });
-  const last = [...film.querySelectorAll('source')].pop();
-  last.addEventListener('error', () => film.remove());                                 // no film yet: the photo stays
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { film.preload = 'metadata'; return; }
-  new IntersectionObserver(([e]) => { if (!film.isConnected) return; if (e.isIntersecting) film.play().catch(() => {}); else film.pause(); }, { threshold: .2 }).observe(tour);
 }
 
 // what's on near you: the nearest places with a show on today, drawn as a small pencil map round where you are
@@ -646,7 +657,7 @@ function artistPage(slug) {
       <div class="list" data-more-list>${works.map((w, k) => k < 5 ? workRow(w) : workRow(w).replace('<a class="row"', '<a class="row" hidden')).join('')}</div>
       ${works.length > 5 ? '<button type="button" class="btn g" data-more style="justify-self:start">Show more</button>' : ''}</section>
     ${shows.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">${shows.length}</span></div>
-      <div class="covers">${[...shows].sort((x, y) => y.end - x.end).map(e => cover(e)).join('')}</div></section>` : ''}
+      <div class="walkbox">${walkRow([...shows].sort((x, y) => (status(y) !== 'past') - (status(x) !== 'past') || y.end - x.end), `${a.name}: exhibitions`)}</div></section>` : ''}
     ${own && M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
       <div class="covers">${M.objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
     ${!own && objectsOf(a).length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
@@ -1131,6 +1142,7 @@ function wire() {
   if (am) openArtMap(am);
   const hs = app.querySelector('.hs');
   if (hs) mountHome(hs).catch(e => console.error('home:', e));
+  app.querySelectorAll('.walkbox').forEach(wireWalk);     // the artist page's Exhibitions (the same row as Home's Walk in now)
   // a list that opens five more at a time
   document.querySelectorAll('[data-more]').forEach(b => b.onclick = () => {
     const rest = [...b.parentNode.querySelectorAll('[data-more-list] > [hidden]')];
