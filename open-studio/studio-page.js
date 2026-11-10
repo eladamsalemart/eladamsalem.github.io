@@ -70,6 +70,42 @@ body.previewing .ed-bar{top:34px}
 .sh .err{color:var(--dot)}
 .ed-toast{font-size:16px!important;position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:120;background:var(--ink);color:var(--wall);padding:10px 16px;border-radius:12px;font-size:14px;max-width:86vw}
 body.sh-open{overflow:hidden}
+.ed #works{scroll-margin-top:64px}
+.wk-hint{margin:0 0 6px;font-size:15px;color:var(--muted)}.wk-hint a{color:var(--ink);font-weight:600;display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
+.wk-g{margin-top:12px}.wk-g h3{font:700 13px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0;padding:8px 0 2px}
+.wk{display:grid;grid-template-columns:72px 1fr 44px;gap:12px;align-items:center;min-height:84px;padding:6px 0;border-bottom:1px solid var(--line);cursor:pointer;position:relative;background:var(--wall);-webkit-tap-highlight-color:transparent}
+.wk:active{background:var(--card)}.wk:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.wk-im{position:relative;width:72px;height:72px;background:var(--card);border-radius:6px;overflow:hidden;display:grid;place-items:center}
+.wk-im img{width:100%;height:100%;object-fit:contain;display:block}
+.wk-spin{position:absolute;inset:0;background:rgba(251,250,246,.62)}.wk-spin::after{content:"";position:absolute;inset:26px;border:3px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:wk-r .8s linear infinite}
+@keyframes wk-r{to{transform:rotate(1turn)}}
+.wk-t{display:grid;gap:2px;min-width:0}.wk-t b{font-size:17px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk-t>span{font-size:15px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk-t em{font-style:normal;font-size:14px;font-weight:600;color:#7A4300}.wk-t em.up{color:var(--muted)}
+.wk-grip{width:44px;height:56px;border:0;background:none;color:var(--muted);touch-action:none;cursor:grab;font-size:22px;letter-spacing:-2px;padding:0}.wk-grip::before{content:"\\2807\\2807"}
+.wk-grip:focus-visible{outline:2px solid var(--ink);border-radius:8px}
+.wk.drag{background:var(--card);box-shadow:0 6px 24px rgba(0,0,0,.2);z-index:5}
+.wk-empty{display:grid;gap:12px;justify-items:start;padding:8px 0 4px}.wk-empty b{font:500 22px var(--serif)}.wk-empty p{margin:0;font-size:16px;color:var(--muted)}
+.sh-f{display:flex;gap:10px;padding:10px 20px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--wall)}
+.sh-f .btn{flex:1;justify-content:center;min-height:52px;font-size:16px}.sh-f .btn.danger{flex:0 0 auto;color:#B3261E;border-color:#B3261E;padding-inline:20px}
+.sh-b .btn.wide{width:100%}
+.ad-list{display:grid;gap:12px}.ad-card{display:grid;grid-template-columns:84px 1fr 44px;gap:12px;align-items:start;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.ad-card.one{grid-template-columns:1fr;border-bottom:0}.ad-card.one .ad-im{height:min(34vh,260px)}
+.ad-im{position:relative;height:84px;background:var(--card);border-radius:8px;overflow:hidden;display:grid;place-items:center}.ad-im img{width:100%;height:100%;object-fit:contain}
+.ad-wait{font-style:normal;font-size:14px;color:var(--muted);padding:4px;text-align:center}
+.ad-f{display:grid;gap:8px;min-width:0}.ad-sz{display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center;color:var(--muted)}
+.ad-same,.ad-rm{background:none;border:0;color:var(--ink);font:600 15px var(--sans);cursor:pointer;min-height:44px;text-align:left;padding:0;text-decoration:underline}
+.ad-rm{font-size:26px;text-decoration:none;width:44px;text-align:center;color:var(--muted)}
+.ad-err{margin:0;color:#B3261E;font-size:15px}
+.ad-all{display:grid;gap:12px;padding-top:6px}.ad-h{margin:0;font:700 13px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.st-row.yr{grid-template-columns:110px 1fr}
+.kd{border:0!important;padding:0!important}.kd legend{padding:0 0 6px!important}
+.kd-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-inline:-20px;padding-inline:20px;scrollbar-width:none}.kd-row::-webkit-scrollbar{display:none}
+.kd-c{position:relative;flex:none}.kd-c input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0}
+.kd-c span{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:99px;border:1.5px solid var(--edge);font:600 16px var(--sans);color:var(--ink);background:var(--paper)}
+.kd-c input:checked+span{background:var(--ink);color:var(--wall);border-color:var(--ink)}.kd-c input:focus-visible+span{outline:3px solid var(--dot);outline-offset:2px}
+.wk-prev{display:grid;grid-template-columns:120px auto;gap:14px;align-items:center;justify-items:start}.wk-pv{display:grid;place-items:center;width:120px;height:120px;background:var(--card);border-radius:8px;overflow:hidden}.wk-pv img{width:100%;height:100%;object-fit:contain}
+.ed-toast{display:flex;gap:14px;align-items:center}.ed-toast button{min-height:44px;padding:0 6px;background:none;border:0;color:var(--wall);font:700 16px var(--sans);text-decoration:underline;cursor:pointer}
 `;
 const hook = () => { if (!document.getElementById('edCss')) { const s = document.createElement('style'); s.id = 'edCss'; s.textContent = CSS; document.head.append(s); } };
 
@@ -79,7 +115,17 @@ export function mount(c) {
   hook();
   let a = null;                                           // the page's artist as the app builds it
 
-  const toast = t => { const e = document.createElement('div'); e.className = 'ed-toast'; e.textContent = t; document.body.append(e); setTimeout(() => e.remove(), 3200); };
+  const toast = (t, undo) => {
+    document.querySelectorAll('.ed-toast').forEach(x => x.remove());
+    const e = document.createElement('div'); e.className = 'ed-toast'; e.setAttribute('role', 'status'); const m = document.createElement('span'); m.textContent = t; e.append(m);
+    if (undo) { const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Undo'; b.onclick = () => { e.remove(); undo(); }; e.append(b); }
+    document.body.append(e); setTimeout(() => e.remove(), undo ? 8000 : 3200);
+  };
+  // a photo on its way to the account: the row says so, and says when it is there (or that it failed)
+  const onUp = ev => { if (ev.detail && ev.detail.state !== 'uploading') drawWorks(); };
+  window.removeEventListener('studio-upload', window.__edUp); window.__edUp = onUp; window.addEventListener('studio-upload', onUp);
+  window.removeEventListener('studio-save-failed', window.__edRow); window.__edRow = () => drawWorks(); window.addEventListener('studio-save-failed', window.__edRow);
+  window.onbeforeunload = () => S.works.some(pending) ? 'Photos are still uploading.' : undefined;
   const onFail = ev => toast(`Couldn’t save: ${ev.detail}`);
   window.removeEventListener('studio-save-failed', window.__edFail); window.__edFail = onFail; window.addEventListener('studio-save-failed', onFail);
 
@@ -119,7 +165,7 @@ export function mount(c) {
   function draw() {
     const y = scrollY;
     a = tools.ownPage(S);
-    app.innerHTML = bar() + tools.artistPage(a) + (mode() === 'edit' ? '<button type="button" class="ed-fab" id="edAdd"><b>+</b> Add work</button>' : '');
+    app.innerHTML = bar() + tools.artistPage(a) + (mode() === 'edit' ? '<button type="button" class="ed-fab" id="edAdd"><b>+</b> Add works</button>' : '');
     tools.wire();
     app.querySelector('.ed-bar').querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { setMode(b.dataset.mode); draw(); scrollTo(0, 0); });
     if (mode() === 'edit') decorate(); else app.classList.remove('ed');
@@ -146,14 +192,10 @@ export function mount(c) {
     st.textContent = S.artist.statement || '';
     st.onblur = () => { const v = st.innerText.trim(); st.textContent = v; if (v !== (S.artist.statement || '')) { S.artist.statement = v; commit(); refreshCard(); } };
     st.insertAdjacentHTML('beforebegin', '<div id="edCard"></div>'); wrap.querySelector('#edCard').innerHTML = card(); wireCard();
-    // the works: the page's own sections (five, then the rest by kind and year); each a tap away from its sheet, each with a grip to drag within its year
-    const lists = [...wrap.querySelectorAll('#works .list')], sec = wrap.querySelector('#works');
-    if (sec) {
-      const det = sec.querySelector('details'); if (det) det.open = true;
-      lists.forEach(list => { list.querySelectorAll('a.row').forEach(r => { r.dataset.slug = r.getAttribute('href').slice(7); }); wireGrips(list); });
-    } else {
-      wrap.querySelector('.statement').closest('.wrap').insertAdjacentHTML('beforeend', '<section class="sec" id="works"><div class="sec-h"><h2>Recent works</h2><span class="more">0</span></div><p class="m">No works yet. Tap “+ Add work” to bring them in from your website, Instagram or Drive, or add one by hand.</p></section>');
-    }
+    // the works: a list of their own (every work, by year; tap to edit, grip to reorder)
+    let sec = wrap.querySelector('#works');
+    if (!sec) { wrap.querySelector('.statement').closest('.wrap').insertAdjacentHTML('beforeend', '<section class="sec" id="works"></section>'); sec = wrap.querySelector('#works'); }
+    sec.innerHTML = worksInner(); wireGrips(sec);
     // the exhibitions
     let covers = wrap.querySelector('.covers');
     if (!covers) { (sec || wrap).insertAdjacentHTML(sec ? 'afterend' : 'beforeend', '<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">0</span></div><div class="covers"></div></section>'); covers = wrap.querySelector('.covers'); }
@@ -169,9 +211,10 @@ export function mount(c) {
     const bio = wrap.querySelector('#edBio'); bio.textContent = S.artist.bio || '';
     bio.onblur = () => { const v = bio.innerText.trim(); if (v !== (S.artist.bio || '')) { S.artist.bio = v; commit(); } };
     wrap.querySelector('#edSo').onclick = () => c.signOut();
-    app.querySelector('#edAdd').onclick = () => addSheet();
+    app.querySelector('#edAdd').onclick = () => pickPhotos();
     // taps
     app.onclick = onTap;
+    app.onkeydown = e => { const r = e.target.classList && e.target.classList.contains('wk') ? e.target : null; if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); workSheet(r.dataset.id); } };
   }
   const cvHtml = cv => [...new Set(cv.map(l => l.group || ''))].map(g => `<section class="cv-g">${g ? `<h3>${esc(g)}</h3>` : ''}<dl>${cv.filter(l => (l.group || '') === g).map(l => `<div><dt>${esc(l.year)}</dt><dd>${esc(l.title)}${l.venue ? `<span>${esc(l.venue)}</span>` : ''}</dd></div>`).join('')}</dl></section>`).join('');
 
@@ -180,7 +223,7 @@ export function mount(c) {
       const k = b.dataset.todo;
       if (k === 'cover') coverSheet();
       else if (k === 'statement') { const s = app.querySelector('.statement'); s.scrollIntoView({ block: 'center', behavior: 'smooth' }); setTimeout(() => s.focus(), 350); }
-      else addSheet();
+      else pickPhotos();
     });
     app.querySelectorAll('[data-st]').forEach(b => b.onclick = async () => {
       b.disabled = true;
@@ -197,8 +240,10 @@ export function mount(c) {
     if (t.closest('[contenteditable]')) return;
     const ed = t.closest('[data-ed]'), row = t.closest('a.row[data-slug]'), cv = t.closest('.covers a[data-slug]');
     if (t.closest('.row > span:last-child')) { e.preventDefault(); return; }
-    if (ed) { e.preventDefault(); ({ cover: coverSheet, profile: profileSheet, 'work-new': () => workSheet(null), 'ex-new': () => go('#/studio/exhibition/new'), cv: cvSheet })[ed.dataset.ed](); return; }
-    if (row) { e.preventDefault(); const w = a && tools_work(row.dataset.slug); if (w) workSheet(w.id); return; }
+    if (ed) { e.preventDefault(); ({ cover: coverSheet, profile: profileSheet, 'work-new': () => pickPhotos(), 'ex-new': () => go('#/studio/exhibition/new'), cv: cvSheet })[ed.dataset.ed](); return; }
+    const wk = t.closest('.wk');
+    if (wk) { if (!t.closest('.wk-grip')) workSheet(wk.dataset.id); return; }
+    if (t.closest('[data-pick]')) { e.preventDefault(); pickPhotos(); return; }
     if (cv) { e.preventDefault(); const x = tools_ex(cv.dataset.slug); if (x) go('#/studio/exhibition/' + x.id); return; }
     if (t.closest('.hero ~ .wrap a[href^="#/work/"],.hero ~ .wrap a[href^="#/exhibition/"],.ov-now a')) e.preventDefault();
   }
@@ -239,37 +284,97 @@ export function mount(c) {
     });
   }
 
-  // --- reordering: drag a work by its grip -----------------------------------------------------------------------
-  function wireGrips(list) {
-    list.querySelectorAll('a.row').forEach(r => {
-      const g = r.lastElementChild;
+  // --- the works, as a list of their own: every work, by year, a tap to edit, a grip to reorder -------------------
+  const pending = w => S.cloud && /^blob:/.test(w.image || '');
+  const yearKey = w => String(w.year || '').slice(0, 4) || 'Undated';
+  const worksInner = () => {
+    const n = S.works.length;
+    const head = `<div class="sec-h"><h2>Works</h2><span class="more">${n}</span></div>`;
+    if (!n) return `${head}<div class="wk-empty"><b>No works yet</b><p>Pick photos from your phone: one or many. Add titles after, or never.</p>
+      <button type="button" class="btn f" data-pick>Add photos</button><a class="btn g" href="#/studio/import">From a website, Instagram or Drive</a></div>`;
+    const wall = S.works.filter(w => w.kind !== 'object'), objs = S.works.filter(w => w.kind === 'object');
+    const years = [...new Set(wall.map(yearKey))].sort((a, b) => (a === 'Undated') - (b === 'Undated') || +b - +a);
+    const groups = [...years.map(y => [y, wall.filter(w => yearKey(w) === y)]), ...(objs.length ? [['Objects', objs]] : [])];
+    const row = w => {
+      const up = pending(w), size = w.width && w.height ? `${w.height} × ${w.width}${w.depth ? ` × ${w.depth}` : ''} cm` : '';
+      const meta = [w.medium, size].filter(Boolean).join(' · ');
+      return `<div class="wk${up ? ' up' : ''}" data-id="${esc(w.id)}" role="button" tabindex="0" aria-label="Edit ${esc(w.title || 'Untitled')}"><span class="wk-im"><img src="${esc(w.thumb || w.image)}" alt="" loading="lazy" decoding="async">${up ? '<i class="wk-spin" title="Uploading"></i>' : ''}</span>
+        <span class="wk-t"><b>${esc(w.title || 'Untitled')}</b><span>${esc(meta || 'No details yet')}</span>${up ? '<em class="up">Uploading…</em>' : !size && w.kind !== 'object' ? '<em>Add its size</em>' : ''}</span>
+        <button type="button" class="wk-grip" aria-label="Move ${esc(w.title || 'Untitled')}: drag, or use the up and down arrow keys"></button></div>`;
+    };
+    return `${head}<p class="wk-hint">Tap a work to edit. Drag the dots to reorder within a year. <a href="#/studio/import">Import from a website</a></p>
+      ${groups.map(([g, l]) => `<div class="wk-g"><h3>${esc(g)}</h3><div class="wk-list" data-g="${esc(g)}">${l.map(row).join('')}</div></div>`).join('')}`;
+  };
+  function drawWorks() {
+    const sec = app.querySelector('#works'); if (!sec) return;
+    sec.innerHTML = worksInner(); wireGrips(sec);
+  }
+  // the works of one list take, in the new order, the places they held in the artist's order
+  function commitOrder(list) {
+    const ids = [...list.querySelectorAll('.wk')].map(x => x.dataset.id);
+    const slots = S.works.map((w, i) => ids.includes(w.id) ? i : -1).filter(i => i >= 0), byId = new Map(S.works.map(w => [w.id, w]));
+    slots.forEach((at, n) => { S.works[at] = byId.get(ids[n]); });
+    commit();
+  }
+  function wireGrips(sec) {
+    sec.querySelectorAll('.wk-list').forEach(list => list.querySelectorAll('.wk').forEach(r => {
+      const g = r.querySelector('.wk-grip');
       g.onpointerdown = ev => {
         ev.preventDefault(); g.setPointerCapture(ev.pointerId); r.classList.add('drag');
         const move = m => {
-          const rows = [...list.querySelectorAll('a.row')];
+          const rows = [...list.querySelectorAll('.wk')];
           const over = rows.find(o => o !== r && m.clientY > o.getBoundingClientRect().top && m.clientY < o.getBoundingClientRect().bottom);
           if (over) { const after = rows.indexOf(over) > rows.indexOf(r); list.insertBefore(r, after ? over.nextSibling : over); }
-          const box = list.getBoundingClientRect(); if (m.clientY > innerHeight - 70) scrollBy(0, 12); else if (m.clientY < 110) scrollBy(0, -12);
+          if (m.clientY > innerHeight - 90) scrollBy(0, 14); else if (m.clientY < 110) scrollBy(0, -14);
         };
-        const up = () => {
-          g.removeEventListener('pointermove', move); g.removeEventListener('pointerup', up); g.removeEventListener('pointercancel', up); r.classList.remove('drag');
-          // the works of this list take, in the new order, the places they held in the artist's order (the year still comes first)
-          const ids = [...list.querySelectorAll('a.row')].map(x => (tools_work(x.dataset.slug) || {}).id).filter(Boolean);
-          const slots = S.works.map((w, i) => ids.includes(w.id) ? i : -1).filter(i => i >= 0), byId = new Map(S.works.map(w => [w.id, w]));
-          slots.forEach((at, n) => { S.works[at] = byId.get(ids[n]); });
-          commit();
-        };
+        const up = () => { g.removeEventListener('pointermove', move); g.removeEventListener('pointerup', up); g.removeEventListener('pointercancel', up); r.classList.remove('drag'); commitOrder(list); };
         g.addEventListener('pointermove', move); g.addEventListener('pointerup', up); g.addEventListener('pointercancel', up);
       };
-    });
+      g.onkeydown = e => {
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+        e.preventDefault();
+        if (e.key === 'ArrowUp' && r.previousElementSibling) list.insertBefore(r, r.previousElementSibling);
+        else if (e.key === 'ArrowDown' && r.nextElementSibling) list.insertBefore(r.nextElementSibling, r);
+        else return;
+        g.focus(); commitOrder(list);
+      };
+    }));
+  }
+
+  // --- details a work is given at once: remembered from the last one, so the next is a tap ---------------------
+  const KINDS = ['Painting', 'Sculpture', 'Drawing', 'Print', 'Photography', 'Installation', 'Other'];
+  const DEF = 'os-work-defaults';
+  const defaults = () => { try { return JSON.parse(localStorage.getItem(DEF) || '{}') || {}; } catch { return {}; } };
+  const remember = w => { try { localStorage.setItem(DEF, JSON.stringify({ kind: w.category || '', year: w.year || '', medium: w.medium || '', width: w.width || '', height: w.height || '' })); } catch {} };
+  const kindChips = cur => `<fieldset class="kd"><legend>Kind</legend><div class="kd-row">${KINDS.map(k => `<label class="kd-c"><input type="radio" name="kind" value="${k}" ${cur === k ? 'checked' : ''}><span>${k}</span></label>`).join('')}</div></fieldset>`;
+  const mediumList = () => `<datalist id="mediums">${[...new Set(['Oil on canvas', 'Acrylic on canvas', 'Oil on paper', 'Watercolour on paper', 'Ink on paper', 'Charcoal on paper', 'Ceramic', 'Bronze', 'Mixed media', ...S.works.map(w => w.medium).filter(Boolean)])].map(m => `<option value="${esc(m)}">`).join('')}</datalist>`;
+
+  // a photo is decoded once and made twice (the page's size and a small one): in an account they wait as object URLs
+  // until the upload, in the pretend studio they are small data URLs the browser keeps
+  async function prepare(file, mode) {
+    let src, W, H, done = () => {};
+    try { if (self.createImageBitmap) { const b = await createImageBitmap(file); src = b; W = b.width; H = b.height; done = () => b.close && b.close(); } } catch {}
+    if (!src) {
+      const url = URL.createObjectURL(file);
+      src = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error('not an image')); i.src = url; });
+      W = src.naturalWidth; H = src.naturalHeight; done = () => URL.revokeObjectURL(url);
+    }
+    try {
+      const make = (long, q) => { const k = Math.min(1, long / Math.max(W, H)), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(W * k)); c.height = Math.max(1, Math.round(H * k)); c.getContext('2d').drawImage(src, 0, 0, c.width, c.height); return new Promise(ok => c.toBlob(ok, 'image/jpeg', q)); };
+      const keep = b => mode === 'blob' ? URL.createObjectURL(b) : new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(b); });
+      const full = await make(mode === 'blob' ? 2000 : 1100, mode === 'blob' ? 0.86 : 0.8), small = await make(640, 0.8);
+      if (!full || !small) throw new Error('not an image');
+      return { image: await keep(full), thumb: await keep(small), W, H };
+    } finally { done(); }
   }
 
   // --- sheets ---------------------------------------------------------------------------------------------------
-  function sheet(title, html, wireIt) {
+  function sheet(title, html, wireIt, foot) {
     const el = document.createElement('div'); el.className = 'sh-back';
-    el.innerHTML = `<div class="sh" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sh-h"><b>${esc(title)}</b><button type="button" class="sh-x" aria-label="Close">×</button></div><div class="sh-b">${html}</div></div>`;
+    el.innerHTML = `<div class="sh" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sh-h"><b>${esc(title)}</b><button type="button" class="sh-x" aria-label="Close">×</button></div><div class="sh-b">${html}</div>${foot ? `<div class="sh-f">${foot}</div>` : ''}</div>`;
     document.body.append(el); document.body.classList.add('sh-open');
-    const close = () => { el.remove(); document.body.classList.remove('sh-open'); document.removeEventListener('keydown', key); };
+    const opener = document.activeElement;
+    const close = () => { el.remove(); document.body.classList.remove('sh-open'); document.removeEventListener('keydown', key); if (opener && opener.focus && document.contains(opener)) try { opener.focus({ preventScroll: true }); } catch {} };
     const key = e => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', key);
     el.onclick = e => { if (e.target === el) close(); };
@@ -277,14 +382,75 @@ export function mount(c) {
     wireIt(el.querySelector('.sh-b'), close);
     return close;
   }
+  // --- bringing photos in: the phone's own picker (camera, library, files), many at once, one sheet for all of them ---
+  const pickerFor = (many, onFiles) => {
+    let el = document.getElementById('edPick');
+    if (!el) { el = document.createElement('input'); el.type = 'file'; el.id = 'edPick'; el.hidden = true; el.tabIndex = -1; document.body.append(el); }
+    return () => {
+      el.multiple = !!many; el.accept = 'image/*'; el.value = '';
+      el.onchange = () => { const fs = [...el.files]; el.value = ''; if (fs.length) onFiles(fs); };
+      el.click();
+    };
+  };
+  const pickPhotos = pickerFor(true, files => addWorks(files));
+  const nameOf = n => { const s = String(n || '').replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').trim(); return /^(img|dsc|pxl|image|photo|screenshot|whatsapp|\d)/i.test(s) && /\d{3,}/.test(s) ? '' : s; };
 
-  // the one way to add work: many at once, or one by hand (exhibitions are added where they are listed)
-  function addSheet() {
-    const opt = (k, t, d) => `<button type="button" class="sh-opt" data-k="${k}"><b>${t}</b><span>${d}</span></button>`;
-    sheet('Add work', `${opt('import', 'Bring many in at once', 'From your website, Instagram, Google Drive or your phone.')}
-      ${opt('work', 'Add one work', 'A photo, then its title, year, kind and size.')}`, (b, close) => {
-      b.querySelectorAll('.sh-opt').forEach(o => o.onclick = () => { const k = o.dataset.k; close(); if (k === 'import') go('#/studio/import'); else workSheet(null); });
-    });
+  function addWorks(files) {
+    files = files.filter(f => /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|heif|avif|gif)$/i.test(f.name || ''));
+    if (!files.length) return toast('Choose photos of your work (JPEG, PNG or HEIC).');
+    if (files.length > 40) { toast('Forty at a time: the rest after.'); files = files.slice(0, 40); }
+    const d = defaults(), mode = S.cloud ? 'blob' : 'data', one = files.length === 1;
+    const items = files.map(f => ({ id: uid(), file: f, title: nameOf(f.name), width: '', height: '', p: null, err: false, gone: false }));
+    const last = d.width && d.height ? `${d.width} × ${d.height}` : '';
+    const card = (it, i) => `<div class="ad-card${one ? ' one' : ''}" data-i="${i}"><span class="ad-im"><img alt="" hidden><i class="ad-wait">Preparing…</i></span>
+      <div class="ad-f"><input name="t" aria-label="Title of photo ${i + 1}" placeholder="Title (optional)" value="${esc(it.title)}" autocomplete="off" enterkeyhint="done">
+        <div class="ad-sz"><input name="w" inputmode="decimal" aria-label="Width in centimetres" placeholder="W"><span aria-hidden="true">×</span><input name="h" inputmode="decimal" aria-label="Height in centimetres" placeholder="H"><span aria-hidden="true">cm</span></div>
+        ${last ? `<button type="button" class="ad-same" data-same>Same size as the last: ${esc(last)}</button>` : ''}<p class="ad-err small" role="alert" hidden></p></div>
+      ${one ? '' : '<button type="button" class="ad-rm" aria-label="Leave this photo out">×</button>'}</div>`;
+    const word = n => n === 1 ? 'work' : 'works';
+    sheet(one ? 'Add a work' : `Add ${files.length} works`, `<form class="st-form" id="adForm" novalidate><div class="ad-list">${items.map(card).join('')}</div>
+      <div class="ad-all"><p class="ad-h">${one ? 'About the work' : 'The same for all of them'}</p>${kindChips(d.kind)}
+      <div class="st-row yr"><label>Year<input name="year" inputmode="numeric" maxlength="4" value="${esc(d.year || new Date().getFullYear())}" autocomplete="off"></label><label>Medium<input name="medium" list="mediums" placeholder="Oil on canvas" value="${esc(d.medium || '')}" autocomplete="off"></label></div>${mediumList()}</div></form>`, (b, close) => {
+      const f = b.querySelector('#adForm'), cards = [...f.querySelectorAll('.ad-card')], go = b.closest('.sh').querySelector('#adGo');
+      const label = () => { const n = items.filter(x => !x.gone).length; go.textContent = n ? `Add ${n === 1 ? 'this' : n} ${word(n)} to my page` : 'Nothing to add'; go.disabled = !n; };
+      label();
+      // each photo is brought to a size the page needs, one at a time, so the sheet stays quick under the thumb
+      let chain = Promise.resolve();
+      items.forEach((it, i) => {
+        it.ready = chain = chain.then(() => prepare(it.file, mode)).then(p => {
+          it.p = p; const c = cards[i], im = c.querySelector('img'); im.src = p.thumb; im.hidden = false; c.querySelector('.ad-wait').hidden = true;
+        }, () => {
+          it.err = true; const c = cards[i]; c.querySelector('.ad-wait').hidden = true; const e = c.querySelector('.ad-err'); e.hidden = false; e.textContent = 'This file couldn’t be read as a photo.';
+        });
+      });
+      cards.forEach((c, i) => {
+        const it = items[i];
+        c.querySelector('[name=t]').oninput = e => { it.title = e.target.value; };
+        c.querySelector('[name=w]').oninput = e => { it.width = e.target.value; };
+        c.querySelector('[name=h]').oninput = e => { it.height = e.target.value; };
+        const same = c.querySelector('[data-same]'); if (same) same.onclick = () => { c.querySelector('[name=w]').value = it.width = d.width; c.querySelector('[name=h]').value = it.height = d.height; same.hidden = true; };
+        const rm = c.querySelector('.ad-rm'); if (rm) rm.onclick = () => { it.gone = true; c.remove(); label(); if (!items.some(x => !x.gone)) close(); };
+      });
+      f.onsubmit = async e => {
+        e.preventDefault(); go.disabled = true; go.textContent = 'Preparing…';
+        await Promise.all(items.map(x => x.ready));
+        const ok = items.filter(x => !x.gone && x.p && !x.err);
+        if (!ok.length) { go.disabled = false; label(); return; }
+        const dd = new FormData(f), shared = { year: String(dd.get('year') || '').trim(), medium: String(dd.get('medium') || '').trim(), category: dd.get('kind') || '' };
+        const made = ok.map(x => ({ id: uid(), title: x.title.trim() || 'Untitled', ...shared, width: +x.width || '', height: +x.height || '', depth: '', framed: 'no', image: x.p.image, thumb: x.p.thumb, check: null }));
+        S.works.unshift(...made);
+        const lastSized = made.slice().reverse().find(m => m.width && m.height);
+        remember({ ...shared, width: lastSized ? lastSized.width : d.width, height: lastSized ? lastSized.height : d.height });
+        commit(); close(); drawWorks(); refreshCard();
+        const sec = app.querySelector('#works'); if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const ids = made.map(m => m.id);
+        toast(`${made.length} ${word(made.length)} added`, () => { S.works = S.works.filter(x => !ids.includes(x.id)); commit(); drawWorks(); refreshCard(); });
+        // the checks of sharpness, light and proportions run after, when the thumb is free
+        ok.forEach((x, i) => setTimeout(() => checkImage(x.file).then(m => { made[i].check = { W: m.W, H: m.H, long: m.long, mean: m.mean, clipped: m.clipped, sharp: m.sharp, backdrop: m.backdrop }; }, () => {}), 800 + i * 400));
+      };
+      go.onclick = () => f.requestSubmit();
+      setTimeout(() => { const t = cards[0] && cards[0].querySelector('[name=t]'); if (t && !t.value) t.focus({ preventScroll: true }); }, 350);
+    }, `<button type="submit" class="btn f wide" id="adGo">Add to my page</button>`);
   }
 
   function profileSheet() {
@@ -298,52 +464,55 @@ export function mount(c) {
     });
   }
 
+  // edit one work, in a sheet: the photo on top, then what a visitor reads, then its size; delete is undoable
   function workSheet(id) {
     const old = id ? S.works.find(x => x.id === id) : null;
-    const w = old || { title: '', year: String(new Date().getFullYear()), medium: '', width: '', height: '', depth: '', framed: 'no', image: '', check: null };
-    const KINDS = ['Painting', 'Sculpture', 'Drawing', 'Print', 'Photography', 'Installation', 'Other'];
-    sheet(old ? 'Work' : 'Add a work', `<form class="st-form">
-      <div class="ed-step"><span>1</span>Photo of the work</div>
-      <label class="st-drop"><input type="file" accept="image/jpeg,image/png,image/heic,image/webp" name="file" hidden>
-        <img src="${esc(w.thumb || w.image || '')}" alt="" ${w.thumb || w.image ? '' : 'hidden'}><span ${w.thumb || w.image ? 'hidden' : ''}>Tap to choose the photo<br><small>Straight on, the whole work, in even light.</small></span></label>
-      <div class="chk">${old ? checks(verdict(w.check, w)) : ''}</div>
-      <div class="ed-step"><span>2</span>Details</div>
-      <label>Title<input name="title" required value="${esc(w.title)}"></label>
-      <div class="st-row"><label>Kind<select name="category"><option value="">Choose…</option>${KINDS.map(k => `<option ${w.category === k ? 'selected' : ''}>${k}</option>`).join('')}</select></label><label>Year<input name="year" inputmode="numeric" value="${esc(w.year)}"></label></div>
-      <label>Medium<input name="medium" placeholder="Oil on canvas" value="${esc(w.medium)}"></label>
-      <div class="ed-step"><span>3</span>Size</div>
-      <fieldset><legend>In centimetres</legend><div class="st-row three"><label>Width<input name="width" inputmode="decimal" value="${esc(w.width)}"></label><label>Height<input name="height" inputmode="decimal" value="${esc(w.height)}"></label><label>Depth<input name="depth" inputmode="decimal" placeholder="3.5" value="${esc(w.depth)}"></label></div></fieldset>
-      <p class="err m small" role="alert"></p>
-      <div class="btns"><button class="btn f" type="submit">${old ? 'Save' : 'Add to my page'}</button>${old ? '<button class="btn g" type="button" data-del>Delete</button>' : ''}</div></form>`, (b, close) => {
-      const f = b.querySelector('form'), img = f.querySelector('.st-drop img'), hint = f.querySelector('.st-drop span'), chk = f.querySelector('.chk');
-      let pending = null;
-      const size = () => ({ width: +f.width.value, height: +f.height.value });
-      const refresh = () => { if (pending || old) chk.innerHTML = checks(verdict(pending ? pending.check : w.check, size())); };
-      f.file.onchange = async () => {
-        if (!f.file.files[0]) return; chk.innerHTML = '<p class="m small">Checking the image…</p>';
+    if (!old) return;
+    const w = old;
+    let pending = null;
+    sheet('Edit work', `<form class="st-form" id="wkForm" novalidate>
+      <div class="wk-prev"><span class="wk-pv"><img src="${esc(w.thumb || w.image || '')}" alt="Photo of ${esc(w.title)}"></span><button type="button" class="btn g" data-pick>Change photo</button></div>
+      <div class="chk" aria-live="polite"></div>
+      <label>Title<input name="title" value="${esc(w.title)}" autocomplete="off" enterkeyhint="next"></label>
+      ${kindChips(w.category)}
+      <div class="st-row yr"><label>Year<input name="year" inputmode="numeric" maxlength="4" value="${esc(w.year)}" autocomplete="off"></label><label>Medium<input name="medium" list="mediums" placeholder="Oil on canvas" value="${esc(w.medium)}" autocomplete="off"></label></div>${mediumList()}
+      <fieldset><legend>Size, in centimetres</legend><div class="st-row three"><label>Width<input name="width" inputmode="decimal" value="${esc(w.width)}"></label><label>Height<input name="height" inputmode="decimal" value="${esc(w.height)}"></label><label>Depth<input name="depth" inputmode="decimal" placeholder="Optional" value="${esc(w.depth)}"></label></div></fieldset>
+      <p class="err m small" role="alert"></p></form>`, (b, close) => {
+      const f = b.querySelector('#wkForm'), img = f.querySelector('.wk-pv img'), chk = f.querySelector('.chk');
+      let meta = w.check;
+      const refresh = () => { const v = verdict(meta, { width: +f.width.value, height: +f.height.value }).filter(([l, t]) => l !== 'ok' && t !== 'No image yet.'); chk.innerHTML = v.length ? checks(v) : ''; };
+      refresh(); f.width.oninput = f.height.oninput = refresh;
+      const pick = pickerFor(false, async files => {
+        const file = files[0]; if (!file) return;
+        chk.innerHTML = '<p class="m small">Preparing the photo…</p>';
         try {
-          const m = await checkImage(f.file.files[0]);
-          const d = await asDataURL(f.file.files[0]);
-          pending = { check: { W: m.W, H: m.H, long: m.long, mean: m.mean, clipped: m.clipped, sharp: m.sharp, backdrop: m.backdrop }, thumb: d, image: d };
-          img.src = d; img.hidden = false; hint.hidden = true;
-          if (!f.title.value) f.title.value = String(f.file.files[0].name || '').replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').trim();
+          const p = await prepare(file, S.cloud ? 'blob' : 'data'); pending = p; img.src = p.thumb;
+          const m = await checkImage(file); meta = { W: m.W, H: m.H, long: m.long, mean: m.mean, clipped: m.clipped, sharp: m.sharp, backdrop: m.backdrop }; pending.check = meta;
         } catch { chk.innerHTML = checks([['no', 'This file couldn’t be read as an image.']]); return; }
         refresh();
-      };
-      f.width.oninput = f.height.oninput = refresh;
+      });
+      f.querySelector('[data-pick]').onclick = pick;
       f.onsubmit = e => {
         e.preventDefault();
-        if (!old && !pending) { f.querySelector('.err').textContent = 'Choose the work’s photo first.'; return; }
-        const d = new FormData(f), n = { ...w, id: old ? old.id : uid(), title: d.get('title').trim(), year: d.get('year'), medium: d.get('medium'), category: d.get('category'), width: +d.get('width') || '', height: +d.get('height') || '', depth: +d.get('depth') || '', ...(pending || {}) };
-        if (old) Object.assign(old, n); else S.works.unshift(n);
-        commit(); close(); draw();
+        const dd = new FormData(f), n = { title: dd.get('title').trim() || 'Untitled', year: String(dd.get('year') || '').trim(), medium: dd.get('medium').trim(), category: dd.get('kind') || '',
+          width: +dd.get('width') || '', height: +dd.get('height') || '', depth: +dd.get('depth') || '' };
+        if (pending) Object.assign(n, { image: pending.image, thumb: pending.thumb, check: pending.check });
+        Object.assign(old, n); remember(old); commit(); close(); drawWorks(); refreshCard();
       };
-      const del = f.querySelector('[data-del]');
-      if (del) del.onclick = () => {
-        if (!confirm('Delete this work?')) return;
-        S.works = S.works.filter(x => x.id !== old.id); S.exhibitions.forEach(x => { x.works = (x.works || []).filter(i => i !== old.id); });
-        (S.virtual || []).forEach(v => { v.works = v.works.filter(i => i !== old.id); }); commit(); close(); draw();
-      };
+      b.closest('.sh').querySelector('[data-save]').onclick = () => f.requestSubmit();
+      b.closest('.sh').querySelector('[data-del]').onclick = () => { close(); removeWork(old); };
+    }, `<button type="button" class="btn f" data-save>Save</button><button type="button" class="btn g danger" data-del>Delete</button>`);
+  }
+  // delete at once, with the way back: the photo stays where it is kept, so Undo is the work as it was
+  function removeWork(wk) {
+    const at = S.works.indexOf(wk); if (at < 0) return;
+    const ex = (S.exhibitions || []).map(x => [x, (x.works || []).slice()]), vs = (S.virtual || []).map(v => [v, v.works.slice()]);
+    S.works.splice(at, 1);
+    (S.exhibitions || []).forEach(x => { x.works = (x.works || []).filter(i => i !== wk.id); }); (S.virtual || []).forEach(v => { v.works = v.works.filter(i => i !== wk.id); });
+    commit(); drawWorks(); refreshCard();
+    toast(`“${wk.title || 'Untitled'}” deleted`, () => {
+      S.works.splice(Math.min(at, S.works.length), 0, wk); ex.forEach(([x, l]) => { x.works = l; }); vs.forEach(([v, l]) => { v.works = l; });
+      commit(); drawWorks(); refreshCard();
     });
   }
 
@@ -363,6 +532,6 @@ export function mount(c) {
   }
 
   draw();
-  if (act) ({ cover: coverSheet, portrait: coverSheet, profile: profileSheet, 'work-new': () => workSheet(null), 'ex-new': () => go('#/studio/exhibition/new'), 'works': () => app.querySelector('#works') && app.querySelector('#works').scrollIntoView() }[act.split(':')[0]] || (() => {}))();
+  if (act) ({ cover: coverSheet, portrait: coverSheet, profile: profileSheet, 'work-new': () => pickPhotos(), 'ex-new': () => go('#/studio/exhibition/new'), 'works': () => app.querySelector('#works') && app.querySelector('#works').scrollIntoView() }[act.split(':')[0]] || (() => {}))();
   if (act && act.startsWith('work:')) workSheet(act.slice(5));
 }
