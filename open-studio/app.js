@@ -110,7 +110,7 @@ function buildModel(d) {
     live: [], listings: [], places: {} };
   if (d.world) addWorld(m, d.world, uniq, seen);
   if (d.community) addCommunity(m, d.community, uniq, seen);
-  if (d.virtual) addVirtual(m, d.virtual, uniq);
+  if (d.virtual) { addVirtual(m, d.virtual, uniq); m.virtualColours = d.virtual.streetColours || {}; }
   if (d.community) addVirtual(m, { shows: d.community.shows.map(showOf(m)) }, uniq);
   // the inspection opens a space by its own name: an artist's tour (built from what they gave in the app) has no
   // exhibition of the site's to hang on, so it gets a bare one here, only while being inspected
@@ -891,6 +891,7 @@ function showsPage() {
     ${rooms.length ? `<section class="nx-sec"><div class="nx-sh"><h2>On view now</h2><a class="more" href="#/map">On the map</a></div><div class="nx-grid">${rooms.map(card).join('')}</div></section>` : ''}
     ${closing.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Last chance</h2></div><div class="nx-grid">${closing.map(card).join('')}</div></section>` : ''}
     ${online.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Online now</h2></div><p class="m nx-sub">Digital exhibitions: no room, open all the time.</p><div class="nx-grid">${online.map(card).join('')}</div></section>` : ''}
+    ${streetShows().length >= 2 ? `<a class="nx-street" href="#/museum"><b>The Museum Street</b><span>One long walk, ${streetShows().length} exhibitions off it. Each door has the colour of its show.</span><i aria-hidden="true">Walk in →</i></a>` : ''}
     ${walk.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Walk-throughs</h2><span class="more">3D</span></div><p class="m nx-sub">Real shows, kept as rooms you can walk through after they close.</p><div class="nx-rail">${walk.map(e => `<a href="#/exhibition/${e.slug}/space">${im(e.images[0], '', '', '70vw')}<i class="badge">3D</i><b>${esc(e.title)}${e.city ? ` — ${esc(e.city)}` : ''}</b></a>`).join('')}</div></section>` : ''}
     ${soon.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Coming up</h2></div><div class="nx-grid">${soon.map(card).join('')}</div></section>` : ''}
   </div>`;
@@ -951,6 +952,7 @@ const routes = [
   [/^#\/work\/([^/]+)$/, m => work(m[1])],
   [/^#\/exhibition\/([^/]+)$/, m => exhibition(m[1])],
   [/^#\/exhibition\/([^/]+)\/space$/, m => exhibition(m[1])],
+  [/^#\/museum$/, () => '<div class="wrap gut loading"><p>Opening the museum…</p></div>', 'shows'],
   [/^#\/object\/([^/]+)$/, m => object(m[1])],
   [/^#\/about$/, () => about()],
 ];
@@ -1110,6 +1112,7 @@ function render() {
   wire();
   const sm = hash.match(/^#\/exhibition\/([^/]+)\/space$/);
   if (sm) enterSpace(sm[1]);
+  else if (hash === '#/museum') enterStreet();
 }
 
 // the 3D room opens over the exhibition page; leaving it returns to the page
@@ -1130,6 +1133,32 @@ async function enterSpace(slug) {
       const page = `#/exhibition/${slug}`;
       if (prevHash === page || prevHash === '#/') history.back(); else location.replace(page);
     },
+    onOpenWork: w => { location.hash = `#/work/${w.slug}`; },
+  });
+  window.__spaceView = openSpaceView;
+}
+
+// the museum street (space/synth.js buildStreet): one long walk indoors, a room off it for each virtual or online show, each with a
+// threshold in the colour its works suggest (data/virtual.json streetColours, else sampled here) unless the curator chose another (museum_colours)
+const streetShows = () => M.exhibitions.filter(e => (e.virtual || e.kind === 'online') && (e.works || []).length >= 3).slice(0, 8);     // (the same rule as synth.streetShows)
+async function enterStreet() {
+  const synth = await import('./space/synth.js');
+  const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
+  const shows = synth.streetShows(M), thumb = w => M.thumbs[w.image] || w.image;
+  const set = (M.virtualColours || {}), over = {};
+  try {
+    const rows = await fetch(DB + 'museum_colours?select=slug,colour', { headers: { apikey: DB_KEY }, signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined }).then(r => r.ok ? r.json() : []);
+    for (const r of rows) over[r.slug] = r.colour;
+  } catch {}
+  const rooms = await Promise.all(shows.map(async e => ({
+    slug: e.slug, title: e.title, works: e.works,
+    colour: over[e.slug] || set[e.slug] || await synth.suggestColour(e.works.map(thumb), src, synth.slugHue(e.slug)),
+  })));
+  const made = await synth.buildStreet(rooms, src, thumb);
+  if (location.hash !== '#/museum') return;                       // (left while it was being built)
+  openSpaceView = await openSpace({
+    spec: made.spec, works: M.works, src,
+    onClose: () => { openSpaceView = null; if (prevHash === '#/shows' || prevHash === '#/') history.back(); else location.replace('#/shows'); },
     onOpenWork: w => { location.hash = `#/work/${w.slug}`; },
   });
   window.__spaceView = openSpaceView;

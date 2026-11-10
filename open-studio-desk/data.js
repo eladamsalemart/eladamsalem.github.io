@@ -79,6 +79,9 @@ const real = {
   async saveShow(row, id) { const c = await client(); return ok(await (id ? c.from('virtual_shows').update(row).eq('id', id) : c.from('virtual_shows').insert(row)).select().single()); },
   async setShowStatus(id, status) { const c = await client(); ok(await c.from('virtual_shows').update({ status }).eq('id', id)); },
   async deleteShow(id) { const c = await client(); ok(await c.from('virtual_shows').delete().eq('id', id)); },
+  // the curator's colour for each exhibition's threshold in the museum street (public read; only an admin writes: RLS)
+  async streetColours() { const c = await client(); return Object.fromEntries(ok(await c.from('museum_colours').select('slug,colour')).map(r => [r.slug, r.colour])); },
+  async setStreetColour(slug, colour) { const c = await client(); if (colour) ok(await c.from('museum_colours').upsert({ slug, colour, updated_at: new Date().toISOString() })); else ok(await c.from('museum_colours').delete().eq('slug', slug)); },
 
   // conversations: a user sees only their own (RLS), an admin sees all. Nothing here sends an email.
   async conversations() {
@@ -135,6 +138,7 @@ async function world() {
   return W;
 }
 const strip = a => { const { works, ...r } = a; return r; };
+let mockStreet = null;
 const mock = {
   mode: 'mock',
   async session() { return { email: 'guest@demo' }; }, async returnFromLink() {}, async sendCode() {}, async verify() {}, async signOut() { location.search = ''; }, async isAdmin() { return true; },
@@ -161,6 +165,8 @@ const mock = {
   },
   async setShowStatus(id, status) { (await world()).shows.find(x => x.id === id).status = status; },
   async deleteShow(id) { const w = await world(); w.shows = w.shows.filter(x => x.id !== id); },
+  async streetColours() { await wait(); return { ...(mockStreet || (mockStreet = {})) }; },
+  async setStreetColour(slug, colour) { await wait(); mockStreet = mockStreet || {}; if (colour) mockStreet[slug] = colour; else delete mockStreet[slug]; },
   async conversations() { const w = await world(); await wait(); return w.convs.map(c => ({ ...c, last: c.msgs[c.msgs.length - 1].body })).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)); },
   async messages(id) { return [...(await world()).convs.find(c => c.id === id).msgs]; },
   async reply(id, body) { const c = (await world()).convs.find(x => x.id === id); c.msgs.push({ from_admin: true, body, created_at: new Date().toISOString() }); c.status = 'answered'; c.updated_at = new Date().toISOString(); },
