@@ -414,7 +414,7 @@ export function mount(c) {
     const word = n => n === 1 ? 'work' : 'works';
     sheet(one ? 'Add a work' : `Add ${files.length} works`, `<form class="st-form" id="adForm" novalidate><div class="ad-list">${items.map(card).join('')}</div>
       <div class="ad-all"><p class="ad-h">${one ? 'About the work' : 'The same for all of them'}</p>${kindChips(d.kind)}
-      <div class="st-row yr"><label>Year<input name="year" inputmode="numeric" maxlength="4" value="${esc(d.year || new Date().getFullYear())}" autocomplete="off"></label><label>Medium<input name="medium" list="mediums" placeholder="Oil on canvas" value="${esc(d.medium || '')}" autocomplete="off"></label></div>${mediumList()}</div></form>`, (b, close) => {
+      <div class="st-row yr"><label>Year<input name="year" inputmode="numeric" maxlength="4" value="${esc(d.year || new Date().getFullYear())}" autocomplete="off"></label><label>Medium<input name="medium" list="mediums" placeholder="e.g. Oil on canvas" value="${esc(d.medium || '')}" autocomplete="off"></label></div>${mediumList()}</div></form>`, (b, close) => {
       const f = b.querySelector('#adForm'), cards = [...f.querySelectorAll('.ad-card')], go = b.closest('.sh').querySelector('#adGo');
       const label = () => { const n = items.filter(x => !x.gone).length; go.textContent = n ? `Add ${n === 1 ? 'this' : n} ${word(n)} to my page` : 'Nothing to add'; go.disabled = !n; };
       label();
@@ -479,7 +479,7 @@ export function mount(c) {
       <div class="chk" aria-live="polite"></div>
       <label>Title<input name="title" value="${esc(w.title)}" autocomplete="off" enterkeyhint="next"></label>
       ${kindChips(w.category)}
-      <div class="st-row yr"><label>Year<input name="year" inputmode="numeric" maxlength="4" value="${esc(w.year)}" autocomplete="off"></label><label>Medium<input name="medium" list="mediums" placeholder="Oil on canvas" value="${esc(w.medium)}" autocomplete="off"></label></div>${mediumList()}
+      <div class="st-row yr"><label>Year<input name="year" inputmode="numeric" maxlength="4" value="${esc(w.year)}" autocomplete="off"></label><label>Medium<input name="medium" list="mediums" placeholder="e.g. Oil on canvas" value="${esc(w.medium)}" autocomplete="off"></label></div>${mediumList()}
       <fieldset><legend>Size, in centimetres</legend><div class="st-row three"><label>Width<input name="width" inputmode="decimal" value="${esc(w.width)}"></label><label>Height<input name="height" inputmode="decimal" value="${esc(w.height)}"></label><label>Depth<input name="depth" inputmode="decimal" placeholder="Optional" value="${esc(w.depth)}"></label></div></fieldset>
       <p class="err m small" role="alert"></p></form>`, (b, close) => {
       const f = b.querySelector('#wkForm'), img = f.querySelector('.wk-pv img'), chk = f.querySelector('.chk');
