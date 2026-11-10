@@ -36,6 +36,11 @@ export const KINDS = {
   'glass-pavilion': ['Glass pavilion', 'Terrazzo and white walls, a wall of glass onto a park.'],
   'japanese': ['Japanese room', 'Earth plaster, tatami, shoji slid open onto a garden.'],
 };
+// THE ARCHIVE SWITCH (owner, 10.11): only these kinds are offered to artists, in this order. Every other kind keeps all its
+// data and files in data/rooms and stays loadable (shows already in one still open); it is just not offered. To bring a
+// kind back, add its key here. The 2/3-rooms variants follow their kind.
+export const ACTIVE_KINDS = ['apartment', 'black-box'];
+export const isActiveKind = k => ACTIVE_KINDS.includes(k);
 const SIZE = { small: 'Small', large: 'Large', medium: 'Medium' };
 const BAKED = new URL('../data/rooms/', import.meta.url).href;
 try {
@@ -47,7 +52,7 @@ try {
       name: (KINDS[m.type] || [m.type])[0], size: m.label, blurb: (KINDS[m.type] || ['', ''])[1], kind: m.type, variant, sizeName: SIZE[variant] || variant,
       w: m.w, d: m.d, h: m.h, door: m.door ? m.door.to - m.door.from : 0, doorSpan: m.door ? [m.door.from, m.door.to] : null,
       doorHeight: m.door ? m.door.height : 0, blocks: m.blocks || {}, plates: m.plates || [], light: m.light, floorReflect: m.floorReflect,
-      baked: BAKED + slug + '/', cover: BAKED + slug + '/view.jpg', paint: 'white',
+      baked: BAKED + slug + '/', cover: BAKED + slug + '/view.jpg', paint: 'white', archived: !isActiveKind(m.type),
     };
   }
   // several rooms: the same room, 2 or 3 times in a row, joined by a doorway in a partition wall (see wallsOf)
@@ -434,9 +439,14 @@ function drawWorkLight(R) {
 // --- the room, ready for the viewer ----------------------------------------------------------------------
 // design: { title, room, paint, centre (cm), works: [{ title, image, pairs | width/height, wall? }] }
 // Returns { spec, left (works that didn't fit), revoke() }.
+// a sculpture or vessel stands on a plinth, whatever the artist filed it as (kind object, category Sculpture, a deep piece, or a
+// medium that is clay, bronze, stone...); a painting, drawing or print never does
+const FLAT = /oil|acrylic|canvas|paint|gouache|tempera|watercolou?r|pastel|print|drawing|ink|photograph|collage|etching|lithograph/i;
+export const isObject = w => w.kind === 'object' || /sculpt|object|ceramic|installation/i.test(w.category || '') || (+w.depth > 0 && !FLAT.test(w.medium || ''))
+  || (!w.category && !FLAT.test(w.medium || '') && /ceramic|clay|porcelain|bronze|sculpt|marble|plaster|terracotta|stoneware/i.test(w.medium || ''));
 export async function buildRoom(design, src) {
   const pl = design.placements || {};
-  const wallWorks = design.works.filter(w => w.kind !== 'object'), objects = design.works.filter(w => w.kind === 'object');
+  const wallWorks = design.works.filter(w => !isObject(w)), objects = design.works.filter(isObject);
   const sized = await Promise.all(wallWorks.map(async w => ({ work: w, ...(await sizeOf(w, src)), wall: w.wall, at: w.id ? pl[w.id] : null })));
   const { R, walls, placed, left } = hang(design, sized);
   // plinths: those the artist set, and one in the middle of the room for each object not yet on one
@@ -487,6 +497,7 @@ export async function buildRoom(design, src) {
   });
   const floorReflect = R.floorReflect || (R.floor === 'oak' ? [0.03, 0.12] : R.floor === 'stone' ? [0.08, 0.34] : [0.06, 0.26]);
   const spec = {
+    plinthRoom: { h: R.h, dark: R.kind === 'black-box' || R.light === 'narrow' },
     version: 2, title: design.title, source: `${ROOMS[design.room].name}, a virtual room`, virtual: true, ordered: true, ...(R.baked ? { baked: { kind: R.kind, plates: (R.plates || []).flatMap(p => R.cells > 1 && p.wall !== 'wall-x0' && p.wall !== 'wall-x1' ? Array.from({ length: R.cells }, (_, k) => ({ ...p, wall: `${p.wall}-c${k}`, texture: R.baked + p.file })) : [{ ...p, texture: R.baked + p.file }]) },
       ...(R.cells > 1 ? { partitions: Array.from({ length: R.cells - 1 }, (_, i) => ({ x: (i + 1) * R.cell, t: PART, door: (R.doorSpan || [R.d / 2 - 0.7, R.d / 2 + 0.7]) })) } : {}) } : {}),
     room: { x0: 0, x1: R.w, z0: 0, z1: R.d, height: R.h }, surfaces, works, views: [], floorReflect, plaster: await keep(plaster),
