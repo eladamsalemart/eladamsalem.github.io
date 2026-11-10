@@ -2,6 +2,10 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-10: nothing to do
+
+- Issue #7 closed itself (clean run after the 11-09 fix); no open issues or owner requests. health.cjs, check_home, check_app, deps.py pass on the live site (Home 17 ms frames). Last improvement 11-08, under 3 days ago: none tonight.
+
 ## 2026-11-09: issue #7, a tap target on Shows
 
 - Issue #7 (opened 11-08 19:37): Shows' "On the map" link (`.nx-sh a.more`, new section header) was 82x18, missed by a finger at 44 px. Cause: the invisible touch-area list in index.html named `.sec-h a.more` but not `.nx-sh a.more`. Added it to both lists. Proof: with the fix health.cjs (local, phone) passes; without it, fails with the same message. Everything else passes on the live site; no improvement tonight (maplibre was 11-08).
