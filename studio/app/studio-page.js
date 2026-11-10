@@ -536,6 +536,7 @@ export function mount(c) {
   }
 
   draw();
+  if (window.__pendingFiles) { const fs = window.__pendingFiles; window.__pendingFiles = null; setTimeout(() => addWorks(fs), 250); }
   if (act) ({ cover: coverSheet, portrait: coverSheet, profile: profileSheet, 'work-new': () => pickPhotos(), 'ex-new': () => go('#/studio/exhibition/new'), 'works': () => app.querySelector('#works') && app.querySelector('#works').scrollIntoView() }[act.split(':')[0]] || (() => {}))();
   if (act && act.startsWith('work:')) workSheet(act.slice(5));
 }
