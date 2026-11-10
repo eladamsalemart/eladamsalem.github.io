@@ -184,7 +184,7 @@ const plan = (r, on) => {
   return `<svg viewBox="-3 -3 ${W + 6} ${D + 6}" width="${W + 6}" height="${D + 6}" aria-hidden="true"><path d="M${W} ${D / 2 + d / 2}V${D}H0V0H${W}V${D / 2 - d / 2}" fill="${on ? 'var(--card)' : 'none'}" stroke="currentColor" stroke-width="1.5"/></svg>`;
 };
 // On View: the artist's exhibition now, in one of the ten spaces, at the top of their page
-const kindsOf = () => { const k = {}; for (const [slug, r] of Object.entries(ROOMS)) if (r.baked && !r.cells) (k[r.kind] = k[r.kind] || []).push([slug, r]); return k; };
+const kindsOf = keep => { const k = {}; for (const [slug, r] of Object.entries(ROOMS)) if (r.baked && !r.cells && (!r.archived || r.kind === keep)) (k[r.kind] = k[r.kind] || []).push([slug, r]); return k; };   // (archived kinds are not offered, ACTIVE_KINDS in synth.js; the one a show already uses stays)
 const SIZE_ORDER = ['small', 'medium', 'large'];
 const firstOf = list => (list.find(([, r]) => r.variant === 'medium') || list[0])[0];
 function onView() {
@@ -194,13 +194,13 @@ function onView() {
   return designer(cur ? cur.id : 'new', true);
 }
 function spacePicker(v) {
-  const kinds = kindsOf(), room = ROOMS[v.room] && ROOMS[v.room].baked ? ROOMS[v.room] : null, kind = room ? room.kind : '', base = String(v.room).replace(/-[23]r$/, '');
+  const room = ROOMS[v.room] && ROOMS[v.room].baked ? ROOMS[v.room] : null, kind = room ? room.kind : '', kinds = kindsOf(kind), base = String(v.room).replace(/-[23]r$/, '');
   const sizes = kind ? kinds[kind].slice().sort(([, a], [, b]) => SIZE_ORDER.indexOf(a.variant) - SIZE_ORDER.indexOf(b.variant)) : [];
   return `<fieldset><legend>1. The space</legend><div class="ov-kinds">${Object.entries(kinds).map(([k, list]) => { const r = ROOMS[firstOf(list)];
-      return `<label class="ov-kind"><input type="radio" name="kind" value="${k}" ${kind === k ? 'checked' : ''}><img src="${esc(r.cover)}" alt="" loading="lazy"><b>${esc(r.name)}</b><span class="m small">${esc(r.blurb)}</span></label>`; }).join('')}</div></fieldset>
+      return `<label class="ov-kind"><input type="radio" name="kind" value="${k}" ${kind === k ? 'checked' : ''}><img src="${esc(r.cover)}" alt="" loading="lazy"><b>${esc(r.name)}</b><span class="m">${esc(r.blurb)}</span></label>`; }).join('')}</div></fieldset>
     <input type="hidden" name="room" value="${esc(v.room)}">
-    ${kind ? `<fieldset><legend>2. Its size and rooms</legend><p class="m small">Tap a size, or 2 or 3 rooms, to walk the empty space before you choose.</p><div class="ov-sizes">${sizes.map(([slug, r]) => `<button type="button" class="ov-size ${base === slug ? 'on' : ''}" data-preview="${slug}" aria-pressed="${base === slug}"><b>${esc(r.sizeName)}</b><span class="m small">${esc(r.size)}</span></button>`).join('')}</div>
-      <div class="ov-rooms" role="group" aria-label="Number of rooms"><span class="m small">Rooms</span>${[1, 2, 3].map(n => { const sl = n === 1 ? base : `${base}-${n}r`; return ROOMS[sl] ? `<button type="button" class="ov-size ov-n ${v.room === sl ? 'on' : ''}" data-preview="${sl}" aria-pressed="${v.room === sl}"><b>${n}</b></button>` : ''; }).join('')}</div></fieldset>` : ''}`;
+    ${kind ? `<fieldset><legend>2. Size, and how many rooms</legend><p class="m small">Tap one to walk the empty space before you choose.</p><div class="ov-sizes">${sizes.map(([slug, r]) => `<button type="button" class="ov-size ${base === slug ? 'on' : ''}" data-preview="${slug}" aria-pressed="${base === slug}"><b>${esc(r.sizeName)}</b><span class="m small">${esc(r.size)}</span></button>`).join('')}</div>
+      <div class="ov-rooms" role="group" aria-label="Number of rooms"><span class="m small">In a row</span>${[1, 2, 3].map(n => { const sl = n === 1 ? base : `${base}-${n}r`; return ROOMS[sl] ? `<button type="button" class="ov-size ov-n ${v.room === sl ? 'on' : ''}" data-preview="${sl}" aria-pressed="${v.room === sl}"><b>${n} ${n === 1 ? 'room' : 'rooms'}</b></button>` : ''; }).join('')}</div></fieldset>` : ''}`;
 }
 function designer(id, onview = false) {
   const isNew = id === 'new';
@@ -255,7 +255,9 @@ async function previewSpace(slug, onChoose) {
   const view = await openSpace({ spec: made.spec, works: [], src: u => u, onClose: () => made.revoke(), choose: { label: 'Choose this space', onChoose } });
   window.__spaceView = view;
 }
-const shapeWork = w => ({ id: w.id, kind: w.kind, title: w.title, image: srcOf(w.image), width: w.width, height: w.height, pairs: w.width && w.height ? [[+w.height, +w.width]] : [],
+// (the same rule as isObject in space/synth.js: sculptures stand on plinths)
+const SCULPT = /sculpt|object|ceramic|installation/i, CLAY = /ceramic|clay|porcelain|bronze|sculpt|marble|plaster|terracotta|stoneware/i, FLAT = /oil|acrylic|canvas|paint|gouache|tempera|watercolou?r|pastel|print|drawing|ink|photograph|collage|etching|lithograph/i;
+const shapeWork = w => ({ id: w.id, kind: SCULPT.test(w.category || '') || (+w.depth > 0 && !FLAT.test(w.medium || '')) || (!w.category && !FLAT.test(w.medium || '') && CLAY.test(w.medium || '')) ? 'object' : w.kind, title: w.title, image: srcOf(w.image), width: w.width, height: w.height, pairs: w.width && w.height ? [[+w.height, +w.width]] : [],
   year: w.year, medium: w.medium, artist: { name: S.artist.name } });
 // the hang editor: inside the walkable room the artist adds, removes and places the works and plinths
 async function hangIn(v, done) {
