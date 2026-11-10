@@ -6,7 +6,7 @@
 //                       new works of an artist to look over, a request for a 3D tour. Decisions happen in place and
 //                       can be undone; nothing reloads.
 //   קהילה              the artists (search, filter, hide, approve again) and the people who joined.
-//   תערוכות            the exhibitions Open Studio curates, by hand, across artists.
+//   מוזיאון            what hangs in each room of the museum street (read-only; the museum is edited on the Desk, on a computer).
 //   מערכת              how the app is (checks, last runs), asking for a change, trying the app as someone new,
 //                       test accounts.
 // Desktop: a side rail and a wider page (the app's phone column is lifted while this screen is open); phone: a bottom bar.
@@ -16,12 +16,11 @@ import { client } from './auth.js';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const REPO = 'eladamsalemart/eladamsalem.github.io';
 const USERS = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/functions/v1/admin-users';
-const NAV = [['', 'תור'], ['artists', 'קהילה'], ['curated', 'תערוכות'], ['system', 'מערכת']];
-const TITLES = { '': 'תור', artists: 'קהילה', curated: 'תערוכות אוצרות', system: 'מערכת' };
+const NAV = [['', 'תור'], ['artists', 'קהילה'], ['curated', 'מוזיאון'], ['system', 'מערכת']];
+const TITLES = { '': 'תור', artists: 'קהילה', curated: 'המוזיאון', system: 'מערכת' };
 const TAB_OF = { '': '', artists: 'artists', people: 'artists', curated: 'curated', system: 'system', requests: 'system', health: 'system' };
-let M = null, SYN = null, cur = null;            // the app's content; the room drawing; the curated show being edited
+let M = null;                                    // the app's content
 let APP = null, GO = null, KEYS = null, QC = null, HC = null, QT = '';   // the page; navigation; key handler; queue and health caches; queue title
-const synth = () => SYN || (SYN = import('./space/synth.js'));
 const day = t => new Date(t).toLocaleDateString('he-IL', { day: 'numeric', month: 'short', year: 'numeric' });
 const ago = t => { const d = Math.floor((Date.now() - new Date(t)) / 864e5); return d <= 0 ? 'היום' : d === 1 ? 'אתמול' : d < 30 ? `לפני ${d} ימים` : day(t); };
 const who = r => [r.first_name, r.last_name].filter(Boolean).join(' ') || '—';
@@ -118,7 +117,7 @@ async function draw(hash, keepScroll) {
   let body;
   if (tab === 'artists') body = await artists(c);
   else if (tab === 'people') body = await people(c);
-  else if (tab === 'curated') body = `<div class="ax-narrow">${await curated(c, m.split('/')[1])}</div>`;
+  else if (tab === 'curated') body = `<div class="ax-narrow">${await curated(c)}</div>`;
   else if (nt === 'system') body = system();
   else body = await queue(c);
   if (!document.querySelector('.adm')) return;         // went elsewhere while loading
@@ -235,40 +234,17 @@ async function people(c) {
     <section class="ax-sec ax-list" style="padding-top:22px"><h2>האחרונים</h2><div class="adm-table">${rows.slice(0, 60).map(r => `<div><b>${esc(who(r))}</b><span>${r.role ? roleName(r.role) : '—'}</span><span>${esc(r.country || '')}</span><span>${ago(r.created_at)}</span></div>`).join('')}</div></section>`;
 }
 
-// --- curated exhibitions: chosen and ordered by hand, across artists --------------------------------------------------
-const keyOf = w => w.community ? { id: w.id } : { slug: w.slug };
-const findWork = k => M.works.find(w => (k.id && w.id === k.id) || (k.slug && w.slug === k.slug));
-async function curated(c, id) {
-  const { ROOMS, PAINTS } = await synth();
-  if (!id) {
-    const { data: rows = [] } = await c.from('virtual_shows').select('*').order('created_at', { ascending: false });
-    const mine = rows.filter(r => r.kind === 'curated'), theirs = rows.filter(r => r.kind === 'artist' && r.status === 'published');
-    return `<p class="m">תערוכות שאתה מרכיב מעבודות של כל האמנים, בסדר שאתה בוחר, באחד החללים של Open Studio. בלי אלגוריתם: אחרי פרסום הן מופיעות ב־Shows ובשמיים של עמוד הבית כמו כל תערוכה.</p>
-      <div class="btns"><a class="btn f" href="#/admin/curated/new">תערוכת אוצרות חדשה</a></div>
-      <div class="list">${mine.map(r => `<a class="row" href="#/admin/curated/${r.id}"><img src="${esc((findWork(r.works[0] || {}) || {}).image || '')}" alt=""><div class="t"><div><b>${esc(r.title)}</b></div><div class="m">${esc(ROOMS[r.room] ? ROOMS[r.room].name : r.room)} · ${r.works.length} עבודות</div></div><span class="st-flag ${r.status === 'published' ? 'ok' : ''}">${r.status === 'published' ? 'מפורסמת' : 'טיוטה'}</span></a>`).join('') || '<p class="m small">עוד אין. (The Green Hour, תערוכת הדוגמה, שמורה בנתונים של האפליקציה עצמה.)</p>'}</div>
-      ${theirs.length ? `<section class="sec"><div class="sec-h"><h2>של האמנים עצמם</h2><span class="more">${theirs.length} מפורסמות</span></div><div class="list">${theirs.map(r => `<div class="row noimg"><div class="t"><div><b>${esc(r.title)}</b></div><div class="m">${r.works.length} עבודות</div></div><button class="btn g" data-unpublish="${r.id}">הורד</button></div>`).join('')}</div></section>` : ''}`;
-  }
-  if (!cur || cur.id !== id) {
-    if (id === 'new') cur = { id: 'new', title: '', curator: 'Elad Amsalem', room: 'long-hall', paint: '', centre: 148, text: '', works: [], status: 'draft' };
-    else { const { data } = await c.from('virtual_shows').select('*').eq('id', id).maybeSingle(); if (!data) return '<p class="m">לא נמצא.</p>'; cur = { ...data, text: data.text || '' }; }
-  }
-  const v = cur, paint = v.paint || ROOMS[v.room].paint, picked = v.works.map(findWork);
-  const byArtist = [...new Set(M.works.map(w => w.artist))].map(a => [a, M.works.filter(w => w.artist === a && !picked.includes(w))]).filter(([, ws]) => ws.length);
-  return `<form class="st-form st-vx" id="cuForm">
-    <label>שם (באנגלית, כמו באפליקציה)<input name="title" dir="auto" required value="${esc(v.title)}"></label>
-    <label>אוצר/ת<input name="curator" dir="auto" value="${esc(v.curator || '')}"></label>
-    <fieldset><legend>החלל</legend><div class="vx-rooms">${Object.entries(ROOMS).map(([k, r]) => `<label class="vx-room"><input type="radio" name="room" value="${k}" ${v.room === k ? 'checked' : ''}><b>${esc(r.name)}</b><span class="m small">${esc(r.size)} · ${esc(r.blurb)}</span></label>`).join('')}</div></fieldset>
-    <fieldset><legend>צבע הקירות</legend><div class="vx-paints">${Object.entries(PAINTS).map(([k, [n, col]]) => `<label class="vx-paint"><input type="radio" name="paint" value="${k}" ${paint === k ? 'checked' : ''}><i style="background:${col}"></i><span>${n}</span></label>`).join('')}</div></fieldset>
-    <fieldset><legend>העבודות, בסדר ההליכה</legend>
-      ${picked.length ? `<ol class="vx-order">${picked.map((w, i) => w ? `<li><img src="${esc(w.image)}" alt=""><div class="t"><b>${esc(w.title)}</b><span class="m small">${esc(w.artist.name)}</span></div>
-        <button type="button" data-up="${i}" aria-label="מוקדם יותר" ${i ? '' : 'disabled'}>↑</button><button type="button" data-down="${i}" aria-label="מאוחר יותר" ${i < picked.length - 1 ? '' : 'disabled'}>↓</button><button type="button" data-out="${i}" aria-label="הוצא">×</button></li>` : '').join('')}</ol>` : '<p class="m">בוחרים עבודות למטה, מכל אמן.</p>'}
-      ${byArtist.map(([a, ws]) => `<details class="vx-add"><summary>${esc(a.name)} (${ws.length})</summary><div class="st-pick">${ws.map(w => `<label><input type="checkbox" data-add="${esc(w.slug)}"><img src="${esc(w.image)}" alt="" loading="lazy"><span>${esc(w.title)}</span></label>`).join('')}</div></details>`).join('')}
-    </fieldset>
-    <label>דברי האוצר (באנגלית, כמו באפליקציה)<textarea name="text" dir="auto" rows="5">${esc(v.text)}</textarea></label>
-    <div class="btns"><button class="btn f" type="button" id="cuWalk" ${picked.length ? '' : 'disabled'}>להיכנס לחלל</button><button class="btn g" type="submit">שמור</button>
-      <button class="btn g" type="button" id="cuPub">${v.status === 'published' ? 'הורד מהאפליקציה' : 'פרסם'}</button>${v.id !== 'new' ? '<button class="btn g" type="button" id="cuDel">מחק</button>' : ''}</div>
-    <p class="m small">${v.status === 'published' ? 'מפורסמת: ב־Shows ובעמוד הבית.' : 'טיוטה: רק חדר הבקרה רואה אותה.'}</p>
-  </form>`;
+// --- the museum, lightly: what hangs in each room of the street (the museum and its exhibitions are edited on the Desk, on a computer) -----
+const dshort = d => d ? new Date(d + 'T12:00').toLocaleDateString('he-IL', { day: 'numeric', month: 'short' }) : '';
+async function curated(c) {
+  const tdy = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
+  const [s, x, v] = await Promise.all([c.from('museum_slots').select('slot,exhibition_id,app_slug,live,from_date,to_date,content').order('slot'), c.from('museum_exhibitions').select('id,title'), c.from('virtual_shows').select('id,kind,title,status,works').order('created_at', { ascending: false })]);
+  const slots = s.data || [], ex = x.data || [], theirs = (v.data || []).filter(r => r.kind === 'artist' && r.status === 'published');
+  const name = r => r.content && r.content.title || (r.exhibition_id && (ex.find(e => e.id === r.exhibition_id) || {}).title) || r.app_slug || '';
+  const state = r => !r.live ? ['', 'לא מוצגת'] : r.from_date && r.from_date > tdy ? ['', `מתוזמנת · ${dshort(r.from_date)}`] : r.to_date && r.to_date < tdy ? ['', 'הסתיימה'] : ['ok', r.to_date ? `מוצגת · עד ${dshort(r.to_date)}` : 'מוצגת'];
+  return `<p class="m">המוזיאון והתערוכות נערכים רק בשולחן העבודה, במחשב: <a href="/open-studio-desk/#/museum">פתח את שולחן העבודה</a>. כאן רק מה שתלוי עכשיו בחדרי הרחוב.</p>
+    <div class="list">${slots.filter(r => r.exhibition_id || r.app_slug).map(r => { const [k, t] = state(r); return `<div class="row noimg"><div class="t"><div><b>חדר ${r.slot} · ${esc(name(r))}</b></div></div><span class="st-flag ${k}">${esc(t)}</span></div>`; }).join('') || '<p class="m small">עוד לא שובצו תערוכות בחדרים. הרחוב מציג את התערוכות המובנות.</p>'}</div>
+    ${theirs.length ? `<section class="sec"><div class="sec-h"><h2>של האמנים עצמם</h2><span class="more">${theirs.length} מפורסמות</span></div><div class="list">${theirs.map(r => `<div class="row noimg"><div class="t"><div><b>${esc(r.title)}</b></div><div class="m">${r.works.length} עבודות</div></div><button class="btn g" data-unpublish="${r.id}">הורד</button></div>`).join('')}</div></section>` : ''}`;
 }
 
 // --- the system: how the app is, asking for a change, trying it as someone new ----------------------------------------
@@ -423,35 +399,4 @@ function wire(app, c, tab) {
     let loaded = false; real.ontoggle = () => { if (real.open && !loaded) { loaded = true; list(); } };
   }
   app.querySelectorAll('[data-unpublish]').forEach(b => b.onclick = async () => { await c.from('virtual_shows').update({ status: 'draft' }).eq('id', b.dataset.unpublish); go(location.hash, true); });
-  const cu = $('#cuForm');
-  if (!cu) return;
-  const keep = () => { const f = new FormData(cu); Object.assign(cur, { title: f.get('title').trim(), curator: f.get('curator').trim(), room: f.get('room'), paint: f.get('paint'), text: f.get('text') }); };
-  const redo = () => { keep(); go(location.hash, true); };
-  cu.querySelectorAll('input[name=room], input[name=paint]').forEach(i => i.onchange = redo);
-  cu.querySelectorAll('[data-add]').forEach(b => b.onchange = () => { cur.works.push(keyOf(M.works.find(w => w.slug === b.dataset.add))); redo(); });
-  cu.querySelectorAll('[data-up],[data-down],[data-out]').forEach(b => b.onclick = () => {
-    const w = cur.works, i = +(b.dataset.up ?? b.dataset.down ?? b.dataset.out);
-    if (b.dataset.out != null) w.splice(i, 1); else { const j = b.dataset.up != null ? i - 1 : i + 1; [w[i], w[j]] = [w[j], w[i]]; }
-    redo();
-  });
-  const store = async status => {
-    keep();
-    const works = cur.works.map(k => { const w = findWork(k); return w ? { ...k, title: w.title, image: w.image, width: w.pairs && w.pairs[0] ? w.pairs[0][1] : null, height: w.pairs && w.pairs[0] ? w.pairs[0][0] : null, artist: w.artist.name } : null; }).filter(Boolean);
-    const row = { kind: 'curated', title: cur.title || 'Untitled', curator: cur.curator || null, room: cur.room, paint: cur.paint || null, centre: cur.centre || 148, text: cur.text || null, works, status: status || cur.status };
-    const q = cur.id === 'new' ? c.from('virtual_shows').insert(row).select().single() : c.from('virtual_shows').update(row).eq('id', cur.id).select().single();
-    const { data, error } = await q;
-    if (error) { alert(error.message); return; }
-    cur = { ...data, text: data.text || '' };
-    go(`#/admin/curated/${data.id}`, true);
-  };
-  cu.onsubmit = e => { e.preventDefault(); store(); };
-  $('#cuPub').onclick = () => store(cur.status === 'published' ? 'draft' : 'published');
-  const del = $('#cuDel'); if (del) del.onclick = async () => { if (!confirm('למחוק את התערוכה?')) return; await c.from('virtual_shows').delete().eq('id', cur.id); cur = null; go('#/admin/curated'); };
-  $('#cuWalk').onclick = async () => {
-    keep();
-    const [{ buildRoom }, { openSpace }] = await Promise.all([synth(), import('./space/space.js')]);
-    const works = cur.works.map(findWork).filter(Boolean);
-    const made = await buildRoom({ title: cur.title || 'Untitled', room: cur.room, paint: cur.paint, centre: cur.centre, works }, u => (M.media && M.media[u]) || u);
-    window.__spaceView = await openSpace({ spec: made.spec, works, src: u => (M.media && M.media[u]) || u, onClose: () => made.revoke() });
-  };
 }
