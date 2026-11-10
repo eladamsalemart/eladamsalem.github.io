@@ -14,6 +14,9 @@ const ago = t => { const d = Math.floor((Date.now() - new Date(t)) / 864e5); ret
 const who = r => [r.first_name, r.last_name].filter(Boolean).join(' ') || '—';
 const roleName = r => r === 'artist' ? 'אמן/ית' : r === 'lover' ? 'חובב/ת אמנות' : 'עוד לא בחר/ה';
 const root = $('#desk');
+const shellTop = () => guest ? '<div class="demo">מצב הדגמה: אמנים ויצירות לדוגמה, שום דבר לא נשמר ולא נשלח.</div>' : '';
+const setKeys = fn => { KEYS && document.removeEventListener('keydown', KEYS); KEYS = fn; if (fn) document.addEventListener('keydown', fn); };
+const mctx = () => ({ root, page: (...a) => { const k = KEYS; page(...a); if (k) setKeys(k); }, toast, fail, keys: setKeys, synth, viewerCss, shellTop });
 const PREV = (() => { try { return +localStorage.getItem('desk-seen') || 0; } catch { return 0; } })();   // when the owner was here last: what is new since
 try { localStorage.setItem('desk-seen', Date.now()); } catch {}
 const synth = (() => { let p; return () => p || (p = import(APP + 'space/synth.js')); })();
@@ -99,7 +102,7 @@ async function route() {
   try {
     if (tab === 'artists') await artistsView(id);
     else if (tab === 'lovers' || tab === 'people') await peopleView();
-    else if (tab === 'museum') await (id ? editor(id) : museumView());
+    else if (tab === 'museum') { const m = await import('./museum.js'); if (id === 'ex') { const x = await import('./exedit.js'); KEYS && document.removeEventListener('keydown', KEYS); KEYS = null; root.innerHTML = ''; await x.editor(mctx(), location.hash.split('/')[3]); } else await m.home(mctx()); }
     else if (tab === 'system') await systemView();
     else if (tab === 'exhibitions') await exhibitionsView();
     else if (tab === 'talk') await talkView(id);
@@ -249,54 +252,6 @@ async function systemView() {
   $('#rq').onsubmit = async e => { e.preventDefault(); const f = e.target; try { await api.addRequest(f.body.value.trim()); f.reset(); toast('הבקשה נשלחה'); reqs(); } catch (x) { fail(x); } };
 }
 
-// --- the museum: a magazine whose every article is a room ------------------------------------------------------------------------
-async function museumView() {
-  const { ROOMS } = await synth();
-  const rows = await api.shows();
-  const mine = rows.filter(r => r.kind === 'curated');
-  const pub = mine.filter(r => r.status === 'published').length;
-  page('museum', 'מוזיאון', `כתבות: כל תערוכה היא כתבה, וכל כתבה היא חדר תלת־ממדי · ${pub} מפורסמות, ${mine.length - pub} טיוטות`, `<div class="issue">
-    ${mine.map((r, i) => { const w = (r.works || [])[0], R = ROOMS[r.room]; return `<a class="art" href="#/museum/${esc(r.id)}"><div class="cov" style="background-image:url('${esc(w ? abs(w.thumb || w.image) : (R && R.cover) || '')}')"><span class="no">${String(mine.length - i).padStart(2, '0')}</span></div>
-      <div class="bd"><div style="display:flex;justify-content:space-between;gap:8px"><h3>${esc(r.title)}</h3><span class="chip ${r.status === 'published' ? 'ok' : ''}">${r.status === 'published' ? 'מפורסמת' : 'טיוטה'}</span></div>
-      <span class="meta">${esc(R ? R.name : r.room)} · ${(r.works || []).length} עבודות</span></div></a>`; }).join('')}
-    <a class="art new" href="#/museum/new"><b style="font:400 2.4rem var(--serif)">+</b><span>כתבה חדשה</span></a></div>
-    <section class="stl" id="street"><h2>צבעי הרחוב</h2><p class="muted small">במוזיאון הולכים ברחוב אחד ארוך, ולכל תערוכה יש בכניסה סף בצבע אחד שמכריז עליה. ההצעה נלקחת אוטומטית מהצבעים של העבודות. לחיצה על צבע שומרת אותו מיד, והוא נראה באפליקציה בכניסה הבאה לרחוב.</p><div id="stlRows" class="muted">טוען…</div></section>
-  `);
-  streetColours();
-}
-
-// --- the museum street: the colour of each exhibition's threshold (suggested from its works; the curator may choose another) ----------
-const STREET_PRESETS = ['#e3351c', '#e3981c', '#e3ca1c', '#6cc424', '#1ce3ca', '#1c67e3', '#7a2be3', '#e31c9a'];
-async function streetColours() {
-  const box = $('#stlRows'); if (!box) return;
-  try {
-    const { slugHue, hslHex } = await synth();
-    const [v, w, over] = await Promise.all([fetch(APP + 'data/virtual.json').then(r => r.json()), fetch(APP + 'data/demo/world.json').then(r => r.json()).catch(() => ({ shows: [] })), api.streetColours().catch(() => ({}))]);
-    const suggested = v.streetColours || {};
-    const list = [...(v.shows || []).map(x => ({ slug: x.slug, title: x.title })), ...(w.shows || []).filter(x => x.kind === 'online' && (x.works || []).length >= 3).map(x => ({ slug: x.slug, title: x.title }))];
-    const sug = x => suggested[x.slug] || hslHex(slugHue(x.slug), 0.78, 0.5), cur = x => over[x.slug] || sug(x);
-    const same = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
-    const row = x => `<div class="stl-r" data-slug="${esc(x.slug)}"><span class="stl-sw" style="background:${cur(x)}" aria-hidden="true"></span><b>${esc(x.title)}</b>
-      <span class="stl-pick" role="group" aria-label="צבע הסף של ${esc(x.title)}"><button type="button" class="stl-b sug" data-c="${sug(x)}" style="background:${sug(x)}" aria-label="ההצעה האוטומטית" title="ההצעה האוטומטית"></button>${STREET_PRESETS.map(c => `<button type="button" class="stl-b" data-c="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}<label class="stl-c">אחר <input type="color" value="${cur(x)}"></label></span>
-      <span class="muted small stl-s">${over[x.slug] ? 'נבחר ידנית' : 'הצעה אוטומטית'}</span></div>`;
-    box.className = ''; box.innerHTML = list.length ? list.map(row).join('') : 'אין עדיין תערוכות ברחוב.';
-    const set = async (r, c) => {
-      const x = list.find(q => q.slug === r.dataset.slug), auto = same(c, sug(x));
-      r.querySelector('.stl-sw').style.background = c;                       // live: the swatch changes at once
-      try {
-        await api.setStreetColour(x.slug, auto ? null : c.toLowerCase());
-        if (auto) delete over[x.slug]; else over[x.slug] = c.toLowerCase();
-        r.querySelector('.stl-s').textContent = over[x.slug] ? 'נבחר ידנית' : 'הצעה אוטומטית'; r.querySelector('input').value = cur(x); toast('הצבע נשמר');
-      } catch (e) { r.querySelector('.stl-sw').style.background = cur(x); fail(e); }
-    };
-    $$('.stl-r', box).forEach(r => {
-      $$('.stl-b', r).forEach(b => { b.onclick = () => set(r, b.dataset.c); });
-      r.querySelector('input').onchange = e => set(r, e.target.value);
-      r.querySelector('input').oninput = e => { r.querySelector('.stl-sw').style.background = e.target.value; };
-    });
-  } catch (e) { box.textContent = 'הצבעים לא נטענו. בדוק חיבור.'; }
-}
-
 // --- exhibitions: the approved ones, by artists, by galleries and institutions (the art map), and the app's own --------------------------
 let ARTMAP = null;
 const artMap = () => ARTMAP || (ARTMAP = Promise.all(['exhibitions', 'places'].map(f => fetch(APP + `data/art/${f}.json`).then(r => r.json()))).then(([e, p]) => ({ shows: e.shows || [], places: new Map((p.places || []).map(x => [x.id, x])), updated: e.updated })));
@@ -361,126 +316,6 @@ async function talkView(sel) {
   };
   if (sel) await show(sel);
   $('#rows').addEventListener('click', e => { const r = e.target.closest('.row'); if (r) { e.preventDefault(); history.replaceState(null, '', '#/talk/' + r.dataset.id); show(r.dataset.id); } });
-}
-
-let LIB = null;                                                      // every approved artist's visible works, for choosing
-async function library() {
-  if (LIB) return LIB;
-  const artists = (await api.artists()).filter(a => a.status === 'approved');
-  LIB = { artists: artists.map(a => ({ id: a.id, name: a.name, works: a.works.filter(w => !w.hidden && w.kind !== 'object').map(w => ({ id: w.id, title: w.title, image: abs(w.image), thumb: abs(w.thumb || w.image), width: w.width, height: w.height, depth: w.depth, year: w.year, medium: w.medium, kind: 'work', artist: a.name })) })).filter(a => a.works.length) };
-  LIB.byId = new Map(LIB.artists.flatMap(a => a.works).map(w => [w.id, w]));
-  return LIB;
-}
-const snap = w => ({ id: w.id, title: w.title, image: w.image, thumb: w.thumb, width: +w.width || null, height: +w.height || null, depth: +w.depth || null, year: w.year, medium: w.medium, kind: 'work', artist: w.artist });
-const shape = w => ({ id: w.id, kind: w.kind || 'work', title: w.title, image: abs(w.image), width: w.width, height: w.height, pairs: w.width && w.height ? [[+w.height, +w.width]] : [], year: w.year, medium: w.medium, artist: { name: w.artist || '' } });
-
-async function editor(id) {
-  const [{ ROOMS, PAINTS }, lib] = await Promise.all([synth(), library()]);
-  let row = null;
-  if (id !== 'new') { row = await api.show(id); if (!row) return page('museum', 'תערוכות', '', '<p class="muted">הכתבה לא נמצאה. <a href="#/museum">לכל הכתבות</a></p>'); }
-  const E = row ? { ...row, text: row.text || '', works: (row.works || []).map(w => ({ ...w })), plinths: row.plinths || [] }
-    : { id: null, title: '', curator: 'Elad Amsalem', room: 'long-hall', paint: '', centre: 148, text: '', works: [], plinths: [], status: 'draft' };
-  let dirty = false, saving = false, savedAt = row ? Date.now() : 0, timer;
-  const picked = new Set(E.works.map(w => w.id).filter(Boolean));
-
-  // room groups: the ten baked kinds (and the three drawn ones), each with its sizes
-  const groups = {}; for (const [slug, r] of Object.entries(ROOMS)) (groups[r.kind || slug] ||= []).push([slug, r]);
-  const groupOf = slug => Object.entries(groups).find(([, m]) => m.some(([s]) => s === slug));
-  const roomBox = () => {
-    const R = ROOMS[E.room] || {}, cur = groupOf(E.room);
-    return `<div class="rooms">${Object.entries(groups).map(([k, m]) => { const first = m.find(([, r]) => r.cover) || m[0], isCur = cur && cur[0] === k;
-      return `<button type="button" class="room" data-g="${esc(k)}" aria-pressed="${!!isCur}"><div class="im" style="${first[1].cover ? `background-image:url('${esc(first[1].cover)}')` : 'background:#2a2a2a'}"></div><div class="tx"><b>${esc(first[1].name)}</b><span class="muted">${m.length} גדלים</span></div></button>`; }).join('')}</div>
-      ${cur ? `<div class="sizes" role="group" aria-label="גודל החלל">${cur[1].map(([s, r]) => `<button type="button" class="chip" data-r="${esc(s)}" aria-pressed="${s === E.room}" style="cursor:pointer;border:2px solid ${s === E.room ? 'var(--accent)' : 'transparent'}">${esc((r.sizeName ? r.sizeName + ' · ' : '') + r.size)}</button>`).join('')}</div><p class="muted small">${esc(R.blurb || '')}</p>` : ''}
-      ${R.baked ? '' : `<div class="paints" role="group" aria-label="צבע הקירות">${Object.entries(PAINTS).map(([k, [n, c]]) => `<button type="button" data-p="${k}" aria-pressed="${(E.paint || R.paint) === k}"><i style="background:${c}"></i>${n}</button>`).join('')}</div>`}`;
-  };
-  const wallBox = () => {
-    const list = E.works;
-    return list.length ? `<div class="wall">${list.map((w, i) => `<figure><span class="n">${i + 1}</span><img src="${esc(abs(w.thumb || w.image))}" alt=""><figcaption><b dir="auto">${esc(w.title)}</b><span class="muted" dir="auto">${esc(w.artist || '')}</span></figcaption>
-      <div class="ct"><button type="button" data-o="${i}:-1" aria-label="מוקדם יותר" ${i ? '' : 'disabled'}>→</button><button type="button" data-o="${i}:1" aria-label="מאוחר יותר" ${i < list.length - 1 ? '' : 'disabled'}>←</button><button type="button" data-x="${i}" aria-label="הוצא">×</button></div></figure>`).join('')}</div>
-      <p class="fit" id="fit"></p>` : '<p class="muted">בוחרים עבודות בספרייה משמאל. הסדר כאן הוא סדר ההליכה בחדר.</p>';
-  };
-  const barBox = () => `<div class="l"><a class="btn q" href="#/museum">→ כל הכתבות</a><span class="chip ${E.status === 'published' ? 'ok' : ''}">${E.status === 'published' ? 'מפורסמת' : 'טיוטה'}</span><span class="muted small" id="saved">${saving ? 'שומר…' : dirty ? (E.id && E.status === 'draft' ? 'משנה…' : 'יש שינויים שלא נשמרו') : savedAt ? 'נשמר' : 'עוד לא נשמר'}</span></div>
-    <div class="acts"><button class="btn" id="walk" ${E.works.length ? '' : 'disabled'}>להיכנס לחלל</button><button class="btn" id="hang" ${E.works.some(w => w.id) ? '' : 'disabled'}>לתלות בחלל</button>
-      <button class="btn" id="save">${E.id ? 'שמור' : 'שמור טיוטה'}</button><button class="btn p" id="pub" ${E.id ? '' : 'disabled'}>${E.status === 'published' ? 'הורד מהאפליקציה' : 'פרסם'}</button>${E.id ? '<button class="btn q d" id="del">מחק</button>' : ''}</div>`;
-
-  page('museum', E.title || 'כתבה חדשה', 'כתבה אחת, חדר אחד', `<div class="bar" id="bar">${barBox()}</div><div class="ed"><div>
-    <section class="panel"><h2>הכתבה <span class="muted small">באנגלית, כמו באפליקציה</span></h2>
-      <label class="field">כותרת<input class="title-in" name="title" dir="auto" value="${esc(E.title)}" placeholder="The title of the show"></label>
-      <label class="field">אוצר/ת<input name="curator" dir="auto" value="${esc(E.curator || '')}"></label>
-      <label class="field">הטקסט (פסקה חדשה אחרי שורה ריקה)<textarea name="text" dir="auto" rows="9">${esc(E.text)}</textarea></label></section>
-    <section class="panel"><h2>החלל <span class="muted small">אחד מהחללים שצולמו</span></h2><div id="roomBox">${roomBox()}</div></section>
-    <section class="panel"><h2>על הקיר <span class="muted small" id="cnt">${E.works.length} עבודות · סדר ההליכה</span></h2><div id="wallBox">${wallBox()}</div></section></div>
-    <aside class="lib"><h2>הספרייה</h2><input class="search" type="search" id="lf" placeholder="חיפוש אמן/ית או עבודה" aria-label="חיפוש בספרייה" dir="auto">
-      <div class="scroll" id="libBox">${lib.artists.map(a => `<details data-n="${esc((a.name + ' ' + a.works.map(w => w.title).join(' ')).toLowerCase())}"><summary><span>${esc(a.name)}</span><span class="chip">${a.works.length}</span></summary><div class="pick">${a.works.map(w => `<button type="button" data-add="${esc(w.id)}" aria-pressed="${picked.has(w.id)}" title="${esc(w.title)}"><img src="${esc(w.thumb)}" alt="${esc(w.title)}" loading="lazy"></button>`).join('')}</div></details>`).join('') || '<p class="muted">אין עדיין אמנים מאושרים עם עבודות.</p>'}</div></aside></div>`);
-
-  const bar = $('#bar'), redraw = () => { if (!bar.isConnected) return; bar.innerHTML = barBox(); wireBar(); };
-  const redrawWall = () => { $('#wallBox').innerHTML = wallBox(); $('#cnt').textContent = `${E.works.length} עבודות · סדר ההליכה`; redraw(); fit(); };
-  const redrawRoom = () => { $('#roomBox').innerHTML = roomBox(); fit(); };
-  const fit = async () => {                                            // do they all fit the walls of this room?
-    const el = $('#fit'); if (!el || !E.works.length) return;
-    try { const { sizeOf, hang } = await synth(); const ws = E.works.map(shape), sized = await Promise.all(ws.map(async w => ({ work: w, ...(await sizeOf(w, u => u)) })));
-      if (!ROOMS[E.room] || !$('#fit')) return; const { left } = hang({ room: E.room, centre: E.centre }, sized), guessed = sized.filter(x => x.guessed).length;
-      el.textContent = (left.length ? `${ws.length - left.length} מתוך ${ws.length} עבודות נכנסות לקירות החדר הזה: בחר חדר גדול יותר או פחות עבודות.` : `כל ${ws.length} העבודות נכנסות לקירות, עם מקום לנשום.`) + (guessed ? ` ${guessed} בלי מידות: נתלות בגובה משוער.` : '');
-      el.classList.toggle('warn', !!left.length);
-    } catch (x) { console.warn(x); }
-  };
-  const mark = () => { dirty = true; const s = $('#saved'); if (s) s.textContent = E.id && E.status === 'draft' ? 'משנה…' : 'יש שינויים שלא נשמרו'; clearTimeout(timer); if (E.id && E.status === 'draft') timer = setTimeout(() => store(), 1400); };
-  const read = () => { E.title = $('[name=title]').value.trim(); E.curator = $('[name=curator]').value.trim(); E.text = $('[name=text]').value; };
-  const store = async status => {
-    clearTimeout(timer); read(); saving = true; redraw();
-    const body = { kind: 'curated', title: E.title || 'Untitled', curator: E.curator || null, room: E.room, paint: E.paint || null, centre: E.centre || 148, text: E.text || null, works: E.works, plinths: E.plinths, status: status || E.status };
-    try { const d = await api.saveShow(body, E.id); E.id = d.id; E.status = d.status; dirty = false; savedAt = Date.now();
-      if (location.hash.endsWith('/new')) history.replaceState(null, '', '#/museum/' + d.id);
-      const h = $('.top h1'); if (h) h.textContent = E.title || 'Untitled'; }
-    catch (x) { fail(x); }
-    saving = false; redraw();
-  };
-  const wireBar = () => {
-    $('#save').onclick = () => store();
-    $('#pub').onclick = async () => { const to = E.status === 'published' ? 'draft' : 'published'; await store(to); toast(to === 'published' ? 'פורסמה: היא עכשיו באפליקציה בטלפון' : 'הורדה מהאפליקציה'); };
-    const d = $('#del'); if (d) d.onclick = async () => { if (!confirm('למחוק את הכתבה? אי אפשר לבטל.')) return; try { await api.deleteShow(E.id); location.hash = '#/museum'; } catch (x) { fail(x); } };
-    $('#walk').onclick = async e => {
-      e.currentTarget.disabled = true; e.currentTarget.textContent = 'בונה את החדר…'; setTimeout(redraw, 15000);
-      read(); const [{ buildRoom }, { openSpace }] = await Promise.all([synth(), import(APP + 'space/space.js'), viewerCss()]);
-      const works = E.works.map(shape), pl = Object.fromEntries(E.works.filter(w => w.id && w.wall).map(w => [w.id, { wall: w.wall, a: w.a, y: w.y }]));
-      const made = await buildRoom({ title: E.title || 'Untitled', room: E.room, paint: E.paint, centre: E.centre, works, placements: pl, plinths: E.plinths }, u => u);
-      window.__spaceView = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => made.revoke() }); redraw();
-    };
-    $('#hang').onclick = async () => {
-      read(); const [{ openHangEditor }, { openSpace }] = await Promise.all([import(APP + 'space/hang-editor.js'), import(APP + 'space/space.js'), viewerCss()]);
-      const withId = E.works.filter(w => w.id), rest = E.works.filter(w => !w.id);
-      await openHangEditor({ design: { title: E.title || 'Untitled', room: E.room, paint: E.paint, centre: E.centre || 148 },
-        library: withId.map(w => ({ ...shape(w), thumb: abs(w.thumb || w.image) })), state: { ids: withId.map(w => w.id), placements: Object.fromEntries(withId.filter(w => w.wall).map(w => [w.id, { wall: w.wall, a: w.a, y: w.y }])), plinths: E.plinths },
-        src: u => u, shape: w => w, openSpace,
-        onSave: s => { const by = new Map(withId.map(w => [w.id, w])); E.works = [...s.ids.map(i => ({ ...by.get(i), ...(s.placements[i] || {}) })), ...rest]; E.plinths = s.plinths; mark(); },
-        onExit: () => redrawWall() });
-    };
-  };
-  wireBar();
-  $$('[name=title],[name=curator],[name=text]').forEach(i => i.oninput = () => { if (i.name === 'title') { const h = $('.top h1'); if (h) h.textContent = i.value || 'כתבה חדשה'; } mark(); });
-  $('#roomBox').onclick = e => {
-    const g = e.target.closest('[data-g]'), r = e.target.closest('[data-r]'), p = e.target.closest('[data-p]');
-    if (g) { const m = groups[g.dataset.g]; if (!groupOf(E.room) || groupOf(E.room)[0] !== g.dataset.g) { E.room = (m.find(([, x]) => x.variant === 'medium') || m[0])[0]; E.paint = ''; E.works.forEach(w => { delete w.wall; delete w.a; delete w.y; }); E.plinths = []; } }
-    else if (r) { E.room = r.dataset.r; E.works.forEach(w => { delete w.wall; delete w.a; delete w.y; }); E.plinths = []; }
-    else if (p) E.paint = p.dataset.p; else return;
-    redrawRoom(); mark();
-  };
-  $('#wallBox').onclick = e => {
-    const o = e.target.closest('[data-o]'), x = e.target.closest('[data-x]');
-    if (o) { const [i, d] = o.dataset.o.split(':').map(Number); [E.works[i], E.works[i + d]] = [E.works[i + d], E.works[i]]; }
-    else if (x) { const w = E.works.splice(+x.dataset.x, 1)[0]; picked.delete(w.id); const b = $(`[data-add="${CSS.escape(String(w.id))}"]`); if (b) b.setAttribute('aria-pressed', false); }
-    else return;
-    redrawWall(); mark();
-  };
-  $('#libBox').onclick = e => {
-    const b = e.target.closest('[data-add]'); if (!b) return; const wid = b.dataset.add;
-    if (picked.has(wid)) { picked.delete(wid); E.works = E.works.filter(w => w.id !== wid); b.setAttribute('aria-pressed', false); }
-    else { picked.add(wid); E.works.push(snap(lib.byId.get(wid))); b.setAttribute('aria-pressed', true); }
-    redrawWall(); mark();
-  };
-  $('#lf').oninput = e => { const q = e.target.value.trim().toLowerCase(); $$('#libBox details').forEach(d => { d.hidden = !d.dataset.n.includes(q); if (q) d.open = !d.hidden; }); };
-  fit();
-  window.onbeforeunload = null;
 }
 
 boot();

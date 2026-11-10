@@ -79,6 +79,16 @@ const real = {
   async saveShow(row, id) { const c = await client(); return ok(await (id ? c.from('virtual_shows').update(row).eq('id', id) : c.from('virtual_shows').insert(row)).select().single()); },
   async setShowStatus(id, status) { const c = await client(); ok(await c.from('virtual_shows').update({ status }).eq('id', id)); },
   async deleteShow(id) { const c = await client(); ok(await c.from('virtual_shows').delete().eq('id', id)); },
+  // the museum: exhibitions (drafts; admin only) and the street's eight slots (a live slot carries a copy of its exhibition: what visitors see)
+  async exhibitions() { const c = await client(); return ok(await c.from('museum_exhibitions').select('*').order('updated_at', { ascending: false })); },
+  async saveExhibition(row, id) {
+    const c = await client(), body = { ...row, updated_at: new Date().toISOString() };
+    return ok(await (id ? c.from('museum_exhibitions').update(body).eq('id', id) : c.from('museum_exhibitions').insert(body)).select().single());
+  },
+  async deleteExhibition(id) { const c = await client(); ok(await c.from('museum_exhibitions').delete().eq('id', id)); },
+  async slots() { const c = await client(); return ok(await c.from('museum_slots').select('*').order('slot')); },
+  async saveSlot(slot, patch) { const c = await client(); return ok(await c.from('museum_slots').upsert({ slot, ...patch, updated_at: new Date().toISOString() }).select().single()); },
+  async clearSlot(slot) { const c = await client(); ok(await c.from('museum_slots').delete().eq('slot', slot)); },
   // the curator's colour for each exhibition's threshold in the museum street (public read; only an admin writes: RLS)
   async streetColours() { const c = await client(); return Object.fromEntries(ok(await c.from('museum_colours').select('slug,colour')).map(r => [r.slug, r.colour])); },
   async setStreetColour(slug, colour) { const c = await client(); if (colour) ok(await c.from('museum_colours').upsert({ slug, colour, updated_at: new Date().toISOString() })); else ok(await c.from('museum_colours').delete().eq('slug', slug)); },
@@ -118,7 +128,7 @@ async function world() {
     const id = 'a' + i;
     return { id, name: a.name, discipline: a.discipline, city: a.city, country: a.country, statement: a.statement, note: i === 3 ? 'Add sizes to your works, then we will put you live.' : null,
       instagram: i % 3 === 0 ? '@' + a.slug.replace(/-/g, '') : '', link: '', status, created_at: day(i < 3 ? 1 + i : 3 + i * 4), sent_at: status === 'pending' ? day(i + 1) : null,
-      works: ws.map((w, j) => ({ id: `w${i}_${j}`, artist_id: id, title: w.title, year: w.year, medium: w.medium, width: w.size ? w.size[1] : null, height: w.size ? w.size[0] : null, depth: null, kind: 'work',
+      works: ws.map((w, j) => ({ id: `w${i}_${j}`, artist_id: id, title: w.title, year: w.year, medium: w.medium, width: w.size ? w.size[1] : null, height: w.size ? w.size[0] : null, depth: null, kind: i === 8 && j < 2 ? 'object' : 'work',
         image: abs(w.image), thumb: abs(w.image.replace(/\.jpg$/, '-s.jpg')), hidden: false, reviewed_at: status === 'approved' && j >= ws.length - 3 && i % 5 === 0 ? null : 'x', created_at: day(j) })) };
   });
   const msg = (n, from_admin, body) => ({ from_admin, body, created_at: day(n) });
@@ -138,6 +148,24 @@ async function world() {
   return W;
 }
 const strip = a => { const { works, ...r } = a; return r; };
+// the mock museum: three exhibitions made of the demo artists' works, two of them hung and in slots
+let MU = null;
+async function museum() {
+  if (MU) return MU;
+  const w = await world(), now = Date.now(), iso = n => new Date(now + n * 864e5).toISOString().slice(0, 10);
+  const hang = (ws, start) => { let s = start; return ws.map((x, i) => { const wd = Math.max(30, Math.min(150, +x.width || 70)); const o = { id: x.id, title: x.title, artist: x.artist_name || '', year: x.year, medium: x.medium, kind: 'work', image: x.image, thumb: x.thumb, width: +x.width || 70, height: +x.height || 90, s: s + wd / 200, y: 1.5 }; s += wd / 100 + 0.7; return o; }); };
+  const A = w.artists, nm = a => a.works.map(x => ({ ...x, artist_name: a.name }));
+  const e1 = { id: 'x1', title: 'Quiet Rooms', curator: 'Elad Amsalem', text: 'Interiors where nobody is home.\n\nA short walk through rooms that hold their breath.', works: hang(nm(A[5]).slice(0, 5), 0.8), plinths: [] };
+  const e2 = { id: 'x2', title: 'Small Weather', curator: 'Elad Amsalem', text: '', works: hang(nm(A[6]).slice(0, 4), 7), plinths: [] };
+  const e3 = { id: 'x3', title: 'Night Studies', curator: 'Elad Amsalem', text: '', works: [], plinths: [] };
+  for (const e of [e1, e2, e3]) { e.created_at = e.updated_at = new Date(now - 3 * 864e5).toISOString(); }
+  const snap = e => ({ title: e.title, curator: e.curator, text: e.text, works: e.works, plinths: e.plinths, objects: {} });
+  MU = { ex: [e1, e2, e3], slots: [
+    { slot: 1, exhibition_id: 'x1', app_slug: null, live: true, from_date: null, to_date: null, colour: '#e3981c', content: snap(e1), published_at: new Date(now - 864e5).toISOString() },
+    { slot: 2, exhibition_id: 'x2', app_slug: null, live: true, from_date: iso(20), to_date: iso(60), colour: null, content: snap(e2), published_at: new Date(now - 864e5).toISOString() },
+    { slot: 3, exhibition_id: null, app_slug: 'celebration-virtual', live: true, from_date: null, to_date: null, colour: null, content: null, published_at: null }] };
+  return MU;
+}
 let mockStreet = null;
 const mock = {
   mode: 'mock',
@@ -165,6 +193,20 @@ const mock = {
   },
   async setShowStatus(id, status) { (await world()).shows.find(x => x.id === id).status = status; },
   async deleteShow(id) { const w = await world(); w.shows = w.shows.filter(x => x.id !== id); },
+  async exhibitions() { await wait(); return (await museum()).ex.map(x => ({ ...x })); },
+  async saveExhibition(row, id) {
+    const m = await museum(); await wait(120);
+    if (id) { const x = m.ex.find(q => q.id === id); Object.assign(x, row, { updated_at: new Date().toISOString() }); return { ...x }; }
+    const x = { id: 'x' + Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...row }; m.ex.unshift(x); return { ...x };
+  },
+  async deleteExhibition(id) { const m = await museum(); m.ex = m.ex.filter(x => x.id !== id); m.slots.forEach(s => { if (s.exhibition_id === id) s.exhibition_id = null; }); },
+  async slots() { await wait(); return (await museum()).slots.map(s => ({ ...s })); },
+  async saveSlot(slot, patch) {
+    const m = await museum(); await wait(60); let s = m.slots.find(q => q.slot === slot);
+    if (!s) m.slots.push(s = { slot, exhibition_id: null, app_slug: null, live: false, from_date: null, to_date: null, colour: null, content: null, published_at: null });
+    Object.assign(s, patch); return { ...s };
+  },
+  async clearSlot(slot) { const m = await museum(); m.slots = m.slots.filter(s => s.slot !== slot); },
   async streetColours() { await wait(); return { ...(mockStreet || (mockStreet = {})) }; },
   async setStreetColour(slug, colour) { await wait(); mockStreet = mockStreet || {}; if (colour) mockStreet[slug] = colour; else delete mockStreet[slug]; },
   async conversations() { const w = await world(); await wait(); return w.convs.map(c => ({ ...c, last: c.msgs[c.msgs.length - 1].body })).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)); },

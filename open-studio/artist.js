@@ -310,6 +310,8 @@ function importer() {
   return `<div class="wrap gut st">${head('Bring work in')}${nav('import')}
     <p class="m">From wherever your work already is. You choose what comes in, and fix titles and sizes after, on your page. <a href="#/studio">Skip, go to my page</a>.</p>
     <div class="im-ways">
+      <div class="st-card im-way"><h2>Photos from this phone</h2><p class="m small">The fastest way: take or choose photos of your works, as many as you like, straight on, the whole work in the picture. Then add titles and sizes in one sheet.</p>
+        <label class="btn f"><input type="file" accept="image/*" multiple id="imFiles" hidden>Choose photos</label></div>
       <form class="st-card im-way" data-kind="site"><h2>Your website</h2><p class="m small">We look at the page and its gallery pages for your images and their titles.</p>
         <label class="vh" for="imSite">Website address</label><input id="imSite" name="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="yourname.com" value="${esc(site)}" required>
         <button class="btn f" type="submit">Find my work</button></form>
@@ -323,8 +325,6 @@ function importer() {
         <form class="im-way" data-kind="drive"><p class="m small">A folder of images, shared as <b>Anyone with the link</b>.</p>
         <label class="vh" for="imDrive">Drive folder link</label><input id="imDrive" name="url" inputmode="url" placeholder="https://drive.google.com/drive/folders/…" required>
         <button class="btn g" type="submit">Find my work</button></form></details></div>
-      <div class="st-card im-way"><h2>From your phone or computer</h2><p class="m small">Photos or image files of your works, straight on, the whole work in the picture.</p>
-        <label class="btn g"><input type="file" accept="image/*" multiple id="imFiles" hidden>Choose images</label></div>
     </div>
     <section class="sec" id="imFound" aria-live="polite">${foundList()}</section>
     <p class="m small"><a href="#/studio">Skip for now: go to my page</a></p>
@@ -358,7 +358,8 @@ function wireImport(app, go) {
     const say = e => { if (e) e.preventDefault(); tell('<span dir="rtl" lang="he">בתצוגה מקדימה לא מייבאים בפועל: כך נראה הדף לאמן חדש.</span>'); };
     app.querySelectorAll('form.im-way').forEach(f => f.onsubmit = say);
     app.querySelectorAll('#imIgGo, #imIgOff, #imDriveGo').forEach(b => b.onclick = () => say());
-    app.querySelectorAll('#imZip, #imFiles').forEach(i => i.onchange = () => say());
+    app.querySelectorAll('#imZip').forEach(i => i.onchange = () => say());
+    const pf = app.querySelector('#imFiles'); if (pf) pf.onchange = () => { window.__pendingFiles = [...pf.files]; pf.value = ''; go('#/studio'); };
     return;
   }
   app.querySelectorAll('form.im-way').forEach(f => f.onsubmit = async e => {
@@ -389,7 +390,8 @@ function wireImport(app, go) {
     };
   }
   const files = app.querySelector('#imFiles');
-  if (files) files.onchange = () => take([...files.files].map(f => ({ title: f.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' '), blob: f, preview: URL.createObjectURL(f), source: 'phone' })), 'phone');
+  // photos from the phone go straight to the studio's own add sheet (titles, sizes, one tap), not through the list below
+  if (files) files.onchange = () => { window.__pendingFiles = [...files.files]; files.value = ''; go('#/studio'); };
   function wireFound() {
     box.querySelectorAll('[data-i]').forEach(c => c.onchange = () => { found[+c.dataset.i].on = c.checked; c.closest('.im-item').classList.toggle('on', c.checked); const n = found.filter(x => x.on).length; const a = box.querySelector('#imAdd'); a.disabled = !n; a.textContent = `Bring in ${n} ${n === 1 ? 'work' : 'works'}`; });
     box.querySelectorAll('[data-t]').forEach(t => t.oninput = () => { found[+t.dataset.t].title = t.value; });
