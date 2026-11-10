@@ -321,5 +321,6 @@ export async function editor(ctx, id) {
       mutate(() => { ws.forEach(o => { o.s = +clampS(o, o.s + d[0] * st).toFixed(3); o.y = +clampY(o, o.y + d[1] * st).toFixed(3); }); ps.forEach(p => { const [w, dd] = pl(p); p.x = +Math.min(Math.max(p.x + d[0] * st, w / 200 + 0.3), RW - w / 200 - 0.3).toFixed(2); p.z = +Math.min(Math.max(p.z + d[1] * st, dd / 200 + 0.3), RD - dd / 200 - 0.3).toFixed(2); }); }, 'nudge');
       elDraw(); planDraw(); insDraw(); }
   });
+  { const n = [0, 0, 0]; walls().forEach(o => n[segOf(o.s)]++); if (Math.max(...n) > 0) view = String(n.indexOf(Math.max(...n))); }      // open on the wall with the most works: big enough to hang by eye
   drawAll(); paintSaved();
 }
