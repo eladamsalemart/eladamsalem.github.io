@@ -133,3 +133,7 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    the workflow untouched; shows already in one still open; the picker keeps the kind a show uses). To un-archive a kind, add
    its key to ACTIVE_KINDS (order = order in the picker). Sculptures (kind object, category Sculpture, depth, clay/bronze/stone
    medium) now always stand on plinths (`isObject` in synth.js, same rule in artist.js `shapeWork`).
+13. The museum is edited on the Desk only (owner, 11.11): `studio/desk/museum.js` (8 slots of the street: exhibition, live switch, dates, colour),
+   `exedit.js` (walls to scale, plinths, wall text). Tables `museum_exhibitions` (admin only) and `museum_slots` (a live slot holds a copy of its
+   exhibition; public read only live and inside dates). The street (`enterStreet` in app.js) reads live slots, else the automatic street. The phone admin
+   (`admin.js`) shows the rooms read-only. Notes: `studio/design/night-2026-11-11/desk.md`.
