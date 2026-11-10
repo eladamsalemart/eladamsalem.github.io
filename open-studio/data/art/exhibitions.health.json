@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-09",
+ "updated": "2026-11-10",
  "sources": [
   {
    "source": "haifa-museum",
@@ -402,7 +402,7 @@
    "url": "https://hansen.co.il/",
    "auto": true,
    "status": "ok",
-   "shows": 5,
+   "shows": 4,
    "events": 0
   },
   {
@@ -782,20 +782,14 @@
    "messages": 29,
    "matched": 4,
    "unmatched": 2,
-   "shows": 2,
+   "shows": 0,
    "events": 2
-  },
-  {
-   "source": "mail:sommer-contemporary-art-2",
-   "place": "sommer-contemporary-art-2",
-   "status": "ok",
-   "mail": true
   },
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 1,
-   "seconds": 0,
+   "calls": 8,
+   "seconds": 478,
    "status": "TimeoutError: timed out"
   },
   {
@@ -803,7 +797,7 @@
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 22
+   "events": 23
   }
  ]
 }
