@@ -260,7 +260,41 @@ async function museumView() {
       <div class="bd"><div style="display:flex;justify-content:space-between;gap:8px"><h3>${esc(r.title)}</h3><span class="chip ${r.status === 'published' ? 'ok' : ''}">${r.status === 'published' ? 'מפורסמת' : 'טיוטה'}</span></div>
       <span class="meta">${esc(R ? R.name : r.room)} · ${(r.works || []).length} עבודות</span></div></a>`; }).join('')}
     <a class="art new" href="#/museum/new"><b style="font:400 2.4rem var(--serif)">+</b><span>כתבה חדשה</span></a></div>
+    <section class="stl" id="street"><h2>צבעי הרחוב</h2><p class="muted small">במוזיאון הולכים ברחוב אחד ארוך, ולכל תערוכה יש בכניסה סף בצבע אחד שמכריז עליה. ההצעה נלקחת אוטומטית מהצבעים של העבודות. לחיצה על צבע שומרת אותו מיד, והוא נראה באפליקציה בכניסה הבאה לרחוב.</p><div id="stlRows" class="muted">טוען…</div></section>
   `);
+  streetColours();
+}
+
+// --- the museum street: the colour of each exhibition's threshold (suggested from its works; the curator may choose another) ----------
+const STREET_PRESETS = ['#e3351c', '#e3981c', '#e3ca1c', '#6cc424', '#1ce3ca', '#1c67e3', '#7a2be3', '#e31c9a'];
+async function streetColours() {
+  const box = $('#stlRows'); if (!box) return;
+  try {
+    const { slugHue, hslHex } = await synth();
+    const [v, w, over] = await Promise.all([fetch(APP + 'data/virtual.json').then(r => r.json()), fetch(APP + 'data/demo/world.json').then(r => r.json()).catch(() => ({ shows: [] })), api.streetColours().catch(() => ({}))]);
+    const suggested = v.streetColours || {};
+    const list = [...(v.shows || []).map(x => ({ slug: x.slug, title: x.title })), ...(w.shows || []).filter(x => x.kind === 'online' && (x.works || []).length >= 3).map(x => ({ slug: x.slug, title: x.title }))];
+    const sug = x => suggested[x.slug] || hslHex(slugHue(x.slug), 0.78, 0.5), cur = x => over[x.slug] || sug(x);
+    const same = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
+    const row = x => `<div class="stl-r" data-slug="${esc(x.slug)}"><span class="stl-sw" style="background:${cur(x)}" aria-hidden="true"></span><b>${esc(x.title)}</b>
+      <span class="stl-pick" role="group" aria-label="צבע הסף של ${esc(x.title)}"><button type="button" class="stl-b sug" data-c="${sug(x)}" style="background:${sug(x)}" aria-label="ההצעה האוטומטית" title="ההצעה האוטומטית"></button>${STREET_PRESETS.map(c => `<button type="button" class="stl-b" data-c="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}<label class="stl-c">אחר <input type="color" value="${cur(x)}"></label></span>
+      <span class="muted small stl-s">${over[x.slug] ? 'נבחר ידנית' : 'הצעה אוטומטית'}</span></div>`;
+    box.className = ''; box.innerHTML = list.length ? list.map(row).join('') : 'אין עדיין תערוכות ברחוב.';
+    const set = async (r, c) => {
+      const x = list.find(q => q.slug === r.dataset.slug), auto = same(c, sug(x));
+      r.querySelector('.stl-sw').style.background = c;                       // live: the swatch changes at once
+      try {
+        await api.setStreetColour(x.slug, auto ? null : c.toLowerCase());
+        if (auto) delete over[x.slug]; else over[x.slug] = c.toLowerCase();
+        r.querySelector('.stl-s').textContent = over[x.slug] ? 'נבחר ידנית' : 'הצעה אוטומטית'; r.querySelector('input').value = cur(x); toast('הצבע נשמר');
+      } catch (e) { r.querySelector('.stl-sw').style.background = cur(x); fail(e); }
+    };
+    $$('.stl-r', box).forEach(r => {
+      $$('.stl-b', r).forEach(b => { b.onclick = () => set(r, b.dataset.c); });
+      r.querySelector('input').onchange = e => set(r, e.target.value);
+      r.querySelector('input').oninput = e => { r.querySelector('.stl-sw').style.background = e.target.value; };
+    });
+  } catch (e) { box.textContent = 'הצבעים לא נטענו. בדוק חיבור.'; }
 }
 
 // --- exhibitions: the approved ones, by artists, by galleries and institutions (the art map), and the app's own --------------------------

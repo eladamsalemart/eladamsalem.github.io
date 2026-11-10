@@ -498,3 +498,181 @@ export async function buildRoom(design, src) {
   for (const p of placed) if (p.work.id) placements[p.work.id] = { wall: p.wall.name, a: +p.a.toFixed(3), y: +p.y.toFixed(3) };
   return { spec, placements, plinths: plinths.map(({ id, x, z, size, work }) => ({ id, x: +x.toFixed(3), z: +z.toFixed(3), size, work: work || null })), left: left.map(x => x.work), revoke: () => urls.forEach(u => URL.revokeObjectURL(u)) };
 }
+
+
+// =====================================================================================================================
+// The museum street (night 10.11): one long straight axis on one level, fully indoors, the exhibitions' rooms open off it.
+// Each room has a short colour threshold (a vestibule painted in one saturated colour that announces the show), the
+// street has a luminous ceiling whose hue shifts along the walk, and the walls stay light so the art reads. Everything is
+// flat, baked colour (unlit materials, no live lights), so it is cheap on a phone. Drawn into the same room description
+// the viewer reads (space.js: spec.solids are its walls, spec.start where the walk begins, spec.noSpots no live lights).
+// =====================================================================================================================
+
+const hex2 = n => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+export function hslHex(h, s, l) {
+  const a = s * Math.min(l, 1 - l), f = n => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+  return '#' + [f(0), f(8), f(4)].map(v => hex2(v * 255)).join('');
+}
+export function hexHsl(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  let h = d === 0 ? 0 : mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [(h * 60 + 360) % 360, s, l];
+}
+// the colour an exhibition's works suggest: the most common saturated hue among small samples of a few of them
+export async function suggestColour(urls, src, fallbackHue = 30) {
+  const bins = new Float64Array(24);
+  await Promise.all(urls.slice(0, 5).map(u => new Promise(res => {
+    const i = new Image(); i.crossOrigin = 'anonymous';
+    i.onload = () => {
+      try {
+        const c = canvas(24, 24), x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(i, 0, 0, 24, 24);
+        const d = x.getImageData(0, 0, 24, 24).data;
+        for (let k = 0; k < d.length; k += 4) {
+          const [h, s, l] = hexHsl('#' + hex2(d[k]) + hex2(d[k + 1]) + hex2(d[k + 2]));
+          if (s < 0.28 || l < 0.15 || l > 0.9) continue;
+          bins[Math.floor(h / 15) % 24] += s * s * (1 - Math.abs(l - 0.5));
+        }
+      } catch {}
+      res();
+    };
+    i.onerror = () => res(); i.src = src(u);
+  })));
+  const sc = b => bins[b] + 0.5 * (bins[(b + 23) % 24] + bins[(b + 1) % 24]);
+  let best = 0; for (let b = 1; b < 24; b++) if (sc(b) > sc(best)) best = b;
+  if (bins[best] < 1) return hslHex(fallbackHue, 0.72, 0.5);
+  return hslHex(best * 15 + 7.5, 0.78, 0.5);
+}
+
+// a hue of its own for a show with no suggestion, from its name (the app and the control room agree)
+export const slugHue = slug => { let h = 7; for (const c of String(slug)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+
+// the exhibitions that hang in the street: the virtual rooms and the online shows that have works
+export const streetShows = M => M.exhibitions.filter(e => (e.virtual || e.kind === 'online') && (e.works || []).length >= 3).slice(0, 8);
+
+const SH = { H: 4.2, Z0: 7, Z1: 11, RD: 5.4, VD: 1.6, PITCH: 9, MOUTH: 3.4, DOOR_H: 3.0 };
+const shade = (hex, k) => '#' + [1, 3, 5].map(i => hex2(parseInt(hex.slice(i, i + 2), 16) * k)).join('');
+
+// rooms: [{ slug, title, colour: '#rrggbb', works: [work as the app has it: title, image, pairs] }]
+export async function buildStreet(rooms, src, thumbOf = w => w.image) {
+  const { H, Z0, Z1, RD, VD, PITCH, MOUTH, DOOR_H } = SH;
+  const n = rooms.length, S = Math.ceil(n / 2), L = 6 + PITCH * S, ZN = Z0 - VD - RD, ZS = Z1 + VD + RD;
+  const surfaces = [], solids = [], works = [], flat = new Map();
+  const plain = c => { if (!flat.has(c)) { const cv = canvas(4, 4), x = cv.getContext('2d'); x.fillStyle = c; x.fillRect(0, 0, 4, 4); flat.set(c, cv.toDataURL('image/png')); } return flat.get(c); };
+  // light walls: a barely-there darkening toward the foot and the cornice, so the planes read as walls
+  const wallTex = (() => { const cv = canvas(4, 128), x = cv.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 128);
+    g.addColorStop(0, '#e3e0da'); g.addColorStop(0.08, '#f4f2ee'); g.addColorStop(0.9, '#f6f4f0'); g.addColorStop(1, '#d9d5cd'); x.fillStyle = g; x.fillRect(0, 0, 4, 128); return cv.toDataURL('image/png'); })();
+  // a wall from (x, z) running along u = (nz, -nx) for len, facing (nx, nz); holes [a, b] along it are open doorways
+  const wall = (name, x, z, nx, nz, len, o = {}) => {
+    const ux = nz, uz = -nx, holes = o.holes || [];
+    surfaces.push({ name, kind: 'wall', texture: wallTex, origin: [x, H, z], u: [ux, 0, uz], v: [0, -1, 0], size: [len, H], normal: [nx, 0, nz],
+      openings: holes.map(([a, b]) => ({ from: a, to: b, height: DOOR_H, arch: false, depth: 0.1, through: true, bare: true })) });
+    let a = 0; for (const [f, t] of [...holes, [len, len]].sort((p, q) => p[0] - q[0])) { if (f > a + 0.01) solids.push([x + ux * a, z + uz * a, x + ux * f, z + uz * f]); a = Math.max(a, t); }
+  };
+  // a flat plane at height y, facing up or down
+  const plane = (name, kind, x, z, w, d, y, up, tex) => surfaces.push({ name, kind, texture: tex, origin: [x, y, up ? z : z + d], u: [1, 0, 0], v: up ? [0, 0, 1] : [0, 0, -1], size: [w, d], normal: [0, up ? 1 : -1, 0], openings: [] });
+  const slot = i => 5 + PITCH * Math.floor(i / 2), mouthOf = i => [slot(i) + 2.8, slot(i) + 2.8 + MOUTH];
+  const idx = rooms.map((r, i) => i), north = idx.filter(i => i % 2 === 0), south = idx.filter(i => i % 2 === 1);
+
+  // the street: two long walls with the doorways, two ends, the floor and the ceiling
+  wall('street-n', 0, Z0, 0, 1, L, { holes: north.map(mouthOf) });
+  wall('street-s', L, Z1, 0, -1, L, { holes: south.map(i => { const [a, b] = mouthOf(i); return [L - b, L - a]; }) });
+  wall('end-w', 0, Z1, 1, 0, Z1 - Z0); wall('end-e', L, Z0, -1, 0, Z1 - Z0);
+  const tile = canvas(64, 64), tx = tile.getContext('2d'); tx.fillStyle = '#d9d4ca'; tx.fillRect(0, 0, 64, 64); tx.strokeStyle = '#cbc5ba'; tx.lineWidth = 1.5; tx.strokeRect(0, 0, 64, 64);
+  surfaces.push({ name: 'floor', kind: 'floor', texture: tile.toDataURL('image/png'), tileXY: [2, 2], origin: [0, 0, 0], u: [1, 0, 0], v: [0, 0, 1], size: [L, ZS], normal: [0, 1, 0], openings: [] });
+
+  // the luminous ceiling: the hue of each slot's rooms, pale and bright, brightest down the middle of the street
+  const pts = [];
+  for (let s = 0; s < S; s++) {
+    const hs = [rooms[2 * s], rooms[2 * s + 1]].filter(Boolean).map(r => hexHsl(r.colour)[0] * Math.PI / 180);
+    const hue = (Math.atan2(hs.reduce((a, h) => a + Math.sin(h), 0), hs.reduce((a, h) => a + Math.cos(h), 0)) * 180 / Math.PI + 360) % 360;
+    pts.push([(slot(2 * s) + 4.5) / L, hue]);
+  }
+  const hueAt = t => {
+    if (t <= pts[0][0]) return pts[0][1]; if (t >= pts[pts.length - 1][0]) return pts[pts.length - 1][1];
+    let k = 1; while (pts[k][0] < t) k++;
+    const [t0, h0] = pts[k - 1], [t1, h1] = pts[k]; let dh = h1 - h0; if (dh > 180) dh -= 360; if (dh < -180) dh += 360;
+    const u = (t - t0) / (t1 - t0), e = u * u * (3 - 2 * u); return (h0 + dh * e + 360) % 360;
+  };
+  const cw = 1024, ch = 32, cc = canvas(cw, ch), cx = cc.getContext('2d');
+  for (let px = 0; px < cw; px++) {
+    const hh = hueAt(px / cw), col = cx.createLinearGradient(px, 0, px, ch);
+    col.addColorStop(0, hslHex(hh, 0.6, 0.68)); col.addColorStop(0.5, hslHex(hh, 0.55, 0.88)); col.addColorStop(1, hslHex(hh, 0.6, 0.68));
+    cx.fillStyle = col; cx.fillRect(px, 0, 1, ch);
+  }
+  surfaces.push({ name: 'street-ceiling', kind: 'ceiling', texture: cc.toDataURL('image/png'), origin: [0, H, Z1], u: [1, 0, 0], v: [0, 0, -1], size: [L, Z1 - Z0], normal: [0, -1, 0], openings: [] });
+
+  // signs: a white plate, a thin band of the show's colour
+  const signTex = (text, sub, colour, w, h) => {
+    const k = 200, cv = canvas(w * k, h * k), x = cv.getContext('2d');
+    x.fillStyle = '#f7f5f1'; x.fillRect(0, 0, cv.width, cv.height); x.fillStyle = colour; x.fillRect(0, 0, cv.width, cv.height * 0.09);
+    x.fillStyle = '#1c1b19'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    let fs = h * k * 0.4; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(text).width > cv.width * 0.9 && fs > 14) { fs -= 3; x.font = `500 ${fs}px Georgia, serif`; }
+    x.fillText(text, cv.width / 2, cv.height * (sub ? 0.46 : 0.56));
+    if (sub) { x.fillStyle = '#6a665e'; x.font = `${h * k * 0.17}px Georgia, serif`; x.fillText(sub, cv.width / 2, cv.height * 0.8); }
+    return cv.toDataURL('image/jpeg', 0.9);
+  };
+  surfaces.push({ name: 'sign-entrance', kind: 'wall', texture: signTex('The Street', 'Open Studio · the exhibitions open off this walk', '#2b2a27', 3.4, 0.9), origin: [0.02, 3.3, 10.7], u: [0, 0, -1], v: [0, -1, 0], size: [3.4, 0.9], normal: [1, 0, 0], openings: [] });
+
+  // the rooms
+  for (let i = 0; i < n; i++) {
+    const r = rooms[i], isN = i % 2 === 0, x0 = slot(i), rx0 = x0 + 1, rx1 = x0 + 8, [ma, mb] = mouthOf(i), c = r.colour;
+    const zf = isN ? Z0 - VD : Z1 + VD, zb = isN ? ZN : ZS, dir = isN ? -1 : 1, zs = isN ? Z0 : Z1, vz = isN ? zf : Z1;
+    // the threshold: a lowered passage painted in the show's colour, its floor running on a little way into the street
+    for (const [xx, k, sn] of [[ma, 0.8, 1], [mb, 0.94, -1]]) {
+      surfaces.push({ name: `th${i}${sn}`, kind: 'wall', texture: plain(shade(c, k)), origin: [xx, DOOR_H, zs], u: [0, 0, dir], v: [0, -1, 0], size: [VD, DOOR_H], normal: [sn, 0, 0], openings: [] });
+      solids.push([xx, zs, xx, zs + dir * VD]);
+    }
+    plane(`th${i}-ceil`, 'ceiling', ma, vz, MOUTH, VD, DOOR_H, false, plain(shade(c, 1.06)));
+    plane(`th${i}-floor`, 'wall', ma, vz, MOUTH, VD, 0.006, true, plain(shade(c, 0.9)));
+    plane(`th${i}-rug`, 'wall', ma, isN ? Z0 : Z1 - 1.3, MOUTH, 1.3, 0.005, true, plain(shade(c, 0.9)));
+    // the street's wall over the doorway names the show
+    const sh = H - DOOR_H - 0.12;
+    surfaces.push({ name: `sign${i}`, kind: 'wall', texture: signTex(r.title, `${r.works.length} works`, c, MOUTH, sh),
+      origin: isN ? [ma, H - 0.06, Z0 + 0.012] : [mb, H - 0.06, Z1 - 0.012], u: [isN ? 1 : -1, 0, 0], v: [0, -1, 0], size: [MOUTH, sh], normal: [0, 0, isN ? 1 : -1], openings: [] });
+    // the room: its front wall (with the doorway), the other three walls, its ceiling
+    const dpt = Math.abs(zb - zf);
+    if (isN) {
+      wall(`r${i}-front`, rx1, zf, 0, -1, rx1 - rx0, { holes: [[rx1 - mb, rx1 - ma]] });
+      wall(`r${i}-left`, rx0, zf, 1, 0, dpt); wall(`r${i}-back`, rx0, zb, 0, 1, rx1 - rx0); wall(`r${i}-right`, rx1, zb, -1, 0, dpt);
+    } else {
+      wall(`r${i}-front`, rx0, zf, 0, 1, rx1 - rx0, { holes: [[ma - rx0, mb - rx0]] });
+      wall(`r${i}-left`, rx0, zb, 1, 0, dpt); wall(`r${i}-back`, rx1, zb, 0, -1, rx1 - rx0); wall(`r${i}-right`, rx1, zf, -1, 0, dpt);
+    }
+    plane(`r${i}-ceil`, 'ceiling', rx0, Math.min(zf, zb), rx1 - rx0, dpt, H, false, plain('#f3f0ea'));
+    // hang the works along the left wall, the back wall and the right wall, in walking order
+    const runs = isN
+      ? [{ n: [1, 0], len: dpt, at: a => [rx0, zf - a] }, { n: [0, 1], len: rx1 - rx0, at: a => [rx0 + a, zb] }, { n: [-1, 0], len: dpt, at: a => [rx1, zb + a] }]
+      : [{ n: [1, 0], len: dpt, at: a => [rx0, zf + a] }, { n: [0, -1], len: rx1 - rx0, at: a => [rx0 + a, zb] }, { n: [-1, 0], len: dpt, at: a => [rx1, zb - a] }];
+    const sized = await Promise.all(r.works.slice(0, 8).map(async work => {
+      const s = await sizeOf({ ...work, image: thumbOf(work) }, src), k = Math.min(1, 140 / Math.max(s.w, s.h));
+      return { work, w: s.w * k, h: s.h * k };
+    }));
+    const GAP = 0.5, MG = 0.7, bucket = runs.map(() => []);
+    let ri = 0;
+    for (const s of sized) {
+      while (ri < runs.length && bucket[ri].reduce((t, q) => t + q.w / 100 + GAP, 0) + s.w / 100 > runs[ri].len - 2 * MG) ri++;
+      if (ri >= runs.length) break;
+      bucket[ri].push(s);
+    }
+    bucket.forEach((items, k) => {
+      if (!items.length) return;
+      const run = runs[k], total = items.reduce((t, q) => t + q.w / 100, 0), g = (run.len - total) / (items.length + 1);
+      let a = g;
+      for (const s of items) {
+        const wm = s.w / 100, hm = s.h / 100, y = Math.min(Math.max(1.5, hm / 2 + 0.4), H - hm / 2 - 0.5);
+        const [px, pz] = run.at(a + wm / 2), N = [run.n[0], 0, run.n[1]], off = 0.039;
+        works.push({ id: s.work.slug, work: s.work.title, image: s.work.image, imageSmall: thumbOf(s.work), size: [s.w, s.h], measured: [s.w, s.h],
+          centre: [px + N[0] * off, y, pz + N[2] * off], axes: [[N[2], 0, -N[0]], [0, 1, 0], N], depth: 0.035, lightScale: 1 });
+        a += wm + g;
+      }
+    });
+  }
+  const spec = {
+    version: 2, title: 'The Street', source: 'Open Studio museum', virtual: true, ordered: true, far: 90, noSpots: true,
+    room: { x0: 0, x1: L, z0: 0, z1: ZS, height: H }, surfaces, works, views: [], floorReflect: [0, 0], solids,
+    start: { pos: [2.6, 9], look: [L, 9] },
+  };
+  return { spec, length: L };
+}
