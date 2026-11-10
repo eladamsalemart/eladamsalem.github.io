@@ -23,6 +23,7 @@ export async function editor(ctx, id) {
   if (id === 'new') E = { id: null, title: '', curator: 'Elad Amsalem', text: '', works: [], plinths: [] };
   else { const x = (await api.exhibitions()).find(q => q.id === id); if (!x) { root.innerHTML = `${shellTop()}<main style="padding:40px"><p>התערוכה לא נמצאה. <a href="#/museum">חזרה למוזיאון</a></p></main>`; return; }
     E = { id: x.id, title: x.title, curator: x.curator || '', text: x.text || '', works: clone(x.works || []), plinths: clone(x.plinths || []) }; }
+  if (guest) for (const r of slotRows) if (r.exhibition_id === E.id && r.content) r.content = snapshot(E);      // (the demo's copy is made the way a publish makes it)
   const by = new Map(lib.flatMap(a => a.works).map(w => [w.id, w]));
   let sel = new Set(), libSel = new Set(), view = 'all', tab = 'ex', dirty = false, saving = false, timer = null, savedAt = id === 'new' ? 0 : Date.now(), guides = [];
   const undo = [], redo = []; let lastKey = '', lastAt = 0;
@@ -52,8 +53,8 @@ export async function editor(ctx, id) {
       <button class="ib" id="b-undo" title="ביטול (Ctrl+Z)" aria-label="ביטול">↶</button><button class="ib" id="b-redo" title="שחזור (Ctrl+Shift+Z)" aria-label="שחזור">↷</button>
       <button class="btn" id="b-walk">צפה בחדר <kbd>W</kbd></button><button class="btn p" id="b-pub">פרסם במוזיאון</button></header>
     <aside class="ws-lib" id="lib" aria-label="העבודות"></aside>
-    <section class="ws-mid"><div class="ws-tools" id="tools"></div><div class="el" id="el"></div><div class="ws-low"><div id="plan" class="plan"></div><div class="ws-hint" id="hint"></div></div></section>
-    <aside class="ws-ins" id="ins" aria-label="פרטים"></aside></div><dialog id="pubd" class="dlg"></dialog>`;
+    <section class="ws-mid"><div class="ws-tools" id="tools"></div><div class="el" id="el"></div><div class="ws-low"><div class="ws-hint" id="hint"></div></div></section>
+    <aside class="ws-ins" aria-label="פרטים"><div id="plan" class="plan"></div><div id="ins"></div></aside></div><dialog id="pubd" class="dlg"></dialog>`;
 
   // ---- state changes ------------------------------------------------------------------------------------------------------
   function touch() { dirty = true; paintSaved(); clearTimeout(timer); timer = setTimeout(save, 1100); chipsDraw(); }
@@ -79,7 +80,7 @@ export async function editor(ctx, id) {
     mutate(() => {
       let want = at ?? 0.5;
       prep.forEach((c, n) => {
-        if (c.kind === 'object') { E.works.push(c); const k = E.plinths.length; E.plinths.push({ id: 'p' + uid(), x: Math.min(RW - 1, 1.6 + (k % 4) * 1.6), z: 2.4 + Math.floor(k / 4) * 1.4, size: 'm', work: c.id }); added.push(c.id); return; }
+        if (c.kind === 'object') { E.works.push(c); const k = E.plinths.length, pid = 'p' + uid(); E.plinths.push({ id: pid, x: Math.min(RW - 1, 1.6 + (k % 4) * 1.6), z: 2.4 + Math.floor(k / 4) * 1.4, size: 'm', work: c.id }); added.push(pid); return; }
         const yy = clampY(c, y), s = spot(c, want, yy);
         if (s == null) { miss++; return; }
         c.s = +s.toFixed(3); c.y = +yy.toFixed(3); E.works.push(c); added.push(c.id); want = s + box(c).wm / 2 + 0.4;
@@ -144,6 +145,7 @@ export async function editor(ctx, id) {
         drag = { id, p0: p, moved: false, base: new Map(walls().filter(o => sel.has(o.id)).map(o => [o.id, { s: o.s, y: o.y }])), before: snap() };
       } else { drag = { marquee: true, p0: p, x0: e.clientX, y0: e.clientY, multi, keep: new Set(multi ? sel : []), moved: false }; if (!multi) { sel = new Set(); } }
     };
+    ew.ondblclick = e => { if (view !== 'all') return; const p = toM(e); view = String(segOf(p.s)); toolsDraw(); elDraw(); };
     ew.onpointermove = e => {
       if (!drag) return; const p = toM(e);
       if (drag.marquee) {
@@ -182,7 +184,7 @@ export async function editor(ctx, id) {
 
   // ---- the room from above ------------------------------------------------------------------------------------------------------
   function planDraw() {
-    const Q = 34, M = 22, wpx = RW * Q, hpx = RD * Q, el = $('#plan'); if (!el) return;
+    const Q = 31, M = 20, wpx = RW * Q, hpx = RD * Q, el = $('#plan'); if (!el) return;
     const px = x => M + x * Q, pz = z => M + (RD - z) * Q;
     const tick = o => { const b = box(o), [x0, z0] = wallPoint(o.s - b.wm / 2), [x1, z1] = wallPoint(o.s + b.wm / 2); return `<line data-w="${esc(o.id)}" class="pt ${sel.has(o.id) ? 'on' : ''}" x1="${px(x0)}" y1="${pz(z0)}" x2="${px(x1)}" y2="${pz(z1)}"/>`; };
     el.innerHTML = `<svg viewBox="0 0 ${wpx + 2 * M} ${hpx + 2 * M + 14}" width="${wpx + 2 * M}" height="${hpx + 2 * M + 14}" aria-label="החדר מלמעלה">

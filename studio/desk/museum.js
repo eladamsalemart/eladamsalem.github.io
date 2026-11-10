@@ -54,6 +54,7 @@ export async function walkStreet(rooms, focus, viewerCss, synth) {
 export async function home(ctx) {
   const { page, toast, fail, $: _$, keys } = ctx;
   let [EX, rows, apps] = await Promise.all([api.exhibitions(), api.slots(), appShows()]);
+  if (guest) for (const r of rows) { const e = r.exhibition_id && EX.find(x => x.id === r.exhibition_id); if (e && r.content) r.content = snapshot(e); }      // (the demo's copies are made the way a publish makes them)
   const SL = new Map(rows.map(s => [s.slot, s]));
   let sel = +sessionStorage.getItem('mu-sel') || (rows[0] ? rows[0].slot : 1);
   const undo = [], redo = [], AUTO = {};
