@@ -54,6 +54,8 @@ to a tour or the viewer is done:
 **Working with the owner.** A startup; the owner's time goes to the product. Do what the tools allow without asking
 (the owner said so); ask only for what needs their own login or money. Never ask for a key in the chat: secrets go in
 GitHub secrets or the environment's settings. Report briefly, in Hebrew.
+Every email to the owner (reports, reminders, summaries, anything sent by mail) goes to the app's mailbox
+ooopenstudio@gmail.com, never to eladamsalem1@ (the owner asked on 10.11).
 
 **Accounts and what reaches them from a session**
 - GitHub `eladamsalemart/eladamsalem.github.io`: code on `studio`, the live site on `main` (eladamsalem.com/open-studio/).
