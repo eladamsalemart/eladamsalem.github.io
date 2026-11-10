@@ -143,7 +143,7 @@ export function mount(c) {
 
   const card = () => {
     const t = things(), left = t.filter(x => !x[2]).length;
-    if (S.status === 'approved') return `<div class="ed-card live"><h2>Your page is live</h2><p>Visitors see this page. Every change you make here shows to them at once.</p></div>`;
+    if (S.status === 'approved') return `<div class="ed-card live"><h2>Your page is live</h2><p>Visitors see this page. Every change you make here shows to them at once.</p><div class="ed-actions"><button class="btn f" type="button" data-share>Share your page</button></div></div>`;
     if (S.status === 'pending') return `<div class="ed-card"><h2>In review</h2><p>Open Studio is looking at your page and will write here if anything should change. You can go on editing.</p><div class="ed-actions"><button class="btn g" data-st="draft">Take it back</button></div></div>`;
     if (S.status === 'hidden') return `<div class="ed-card"><h2>Your page isn’t shown at the moment</h2><p>${esc(S.note || '')}</p></div>`;
     const head = S.status === 'changes' ? `<h2>Open Studio asks for a few changes</h2><p>${esc(S.note || '')}</p>` : left ? `<h2>${left === 3 ? '3 things' : left === 1 ? '1 thing' : `${left} things`} before your page can go live</h2>` : '<h2>Your page is ready</h2><p>Open Studio looks at every new page before it goes live.</p>';
@@ -228,6 +228,11 @@ export function mount(c) {
       if (k === 'cover') coverSheet();
       else if (k === 'statement') { const s = app.querySelector('.statement'); s.scrollIntoView({ block: 'center', behavior: 'smooth' }); setTimeout(() => s.focus(), 350); }
       else pickPhotos();
+    });
+    app.querySelectorAll('[data-share]').forEach(b => b.onclick = async () => {
+      const url = `${location.origin}${location.pathname}#/artist/${(a && a.slug) || S.slug || ''}`;
+      try { if (navigator.share) { await navigator.share({ title: S.artist.name, text: `${S.artist.name} on Open Studio`, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+      try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { prompt('Copy your page’s link', url); }
     });
     app.querySelectorAll('[data-st]').forEach(b => b.onclick = async () => {
       b.disabled = true;
