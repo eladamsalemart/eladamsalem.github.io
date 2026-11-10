@@ -74,14 +74,14 @@ body.sh-open{overflow:hidden}
 .ed button.more,.ed-foot .more{min-height:44px;padding-inline:10px;display:inline-flex;align-items:center;cursor:pointer}
 .sh-cv button{min-height:44px!important;padding-inline:12px!important;font-size:15px!important}
 .wk-hint{margin:0 0 6px;font-size:15px;color:var(--muted)}.wk-hint a{color:var(--ink);font-weight:600;display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
-.wk-g{margin-top:12px}.wk-g h3{font:700 13px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0;padding:8px 0 2px}
-.wk{display:grid;grid-template-columns:72px 1fr 44px;gap:12px;align-items:center;min-height:84px;padding:6px 0;border-bottom:1px solid var(--line);cursor:pointer;position:relative;background:var(--wall);-webkit-tap-highlight-color:transparent}
+.wk-g{margin-top:18px}.wk-g h3{font:500 26px/1.1 var(--serif);letter-spacing:0;text-transform:none;color:var(--ink);margin:0;padding:6px 0 8px;border-bottom:1px solid var(--ink)}
+.wk{display:grid;grid-template-columns:96px 1fr 44px;gap:14px;align-items:center;min-height:98px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer;position:relative;background:var(--wall);-webkit-tap-highlight-color:transparent}
 .wk:active{background:var(--card)}.wk:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
-.wk-im{position:relative;width:72px;height:72px;background:var(--card);border-radius:6px;overflow:hidden;display:grid;place-items:center}
-.wk-im img{width:100%;height:100%;object-fit:contain;display:block}
+.wk-im{position:relative;width:96px;height:74px;box-sizing:border-box;padding:6px;background:var(--card);border-radius:3px;overflow:hidden;display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(27,26,23,.08)}
+.wk-im img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;box-shadow:0 1px 4px rgba(27,26,23,.28)}
 .wk-spin{position:absolute;inset:0;background:rgba(251,250,246,.62)}.wk-spin::after{content:"";position:absolute;inset:26px;border:3px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:wk-r .8s linear infinite}
 @keyframes wk-r{to{transform:rotate(1turn)}}
-.wk-t{display:grid;gap:2px;min-width:0}.wk-t b{font-size:17px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk-t{display:grid;gap:3px;min-width:0}.wk-t b{font:500 19px/1.2 var(--serif);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wk-t>span{font-size:15px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wk-t em{font-style:normal;font-size:14px;font-weight:600;color:#7A4300}.wk-t em.up{color:var(--muted)}
 .wk-grip{width:44px;height:56px;border:0;background:none;color:var(--muted);touch-action:none;cursor:grab;font-size:22px;letter-spacing:-2px;padding:0}.wk-grip::before{content:"\\2807\\2807"}
@@ -92,8 +92,8 @@ body.sh-open{overflow:hidden}
 .sh-f .btn{flex:1;justify-content:center;min-height:52px;font-size:16px}.sh-f .btn.danger{flex:0 0 auto;color:#B3261E;border-color:#B3261E;padding-inline:20px}
 .sh-b .btn.wide{width:100%}
 .ad-list{display:grid;gap:12px}.ad-card{display:grid;grid-template-columns:84px 1fr 44px;gap:12px;align-items:start;padding-bottom:12px;border-bottom:1px solid var(--line)}
-.ad-card.one{grid-template-columns:1fr;border-bottom:0}.ad-card.one .ad-im{height:min(34vh,260px)}
-.ad-im{position:relative;height:84px;background:var(--card);border-radius:8px;overflow:hidden;display:grid;place-items:center}.ad-im img{width:100%;height:100%;object-fit:contain}
+.ad-card.one{grid-template-columns:1fr;border-bottom:0}.ad-card.one .ad-im{height:min(36vh,280px)}
+.ad-im{position:relative;height:84px;box-sizing:border-box;padding:6px;background:var(--card);border-radius:3px;overflow:hidden;display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(27,26,23,.08)}.ad-im img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;box-shadow:0 1px 4px rgba(27,26,23,.28)}
 .ad-wait{font-style:normal;font-size:14px;color:var(--muted);padding:4px;text-align:center}
 .ad-f{display:grid;gap:8px;min-width:0}.ad-sz{display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center;color:var(--muted)}
 .ad-same,.ad-rm{background:none;border:0;color:var(--ink);font:600 15px var(--sans);cursor:pointer;min-height:44px;text-align:left;padding:0;text-decoration:underline}
@@ -106,7 +106,7 @@ body.sh-open{overflow:hidden}
 .kd-c{position:relative;flex:none}.kd-c input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0}
 .kd-c span{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:99px;border:1.5px solid var(--edge);font:600 16px var(--sans);color:var(--ink);background:var(--paper)}
 .kd-c input:checked+span{background:var(--ink);color:var(--wall);border-color:var(--ink)}.kd-c input:focus-visible+span{outline:3px solid var(--dot);outline-offset:2px}
-.wk-prev{display:grid;grid-template-columns:120px auto;gap:14px;align-items:center;justify-items:start}.wk-pv{display:grid;place-items:center;width:120px;height:120px;background:var(--card);border-radius:8px;overflow:hidden}.wk-pv img{width:100%;height:100%;object-fit:contain}
+.wk-prev{display:grid;grid-template-columns:132px auto;gap:14px;align-items:center;justify-items:start}.wk-pv{width:132px;height:132px;box-sizing:border-box;padding:6px;background:var(--card);border-radius:3px;overflow:hidden;display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(27,26,23,.08)}.wk-pv img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;box-shadow:0 1px 4px rgba(27,26,23,.28)}
 .ed-toast{display:flex;gap:14px;align-items:center}.ed-toast button{min-height:44px;padding:0 6px;background:none;border:0;color:var(--wall);font:700 16px var(--sans);text-decoration:underline;cursor:pointer}
 `;
 const hook = () => { if (!document.getElementById('edCss')) { const s = document.createElement('style'); s.id = 'edCss'; s.textContent = CSS; document.head.append(s); } };
@@ -143,7 +143,7 @@ export function mount(c) {
 
   const card = () => {
     const t = things(), left = t.filter(x => !x[2]).length;
-    if (S.status === 'approved') return `<div class="ed-card live"><h2>Your page is live</h2><p>Visitors see this page. Every change you make here shows to them at once.</p></div>`;
+    if (S.status === 'approved') return `<div class="ed-card live"><h2>Your page is live</h2><p>Visitors see this page. Every change you make here shows to them at once.</p><div class="ed-actions"><button class="btn f" type="button" data-share>Share your page</button></div></div>`;
     if (S.status === 'pending') return `<div class="ed-card"><h2>In review</h2><p>Open Studio is looking at your page and will write here if anything should change. You can go on editing.</p><div class="ed-actions"><button class="btn g" data-st="draft">Take it back</button></div></div>`;
     if (S.status === 'hidden') return `<div class="ed-card"><h2>Your page isn’t shown at the moment</h2><p>${esc(S.note || '')}</p></div>`;
     const head = S.status === 'changes' ? `<h2>Open Studio asks for a few changes</h2><p>${esc(S.note || '')}</p>` : left ? `<h2>${left === 3 ? '3 things' : left === 1 ? '1 thing' : `${left} things`} before your page can go live</h2>` : '<h2>Your page is ready</h2><p>Open Studio looks at every new page before it goes live.</p>';
@@ -228,6 +228,11 @@ export function mount(c) {
       if (k === 'cover') coverSheet();
       else if (k === 'statement') { const s = app.querySelector('.statement'); s.scrollIntoView({ block: 'center', behavior: 'smooth' }); setTimeout(() => s.focus(), 350); }
       else pickPhotos();
+    });
+    app.querySelectorAll('[data-share]').forEach(b => b.onclick = async () => {
+      const url = `${location.origin}${location.pathname}#/artist/${(a && a.slug) || S.slug || ''}`;
+      try { if (navigator.share) { await navigator.share({ title: S.artist.name, text: `${S.artist.name} on Open Studio`, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+      try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { prompt('Copy your page’s link', url); }
     });
     app.querySelectorAll('[data-st]').forEach(b => b.onclick = async () => {
       b.disabled = true;
@@ -357,7 +362,7 @@ export function mount(c) {
   // until the upload, in the pretend studio they are small data URLs the browser keeps
   async function prepare(file, mode) {
     let src, W, H, done = () => {};
-    try { if (self.createImageBitmap) { const b = await createImageBitmap(file); src = b; W = b.width; H = b.height; done = () => b.close && b.close(); } } catch {}
+    try { if (self.createImageBitmap) { const b = await createImageBitmap(file, { imageOrientation: 'from-image' }); src = b; W = b.width; H = b.height; done = () => b.close && b.close(); } } catch {}
     if (!src) {
       const url = URL.createObjectURL(file);
       src = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error('not an image')); i.src = url; });
