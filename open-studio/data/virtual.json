@@ -76,9 +76,11 @@
   }
  ],
  "streetColours": {
-  "celebration-virtual": "#e3ca1c",
-  "green-hour": "#e3351c",
-  "paintings-for-the-future": "#1c67e3",
-  "a-room-of-her-own": "#1ce3ca"
+  "celebration-virtual": "#c2b02e",
+  "green-hour": "#c2402e",
+  "paintings-for-the-future": "#c2652e",
+  "seen-from-within": "#c28a2e",
+  "a-room-of-her-own": "#2e8ac2",
+  "colour-without-a-subject": "#2ec28a"
  }
 }

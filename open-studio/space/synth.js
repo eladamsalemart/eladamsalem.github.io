@@ -541,8 +541,8 @@ export async function suggestColour(urls, src, fallbackHue = 30) {
   })));
   const sc = b => bins[b] + 0.5 * (bins[(b + 23) % 24] + bins[(b + 1) % 24]);
   let best = 0; for (let b = 1; b < 24; b++) if (sc(b) > sc(best)) best = b;
-  if (bins[best] < 1) return hslHex(fallbackHue, 0.72, 0.5);
-  return hslHex(best * 15 + 7.5, 0.78, 0.5);
+  if (bins[best] < 0.02) return hslHex(fallbackHue, 0.62, 0.47);
+  return hslHex(best * 15 + 7.5, 0.62, 0.47);
 }
 
 // a hue of its own for a show with no suggestion, from its name (the app and the control room agree)
@@ -551,43 +551,27 @@ export const slugHue = slug => { let h = 7; for (const c of String(slug)) h = (h
 // the exhibitions that hang in the street: the virtual rooms and the online shows that have works
 export const streetShows = M => M.exhibitions.filter(e => (e.virtual || e.kind === 'online') && (e.works || []).length >= 3).slice(0, 8);
 
-const SH = { H: 4.2, Z0: 7, Z1: 11, RD: 5.4, VD: 1.6, PITCH: 9, MOUTH: 3.4, DOOR_H: 3.0 };
+// proportions after the approved spec (street_spec.py, concept 6): a street 7 m wide and 5 m high, rooms 3.8 m high, doors 3.2 x 3.3 m, thresholds 1.8 m deep
+const SH = { H: 5.0, RH: 3.8, W: 7, RD: 6, RW: 8, VD: 1.8, PITCH: 10, MOUTH: 3.2, DOOR_H: 3.3, RIM: 0.22 };
 const shade = (hex, k) => '#' + [1, 3, 5].map(i => hex2(parseInt(hex.slice(i, i + 2), 16) * k)).join('');
+const rgba = (hex, a) => `rgba(${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)},${a})`;
+const jpg = (c, q = 0.92) => c.toDataURL('image/jpeg', q);
 
 // rooms: [{ slug, title, colour: '#rrggbb', works: [work as the app has it: title, image, pairs] }]
 export async function buildStreet(rooms, src, thumbOf = w => w.image) {
-  const { H, Z0, Z1, RD, VD, PITCH, MOUTH, DOOR_H } = SH;
-  const n = rooms.length, S = Math.ceil(n / 2), L = 6 + PITCH * S, ZN = Z0 - VD - RD, ZS = Z1 + VD + RD;
+  const { H, RH, W, RD, RW, VD, PITCH, MOUTH, DOOR_H, RIM } = SH;
+  const Z0 = VD + RD + 0.2, Z1 = Z0 + W, ZS = Z1 + VD + RD, ZC = (Z0 + Z1) / 2;
+  const n = rooms.length, S = Math.ceil(n / 2), L = 7 + PITCH * S;
   const surfaces = [], solids = [], works = [], flat = new Map();
   const plain = c => { if (!flat.has(c)) { const cv = canvas(4, 4), x = cv.getContext('2d'); x.fillStyle = c; x.fillRect(0, 0, 4, 4); flat.set(c, cv.toDataURL('image/png')); } return flat.get(c); };
-  // light walls: a barely-there darkening toward the foot and the cornice, so the planes read as walls
-  const wallTex = (() => { const cv = canvas(4, 128), x = cv.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 128);
-    g.addColorStop(0, '#e3e0da'); g.addColorStop(0.08, '#f4f2ee'); g.addColorStop(0.9, '#f6f4f0'); g.addColorStop(1, '#d9d5cd'); x.fillStyle = g; x.fillRect(0, 0, 4, 128); return cv.toDataURL('image/png'); })();
-  // a wall from (x, z) running along u = (nz, -nx) for len, facing (nx, nz); holes [a, b] along it are open doorways
-  const wall = (name, x, z, nx, nz, len, o = {}) => {
-    const ux = nz, uz = -nx, holes = o.holes || [];
-    surfaces.push({ name, kind: 'wall', texture: wallTex, origin: [x, H, z], u: [ux, 0, uz], v: [0, -1, 0], size: [len, H], normal: [nx, 0, nz],
-      openings: holes.map(([a, b]) => ({ from: a, to: b, height: DOOR_H, arch: false, depth: 0.1, through: true, bare: true })) });
-    let a = 0; for (const [f, t] of [...holes, [len, len]].sort((p, q) => p[0] - q[0])) { if (f > a + 0.01) solids.push([x + ux * a, z + uz * a, x + ux * f, z + uz * f]); a = Math.max(a, t); }
-  };
-  // a flat plane at height y, facing up or down
-  const plane = (name, kind, x, z, w, d, y, up, tex) => surfaces.push({ name, kind, texture: tex, origin: [x, y, up ? z : z + d], u: [1, 0, 0], v: up ? [0, 0, 1] : [0, 0, -1], size: [w, d], normal: [0, up ? 1 : -1, 0], openings: [] });
-  const slot = i => 5 + PITCH * Math.floor(i / 2), mouthOf = i => [slot(i) + 2.8, slot(i) + 2.8 + MOUTH];
+  const slot = i => 6 + PITCH * Math.floor(i / 2), mouthOf = i => [slot(i) + RW / 2 + 1 - MOUTH / 2, slot(i) + RW / 2 + 1 + MOUTH / 2];
   const idx = rooms.map((r, i) => i), north = idx.filter(i => i % 2 === 0), south = idx.filter(i => i % 2 === 1);
 
-  // the street: two long walls with the doorways, two ends, the floor and the ceiling
-  wall('street-n', 0, Z0, 0, 1, L, { holes: north.map(mouthOf) });
-  wall('street-s', L, Z1, 0, -1, L, { holes: south.map(i => { const [a, b] = mouthOf(i); return [L - b, L - a]; }) });
-  wall('end-w', 0, Z1, 1, 0, Z1 - Z0); wall('end-e', L, Z0, -1, 0, Z1 - Z0);
-  const tile = canvas(64, 64), tx = tile.getContext('2d'); tx.fillStyle = '#d9d4ca'; tx.fillRect(0, 0, 64, 64); tx.strokeStyle = '#cbc5ba'; tx.lineWidth = 1.5; tx.strokeRect(0, 0, 64, 64);
-  surfaces.push({ name: 'floor', kind: 'floor', texture: tile.toDataURL('image/png'), tileXY: [2, 2], origin: [0, 0, 0], u: [1, 0, 0], v: [0, 0, 1], size: [L, ZS], normal: [0, 1, 0], openings: [] });
-
-  // the luminous ceiling: the hue of each slot's rooms, pale and bright, brightest down the middle of the street
+  // the hue along the street: the rooms' own hues, blended slowly, so the ceiling is one continuous glow and not bands
   const pts = [];
   for (let s = 0; s < S; s++) {
     const hs = [rooms[2 * s], rooms[2 * s + 1]].filter(Boolean).map(r => hexHsl(r.colour)[0] * Math.PI / 180);
-    const hue = (Math.atan2(hs.reduce((a, h) => a + Math.sin(h), 0), hs.reduce((a, h) => a + Math.cos(h), 0)) * 180 / Math.PI + 360) % 360;
-    pts.push([(slot(2 * s) + 4.5) / L, hue]);
+    pts.push([(slot(2 * s) + RW / 2 + 1) / L, (Math.atan2(hs.reduce((a, h) => a + Math.sin(h), 0), hs.reduce((a, h) => a + Math.cos(h), 0)) * 180 / Math.PI + 360) % 360]);
   }
   const hueAt = t => {
     if (t <= pts[0][0]) return pts[0][1]; if (t >= pts[pts.length - 1][0]) return pts[pts.length - 1][1];
@@ -595,56 +579,144 @@ export async function buildStreet(rooms, src, thumbOf = w => w.image) {
     const [t0, h0] = pts[k - 1], [t1, h1] = pts[k]; let dh = h1 - h0; if (dh > 180) dh -= 360; if (dh < -180) dh += 360;
     const u = (t - t0) / (t1 - t0), e = u * u * (3 - 2 * u); return (h0 + dh * e + 360) % 360;
   };
-  const cw = 1024, ch = 32, cc = canvas(cw, ch), cx = cc.getContext('2d');
+  const glowAt = x => hslHex(hueAt(x / L), 0.5, 0.72);                 // the ceiling's light as it falls on the walls and floor at x
+
+  // a wall from (x, z) running along u = (nz, -nx) for len, facing (nx, nz); holes [a, b] along it are open doorways
+  const wall = (name, x, z, nx, nz, len, o = {}) => {
+    const ux = nz, uz = -nx, holes = o.holes || [], h = o.h || H;
+    surfaces.push({ name, kind: 'wall', texture: o.tex, origin: [x, h, z], u: [ux, 0, uz], v: [0, -1, 0], size: [len, h], normal: [nx, 0, nz],
+      openings: holes.map(([a, b]) => ({ from: a, to: b, height: DOOR_H, arch: false, depth: 0.1, through: true, bare: true })) });
+    let a = 0; for (const [f, t] of [...holes, [len, len]].sort((p, q) => p[0] - q[0])) { if (f > a + 0.01) solids.push([x + ux * a, z + uz * a, x + ux * f, z + uz * f]); a = Math.max(a, t); }
+  };
+  // a flat plane at height y: facing up (texture top = smaller z) or down (texture bottom = smaller z)
+  const plane = (name, kind, x, z, w, d, y, up, tex) => surfaces.push({ name, kind, texture: tex, origin: [x, y, up ? z : z + d], u: [1, 0, 0], v: up ? [0, 0, 1] : [0, 0, -1], size: [w, d], normal: [0, up ? 1 : -1, 0], openings: [] });
+  const noise = (x, w, h, count, a) => { for (let i = 0; i < count; i++) { const v = Math.random() < 0.5 ? 255 : 0; x.fillStyle = `rgba(${v},${v},${v},${Math.random() * a})`; x.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 1.5, 1 + Math.random() * 1.5); } };
+
+  // --- a street wall, painted once: plaster, the ceiling's glow falling down from the top, a soft foot, a skirting line, the
+  //     colour of each threshold spilling onto the wall beside it, and the exhibition's name, small and quiet
+  const PPM = 72;
+  const streetWall = isN => {
+    const w = Math.round(L * PPM), h = Math.round(H * PPM), c = canvas(w, h), x = c.getContext('2d'), X = v => (isN ? v : L - v) * PPM;
+    x.fillStyle = '#f2efe9'; x.fillRect(0, 0, w, h);
+    for (let px = 0; px < w; px += 6) {
+      const wx = (isN ? px : w - px) / PPM, g = x.createLinearGradient(0, 0, 0, 2.4 * PPM);
+      g.addColorStop(0, rgba(glowAt(wx), 0.4)); g.addColorStop(0.45, rgba(glowAt(wx), 0.13)); g.addColorStop(1, rgba(glowAt(wx), 0));
+      x.fillStyle = g; x.fillRect(px, 0, 6, 2.4 * PPM);
+    }
+    for (const i of (isN ? north : south)) {
+      const [a, b] = mouthOf(i), m = (a + b) / 2, col = rooms[i].colour;
+      x.save(); x.translate(X(m), (H - 1.5) * PPM); x.scale(3.3 * PPM, 2.6 * PPM);
+      const g = x.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, rgba(col, 0.3)); g.addColorStop(0.5, rgba(col, 0.11)); g.addColorStop(1, rgba(col, 0));
+      x.fillStyle = g; x.fillRect(-1, -1, 2, 2); x.restore();
+    }
+    const ao = x.createLinearGradient(0, h - 0.7 * PPM, 0, h); ao.addColorStop(0, 'rgba(70,58,44,0)'); ao.addColorStop(1, 'rgba(70,58,44,0.2)'); x.fillStyle = ao; x.fillRect(0, h - 0.7 * PPM, w, 0.7 * PPM);
+    x.fillStyle = 'rgba(255,255,255,0.35)'; x.fillRect(0, h - 0.12 * PPM, w, 0.12 * PPM); x.fillStyle = 'rgba(60,50,40,0.3)'; x.fillRect(0, h - 0.125 * PPM, w, 1.5);
+    noise(x, w, h, 14000, 0.05);
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    for (const i of (isN ? north : south)) {
+      const [a, b] = mouthOf(i), cx = X((a + b) / 2), cy = (H - (DOOR_H + (H - DOOR_H) / 2)) * PPM, t = rooms[i].title;
+      let fs = 0.3 * PPM; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(t).width > 3.0 * PPM && fs > 10) { fs -= 1; x.font = `500 ${fs}px Georgia, serif`; }
+      x.fillStyle = 'rgba(40,36,30,0.82)'; x.fillText(t, cx, cy - 0.05 * PPM);
+      x.fillStyle = rooms[i].colour; x.fillRect(cx - 0.35 * PPM, cy + 0.2 * PPM, 0.7 * PPM, 3);
+      x.fillStyle = 'rgba(40,36,30,0.5)'; x.font = `${0.14 * PPM}px Georgia, serif`; x.fillText(`${rooms[i].works.length} works`, cx, cy + 0.38 * PPM);
+    }
+    return jpg(c);
+  };
+  wall('street-n', 0, Z0, 0, 1, L, { holes: north.map(mouthOf), tex: streetWall(true) });
+  wall('street-s', L, Z1, 0, -1, L, { holes: south.map(i => { const [a, b] = mouthOf(i); return [L - b, L - a]; }), tex: streetWall(false) });
+
+  // the ends: the entrance (the street's name) and, at the far end, the last hue's glow
+  const endWall = title => {
+    const w = W * 80, h = H * 80, c = canvas(w, h), x = c.getContext('2d'), hue = title ? pts[0][1] : pts[pts.length - 1][1];
+    x.fillStyle = '#f2efe9'; x.fillRect(0, 0, w, h);
+    const g = x.createLinearGradient(0, 0, 0, 2.6 * 80); g.addColorStop(0, rgba(hslHex(hue, 0.5, 0.72), 0.55)); g.addColorStop(1, rgba(hslHex(hue, 0.5, 0.72), 0)); x.fillStyle = g; x.fillRect(0, 0, w, 2.6 * 80);
+    const ao = x.createLinearGradient(0, h - 56, 0, h); ao.addColorStop(0, 'rgba(70,58,44,0)'); ao.addColorStop(1, 'rgba(70,58,44,0.2)'); x.fillStyle = ao; x.fillRect(0, h - 56, w, 56);
+    x.fillStyle = 'rgba(60,50,40,0.3)'; x.fillRect(0, h - 11, w, 1.5);
+    if (title) { x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = 'rgba(40,36,30,0.85)'; x.font = '500 46px Georgia, serif'; x.fillText('The Street', w / 2, h * 0.5);
+      x.fillStyle = 'rgba(40,36,30,0.5)'; x.font = '17px Georgia, serif'; x.fillText('the exhibitions open off this walk', w / 2, h * 0.5 + 40); }
+    noise(x, w, h, 3000, 0.05);
+    return jpg(c);
+  };
+  wall('end-w', 0, Z1, 1, 0, W, { tex: endWall(true) }); wall('end-e', L, Z0, -1, 0, W, { tex: endWall(false) });
+
+  // --- the street's floor: pale polished terrazzo, a faint reflection of the ceiling's glow down the middle, the foot of each wall
+  //     a little darker, and each threshold's colour spilled onto it
+  const FP = 64, fw = Math.round(L * FP), fh = Math.round(W * FP), fc = canvas(fw, fh), fx = fc.getContext('2d');
+  fx.fillStyle = '#d8d3ca'; fx.fillRect(0, 0, fw, fh);
+  for (let px = 0; px < fw; px += 8) {
+    const g = fx.createLinearGradient(0, 0, 0, fh), gl = glowAt(px / FP);
+    g.addColorStop(0, 'rgba(90,76,60,0.2)'); g.addColorStop(0.18, rgba(gl, 0)); g.addColorStop(0.5, rgba(gl, 0.16)); g.addColorStop(0.82, rgba(gl, 0)); g.addColorStop(1, 'rgba(90,76,60,0.2)');
+    fx.fillStyle = g; fx.fillRect(px, 0, 8, fh);
+  }
+  for (let i = 0; i < 9000; i++) { const t = Math.random(); fx.fillStyle = t < 0.4 ? 'rgba(255,255,255,0.35)' : t < 0.8 ? 'rgba(80,70,60,0.18)' : 'rgba(190,160,130,0.25)'; fx.fillRect(Math.random() * fw, Math.random() * fh, 1 + Math.random() * 2, 1 + Math.random() * 2); }
+  for (const i of idx) {
+    const [a, b] = mouthOf(i), isN = i % 2 === 0, col = rooms[i].colour, m = (a + b) / 2 * FP;
+    fx.save(); fx.translate(m, isN ? 0 : fh); fx.scale(MOUTH * 1.15 * FP, 2.7 * FP);
+    const g = fx.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, rgba(col, 0.5)); g.addColorStop(0.5, rgba(col, 0.18)); g.addColorStop(1, rgba(col, 0));
+    fx.fillStyle = g; fx.fillRect(-1, isN ? 0 : -1, 2, 1); fx.restore();
+  }
+  plane('street-floor', 'wall', 0, Z0, L, W, 0.003, true, jpg(fc, 0.9));
+
+  // the base floor (taps), under everything
+  surfaces.push({ name: 'floor', kind: 'floor', texture: plain('#cfc9be'), tileXY: [2, 2], origin: [0, 0, 0], u: [1, 0, 0], v: [0, 0, 1], size: [L, ZS], normal: [0, 1, 0], openings: [] });
+
+  // the luminous ceiling: one continuous glow, brightest down the middle, deeper toward the walls like light from a cove
+  const cw = 1024, ch = 64, cc = canvas(cw, ch), cx = cc.getContext('2d');
   for (let px = 0; px < cw; px++) {
-    const hh = hueAt(px / cw), col = cx.createLinearGradient(px, 0, px, ch);
-    col.addColorStop(0, hslHex(hh, 0.6, 0.68)); col.addColorStop(0.5, hslHex(hh, 0.55, 0.88)); col.addColorStop(1, hslHex(hh, 0.6, 0.68));
+    const hh = hueAt(px / cw * (L - 0) / L), col = cx.createLinearGradient(px, 0, px, ch);
+    col.addColorStop(0, hslHex(hh, 0.42, 0.76)); col.addColorStop(0.5, hslHex(hh, 0.26, 0.95)); col.addColorStop(1, hslHex(hh, 0.42, 0.76));
     cx.fillStyle = col; cx.fillRect(px, 0, 1, ch);
   }
-  surfaces.push({ name: 'street-ceiling', kind: 'ceiling', texture: cc.toDataURL('image/png'), origin: [0, H, Z1], u: [1, 0, 0], v: [0, 0, -1], size: [L, Z1 - Z0], normal: [0, -1, 0], openings: [] });
+  surfaces.push({ name: 'street-ceiling', kind: 'ceiling', texture: jpg(cc, 0.95), origin: [0, H, Z1], u: [1, 0, 0], v: [0, 0, -1], size: [L, W], normal: [0, -1, 0], openings: [] });
 
-  // signs: a white plate, a thin band of the show's colour
-  const signTex = (text, sub, colour, w, h) => {
-    const k = 200, cv = canvas(w * k, h * k), x = cv.getContext('2d');
-    x.fillStyle = '#f7f5f1'; x.fillRect(0, 0, cv.width, cv.height); x.fillStyle = colour; x.fillRect(0, 0, cv.width, cv.height * 0.09);
-    x.fillStyle = '#1c1b19'; x.textAlign = 'center'; x.textBaseline = 'middle';
-    let fs = h * k * 0.4; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(text).width > cv.width * 0.9 && fs > 14) { fs -= 3; x.font = `500 ${fs}px Georgia, serif`; }
-    x.fillText(text, cv.width / 2, cv.height * (sub ? 0.46 : 0.56));
-    if (sub) { x.fillStyle = '#6a665e'; x.font = `${h * k * 0.17}px Georgia, serif`; x.fillText(sub, cv.width / 2, cv.height * 0.8); }
-    return cv.toDataURL('image/jpeg', 0.9);
-  };
-  surfaces.push({ name: 'sign-entrance', kind: 'wall', texture: signTex('The Street', 'Open Studio · the exhibitions open off this walk', '#2b2a27', 3.4, 0.9), origin: [0.02, 3.3, 10.7], u: [0, 0, -1], v: [0, -1, 0], size: [3.4, 0.9], normal: [1, 0, 0], openings: [] });
+  // room walls: light plaster with a soft foot and cornice and a skirting line
+  const roomWall = (() => { const c = canvas(64, 256), x = c.getContext('2d'); x.fillStyle = '#f4f1ec'; x.fillRect(0, 0, 64, 256);
+    const t = x.createLinearGradient(0, 0, 0, 40); t.addColorStop(0, 'rgba(120,108,92,0.16)'); t.addColorStop(1, 'rgba(120,108,92,0)'); x.fillStyle = t; x.fillRect(0, 0, 64, 40);
+    const b = x.createLinearGradient(0, 190, 0, 256); b.addColorStop(0, 'rgba(70,58,44,0)'); b.addColorStop(1, 'rgba(70,58,44,0.2)'); x.fillStyle = b; x.fillRect(0, 190, 64, 66);
+    x.fillStyle = 'rgba(255,255,255,0.35)'; x.fillRect(0, 243, 64, 13); x.fillStyle = 'rgba(60,50,40,0.3)'; x.fillRect(0, 242, 64, 1.5); return jpg(c); })();
+  // a threshold's inside: the show's colour, a little brighter at the street and deeper toward the room
+  const inside = (col, k, mode) => { const c = canvas(32, 64), x = c.getContext('2d'), g = mode === 'side' ? x.createLinearGradient(0, 0, 32, 0) : x.createLinearGradient(0, 0, 0, 64), bright = mode !== 'bottom';
+    g.addColorStop(0, shade(col, k * (bright ? 1.06 : 0.84))); g.addColorStop(1, shade(col, k * (bright ? 0.84 : 1.06))); x.fillStyle = g; x.fillRect(0, 0, 32, 64); return c.toDataURL('image/png'); };
 
   // the rooms
   for (let i = 0; i < n; i++) {
-    const r = rooms[i], isN = i % 2 === 0, x0 = slot(i), rx0 = x0 + 1, rx1 = x0 + 8, [ma, mb] = mouthOf(i), c = r.colour;
-    const zf = isN ? Z0 - VD : Z1 + VD, zb = isN ? ZN : ZS, dir = isN ? -1 : 1, zs = isN ? Z0 : Z1, vz = isN ? zf : Z1;
-    // the threshold: a lowered passage painted in the show's colour, its floor running on a little way into the street
-    for (const [xx, k, sn] of [[ma, 0.8, 1], [mb, 0.94, -1]]) {
-      surfaces.push({ name: `th${i}${sn}`, kind: 'wall', texture: plain(shade(c, k)), origin: [xx, DOOR_H, zs], u: [0, 0, dir], v: [0, -1, 0], size: [VD, DOOR_H], normal: [sn, 0, 0], openings: [] });
+    const r = rooms[i], isN = i % 2 === 0, x0 = slot(i), rx0 = x0 + 1, rx1 = x0 + 1 + RW, [ma, mb] = mouthOf(i), c = r.colour;
+    const zf = isN ? Z0 - VD : Z1 + VD, zb = isN ? Z0 - VD - RD : ZS, dir = isN ? -1 : 1, zs = isN ? Z0 : Z1, vz = isN ? zf : Z1, zmin = Math.min(zf, zb), dpt = RD;
+    // the threshold, a real volume: its two sides, ceiling and floor all in the show's colour
+    for (const [xx, k, sn] of [[ma, 0.8, 1], [mb, 0.92, -1]]) {
+      surfaces.push({ name: `th${i}${sn}`, kind: 'wall', texture: inside(c, k, 'side'), origin: [xx, DOOR_H, zs], u: [0, 0, dir], v: [0, -1, 0], size: [VD, DOOR_H], normal: [sn, 0, 0], openings: [] });
       solids.push([xx, zs, xx, zs + dir * VD]);
     }
-    plane(`th${i}-ceil`, 'ceiling', ma, vz, MOUTH, VD, DOOR_H, false, plain(shade(c, 1.06)));
-    plane(`th${i}-floor`, 'wall', ma, vz, MOUTH, VD, 0.006, true, plain(shade(c, 0.9)));
-    plane(`th${i}-rug`, 'wall', ma, isN ? Z0 : Z1 - 1.3, MOUTH, 1.3, 0.005, true, plain(shade(c, 0.9)));
-    // the street's wall over the doorway names the show
-    const sh = H - DOOR_H - 0.12;
-    surfaces.push({ name: `sign${i}`, kind: 'wall', texture: signTex(r.title, `${r.works.length} works`, c, MOUTH, sh),
-      origin: isN ? [ma, H - 0.06, Z0 + 0.012] : [mb, H - 0.06, Z1 - 0.012], u: [isN ? 1 : -1, 0, 0], v: [0, -1, 0], size: [MOUTH, sh], normal: [0, 0, isN ? 1 : -1], openings: [] });
-    // the room: its front wall (with the doorway), the other three walls, its ceiling
-    const dpt = Math.abs(zb - zf);
-    if (isN) {
-      wall(`r${i}-front`, rx1, zf, 0, -1, rx1 - rx0, { holes: [[rx1 - mb, rx1 - ma]] });
-      wall(`r${i}-left`, rx0, zf, 1, 0, dpt); wall(`r${i}-back`, rx0, zb, 0, 1, rx1 - rx0); wall(`r${i}-right`, rx1, zb, -1, 0, dpt);
-    } else {
-      wall(`r${i}-front`, rx0, zf, 0, 1, rx1 - rx0, { holes: [[ma - rx0, mb - rx0]] });
-      wall(`r${i}-left`, rx0, zb, 1, 0, dpt); wall(`r${i}-back`, rx1, zb, 0, -1, rx1 - rx0); wall(`r${i}-right`, rx1, zf, -1, 0, dpt);
+    // (a ceiling's texture bottom is its smaller z, a floor's top: the street end is brighter)
+    plane(`th${i}-ceil`, 'ceiling', ma, vz, MOUTH, VD, DOOR_H, false, inside(c, 1.0, isN ? 'top' : 'bottom'));
+    plane(`th${i}-floor`, 'wall', ma, vz, MOUTH, VD, 0.006, true, inside(c, 0.88, isN ? 'bottom' : 'top'));
+    // a darker rim round the doorway on the street wall
+    const rimTex = plain(shade(c, 0.7)), zz = isN ? Z0 + 0.012 : Z1 - 0.012, ux = isN ? 1 : -1;
+    const rim = (nm, xa, xb, ya, yb) => surfaces.push({ name: `rim${i}${nm}`, kind: 'wall', texture: rimTex, origin: [isN ? xa : xb, yb, zz], u: [ux, 0, 0], v: [0, -1, 0], size: [xb - xa, yb - ya], normal: [0, 0, isN ? 1 : -1], openings: [] });
+    rim('l', ma - RIM, ma, 0, DOOR_H + RIM); rim('r', mb, mb + RIM, 0, DOOR_H + RIM); rim('t', ma - RIM, mb + RIM, DOOR_H, DOOR_H + RIM);
+    // the room: its floor (pale oak, soft at the walls, the threshold's colour spilling in at the door), front wall, three more walls, ceiling
+    {
+      const P = 80, w = RW * P, h = RD * P, c2 = canvas(w, h), x = c2.getContext('2d');
+      x.fillStyle = '#d3bd9a'; x.fillRect(0, 0, w, h);
+      for (let k = 0; k < h; k += 0.18 * P) { x.fillStyle = `rgba(${Math.random() < 0.5 ? '255,255,255' : '90,66,40'},${0.03 + Math.random() * 0.05})`; x.fillRect(0, k, w, 0.18 * P); x.fillStyle = 'rgba(80,60,40,0.14)'; x.fillRect(0, k, w, 1); }
+      const e = 0.5 * P, edge = (ax, ay, bx, by, rx, ry, rw, rh) => { const g = x.createLinearGradient(ax, ay, bx, by); g.addColorStop(0, 'rgba(60,44,28,0.2)'); g.addColorStop(1, 'rgba(60,44,28,0)'); x.fillStyle = g; x.fillRect(rx, ry, rw, rh); };
+      edge(0, 0, 0, e, 0, 0, w, e); edge(0, h, 0, h - e, 0, h - e, w, e); edge(0, 0, e, 0, 0, 0, e, h); edge(w, 0, w - e, 0, w - e, 0, e, h);
+      x.save(); x.translate(((ma + mb) / 2 - rx0) * P, isN ? h : 0); x.scale(MOUTH * 1.1 * P, 2.4 * P);
+      const g = x.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, rgba(c, 0.42)); g.addColorStop(0.55, rgba(c, 0.14)); g.addColorStop(1, rgba(c, 0)); x.fillStyle = g; x.fillRect(-1, isN ? -1 : 0, 2, 1); x.restore();
+      plane(`r${i}-floor`, 'wall', rx0, zmin, RW, RD, 0.004, true, jpg(c2, 0.9));
     }
-    plane(`r${i}-ceil`, 'ceiling', rx0, Math.min(zf, zb), rx1 - rx0, dpt, H, false, plain('#f3f0ea'));
+    if (isN) {
+      wall(`r${i}-front`, rx1, zf, 0, -1, RW, { holes: [[rx1 - mb, rx1 - ma]], h: RH, tex: roomWall });
+      wall(`r${i}-left`, rx0, zf, 1, 0, dpt, { h: RH, tex: roomWall }); wall(`r${i}-back`, rx0, zb, 0, 1, RW, { h: RH, tex: roomWall }); wall(`r${i}-right`, rx1, zb, -1, 0, dpt, { h: RH, tex: roomWall });
+    } else {
+      wall(`r${i}-front`, rx0, zf, 0, 1, RW, { holes: [[ma - rx0, mb - rx0]], h: RH, tex: roomWall });
+      wall(`r${i}-left`, rx0, zb, 1, 0, dpt, { h: RH, tex: roomWall }); wall(`r${i}-back`, rx1, zb, 0, -1, RW, { h: RH, tex: roomWall }); wall(`r${i}-right`, rx1, zf, -1, 0, dpt, { h: RH, tex: roomWall });
+    }
+    plane(`r${i}-ceil`, 'ceiling', rx0, zmin, RW, RD, RH, false, plain('#f7f4ee'));
     // hang the works along the left wall, the back wall and the right wall, in walking order
     const runs = isN
-      ? [{ n: [1, 0], len: dpt, at: a => [rx0, zf - a] }, { n: [0, 1], len: rx1 - rx0, at: a => [rx0 + a, zb] }, { n: [-1, 0], len: dpt, at: a => [rx1, zb + a] }]
-      : [{ n: [1, 0], len: dpt, at: a => [rx0, zf + a] }, { n: [0, -1], len: rx1 - rx0, at: a => [rx0 + a, zb] }, { n: [-1, 0], len: dpt, at: a => [rx1, zb - a] }];
+      ? [{ n: [1, 0], len: dpt, at: a => [rx0, zf - a] }, { n: [0, 1], len: RW, at: a => [rx0 + a, zb] }, { n: [-1, 0], len: dpt, at: a => [rx1, zb + a] }]
+      : [{ n: [1, 0], len: dpt, at: a => [rx0, zf + a] }, { n: [0, -1], len: RW, at: a => [rx0 + a, zb] }, { n: [-1, 0], len: dpt, at: a => [rx1, zb - a] }];
     const sized = await Promise.all(r.works.slice(0, 8).map(async work => {
       const s = await sizeOf({ ...work, image: thumbOf(work) }, src), k = Math.min(1, 140 / Math.max(s.w, s.h));
       return { work, w: s.w * k, h: s.h * k };
@@ -661,7 +733,7 @@ export async function buildStreet(rooms, src, thumbOf = w => w.image) {
       const run = runs[k], total = items.reduce((t, q) => t + q.w / 100, 0), g = (run.len - total) / (items.length + 1);
       let a = g;
       for (const s of items) {
-        const wm = s.w / 100, hm = s.h / 100, y = Math.min(Math.max(1.5, hm / 2 + 0.4), H - hm / 2 - 0.5);
+        const wm = s.w / 100, hm = s.h / 100, y = Math.min(Math.max(1.5, hm / 2 + 0.4), RH - hm / 2 - 0.5);
         const [px, pz] = run.at(a + wm / 2), N = [run.n[0], 0, run.n[1]], off = 0.039;
         works.push({ id: s.work.slug, work: s.work.title, image: s.work.image, imageSmall: thumbOf(s.work), size: [s.w, s.h], measured: [s.w, s.h],
           centre: [px + N[0] * off, y, pz + N[2] * off], axes: [[N[2], 0, -N[0]], [0, 1, 0], N], depth: 0.035, lightScale: 1 });
@@ -671,8 +743,9 @@ export async function buildStreet(rooms, src, thumbOf = w => w.image) {
   }
   const spec = {
     version: 2, title: 'The Street', source: 'Open Studio museum', virtual: true, ordered: true, far: 90, noSpots: true,
+    baked: { kind: 'white-cube', plates: [] },                  // (the viewer's fine plaster grain over the walls, as in the baked rooms)
     room: { x0: 0, x1: L, z0: 0, z1: ZS, height: H }, surfaces, works, views: [], floorReflect: [0, 0], solids,
-    start: { pos: [2.6, 9], look: [L, 9] },
+    start: { pos: [2.8, ZC], look: [L, ZC] },
   };
   return { spec, length: L };
 }
