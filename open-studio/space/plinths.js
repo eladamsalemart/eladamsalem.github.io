@@ -38,3 +38,48 @@ export function addPlinths(THREE, scene, list, loadTex, room = {}) {
   }
   return handles;
 }
+
+// The Living room's furniture, drawn live (the baked walls and floor are of the empty room): a sofa against the west wall, a rug, a
+// low table, a floor lamp, at the places the room was designed round (space/rooms/build_rooms.py, apartment()). Plain, matte shapes,
+// each with a soft shadow on the floor; `solid` are the circles a visitor does not walk through.
+export function addFurniture(THREE, scene, spec) {
+  const W = spec.w, D = spec.d, out = { solid: [] };
+  const lam = c => new THREE.MeshLambertMaterial({ color: c });
+  const g = new THREE.Group();
+  const add = (w, h, d, x, y, z, mat) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y + h / 2, z); g.add(m); return m; };
+  const shadow = (x, z, w, d, k = 0.5) => {
+    const c = document.createElement('canvas'); c.width = c.height = 64; const t = c.getContext('2d');
+    const gr = t.createRadialGradient(32, 32, 10, 32, 32, 32); gr.addColorStop(0, `rgba(0,0,0,${k})`); gr.addColorStop(1, 'rgba(0,0,0,0)'); t.fillStyle = gr; t.fillRect(0, 0, 64, 64);
+    const s = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, toneMapped: false }));
+    s.rotation.x = -Math.PI / 2; s.position.set(x, 0.014, z); g.add(s);
+  };
+  const linen = lam(0x8f8470), linenTop = lam(0x9d927d), wood = lam(0x6a4a33), brass = lam(0xa88b4a), rugM = lam(0xb5a893);
+  // the rug first (under everything)
+  const rx0 = 1.2, rx1 = W * 0.7, rz0 = D * 0.2, rz1 = D * 0.8;
+  add(rx1 - rx0, 0.012, rz1 - rz0, (rx0 + rx1) / 2, 0, (rz0 + rz1) / 2, rugM);
+  // the sofa: seat, back, arms, two cushions
+  const sx = 0.15, sz = D * 0.25;
+  add(0.95, 0.33, 2.2, sx + 0.475, 0.12, sz + 1.1, linen);
+  add(0.25, 0.4, 2.2, sx + 0.125, 0.45, sz + 1.1, linen);
+  for (const k of [0, 1]) add(0.62, 0.15, 1.0, sx + 0.58, 0.45, sz + 0.55 + k * 1.1, linenTop);
+  for (const e of [0.05, 2.15]) add(0.95, 0.2, 0.1, sx + 0.475, 0.45, sz + e, linen);
+  for (const [lx, lz] of [[0.1, 0.1], [0.1, 2.1], [0.85, 0.1], [0.85, 2.1]]) add(0.05, 0.12, 0.05, sx + lx, 0, sz + lz, wood);
+  shadow(sx + 0.55, sz + 1.1, 1.8, 2.9, 0.42);
+  // the low table
+  const tx = (1.6 + 2.5) / 2, tz = D * 0.5, td = D * 0.16 / 2 - 0.04;
+  add(0.9, 0.04, D * 0.16, tx, 0.36, tz, wood);
+  for (const [lx, lz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) add(0.04, 0.36, 0.04, tx + lx * 0.4, 0, tz + lz * td, wood);
+  shadow(tx, tz, 1.5, 1.2, 0.4);
+  // the floor lamp, lit
+  const lx = 0.5, lz = D * 0.12;
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.55, 10), brass); pole.position.set(lx, 0.775, lz); g.add(pole);
+  const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.025, 20), brass); foot.position.set(lx, 0.013, lz); g.add(foot);
+  const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.22, 0.3, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xffe2b0, side: THREE.DoubleSide, toneMapped: false }));
+  shade.position.set(lx, 1.55, lz); g.add(shade);
+  const cap = new THREE.Mesh(new THREE.CircleGeometry(0.2, 24), new THREE.MeshBasicMaterial({ color: 0xffeccc, toneMapped: false })); cap.rotation.x = -Math.PI / 2; cap.position.set(lx, 1.69, lz); g.add(cap);
+  const warm = new THREE.PointLight(0xffd9a0, 1.1, 4.5, 1.6); warm.position.set(lx + 0.15, 1.45, lz + 0.15); g.add(warm);
+  shadow(lx, lz, 0.7, 0.7, 0.35);
+  scene.add(g); out.group = g;
+  out.solid = [{ x: sx + 0.5, z: sz + 0.45, r: 0.75 }, { x: sx + 0.5, z: sz + 1.75, r: 0.75 }, { x: tx, z: tz, r: 0.7 }, { x: lx, z: lz, r: 0.5 }];
+  return out;
+}
