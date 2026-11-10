@@ -20,6 +20,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@700&family=Waiting+for+the+Sunrise&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Hebrew:wght@600&display=swap">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script>/* the artist's studio: fetch its modules at once, not one after another (app.js, then artist.js, then the page's own) */
+if (/^#\/studio/.test(location.hash)) for (const f of ['app.js', 'artist.js', 'studio-page.js', 'studio-cloud.js', 'auth.js']) { const l = document.createElement('link'); l.rel = 'modulepreload'; l.href = f; document.head.append(l); }
+try { if (/^#\/studio/.test(location.hash) && localStorage.getItem('os-user')) { const l = document.createElement('link'); l.rel = 'preload'; l.as = 'script'; l.href = 'vendor/supabase/supabase.js'; document.head.append(l); } } catch (e) {}</script>
 <style>
 /* Layout: one artist's home, read top to bottom like a gallery wall. Phone-first: on larger screens the app keeps a phone-width column (iPad and desktop layouts come later) */
 /* Studio Paper: raw, editorial. Paper and ink, a catalogue's ruled lines, a typewriter's labels, one deep green */

@@ -275,7 +275,7 @@ export function mount(c) {
       b.querySelector('[data-pick]').onclick = () => f.click();
       f.onchange = async () => {
         if (!f.files[0]) return;
-        const [big, small] = await Promise.all([asDataURL(f.files[0], 1800), asDataURL(f.files[0], 400)]);
+        const [big, small] = await Promise.all([asDataURL(f.files[0], 1600), asDataURL(f.files[0], 400)]);
         S.artist.hero = big; S.artist.photo = small; S.artist.heroPos = ''; pos = '50% 50%'; cur = big; changed = false;
         box.innerHTML = `<img src="${esc(big)}" alt="Your cover photo"><i>Drag to move</i>`; b.querySelector('[data-pick]').textContent = 'Replace photo';
         commit(); refreshCard();
