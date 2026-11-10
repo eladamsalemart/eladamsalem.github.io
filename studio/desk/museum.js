@@ -1,3 +1,4 @@
+// (the Desk is published with every .js and .css file in this folder: see the Open Studio app workflow)
 // The museum, on the Desk: the street is fixed (eight rooms, four on each side of one long walk); here the owner decides which
 // exhibition hangs in which room, whether visitors see it, between which dates, and the colour of its threshold.
 // The exhibitions themselves are made in exedit.js. Data: museum_exhibitions (drafts, admin only) and museum_slots (what is
