@@ -174,7 +174,10 @@ export async function editor(ctx, id) {
     ew.onpointerup = e => {
       if (!drag) return; const d = drag; drag = null; drawGuides([]); const mq = $('#mq'); if (mq) mq.hidden = true;
       if (d.marquee) { paintSel(); return; }
-      if (d.moved) { undo.push(d.before); redo.length = 0; lastKey = ''; touch(); elDraw(); }
+      if (d.moved) {                                                             // a work dropped onto another moves to the nearest free place beside it
+        const skip = new Set(d.base.keys());
+        for (const [id] of d.base) { const o = E.works.find(q => q.id === id); if (!free(o, o.s, o.y, skip)) { const s = spot(o, o.s, o.y, skip); if (s != null) o.s = +s.toFixed(3); } }
+        undo.push(d.before); redo.length = 0; lastKey = ''; touch(); elDraw(); }
       insDraw();
     };
     ew.ondragover = e => { if (!e.dataTransfer.types.includes('text/plain')) return; e.preventDefault(); const p = toM(e); drawGuides([['s', p.s], ['y', p.y]]); };
