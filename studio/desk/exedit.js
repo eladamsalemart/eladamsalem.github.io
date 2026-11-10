@@ -86,7 +86,7 @@ export async function editor(ctx, id) {
         c.s = +s.toFixed(3); c.y = +yy.toFixed(3); E.works.push(c); added.push(c.id); want = s + box(c).wm / 2 + 0.4;
       });
     });
-    sel = new Set(added); libSel.clear(); if (miss) toast(`אין מקום על הקירות ל־${miss} עבודות`); drawAll();
+    sel = new Set(added); if (added.length) tab = 'sel'; libSel.clear(); if (miss) toast(`אין מקום על הקירות ל־${miss} עבודות`); drawAll();
   }
   const removeSel = () => { if (!sel.size) return; mutate(() => { E.works = E.works.filter(w => !sel.has(w.id)); E.plinths = E.plinths.filter(p => !sel.has(p.id) && E.works.some(w => w.id === p.work)); }); sel.clear(); drawAll(); };
 
