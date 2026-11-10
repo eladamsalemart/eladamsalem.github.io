@@ -7,20 +7,21 @@ const app = document.getElementById('app');
 async function loadData() {
   if (window.STUDIO_DATA) return window.STUDIO_DATA;
   const get = url => fetch(url).then(r => r.json());
+  // (the small files are all asked for at once: they used to be fetched one after the other, six round trips in a row)
+  const later = Promise.all([get('data/thumbs.json').catch(() => ({})), get('data/demo/world.json').catch(() => null), get('data/virtual.json').catch(() => null)]);
+  const indexP = get('data/spaces/index.json').catch(() => ({}));
   const names = ['settings', 'works', 'exhibitions', 'objects', 'cv'];
   const [settings, works, exhibitions, objects, cv, studio] = await Promise.all([...names.map(n => get(`/content/${n}.json`)), get('data/studio.json')]);
   // every exhibition the space pipeline has built a 3D space for (data/spaces/index.json lists them)
-  const index = await get('data/spaces/index.json').catch(() => ({}));
+  const index = await indexP;
   // the inspection stage opens a space that is built but not yet published (?inspect=<slug>)
   const inspecting = new URLSearchParams(location.search).get('inspect');
   if (inspecting) index[inspecting] = {};
   const spaces = Object.fromEntries(await Promise.all(Object.keys(index).map(async k => [k, await get(`data/spaces/${k}.json`)])));
   // small versions of the site's images (written when the app is published), for grids and lists on a phone
-  const thumbs = await get('data/thumbs.json').catch(() => ({}));
   // the demo world: fictional artists, galleries and shows, to see the app full (data/demo/world.json)
-  const world = await get('data/demo/world.json').catch(() => null);
   // virtual exhibitions: designed here, in rooms that exist only here (data/virtual.json, space/synth.js)
-  const virtual = await get('data/virtual.json').catch(() => null);
+  const [thumbs, world, virtual] = await later;
   // the artists Open Studio has approved, their works and the exhibitions they published (Supabase): never waited
   // on. The app opens with what this phone had last time; the fresh list follows, and redraws only if it changed.
   let community = null;
@@ -1144,13 +1145,23 @@ const streetShows = () => M.exhibitions.filter(e => (e.virtual || e.kind === 'on
 async function enterStreet() {
   const synth = await import('./space/synth.js');
   const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
-  const shows = synth.streetShows(M), thumb = w => M.thumbs[w.image] || w.image;
+  const shows = synth.streetShows(M), thumb = w => w.thumb || M.thumbs[w.image] || w.image;
   const set = (M.virtualColours || {}), over = {};
-  try {
-    const rows = await fetch(DB + 'museum_colours?select=slug,colour', { headers: { apikey: DB_KEY }, signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined }).then(r => r.ok ? r.json() : []);
-    for (const r of rows) over[r.slug] = r.colour;
-  } catch {}
-  const rooms = await Promise.all(shows.map(async e => ({
+  const get = t => fetch(DB + t, { headers: { apikey: DB_KEY }, signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined }).then(r => r.ok ? r.json() : []);
+  let slots = [];
+  try { slots = await get('museum_slots?select=slot,app_slug,colour,content&live=eq.true&order=slot'); } catch {}      // the Desk's slots (the database lets through only live ones inside their dates)
+  try { for (const r of await get('museum_colours?select=slug,colour')) over[r.slug] = r.colour; } catch {}
+  let rooms;
+  if (slots.length) {
+    rooms = (await Promise.all(slots.map(async s => {
+      const c = s.content, e = s.app_slug && shows.find(x => x.slug === s.app_slug);
+      if (!c && !e) return null;
+      const ws = c ? (c.works || []) : e.works, slug = e ? e.slug : 'slot-' + s.slot;
+      return { slug, title: c ? c.title : e.title, works: ws, text: c && c.text, curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
+        colour: s.colour || over[slug] || set[slug] || await synth.suggestColour(ws.map(thumb), src, synth.slugHue(slug)) };
+    }))).filter(Boolean);
+  }
+  if (!rooms || !rooms.length) rooms = await Promise.all(shows.map(async e => ({
     slug: e.slug, title: e.title, works: e.works,
     colour: over[e.slug] || set[e.slug] || await synth.suggestColour(e.works.map(thumb), src, synth.slugHue(e.slug)),
   })));

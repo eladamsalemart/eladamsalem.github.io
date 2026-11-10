@@ -36,6 +36,11 @@ export const KINDS = {
   'glass-pavilion': ['Glass pavilion', 'Terrazzo and white walls, a wall of glass onto a park.'],
   'japanese': ['Japanese room', 'Earth plaster, tatami, shoji slid open onto a garden.'],
 };
+// THE ARCHIVE SWITCH (owner, 10.11): only these kinds are offered to artists, in this order. Every other kind keeps all its
+// data and files in data/rooms and stays loadable (shows already in one still open); it is just not offered. To bring a
+// kind back, add its key here. The 2/3-rooms variants follow their kind.
+export const ACTIVE_KINDS = ['apartment', 'black-box'];
+export const isActiveKind = k => ACTIVE_KINDS.includes(k);
 const SIZE = { small: 'Small', large: 'Large', medium: 'Medium' };
 const BAKED = new URL('../data/rooms/', import.meta.url).href;
 try {
@@ -47,7 +52,7 @@ try {
       name: (KINDS[m.type] || [m.type])[0], size: m.label, blurb: (KINDS[m.type] || ['', ''])[1], kind: m.type, variant, sizeName: SIZE[variant] || variant,
       w: m.w, d: m.d, h: m.h, door: m.door ? m.door.to - m.door.from : 0, doorSpan: m.door ? [m.door.from, m.door.to] : null,
       doorHeight: m.door ? m.door.height : 0, blocks: m.blocks || {}, plates: m.plates || [], light: m.light, floorReflect: m.floorReflect,
-      baked: BAKED + slug + '/', cover: BAKED + slug + '/view.jpg', paint: 'white',
+      baked: BAKED + slug + '/', cover: BAKED + slug + '/view.jpg', paint: 'white', archived: !isActiveKind(m.type),
     };
   }
   // several rooms: the same room, 2 or 3 times in a row, joined by a doorway in a partition wall (see wallsOf)
@@ -434,9 +439,14 @@ function drawWorkLight(R) {
 // --- the room, ready for the viewer ----------------------------------------------------------------------
 // design: { title, room, paint, centre (cm), works: [{ title, image, pairs | width/height, wall? }] }
 // Returns { spec, left (works that didn't fit), revoke() }.
+// a sculpture or vessel stands on a plinth, whatever the artist filed it as (kind object, category Sculpture, a deep piece, or a
+// medium that is clay, bronze, stone...); a painting, drawing or print never does
+const FLAT = /oil|acrylic|canvas|paint|gouache|tempera|watercolou?r|pastel|print|drawing|ink|photograph|collage|etching|lithograph/i;
+export const isObject = w => w.kind === 'object' || /sculpt|object|ceramic|installation/i.test(w.category || '') || (+w.depth > 0 && !FLAT.test(w.medium || ''))
+  || (!w.category && !FLAT.test(w.medium || '') && /ceramic|clay|porcelain|bronze|sculpt|marble|plaster|terracotta|stoneware/i.test(w.medium || ''));
 export async function buildRoom(design, src) {
   const pl = design.placements || {};
-  const wallWorks = design.works.filter(w => w.kind !== 'object'), objects = design.works.filter(w => w.kind === 'object');
+  const wallWorks = design.works.filter(w => !isObject(w)), objects = design.works.filter(isObject);
   const sized = await Promise.all(wallWorks.map(async w => ({ work: w, ...(await sizeOf(w, src)), wall: w.wall, at: w.id ? pl[w.id] : null })));
   const { R, walls, placed, left } = hang(design, sized);
   // plinths: those the artist set, and one in the middle of the room for each object not yet on one
@@ -487,6 +497,8 @@ export async function buildRoom(design, src) {
   });
   const floorReflect = R.floorReflect || (R.floor === 'oak' ? [0.03, 0.12] : R.floor === 'stone' ? [0.08, 0.34] : [0.06, 0.26]);
   const spec = {
+    ...(R.kind === 'apartment' ? { furniture: { kind: 'apartment', w: R.cell || R.w, d: R.d } } : {}),
+    plinthRoom: { h: R.h, dark: R.kind === 'black-box' || R.light === 'narrow' },
     version: 2, title: design.title, source: `${ROOMS[design.room].name}, a virtual room`, virtual: true, ordered: true, ...(R.baked ? { baked: { kind: R.kind, plates: (R.plates || []).flatMap(p => R.cells > 1 && p.wall !== 'wall-x0' && p.wall !== 'wall-x1' ? Array.from({ length: R.cells }, (_, k) => ({ ...p, wall: `${p.wall}-c${k}`, texture: R.baked + p.file })) : [{ ...p, texture: R.baked + p.file }]) },
       ...(R.cells > 1 ? { partitions: Array.from({ length: R.cells - 1 }, (_, i) => ({ x: (i + 1) * R.cell, t: PART, door: (R.doorSpan || [R.d / 2 - 0.7, R.d / 2 + 0.7]) })) } : {}) } : {}),
     room: { x0: 0, x1: R.w, z0: 0, z1: R.d, height: R.h }, surfaces, works, views: [], floorReflect, plaster: await keep(plaster),
@@ -552,17 +564,19 @@ export const slugHue = slug => { let h = 7; for (const c of String(slug)) h = (h
 export const streetShows = M => M.exhibitions.filter(e => (e.virtual || e.kind === 'online') && (e.works || []).length >= 3).slice(0, 8);
 
 // proportions after the approved spec (street_spec.py, concept 6): a street 7 m wide and 5 m high, rooms 3.8 m high, doors 3.2 x 3.3 m, thresholds 1.8 m deep
+// a work hung by hand keeps its real size up to 2.6 m on its longest side (the automatic hang caps at 1.4 m)
+export const streetFit = (w, h) => { const k = Math.min(1, 260 / Math.max(w, h)); return [w * k, h * k]; };
 const SH = { H: 5.0, RH: 3.8, W: 7, RD: 6, RW: 8, VD: 1.8, PITCH: 10, MOUTH: 3.2, DOOR_H: 3.3, RIM: 0.22 };
 const shade = (hex, k) => '#' + [1, 3, 5].map(i => hex2(parseInt(hex.slice(i, i + 2), 16) * k)).join('');
 const rgba = (hex, a) => `rgba(${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)},${a})`;
 const jpg = (c, q = 0.92) => c.toDataURL('image/jpeg', q);
 
 // rooms: [{ slug, title, colour: '#rrggbb', works: [work as the app has it: title, image, pairs] }]
-export async function buildStreet(rooms, src, thumbOf = w => w.image) {
+export async function buildStreet(rooms, src, thumbOf = w => w.image, opts = {}) {
   const { H, RH, W, RD, RW, VD, PITCH, MOUTH, DOOR_H, RIM } = SH;
   const Z0 = VD + RD + 0.2, Z1 = Z0 + W, ZS = Z1 + VD + RD, ZC = (Z0 + Z1) / 2;
   const n = rooms.length, S = Math.ceil(n / 2), L = 7 + PITCH * S;
-  const surfaces = [], solids = [], works = [], flat = new Map();
+  const surfaces = [], solids = [], works = [], plinthsOut = [], flat = new Map();
   const plain = c => { if (!flat.has(c)) { const cv = canvas(4, 4), x = cv.getContext('2d'); x.fillStyle = c; x.fillRect(0, 0, 4, 4); flat.set(c, cv.toDataURL('image/png')); } return flat.get(c); };
   const slot = i => 6 + PITCH * Math.floor(i / 2), mouthOf = i => [slot(i) + RW / 2 + 1 - MOUTH / 2, slot(i) + RW / 2 + 1 + MOUTH / 2];
   const idx = rooms.map((r, i) => i), north = idx.filter(i => i % 2 === 0), south = idx.filter(i => i % 2 === 1);
@@ -717,7 +731,50 @@ export async function buildStreet(rooms, src, thumbOf = w => w.image) {
     const runs = isN
       ? [{ n: [1, 0], len: dpt, at: a => [rx0, zf - a] }, { n: [0, 1], len: RW, at: a => [rx0 + a, zb] }, { n: [-1, 0], len: dpt, at: a => [rx1, zb + a] }]
       : [{ n: [1, 0], len: dpt, at: a => [rx0, zf + a] }, { n: [0, -1], len: RW, at: a => [rx0 + a, zb] }, { n: [-1, 0], len: dpt, at: a => [rx1, zb - a] }];
-    const sized = await Promise.all(r.works.slice(0, 8).map(async work => {
+    // a plate with a work's words, beside it on the wall
+    const plate = (name, lines, cx, cy, cz, N, w, h) => {
+      const c = canvas(w * 400, h * 400), x = c.getContext('2d'); x.fillStyle = 'rgba(250,248,244,0.96)'; x.fillRect(0, 0, c.width, c.height);
+      x.fillStyle = 'rgba(40,36,30,0.88)'; x.textBaseline = 'top';
+      let yy = 8; lines.forEach((ln, k) => { x.font = `${k === 0 ? 'italic 600 17px' : '400 14px'} Georgia, serif`; let s = String(ln); while (x.measureText(s).width > c.width - 16 && s.length > 4) s = s.slice(0, -2); x.fillText(s, 8, yy); yy += k === 0 ? 22 : 18; });
+      const ux = N[2], uz = -N[0];
+      surfaces.push({ name, kind: 'wall', texture: jpg(c, 0.9), origin: [cx - ux * w / 2, cy + h / 2, cz - uz * w / 2], u: [ux, 0, uz], v: [0, -1, 0], size: [w, h], normal: [N[0], 0, N[2]], openings: [] });
+    };
+    const put = (work, wm, hm, run, ac, y) => {
+      const [px, pz] = run.at(ac), N = [run.n[0], 0, run.n[1]], off = 0.039, ux = N[2], uz = -N[0];
+      works.push({ id: work.slug || work.id, work: work.title, image: work.image, imageSmall: thumbOf(work), size: [wm * 100, hm * 100], measured: [wm * 100, hm * 100],
+        centre: [px + N[0] * off, y, pz + N[2] * off], axes: [[N[2], 0, -N[0]], [0, 1, 0], N], depth: 0.035, lightScale: 1 });
+      if (r.labels) {
+        const sg = ac + wm / 2 + 0.55 > run.len ? -1 : 1, d = sg * (wm / 2 + 0.3);
+        plate(`r${i}-lab${works.length}`, [work.title, [work.artist && (work.artist.name || work.artist), work.year].filter(Boolean).join(', '), work.medium || '', work.note || ''].filter(Boolean),
+          px + ux * d + N[0] * 0.012, Math.max(0.6, y - hm / 2 + 0.2), pz + uz * d + N[2] * 0.012, N, 0.4, 0.28);
+      }
+    };
+    // manual hang (the Desk: s = metres along the three walls in walking order, y = height of the work's middle), else the automatic one
+    const manual = r.works.filter(w => w.s != null), autoW = r.works.filter(w => w.s == null).slice(0, 8);
+    for (const work of manual) {
+      const sz = await sizeOf({ ...work, image: thumbOf(work) }, src), [wm, hm] = streetFit(sz.w, sz.h).map(v => v / 100);
+      // (s is as a visitor at the door sees the room: left wall, back wall, right wall; a room on the south side is built the other way round)
+      const sv = isN ? work.s : 2 * dpt + RW - work.s;
+      const k = sv < dpt ? 0 : sv < dpt + RW ? 1 : 2, a0 = k === 0 ? 0 : k === 1 ? dpt : dpt + RW;
+      put(work, wm, hm, runs[k], Math.min(Math.max(sv - a0, wm / 2 + 0.1), runs[k].len - wm / 2 - 0.1), work.y != null ? work.y : 1.5);
+    }
+    // sculptures stand on plinths: the room's own coordinates (x across 0..8, z from the front wall 0..6) become the street's
+    for (const p of r.plinths || []) {
+      const key = PLINTHS[p.size] ? p.size : 'm', ob = (r.objects || {})[p.work], px = Math.min(Math.max(p.x, 0.5), RW - 0.5), pz = Math.min(Math.max(p.z, 0.5), RD - 0.5);
+      plinthsOut.push({ id: `${i}-${p.id}`, x: isN ? rx0 + px : rx1 - px, z: isN ? zf - pz : zf + pz, size: PLINTHS[key], key, work: p.work || null,
+        obj: ob ? { id: ob.id, title: ob.title, image: ob.image, w: ob.w, h: ob.h } : null });
+    }
+    // the exhibition's own words, on the front wall beside the door
+    if (r.text) {
+      const lines = String(r.text).split(/\n+/).join(' ').match(/.{1,46}(\s|$)/g) || [];
+      const c = canvas(640, 520), x = c.getContext('2d'); x.fillStyle = 'rgba(250,248,244,0.97)'; x.fillRect(0, 0, 640, 520); x.fillStyle = 'rgba(40,36,30,0.9)'; x.textBaseline = 'top';
+      x.font = 'italic 600 34px Georgia, serif'; x.fillText(String(r.title).slice(0, 30), 30, 28); x.font = '400 20px Georgia, serif';
+      if (r.curator) { x.fillStyle = 'rgba(40,36,30,0.55)'; x.fillText('Curated by ' + r.curator, 30, 78); x.fillStyle = 'rgba(40,36,30,0.9)'; }
+      lines.slice(0, 11).forEach((ln, k) => x.fillText(ln.trim(), 30, 122 + k * 32));
+      const nz = isN ? -1 : 1, cx = isN ? mb + 1.3 : ma - 1.3;
+      surfaces.push({ name: `r${i}-intro`, kind: 'wall', texture: jpg(c, 0.92), origin: [cx - nz * 0.8, 2.6, zf + nz * 0.012], u: [nz, 0, 0], v: [0, -1, 0], size: [1.6, 1.3], normal: [0, 0, nz], openings: [] });
+    }
+    const sized = await Promise.all(autoW.map(async work => {
       const s = await sizeOf({ ...work, image: thumbOf(work) }, src), k = Math.min(1, 140 / Math.max(s.w, s.h));
       return { work, w: s.w * k, h: s.h * k };
     }));
@@ -734,9 +791,7 @@ export async function buildStreet(rooms, src, thumbOf = w => w.image) {
       let a = g;
       for (const s of items) {
         const wm = s.w / 100, hm = s.h / 100, y = Math.min(Math.max(1.5, hm / 2 + 0.4), RH - hm / 2 - 0.5);
-        const [px, pz] = run.at(a + wm / 2), N = [run.n[0], 0, run.n[1]], off = 0.039;
-        works.push({ id: s.work.slug, work: s.work.title, image: s.work.image, imageSmall: thumbOf(s.work), size: [s.w, s.h], measured: [s.w, s.h],
-          centre: [px + N[0] * off, y, pz + N[2] * off], axes: [[N[2], 0, -N[0]], [0, 1, 0], N], depth: 0.035, lightScale: 1 });
+        put(s.work, wm, hm, run, a + wm / 2, y);
         a += wm + g;
       }
     });
@@ -746,6 +801,11 @@ export async function buildStreet(rooms, src, thumbOf = w => w.image) {
     baked: { kind: 'white-cube', plates: [] },                  // (the viewer's fine plaster grain over the walls, as in the baked rooms)
     room: { x0: 0, x1: L, z0: 0, z1: ZS, height: H }, surfaces, works, views: [], floorReflect: [0, 0], solids,
     start: { pos: [2.8, ZC], look: [L, ZC] },
+    ...(plinthsOut.length ? { plinths: plinthsOut } : {}),
   };
+  if (opts.focus != null && rooms[opts.focus]) {                  // the Desk's preview: stand in the street facing that room's door
+    const [fa, fb] = mouthOf(opts.focus), cxm = (fa + fb) / 2, nth = opts.focus % 2 === 0;
+    spec.start = { pos: [Math.max(2.8, cxm - 2.2), ZC], look: [cxm, nth ? Z0 - 3 : Z1 + 3] };
+  }
   return { spec, length: L };
 }
