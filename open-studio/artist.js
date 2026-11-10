@@ -202,6 +202,15 @@ function spacePicker(v) {
     ${kind ? `<fieldset><legend>2. Size, and how many rooms</legend><p class="m small">Tap one to walk the empty space before you choose.</p><div class="ov-sizes">${sizes.map(([slug, r]) => `<button type="button" class="ov-size ${base === slug ? 'on' : ''}" data-preview="${slug}" aria-pressed="${base === slug}"><b>${esc(r.sizeName)}</b><span class="m small">${esc(r.size)}</span></button>`).join('')}</div>
       <div class="ov-rooms" role="group" aria-label="Number of rooms"><span class="m small">In a row</span>${[1, 2, 3].map(n => { const sl = n === 1 ? base : `${base}-${n}r`; return ROOMS[sl] ? `<button type="button" class="ov-size ov-n ${v.room === sl ? 'on' : ''}" data-preview="${sl}" aria-pressed="${v.room === sl}"><b>${n} ${n === 1 ? 'room' : 'rooms'}</b></button>` : ''; }).join('')}</div></fieldset>` : ''}`;
 }
+// On View in four steps, always on screen: where you are, what comes next, one tap to it
+const OV_STEPS = [['space', 'Space', '.ov-kinds'], ['title', 'Title', '[name=title]'], ['hang', 'Hang', '#vxHang'], ['pub', 'Publish', '#vxPub,#vxForm button[type=submit]']];
+function ovDone(v, title) {
+  return { space: !!(ROOMS[v.room] && ROOMS[v.room].baked), title: !!String(title ?? v.title ?? '').trim(), hang: (v.works || []).length > 0, pub: v.status === 'published' };
+}
+function ovSteps(v, title) {
+  const d = ovDone(v, title), steps = OV_STEPS.filter(x => x[0] !== 'pub' || S.cloud), now = steps.findIndex(x => !d[x[0]]);
+  return `<nav class="ov-steps" id="ovSteps" aria-label="Your progress"><ol>${steps.map(([k, name, to], i) => `<li class="${d[k] ? 'done' : i === now ? 'now' : ''}"><button type="button" data-to="${esc(to)}" ${i === now ? 'aria-current="step"' : ''}><span class="n" aria-hidden="true">${d[k] ? '✓' : i + 1}</span>${name}<span class="sr">${d[k] ? ', done' : i === now ? ', next' : ''}</span></button></li>`).join('')}</ol></nav>`;
+}
 function designer(id, onview = false) {
   const isNew = id === 'new';
   const v = isNew ? { id: '', title: '', room: onview ? '' : 'white-cube', paint: '', centre: 150, works: [], text: '' } : (S.virtual || []).find(x => x.id === id);
@@ -210,16 +219,16 @@ function designer(id, onview = false) {
   const paint = v.paint || R.paint;
   const rest = S.works.filter(w => !v.works.includes(w.id));
   const drawn = Object.entries(ROOMS).filter(([, r]) => !r.baked);
-  return `<div class="wrap gut st">${onview ? head('On View') + nav('onview') : head(isNew ? 'A virtual exhibition' : v.title || 'Untitled', '#/studio/exhibitions')}
+  return `<div class="wrap gut st">${onview ? head('On View') + nav('onview') + ovSteps(v) : head(isNew ? 'A virtual exhibition' : v.title || 'Untitled', '#/studio/exhibitions')}
     ${onview ? `<div class="m ov-why"><p><b>What it is.</b> The exhibition of the art that matters to you right now. Pick a space, hang a few works in it, and walk it yourself before anyone else does.</p>
       <p><b>Why it matters.</b> It goes out in Open Studio’s feed, and it shows first on your artist page: people who find you walk into your work before anything else.</p></div>`
       : '<p class="m">Choose a room, the colour of its walls and the works, in the order a visitor will walk past them. The room is built around them, every work at its real size.</p>'}
     <form class="st-form st-vx" id="vxForm" data-id="${esc(v.id)}" ${onview ? 'data-onview="1"' : ''}>
       ${onview ? spacePicker(v) : ''}
-      <label>${onview ? '3. ' : ''}Title<input name="title" required value="${esc(v.title)}" placeholder="The exhibition's title"></label>
+      <label>Title<input name="title" required value="${esc(v.title)}" placeholder="The exhibition's title"></label>
       ${onview ? '' : `<fieldset><legend>The room</legend><div class="vx-rooms">${drawn.map(([k, r]) => `<label class="vx-room"><input type="radio" name="room" value="${k}" ${v.room === k ? 'checked' : ''}>${plan(r, v.room === k)}<b>${esc(r.name)}</b><span class="m small">${esc(r.size)} · ${esc(r.blurb)}</span></label>`).join('')}</div></fieldset>`}
       ${R.baked || onview ? '' : `<fieldset><legend>The walls</legend><div class="vx-paints">${Object.entries(PAINTS).map(([k, [n, c]]) => `<label class="vx-paint" title="${n}"><input type="radio" name="paint" value="${k}" ${paint === k ? 'checked' : ''}><i style="background:${c}"></i><span>${n}</span></label>`).join('')}</div></fieldset>`}
-      <fieldset><legend>${onview ? '4. ' : ''}Works, in walking order</legend>
+      <fieldset><legend>Works, in walking order</legend>
         ${v.works.length ? `<ol class="vx-order">${v.works.map((wid, i) => { const w = workOf(wid); if (!w) return ''; return `<li><img src="${esc(thumbOf(wid))}" alt=""><div class="t"><b>${esc(w.title)}</b><span class="m small">${esc([w.year, w.width && w.height ? `${w.height} × ${w.width} cm` : ''].filter(Boolean).join(' · '))}</span></div>
           <button type="button" data-up="${i}" aria-label="Move ${esc(w.title)} earlier" ${i ? '' : 'disabled'}>↑</button><button type="button" data-down="${i}" aria-label="Move ${esc(w.title)} later" ${i < v.works.length - 1 ? '' : 'disabled'}>↓</button><button type="button" data-out="${i}" aria-label="Take ${esc(w.title)} out">×</button></li>`; }).join('')}</ol>` : '<p class="m">No works yet: add them below.</p>'}
         <p class="m small" id="vxFit" aria-live="polite"></p>
@@ -672,6 +681,19 @@ function wire(app, go) {
     const del = $('#vxDel');
     if (del) del.onclick = () => { if (!confirm('Delete this virtual exhibition?')) return; S.virtual = S.virtual.filter(x => x.id !== id); save(); go('#/studio/exhibitions'); };
     if (v) fitNote(app, v);
+    const stepsEl = $('#ovSteps');
+    if (stepsEl) {   // the steps follow what is typed and chosen, and the Hang button wakes when the room and the title are there
+      const wireSteps = () => $('#ovSteps').querySelectorAll('[data-to]').forEach(b => b.onclick = () => {
+        const t = document.querySelector(b.dataset.to) || document.querySelector('#vxForm .btn'); if (!t) return;
+        t.scrollIntoView({ block: 'center', behavior: 'smooth' }); if (t.matches('input')) setTimeout(() => t.focus({ preventScroll: true }), 350);
+      });
+      const live = () => {
+        const f = new FormData(vx), t = String(f.get('title') || ''), room = f.get('room') || (v && v.room) || '';
+        $('#ovSteps').outerHTML = ovSteps({ ...(v || { works: [], status: '' }), room }, t); wireSteps();
+        if (hang) hang.disabled = !(ROOMS[room] && t.trim());
+      };
+      wireSteps(); vx.addEventListener('input', live);
+    }
   }
   const xf = $('#exForm');
   if (xf) {
