@@ -1150,9 +1150,9 @@ async function enterStreet() {
     const rows = await fetch(DB + 'museum_colours?select=slug,colour', { headers: { apikey: DB_KEY }, signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined }).then(r => r.ok ? r.json() : []);
     for (const r of rows) over[r.slug] = r.colour;
   } catch {}
-  const rooms = await Promise.all(shows.map(async (e, i) => ({
+  const rooms = await Promise.all(shows.map(async e => ({
     slug: e.slug, title: e.title, works: e.works,
-    colour: over[e.slug] || set[e.slug] || await synth.suggestColour(e.works.map(thumb), src, (i * 67 + 20) % 360),
+    colour: over[e.slug] || set[e.slug] || await synth.suggestColour(e.works.map(thumb), src, synth.slugHue(e.slug)),
   })));
   const made = await synth.buildStreet(rooms, src, thumb);
   if (location.hash !== '#/museum') return;                       // (left while it was being built)

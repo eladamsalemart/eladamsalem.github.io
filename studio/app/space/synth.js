@@ -545,6 +545,9 @@ export async function suggestColour(urls, src, fallbackHue = 30) {
   return hslHex(best * 15 + 7.5, 0.78, 0.5);
 }
 
+// a hue of its own for a show with no suggestion, from its name (the app and the control room agree)
+export const slugHue = slug => { let h = 7; for (const c of String(slug)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+
 // the exhibitions that hang in the street: the virtual rooms and the online shows that have works
 export const streetShows = M => M.exhibitions.filter(e => (e.virtual || e.kind === 'online') && (e.works || []).length >= 3).slice(0, 8);
 
