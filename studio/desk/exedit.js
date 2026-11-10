@@ -86,7 +86,7 @@ export async function editor(ctx, id) {
         c.s = +s.toFixed(3); c.y = +yy.toFixed(3); E.works.push(c); added.push(c.id); want = s + box(c).wm / 2 + 0.4;
       });
     });
-    sel = new Set(added); libSel.clear(); if (miss) toast(`אין מקום על הקירות ל־${miss} עבודות`); drawAll();
+    sel = new Set(added); if (added.length) tab = 'sel'; libSel.clear(); if (miss) toast(`אין מקום על הקירות ל־${miss} עבודות`); drawAll();
   }
   const removeSel = () => { if (!sel.size) return; mutate(() => { E.works = E.works.filter(w => !sel.has(w.id)); E.plinths = E.plinths.filter(p => !sel.has(p.id) && E.works.some(w => w.id === p.work)); }); sel.clear(); drawAll(); };
 
@@ -174,7 +174,10 @@ export async function editor(ctx, id) {
     ew.onpointerup = e => {
       if (!drag) return; const d = drag; drag = null; drawGuides([]); const mq = $('#mq'); if (mq) mq.hidden = true;
       if (d.marquee) { paintSel(); return; }
-      if (d.moved) { undo.push(d.before); redo.length = 0; lastKey = ''; touch(); elDraw(); }
+      if (d.moved) {                                                             // a work dropped onto another moves to the nearest free place beside it
+        const skip = new Set(d.base.keys());
+        for (const [id] of d.base) { const o = E.works.find(q => q.id === id); if (!free(o, o.s, o.y, skip)) { const s = spot(o, o.s, o.y, skip); if (s != null) o.s = +s.toFixed(3); } }
+        undo.push(d.before); redo.length = 0; lastKey = ''; touch(); elDraw(); }
       insDraw();
     };
     ew.ondragover = e => { if (!e.dataTransfer.types.includes('text/plain')) return; e.preventDefault(); const p = toM(e); drawGuides([['s', p.s], ['y', p.y]]); };
@@ -321,5 +324,6 @@ export async function editor(ctx, id) {
       mutate(() => { ws.forEach(o => { o.s = +clampS(o, o.s + d[0] * st).toFixed(3); o.y = +clampY(o, o.y + d[1] * st).toFixed(3); }); ps.forEach(p => { const [w, dd] = pl(p); p.x = +Math.min(Math.max(p.x + d[0] * st, w / 200 + 0.3), RW - w / 200 - 0.3).toFixed(2); p.z = +Math.min(Math.max(p.z + d[1] * st, dd / 200 + 0.3), RD - dd / 200 - 0.3).toFixed(2); }); }, 'nudge');
       elDraw(); planDraw(); insDraw(); }
   });
+  { const n = [0, 0, 0]; walls().forEach(o => n[segOf(o.s)]++); if (Math.max(...n) > 0) view = String(n.indexOf(Math.max(...n))); }      // open on the wall with the most works: big enough to hang by eye
   drawAll(); paintSaved();
 }
