@@ -40,12 +40,19 @@ def colour(paths, taken=()):
         except Exception:
             pass
     sc = lambda i: bins[i] + 0.5 * (bins[(i + 23) % 24] + bins[(i + 1) % 24])
-    # (each show a hue of its own: not within 45 degrees of one an earlier show already has)
-    free = [i for i in range(24) if all(min((i - t) % 24, (t - i) % 24) >= 3 for t in taken)] or list(range(24))
-    best = max(free, key=sc)
-    if bins[best] < 1:
+    top = max(sc(i) for i in range(24))
+    if top < 0.02:
         return None
-    r, g, b = colorsys.hls_to_rgb((best * 15 + 7.5) / 360, 0.5, 0.78)
+    # each show a hue of its own: the best hue this show really has that is 45, then 30, then 15 degrees from the ones taken
+    best = None
+    for gap in (3, 2, 1):
+        ok = [i for i in range(24) if sc(i) >= 0.1 * top and all(min((i - t) % 24, (t - i) % 24) >= gap for t in taken)]
+        if ok:
+            best = max(ok, key=sc)
+            break
+    if best is None:                                # (nothing else in it: its own best, the next notch round)
+        best = (max(range(24), key=sc) + 2) % 24
+    r, g, b = colorsys.hls_to_rgb((best * 15 + 7.5) / 360, 0.47, 0.62)
     return '#%02x%02x%02x' % (round(r * 255), round(g * 255), round(b * 255)), best
 
 
