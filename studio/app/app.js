@@ -1144,13 +1144,23 @@ const streetShows = () => M.exhibitions.filter(e => (e.virtual || e.kind === 'on
 async function enterStreet() {
   const synth = await import('./space/synth.js');
   const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
-  const shows = synth.streetShows(M), thumb = w => M.thumbs[w.image] || w.image;
+  const shows = synth.streetShows(M), thumb = w => w.thumb || M.thumbs[w.image] || w.image;
   const set = (M.virtualColours || {}), over = {};
-  try {
-    const rows = await fetch(DB + 'museum_colours?select=slug,colour', { headers: { apikey: DB_KEY }, signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined }).then(r => r.ok ? r.json() : []);
-    for (const r of rows) over[r.slug] = r.colour;
-  } catch {}
-  const rooms = await Promise.all(shows.map(async e => ({
+  const get = t => fetch(DB + t, { headers: { apikey: DB_KEY }, signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined }).then(r => r.ok ? r.json() : []);
+  let slots = [];
+  try { slots = await get('museum_slots?select=slot,app_slug,colour,content&live=eq.true&order=slot'); } catch {}      // the Desk's slots (the database lets through only live ones inside their dates)
+  try { for (const r of await get('museum_colours?select=slug,colour')) over[r.slug] = r.colour; } catch {}
+  let rooms;
+  if (slots.length) {
+    rooms = (await Promise.all(slots.map(async s => {
+      const c = s.content, e = s.app_slug && shows.find(x => x.slug === s.app_slug);
+      if (!c && !e) return null;
+      const ws = c ? (c.works || []) : e.works, slug = e ? e.slug : 'slot-' + s.slot;
+      return { slug, title: c ? c.title : e.title, works: ws, text: c && c.text, curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
+        colour: s.colour || over[slug] || set[slug] || await synth.suggestColour(ws.map(thumb), src, synth.slugHue(slug)) };
+    }))).filter(Boolean);
+  }
+  if (!rooms || !rooms.length) rooms = await Promise.all(shows.map(async e => ({
     slug: e.slug, title: e.title, works: e.works,
     colour: over[e.slug] || set[e.slug] || await synth.suggestColour(e.works.map(thumb), src, synth.slugHue(e.slug)),
   })));
