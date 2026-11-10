@@ -61,4 +61,5 @@ and write in the log why.
 Add an entry to `studio/app/health/log.md` (date; what was broken and how it was fixed; the improvement; what the
 checks say now; anything that needs the owner) and commit it. Then a short report to the owner, **in Hebrew**: what
 you found, what you fixed, what you improved, with the link; and plainly what needs them, if anything.
+If the report goes by email, it goes to ooopenstudio@gmail.com (the app's mailbox), never to eladamsalem1@.
 On a night with nothing to do, no report.

@@ -30,7 +30,17 @@
    0.03,
    0.14
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 3.54,
+    "to": 5.14,
+    "z0": 0.6,
+    "z1": 2.65,
+    "file": "win-wall-z0-0.jpg"
+   }
+  ]
  },
  "apartment-large": {
   "slug": "apartment-large",
@@ -63,7 +73,17 @@
    0.03,
    0.14
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 4.78,
+    "to": 6.38,
+    "z0": 0.6,
+    "z1": 2.85,
+    "file": "win-wall-z0-0.jpg"
+   }
+  ]
  },
  "apartment-small": {
   "slug": "apartment-small",
@@ -195,7 +215,17 @@
    0.04,
    0.18
   ],
-  "ppm": 110
+  "ppm": 250,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 0.7,
+    "to": 7.3,
+    "z0": 4.9,
+    "z1": 5.4,
+    "file": "win-wall-z0-0.jpg"
+   }
+  ]
  },
  "concrete-small": {
   "slug": "concrete-small",
@@ -222,7 +252,8 @@
    0.04,
    0.18
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "glass-pavilion": {
   "slug": "glass-pavilion",
@@ -245,7 +276,17 @@
    0.06,
    0.28
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 0.0,
+    "to": 14,
+    "z0": 0.0,
+    "z1": 4.5,
+    "file": "win-wall-z0-0.jpg"
+   }
+  ]
  },
  "glass-pavilion-large": {
   "slug": "glass-pavilion-large",
@@ -286,7 +327,41 @@
    0.06,
    0.28
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 0.0,
+    "to": 24,
+    "z0": 0.0,
+    "z1": 5,
+    "file": "win-wall-z0-0.jpg"
+   },
+   {
+    "wall": "wall-x1",
+    "from": 0.0,
+    "to": 16,
+    "z0": 0.0,
+    "z1": 5,
+    "file": "win-wall-x1-1.jpg"
+   },
+   {
+    "wall": "wall-z1",
+    "from": 0.0,
+    "to": 24,
+    "z0": 0.0,
+    "z1": 5,
+    "file": "win-wall-z1-2.jpg"
+   },
+   {
+    "wall": "wall-x0",
+    "from": 0.0,
+    "to": 16,
+    "z0": 0.0,
+    "z1": 5,
+    "file": "win-wall-x0-3.jpg"
+   }
+  ]
  },
  "glass-pavilion-small": {
   "slug": "glass-pavilion-small",
@@ -352,7 +427,17 @@
    0.0,
    0.0
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 0.2,
+    "to": 8.8,
+    "z0": 0.0,
+    "z1": 2.8,
+    "file": "win-wall-z0-0.jpg"
+   }
+  ]
  },
  "japanese-large": {
   "slug": "japanese-large",
@@ -385,7 +470,17 @@
    0.0,
    0.0
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 0.2,
+    "to": 11.8,
+    "z0": 0.0,
+    "z1": 2.6,
+    "file": "win-wall-z0-0.jpg"
+   }
+  ]
  },
  "japanese-small": {
   "slug": "japanese-small",
@@ -455,7 +550,8 @@
    0.03,
    0.14
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "loft-large": {
   "slug": "loft-large",
@@ -482,7 +578,8 @@
    0.03,
    0.14
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "loft-small": {
   "slug": "loft-small",
@@ -509,7 +606,8 @@
    0.03,
    0.14
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "salon-large": {
   "slug": "salon-large",
@@ -592,7 +690,8 @@
    0.03,
    0.14
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "skylit-hall-large": {
   "slug": "skylit-hall-large",
@@ -619,7 +718,8 @@
    0.03,
    0.14
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "skylit-hall-small": {
   "slug": "skylit-hall-small",
@@ -646,7 +746,8 @@
    0.03,
    0.14
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "studio": {
   "slug": "studio",
@@ -679,7 +780,17 @@
    0.0,
    0.0
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 1.2,
+    "to": 6.8,
+    "z0": 0.9,
+    "z1": 3.4,
+    "file": "win-wall-z0-0.jpg"
+   }
+  ]
  },
  "studio-large": {
   "slug": "studio-large",
@@ -706,7 +817,8 @@
    0.0,
    0.0
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "studio-small": {
   "slug": "studio-small",
@@ -739,7 +851,17 @@
    0.0,
    0.0
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 0.75,
+    "to": 4.25,
+    "z0": 0.9,
+    "z1": 3.0,
+    "file": "win-wall-z0-0.jpg"
+   }
+  ]
  },
  "white-cube-large": {
   "slug": "white-cube-large",
