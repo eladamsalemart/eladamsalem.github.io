@@ -66,9 +66,10 @@ async function shrink(blob, long, q = 0.88) {
     return { blob: await new Promise(ok => cv.toBlob(ok, 'image/jpeg', q)), w: img.naturalWidth, h: img.naturalHeight };
   } finally { URL.revokeObjectURL(url); }
 }
-export async function upload(blob) {
+// (a photo the studio already made in two sizes comes as `pair`: sent as it is, not decoded and squeezed again)
+export async function upload(blob, pair) {
   const { c, user } = await session();
-  const id = crypto.randomUUID(), [full, small] = await Promise.all([shrink(blob, 2600), shrink(blob, 640, 0.82)]);
+  const id = crypto.randomUUID(), [full, small] = pair ? [{ blob, w: 0, h: 0 }, { blob: pair }] : await Promise.all([shrink(blob, 2600), shrink(blob, 640, 0.82)]);
   const put = async (b, name) => {
     const path = `${user.id}/${name}`;
     const { error } = await c.storage.from('works').upload(path, b, { contentType: 'image/jpeg', upsert: false });
@@ -109,7 +110,16 @@ async function push(S) {
   for (const [i, w] of S.works.entries()) {
     if (!/^[0-9a-f-]{36}$/.test(w.id)) w.id = crypto.randomUUID();
     if (old.get(w.id) === JSON.stringify(w) && i === was.works.findIndex(x => x.id === w.id)) continue;
-    if (isLocal(w.image) || isLocal(w.thumb)) Object.assign(w, await upload(await toBlob(isLocal(w.image) ? w.image : w.thumb)));
+    if (isLocal(w.image) || isLocal(w.thumb)) {
+      const tell = state => window.dispatchEvent(new CustomEvent('studio-upload', { detail: { id: w.id, state } }));
+      tell('uploading');
+      try {
+        const both = isLocal(w.image) && isLocal(w.thumb);
+        const up = both ? await upload(await toBlob(w.image), await toBlob(w.thumb)) : await upload(await toBlob(isLocal(w.image) ? w.image : w.thumb));
+        Object.assign(w, both ? { image: up.image, thumb: up.thumb } : up);
+      } catch (e) { tell('failed'); throw e; }
+      tell('done');
+    }
     const row = { id: w.id, artist_id: user.id, title: w.title || 'Untitled', year: w.year || null, medium: w.medium || null, width: +w.width || null, height: +w.height || null,
       depth: +w.depth || null, image: w.image, thumb: w.thumb || null, source: w.source || null, position: i, kind: w.kind === 'object' ? 'object' : 'work', category: w.category || null };
     const { error } = await c.from('works').upsert(row);

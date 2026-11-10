@@ -127,3 +127,9 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    `space/hang-editor.js` works inside the room (drag with snapping, line up, even spacing, undo, add/remove works, plinths S/M/L with
    objects at real size via `space/plinths.js`); `v.placements` {id:{wall,a,y}} in `virtual_shows.works`, `v.plinths` in the new
    `virtual_shows.plinths` column; `hang()` stays the default. Several connected rooms: NOT done, see studio/design/night-2026-11-09/onview.md.
+
+12. Two rooms only (owner, 10.11 night): the artist is offered only the Living room (`apartment`) and the Black box (`black-box`).
+   The switch is `ACTIVE_KINDS` in `studio/app/space/synth.js`: every other kind is `archived: true` in ROOMS (data, files and
+   the workflow untouched; shows already in one still open; the picker keeps the kind a show uses). To un-archive a kind, add
+   its key to ACTIVE_KINDS (order = order in the picker). Sculptures (kind object, category Sculpture, depth, clay/bronze/stone
+   medium) now always stand on plinths (`isObject` in synth.js, same rule in artist.js `shapeWork`).

@@ -726,7 +726,7 @@ def fill(room, works, walls='sne w', **kw):
     return placed
 
 
-def ambient(r, lux=110, kelvin=4000):
+def ambient(r, lux=110, kelvin=4000, spread=110, tilt=0.55):
     """Wall washers, as a gallery has them: a line of light near the ceiling along each wall, aimed down at it, so a
     wall is brightest under the ceiling and fades a little toward the floor, and the room is lit by what the walls
     give back (not by one flat light over everything, which reads as a render)."""
@@ -735,12 +735,12 @@ def ambient(r, lux=110, kelvin=4000):
         for p0, p1, n in r.wall_runs(wall, margin=0.3) or []:
             a = (Vector((*p1, 0)) - Vector((*p0, 0))); L = a.length; a.normalize(); nv = Vector(n)
             if L < 0.8: continue
-            d = (-nv * 0.55 + Vector((0, 0, -0.85))).normalized()          # toward the wall and down
+            d = (-nv * tilt + Vector((0, 0, -(1 - tilt * tilt) ** 0.5))).normalized()          # toward the wall and down
             z = -d; y = z.cross(a).normalized(); x = y.cross(z)
             m = Matrix((x, y, z)).transposed().to_4x4()
             mid = (Vector((*p0, 0)) + Vector((*p1, 0))) / 2 + nv * 0.8; mid.z = r.h - 0.08
             li = bpy.data.lights.new('washer', 'AREA'); li.shape = 'RECTANGLE'; li.size, li.size_y = L - 0.2, 0.12
-            li.color = blackbody(kelvin); li.spread = math.radians(110)
+            li.color = blackbody(kelvin); li.spread = math.radians(spread)
             li.energy = lux * LUX * L * r.h * 2.2
             ob = bpy.data.objects.new('washer', li); bpy.context.collection.objects.link(ob)
             ob.matrix_world = Matrix.Translation(mid) @ m
@@ -1315,8 +1315,13 @@ def apartment(v):
     box('table', 1.6, D * 0.42, 0, 2.5, D * 0.58, 0.4, mat('walnut', tex='walnut_veneer', scale=0.8, coat=0.3), bevel=0.01)
     cylinder('lamp.pole', (0.5, D * 0.12), 0.012, 0, 1.55, mat('brass', (0.6, 0.45, 0.2), 0.3, metal=1.0))
     cylinder('lamp.shade', (0.5, D * 0.12), 0.2, 1.4, 1.7, emission('shade', 3.0, 2700))
-    li = bpy.data.lights.new('lamp', 'POINT'); li.energy = 25; li.color = blackbody(2700); li.shadow_soft_size = 0.15
-    lo = bpy.data.objects.new('lamp', li); bpy.context.collection.objects.link(lo); lo.location = (0.5, D * 0.12, 1.55)
+    if not SURF['on']:      # (the app's walls carry no lamp: its hot spot was baked onto the plaster)
+        li = bpy.data.lights.new('lamp', 'POINT'); li.energy = 25; li.color = blackbody(2700); li.shadow_soft_size = 0.15
+        lo = bpy.data.objects.new('lamp', li); bpy.context.collection.objects.link(lo); lo.location = (0.5, D * 0.12, 1.55)
+    # the room's own soft light: big diffuse panels in the ceiling (a living room is lit by daylight and its ceiling, not by one lamp)
+    ambient(r, lux=APT_WASH, kelvin=4600, spread=75, tilt=0.93)      # (a soft wash down every wall: the walls are lit by the room, not by a lamp)
+    for k in range(3):
+        area('ceiling-fill', (W * (k + 1) / 4, D / 2, H - 0.03), (2.2, 1.6), APT_FILL, APT_K, spread=180)
     hang_wall(works_of('henri-matisse', n=1)[:1] + works_of('suzanne-valadon')[1:2], at_wall((0, D * 0.9), (1, 0, 0)), at_wall((0, D * 0.1), (1, 0, 0)), (1, 0, 0), z=1.55, ceiling=H, lux=150, spot_kelvin=3000)
     fill(r, works_of('suzanne-valadon')[2:4] + works_of('henri-matisse')[4:6], walls='s', ceiling=H, lux=150, spot_kelvin=3000)
     return camera((W - 0.5, 0.5, EYE), (0.8, D * 0.62, 1.4), lens=17)
@@ -1354,7 +1359,9 @@ def black_box(v):
     for gy in [y * 1.5 for y in range(1, int(D / 1.5))]:
         box('grid', 0, gy - 0.024, H - 0.7, W, gy + 0.024, H - 0.65, pipe)
     for hx in (W * 0.25, W * 0.75):      # house lights, low: you can see your way, not the walls
-        area('house', (hx, D / 2, H - 0.75), (0.3, 0.3), 6, 3000)
+        area('house', (hx, D / 2, H - 0.75), (0.3, 0.3), 6 if not SURF['on'] else BB_HOUSE, 3000)
+    if SURF['on']:           # the app's walls: dark, but a visitor sees where the room ends (a faint wash down each wall, the grid above)
+        ambient(r, lux=BB_WASH, kelvin=3200)
     if v == '':                # three projection walls: a work as projected light
         for (p, a, n, w) in () if SURF['on'] else (((W / 2, D - 0.01, 2.3), (-1, 0, 0), (0, -1, 0), WORKS['the-great-wave-off-kanagawa']), ((0.01, D / 2, 2.3), (0, -1, 0), (1, 0, 0), WORKS['the-starry-night'])):
             ww, hh = (6.0, 6.0 * w['size'][1] / w['size'][0])
@@ -1755,7 +1762,12 @@ def main():
         json.dump(all_, open(meta, 'w'), indent=1)
 
 
-EXPOSURE = {}
+BB_HOUSE = float(os.environ.get('BB_HOUSE', '60'))
+BB_WASH = float(os.environ.get('BB_WASH', '40'))
+EXPOSURE = {'apartment': float(os.environ.get('APT_EXP', '0.8'))}
+APT_WASH = float(os.environ.get('APT_WASH', '90'))
+APT_K = float(os.environ.get('APT_K', '5000'))
+APT_FILL = float(os.environ.get('APT_FILL', '260'))
 JP_ROT = float(os.environ.get('JP_ROT', '0'))
 GARDEN_STRENGTH = float(os.environ.get('GARDEN_STRENGTH', '3'))
 GARDEN_ROT = float(os.environ.get('GARDEN_ROT', '200'))

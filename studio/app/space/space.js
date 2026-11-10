@@ -556,8 +556,12 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     pieces.push({ w, h, mesh: box, g, spot, centre, stand, facing, order, size: { w: h.measured[0], h: h.measured[1] } });
   }));
   // in the order the show was hung (a designed show: as its artist or curator set it), else along the room
-  const plinths = addPlinths(THREE, scene, spec.plinths, loadTex);
+  const plinths = addPlinths(THREE, scene, spec.plinths, loadTex, spec.plinthRoom || {});
   plinthList.push(...plinths);
+  if (spec.furniture) {    // the Living room's sofa, rug, table and lamp (space/furniture.js); a visitor does not walk through them
+    const { addFurniture } = await import('./plinths.js'); const f = addFurniture(THREE, scene, spec.furniture);
+    for (const c of f.solid) plinthList.push({ group: { position: { x: c.x, z: c.z } }, spec: { size: [(c.r - 0.35) * 200, 0] } });
+  }
   pieces.sort(spec.ordered ? (a, b) => a.order - b.order : (a, b) => (a.centre.x - b.centre.x) || (a.centre.z - b.centre.z));
 
   // --- the photos, projected back onto the room -------------------------------------------------------
