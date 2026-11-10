@@ -1296,7 +1296,7 @@ def apartment(v):
     skirt = mat('skirting', (0.85, 0.84, 0.8), 0.5)
     linen = mat('sofa-linen', tex='rough_linen', scale=0.4, tint=(0.55, 0.5, 0.42), tint_mix=0.3)
     rug = mat('rug', tex='rough_linen', scale=0.6, tint=(0.62, 0.55, 0.45), tint_mix=0.5)
-    world(hdri=hdri('city'), strength=WIN_STRENGTH, rot=STREET_ROT + 25)
+    world(hdri=hdri('city'), strength=max(WIN_STRENGTH, 8.0) if SURF['on'] else WIN_STRENGTH, rot=STREET_ROT + 25)
     W, D, H = {'small': (5, 4.5, 2.8), 'large': (9, 6, 3.2)}.get(v, (7, 5, 3.0))
     r = Room(0, 0, W, D, H, herring, walls, ceil, doors=[('e', 1.0, 0.9, 2.2)], windows=[('n', W * 0.62, 1.6, 0.6, H - 0.35)],
              base=(0.12, skirt), shadow_gap=False)
@@ -1319,7 +1319,7 @@ def apartment(v):
         li = bpy.data.lights.new('lamp', 'POINT'); li.energy = 25; li.color = blackbody(2700); li.shadow_soft_size = 0.15
         lo = bpy.data.objects.new('lamp', li); bpy.context.collection.objects.link(lo); lo.location = (0.5, D * 0.12, 1.55)
     # the room's own soft light: big diffuse panels in the ceiling (a living room is lit by daylight and its ceiling, not by one lamp)
-    ambient(r, lux=APT_WASH, kelvin=4600, spread=75, tilt=0.93)      # (a soft wash down every wall: the walls are lit by the room, not by a lamp)
+    ambient(r, lux=APT_WASH, kelvin=4600, spread=95, tilt=0.8)      # (a soft wash down every wall: the walls are lit by the room, not by a lamp)
     for k in range(3):
         area('ceiling-fill', (W * (k + 1) / 4, D / 2, H - 0.03), (2.2, 1.6), APT_FILL, APT_K, spread=180)
     hang_wall(works_of('henri-matisse', n=1)[:1] + works_of('suzanne-valadon')[1:2], at_wall((0, D * 0.9), (1, 0, 0)), at_wall((0, D * 0.1), (1, 0, 0)), (1, 0, 0), z=1.55, ceiling=H, lux=150, spot_kelvin=3000)
@@ -1361,7 +1361,7 @@ def black_box(v):
     for hx in (W * 0.25, W * 0.75):      # house lights, low: you can see your way, not the walls
         area('house', (hx, D / 2, H - 0.75), (0.3, 0.3), 6 if not SURF['on'] else BB_HOUSE, 3000)
     if SURF['on']:           # the app's walls: dark, but a visitor sees where the room ends (a faint wash down each wall, the grid above)
-        ambient(r, lux=BB_WASH, kelvin=3200)
+        ambient(r, lux=BB_WASH, kelvin=3200, spread=100, tilt=0.72)
     if v == '':                # three projection walls: a work as projected light
         for (p, a, n, w) in () if SURF['on'] else (((W / 2, D - 0.01, 2.3), (-1, 0, 0), (0, -1, 0), WORKS['the-great-wave-off-kanagawa']), ((0.01, D / 2, 2.3), (0, -1, 0), (1, 0, 0), WORKS['the-starry-night'])):
             ww, hh = (6.0, 6.0 * w['size'][1] / w['size'][0])
@@ -1763,11 +1763,11 @@ def main():
 
 
 BB_HOUSE = float(os.environ.get('BB_HOUSE', '60'))
-BB_WASH = float(os.environ.get('BB_WASH', '40'))
-EXPOSURE = {'apartment': float(os.environ.get('APT_EXP', '0.8'))}
-APT_WASH = float(os.environ.get('APT_WASH', '90'))
+BB_WASH = float(os.environ.get('BB_WASH', '22'))
+EXPOSURE = {'black-box': 0.5, 'apartment': float(os.environ.get('APT_EXP', '0.6'))}
+APT_WASH = float(os.environ.get('APT_WASH', '55'))
 APT_K = float(os.environ.get('APT_K', '5000'))
-APT_FILL = float(os.environ.get('APT_FILL', '260'))
+APT_FILL = float(os.environ.get('APT_FILL', '100'))
 JP_ROT = float(os.environ.get('JP_ROT', '0'))
 GARDEN_STRENGTH = float(os.environ.get('GARDEN_STRENGTH', '3'))
 GARDEN_ROT = float(os.environ.get('GARDEN_ROT', '200'))
