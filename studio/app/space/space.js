@@ -85,8 +85,21 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     'concrete': [0.06, 0.055, 0.05], 'studio': [0.05, 0.04, 0.03], 'apartment': [0.025, 0.03, 0.02], 'black-box': [0.015, 0.02, 0.012],
     'glass-pavilion': [0.022, 0.03, 0.02], 'japanese': [0.05, 0.04, 0.03],
   };
+  // the fine texture of the real material (data/rooms/detail/<name>.jpg, from Poly Haven's CC0 plaster, concrete and clay by
+  // space/rooms/detail_tiles.py), a grey tile of `m` metres laid over the baked wall at its true scale: strength k
+  const DETAIL_TILE = {
+    'white-cube': ['painted', 2.0, 1.1], 'skylit-hall': ['rough', 2.0, 1.2], 'salon': ['painted', 2.0, 1.1], 'concrete': ['concrete', 2.0, 1.6],
+    'apartment': ['painted', 2.0, 1.1], 'black-box': ['painted', 2.0, 0.8], 'glass-pavilion': ['painted', 2.0, 1.1], 'japanese': ['clay', 1.6, 2.0],
+  };
+  const det = BK && DETAIL_TILE[BK.kind] ? DETAIL_TILE[BK.kind] : null;
+  const detU = { value: null }, detK = { value: 0 };
+  if (det) {
+    detU.value = new THREE.TextureLoader().load(new URL('../data/rooms/detail/' + det[0] + '.jpg', import.meta.url).href, t => { detK.value = det[2]; dirty = true; });
+    detU.value.wrapS = detU.value.wrapT = THREE.RepeatWrapping; detU.value.colorSpace = THREE.NoColorSpace; detU.value.anisotropy = aniso;
+  }
   const HQ_FRAG = `
     uniform vec2 hqTex; uniform vec2 hqSize; uniform float hqAmp; uniform vec2 hqMask[4];
+    uniform sampler2D hqDetail; uniform float hqDetK; uniform float hqDetM;
     float hqH(vec2 p) { vec3 q = fract(vec3(p.xyx) * .1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
     float hqN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
       return mix(mix(hqH(i), hqH(i + vec2(1., 0.)), f.x), mix(hqH(i + vec2(0., 1.)), hqH(i + vec2(1., 1.)), f.x), f.y); }
@@ -111,7 +124,9 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       g += (hqN(p * 290.0 + 9.7) - 0.5) * 1.0 * (1.0 - smoothstep(0.15, 0.5, px * 290.0));
       float m = 1.0;
       for (int i = 0; i < 4; i++) m *= 1.0 - (smoothstep(hqMask[i].x - 0.03, hqMask[i].x + 0.03, p.x) - smoothstep(hqMask[i].y - 0.03, hqMask[i].y + 0.03, p.x));
-      return 1.0 + hqAmp * g * 2.0 * m;
+      float dt = 0.0;
+      if (hqDetK > 0.0) dt = (texture2D(hqDetail, p / hqDetM).r - 0.5) * hqDetK;
+      return (1.0 + hqAmp * g * 2.0 * m) * (1.0 + dt * m);
     }`;
   // kind: 0 walls, 1 floor, 2 ceiling; size: the surface (or its repeating tile) in metres; masks: stretches of a wall
   // along u that show something else (windows: the outside must not get plaster grain)
@@ -126,6 +141,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       sh.uniforms.hqSize = { value: new THREE.Vector2(size[0] / (tex.repeat ? tex.repeat.x : 1), size[1] / (tex.repeat ? tex.repeat.y : 1)) };
       sh.uniforms.hqAmp = { value: amp };
       sh.uniforms.hqMask = { value: mk };
+      sh.uniforms.hqDetail = detU; sh.uniforms.hqDetM = { value: det ? det[1] : 2 };
+      sh.uniforms.hqDetK = kind === 1 ? { value: 0 } : detK;                          // (walls and ceiling; the floor's boards are in its photograph)
       sh.fragmentShader = sh.fragmentShader.replace('void main() {', HQ_FRAG + '\nvoid main() {')
         .replace('#include <map_fragment>', '#ifdef USE_MAP\n vec4 sampledDiffuseColor = hqRead(map, vMapUv);\n diffuseColor *= sampledDiffuseColor;\n diffuseColor.rgb *= hqGrain(vMapUv);\n#endif');
     };
