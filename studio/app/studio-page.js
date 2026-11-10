@@ -71,6 +71,8 @@ body.previewing .ed-bar{top:34px}
 .ed-toast{font-size:16px!important;position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:120;background:var(--ink);color:var(--wall);padding:10px 16px;border-radius:12px;font-size:14px;max-width:86vw}
 body.sh-open{overflow:hidden}
 .ed #works{scroll-margin-top:64px}
+.ed button.more,.ed-foot .more{min-height:44px;padding-inline:10px;display:inline-flex;align-items:center;cursor:pointer}
+.sh-cv button{min-height:44px!important;padding-inline:12px!important;font-size:15px!important}
 .wk-hint{margin:0 0 6px;font-size:15px;color:var(--muted)}.wk-hint a{color:var(--ink);font-weight:600;display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 .wk-g{margin-top:12px}.wk-g h3{font:700 13px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0;padding:8px 0 2px}
 .wk{display:grid;grid-template-columns:72px 1fr 44px;gap:12px;align-items:center;min-height:84px;padding:6px 0;border-bottom:1px solid var(--line);cursor:pointer;position:relative;background:var(--wall);-webkit-tap-highlight-color:transparent}
@@ -190,6 +192,7 @@ export function mount(c) {
     st.contentEditable = 'plaintext-only'; if (st.contentEditable !== 'plaintext-only') st.contentEditable = 'true';
     st.dataset.ph = 'Tap here and write a few sentences, in your own voice: what you make and why.';
     st.textContent = S.artist.statement || '';
+    st.setAttribute('role', 'textbox'); st.setAttribute('aria-multiline', 'true'); st.setAttribute('aria-label', 'Your statement: a few sentences about your work');
     st.onblur = () => { const v = st.innerText.trim(); st.textContent = v; if (v !== (S.artist.statement || '')) { S.artist.statement = v; commit(); refreshCard(); } };
     st.insertAdjacentHTML('beforebegin', '<div id="edCard"></div>'); wrap.querySelector('#edCard').innerHTML = card(); wireCard();
     // the works: a list of their own (every work, by year; tap to edit, grip to reorder)
@@ -209,6 +212,7 @@ export function mount(c) {
       ${roomsCard()}
       <div class="ed-foot"><button type="button" class="more" id="edSo">Sign out</button></div>`);
     const bio = wrap.querySelector('#edBio'); bio.textContent = S.artist.bio || '';
+    bio.setAttribute('role', 'textbox'); bio.setAttribute('aria-multiline', 'true'); bio.setAttribute('aria-label', 'Your story, for the About page');
     bio.onblur = () => { const v = bio.innerText.trim(); if (v !== (S.artist.bio || '')) { S.artist.bio = v; commit(); } };
     wrap.querySelector('#edSo').onclick = () => c.signOut();
     app.querySelector('#edAdd').onclick = () => pickPhotos();
@@ -275,7 +279,7 @@ export function mount(c) {
       b.querySelector('[data-pick]').onclick = () => f.click();
       f.onchange = async () => {
         if (!f.files[0]) return;
-        const [big, small] = await Promise.all([asDataURL(f.files[0], 1800), asDataURL(f.files[0], 400)]);
+        const [big, small] = await Promise.all([asDataURL(f.files[0], 1600), asDataURL(f.files[0], 400)]);
         S.artist.hero = big; S.artist.photo = small; S.artist.heroPos = ''; pos = '50% 50%'; cur = big; changed = false;
         box.innerHTML = `<img src="${esc(big)}" alt="Your cover photo"><i>Drag to move</i>`; b.querySelector('[data-pick]').textContent = 'Replace photo';
         commit(); refreshCard();
@@ -410,7 +414,7 @@ export function mount(c) {
     const word = n => n === 1 ? 'work' : 'works';
     sheet(one ? 'Add a work' : `Add ${files.length} works`, `<form class="st-form" id="adForm" novalidate><div class="ad-list">${items.map(card).join('')}</div>
       <div class="ad-all"><p class="ad-h">${one ? 'About the work' : 'The same for all of them'}</p>${kindChips(d.kind)}
-      <div class="st-row yr"><label>Year<input name="year" inputmode="numeric" maxlength="4" value="${esc(d.year || new Date().getFullYear())}" autocomplete="off"></label><label>Medium<input name="medium" list="mediums" placeholder="Oil on canvas" value="${esc(d.medium || '')}" autocomplete="off"></label></div>${mediumList()}</div></form>`, (b, close) => {
+      <div class="st-row yr"><label>Year<input name="year" inputmode="numeric" maxlength="4" value="${esc(d.year || new Date().getFullYear())}" autocomplete="off"></label><label>Medium<input name="medium" list="mediums" placeholder="e.g. Oil on canvas" value="${esc(d.medium || '')}" autocomplete="off"></label></div>${mediumList()}</div></form>`, (b, close) => {
       const f = b.querySelector('#adForm'), cards = [...f.querySelectorAll('.ad-card')], go = b.closest('.sh').querySelector('#adGo');
       const label = () => { const n = items.filter(x => !x.gone).length; go.textContent = n ? `Add ${n === 1 ? 'this' : n} ${word(n)} to my page` : 'Nothing to add'; go.disabled = !n; };
       label();
@@ -475,7 +479,7 @@ export function mount(c) {
       <div class="chk" aria-live="polite"></div>
       <label>Title<input name="title" value="${esc(w.title)}" autocomplete="off" enterkeyhint="next"></label>
       ${kindChips(w.category)}
-      <div class="st-row yr"><label>Year<input name="year" inputmode="numeric" maxlength="4" value="${esc(w.year)}" autocomplete="off"></label><label>Medium<input name="medium" list="mediums" placeholder="Oil on canvas" value="${esc(w.medium)}" autocomplete="off"></label></div>${mediumList()}
+      <div class="st-row yr"><label>Year<input name="year" inputmode="numeric" maxlength="4" value="${esc(w.year)}" autocomplete="off"></label><label>Medium<input name="medium" list="mediums" placeholder="e.g. Oil on canvas" value="${esc(w.medium)}" autocomplete="off"></label></div>${mediumList()}
       <fieldset><legend>Size, in centimetres</legend><div class="st-row three"><label>Width<input name="width" inputmode="decimal" value="${esc(w.width)}"></label><label>Height<input name="height" inputmode="decimal" value="${esc(w.height)}"></label><label>Depth<input name="depth" inputmode="decimal" placeholder="Optional" value="${esc(w.depth)}"></label></div></fieldset>
       <p class="err m small" role="alert"></p></form>`, (b, close) => {
       const f = b.querySelector('#wkForm'), img = f.querySelector('.wk-pv img'), chk = f.querySelector('.chk');
@@ -532,6 +536,7 @@ export function mount(c) {
   }
 
   draw();
+  if (window.__pendingFiles) { const fs = window.__pendingFiles; window.__pendingFiles = null; setTimeout(() => addWorks(fs), 250); }
   if (act) ({ cover: coverSheet, portrait: coverSheet, profile: profileSheet, 'work-new': () => pickPhotos(), 'ex-new': () => go('#/studio/exhibition/new'), 'works': () => app.querySelector('#works') && app.querySelector('#works').scrollIntoView() }[act.split(':')[0]] || (() => {}))();
   if (act && act.startsWith('work:')) workSheet(act.slice(5));
 }

@@ -51,7 +51,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#d8d7d3');
   // a tight depth range (far / near of a few hundred) keeps surfaces from flickering against each other
-  const camera = new THREE.PerspectiveCamera(60, 1, 0.08, 45);
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.08, spec.far || 45);
   const rig = new THREE.Group(); rig.add(camera); scene.add(rig);
   const aniso = renderer.capabilities.getMaxAnisotropy();
   const loader = new THREE.TextureLoader();
@@ -347,6 +347,12 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       }
     }
     if (!inRoom(p)) { p.x = clamp(p.x, R.x0 + MARGIN, R.x1 - MARGIN); p.z = clamp(p.z, R.z0 + MARGIN, R.z1 - MARGIN); }
+    // walls of a museum street (spec.solids: [x0, z0, x1, z1] lines): not through, pushed back out of
+    for (const [ax, az, bx, bz] of spec.solids || []) {
+      const dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((p.x - ax) * dx + (p.z - az) * dz) / (dx * dx + dz * dz || 1)));
+      const qx = ax + dx * t, qz = az + dz * t, ex = p.x - qx, ez = p.z - qz, d = Math.hypot(ex, ez), r = MARGIN + 0.05;
+      if (d < r) { if (d < 1e-5) { p.x += r; } else { p.x = qx + ex / d * r; p.z = qz + ez / d * r; } }
+    }
     for (const w of parts) {
       const h = w.t / 2 + 0.4, dx = p.x - w.x;
       if (Math.abs(dx) < h && !(p.z > w.door[0] + 0.3 && p.z < w.door[1] - 0.3)) {
@@ -543,7 +549,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     const centre = V(h.centre);
     const spot = new THREE.SpotLight(0xffffff, 3.2, 0, 0.6, 1, 2);
     spot.position.copy(centre).addScaledVector(Z, 1.6).setY(Math.min(R.height - 0.15, centre.y + 2));
-    spot.target.position.copy(centre); scene.add(spot, spot.target);
+    spot.target.position.copy(centre); if (!spec.noSpots) scene.add(spot, spot.target);     // (a street of many rooms: no live lights)
     const facing = new THREE.Vector3(Z.x, 0, Z.z).normalize();
     const dist = Math.min(Math.max(1.5 * Math.max(wM, hM), 1.4), 5);
     const stand = clampStand(centre.clone().addScaledVector(facing, dist).setY(EYE), centre.clone().addScaledVector(facing, 0.5));
@@ -747,8 +753,9 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const end = views.filter(v => (longX ? v.pos[0] - cx : v.pos[2] - cz) > 0).length >= views.length / 2 ? 1 : -1;
   const len = longX ? R.x1 - R.x0 : R.z1 - R.z0, off = len / 2 - Math.min(1.4, len * 0.15);
   const pos = longX ? new THREE.Vector3(cx + end * off, EYE, cz) : new THREE.Vector3(cx, EYE, cz + end * off);
+  if (spec.start) pos.set(spec.start.pos[0], EYE, spec.start.pos[1]);
   clampStand(pos);
-  const look = longX ? new THREE.Vector3(cx - end * len, EYE - 0.1, cz) : new THREE.Vector3(cx, EYE - 0.1, cz - end * len);
+  const look = spec.start ? new THREE.Vector3(spec.start.look[0], EYE - 0.1, spec.start.look[1]) : longX ? new THREE.Vector3(cx - end * len, EYE - 0.1, cz) : new THREE.Vector3(cx, EYE - 0.1, cz - end * len);
   const tPos = pos.clone(), tLook = look.clone(), up = new THREE.Vector3(0, 1, 0), tUp = up.clone();
   let tFov = 62, free = true;
   const fmtSize = p => `${Math.round(p.h.size[1])} × ${Math.round(p.h.size[0])} cm`;   // as recorded
