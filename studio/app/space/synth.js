@@ -741,13 +741,15 @@ export async function buildStreet(rooms, src, thumbOf = w => w.image, opts = {})
     const manual = r.works.filter(w => w.s != null), autoW = r.works.filter(w => w.s == null).slice(0, 8);
     for (const work of manual) {
       const sz = await sizeOf({ ...work, image: thumbOf(work) }, src), [wm, hm] = streetFit(sz.w, sz.h).map(v => v / 100);
-      const k = work.s < dpt ? 0 : work.s < dpt + RW ? 1 : 2, a0 = k === 0 ? 0 : k === 1 ? dpt : dpt + RW;
-      put(work, wm, hm, runs[k], Math.min(Math.max(work.s - a0, wm / 2 + 0.1), runs[k].len - wm / 2 - 0.1), work.y != null ? work.y : 1.5);
+      // (s is as a visitor at the door sees the room: left wall, back wall, right wall; a room on the south side is built the other way round)
+      const sv = isN ? work.s : 2 * dpt + RW - work.s;
+      const k = sv < dpt ? 0 : sv < dpt + RW ? 1 : 2, a0 = k === 0 ? 0 : k === 1 ? dpt : dpt + RW;
+      put(work, wm, hm, runs[k], Math.min(Math.max(sv - a0, wm / 2 + 0.1), runs[k].len - wm / 2 - 0.1), work.y != null ? work.y : 1.5);
     }
     // sculptures stand on plinths: the room's own coordinates (x across 0..8, z from the front wall 0..6) become the street's
     for (const p of r.plinths || []) {
       const key = PLINTHS[p.size] ? p.size : 'm', ob = (r.objects || {})[p.work], px = Math.min(Math.max(p.x, 0.5), RW - 0.5), pz = Math.min(Math.max(p.z, 0.5), RD - 0.5);
-      plinthsOut.push({ id: `${i}-${p.id}`, x: rx0 + px, z: isN ? zf - pz : zf + pz, size: PLINTHS[key], key, work: p.work || null,
+      plinthsOut.push({ id: `${i}-${p.id}`, x: isN ? rx0 + px : rx1 - px, z: isN ? zf - pz : zf + pz, size: PLINTHS[key], key, work: p.work || null,
         obj: ob ? { id: ob.id, title: ob.title, image: ob.image, w: ob.w, h: ob.h } : null });
     }
     // the exhibition's own words, on the front wall beside the door
