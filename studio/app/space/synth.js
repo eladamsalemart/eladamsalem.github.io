@@ -497,6 +497,7 @@ export async function buildRoom(design, src) {
   });
   const floorReflect = R.floorReflect || (R.floor === 'oak' ? [0.03, 0.12] : R.floor === 'stone' ? [0.08, 0.34] : [0.06, 0.26]);
   const spec = {
+    ...(R.kind === 'apartment' ? { furniture: { kind: 'apartment', w: R.cell || R.w, d: R.d } } : {}),
     plinthRoom: { h: R.h, dark: R.kind === 'black-box' || R.light === 'narrow' },
     version: 2, title: design.title, source: `${ROOMS[design.room].name}, a virtual room`, virtual: true, ordered: true, ...(R.baked ? { baked: { kind: R.kind, plates: (R.plates || []).flatMap(p => R.cells > 1 && p.wall !== 'wall-x0' && p.wall !== 'wall-x1' ? Array.from({ length: R.cells }, (_, k) => ({ ...p, wall: `${p.wall}-c${k}`, texture: R.baked + p.file })) : [{ ...p, texture: R.baked + p.file }]) },
       ...(R.cells > 1 ? { partitions: Array.from({ length: R.cells - 1 }, (_, i) => ({ x: (i + 1) * R.cell, t: PART, door: (R.doorSpan || [R.d / 2 - 0.7, R.d / 2 + 0.7]) })) } : {}) } : {}),
