@@ -53,6 +53,7 @@ jobs:
       fail-fast: false
       matrix:
         type: ${{ fromJSON(needs.plan.outputs.types) }}
+        variant: ['', 'small', 'large']      # (each size in a job of its own: all of them at 300 px/m in one job ran past the time limit)
     steps:
       - uses: actions/checkout@v4
         with:
@@ -79,17 +80,19 @@ jobs:
       - name: Render ${{ matrix.type }}
         run: |
           mkdir -p out
+          if [ "${{ github.event.inputs.samples || '256' }}" != 0 ]; then       # (samples 0: the surfaces only, the stills stay as they are)
           ~/blender/$BLENDER/blender -b --factory-startup -P studio/app/space/rooms/build_rooms.py -- \
-            --type "${{ matrix.type }}" --variant all --out out \
+            --type "${{ matrix.type }}" --variant "${{ matrix.variant }}" --out out \
             --samples "${{ github.event.inputs.samples || '256' }}" --size "${{ github.event.inputs.size || '1600x1000' }}" 2>&1 \
             | grep -v -E '^(Fra:|Remaining|Sample|Rendered|Path Tracing|Updating|Loading|Synchronizing)' | tail -80
+          fi
           if [ "${{ github.event.inputs.surfaces || 'yes' }}" = yes ]; then
-            ~/blender/$BLENDER/blender -b --factory-startup -P studio/app/space/rooms/build_rooms.py --               --type "${{ matrix.type }}" --variant all --out out --surfaces --surface_samples 128 --ppm 300 2>&1               | grep -v -E '^(Fra:|Remaining|Sample|Rendered|Path Tracing|Updating|Loading|Synchronizing)' | tail -40
+            ~/blender/$BLENDER/blender -b --factory-startup -P studio/app/space/rooms/build_rooms.py --               --type "${{ matrix.type }}" --variant "${{ matrix.variant }}" --out out --surfaces --surface_samples 128 --ppm 300 2>&1               | grep -v -E '^(Fra:|Remaining|Sample|Rendered|Path Tracing|Updating|Loading|Synchronizing)' | tail -40
           fi
           ls -la out
       - uses: actions/upload-artifact@v4
         with:
-          name: room-${{ matrix.type }}
+          name: room-${{ matrix.type }}-${{ matrix.variant || 'medium' }}
           path: out
           if-no-files-found: error
 

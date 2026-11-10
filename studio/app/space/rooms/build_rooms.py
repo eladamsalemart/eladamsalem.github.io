@@ -1639,7 +1639,8 @@ def surfaces(slug, o, label):
     W, D, H = r.x1 - r.x0, r.y1 - r.y0, r.h
     loose = ('table', 'trestle', 'sofa', 'cushion', 'rug', 'lamp', 'bench', 'stand', 'tokonoma', 'vase', 'partition', 'column', 'label')
     for ob in bpy.data.objects:      # the lights' lenses and the furniture are not part of a surface's picture (their shadows are)
-        if ob.type == 'LIGHT' or ob.name.split('.')[0] in loose: ob.visible_camera = False
+        if ob.type == 'LIGHT': ob.visible_camera = False
+        elif ob.name.split('.')[0] in loose: ob.hide_render = True      # (not even their shadows: the viewer has no furniture, and the floor under a rug was baked black)
     try: s.use_nodes = False            # no lens: a surface is not a photograph's frame
     except Exception: pass
     out = os.path.join(o['out'], 'surfaces', slug); os.makedirs(out, exist_ok=True)
