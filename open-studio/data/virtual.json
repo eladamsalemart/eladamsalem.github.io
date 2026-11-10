@@ -74,5 +74,11 @@
    ],
    "cover": "data/spaces/green-hour/preview.jpg"
   }
- ]
+ ],
+ "streetColours": {
+  "celebration-virtual": "#e3ca1c",
+  "green-hour": "#e3351c",
+  "paintings-for-the-future": "#1c67e3",
+  "a-room-of-her-own": "#1ce3ca"
+ }
 }
