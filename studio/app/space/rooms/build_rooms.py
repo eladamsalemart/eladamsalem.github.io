@@ -1315,8 +1315,12 @@ def apartment(v):
     box('table', 1.6, D * 0.42, 0, 2.5, D * 0.58, 0.4, mat('walnut', tex='walnut_veneer', scale=0.8, coat=0.3), bevel=0.01)
     cylinder('lamp.pole', (0.5, D * 0.12), 0.012, 0, 1.55, mat('brass', (0.6, 0.45, 0.2), 0.3, metal=1.0))
     cylinder('lamp.shade', (0.5, D * 0.12), 0.2, 1.4, 1.7, emission('shade', 3.0, 2700))
-    li = bpy.data.lights.new('lamp', 'POINT'); li.energy = 25; li.color = blackbody(2700); li.shadow_soft_size = 0.15
-    lo = bpy.data.objects.new('lamp', li); bpy.context.collection.objects.link(lo); lo.location = (0.5, D * 0.12, 1.55)
+    if not SURF['on']:      # (the app's walls carry no lamp: its hot spot was baked onto the plaster)
+        li = bpy.data.lights.new('lamp', 'POINT'); li.energy = 25; li.color = blackbody(2700); li.shadow_soft_size = 0.15
+        lo = bpy.data.objects.new('lamp', li); bpy.context.collection.objects.link(lo); lo.location = (0.5, D * 0.12, 1.55)
+    # the room's own soft light: big diffuse panels in the ceiling (a living room is lit by daylight and its ceiling, not by one lamp)
+    for k in range(3):
+        area('ceiling-fill', (W * (k + 1) / 4, D / 2, H - 0.03), (1.4, 1.0), APT_FILL, 3400, spread=140)
     hang_wall(works_of('henri-matisse', n=1)[:1] + works_of('suzanne-valadon')[1:2], at_wall((0, D * 0.9), (1, 0, 0)), at_wall((0, D * 0.1), (1, 0, 0)), (1, 0, 0), z=1.55, ceiling=H, lux=150, spot_kelvin=3000)
     fill(r, works_of('suzanne-valadon')[2:4] + works_of('henri-matisse')[4:6], walls='s', ceiling=H, lux=150, spot_kelvin=3000)
     return camera((W - 0.5, 0.5, EYE), (0.8, D * 0.62, 1.4), lens=17)
@@ -1756,6 +1760,7 @@ def main():
 
 
 EXPOSURE = {}
+APT_FILL = float(os.environ.get('APT_FILL', '260'))
 JP_ROT = float(os.environ.get('JP_ROT', '0'))
 GARDEN_STRENGTH = float(os.environ.get('GARDEN_STRENGTH', '3'))
 GARDEN_ROT = float(os.environ.get('GARDEN_ROT', '200'))
