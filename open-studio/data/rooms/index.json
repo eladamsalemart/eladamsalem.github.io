@@ -96,7 +96,17 @@
    0.03,
    0.14
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 2.3,
+    "to": 3.9,
+    "z0": 0.6,
+    "z1": 2.45,
+    "file": "win-wall-z0-0.jpg"
+   }
+  ]
  },
  "black-box": {
   "slug": "black-box",
@@ -123,7 +133,8 @@
    0.08,
    0.34
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "black-box-small": {
   "slug": "black-box-small",
@@ -150,7 +161,8 @@
    0.08,
    0.34
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "concrete-large": {
   "slug": "concrete-large",
@@ -297,7 +309,17 @@
    0.06,
    0.28
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 0.0,
+    "to": 10,
+    "z0": 0.0,
+    "z1": 4,
+    "file": "win-wall-z0-0.jpg"
+   }
+  ]
  },
  "japanese": {
   "slug": "japanese",
@@ -396,7 +418,17 @@
    0.0,
    0.0
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": [
+   {
+    "wall": "wall-z0",
+    "from": 0.2,
+    "to": 3.4,
+    "z0": 0.0,
+    "z1": 2.1,
+    "file": "win-wall-z0-0.jpg"
+   }
+  ]
  },
  "loft": {
   "slug": "loft",
@@ -504,7 +536,8 @@
    0.03,
    0.14
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "salon-small": {
   "slug": "salon-small",
@@ -531,7 +564,8 @@
    0.03,
    0.14
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "skylit-hall": {
   "slug": "skylit-hall",
@@ -732,7 +766,8 @@
    0.06,
    0.26
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  },
  "white-cube-small": {
   "slug": "white-cube-small",
@@ -759,6 +794,7 @@
    0.06,
    0.26
   ],
-  "ppm": 110
+  "ppm": 300,
+  "plates": []
  }
 }
