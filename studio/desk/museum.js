@@ -31,12 +31,23 @@ export function stateOf(row) {
   return { k: 'live', t: row.to_date ? `מוצג · עד ${dshort(row.to_date)}` : 'מוצג' };
 }
 
-let APPSH = null;                                                          // the exhibitions the app brings with it (read-only here)
-export const appShows = () => APPSH || (APPSH = Promise.all([fetch(APP + 'data/virtual.json').then(r => r.json()), fetch(APP + 'data/demo/world.json').then(r => r.json()).catch(() => ({ shows: [] }))]).then(([v, w]) => {
-  const cols = v.streetColours || {};
-  return [...(v.shows || []).map(x => ({ slug: x.slug, title: x.title, n: (x.works || []).length, cover: x.cover ? abs(x.cover) : '' })),
-    ...(w.shows || []).filter(x => x.kind === 'online' && (x.works || []).length >= 3).map(x => ({ slug: x.slug, title: x.title, n: x.works.length, cover: '' }))].map(x => ({ ...x, colour: cols[x.slug] || null }));
+let APPSH = null;                                                          // the exhibitions the app brings with it (read-only here), with their works: the Desk shows the street as visitors walk it
+const slugify = s => String(s).toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '-') || 'untitled';      // (as the app names a work)
+const getj = (u, d) => fetch(u).then(r => r.ok ? r.json() : d).catch(() => d);
+export const appShows = () => APPSH || (APPSH = Promise.all([getj(APP + 'data/virtual.json', {}), getj(APP + 'data/demo/world.json', {}), getj('/content/works.json', [])]).then(([v, w, site]) => {
+  const cols = v.streetColours || {}, W = new Map(), A = new Map((w.artists || []).map(a => [a.slug, a.name]));
+  for (const x of site || []) { const k = slugify(`${x.title}-${x.year}`); if (!W.has(k)) W.set(k, { id: k, title: (x.title || 'Untitled').trim(), year: String(x.year || ''), medium: x.tech || '', image: x.image, thumb: x.image, artist: { name: 'Elad Amsalem' } }); }
+  for (const x of w.works || []) W.set(x.slug, { id: x.slug, title: x.title, year: x.year, medium: x.medium, image: abs(x.image), thumb: abs(x.image), pairs: x.size ? [[x.size[1], x.size[0]]] : [], artist: { name: A.get(x.artist) || '' } });
+  const mk = (x, cover) => ({ slug: x.slug, title: x.title, n: (x.works || []).length, cover, colour: cols[x.slug] || null, works: (x.works || []).map(s => W.get(s)).filter(Boolean) });
+  return [...(v.shows || []).map(x => mk(x, x.cover ? abs(x.cover) : '')), ...(w.shows || []).filter(x => x.kind === 'online' && (x.works || []).length >= 3).map(x => mk(x, (x.images || [])[0] ? abs(x.images[0]) : ''))];
 }).catch(() => []));
+
+// one small dialog for the keyboard: the shortcuts live here, not in a row under the work
+export function helpDlg(title, rows) {
+  let d = $('#helpd'); if (!d) { d = document.createElement('dialog'); d.id = 'helpd'; d.className = 'dlg help'; document.body.append(d); }
+  d.innerHTML = `<form method="dialog"><h2>${esc(title)}</h2><dl class="kl">${rows.map(([k, t]) => `<div><dt dir="ltr">${k.split(' ').map(x => x === '+' || x === '/' ? `<i>${x}</i>` : `<kbd>${esc(x)}</kbd>`).join('')}</dt><dd>${esc(t)}</dd></div>`).join('')}</dl><div class="dlg-b"><span class="grow"></span><button class="btn p">סגור <kbd>Esc</kbd></button></div></form>`;
+  if (!d.open) d.showModal();
+}
 
 // --- the street as the viewer builds it (a preview at the Desk's full resolution) --------------------------------------------
 export function roomOf(E, colour) {
@@ -46,7 +57,7 @@ export function roomOf(E, colour) {
 }
 export async function walkStreet(rooms, focus, viewerCss, synth) {
   const [{ buildStreet }, { openSpace }] = await Promise.all([synth(), import(APP + 'space/space.js'), viewerCss()]);
-  const made = await buildStreet(rooms, u => u, w => w.thumb || w.image, { focus });
+  const made = await buildStreet(rooms, u => u, w => w.thumb || w.image, focus >= 0 ? { focus } : {});
   const works = rooms.flatMap(r => r.works);
   window.__spaceView = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => { window.__spaceView = null; } });
 }
@@ -129,7 +140,7 @@ export async function home(ctx) {
     <p class="muted small" style="margin:-6px 0 0">בלי תאריכים: פתוחה תמיד כשהיא מוצגת.</p>
     <div class="field">צבע הסף בכניסה<div class="sw-row"><button type="button" class="stl-b sug" id="ip-auto" data-c="" style="background:${r.colour ? '#fff' : c || '#cfc8b8'}" title="אוטומטי, לפי העבודות" aria-label="צבע אוטומטי"></button>${PRESETS.map(p => `<button type="button" class="stl-b ${r.colour === p ? 'on' : ''}" data-c="${p}" style="background:${p}" aria-label="${p}"></button>`).join('')}<label class="stl-c" title="צבע אחר"><input type="color" id="ip-col" value="${r.colour || c || '#808080'}"></label></div>
       <span class="muted small">${r.colour ? 'נבחר ידנית' : 'אוטומטי, מהצבעים של העבודות'}</span></div>
-    <div class="ip-acts">${isApp ? '<p class="muted small">תערוכה מובנית באפליקציה: אפשר לשבץ, לתזמן ולצבוע, אבל העבודות נערכות מחוץ לשולחן.</p>' : '<a class="btn p wide" href="#/museum/ex/' + r.exhibition_id + '">ערוך את התערוכה <kbd>Enter</kbd></a><button type="button" class="btn wide" id="ip-walk">צפה בחדר <kbd>W</kbd></button>'}
+    <div class="ip-acts">${isApp ? '<p class="muted small">תערוכה מובנית באפליקציה: אפשר לשבץ, לתזמן ולצבוע, אבל העבודות נערכות מחוץ לשולחן.</p>' : '<a class="btn p wide" href="#/museum/ex/' + r.exhibition_id + '">ערוך את התערוכה <kbd>Enter</kbd></a>'}<button type="button" class="btn wide" id="ip-walk">צפה בחדר <kbd>W</kbd></button>
       <button type="button" class="btn q d wide" id="ip-clear">פנה את החדר <kbd>Del</kbd></button></div>` : '<p class="muted">גרור תערוכה מהמגש אל החדר, או בחר אותה כאן.</p>'}`;
   }
   function draw(keepIns) {
@@ -137,22 +148,24 @@ export async function home(ctx) {
     const live = [...SL.values()].filter(s => s.live).length;
     page('museum', 'המוזיאון', `הרחוב קבוע, שמונה חדרים. כאן מחליטים איזו תערוכה תלויה בכל חדר, מתי, ובאיזה צבע · ${live} מוצגות`, `
     ${live ? '' : `<div class="soon" style="margin-bottom:16px">כרגע הרחוב רץ אוטומטית על התערוכות המובנות. ברגע שחדר אחד מוצג כאן, הרחוב מציג רק את החדרים שהגדרת. <button type="button" class="btn" id="adopt" style="margin-inline-start:10px;min-height:38px">התחל מהרחוב הנוכחי</button></div>`}
-    <div class="mu"><div class="mu-main"><div class="mp" dir="ltr"><span class="mp-ent">כניסה ←</span>
+    <div class="mu"><div class="mu-main"><div class="mp" dir="ltr"><span class="mp-ent">כניסה ←</span><button type="button" class="ib mp-help" id="mu-help" title="קיצורי מקשים (?)" aria-label="קיצורי מקשים">?</button>
       <div class="mp-row">${[1, 3, 5, 7].map(room).join('')}</div><div class="mp-st" aria-hidden="true"><span>הרחוב</span></div><div class="mp-row">${[2, 4, 6, 8].map(room).join('')}</div></div>
       <section class="tray"><div class="tray-h"><h2>התערוכות שלי</h2><span class="muted small">גרור אל חדר · לחיצה פותחת לעריכה</span><span class="grow"></span><button class="btn" id="walk-all">צפה ברחוב כולו</button><a class="btn p" href="#/museum/ex/new">תערוכה חדשה <kbd>N</kbd></a></div>
         <div class="tray-g">${EX.map(exCard).join('')}${EX.length ? '' : '<p class="muted">עוד אין תערוכות. התחל בתערוכה חדשה.</p>'}</div>
         ${apps.length ? `<details class="tray-a"><summary>תערוכות מובנות באפליקציה (${apps.length})</summary><div class="tray-g">${apps.map(appCard).join('')}</div></details>` : ''}</section></div>
-      <aside class="ip" id="ip" aria-label="פרטי החדר">${inspector()}</aside></div>
-    <div class="keys"><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> בין חדרים</span><span><kbd>Enter</kbd> עריכה</span><span><kbd>P</kbd> הצג/הסתר</span><span><kbd>W</kbd> צפייה</span><span><kbd>Del</kbd> פינוי</span><span><kbd>Ctrl Z</kbd> ביטול</span><span><kbd>N</kbd> תערוכה חדשה</span></div>`);
+      <aside class="ip" id="ip" aria-label="פרטי החדר">${inspector()}</aside></div>`);
     $('main').classList.add('wide'); wire(); [...SL.values()].forEach(auto);
   }
   function select(k) { sel = k; sessionStorage.setItem('mu-sel', k); $$('.rm').forEach(e => e.setAttribute('aria-pressed', +e.dataset.k === k)); $('#ip').innerHTML = inspector(); wireIp(); auto(SL.get(k)); }
-  async function walk(all) {
-    const rooms = []; let focus = 0;
-    for (let k = 1; k <= SLOTS; k++) { const r = SL.get(k); if (!r || !r.exhibition_id || !(all || k === sel)) continue; const e = exOf(r.exhibition_id); if (!e) continue;
-      if (k === sel) focus = rooms.length; rooms.push(roomOf({ ...e, id: e.id }, colourOf(r) || '#8a8a8a')); }
-    if (!rooms.length) return toast('אין כאן תערוכה שלי לצפות בה');
-    toast('בונה את הרחוב…'); try { await walkStreet(rooms, focus, ctx.viewerCss, ctx.synth); } catch (e) { fail(e); }
+  async function walk(all) {                                                  // one room, or the whole street as it is set here (rooms not shown yet too: this is the owner's preview)
+    const rooms = []; let focus = 0; const SY = await ctx.synth();
+    for (let k = 1; k <= SLOTS; k++) { const r = SL.get(k); if (!r || !(all || k === sel)) continue;
+      const e = r.exhibition_id && exOf(r.exhibition_id), a = r.app_slug && appOf(r.app_slug); let room = null;
+      if (e) { if (!r.colour && !AUTO[e.id]) await auto(r); room = roomOf({ ...e, id: e.id }, colourOf(r) || '#8a8a8a'); }
+      else if (a && a.works.length) room = { slug: a.slug, title: a.title, works: a.works, colour: colourOf(r) || await SY.suggestColour(a.works.slice(0, 4).map(w => w.thumb), u => u, SY.slugHue(a.slug)) };
+      if (!room) continue; if (k === sel) focus = rooms.length; rooms.push(room); }
+    if (!rooms.length) return toast(all ? 'אין עדיין תערוכות בחדרים' : 'בחדר הזה אין תערוכה לצפות בה');
+    toast(all ? 'בונה את הרחוב…' : 'בונה את החדר…'); try { await walkStreet(rooms, all ? -1 : focus, ctx.viewerCss, ctx.synth); } catch (e) { fail(e); }
   }
   function wireIp() {
     const r = SL.get(sel), on = (id, ev, f) => { const e = $(id); if (e) e[ev] = f; };
@@ -177,10 +190,12 @@ export async function home(ctx) {
     $$('[data-drag]').forEach(e => { e.ondragstart = ev => { ev.dataTransfer.setData('text/plain', e.dataset.drag); ev.dataTransfer.effectAllowed = 'copy'; }; });
     const ad = $('#adopt'); if (ad) ad.onclick = async () => {                      // start from what the street shows now: the app's six rooms, as they are
       const L = apps.slice(0, SLOTS); try { await commit('הרחוב הנוכחי', L.map((a, i) => [i + 1, { ...blank, app_slug: a.slug, live: true }])); draw(); toast('הרחוב הנוכחי הועתק לחדרים', () => restore(undo, redo)); } catch (e) { fail(e); } };
-    $('#walk-all').onclick = () => walk(true);
+    $('#walk-all').onclick = () => walk(true); $('#mu-help').onclick = help;
   }
+  const help = () => helpDlg('קיצורי מקשים · המוזיאון', [['← → ↑ ↓', 'מעבר בין חדרים'], ['1 – 8', 'בחירת חדר'], ['Enter', 'עריכת התערוכה שבחדר'], ['P', 'הצג או הסתר למבקרים'], ['W', 'צפייה בחדר בתלת־ממד'], ['Shift + W', 'צפייה ברחוב כולו'], ['Del', 'פינוי החדר'], ['Ctrl + Z', 'ביטול'], ['Ctrl + Shift + Z', 'שחזור'], ['N', 'תערוכה חדשה']]);
   keys(e => {
-    if (e.target.closest('input,textarea,select') || e.metaKey && e.key !== 'z') return;
+    const el = e.target; if (el && el.closest && el.closest('input,textarea,select,dialog') || e.metaKey && e.key !== 'z') return;
+    if (e.key === '?') return help();
     const k = e.key, z = (e.ctrlKey || e.metaKey) && k.toLowerCase() === 'z';
     if (z) { e.preventDefault(); return e.shiftKey ? restore(redo, undo) : restore(undo, redo); }
     if (e.ctrlKey || e.altKey) return;
@@ -190,7 +205,8 @@ export async function home(ctx) {
     const r = SL.get(sel);
     if (k === 'Enter' && r && r.exhibition_id) location.hash = '#/museum/ex/' + r.exhibition_id;
     else if ((k === 'p' || k === 'P') && r && (r.exhibition_id || r.app_slug)) $('#ip-live') && $('#ip-live').click();
-    else if ((k === 'w' || k === 'W') && r && r.exhibition_id) walk(false);
+    else if (k === 'W' && e.shiftKey) walk(true);
+    else if (k === 'w' || k === 'W') walk(false);
     else if ((k === 'Delete' || k === 'Backspace') && r) act(`חדר ${sel} פונה`, [[sel, null]]);
     else if (k === 'n' || k === 'N') location.hash = '#/museum/ex/new';
   });
