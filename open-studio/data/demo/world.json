@@ -5145,6 +5145,20 @@
  "listings": [],
  "places": {},
  "venues": {},
+ "mids": {
+  "data/demo/works/the-starry-night.jpg": "data/demo/works/the-starry-night-w.jpg",
+  "data/demo/works/dance.jpg": "data/demo/works/dance-w.jpg",
+  "data/demo/works/impression-sunrise.jpg": "data/demo/works/impression-sunrise-w.jpg",
+  "data/demo/works/the-cradle.jpg": "data/demo/works/the-cradle-w.jpg",
+  "data/demo/works/girl-with-a-pearl-earring.jpg": "data/demo/works/girl-with-a-pearl-earring-w.jpg",
+  "data/demo/works/sunlight-in-the-blue-room.jpg": "data/demo/works/sunlight-in-the-blue-room-w.jpg",
+  "data/demo/works/reply-of-the-zaporozhian-cossacks.jpg": "data/demo/works/reply-of-the-zaporozhian-cossacks-w.jpg",
+  "data/demo/works/the-rhinoceros.jpg": "data/demo/works/the-rhinoceros-w.jpg",
+  "data/demo/works/composition-vii.jpg": "data/demo/works/composition-vii-w.jpg",
+  "data/demo/works/la-maja-desnuda.jpg": "data/demo/works/la-maja-desnuda-w.jpg",
+  "data/demo/works/luncheon-on-the-grass.jpg": "data/demo/works/luncheon-on-the-grass-w.jpg",
+  "data/demo/works/composition-iv.jpg": "data/demo/works/composition-iv-w.jpg"
+ },
  "thumbs": {
   "data/demo/people/albrecht-durer.jpg": "data/demo/people/albrecht-durer-s.jpg",
   "data/demo/people/angelica-kauffman.jpg": "data/demo/people/angelica-kauffman-s.jpg",

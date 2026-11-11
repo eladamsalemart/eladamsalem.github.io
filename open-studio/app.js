@@ -107,7 +107,7 @@ function buildModel(d) {
   const cities = [];
   for (const e of exhibitions) if (e.city && !cities.some(c => c.name === e.city)) cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
   if (artist.city && !cities.some(c => c.name === artist.city)) cities.push({ name: artist.city, slug: slugify(artist.city), country: artist.country });
-  const m = { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: { ...(d.thumbs || {}) }, spaces: d.spaces || {},
+  const m = { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: { ...(d.thumbs || {}) }, mids: {}, spaces: d.spaces || {},
     live: [], listings: [], places: {} };
   if (d.world) addWorld(m, d.world, uniq, seen);
   if (d.community) addCommunity(m, d.community, uniq, seen);
@@ -235,6 +235,7 @@ function addWorld(m, w, uniq, seen) {
   for (const l of m.listings) for (const ev of l.events) ev.listing = l;
   m.places = w.places || {};
   Object.assign(m.thumbs, w.thumbs || {});
+  Object.assign(m.mids, w.mids || {});
   for (const e of m.exhibitions) if (e.city && !m.cities.some(c => c.name === e.city)) m.cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
 }
 
@@ -304,7 +305,7 @@ const LOGO = '<svg class="mark" viewBox="0 0 132 132" aria-hidden="true"><rect x
 // the screen (sizes: how wide it shows; most images here are covers and rows, a third of the screen or less)
 const im = (p, alt, attrs = '', sizes = '33vw') => {
   if (!p) return '';
-  const t = M.thumbs[p], set = t ? ` srcset="${esc(t)} 640w, ${esc(src(p))} 2000w" sizes="${sizes}"` : '';
+  const t = M.thumbs[p], mid = M.mids[p], set = t ? ` srcset="${esc(t)} 640w, ${mid ? `${esc(mid)} 1200w, ` : ''}${esc(src(p))} 2000w" sizes="${sizes}"` : '';
   return `<img src="${esc(src(p))}"${set} alt="${esc(alt)}" loading="lazy" ${attrs}>`;
 };
 const metaLine = w => [w.year, w.medium, w.size].filter(Boolean).join(' · ');
