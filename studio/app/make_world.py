@@ -334,6 +334,13 @@ def main():
         p = portrait(qid, slug) if not (OUT / 'people' / f'{slug}.jpg').exists() else (f'data/demo/people/{slug}.jpg', next((a['portrait_source'].split('File:')[-1] for a in prev.get('artists', []) if a['slug'] == slug), ''))
         artists.append(dict(slug=slug, name=name, discipline=discipline, city=city, country=country, statement=about,
                             portrait=p[0] if p else '', wikidata=qid, portrait_source=f'https://commons.wikimedia.org/wiki/File:{p[1]}' if p and p[1] else ''))
+        if p:                                           # a small portrait (320 px) for stars, rows and lists: Home shows all of them at once
+            small = OUT / 'people' / f'{slug}-s.jpg'
+            if not small.exists():
+                from PIL import Image
+                im = Image.open(OUT / 'people' / f'{slug}.jpg').convert('RGB'); w = min(320, im.width)
+                im.resize((w, round(im.height * w / im.width)), Image.LANCZOS).save(small, quality=80, optimize=True, progressive=True)
+            thumbs[p[0]] = f'data/demo/people/{slug}-s.jpg'
         mine = [w for w in kept.values() if w['artist'] == slug and w['wikidata'] not in DROP]
         target = PER_FIRST if slug in FIRST else PER
         if len(mine) < target:
