@@ -25,7 +25,7 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
   p.on('pageerror', e => bad.push(`script error: ${e.message}`));
   p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|supabase|net::ERR/i.test(m.text())) bad.push(`console error: ${m.text().slice(0, 200)}`); });
   let n = 0;
-  const shot = async name => { if (!shots) return; fs.mkdirSync(shots, { recursive: true }); await p.screenshot({ path: path.join(shots, `${String(++n).padStart(2, '0')}-${name}.jpg`), type: 'jpeg', quality: 70, scale: 'css' }); };
+  const shot = async name => { if (!shots) return; fs.mkdirSync(shots, { recursive: true }); await p.screenshot({ path: path.join(shots, `${String(++n).padStart(2, '0')}-${name}.jpg`), type: 'jpeg', quality: 70, scale: 'css' }).catch(() => {}); };
   const step = async (name, budget, fn) => { const t = Date.now(); try { await fn(); } catch (e) { bad.push(`${name}: ${e.message.split('\n')[0]}`); } times[name] = Date.now() - t; if (times[name] > budget * (SLOW || 1)) bad.push(`${name}: took ${times[name]} ms (budget ${budget})`); await shot(name); };
   // every visible control on the screen is at least 44 px to the finger (its own box or its ::after area)
   const targets = async where => {
@@ -49,6 +49,10 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
   await targets('add works sheet');
   await step('add-to-page', 4000, async () => { await p.tap('#adGo'); await p.waitForFunction(() => document.querySelectorAll('#works .wk').length === 3 && !document.querySelector('.sh'), null, { timeout: 8000 }); });
   await targets('my page');
+  // how long the page itself takes to answer a tap on a work (the script's own tap adds its waiting for the page to settle)
+  times['edit-answers'] = Math.round(await p.evaluate(() => new Promise(done => { const t = performance.now(); document.querySelector('#works .wk .wk-t').click();
+    requestAnimationFrame(() => requestAnimationFrame(() => { const ms = performance.now() - t; document.querySelector('.sh .sh-x').click(); done(ms); })); })));
+  if (times['edit-answers'] > 200 * (SLOW || 1)) bad.push(`a tap on a work answers in ${times['edit-answers']} ms`);
   await step('open-edit', 1500, async () => { await p.tap('#works .wk .wk-t'); await p.waitForSelector('#wkForm', { timeout: 4000 }); });
   await targets('edit sheet');
   await step('save-edit', 2000, async () => { await p.fill('#wkForm [name=title]', 'Morning, Haifa'); await p.fill('#wkForm [name=width]', '80'); await p.fill('#wkForm [name=height]', '60'); await p.tap('.sh [data-save]');
