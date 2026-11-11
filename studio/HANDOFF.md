@@ -128,11 +128,16 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    objects at real size via `space/plinths.js`); `v.placements` {id:{wall,a,y}} in `virtual_shows.works`, `v.plinths` in the new
    `virtual_shows.plinths` column; `hang()` stays the default. Several connected rooms: NOT done, see studio/design/night-2026-11-09/onview.md.
 
-12. Two rooms only (owner, 10.11 night): the artist is offered only the Living room (`apartment`) and the Black box (`black-box`).
-   The switch is `ACTIVE_KINDS` in `studio/app/space/synth.js`: every other kind is `archived: true` in ROOMS (data, files and
-   the workflow untouched; shows already in one still open; the picker keeps the kind a show uses). To un-archive a kind, add
-   its key to ACTIVE_KINDS (order = order in the picker). Sculptures (kind object, category Sculpture, depth, clay/bronze/stone
-   medium) now always stand on plinths (`isObject` in synth.js, same rule in artist.js `shapeWork`).
+12. Three rooms (owner, 11.11, replaces "two rooms" of 10.11): the artist is offered White cube (`white-cube`), Raw concrete
+   (`concrete`) and Glass pavilion (`glass-pavilion`), in that order. The switch is `ACTIVE_KINDS` in `studio/app/space/synth.js`:
+   every other kind (Living room and Black box included) is `archived: true` in ROOMS (data, files and the workflow untouched;
+   shows already in one still open; the picker keeps the kind a show uses). To un-archive a kind, add its key to ACTIVE_KINDS
+   (order = order in the picker). Sculptures always stand on plinths (`isObject` in synth.js, same rule in artist.js `shapeWork`).
+   Glass pavilion: glass in ONE wall in every size, three solid walls, and white freestanding walls in the room. The bake
+   (`build_rooms.py` `surfaces()`) photographs both faces of each (`stand-N-a.jpg`, `stand-N-b.jpg`) and lists them in room.json
+   `stands: [{x, z, len, h, t, files}]`; synth.js `standsOf`/`wallsOf` turns each face into a wall a work hangs on (lower than
+   the room: `wl.h`), space.js draws the body between the faces and keeps visitors out (`spec.stands`, `spec.solids`), the hang
+   editor uses each wall's own height (`wl.size[1]`). Notes of the night: `studio/design/night-2026-11-11/rooms.md`.
 13. The museum is edited on the Desk only (owner, 11.11): `studio/desk/museum.js` (8 slots of the street: exhibition, live switch, dates, colour),
    `exedit.js` (walls to scale, plinths, wall text). Tables `museum_exhibitions` (admin only) and `museum_slots` (a live slot holds a copy of its
    exhibition; public read only live and inside dates). The street (`enterStreet` in app.js) reads live slots, else the automatic street. The phone admin
