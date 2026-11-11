@@ -8,7 +8,10 @@ rules hold here (Hebrew to the owner, phone first, never loosen a check, follow 
 
 1. `git fetch` both branches; work on `studio` (workflows also go to `main`, as CLAUDE.md says).
 2. Open issues labelled `app-health` (GitHub) and the last runs of "App health", "Open Studio app", "Studio spaces",
-   "Art map: exhibitions". A red run or an open issue is the first job.
+   "Art map: exhibitions". A red run or an issue with that label is the first job. App health's own run stays
+   green even when the app is broken (a failed run mails the owner's own address): its job is red, and its report
+   is one standing issue (label `health-report`), edited in place, labelled `app-health` only while something is
+   broken. Never comment on it, close it or reopen it (each mails the owner); write in the log instead.
 3. Run the checks yourself, on the live site:
    - `node studio/app/health/health.cjs https://eladamsalem.com/open-studio/ /tmp/health`
    - `node studio/app/check_home.cjs https://eladamsalem.com/open-studio/`
