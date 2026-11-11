@@ -9,3 +9,4 @@
 - Dispatch or cancel workflows through Claude in Chrome (the owner's signed-in Chrome). If a page freezes, close the tab and open a new one; give up after 3 tries and note it.
 - Work until ~07:00 Israel time. Loop: look → fix → verify. Don't stop early after a first pass.
 - Report to the owner in Hebrew in your topic .md file here; final 5-line Hebrew report.
+- Added 00:20: KTX-Software 4.4.2 (toktx, ktx) at C:\Users\elada\tools\ktx\bin and 7-Zip at C:\Users\elada\tools\7zip; Blender is 4.5.16 and ready. Add `/c/Users/elada/tools/ktx/bin:/c/Users/elada/tools/7zip` to PATH. Playwright's Chromium is being installed by the lead.
