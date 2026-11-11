@@ -1,0 +1,58 @@
+<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8"><title>Open Studio · מחקר ורעיונות 11.11.2026</title><style>
+@page { size: A4; margin: 15mm 14mm }
+body { font-family: Arial, "Segoe UI", sans-serif; color:#1d1c1a; font-size:11pt; line-height:1.45; max-width:780px; margin:auto; padding:12px }
+h1 { font-size:21pt; margin:0 } .sub { color:#6b665e; margin:2px 0 12px }
+h2 { font-size:13.5pt; margin:18px 0 6px; border-bottom:1px solid #ddd8cf; padding-bottom:3px }
+.ok { background:#eef4ea; border-right:4px solid #5b8a4a; padding:8px 12px; margin-bottom:10px }
+table { width:100%; border-collapse:collapse } th,td { text-align:right; vertical-align:top; padding:6px; border-bottom:1px solid #ddd8cf }
+th { font-size:11pt; white-space:nowrap } td.n { white-space:nowrap; direction:ltr; text-align:right }
+td.o { color:#9a4f1c; font-size:10pt; width:24% } .src { color:#6b665e; font-size:9pt; direction:ltr; text-align:left } li { margin:3px 0 }
+</style><body>
+<h1>Open Studio · מחקר ורעיונות</h1><div class="sub">11.11.2026 · עבודה קלה עד שבת 19:00. החללים, חוויית האמן והמוזיאון בהשהיה.</div>
+
+<div class="ok"><b>השורה התחתונה:</b> האפליקציה נפתחת עכשיו עם הרבה פחות הורדה, בלי שום שינוי במראה. למטה שלושה שיפורים שאני ממליץ לעשות עד שבת, ורעיונות גדולים יותר שמחכים להחלטה שלך.</div>
+
+<h2>1. מה נעשה היום (נמדד, עלה לאפליקציה)</h2>
+<table><tr><th>מסך</th><th>לפני</th><th>אחרי</th><td><b>מה השתנה</b></td></tr>
+<tr><th>כניסה</th><td class="n">825 KB</td><td class="n">161 KB</td><td>התמונה שבקשת נטענת בגודל של טלפון. נבדק שהגרסה החדשה באוויר.</td></tr>
+<tr><th>Home</th><td class="n">14.3 MB</td><td class="n">5.2 MB</td><td>36 דיוקנאות האמנים בשמיים נטענים קטנים (10 MB ← 0.8 MB). צילום לפני/אחרי זהה.</td></tr>
+<tr><th>Shows</th><td class="n">1.35 MB</td><td class="n">0.34 MB</td><td>התמונה הראשית נטענת ברוחב 1200 במקום 1920. חדה באייפון.</td></tr>
+<tr><th>כרטיס ההתקנה</th><td colspan="2">כיסה את כפתורי הכניסה</td><td>מופיע רק אחרי מסך הכניסה.</td></tr></table>
+<p>נבדק בדפדפן שמדמה אייפון על המחשב. על אייפון אמיתי עוד לא נבדק.</p>
+
+<h2>2. שיפורים טכניים מוצעים</h2>
+<table><tr><th>מה</th><td><b>מה זה נותן</b></td><td class="o"><b>מחיר / סיכון</b></td></tr>
+<tr><th>גופנים מהאתר שלנו</th><td>היום הגופנים מגיעים מ-Google ומעכבים את הציור הראשון בכ-0.8 שניות. אותם גופנים, מהשרת שלנו.</td><td class="o">קטן. המראה לא משתנה.</td></tr>
+<tr><th>קישור שיתוף עם תמונה</th><td>כששולחים תערוכה בוואטסאפ מופיע היום קישור ריק. עמוד קטן לכל תערוכה יציג תמונה, שם ואמן.</td><td class="o">קטן-בינוני. נבנה אוטומטית בפרסום.</td></tr>
+<tr><th>תמונות שאמנים מעלים</th><td>עבודה שהועלתה שוקלת עד 760 KB גם כשהיא מוצגת קטנה. גרסה קטנה תיווצר בזמן ההעלאה.</td><td class="o">בינוני. נוגע בהעלאה, לכן אחרי שבת.</td></tr>
+<tr><th>המפה</th><td>המפה תוקעת את הטלפון כשנייה בפתיחה. לטעון את המקומות בחלקים.</td><td class="o">בינוני.</td></tr>
+<tr><th>טקסטורות דחוסות לחללים (KTX2)</th><td>פחות זיכרון באייפון ופחות קריסות בחללים גדולים. הכלי כבר מותקן.</td><td class="o">חלק מעבודת החללים בשבת.</td></tr>
+<tr><th>WebGPU</th><td>three.js ממליצה עליו מדצמבר 2025, ורוב המקורות אומרים ש-iOS 26 תומך. המקורות לא אחידים.</td><td class="o">לא עכשיו. לבדוק רק אחרי ששלושת החללים גמורים.</td></tr></table>
+
+<h2>3. יכולות אייפון שהאפליקציה עוד לא משתמשת בהן</h2>
+<ul>
+<li><b>התראות (Push):</b> עובדות באייפון רק לאפליקציה שהותקנה למסך הבית. שימוש טבעי: "הפתיחה של תערוכה שעקבת אחריה הערב ב-20:00". דורש שולח בצד השרת ואישור שלך.</li>
+<li><b>מספר על האייקון:</b> כמה פתיחות יש השבוע. מגיע יחד עם ההתראות.</li>
+<li><b>iOS 26:</b> כל אתר שמוסיפים למסך הבית נפתח כאפליקציה, כך שההתקנה פשוטה יותר ממה שכתוב היום בכרטיס.</li>
+<li><b>לראות עבודה על הקיר בבית:</b> אייפון יודע להציג מודל תלת-ממדי במצלמה בלי אפליקציה. ציור ממוסגר בגודל האמיתי שלו על הקיר של המבקר.</li>
+</ul>
+
+<h2>4. רעיונות למוצר</h2>
+<table><tr><th>רעיון</th><td><b>למה</b></td><td class="o"><b>מאיפה</b></td></tr>
+<tr><th>קול האמן</th><td>האמן מקליט 30 שניות ליד עבודה, והמבקר שומע אותו בתוך החלל.</td><td class="o">Bloomberg Connects בנויה על אודיו של 1,500 מוסדות.</td></tr>
+<tr><th>הסטודיו האמיתי כחדר</th><td>סריקה של סטודיו אמיתי באייפון (כמה דקות וידאו), ומבקרים הולכים בו. מתאים לשם Open Studio.</td><td class="o">Gaussian splatting. מנוע חינמי ל-three.js (Spark 2.0). בטלפון עד כמיליון נקודות.</td></tr>
+<tr><th>מסלול ליום שישי</th><td>המבקר שומר 3-4 תערוכות, והמפה מסדרת אותן למסלול הליכה.</td><td class="o">המפה והשעות כבר קיימות.</td></tr>
+<tr><th>מעברים חלקים</th><td>תמונה ש"גדלה" מהרשימה לעמוד העבודה במקום קפיצה. לא נוגע ב-Home.</td><td class="o">יכולת מובנית בספארי. כיוון עיצובי, מחכה לאישורך.</td></tr></table>
+
+<h2>5. המתחרים, בקצרה</h2>
+<ul>
+<li><b>Artsteps:</b> חינמי, פונה לחינוך ולקהילות. <b>Kunstmatrix:</b> מכ-15 אירו לחודש, ממוקדת מכירות, התבניות נחשבות גנריות. <b>Exhibbit:</b> מנוי לגלריות עם תוכנית קבועה.</li>
+<li>מה שיש רק ל-Open Studio: חללים שצולמו באיכות גבוהה, מפה אמיתית של מקומות האמנות בישראל, וחיבור בין אמן, תערוכה ומקום.</li>
+<li>המקורות כאן הם בעיקר בלוגים של ספקים ורשימות דירוג, ולכן המחירים והדירוגים הם הערכה.</li></ul>
+
+<h2>6. מה אני ממליץ עד שבת</h2>
+<ol><li>גופנים מהאתר שלנו.</li><li>קישור שיתוף עם תמונה לכל תערוכה.</li><li>לבדוק את שלושת התיקונים של היום על האייפון שלך.</li></ol>
+<p>שלושתם קלים בשימוש במכסה ולא נוגעים בעבודה שבהשהיה.</p>
+
+<p class="src">Sources: artfolio.com/article/virtual-exhibition-essentials · v21artspace.com/alternatives-to-kunstmatrix · magicbell.com/blog/pwa-ios-limitations-safari-support-complete-guide · gotechtor.com/apple-web-apps-update-ios-26 · vr.org/articles/webgpu-baseline-2026-three-js-webxr-default · appdevelopermagazine.com/webgpu-in-ios-26 · bloombergconnects.org · sparkjs.dev/docs/overview · worldlabs.ai/blog/spark-2.0 · polyvia3d.pages.dev/guides/gaussian-splatting-web-viewer</p>
+</body></html>
