@@ -323,6 +323,22 @@ def days(d):
     return (date(*d) - date.today()).days
 
 
+def mids(shows):
+    """A middle copy (1200 px wide) of each show's cover: a phone's full-width picture needs about 1170 px, not the 1920 px original."""
+    out = {}
+    for e in shows:
+        c = (e.get('images') or [''])[0]
+        if not c.startswith('data/demo/works/'): continue
+        full = OUT / 'works' / Path(c).name; mid = full.with_name(full.stem + '-w.jpg')
+        if not full.exists(): continue
+        if not mid.exists():
+            im = Image.open(full).convert('RGB')
+            if im.width <= 1300: continue
+            im.resize((1200, round(im.height * 1200 / im.width)), Image.LANCZOS).save(mid, 'JPEG', quality=78, optimize=True, progressive=True)
+        out[c] = f'data/demo/works/{mid.name}'
+    return out
+
+
 def main():
     old = OUT / 'world.json'
     prev = json.loads(old.read_text(encoding='utf-8')) if old.exists() and '--fresh' not in sys.argv else {}
@@ -384,6 +400,7 @@ def main():
                        'Dates are days from today. Made by studio/app/make_world.py.',
                  artists=artists, works=works, shows=shows, live=[], listings=prev.get('listings', []), places=prev.get('places', {}),
                  venues=prev.get('venues', {}), thumbs=thumbs)
+    world['mids'] = mids(world['shows'])
     old.write_text(json.dumps(world, ensure_ascii=False, indent=1), encoding='utf-8')
     print(f'{len(artists)} artists, {len(works)} works, {len(shows)} shows')
 
