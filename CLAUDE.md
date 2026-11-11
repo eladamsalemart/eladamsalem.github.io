@@ -88,8 +88,8 @@ that wasn't copied. "Art map: exhibitions" daily (sites, newsletters, Makore; pa
 site, and keeps its report in one standing issue (label `health-report`, edited in place, labelled `app-health` only
 while something is broken). Since 11.11 nothing in it mails the owner's own address: the run never ends red (the job
 does), the issue is never commented on, closed or reopened, and a change of state is mailed to ooopenstudio@. GitHub's
-own mails (a failed run of any other workflow, a new issue) still go to eladamsalem1@ until the owner changes the
-address in GitHub's settings (Emails, then Notifications): only their login can. A scheduled task on the owner's
+own mails (a failed run of another workflow, a new issue) go to ooopenstudio@ too: the owner made it the account's
+default notifications address on 11.11 (github.com/settings/notifications; only their login can change it). A scheduled task on the owner's
 account ("Open Studio: app health (fix and improve, Sonnet)", trig_01M2ANWFBaQUXo9MyyBzTVSD, nightly 03:41 Israel time;
 the Opus one, trig_014jaVdgnMaAojFCVD8RpH9b, is paused) wakes a dedicated session on Sonnet, "Open Studio: app health
 (nightly, Sonnet)" (session_01BXFf6RhxRTmCxBSX7W3Cxs, opened with the repository
