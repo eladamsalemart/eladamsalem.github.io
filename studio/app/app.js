@@ -1301,6 +1301,7 @@ if ('serviceWorker' in navigator && !window.STUDIO_DATA && location.protocol ===
   let prompt = null;
   const show = () => {
     if (document.querySelector('.install')) return;
+    if (document.querySelector('.wl')) { setTimeout(show, 4000); return; }      // (not over the sign-in buttons: wait until the welcome screen is gone)
     const card = document.createElement('aside');
     card.className = 'install';
     card.innerHTML = `<img src="icons/icon-192.png" alt=""><div><b>Get Open Studio</b>${ios
