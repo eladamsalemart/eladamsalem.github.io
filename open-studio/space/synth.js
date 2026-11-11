@@ -39,7 +39,7 @@ export const KINDS = {
 // THE ARCHIVE SWITCH (owner, 10.11): only these kinds are offered to artists, in this order. Every other kind keeps all its
 // data and files in data/rooms and stays loadable (shows already in one still open); it is just not offered. To bring a
 // kind back, add its key here. The 2/3-rooms variants follow their kind.
-export const ACTIVE_KINDS = ['apartment', 'black-box'];
+export const ACTIVE_KINDS = ['white-cube', 'concrete', 'glass-pavilion'];
 export const isActiveKind = k => ACTIVE_KINDS.includes(k);
 const SIZE = { small: 'Small', large: 'Large', medium: 'Medium' };
 const BAKED = new URL('../data/rooms/', import.meta.url).href;
