@@ -1,7 +1,10 @@
 # Open Studio: the app's health, on the live site, as a phone sees it (studio/app/health/). After every publish of the
-# app (each real change) and every three days. Something broken opens (or updates) a GitHub issue labelled
-# "app-health"; a clean run closes it. A scheduled Claude session reads the issue, fixes what is broken, proves the fix,
-# and takes one improvement at a time (studio/app/health/PLAYBOOK.md).
+# app (each real change) and every three days. The report lives in one standing issue (label "health-report"), edited
+# in place; it carries the label "app-health" only while something is broken. A scheduled Claude session reads it,
+# fixes what is broken, proves the fix, and takes one improvement at a time (studio/app/health/PLAYBOOK.md).
+# No mail to the owner's own address (the owner's word, 11.11): the run itself never ends red (GitHub mails every failed
+# run to whoever started it), the job inside it does; nothing is commented, closed or reopened; and a change of state
+# (broken, well again) is mailed to the app's mailbox, ooopenstudio@gmail.com.
 name: "App health"
 
 on:
@@ -22,6 +25,7 @@ concurrency:
 
 jobs:
   health:
+    continue-on-error: true          # a broken app fails this job, not the run: a failed run mails the owner
     runs-on: ubuntu-24.04            # the OS playwright 1.56.1 (the version checked locally) installs on; 26.04 it cannot
     timeout-minutes: 25
     steps:
@@ -69,21 +73,50 @@ jobs:
           name: app-health
           path: ${{ runner.temp }}/health
           retention-days: 14
-      - name: Open or update the issue when something is broken; close it when all is well
+      - name: Keep the report in one issue, edited in place (labelled app-health only while something is broken)
+        id: issue
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # No comments, no closing and reopening: each of those mails the repository's owner at their own address.
+          # An edit of the body, the title or the labels mails no one.
           mkdir -p "$RUNNER_TEMP/health"
           gh label create app-health --color D93F0B --description "Found by the App health check" 2>/dev/null || true
-          open=$(gh issue list --label app-health --state open --json number -q '.[0].number')
+          gh label create health-report --color 0E8A16 --description "App health's standing report, edited in place" 2>/dev/null || true
+          was=$(gh issue list --label app-health --state open --json number -q '.[0].number')
+          n=$(gh issue list --label health-report --state open --json number -q '.[0].number')
+          [ -n "$n" ] || n="$was"
           broken="${{ steps.look.outputs.broken }}"
           # the checks could not run at all (the browser didn't install, the site didn't answer): that is no all-clear
           if [ -z "$broken" ]; then broken=1; printf '# App health could not run its checks\n\nSee the run: %s\n' "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > "$RUNNER_TEMP/health/issue.md"; fi
+          { echo "Checked $(date -u '+%Y-%m-%d %H:%M') UTC."; echo; head -c 60000 "$RUNNER_TEMP/health/issue.md"; } > "$RUNNER_TEMP/health/body.md"
           if [ "$broken" = "1" ]; then
-            if [ -n "$open" ]; then gh issue comment "$open" --body-file "$RUNNER_TEMP/health/issue.md"
-            else gh issue create --title "App health: something is broken" --label app-health --body-file "$RUNNER_TEMP/health/issue.md"; fi
+            [ -n "$was" ] || echo "changed=broken" >> "$GITHUB_OUTPUT"
+            if [ -n "$n" ]; then gh issue edit "$n" --title "App health: something is broken" --body-file "$RUNNER_TEMP/health/body.md" --add-label app-health --add-label health-report
+            else gh issue create --title "App health: something is broken" --label app-health --label health-report --body-file "$RUNNER_TEMP/health/body.md"; fi
+            echo "::error::App health: something is broken (the report is in the issue labelled app-health)"
             exit 1
-          elif [ "$broken" = "0" ] && [ -n "$open" ]; then
-            gh issue close "$open" --comment "All checks pass again. $(head -c 3000 "$RUNNER_TEMP/health/issue.md")"
+          elif [ -n "$n" ]; then
+            [ -z "$was" ] || echo "changed=well" >> "$GITHUB_OUTPUT"
+            gh issue edit "$n" --title "App health: all is well" --body-file "$RUNNER_TEMP/health/body.md" --remove-label app-health --add-label health-report
           fi
+      - name: Tell the app's mailbox when the state changes (the owner's own address gets nothing)
+        if: always() && steps.issue.outputs.changed != ''
+        env:
+          MAIL_USER: ooopenstudio@gmail.com
+          MAIL_PASSWORD: ${{ secrets.ART_MAIL_PASSWORD }}
+          CHANGED: ${{ steps.issue.outputs.changed }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - "$RUNNER_TEMP/health/body.md" <<'EOF' || echo "::warning::the mail to the app's mailbox did not go out"
+          import os, smtplib, sys
+          from email.message import EmailMessage
+          m = EmailMessage()
+          m['From'] = m['To'] = os.environ['MAIL_USER']
+          m['Subject'] = 'Open Studio, App health: ' + ('something is broken' if os.environ['CHANGED'] == 'broken' else 'all is well again')
+          m.set_content(os.environ['RUN_URL'] + '\n\n' + open(sys.argv[1], encoding='utf-8', errors='replace').read()[:6000])
+          with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=60) as s:
+              s.login(os.environ['MAIL_USER'], os.environ['MAIL_PASSWORD'])
+              s.send_message(m)
+          EOF
