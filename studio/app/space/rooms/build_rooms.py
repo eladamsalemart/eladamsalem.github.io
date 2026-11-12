@@ -1167,9 +1167,9 @@ def concrete(v):
         for i in range(9):
             place(rnd.choice(['island_tree_01', 'island_tree_01', 'island_tree_02']), rnd.uniform(-8, 16), 8 + rnd.uniform(10, 26), height=rnd.uniform(12, 21), rot=rnd.uniform(0, 360))
         mesh('slot.glass', [(0.7, 8.02, 4.9), (7.3, 8.02, 4.9), (7.3, 8.02, 5.4), (0.7, 8.02, 5.4)], [(0, 1, 2, 3)], glass())
-        area('slot.sky', (4, 8.5, 5.15), (6.6, 0.5), 1200, 6500, rot=(math.radians(-90), 0, 0), spread=120)
+        area('slot.sky', (4, 8.5, 5.15), (6.6, 0.5), 1900, 6500, rot=(math.radians(-90), 0, 0), spread=120)
         portal((4, 8.05, 5.15), (6.6, 0.5), rot=(math.radians(-90), 0, 0))
-        ambient(r, 35, 6000)
+        ambient(r, 80, 6000)
         fill(r, big('claude-monet', 3), walls='swn', ceiling=6, lux=140, beam=30)
         formwork(r)
         return camera((7.2, 0.7, EYE), (1.5, 6.5, 2.6), lens=17)
