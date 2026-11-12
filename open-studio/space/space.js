@@ -189,8 +189,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (s.kind === 'reveal') { const r = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide }))); r.userData.kind = 'reveal'; scene.add(r); return; }
     if (s.kind === 'wall' || s.kind === 'ceiling') {
       const masks = s.kind === 'wall' ? ((spec.blocks || {})[s.name] || []) : [];
-      const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks), s.openings || [], s.kind === 'wall' ? 0.03 : 0);
-      m.userData.kind = s.kind; scene.add(m);
+      const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks), s.openings || [], s.kind === 'wall' && !s.stand ? 0.03 : 0);
+      m.userData.kind = s.kind; if (s.stand) m.userData.stand = s.stand; scene.add(m);
       for (const o of s.openings || []) addOpening(s, o);
     }
   });
@@ -558,6 +558,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   // in the order the show was hung (a designed show: as its artist or curator set it), else along the room
   const plinths = addPlinths(THREE, scene, spec.plinths, loadTex, spec.plinthRoom || {});
   plinthList.push(...plinths);
+  const standBodies = (await import('./plinths.js')).addStands(THREE, scene, spec.stands, spec.plinthRoom || {});   // the freestanding walls' bodies (their faces are surfaces)
   if (spec.furniture) {    // the Living room's sofa, rug, table and lamp (space/furniture.js); a visitor does not walk through them
     const { addFurniture } = await import('./plinths.js'); const f = addFurniture(THREE, scene, spec.furniture);
     for (const c of f.solid) plinthList.push({ group: { position: { x: c.x, z: c.z } }, spec: { size: [(c.r - 0.35) * 200, 0] } });
@@ -874,7 +875,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const rw = R.x1 - R.x0, rd = R.z1 - R.z0, ms = 120 / Math.max(rw, rd);
   const mx = x => 6 + (x - R.x0) * ms, mz = z => 6 + (z - R.z0) * ms;
   map.setAttribute('viewBox', `0 0 ${rw * ms + 12} ${rd * ms + 12}`); map.style.width = `${rw * ms + 12}px`;
-  map.innerHTML = `<rect class="room" x="6" y="6" width="${rw * ms}" height="${rd * ms}" rx="1.5"/>` + pieces.map((p, i) => {
+  map.innerHTML = `<rect class="room" x="6" y="6" width="${rw * ms}" height="${rd * ms}" rx="1.5"/>` + (spec.solids || []).map(([ax, az, bx, bz]) => `<line class="stand" x1="${mx(ax)}" y1="${mz(az)}" x2="${mx(bx)}" y2="${mz(bz)}"/>`).join('') + pieces.map((p, i) => {
     const a = new THREE.Vector3(p.facing.z, 0, -p.facing.x).multiplyScalar(p.size.w / 200), c = p.centre;
     const xy = `x1="${mx(c.x - a.x)}" y1="${mz(c.z - a.z)}" x2="${mx(c.x + a.x)}" y2="${mz(c.z + a.z)}"`;
     return `<line class="work" ${xy}/><line class="hit" data-i="${i}" ${xy}><title>${p.w.title}</title></line>`;
@@ -1126,11 +1127,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   setMode('walk'); show();
   if (exitLabel) $('.sv-x').textContent = exitLabel;
   if (editor) {
-    $('.sv-modes').hidden = true; $('.sv-hint').innerHTML = 'Tap a work or a plinth, then drag it<br>Drag the wall behind to look around';
+    $('.sv-modes').hidden = true; $('.sv-hint').innerHTML = 'Tap a work or a plinth, then drag it. Tap a standing wall to move it<br>Drag the wall behind to look around';
     // what the hang editor may do to the room: move a work to a place on a wall, a plinth on the floor
     const dM = 0.035 + 0.004;
     editor.attach({
-      THREE, scene, camera, canvas, root, pieces, plinths, floor: floorMesh, EYE, surfaces, R, ray,
+      THREE, scene, camera, canvas, root, pieces, plinths, stands: standBodies, floor: floorMesh, EYE, surfaces, R, ray,
       dirty() { dirty = true; },
       pose() { return { at: pos.toArray(), to: look.toArray() }; },
       setPose(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },
