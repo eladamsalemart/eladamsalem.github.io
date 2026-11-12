@@ -230,7 +230,8 @@ export function mount(c) {
       else pickPhotos();
     });
     app.querySelectorAll('[data-share]').forEach(b => b.onclick = async () => {
-      const url = `${location.origin}${location.pathname}#/artist/${(a && a.slug) || S.slug || ''}`;
+      const slug = (a && a.slug) || S.slug || '';
+      const url = slug && window.shareLink ? await window.shareLink('by', slug, `/artist/${slug}`) : `${location.origin}${location.pathname}#/artist/${slug}`;
       try { if (navigator.share) { await navigator.share({ title: S.artist.name, text: `${S.artist.name} on Open Studio`, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
       try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { prompt('Copy your page’s link', url); }
     });
