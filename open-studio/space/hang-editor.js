@@ -209,7 +209,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     function note(t) { clearTimeout(noteT); pop = ''; ui.pop.hidden = false; ui.pop.innerHTML = `<p class="he-note">${esc(t)}</p>`; noteT = setTimeout(() => { if (!pop) ui.pop.hidden = true; }, 2600); }
     async function addWork(id) {
       const w = byId(id); if (!w) return;
-      const pre = clone(st); let turn = null;
+      const pre = clone(st); let turn = null, near = null;
       if (w.kind === 'object') {
         let q = sel && sel.k === 'plinth' ? stPlinth(sel.id) : null; if (q && q.work) q = null;
         if (q) q.work = id;
@@ -226,10 +226,14 @@ export async function openHangEditor({ design, library, state, src, shape, openS
           for (const s of others) { const x = freeSpot(s, s.size[0] / 2, ww, true); if (x != null) { hw.wall = s; a = x; turn = mid(s).addScaledVector(V(s.u), x - s.size[0] / 2).setY(design.centre / 100).toArray(); break; } }
           if (a == null) a = freeSpot(hw.wall, hw.a, ww);
         }
+        // hung far from where the artist stands (a large room on a phone: the work would be a speck): stand in front of it
+        const spot = V(hw.wall.origin).addScaledVector(V(hw.wall.u), a).setY(design.centre / 100);
+        if (spot.distanceTo(api.camera.position) > 5.5) { near = spot.clone().addScaledVector(V(hw.wall.normal), Math.max(2.8, ww * 1.4 + 1.4)).setY(api.EYE).toArray(); turn = spot.toArray(); }
         st.ids.push(id); st.placements[id] = { wall: hw.wall.name, a: +a.toFixed(3), y: design.centre / 100 };
       }
       push(pre); save(); sel = { k: w.kind === 'object' ? 'plinth' : 'work', id: w.kind === 'object' ? 'p-' + id : id }; pop = ''; outerSel = sel; await open();
-      if (turn && ctl && ctl.api) ctl.api.setPose(ctl.api.pose().at, turn);      // hung somewhere else than where the artist looked: turn to it
+      // hung somewhere else than where the artist looked, or far away: turn to it, and walk up to it
+      if (turn && ctl && ctl.api) ctl.api.setPose(near ? ctl.api.clamp(V(near)).toArray() : ctl.api.pose().at, turn);
     }
     async function removeSel() {
       if (!sel) return; const pre = clone(st);
