@@ -16,9 +16,9 @@
 <meta name="theme-color" content="#EFE9DD" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#171613" media="(prefers-color-scheme: dark)">
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@700&family=Waiting+for+the+Sunrise&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Hebrew:wght@600&display=swap">
+<!-- the fonts, kept here (vendor/fonts, made by make_fonts.py from Google Fonts): no second site to reach before the first paint.
+     the families: Figtree 700, Waiting for the Sunrise, Fraunces 400/500 + italics, IBM Plex Sans 400/500/600, IBM Plex Mono 400/500, IBM Plex Sans Hebrew 600 -->
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <script>/* the artist's studio: fetch its modules at once, not one after another (app.js, then artist.js, then the page's own) */
 if (/^#\/studio/.test(location.hash)) for (const f of ['app.js', 'artist.js', 'studio-page.js', 'studio-cloud.js', 'auth.js']) { const l = document.createElement('link'); l.rel = 'modulepreload'; l.href = f; document.head.append(l); }
@@ -239,6 +239,8 @@ main .lg-row img,main .lg-row .lg-sw{width:44px;height:44px;object-fit:cover;bor
 .st-hero{padding-block:24px 8px;display:grid;gap:14px}
 .st-hero .st-h1{font-size:38px}
 .st .small{font-size:13px}
+.st-toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:120;display:flex;gap:14px;align-items:center;max-width:calc(100vw - 32px);background:var(--ink);color:var(--wall);font-size:14px;padding:4px 8px 4px 16px;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.25)}
+.st-toast button{min-height:44px;min-width:44px;padding:0 8px;background:none;border:0;color:inherit;font:700 14px var(--sans);text-decoration:underline;cursor:pointer}
 .st .m{color:var(--muted)}
 .st-nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:18px}
 .st-nav a{font-size:14px;padding:8px 14px;border-radius:99px;background:var(--card);text-decoration:none;white-space:nowrap}
