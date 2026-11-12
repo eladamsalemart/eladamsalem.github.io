@@ -930,7 +930,7 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
 .ov-opt{font-weight:400;color:var(--muted);font-size:13px}
 .ov-none{margin:0;padding:14px;border:1.5px dashed var(--edge,var(--line));border-radius:12px;font-size:15px;line-height:1.45;color:var(--muted)}.ov-none a{color:var(--ink);font-weight:600}
 .ov-strip{display:flex;align-items:center;gap:6px;width:100%;min-height:64px;padding:8px;border:1.5px solid var(--edge,var(--line));border-radius:12px;background:#fff;font:inherit;color:var(--ink);cursor:pointer;text-align:left;transition:transform .1s ease-out}
-.ov-strip img{width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none}.ov-strip i{font:600 13px var(--sans);color:var(--muted);font-style:normal}.ov-strip span{margin-left:auto;padding-left:6px;font:600 14px var(--sans);text-align:right}
+.ov-strip img{width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none}.ov-strip i{font:600 13px var(--sans);color:var(--muted);font-style:normal}.ov-strip span{margin-left:auto;padding-left:6px;white-space:nowrap;font:600 14px var(--sans);text-align:right}
 #vxFit{margin:6px 0 0}#vxFit:empty{display:none}
 .ov-state{display:flex;flex-wrap:wrap;align-items:center;gap:2px 14px;margin:0}
 .ov-link{min-height:44px;padding:0 2px;border:0;background:none;font:600 14px var(--sans);color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -1034,6 +1034,7 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
 .rv-bar button{min-width:44px;min-height:44px;border:0;background:transparent;color:inherit;font-size:22px;cursor:pointer}
 body.reviewing{padding-top:calc(56px + env(safe-area-inset-top,0px))}
 .pv-bar{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(6px + env(safe-area-inset-top,0px)) 14px 6px;background:#1F2A44;color:#F6F1E7;font:500 13px/1.3 var(--sans)}
+body.previewing .sv{top:calc(56px + env(safe-area-inset-top,0px))}   /* the 3D room starts under the preview bar, so its Exit / Done stays in reach */
 .pv-bar button{min-height:44px;padding:0 14px;border-radius:99px;border:1.5px solid #F6F1E7;background:transparent;color:inherit;font:600 13px var(--sans);cursor:pointer}
 body.previewing{padding-top:calc(56px + env(safe-area-inset-top,0px))}
 .adm-steps{display:grid;gap:8px;padding-inline-start:20px}.adm-steps code{font-size:13px;word-break:break-all}

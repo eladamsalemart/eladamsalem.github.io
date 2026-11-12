@@ -18,7 +18,7 @@ const SNAP = 0.06, GAP = 0.15;
 export async function openHangEditor({ design, library, state, src, shape, openSpace, onSave, onExit }) {
   const st = { ids: (state.ids || []).slice(), placements: clone(state.placements || {}), plinths: clone(state.plinths || []) };
   const undo = [];
-  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPop = '';
+  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPop = st.ids.length || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
   const byId = id => library.find(w => w.id === id);
   const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
   const save = () => onSave(clone(st));
@@ -116,14 +116,14 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       a = Math.max(w / 2, Math.min(len - w / 2, a));
       return { a, y, ga, gy };
     }
-    function freeSpot(wl, a, w) {
+    function freeSpot(wl, a, w, strict) {
       const iv = [...onWall(wl.name).map(o => [st.placements[o].a - sizes[o][0] / 2 - GAP, st.placements[o].a + sizes[o][0] / 2 + GAP]), ...(blocks[wl.name] || [])];
       for (let k = 0; k < 80; k++) for (const s of k ? [1, -1] : [1]) {
         const x = a + s * k * 0.2;
         if (x - w / 2 < 0.05 || x + w / 2 > wl.size[0] - 0.05) continue;
         if (!iv.some(([i0, i1]) => x + w / 2 > i0 && x - w / 2 < i1)) return x;
       }
-      return Math.max(w / 2, Math.min(wl.size[0] - w / 2, a));
+      return strict ? null : Math.max(w / 2, Math.min(wl.size[0] - w / 2, a));
     }
     function constrainPlinth(x, z, id) {
       const q = stPlinth(id), [pw, pd] = plinthDims(q);
@@ -219,7 +219,13 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         const sz = await sizeOf(shape(w), src), ww = sz.w / 100;
         api.ray.setFromCamera({ x: 0, y: 0 }, api.camera);
         const hw = wallRay() || { wall: api.surfaces.find(s => s.kind === 'wall'), a: 2 };
-        const a = freeSpot(hw.wall, hw.a, ww);
+        let a = freeSpot(hw.wall, hw.a, ww, true);
+        if (a == null) {      // the wall looked at has no room (it is glass, or full): the nearest wall facing the artist that has
+          const cam = api.camera.position, mid = s => V(s.origin).addScaledVector(V(s.u), s.size[0] / 2);
+          const others = api.surfaces.filter(s => s.kind === 'wall' && s !== hw.wall && V(s.normal).dot(cam.clone().sub(mid(s))) > 0).sort((p, q) => mid(p).distanceTo(cam) - mid(q).distanceTo(cam));
+          for (const s of others) { const x = freeSpot(s, s.size[0] / 2, ww, true); if (x != null) { hw.wall = s; a = x; break; } }
+          if (a == null) a = freeSpot(hw.wall, hw.a, ww);
+        }
         st.ids.push(id); st.placements[id] = { wall: hw.wall.name, a: +a.toFixed(3), y: design.centre / 100 };
       }
       push(pre); save(); sel = { k: w.kind === 'object' ? 'plinth' : 'work', id: w.kind === 'object' ? 'p-' + id : id }; pop = ''; outerSel = sel; await open();
@@ -357,6 +363,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     }
     function attach(a) {
       api = a;
+      if (!st.ids.length && library.length && api.root.querySelector('.sv-hint')) api.root.querySelector('.sv-hint').innerHTML = 'Tap a work above to hang it<br>Then drag it where you want it';
       const box = document.createElement('div'); box.className = 'he';
       box.innerHTML = `<div class="he-bar" role="toolbar" aria-label="Hang the works">
           <button type="button" data-a="add"><b>Add</b><span>work</span></button><button type="button" data-a="plinth"><b>Plinth</b><span>floor</span></button><button type="button" data-a="stand"><b>Wall</b><span>standing</span></button>
