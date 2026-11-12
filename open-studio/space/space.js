@@ -65,8 +65,19 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
 
   // --- surfaces: the photos' own light on measured planes ---------------------
   const surfaces = spec.surfaces || [];
+  // a phone's memory for images is small: there a room's photographs are held at most 2048 px across (1536 for the floor and
+  // the ceiling, seen at a slant), and a photograph used by several walls (rooms in a row) is held once
+  const COARSE = matchMedia('(pointer: coarse)').matches, held = new Map();
+  const fit = (t, max) => {
+    const im = t && t.image, w = im && (im.naturalWidth || im.width), h = im && (im.naturalHeight || im.height);
+    if (!COARSE || !w || Math.max(w, h) <= max) return t;
+    const k = max / Math.max(w, h), c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.anisotropy = t.anisotropy; t.dispose(); return n;
+  };
+  const surfTex = s => { if (!held.has(s.texture)) held.set(s.texture, loadTex(s.texture).then(t => fit(t, s.kind === 'wall' ? 2048 : 1536))); return held.get(s.texture); };
   const texs = await Promise.all(surfaces.map(async s => {
-    const t = await loadTex(s.texture);
+    const t = await surfTex(s);
     if (!t || !s.repeat) return t;
     const c = t.clone(); c.wrapS = c.wrapT = THREE.RepeatWrapping; c.repeat.set(s.repeat[0], s.repeat[1]); c.needsUpdate = true; return c;     // (several rooms in a row: one photograph, again)
   }));
@@ -205,6 +216,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     const s = surfaces.find(x => x.name === p.wall); if (!s || glassWalls.has(p.wall)) continue;
     loadTex(p.texture).then(t => {
       if (!t) return;
+      t = fit(t, 2048);
       const U = V(s.u), N = V(s.normal), O = V(s.origin), mid = (p.from + p.to) / 2;
       const m = new THREE.Mesh(new THREE.PlaneGeometry(p.to - p.from, p.z1 - p.z0),
         new THREE.MeshBasicMaterial({ map: t, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
