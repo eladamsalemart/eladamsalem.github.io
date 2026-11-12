@@ -4,7 +4,7 @@
 name: "Studio rooms"
 
 on:
-  push:                        # a change to the rooms renders them again (all kinds, default quality, surfaces too)
+  push:                        # a change to the rooms renders them again (the three kept kinds, default quality, surfaces too)
     branches: [studio]
     paths: ['studio/app/space/rooms/**']
   workflow_dispatch:
@@ -42,7 +42,9 @@ jobs:
         run: |
           all='["white-cube","loft","skylit-hall","salon","concrete","studio","apartment","black-box","glass-pavilion","japanese"]'
           t="${{ github.event.inputs.types }}"
-          if [ -z "$t" ] || [ "$t" = all ]; then echo "types=$all" >> "$GITHUB_OUTPUT"
+          # a push renders the three kinds artists are offered (owner, 11.11); the archived kinds only when asked for by hand
+          if [ -z "$t" ]; then echo 'types=["white-cube","concrete","glass-pavilion"]' >> "$GITHUB_OUTPUT"
+          elif [ "$t" = all ]; then echo "types=$all" >> "$GITHUB_OUTPUT"
           else echo "types=$(python3 -c "import json,sys; print(json.dumps([x.strip() for x in sys.argv[1].split(',') if x.strip()]))" "$t")" >> "$GITHUB_OUTPUT"; fi
 
   render:
@@ -124,6 +126,7 @@ jobs:
           EOF
           git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # the rooms for the app: studio/app/data/rooms/<slug>/ (six surfaces, room.json) and one index of them
+          python3 -m pip install --quiet --user --break-system-packages pillow || python3 -m pip install --quiet --user pillow || true
           python3 - <<'EOF'
           import json, pathlib, shutil
           dst = pathlib.Path('studio/app/data/rooms'); dst.mkdir(parents=True, exist_ok=True)
@@ -133,8 +136,15 @@ jobs:
           for room in dst.glob('*/room.json'):     # its cover: the room's render, smaller (the studio's chooser)
               src = pathlib.Path('studio/design/virtual-spaces/renders') / f'{room.parent.name}.jpg'
               if src.exists():
-                  try: ok = not subprocess.run(['convert', str(src), '-resize', '900x', '-quality', '82', str(room.parent / 'view.jpg')]).returncode
-                  except FileNotFoundError: ok = False      # (no ImageMagick on the runner: the render as it is)
+                  try:                                      # at most 900 px wide (Pillow; the runner has no ImageMagick)
+                      from PIL import Image
+                      im = Image.open(src).convert('RGB')
+                      if im.width > 900: im = im.resize((900, round(im.height * 900 / im.width)), Image.LANCZOS)
+                      im.save(room.parent / 'view.jpg', quality=82, optimize=True, progressive=True); ok = True
+                  except Exception as e:
+                      print('cover without Pillow:', e)
+                      try: ok = not subprocess.run(['convert', str(src), '-resize', '900x>', '-quality', '82', str(room.parent / 'view.jpg')]).returncode
+                      except FileNotFoundError: ok = False
                   if not ok: shutil.copy(src, room.parent / 'view.jpg')
           idx = {p.parent.name: json.loads(p.read_text()) for p in sorted(dst.glob('*/room.json'))}
           (dst / 'index.json').write_text(json.dumps(idx, indent=1))
