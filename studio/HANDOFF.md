@@ -148,6 +148,14 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    move sideways/away, bring here, remove), a tap on a standing wall chooses it; Plinth shows Width/Length/Height steppers.
    No new database column: stands live in the `plinths` JSON. The focus now (owner, 12.11): only the artists' editing area, the control
    room aside: calmer and smaller type, in stages (page, works, texts, exhibitions, then one virtual tour), everything linked.
+12c. The outside of a glass wall (owner, 12.11: "flat, no depth, asked several times"): no longer a picture on the wall. space.js
+   `addOutside()`: a wall that is glass side to side (`glassWalls`, from the plates) is not drawn; outside stands a real garden panorama
+   (Poly Haven killesberg_park, CC0; `data/rooms/_outside/garden-a.jpg`, `-b.jpg` for rooms with glass on other sides) on a dome whose
+   lower half lies on the ground and whose planting stands upright at RG, plus real frames, a stone terrace and a kerb. The check:
+   `node studio/app/space/check_outside.cjs [url] [dir]` (two places 1.6 m apart: far must move under 0.6 of near; sharpness; spread);
+   `OUTSIDE_FLAT=1` puts the flat picture back and the check fails (proved 12.11: 333 px far against 317 near). Run it before any change
+   to a glass room is called done. Next (research in studio/design/research-2026-11-12/outside-view.md): plant cards at mid depth, a
+   sharper far band, Fresnel glass, the same horizon check walking toward the glass. Research for the editor: artist-editing.md there.
 13. The museum is edited on the Desk only (owner, 11.11): `studio/desk/museum.js` (8 slots of the street: exhibition, live switch, dates, colour),
    `exedit.js` (walls to scale, plinths, wall text). Tables `museum_exhibitions` (admin only) and `museum_slots` (a live slot holds a copy of its
    exhibition; public read only live and inside dates). The street (`enterStreet` in app.js) reads live slots, else the automatic street. The phone admin
