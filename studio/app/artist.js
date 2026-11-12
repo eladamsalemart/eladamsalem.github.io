@@ -647,6 +647,18 @@ const asDataURL = (file, edge = 1600) => new Promise((res, rej) => {
 
 // --- wiring -----------------------------------------------------------------------------------------------
 // On View's own wiring: every choice is kept as it is made (no Save button), and nothing redraws the page
+// Deleting never asks "are you sure?": it happens, and for a few seconds one tap brings it back (NN/g, Apple: undo over confirmation).
+function undoToast(text, undo) {
+  document.querySelectorAll('.st-toast').forEach(x => x.remove());
+  const e = document.createElement('div'); e.className = 'st-toast'; e.setAttribute('role', 'status');
+  const m = document.createElement('span'); m.textContent = text; const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Undo';
+  b.onclick = () => { e.remove(); undo(); }; e.append(m, b); document.body.append(e); setTimeout(() => e.remove(), 7000);
+}
+// Hebrew and English in the same studio: every field takes its direction from what is typed in it.
+if (typeof document !== 'undefined') document.addEventListener('focusin', e => {
+  const t = e.target; if (!location.hash.startsWith('#/studio') || !t || !t.matches) return;
+  if (t.matches('textarea, input[type=text], input:not([type]), input[type=search], [contenteditable=""], [contenteditable=true]') && !t.getAttribute('dir')) t.setAttribute('dir', 'auto');
+});
 let ovGone = null;                                                   // (the exhibition just deleted, for Undo)
 function wireOnView(app, go, vx) {
   const $ = s => app.querySelector(s), blank = { works: [], status: '' };
@@ -799,7 +811,7 @@ function wire(app, go) {
     const hang = $('#vxHang');
     if (hang) hang.onclick = async () => { hang.disabled = true; hang.textContent = 'Building the room…'; try { await hangIn(keep(), () => go('#/studio/onview', true)); } finally { hang.disabled = false; } };
     const del = $('#vxDel');
-    if (del) del.onclick = () => { if (!confirm('Delete this virtual exhibition?')) return; S.virtual = S.virtual.filter(x => x.id !== id); save(); go('#/studio/exhibitions'); };
+    if (del) del.onclick = () => { const was = S.virtual.slice(); S.virtual = S.virtual.filter(x => x.id !== id); save(); go('#/studio/exhibitions'); undoToast('Virtual exhibition deleted', () => { S.virtual = was; save(); go('#/studio/virtual/' + id); }); };
     if (v) fitNote(app, v);
     const stepsEl = $('#ovSteps');
     if (stepsEl) {   // the steps follow what is typed and chosen, and the Hang button wakes when the room and the title are there
@@ -837,7 +849,7 @@ function wire(app, go) {
     }
     xf.onsubmit = e => { e.preventDefault(); store(true); };
     const del = $('#delEx');
-    if (del) del.onclick = () => { if (!confirm('Delete this exhibition?')) return; S.exhibitions = S.exhibitions.filter(x => x.id !== id); save(); go('#/studio'); };
+    if (del) del.onclick = () => { const was = S.exhibitions.slice(); S.exhibitions = S.exhibitions.filter(x => x.id !== id); save(); go('#/studio'); undoToast('Exhibition deleted', () => { S.exhibitions = was; save(); go('#/studio/exhibition/' + id); }); };
   }
   app.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
     const input = b.previousElementSibling;
