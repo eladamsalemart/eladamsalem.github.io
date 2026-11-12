@@ -63,6 +63,8 @@ jobs:
           cp -r $src/data/rooms open-studio/data/ 2>/dev/null || true
           # small versions of the site's images, for grids and lists on a phone
           python3 /tmp/studio/studio/app/thumbs.py media open-studio
+          # a share page for each show and each artist: a link that arrives with its picture and its name (WhatsApp, iMessage)
+          python3 /tmp/studio/studio/app/share_pages.py /tmp/studio/studio/app open-studio
           # Open Studio Desk: the owner's control room for a computer and an iPad, at /open-studio-desk/ (it borrows the rooms and
           # the 3D viewer from /open-studio/, so nothing but its own four files is copied)
           rm -rf open-studio-desk && mkdir -p open-studio-desk

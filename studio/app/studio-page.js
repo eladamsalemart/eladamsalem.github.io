@@ -107,7 +107,7 @@ body.sh-open{overflow:hidden}
 .kd-c span{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:99px;border:1.5px solid var(--edge);font:600 16px var(--sans);color:var(--ink);background:var(--paper)}
 .kd-c input:checked+span{background:var(--ink);color:var(--wall);border-color:var(--ink)}.kd-c input:focus-visible+span{outline:3px solid var(--dot);outline-offset:2px}
 .wk-prev{display:grid;grid-template-columns:132px auto;gap:14px;align-items:center;justify-items:start}.wk-pv{width:132px;height:132px;box-sizing:border-box;padding:6px;background:var(--card);border-radius:3px;overflow:hidden;display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(27,26,23,.08)}.wk-pv img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;box-shadow:0 1px 4px rgba(27,26,23,.28)}
-.ed-toast{display:flex;gap:14px;align-items:center}.ed-toast button{min-height:44px;padding:0 6px;background:none;border:0;color:var(--wall);font:700 16px var(--sans);text-decoration:underline;cursor:pointer}
+.ed-toast{display:flex;gap:14px;align-items:center;white-space:nowrap}.ed-toast button{min-height:44px;padding:0 6px;background:none;border:0;color:var(--wall);font:700 16px var(--sans);text-decoration:underline;cursor:pointer}
 `;
 const hook = () => { if (!document.getElementById('edCss')) { const s = document.createElement('style'); s.id = 'edCss'; s.textContent = CSS; document.head.append(s); } };
 
@@ -230,7 +230,8 @@ export function mount(c) {
       else pickPhotos();
     });
     app.querySelectorAll('[data-share]').forEach(b => b.onclick = async () => {
-      const url = `${location.origin}${location.pathname}#/artist/${(a && a.slug) || S.slug || ''}`;
+      const slug = (a && a.slug) || S.slug || '';
+      const url = slug && window.shareLink ? await window.shareLink('by', slug, `/artist/${slug}`) : `${location.origin}${location.pathname}#/artist/${slug}`;
       try { if (navigator.share) { await navigator.share({ title: S.artist.name, text: `${S.artist.name} on Open Studio`, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
       try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { prompt('Copy your page’s link', url); }
     });
@@ -379,6 +380,7 @@ export function mount(c) {
 
   // --- sheets ---------------------------------------------------------------------------------------------------
   function sheet(title, html, wireIt, foot) {
+    document.querySelectorAll('.ed-toast').forEach(x => x.remove());   // (a note about the last thing never sits on the next one)
     const el = document.createElement('div'); el.className = 'sh-back';
     el.innerHTML = `<div class="sh" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sh-h"><b>${esc(title)}</b><button type="button" class="sh-x" aria-label="Close">×</button></div><div class="sh-b">${html}</div>${foot ? `<div class="sh-f">${foot}</div>` : ''}</div>`;
     document.body.append(el); document.body.classList.add('sh-open');
