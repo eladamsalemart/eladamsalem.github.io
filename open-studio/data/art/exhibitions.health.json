@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10",
+ "updated": "2026-11-11",
  "sources": [
   {
    "source": "haifa-museum",
@@ -482,7 +482,7 @@
    "place": "kabri-gallery",
    "url": "http://www.cabrigallery.org.il",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -779,7 +779,7 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 29,
+   "messages": 30,
    "matched": 4,
    "unmatched": 2,
    "shows": 0,
@@ -788,8 +788,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 8,
-   "seconds": 478,
+   "calls": 2,
+   "seconds": 77,
    "status": "TimeoutError: timed out"
   },
   {
