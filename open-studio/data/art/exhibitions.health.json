@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11",
+ "updated": "2026-11-12",
  "sources": [
   {
    "source": "haifa-museum",
@@ -93,9 +93,9 @@
    "source": "ashdod",
    "place": "ashdod-art-museum",
    "url": "https://www.ashdodartmuseum.org.il/",
-   "read": "browser",
-   "status": "ok",
-   "shows": 3,
+   "browser": "TimeoutError",
+   "status": "unreachable",
+   "shows": 0,
    "events": 0
   },
   {
@@ -285,7 +285,7 @@
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
    "status": "ok",
-   "shows": 1,
+   "shows": 0,
    "events": 1
   },
   {
@@ -311,8 +311,8 @@
    "place": "braverman-gallery",
    "url": "https://bravermangallery.com/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 2,
    "events": 0
   },
   {
@@ -500,8 +500,8 @@
    "place": "kupferman-collection-house",
    "url": "https://kupferman-collection.co.il",
    "auto": true,
-   "status": "ok",
-   "shows": 2,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -509,8 +509,8 @@
    "place": "mamuta-art-and-research-center",
    "url": "https://mamuta.org/",
    "auto": true,
-   "status": "unreachable: Error",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -779,7 +779,7 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 30,
+   "messages": 31,
    "matched": 4,
    "unmatched": 2,
    "shows": 0,
@@ -788,8 +788,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 2,
-   "seconds": 77,
+   "calls": 1,
+   "seconds": 0,
    "status": "TimeoutError: timed out"
   },
   {
@@ -797,7 +797,7 @@
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 23
+   "events": 22
   }
  ]
 }
