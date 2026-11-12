@@ -221,7 +221,7 @@ function ovHung(v) {
   const ws = (v.works || []).map(workOf).filter(Boolean);
   if (!S.works.length) return `<p class="ov-none">You have no works on your page yet. <a href="#/studio">Add a few first</a>, then hang them here.</p>`;
   if (!ws.length) return `<p class="ov-none">Nothing hangs yet. Walk in, tap Add, and drag each work onto a wall. Sculptures stand on plinths.</p>`;
-  return `<button type="button" class="ov-strip" data-hang aria-label="${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'}: walk in to rehang">${ws.slice(0, 5).map(w => `<img src="${esc(srcOf(w.thumb || w.image))}" alt="" loading="lazy" decoding="async">`).join('')}${ws.length > 5 ? `<i>+${ws.length - 5}</i>` : ''}<span>${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'} · Rehang</span></button>
+  return `<button type="button" class="ov-strip" data-hang aria-label="${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'}: walk in to rehang">${ws.slice(0, 4).map(w => `<img src="${esc(srcOf(w.thumb || w.image))}" alt="" loading="lazy" decoding="async">`).join('')}${ws.length > 4 ? `<i>+${ws.length - 4}</i>` : ''}<span>${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'}</span></button>
     <p class="m small" id="vxFit" aria-live="polite"></p>`;
 }
 // one thing to do next, always under the thumb

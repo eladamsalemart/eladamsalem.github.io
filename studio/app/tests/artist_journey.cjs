@@ -25,7 +25,7 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
   p.on('pageerror', e => bad.push(`script error: ${e.message}`));
   p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|supabase|net::ERR/i.test(m.text())) bad.push(`console error: ${m.text().slice(0, 200)}`); });
   let n = 0;
-  const shot = async name => { if (!shots) return; fs.mkdirSync(shots, { recursive: true }); await p.screenshot({ path: path.join(shots, `${String(++n).padStart(2, '0')}-${name}.jpg`), type: 'jpeg', quality: 70, scale: 'css' }).catch(() => {}); };
+  const shot = async name => { if (!shots) return; await p.waitForTimeout(350); fs.mkdirSync(shots, { recursive: true }); await p.screenshot({ path: path.join(shots, `${String(++n).padStart(2, '0')}-${name}.jpg`), type: 'jpeg', quality: 70, scale: 'css' }).catch(() => {}); };
   const step = async (name, budget, fn) => { const t = Date.now(); try { await fn(); } catch (e) { bad.push(`${name}: ${e.message.split('\n')[0]}`); } times[name] = Date.now() - t; if (times[name] > budget * (SLOW || 1)) bad.push(`${name}: took ${times[name]} ms (budget ${budget})`); await shot(name); };
   // every visible control on the screen is at least 44 px to the finger (its own box or its ::after area)
   const targets = async where => {
@@ -74,6 +74,14 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
   await targets('on view, a space chosen');
   await step('title', 2000, async () => { await p.fill('#vxForm [name=title]', 'First light'); await p.waitForFunction(() => { const h = document.querySelector('#vxHang'); return h && !h.disabled; }, null, { timeout: 3000 }); });
   if (!process.env.JOURNEY_NO_3D) await step('hang-opens', 45000, async () => { await p.tap('#vxHang'); await p.waitForFunction(() => /Building/.test(document.querySelector('#vxHang').textContent) || document.querySelector('canvas'), null, { timeout: 2000 }); await p.waitForSelector('canvas', { timeout: 45000 }); await p.waitForTimeout(1500); });
+
+  // the empty room opens on the artist's works: one tap hangs the first, and leaving shows it on the On View page
+  if (!process.env.JOURNEY_NO_3D) {
+    await step('hang-first-work', 60000, async () => { await p.waitForSelector('.he-grid [data-add]', { timeout: 5000 }); const n = await p.locator('.he-grid [data-add]').count();
+      await p.tap('.he-grid [data-add]'); await p.waitForFunction(() => document.querySelector('.he-pop') && document.querySelector('.he-pop').hidden && document.querySelector('canvas'), null, { timeout: 50000 }); await p.waitForTimeout(1200);
+      await p.tap('.he-bar [data-a="add"]'); await p.waitForFunction(k => document.querySelectorAll('.he-grid [data-add]').length === k - 1, n, { timeout: 5000 }); await p.tap('.he-bar [data-a="add"]'); });
+    await step('leave-hang', 8000, async () => { await p.tap('.sv-x'); await p.waitForSelector('.ov-strip', { timeout: 8000 }); });
+  }
 
   await b.close();
   console.log(JSON.stringify({ ok: !bad.length, kinds, times }));
