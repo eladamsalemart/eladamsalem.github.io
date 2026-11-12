@@ -209,7 +209,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     function note(t) { clearTimeout(noteT); pop = ''; ui.pop.hidden = false; ui.pop.innerHTML = `<p class="he-note">${esc(t)}</p>`; noteT = setTimeout(() => { if (!pop) ui.pop.hidden = true; }, 2600); }
     async function addWork(id) {
       const w = byId(id); if (!w) return;
-      const pre = clone(st);
+      const pre = clone(st); let turn = null;
       if (w.kind === 'object') {
         let q = sel && sel.k === 'plinth' ? stPlinth(sel.id) : null; if (q && q.work) q = null;
         if (q) q.work = id;
@@ -223,12 +223,13 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         if (a == null) {      // the wall looked at has no room (it is glass, or full): the nearest wall facing the artist that has
           const cam = api.camera.position, mid = s => V(s.origin).addScaledVector(V(s.u), s.size[0] / 2);
           const others = api.surfaces.filter(s => s.kind === 'wall' && s !== hw.wall && V(s.normal).dot(cam.clone().sub(mid(s))) > 0).sort((p, q) => mid(p).distanceTo(cam) - mid(q).distanceTo(cam));
-          for (const s of others) { const x = freeSpot(s, s.size[0] / 2, ww, true); if (x != null) { hw.wall = s; a = x; break; } }
+          for (const s of others) { const x = freeSpot(s, s.size[0] / 2, ww, true); if (x != null) { hw.wall = s; a = x; turn = mid(s).addScaledVector(V(s.u), x - s.size[0] / 2).setY(design.centre / 100).toArray(); break; } }
           if (a == null) a = freeSpot(hw.wall, hw.a, ww);
         }
         st.ids.push(id); st.placements[id] = { wall: hw.wall.name, a: +a.toFixed(3), y: design.centre / 100 };
       }
       push(pre); save(); sel = { k: w.kind === 'object' ? 'plinth' : 'work', id: w.kind === 'object' ? 'p-' + id : id }; pop = ''; outerSel = sel; await open();
+      if (turn && ctl && ctl.api) ctl.api.setPose(ctl.api.pose().at, turn);      // hung somewhere else than where the artist looked: turn to it
     }
     async function removeSel() {
       if (!sel) return; const pre = clone(st);
