@@ -39,6 +39,24 @@ export function addPlinths(THREE, scene, list, loadTex, room = {}) {
   return handles;
 }
 
+// The body of each freestanding wall (its two faces are wall surfaces, drawn with the room's walls): the ends and the top, and a
+// soft shadow along its foot.
+export function addStands(THREE, scene, list, room = {}) {
+  const out = [];
+  const mat = new THREE.MeshLambertMaterial({ color: room.dark ? 0x2c2c2f : 0xeceae4 });
+  for (const s of list || []) {
+    const g = new THREE.Group(); g.position.set(s.x, 0, s.z); g.rotation.y = -s.rot * Math.PI / 180;
+    const body = new THREE.Mesh(new THREE.BoxGeometry(s.len, s.h, s.t - 0.006), mat);
+    body.position.y = s.h / 2; body.userData.kind = 'stand'; body.userData.stand = s.id;
+    const c = document.createElement('canvas'); c.width = 64; c.height = 64; const x = c.getContext('2d');
+    const gr = x.createLinearGradient(0, 0, 0, 64); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.5, 'rgba(0,0,0,.32)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+    const sh = new THREE.Mesh(new THREE.PlaneGeometry(s.len + 0.1, s.t + 0.7), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, toneMapped: false }));
+    sh.rotation.x = -Math.PI / 2; sh.position.y = 0.004; sh.userData.kind = 'shadow';
+    g.add(sh, body); scene.add(g); out.push({ id: s.id, group: g, body, spec: s });
+  }
+  return out;
+}
+
 // The Living room's furniture, drawn live (the baked walls and floor are of the empty room): a sofa against the west wall, a rug, a
 // low table, a floor lamp, at the places the room was designed round (space/rooms/build_rooms.py, apartment()). Plain, matte shapes,
 // each with a soft shadow on the floor; `solid` are the circles a visitor does not walk through.
