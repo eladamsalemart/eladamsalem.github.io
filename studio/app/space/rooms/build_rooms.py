@@ -1427,14 +1427,15 @@ def glass_pavilion(v):
             else: box('wall.' + wall, p0[0] - (0.25 if wall == 'w' else 0), min(p0[1], p1[1]), 0, p0[0] + (0.25 if wall == 'e' else 0), max(p0[1], p1[1]), H, white)
     # freestanding white walls inside, set back from the glass, with the works on them
     area('sky-bounce', (W / 2, D / 2, H - 0.05), (W - 1, D - 1), 140, 6000)
-    SL, SH, ST = (3.0 if v == 'small' else 4.0), min(3.0, H - 1.0), 0.24
-    stands = {'small': [(W * 0.5, D * 0.5)], 'large': [(W * 0.2, D * 0.62), (W * 0.5, D * 0.4), (W * 0.8, D * 0.62)]}.get(v, [(W * 0.3, D * 0.42), (W * 0.7, D * 0.58)])
+    # (the same places as the app's own: synth.js defaultStands; wings across the room on the side away from the glass, the middle open)
+    SL, SH, ST = {'small': 2.5, 'large': 4.0}.get(v, 3.0), min(2.8, max(2.2, H - 0.5)), 0.24
+    stands = [(W * kx, D * 0.3) for kx in {'small': [0.45], 'large': [0.6, 0.4, 0.2]}.get(v, [0.55, 0.28])]
     if SURF['on']: stands = []        # (the app stands its own freestanding walls, which the artist moves: none in the surfaces)
     shell = _fake_room(0, 0, W, D, H); shell.glass = sides; SHELLS.append(shell)
     for i, (sx, sy) in enumerate(stands):
-        box('stand', sx - SL / 2, sy - ST / 2, 0, sx + SL / 2, sy + ST / 2, SH, white, bevel=0.002)
+        box('stand', sx - ST / 2, sy - SL / 2, 0, sx + ST / 2, sy + SL / 2, SH, white, bevel=0.002)
         ws = works_of('claude-monet')[i * 2:(i + 1) * 2] or works_of('claude-monet', n=1)
-        hang_wall(ws[:1], (sx - SL / 2, sy - ST / 2 - 0.002, 0), (sx + SL / 2, sy - ST / 2 - 0.002, 0), (0, -1, 0), ceiling=H, lux=220)
+        hang_wall(ws[:1], (sx + ST / 2 + 0.002, sy - SL / 2, 0), (sx + ST / 2 + 0.002, sy + SL / 2, 0), (1, 0, 0), ceiling=H, lux=220)
     if 'w' not in sides:
         fill(Room.__new__(Room) if False else _fake_room(0, 0, W, D, H), works_of('claude-monet')[4:6], walls='w', ceiling=H, light=False)
     return camera((W - 1.2, 0.9, EYE), (W * 0.3, D - 0.5, 1.8), lens=17)
