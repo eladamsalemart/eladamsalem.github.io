@@ -174,7 +174,7 @@ function exhibitions() {
 // height they hang at; the room is drawn around them (space/synth.js) and opens in the same viewer as a real tour.
 let SYN = null, addOpen = false, restoreY = null;                    // (the works to add stay open while the artist adds several)
 const synth = () => SYN || (SYN = import('./space/synth.js'));
-let ROOMS = {}, PAINTS = {};
+let ROOMS = {}, PAINTS = {}, ACTIVE = [];
 const roomName = r => (ROOMS[r] || {}).name || 'A virtual room';
 const workOf = id => S.works.find(w => w.id === id);
 const thumbOf = id => { const w = workOf(id); return w ? srcOf(w.thumb || w.image) : ''; };
@@ -184,32 +184,81 @@ const plan = (r, on) => {
   return `<svg viewBox="-3 -3 ${W + 6} ${D + 6}" width="${W + 6}" height="${D + 6}" aria-hidden="true"><path d="M${W} ${D / 2 + d / 2}V${D}H0V0H${W}V${D / 2 - d / 2}" fill="${on ? 'var(--card)' : 'none'}" stroke="currentColor" stroke-width="1.5"/></svg>`;
 };
 // On View: the artist's exhibition now, in one of the ten spaces, at the top of their page
-const kindsOf = keep => { const k = {}; for (const [slug, r] of Object.entries(ROOMS)) if (r.baked && !r.cells && (!r.archived || r.kind === keep)) (k[r.kind] = k[r.kind] || []).push([slug, r]); return k; };   // (archived kinds are not offered, ACTIVE_KINDS in synth.js; the one a show already uses stays)
+const kindsOf = keep => { const k = {}; for (const [slug, r] of Object.entries(ROOMS)) if (r.baked && !r.cells && (!r.archived || r.kind === keep)) (k[r.kind] = k[r.kind] || []).push([slug, r]);
+  const at = x => (ACTIVE.indexOf(x) + 1) || 99; return Object.fromEntries(Object.entries(k).sort(([a], [b]) => at(a) - at(b))); };   // (archived kinds are not offered, ACTIVE_KINDS in synth.js; the one a show already uses stays)
 const SIZE_ORDER = ['small', 'medium', 'large'];
-const firstOf = list => (list.find(([, r]) => r.variant === 'medium') || list[0])[0];
+const firstOf = list => (list.find(([, r]) => r.variant === 'medium') || list.slice().sort(([, a], [, b]) => SIZE_ORDER.indexOf(a.variant) - SIZE_ORDER.indexOf(b.variant))[0])[0];
 function onView() {
   const kinds = kindsOf();
   if (!Object.keys(kinds).length) return `<div class="wrap gut st">${head('On View')}${nav('onview')}<p class="m">The spaces are being prepared. Come back in a little while.</p></div>`;
-  const cur = (S.virtual || []).find(v => v.onview);
-  return designer(cur ? cur.id : 'new', true);
+  return onViewPage((S.virtual || []).find(v => v.onview));
+}
+// --- choosing the space: one large picture of the room that is chosen, the kinds under it as small pictures, its sizes as
+// one row. Every tap answers at once, in place: nothing is redrawn, and the room is walked only when the artist asks to.
+const dims = t => (String(t).match(/\d[\d.,]*(?:\s*×\s*\d[\d.,]*)+\s*m/) || [t])[0];   // ('Hall under a skylight, 15 × 10 m' → '15 × 10 m')
+const baseOf = slug => String(slug || '').replace(/-[23]r$/, '');
+const bakedRoom = slug => (ROOMS[slug] && ROOMS[slug].baked ? slug : '');
+function ovSizes(room) {
+  const base = baseOf(room), r = ROOMS[base], list = (kindsOf(r.kind)[r.kind] || []).slice().sort(([, a], [, b]) => SIZE_ORDER.indexOf(a.variant) - SIZE_ORDER.indexOf(b.variant));
+  const rows = [1, 2, 3].map(n => [n, n === 1 ? base : `${base}-${n}r`]).filter(([, sl]) => ROOMS[sl]);
+  return `<div class="ov-seg" role="group" aria-label="Size">${list.map(([slug, x]) => `<button type="button" data-size="${esc(slug)}" aria-pressed="${base === slug}"><b>${esc(x.sizeName)}</b><span>${esc(dims(x.size))}</span></button>`).join('')}</div>
+    ${rows.length > 1 ? `<div class="ov-row"><span id="ovRowsL">Rooms in a row</span><div class="ov-seg ov-n" role="group" aria-labelledby="ovRowsL">${rows.map(([n, sl]) => `<button type="button" data-rooms="${esc(sl)}" aria-pressed="${room === sl}" aria-label="${n} ${n === 1 ? 'room' : 'rooms in a row'}"><b>${n}</b></button>`).join('')}</div></div>` : ''}`;
 }
 function spacePicker(v) {
-  const room = ROOMS[v.room] && ROOMS[v.room].baked ? ROOMS[v.room] : null, kind = room ? room.kind : '', kinds = kindsOf(kind), base = String(v.room).replace(/-[23]r$/, '');
-  const sizes = kind ? kinds[kind].slice().sort(([, a], [, b]) => SIZE_ORDER.indexOf(a.variant) - SIZE_ORDER.indexOf(b.variant)) : [];
-  return `<fieldset><legend>1. The space</legend><div class="ov-kinds">${Object.entries(kinds).map(([k, list]) => { const r = ROOMS[firstOf(list)];
-      return `<label class="ov-kind"><input type="radio" name="kind" value="${k}" ${kind === k ? 'checked' : ''}><img src="${esc(r.cover)}" alt="" loading="lazy"><b>${esc(r.name)}</b><span class="m">${esc(r.blurb)}</span></label>`; }).join('')}</div></fieldset>
-    <input type="hidden" name="room" value="${esc(v.room)}">
-    ${kind ? `<fieldset><legend>2. Size, and how many rooms</legend><p class="m small">Tap one to walk the empty space before you choose.</p><div class="ov-sizes">${sizes.map(([slug, r]) => `<button type="button" class="ov-size ${base === slug ? 'on' : ''}" data-preview="${slug}" aria-pressed="${base === slug}"><b>${esc(r.sizeName)}</b><span class="m small">${esc(r.size)}</span></button>`).join('')}</div>
-      <div class="ov-rooms" role="group" aria-label="Number of rooms"><span class="m small">In a row</span>${[1, 2, 3].map(n => { const sl = n === 1 ? base : `${base}-${n}r`; return ROOMS[sl] ? `<button type="button" class="ov-size ov-n ${v.room === sl ? 'on' : ''}" data-preview="${sl}" aria-pressed="${v.room === sl}"><b>${n} ${n === 1 ? 'room' : 'rooms'}</b></button>` : ''; }).join('')}</div></fieldset>` : ''}`;
+  const cur = bakedRoom(v.room), kinds = kindsOf(cur ? ROOMS[cur].kind : ''), kind = cur ? ROOMS[cur].kind : Object.keys(kinds)[0], room = cur || firstOf(kinds[kind]), r = ROOMS[baseOf(room)];
+  return `<section class="ov-space" aria-label="The space">
+    <figure class="ov-hero"><img id="ovCover" src="${esc(r.cover)}" alt="The empty ${esc(r.name)}" width="1600" height="1000" decoding="async" fetchpriority="high">
+      <button type="button" class="ov-walk" data-preview>Walk it empty</button></figure>
+    <p class="ov-cap"><b id="ovName">${esc(r.name)}</b><span id="ovBlurb">${esc(r.blurb)}</span></p>
+    <div class="ov-kinds" role="radiogroup" aria-label="Kind of space" style="--n:${Object.keys(kinds).length}">${Object.entries(kinds).map(([k, list]) => { const x = ROOMS[firstOf(list)];
+      return `<label class="ov-kind"><input type="radio" name="kind" value="${esc(k)}" ${kind === k ? 'checked' : ''}><img src="${esc(x.cover)}" alt="" width="160" height="100" decoding="async"><b>${esc(x.name)}</b></label>`; }).join('')}</div>
+    <div id="ovSizes">${ovSizes(room)}</div>
+    <input type="hidden" name="room" value="${esc(room)}">
+  </section>`;
+}
+// what hangs now: the works as a strip (a tap walks in to rehang), or what to do when nothing hangs yet
+function ovHung(v) {
+  const ws = (v.works || []).map(workOf).filter(Boolean);
+  if (!S.works.length) return `<p class="ov-none">You have no works on your page yet. <a href="#/studio">Add a few first</a>, then hang them here.</p>`;
+  if (!ws.length) return `<p class="ov-none">Nothing hangs yet. Walk in, tap Add, and drag each work onto a wall. Sculptures stand on plinths.</p>`;
+  return `<button type="button" class="ov-strip" data-hang aria-label="${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'}: walk in to rehang">${ws.slice(0, 5).map(w => `<img src="${esc(srcOf(w.thumb || w.image))}" alt="" loading="lazy" decoding="async">`).join('')}${ws.length > 5 ? `<i>+${ws.length - 5}</i>` : ''}<span>${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'} · Rehang</span></button>
+    <p class="m small" id="vxFit" aria-live="polite"></p>`;
+}
+// one thing to do next, always under the thumb
+function ovBar(v, title) {
+  const hung = (v.works || []).map(workOf).filter(Boolean).length, pub = v.status === 'published';
+  const hang = (cls, t) => `<button class="btn ${cls}" type="button" id="vxHang">${t}</button>`, walk = (cls, t) => `<button class="btn ${cls}" type="button" id="vxWalk">${t}</button>`;
+  if (!S.works.length) return `<a class="btn f" href="#/studio">Add works to your page first</a>${hang('g', 'Walk in')}`;
+  if (!hung) return hang('f', 'Walk in and hang the works');
+  if (S.cloud && !pub) return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">Put it on my page</button>`;
+  return `${hang('g', 'Rehang')}${walk('f', 'Walk as a visitor')}`;
+}
+function onViewPage(v0) {
+  const v = v0 || { id: '', title: '', room: '', works: [], text: '', centre: 150 }, pub = v.status === 'published';
+  return `<div class="wrap gut st ov">${head('On View')}${nav('onview')}
+    <p class="ov-lede">The exhibition you are showing now. It opens your page${S.cloud ? ', and goes out in Open Studio’s feed' : ''}.</p>
+    ${ovSteps(v)}
+    ${!v0 && ovGone ? '<p class="ov-undo" role="status">The exhibition was deleted.<button type="button" class="ov-link" id="vxUndo">Undo</button></p>' : ''}
+    <form class="st-form st-vx" id="vxForm" data-id="${esc(v.id)}" data-onview="1" novalidate>
+      ${spacePicker(v)}
+      <label class="ov-title">Title<input name="title" value="${esc(v.title)}" placeholder="Name this exhibition" autocomplete="off" enterkeyhint="done"></label>
+      <section id="ovHung" aria-label="The works">${ovHung(v)}</section>
+      <label><span>In your words <span class="ov-opt">(optional)</span></span><textarea name="text" rows="3" placeholder="What this exhibition is, as you would say it at the door.">${esc(v.text)}</textarea></label>
+      <input type="hidden" name="centre" value="${+v.centre || 150}">
+      <p class="m small ov-state" id="ovState">${S.cloud ? (pub ? (S.status === 'approved' ? 'On view: it opens your page, and it is in Shows.' : 'Published: it shows once your page is approved.') : 'A draft: only you see it.') : 'A pretend studio: the exhibition stays on this phone.'}
+        ${S.cloud && pub ? '<button type="button" class="ov-link" id="vxPub">Take it down</button>' : ''}${v.id ? '<button type="button" class="ov-link" id="vxDel">Delete</button>' : ''}</p>
+    </form>
+    <div class="ov-bar"><span class="ov-saved" id="ovSaved" role="status"></span><div class="ov-acts" id="ovActs">${ovBar(v)}</div></div>
+  </div>`;
 }
 // On View in four steps, always on screen: where you are, what comes next, one tap to it
-const OV_STEPS = [['space', 'Space', '.ov-kinds'], ['title', 'Title', '[name=title]'], ['hang', 'Hang', '#vxHang'], ['pub', 'Publish', '#vxPub,#vxForm button[type=submit]']];
+const OV_STEPS = [['space', 'Space', '.ov-space'], ['title', 'Title', '[name=title]'], ['hang', 'Hang', '#ovHung'], ['pub', 'Publish', '#ovState']];
 function ovDone(v, title) {
   return { space: !!(ROOMS[v.room] && ROOMS[v.room].baked), title: !!String(title ?? v.title ?? '').trim(), hang: (v.works || []).length > 0, pub: v.status === 'published' };
 }
 function ovSteps(v, title) {
   const d = ovDone(v, title), steps = OV_STEPS.filter(x => x[0] !== 'pub' || S.cloud), now = steps.findIndex(x => !d[x[0]]);
-  return `<nav class="ov-steps" id="ovSteps" aria-label="Your progress"><ol>${steps.map(([k, name, to], i) => `<li class="${d[k] ? 'done' : i === now ? 'now' : ''}"><button type="button" data-to="${esc(to)}" ${i === now ? 'aria-current="step"' : ''}><span class="n" aria-hidden="true">${d[k] ? '✓' : i + 1}</span>${name}<span class="sr">${d[k] ? ', done' : i === now ? ', next' : ''}</span></button></li>`).join('')}</ol></nav>`;
+  return `<nav class="ov-steps" id="ovSteps" aria-label="Your progress"><ol>${steps.map(([k, name, to], i) => `<li class="${d[k] ? 'done' : i === now ? 'now' : ''}"><button type="button" data-to="${esc(to)}" ${i === now ? 'aria-current="step"' : ''}><span class="n" aria-hidden="true">${d[k] ? '✓' : i + 1}</span>${name}<span class="vh">${d[k] ? ', done' : i === now ? ', next' : ''}</span></button></li>`).join('')}</ol></nav>`;
 }
 function designer(id, onview = false) {
   const isNew = id === 'new';
@@ -597,6 +646,74 @@ const asDataURL = (file, edge = 1600) => new Promise((res, rej) => {
 });
 
 // --- wiring -----------------------------------------------------------------------------------------------
+// On View's own wiring: every choice is kept as it is made (no Save button), and nothing redraws the page
+let ovGone = null;                                                   // (the exhibition just deleted, for Undo)
+function wireOnView(app, go, vx) {
+  const $ = s => app.querySelector(s), blank = { works: [], status: '' };
+  let v = vx.dataset.id ? S.virtual.find(x => x.id === vx.dataset.id) : null, timer = 0, sayT = 0, coverN = 0, working = false;
+  const say = t => { const el = $('#ovSaved'); if (!el) return; el.textContent = t; el.classList.add('on'); clearTimeout(sayT); sayT = setTimeout(() => el.classList.remove('on'), 1800); };
+  const keep = quiet => {
+    const f = new FormData(vx), data = { title: f.get('title').trim(), room: f.get('room'), paint: '', centre: +f.get('centre') || 150, text: f.get('text'), onview: true };
+    (S.virtual || []).forEach(x => { if (x !== v) x.onview = false; });
+    if (!v) { v = { id: uid(), works: [], ...data }; (S.virtual = S.virtual || []).unshift(v); vx.dataset.id = v.id; }
+    else Object.assign(v, data);
+    ovGone = null; save(); if (!quiet) say('Saved'); return v;
+  };
+  const now = () => ({ ...(v || blank), room: vx.elements.room.value, title: vx.elements.title.value });
+  const steps = () => { $('#ovSteps').outerHTML = ovSteps(now()); $('#ovSteps').querySelectorAll('[data-to]').forEach(b => b.onclick = () => {
+    const t = app.querySelector(b.dataset.to); if (!t) return;
+    t.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); if (t.matches('input')) setTimeout(() => t.focus({ preventScroll: true }), 350);
+  }); };
+  const busy = (b, t, fn) => async () => { if (working) return; const was = b.textContent; working = true; b.disabled = true; b.textContent = t; try { await fn(); } catch (e) { console.error(e); say('That did not open. Try again.'); } finally { working = false; b.disabled = false; b.textContent = was; } };
+  const hang = () => hangIn(keep(true), () => go('#/studio/onview', true));
+  const acts = () => {
+    const a = $('#ovActs'), html = ovBar(now());
+    if (working || a.dataset.h === html) return;   // (never swap a button under the finger that is tapping it)
+    a.dataset.h = html; a.innerHTML = html;
+    const h = a.querySelector('#vxHang'), w = a.querySelector('#vxWalk'), p = a.querySelector('#vxPub');
+    if (h) h.onclick = busy(h, 'Building the room…', hang);
+    if (w) w.onclick = busy(w, 'Building the room…', () => walkIn(keep(true)));
+    if (p) p.onclick = publish;
+  };
+  function publish() {
+    const k = keep(true), t = vx.elements.title;
+    if (k.status !== 'published' && !k.title) { t.scrollIntoView({ block: 'center' }); t.focus({ preventScroll: true }); t.setAttribute('aria-invalid', 'true'); return say('Give it a title first'); }
+    k.status = k.status === 'published' ? 'draft' : 'published'; save(); go('#/studio/onview', true);
+  }
+  const pubLink = $('#ovState #vxPub'); if (pubLink) pubLink.onclick = publish;
+  // the room that is chosen: its picture, its name, its sizes; in place
+  const setRoom = slug => {
+    if (!ROOMS[slug]) return;
+    const r = ROOMS[baseOf(slug)], img = $('#ovCover'), n = ++coverN;
+    vx.elements.room.value = slug; $('#ovName').textContent = r.name; $('#ovBlurb').textContent = r.blurb; $('#ovSizes').innerHTML = ovSizes(slug);
+    if (!img.src.endsWith(r.cover)) { const im = new Image(); im.src = r.cover; img.classList.add('sw');
+      const put = () => { if (n !== coverN) return; img.src = r.cover; img.alt = `The empty ${r.name}`; img.classList.remove('sw'); };
+      (im.decode ? im.decode() : Promise.reject()).then(put, put); }
+    keep(); steps(); if (v.works.length) fitNote(app, v);
+  };
+  vx.querySelectorAll('input[name=kind]').forEach(i => i.onchange = () => {
+    const list = kindsOf()[i.value] || [], cur = ROOMS[baseOf(vx.elements.room.value)], same = cur && list.find(([, x]) => x.variant === cur.variant);
+    setRoom(same ? same[0] : firstOf(list));
+  });
+  vx.addEventListener('click', e => {
+    const s = e.target.closest('[data-size]'), r = e.target.closest('[data-rooms]'), p = e.target.closest('[data-preview]'), h = e.target.closest('[data-hang]');
+    if (s) { const many = (vx.elements.room.value.match(/-[23]r$/) || [''])[0]; setRoom(ROOMS[s.dataset.size + many] ? s.dataset.size + many : s.dataset.size); }
+    else if (r) setRoom(r.dataset.rooms);
+    else if (p) busy(p, 'Opening…', () => previewSpace(vx.elements.room.value, () => keep()))();
+    else if (h) busy(h.querySelector('span') || h, 'Building the room…', hang)();
+  });
+  vx.addEventListener('input', e => { if (e.target.name === 'title') { e.target.removeAttribute('aria-invalid'); steps(); } clearTimeout(timer); timer = setTimeout(() => { keep(); acts(); }, 600); });
+  vx.addEventListener('change', e => { if (e.target.name === 'title' || e.target.name === 'text') { clearTimeout(timer); keep(); acts(); } });
+  vx.onsubmit = e => { e.preventDefault(); if (document.activeElement) document.activeElement.blur(); };
+  const del = $('#vxDel');
+  if (del) del.onclick = () => { clearTimeout(timer); ovGone = v; S.virtual = S.virtual.filter(x => x !== v); save(); go('#/studio/onview', true); };
+  const undo = $('#vxUndo');
+  if (undo) undo.onclick = () => { if (ovGone) { (S.virtual = S.virtual || []).forEach(x => { x.onview = false; }); ovGone.onview = true; S.virtual.unshift(ovGone); ovGone = null; save(); } go('#/studio/onview', true); };
+  steps(); acts(); if (v) fitNote(app, v);
+  // the other sizes' pictures arrive while the artist looks at the first, so a tap shows them at once
+  const warm = () => Object.values(kindsOf()).flat().forEach(([, x]) => { if (x.cover) new Image().src = x.cover; });
+  (window.requestIdleCallback || (f => setTimeout(f, 700)))(warm);
+}
 function wire(app, go) {
   const $ = s => app.querySelector(s);
   const si = $('#signin');
@@ -636,7 +753,8 @@ function wire(app, go) {
   if (pub) pub.onclick = () => { const v = S.virtual.find(x => x.id === $('#vxForm').dataset.id); if (!v) return; v.status = v.status === 'published' ? 'draft' : 'published'; save(); go(v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`, true); };
 
   const vx = $('#vxForm');
-  if (vx) {
+  if (vx && vx.dataset.onview) wireOnView(app, go, vx);
+  else if (vx) {
     const id = vx.dataset.id, onview = !!vx.dataset.onview;
     let v = id ? S.virtual.find(x => x.id === id) : null;
     const keep = () => {
@@ -808,7 +926,7 @@ export async function studio(hash, app, go, M, tools) {
   else if (m === 'exhibitions/new') html = exhibitionPage('new');
   else if (m.startsWith('exhibition/')) html = exhibitionPage(m.slice(11));
   else if (m.startsWith('virtual/') || m === 'exhibitions' || m === 'onview') {
-    ({ ROOMS, PAINTS } = await synth());
+    { const m = await synth(); ({ ROOMS, PAINTS } = m); ACTIVE = m.ACTIVE_KINDS || []; }
     html = m === 'exhibitions' ? exhibitions() : m === 'onview' ? onView() : designer(m.slice(8));
   }
   else if (m === 'import') html = importer();

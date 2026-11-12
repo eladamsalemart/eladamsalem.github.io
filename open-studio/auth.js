@@ -134,7 +134,7 @@ function welcome(on, err) {
   const btn = (k, label) => k === 'email' || on[k] ? `<button type="button" class="wl-btn wl-${k}" data-provider="${k}">${ICONS[k]}<span>${label}</span></button>` : '';
   return shell(`
     <header class="wl-brand">${LOGO_MARK}<span>Open Studio</span></header>
-    <figure class="wl-arch"><img src="${art}" alt=""></figure>
+    <figure class="wl-arch"><img src="${art.replace('.jpg', '-m.jpg')}" alt="" fetchpriority="high" decoding="async"></figure>
     <h1>Art, on view now</h1>
     <p class="wl-lede">The shows on today, the artists behind them, and their works at their real size.</p>
     ${err ? `<p class="wl-err" role="alert">${esc(err)}</p>` : ''}

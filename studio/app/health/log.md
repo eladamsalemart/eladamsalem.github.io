@@ -2,6 +2,10 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-12: issue #8, a room's poster asked for under the wrong folder
+
+- Issue #8 (since 11-10): Home asked for `data/spaces/ritual-elad-amsalem-2/preview.jpg`, 404. Cause: a second show with the same title gets the slug `…-2` and shares the room, but the walk row built the film/poster path from the show's slug, not the room's folder. Fixed in app.js `walkRow` (the room's own key, `data-space`). Local health.cjs passes with the fix; the run without the fix hung locally and was not completed, so the proof is the live site: failing before, checked again after publish. No improvement tonight.
+
 ## 2026-11-10: nothing to do
 
 - Issue #7 closed itself (clean run after the 11-09 fix); no open issues or owner requests. health.cjs, check_home, check_app, deps.py pass on the live site (Home 17 ms frames). Last improvement 11-08, under 3 days ago: none tonight.

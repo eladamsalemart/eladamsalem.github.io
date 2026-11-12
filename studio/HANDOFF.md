@@ -138,6 +138,24 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    `stands: [{x, z, len, h, t, files}]`; synth.js `standsOf`/`wallsOf` turns each face into a wall a work hangs on (lower than
    the room: `wl.h`), space.js draws the body between the faces and keeps visitors out (`spec.stands`, `spec.solids`), the hang
    editor uses each wall's own height (`wl.size[1]`). Notes of the night: `studio/design/night-2026-11-11/rooms.md`.
+12b. Words and rules (owner, 12.11; remember them): a **coulisse** (קוליסה) is a freestanding wall in the middle of a room, to hang
+   paintings on both sides; a **pedestal/plinth** (פדסטל) is the box a sculpture stands on. Both are the artist's to design, drawn live
+   (not baked): in `v.plinths` a plinth may carry `dims: [w, d, h]` cm (boxes only; limits `PLINTH_LIMITS` in synth.js; S/M/L stay as
+   made sizes), and a stand is `{ id, kind: 'stand', x, z, len (1.5-6 m), rot (degrees) }` (height is the room's: `standHeight`, 2.2-2.8 m).
+   `standsOf`/`standWalls` in synth.js make each face a wall works hang on (`<id>-a`, `<id>-b`); `spec.stands` (bodies, plinths.js
+   `addStands`) and `spec.solids` (no walking through). The Glass pavilion comes with two (as its picture shows) until the artist sets
+   their own; `{ kind: 'no-stands' }` records that the artist took them all away. Hang editor: the bar's Wall button (add; width, angle,
+   move sideways/away, bring here, remove), a tap on a standing wall chooses it; Plinth shows Width/Length/Height steppers.
+   No new database column: stands live in the `plinths` JSON. The focus now (owner, 12.11): only the artists' editing area, the control
+   room aside: calmer and smaller type, in stages (page, works, texts, exhibitions, then one virtual tour), everything linked.
+12c. The outside of a glass wall (owner, 12.11: "flat, no depth, asked several times"): no longer a picture on the wall. space.js
+   `addOutside()`: a wall that is glass side to side (`glassWalls`, from the plates) is not drawn; outside stands a real garden panorama
+   (Poly Haven killesberg_park, CC0; `data/rooms/_outside/garden-a.jpg`, `-b.jpg` for rooms with glass on other sides) on a dome whose
+   lower half lies on the ground and whose planting stands upright at RG, plus real frames, a stone terrace and a kerb. The check:
+   `node studio/app/space/check_outside.cjs [url] [dir]` (two places 1.6 m apart: far must move under 0.6 of near; sharpness; spread);
+   `OUTSIDE_FLAT=1` puts the flat picture back and the check fails (proved 12.11: 333 px far against 317 near). Run it before any change
+   to a glass room is called done. Next (research in studio/design/research-2026-11-12/outside-view.md): plant cards at mid depth, a
+   sharper far band, Fresnel glass, the same horizon check walking toward the glass. Research for the editor: artist-editing.md there.
 13. The museum is edited on the Desk only (owner, 11.11): `studio/desk/museum.js` (8 slots of the street: exhibition, live switch, dates, colour),
    `exedit.js` (walls to scale, plinths, wall text). Tables `museum_exhibitions` (admin only) and `museum_slots` (a live slot holds a copy of its
    exhibition; public read only live and inside dates). The street (`enterStreet` in app.js) reads live slots, else the automatic street. The phone admin

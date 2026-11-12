@@ -408,9 +408,10 @@ function walkRow(list, label) {
   const card = e => {
     const on = isOn(e), room = e.virtual && bakedRoom(e.virtual.room);
     const alt = e.images[0] ? src(e.images[0]) : room ? `data/rooms/${room}/view.jpg` : '';
-    const first = e.space ? `data/spaces/${e.slug}/preview.jpg` : '';
+    const sk = e.space ? (Object.keys(M.spaces || {}).find(k => M.spaces[k] === e.space) || e.slug) : '';   // (the room's folder: a second show with the same title has slug …-2, the room does not)
+    const first = e.space ? `data/spaces/${sk}/preview.jpg` : '';
     const pill = e.space ? `<span class="livepill"><i></i>${on ? 'Live now' : 'In 3D'}</span>` : on ? `<span class="livepill"><i></i>On now</span>` : '';
-    return `<li><div class="wc${e.space ? ' has-room' : ''}" data-slug="${esc(e.slug)}">
+    return `<li><div class="wc${e.space ? ' has-room' : ''}" data-slug="${esc(e.slug)}" data-space="${esc(sk)}">
       <div class="wc-arch">${first ? `<img class="wc-poster" src="${esc(first)}" data-alt="${esc(alt)}" alt="" loading="lazy" onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt='';this.closest('.wc').classList.add('nofilm')}">` : alt ? `<img class="wc-poster" src="${esc(alt)}" alt="" loading="lazy">` : ''}
         ${pill}
         <div class="wc-cap"><a class="wc-t" href="#/exhibition/${esc(e.slug)}"><b${heb(e.title)}>${esc(e.title)}</b></a><span>${esc([byOf(e), e.city].filter(Boolean).join(' · '))}</span></div>
@@ -432,7 +433,7 @@ function wireWalk(root) {
       if (!en.isIntersecting) { if (v) v.pause(); continue; }
       if (!c.classList.contains('has-room') || c.classList.contains('nofilm')) continue;
       if (!v) {
-        const s = esc(c.dataset.slug), a = c.querySelector('.wc-arch');
+        const s = esc(c.dataset.space || c.dataset.slug), a = c.querySelector('.wc-arch');
         a.insertAdjacentHTML('afterbegin', `<video class="wc-film" muted loop playsinline preload="auto" poster="data/spaces/${s}/preview.jpg" aria-hidden="true"><source src="data/spaces/${s}/preview.hevc.mp4" type='video/mp4; codecs="hvc1"'><source src="data/spaces/${s}/preview.webm" type='video/webm; codecs="vp9"'><source src="data/spaces/${s}/preview.mp4" type="video/mp4"></video>`);
         v = a.firstElementChild;
         v.addEventListener('playing', () => c.classList.add('ready'), { once: true });

@@ -3,7 +3,7 @@
 // the room from above under them (plinths for sculptures), and the words and the selected work on the right.
 // Everything is undoable, saved as it is made (a draft: visitors see nothing until it is published into a room).
 import { api, APP, guest, abs } from './data.js';
-import { esc, snapshot, roomOf, walkStreet, SLOTS, isNorth, stateOf, appShows } from './museum.js';
+import { esc, snapshot, roomOf, walkStreet, SLOTS, stateOf, appShows, helpDlg } from './museum.js';
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const RH = 3.8, LEN = 20, SEGS = [['קיר שמאל', 0, 6], ['קיר אחורי', 6, 14], ['קיר ימין', 14, 20]], GAPW = 0.15, EDGE = 0.25, EYE = 1.5, PAD = 36;
@@ -23,9 +23,9 @@ export async function editor(ctx, id) {
   if (id === 'new') E = { id: null, title: '', curator: 'Elad Amsalem', text: '', works: [], plinths: [] };
   else { const x = (await api.exhibitions()).find(q => q.id === id); if (!x) { root.innerHTML = `${shellTop()}<main style="padding:40px"><p>התערוכה לא נמצאה. <a href="#/museum">חזרה למוזיאון</a></p></main>`; return; }
     E = { id: x.id, title: x.title, curator: x.curator || '', text: x.text || '', works: clone(x.works || []), plinths: clone(x.plinths || []) }; }
-  if (guest) for (const r of slotRows) if (r.exhibition_id === E.id && r.content) r.content = snapshot(E);      // (the demo's copy is made the way a publish makes it)
+  if (guest && E.id) for (const r of slotRows) if (r.exhibition_id === E.id && r.content) r.content = snapshot(E);      // (the demo's copy is made the way a publish makes it)
   const by = new Map(lib.flatMap(a => a.works).map(w => [w.id, w]));
-  let sel = new Set(), libSel = new Set(), view = 'all', tab = 'ex', dirty = false, saving = false, timer = null, savedAt = id === 'new' ? 0 : Date.now(), guides = [];
+  let sel = new Set(), libSel = new Set(), view = 'all', zoom = 1, tab = 'ex', dirty = false, saving = false, failed = false, timer = null, savedAt = 0;
   const undo = [], redo = []; let lastKey = '', lastAt = 0;
   const snap = () => JSON.stringify({ title: E.title, curator: E.curator, text: E.text, works: E.works, plinths: E.plinths });
   const loadSnap = s => { const o = JSON.parse(s); Object.assign(E, o); };
@@ -44,29 +44,37 @@ export async function editor(ctx, id) {
   const pl = p => SY.PLINTHS[p.size] || SY.PLINTHS.m;
 
   // ---- the page -----------------------------------------------------------------------------------------------------------
-  const where = () => slotRows.filter(s => s.exhibition_id === E.id);
+  const where = () => E.id ? slotRows.filter(s => s.exhibition_id === E.id) : [];
   const live = () => where().filter(s => s.live);
   const isDirtyLive = () => live().some(s => JSON.stringify(snapshot(E)) !== JSON.stringify(s.content));
   const chip = () => { const l = live(), w = where(); return l.length ? `<span class="chip ok">מוצגת · חדר ${l.map(s => s.slot).join(', ')}</span>${isDirtyLive() ? '<span class="chip warn">שינויים שלא פורסמו</span>' : ''}` : w.length ? `<span class="chip">בחדר ${w.map(s => s.slot).join(', ')} · לא מוצגת</span>` : '<span class="chip">טיוטה</span>'; };
   root.innerHTML = `${shellTop()}<div class="ws" id="ws">
-    <header class="ws-top"><a class="btn q" href="#/museum">המוזיאון ←</a><input class="ws-title" id="f-title" dir="auto" placeholder="שם התערוכה" value="${esc(E.title)}" aria-label="שם התערוכה"><span id="chips"></span><span class="muted small" id="saved"></span><span class="grow"></span>
+    <header class="ws-top"><a class="btn q" href="#/museum">המוזיאון ←</a><input class="ws-title" id="f-title" dir="auto" placeholder="שם התערוכה" value="${esc(E.title)}" aria-label="שם התערוכה"><span id="chips"></span><button type="button" class="savst" id="saved" aria-live="polite"></button><span class="grow"></span>
       <button class="ib" id="b-undo" title="ביטול (Ctrl+Z)" aria-label="ביטול">↶</button><button class="ib" id="b-redo" title="שחזור (Ctrl+Shift+Z)" aria-label="שחזור">↷</button>
+      <button class="ib" id="b-help" title="קיצורי מקשים (?)" aria-label="קיצורי מקשים">?</button>
       <button class="btn" id="b-walk">צפה בחדר <kbd>W</kbd></button><button class="btn p" id="b-pub">פרסם במוזיאון</button></header>
     <aside class="ws-lib" id="lib" aria-label="העבודות"></aside>
-    <section class="ws-mid"><div class="ws-tools" id="tools"></div><div class="el" id="el"></div><div class="ws-low"><div class="ws-hint" id="hint"></div></div></section>
+    <section class="ws-mid"><div class="ws-tools" id="tools"></div><div class="el" id="el"></div></section>
     <aside class="ws-ins" aria-label="פרטים"><div id="plan" class="plan"></div><div id="ins"></div></aside></div><dialog id="pubd" class="dlg"></dialog>`;
 
   // ---- state changes ------------------------------------------------------------------------------------------------------
   function touch() { dirty = true; paintSaved(); clearTimeout(timer); timer = setTimeout(save, 1100); chipsDraw(); }
   function mutate(fn, key) { pushUndo(key); fn(); touch(); }
-  const paintSaved = () => { const s = $('#saved'); if (s) s.textContent = saving ? 'שומר…' : dirty ? 'משנה…' : savedAt ? 'נשמר' : ''; };
+  const hhmm = t => new Date(t).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+  const paintSaved = () => { const s = $('#saved'); if (!s) return;                // always says where the work stands: saving, saved (when), not saved (press to try again)
+    const st = saving ? 'ing' : failed ? 'bad' : dirty ? 'dirty' : E.id ? 'ok' : 'new';
+    s.dataset.s = st; s.disabled = st === 'ing' || st === 'ok' || st === 'new';
+    s.textContent = { ing: 'שומר…', bad: 'לא נשמר · נסה שוב', dirty: 'שינויים לא שמורים', ok: savedAt ? `נשמר ✓ ${hhmm(savedAt)}` : 'נשמר ✓', new: 'טיוטה חדשה' }[st];
+    s.title = st === 'ok' || st === 'new' ? 'כל שינוי נשמר מעצמו (טיוטה: המבקרים לא רואים עד שמפרסמים)' : 'שמור עכשיו (Ctrl+S)'; };
   const chipsDraw = () => { const c = $('#chips'); if (c) c.innerHTML = chip(); $('#b-undo').disabled = !undo.length; $('#b-redo').disabled = !redo.length; };
   async function save() {
     clearTimeout(timer); if (saving) { timer = setTimeout(save, 400); return; } if (!dirty && E.id) return;
     saving = true; paintSaved();
     const body = { title: E.title || 'Untitled', curator: E.curator || null, text: E.text || null, works: E.works, plinths: E.plinths };
-    try { const r = await api.saveExhibition(body, E.id); const first = !E.id; E.id = r.id; dirty = false; savedAt = Date.now(); if (first) history.replaceState(null, '', '#/museum/ex/' + r.id); }
-    catch (e) { fail(e); }
+    const was = snap();
+    try { const r = await api.saveExhibition(body, E.id); const first = !E.id; E.id = r.id; failed = false; savedAt = Date.now(); if (first) history.replaceState(null, '', '#/museum/ex/' + r.id);
+      if (snap() === was) dirty = false; else timer = setTimeout(save, 600); }      // (changed while it was being saved: save again)
+    catch (e) { if (!failed) fail(e); failed = true; }
     saving = false; paintSaved(); chipsDraw();
   }
   const doUndo = (from, to) => { const s = from.pop(); if (!s) return; to.push(snap()); loadSnap(s); sel = new Set([...sel].filter(i => E.works.some(w => w.id === i) || E.plinths.some(p => p.id === i))); lastKey = ''; $('#f-title').value = E.title; touch(); drawAll(); };
@@ -78,7 +86,7 @@ export async function editor(ctx, id) {
     for (const w of items) { const c = { ...w }; if (!c.width || !c.height) { const z = await SY.sizeOf({ ...c, pairs: [] }, u => u); c.width = Math.round(z.w); c.height = Math.round(z.h); c.guessed = true; } prep.push(c); }
     let miss = 0; const added = [];
     mutate(() => {
-      let want = at ?? 0.5;
+      let want = at ?? (view === 'all' ? 0.5 : SEGS[+view][1] + 0.5);            // onto the wall being looked at
       prep.forEach((c, n) => {
         if (c.kind === 'object') { E.works.push(c); const k = E.plinths.length, pid = 'p' + uid(); E.plinths.push({ id: pid, x: Math.min(RW - 1, 1.6 + (k % 4) * 1.6), z: 2.4 + Math.floor(k / 4) * 1.4, size: 'm', work: c.id }); added.push(pid); return; }
         const yy = clampY(c, y), s = spot(c, want, yy);
@@ -86,29 +94,33 @@ export async function editor(ctx, id) {
         c.s = +s.toFixed(3); c.y = +yy.toFixed(3); E.works.push(c); added.push(c.id); want = s + box(c).wm / 2 + 0.4;
       });
     });
-    sel = new Set(added); if (added.length) tab = 'sel'; libSel.clear(); if (miss) toast(`אין מקום על הקירות ל־${miss} עבודות`); drawAll();
+    sel = new Set(added); if (added.length) tab = 'sel'; libSel.clear();
+    { const f = walls().find(o => sel.has(o.id)); if (f && view !== 'all' && segOf(f.s) !== +view) { view = String(segOf(f.s)); zoom = 1; } }      /* that wall was full: show the wall it went to */
+    if (miss) toast(`אין מקום על הקירות ל־${miss} עבודות`); drawAll();
   }
   const removeSel = () => { if (!sel.size) return; mutate(() => { E.works = E.works.filter(w => !sel.has(w.id)); E.plinths = E.plinths.filter(p => !sel.has(p.id) && E.works.some(w => w.id === p.work)); }); sel.clear(); drawAll(); };
 
   // ---- the library ---------------------------------------------------------------------------------------------------------
+  const openA = new Set();                                                       // the artists whose works are unfolded: kept through every redraw
   function libDraw() {
     const q = ($('#lq') && $('#lq').value || '').trim().toLowerCase(), inE = new Set(E.works.map(w => w.id));
     $('#lib').innerHTML = `<div class="pane-h"><h2>העבודות</h2><span class="muted small">${lib.reduce((n, a) => n + a.works.length, 0)} מכל האמנים</span></div>
       <input class="search" id="lq" type="search" dir="auto" placeholder="חיפוש אמן/ית או עבודה" value="${esc(q)}" aria-label="חיפוש">
       <div class="lib-s" id="ls">${lib.map(a => { const ws = a.works.filter(w => !q || (a.name + ' ' + w.title).toLowerCase().includes(q)); if (!ws.length) return '';
-        return `<details ${q || a.works.some(w => inE.has(w.id)) ? 'open' : ''}><summary><span dir="auto">${esc(a.name)}</span><span class="chip">${ws.length}</span></summary><div class="lg">${ws.map(w =>
+        return `<details data-a="${esc(a.id)}" ${q || openA.has(a.id) ? 'open' : ''}><summary><span dir="auto">${esc(a.name)}</span><span class="chip">${ws.length}</span></summary><div class="lg">${ws.map(w =>
           `<button type="button" class="lw ${inE.has(w.id) ? 'in' : ''} ${libSel.has(w.id) ? 'on' : ''} ${w.kind === 'object' ? 'obj' : ''}" draggable="${!inE.has(w.id)}" data-w="${esc(w.id)}" title="${esc(w.title)}${w.width ? ` · ${w.height}×${w.width}` : ''}"><img loading="lazy" src="${esc(w.thumb)}" alt="${esc(w.title)}">${w.kind === 'object' ? '<i>פסל</i>' : ''}</button>`).join('')}</div></details>`; }).join('')}</div>
       ${libSel.size ? `<div class="lib-add"><button class="btn p wide" id="l-add">הוסף ${libSel.size} לקיר <kbd>Enter</kbd></button></div>` : '<p class="muted small lib-tip">לחיצה בוחרת (אפשר כמה), גרירה אל הקיר מניחה, לחיצה כפולה מוסיפה.</p>'}`;
     const lq = $('#lq'); lq.oninput = () => { const v = lq.value, p = lq.selectionStart; libDraw(); const n = $('#lq'); n.focus(); n.setSelectionRange(p, p); };
     $$('.lw', $('#lib')).forEach(b => {
       const w = b.dataset.w;
       b.onclick = e => { if (b.classList.contains('in')) { sel = new Set([w]); tab = 'sel'; drawAll(); return; }
+        if (e.detail >= 2) return addWorks([w]);                                 // (a double click: the list is redrawn between the two clicks, so it is read from the click's own count)
         if (e.shiftKey && libSel.size) { const all = $$('.lw:not(.in)', $('#lib')).map(x => x.dataset.w), a = all.indexOf([...libSel].pop()), c = all.indexOf(w); all.slice(Math.min(a, c), Math.max(a, c) + 1).forEach(x => libSel.add(x)); }
         else if (libSel.has(w)) libSel.delete(w); else libSel.add(w);
         const sc = $('#ls').scrollTop; libDraw(); $('#ls').scrollTop = sc; };
-      b.ondblclick = () => { if (!b.classList.contains('in')) addWorks([w]); };
       b.ondragstart = e => { if (!libSel.has(w)) libSel = new Set([w]); e.dataTransfer.setData('text/plain', 'lib:' + [...libSel].join('|')); e.dataTransfer.effectAllowed = 'copy'; };
     });
+    $$('details', $('#lib')).forEach(d => { d.ontoggle = () => { if (!$('#lq').value) d.open ? openA.add(d.dataset.a) : openA.delete(d.dataset.a); }; });
     const a = $('#l-add'); if (a) a.onclick = () => addWorks([...libSel]);
   }
 
@@ -118,21 +130,32 @@ export async function editor(ctx, id) {
   const X = s => PAD + (s - range()[0]) * P, Yp = y => (RH - y) * P;
   function elDraw() {
     const el = $('#el'), [v0, v1] = range(), W = el.clientWidth - 2 * PAD, H = el.clientHeight - 56;
-    P = Math.max(20, Math.min(W / (v1 - v0), H / RH, 170)); const w = (v1 - v0) * P, h = RH * P;
+    const keep = [el.scrollLeft, el.scrollTop];
+    P = Math.max(20, Math.min(W / (v1 - v0), H / RH, 230)) * zoom; const w = (v1 - v0) * P, h = RH * P;
     const ticks = []; for (let m = Math.ceil(v0); m <= v1; m++) ticks.push(`<i style="left:${X(m)}px" class="${m % 2 ? 's' : ''}">${m % 2 ? '' : m}</i>`);
     el.innerHTML = `<div class="el-in" style="width:${w + 2 * PAD}px;height:${h + 56}px;padding-top:34px">
       <div class="el-rule" style="width:${w + 2 * PAD}px">${ticks.join('')}</div>
       <div class="el-walls" id="ew" style="margin-inline-start:${PAD}px;width:${w}px;height:${h}px;position:relative">
         ${SEGS.map(([n, a, z], i) => (view === 'all' || +view === i) ? `<div class="seg" style="left:${(a - v0) * P}px;width:${(z - a) * P}px"><span class="seg-n">${n} · ${z - a} מ׳${i === 0 ? ' · מהכניסה פנימה' : ''}</span></div>` : '').join('')}
         <div class="eye" style="top:${Yp(EYE)}px"></div>
-        ${walls().filter(o => o.s + dims(o)[0] / 2 > v0 && o.s - dims(o)[0] / 2 < v1).map(o => { const b = box(o), bad = walls().some(q => q.id !== o.id && hit(b, box(q)));
+        ${walls().filter(o => view === 'all' || segOf(o.s) === +view).map(o => { const b = box(o), bad = walls().some(q => q.id !== o.id && hit(b, box(q)));
           return `<div class="ew ${sel.has(o.id) ? 'on' : ''} ${bad ? 'bad' : ''}" data-id="${esc(o.id)}" style="left:${(b.l - v0) * P}px;top:${Yp(b.t)}px;width:${b.wm * P}px;height:${b.hm * P}px;background-image:url('${esc(abs(o.thumb || o.image))}')"><span class="ew-c" dir="auto">${esc(o.title)}</span></div>`; }).join('')}
+        ${walls().length ? '' : `<div class="el-empty"><b>הקירות ריקים</b><span>גרור עבודות מהרשימה אל הקיר, או לחץ עליהן פעמיים.</span></div>`}
         <div class="guides" id="gd"></div><div class="mq" id="mq" hidden></div></div></div>`;
-    el.scrollLeft = 0; wireEl();
+    el.scrollLeft = zoom > 1 ? keep[0] : 0; el.scrollTop = zoom > 1 ? keep[1] : 0; wireEl();
+    const zl = $('#zl'); if (zl) zl.textContent = Math.round(zoom * 100) + '%';
   }
   const toM = e => { const r = $('#ew').getBoundingClientRect(), [v0, v1] = range(); return { s: Math.min(Math.max(v0 + (e.clientX - r.left) / P, v0), v1), y: RH - (e.clientY - r.top) / P }; };
   function drawGuides(list) { const g = $('#gd'); if (!g) return; const [v0] = range(); g.innerHTML = list.map(([k, v]) => k === 's' ? `<i class="gv" style="left:${(v - v0) * P}px"></i>` : `<i class="gh" style="top:${Yp(v)}px"></i>`).join(''); }
-  function paintSel() { $$('.ew').forEach(e => e.classList.toggle('on', sel.has(e.dataset.id))); planDraw(); insDraw(); hintDraw(); }
+  function paintSel() { $$('.ew').forEach(e => e.classList.toggle('on', sel.has(e.dataset.id))); planDraw(); insDraw(); }
+  function setZoom(z, cx, cy) {                                                  // zoom about a point of the canvas (the pointer, or its middle)
+    const el = $('#el'), r = el.getBoundingClientRect(); z = Math.min(Math.max(z, 1), 6); if (z === zoom) return;
+    cx = cx ?? r.left + r.width / 2; cy = cy ?? r.top + r.height / 2;
+    const ew = $('#ew').getBoundingClientRect(), fx = (cx - ew.left) / ew.width, fy = (cy - ew.top) / ew.height;
+    zoom = z; elDraw(); const n = $('#ew').getBoundingClientRect();
+    el.scrollLeft += n.left + fx * n.width - cx; el.scrollTop += n.top + fy * n.height - cy;
+  }
+  const setView = v => { view = v; zoom = 1; toolsDraw(); elDraw(); };
   function wireEl() {
     const ew = $('#ew'); let drag = null;
     ew.onpointerdown = e => {
@@ -145,7 +168,7 @@ export async function editor(ctx, id) {
         drag = { id, p0: p, moved: false, base: new Map(walls().filter(o => sel.has(o.id)).map(o => [o.id, { s: o.s, y: o.y }])), before: snap() };
       } else { drag = { marquee: true, p0: p, x0: e.clientX, y0: e.clientY, multi, keep: new Set(multi ? sel : []), moved: false }; if (!multi) { sel = new Set(); } }
     };
-    ew.ondblclick = e => { if (view !== 'all') return; const p = toM(e); view = String(segOf(p.s)); toolsDraw(); elDraw(); };
+    ew.ondblclick = e => { if (view !== 'all' || e.target.closest('.ew')) return; setView(String(segOf(toM(e).s))); };
     ew.onpointermove = e => {
       if (!drag) return; const p = toM(e);
       if (drag.marquee) {
@@ -263,13 +286,15 @@ export async function editor(ctx, id) {
     });
     drawAll();
   }
-  const hintDraw = () => { const h = $('#hint'); if (h) h.innerHTML = `<b>קיצורי מקשים</b><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> הזזה, <kbd>Shift</kbd> פי עשרה</span><span><kbd>Ctrl</kbd>+<kbd>A</kbd> הכל · <kbd>Del</kbd> הסרה · <kbd>Esc</kbd> ביטול בחירה</span><span><kbd>Tab</kbd> קיר אחר · <kbd>Alt</kbd> בלי הצמדה</span><span><kbd>W</kbd> צפייה · <kbd>Ctrl</kbd>+<kbd>Z</kbd> ביטול</span>`; };
+  const help = () => helpDlg('קיצורי מקשים · עריכת תערוכה', [['← → ↑ ↓', 'הזזת הנבחר בס״מ אחד'], ['Shift + ← →', 'הזזה בעשרה ס״מ'], ['Alt', 'גרירה בלי הצמדה'], ['Shift / Ctrl', 'הוספה לבחירה בלחיצה'], ['Ctrl + A', 'בחירת הכל'], ['Del', 'הסרה מהתערוכה'], ['Esc', 'ביטול הבחירה'],
+    ['Ctrl + Z', 'ביטול'], ['Ctrl + Shift + Z', 'שחזור'], ['1 2 3', 'קיר שמאל, אחורי, ימין'], ['0', 'כל הקירות'], ['Tab', 'הקיר הבא'], ['+ −', 'הגדלה והקטנה (גם Ctrl וגלגלת)'], ['Space', 'גרירת הקנבס כשהוא מוגדל'], ['W', 'צפייה בחדר בתלת־ממד'], ['Ctrl + S', 'שמירה עכשיו (נשמר גם מעצמו)']]);
   function toolsDraw() {
     $('#tools').innerHTML = `<div class="seg-b" role="group" aria-label="תצוגה">${[['all', 'כל הקירות'], ['0', 'שמאל'], ['1', 'אחורי'], ['2', 'ימין']].map(([k, t]) => `<button type="button" data-v="${k}" aria-pressed="${view === k}">${t}</button>`).join('')}</div>
-      <span class="muted small">מסתכלים מהכניסה פנימה · קנה מידה אמיתי · הקו המקווקו הוא גובה העין (150)</span>`;
-    $$('[data-v]').forEach(b => b.onclick = () => { view = b.dataset.v; toolsDraw(); elDraw(); });
+      <span class="grow"></span><div class="seg-b zm" role="group" aria-label="הגדלה"><button type="button" id="z-out" title="הקטן (−)" aria-label="הקטן">−</button><button type="button" id="zl" title="התאם לחלון (0)">${Math.round(zoom * 100)}%</button><button type="button" id="z-in" title="הגדל (+)" aria-label="הגדל">+</button></div>`;
+    $$('[data-v]').forEach(b => b.onclick = () => setView(b.dataset.v));
+    $('#z-out').onclick = () => setZoom(zoom / 1.25); $('#z-in').onclick = () => setZoom(zoom * 1.25); $('#zl').onclick = () => setZoom(1);
   }
-  function drawAll() { libDraw(); toolsDraw(); elDraw(); planDraw(); insDraw(); hintDraw(); chipsDraw(); }
+  function drawAll() { libDraw(); toolsDraw(); elDraw(); planDraw(); insDraw(); chipsDraw(); }
 
   // ---- publishing: pick a room ---------------------------------------------------------------------------------------------------
   async function publishDlg() {
@@ -294,20 +319,29 @@ export async function editor(ctx, id) {
   }
   async function walk() {
     if (!walls().length && !E.plinths.length) return toast('אין עדיין עבודות על הקירות');
-    toast('בונה את החדר בגודל מלא…'); const r = slotRows.find(s => s.exhibition_id === E.id);
-    try { await walkStreet([roomOf(E, r && r.colour || '#8a8a8a')], 0, viewerCss, synth); } catch (e) { fail(e); }
+    toast('בונה את החדר בגודל מלא…'); const r = where()[0]; let c = r && r.colour;
+    try { if (!c) c = await SY.suggestColour(walls().slice(0, 4).map(w => abs(w.thumb || w.image)), u => u, SY.slugHue(E.id || E.title || 'draft')).catch(() => null);
+      await walkStreet([roomOf(E, c || '#8a8a8a')], 0, viewerCss, synth); } catch (e) { fail(e); }
   }
 
   // ---- wiring ------------------------------------------------------------------------------------------------------------------------
   $('#f-title').oninput = e => mutate(() => { E.title = e.target.value; }, 'title');
   $('#b-undo').onclick = () => doUndo(undo, redo); $('#b-redo').onclick = () => doUndo(redo, undo);
-  $('#b-walk').onclick = walk; $('#b-pub').onclick = publishDlg;
+  $('#b-walk').onclick = walk; $('#b-pub').onclick = publishDlg; $('#b-help').onclick = help; $('#saved').onclick = () => save();
+  { const el = $('#el'); let pan = null, space = false;                         // Ctrl + wheel zooms about the pointer; the middle button (or Space) drags the canvas
+    el.addEventListener('wheel', e => { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); setZoom(zoom * Math.exp(-e.deltaY / 300), e.clientX, e.clientY); }, { passive: false });
+    el.addEventListener('pointerdown', e => { if (e.button !== 1 && !(space && e.button === 0)) return; e.preventDefault(); e.stopPropagation(); pan = [e.clientX, e.clientY, el.scrollLeft, el.scrollTop]; el.setPointerCapture(e.pointerId); el.classList.add('pan'); }, true);
+    el.addEventListener('pointermove', e => { if (!pan) return; el.scrollLeft = pan[2] - (e.clientX - pan[0]); el.scrollTop = pan[3] - (e.clientY - pan[1]); });
+    el.addEventListener('pointerup', () => { pan = null; el.classList.remove('pan'); });
+    const kd = e => { if (!el.isConnected) { removeEventListener('keydown', kd); removeEventListener('keyup', ku); return; } if (e.code === 'Space' && !(e.target.closest && e.target.closest('input,textarea,select,button,dialog'))) { space = true; el.classList.add('grab'); e.preventDefault(); } };
+    const ku = e => { if (e.code === 'Space') { space = false; el.classList.remove('grab'); } };
+    addEventListener('keydown', kd); addEventListener('keyup', ku); }
   window.onbeforeunload = () => (dirty ? 'יש שינויים שנשמרים' : undefined);
   const leave = () => { if (dirty) save(); window.onbeforeunload = null; removeEventListener('hashchange', leave); };
   addEventListener('hashchange', leave);
   addEventListener('resize', () => { if ($('#el')) elDraw(); });
   keys(e => {
-    if (e.target.closest('input,textarea,select,dialog')) { if (e.key === 'Escape' && e.target.closest('#lq')) e.target.blur(); return; }
+    const el = e.target; if (el && el.closest && el.closest('input,textarea,select,dialog')) { if (e.key === 'Escape' && el.closest('#lq')) el.blur(); return; }
     const k = e.key, c = e.ctrlKey || e.metaKey;
     if (c && k.toLowerCase() === 'z') { e.preventDefault(); return e.shiftKey ? doUndo(redo, undo) : doUndo(undo, redo); }
     if (c && k.toLowerCase() === 'y') { e.preventDefault(); return doUndo(redo, undo); }
@@ -318,12 +352,16 @@ export async function editor(ctx, id) {
     if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); return removeSel(); }
     if (k === 'Enter' && libSel.size) return addWorks([...libSel]);
     if (k === 'w' || k === 'W') return walk();
-    if (k === 'Tab') { e.preventDefault(); const o = ['all', '0', '1', '2']; view = o[(o.indexOf(view) + (e.shiftKey ? 3 : 1)) % 4]; toolsDraw(); return elDraw(); }
+    if (k === '?') return help();
+    if (k === '+' || k === '=') return setZoom(zoom * 1.25); if (k === '-') return setZoom(zoom / 1.25);
+    if (k === '0') return view === 'all' ? setZoom(1) : setView('all'); if (/^[123]$/.test(k)) return setView(String(+k - 1));
+    if (k === 'Tab') { e.preventDefault(); const o = ['all', '0', '1', '2']; return setView(o[(o.indexOf(view) + (e.shiftKey ? 3 : 1)) % 4]); }
     const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[k];
     if (d && sel.size) { e.preventDefault(); const st = (e.shiftKey ? 10 : 1) / 100, ws = walls().filter(o => sel.has(o.id)), ps = E.plinths.filter(p => sel.has(p.id));
       mutate(() => { ws.forEach(o => { o.s = +clampS(o, o.s + d[0] * st).toFixed(3); o.y = +clampY(o, o.y + d[1] * st).toFixed(3); }); ps.forEach(p => { const [w, dd] = pl(p); p.x = +Math.min(Math.max(p.x + d[0] * st, w / 200 + 0.3), RW - w / 200 - 0.3).toFixed(2); p.z = +Math.min(Math.max(p.z + d[1] * st, dd / 200 + 0.3), RD - dd / 200 - 0.3).toFixed(2); }); }, 'nudge');
       elDraw(); planDraw(); insDraw(); }
   });
-  { const n = [0, 0, 0]; walls().forEach(o => n[segOf(o.s)]++); if (Math.max(...n) > 0) view = String(n.indexOf(Math.max(...n))); }      // open on the wall with the most works: big enough to hang by eye
+  { const n = [0, 0, 0]; walls().forEach(o => n[segOf(o.s)]++); view = Math.max(...n) > 0 ? String(n.indexOf(Math.max(...n))) : '1';
+    for (const a of lib) if (a.works.some(w => E.works.some(x => x.id === w.id))) openA.add(a.id); if (!openA.size && lib[0]) openA.add(lib[0].id); }      // open on the wall with the most works: big enough to hang by eye
   drawAll(); paintSaved();
 }

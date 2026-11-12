@@ -5,7 +5,7 @@
 // plinths { id, x, z, size: 's' | 'm' | 'l', work }.
 // Works with touch and mouse: one finger drags a work or a plinth, a drag on the empty wall looks around, two fingers
 // pinch to zoom (all the viewer's own).
-import { buildRoom, sizeOf, PLINTHS } from './synth.js';
+import { buildRoom, sizeOf, PLINTHS, PLINTH_LIMITS, plinthDims, STAND, isStand } from './synth.js';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -18,20 +18,28 @@ const SNAP = 0.06, GAP = 0.15;
 export async function openHangEditor({ design, library, state, src, shape, openSpace, onSave, onExit }) {
   const st = { ids: (state.ids || []).slice(), placements: clone(state.placements || {}), plinths: clone(state.plinths || []) };
   const undo = [];
-  let view = null, made = null, pose = null, ctl = null, outerSel = null;
+  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPop = '';
   const byId = id => library.find(w => w.id === id);
-  const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size).join();
+  const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
   const save = () => onSave(clone(st));
   const push = pre => { undo.push(pre); if (undo.length > 40) undo.shift(); };
 
   async function build() {
+    const was = sig(st);
     const m = await buildRoom({ ...design, works: st.ids.map(byId).filter(Boolean).map(shape), placements: st.placements, plinths: st.plinths, editing: true }, src);
     for (const [id, p] of Object.entries(m.placements)) if (!st.placements[id]) st.placements[id] = p;   // hung as the room would: now the artist's to move
-    st.plinths = m.plinths;
+    if (sig(st) === was) st.plinths = m.plinths;      // (a change made while the room was being drawn stays: the next drawing takes it)
     return m;
   }
   // (re)open the room on the current state, standing where the artist stood
+  let opening = false, again = false;
   async function open() {
+    if (opening) { again = true; return; }             // one drawing at a time; a change made meanwhile is drawn right after
+    opening = true;
+    try { await open1(); } finally { opening = false; }
+    if (again) { again = false; outerSel = ctl && ctl.sel ? ctl.sel() : outerSel; await open(); }
+  }
+  async function open1() {
     const next = await build();
     const was = view, keepPose = ctl && ctl.api ? ctl.api.pose() : null;
     if (was) { was.close(); made.revoke(); }
@@ -42,7 +50,8 @@ export async function openHangEditor({ design, library, state, src, shape, openS
   }
 
   function controller() {
-    let api = null, sel = outerSel, drag = null, tap = null, ui = null, pop = '', noteT = 0, outline = null, guides = null;
+    let api = null, sel = outerSel, drag = null, tap = null, ui = null, pop = outerPop, noteT = 0, outline = null, guides = null;
+    outerPop = '';
     const sizes = {}; made.spec.works.forEach(h => { sizes[h.id] = [h.measured[0] / 100, h.measured[1] / 100]; });
     const blocks = made.spec.blocks || {};
     const H = made.spec.room.height, W = made.spec.room.x1, D = made.spec.room.z1;
@@ -50,6 +59,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     const pieceOf = id => api.pieces.find(p => p.h.id === id);
     const plinthOf = id => api.plinths.find(q => q.id === id);
     const stPlinth = id => st.plinths.find(p => p.id === id);
+    const stStands = () => st.plinths.filter(isStand);
     const V = a => new api.THREE.Vector3(...a);
 
     // --- where a screen point lands on the walls and the floor ---------------------------------------------------
@@ -64,7 +74,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         if (den > -1e-4) continue;
         const t = O.clone().sub(ro).dot(N) / den; if (t < 0) continue;
         const p = ro.clone().addScaledVector(rd, t), a = p.clone().sub(O).dot(U);
-        if (a < -0.01 || a > wl.size[0] + 0.01 || p.y < 0 || p.y > H) continue;
+        if (a < -0.01 || a > wl.size[0] + 0.01 || p.y < 0 || p.y > wl.size[1]) continue;
         if (!best || t < best.t) best = { wall: wl, a, y: p.y, t };
       }
       return best;
@@ -99,7 +109,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         tryA(a - w / 2, o.a + o.w / 2 + GAP, o.a + o.w / 2); tryA(a + w / 2, o.a - o.w / 2 - GAP, o.a - o.w / 2);
       }
       a = Math.max(w / 2, Math.min(len - w / 2, a));
-      y = Math.max(h / 2 + 0.1, Math.min(H - h / 2 - 0.1, y));
+      y = Math.max(h / 2 + 0.1, Math.min(wl.size[1] - h / 2 - 0.1, y));
       for (const [b0, b1] of blocks[wl.name] || []) {      // not over a window, glass or the door
         if (a + w / 2 > b0 && a - w / 2 < b1) { a = (a < (b0 + b1) / 2) ? b0 - w / 2 : b1 + w / 2; ga = null; }
       }
@@ -116,10 +126,10 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       return Math.max(w / 2, Math.min(wl.size[0] - w / 2, a));
     }
     function constrainPlinth(x, z, id) {
-      const q = stPlinth(id), [pw, pd] = PLINTHS[q.size];
+      const q = stPlinth(id), [pw, pd] = plinthDims(q);
       x = Math.round(x * 20) / 20; z = Math.round(z * 20) / 20;
       let bx = SNAP, bz = SNAP, sx = x, sz = z;
-      for (const o of st.plinths) if (o.id !== id) { if (Math.abs(o.x - x) < bx) { bx = Math.abs(o.x - x); sx = o.x; } if (Math.abs(o.z - z) < bz) { bz = Math.abs(o.z - z); sz = o.z; } }
+      for (const o of st.plinths) if (o.id !== id && !o.kind) { if (Math.abs(o.x - x) < bx) { bx = Math.abs(o.x - x); sx = o.x; } if (Math.abs(o.z - z) < bz) { bz = Math.abs(o.z - z); sz = o.z; } }
       if (Math.abs(W / 2 - x) < SNAP) sx = W / 2; if (Math.abs(D / 2 - z) < SNAP) sz = D / 2;
       return { x: Math.max(pw / 200 + 0.4, Math.min(W - pw / 200 - 0.4, sx)), z: Math.max(pd / 200 + 0.4, Math.min(D - pd / 200 - 0.4, sz)) };
     }
@@ -130,6 +140,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       if (!sel) return;
       const T = api.THREE; let g, parent, y = 0;
       if (sel.k === 'work') { const p = pieceOf(sel.id); if (!p) return; const [w, h] = sizes[sel.id]; g = new T.BoxGeometry(w + 0.05, h + 0.05, 0.07); parent = p.g; }
+      else if (sel.k === 'stand') { const b = (api.stands || []).find(x => x.id === sel.id); if (!b) return; g = new T.BoxGeometry(b.spec.len + 0.04, b.spec.h + 0.04, b.spec.t + 0.04); parent = b.group; y = b.spec.h / 2; }
       else { const q = plinthOf(sel.id); if (!q) return; const [w, d, h] = q.spec.size.map(v => v / 100); g = new T.BoxGeometry(w + 0.03, h + 0.03, d + 0.03); parent = q.group; y = h / 2; }
       outline = new T.LineSegments(new T.EdgesGeometry(g), new T.LineBasicMaterial({ color: 0xe0533a, depthTest: false, transparent: true }));
       outline.renderOrder = 999; outline.position.y = y; parent.add(outline); g.dispose(); api.dirty();
@@ -149,7 +160,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     // --- moving ---------------------------------------------------------------------------------------------------------
     function putWork(id, wl, a, y) { api.movePiece(pieceOf(id), wl, a, y); st.placements[id] = { wall: wl.name, a: +a.toFixed(3), y: +y.toFixed(3) }; }
     function putPlinth(id, x, z) { const q = stPlinth(id); q.x = +x.toFixed(3); q.z = +z.toFixed(3); api.movePlinth(plinthOf(id), x, z); }
-    function select(s) { sel = s; if (s && api.root.querySelector('.sv-hint')) api.root.querySelector('.sv-hint').style.opacity = 0; mark(); refresh(); }
+    function select(s) { sel = s; if (s && s.k === 'stand') pop = 'stand'; else if (pop === 'stand' || pop === 'plinth') pop = ''; if (s && api.root.querySelector('.sv-hint')) api.root.querySelector('.sv-hint').style.opacity = 0; mark(); refresh(); }
 
     function pointer(type, e) {
       if (type === 'down') {
@@ -180,7 +191,10 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       }
       if (type === 'up') {
         if (!drag) {
-          if (tap && tap.id === e.pointerId && Math.abs(e.clientX - tap.x) + Math.abs(e.clientY - tap.y) < 8 && sel) select(null);
+          if (tap && tap.id === e.pointerId && Math.abs(e.clientX - tap.x) + Math.abs(e.clientY - tap.y) < 8) {
+            rayAt(e); const w = wallRay(), sid = w && w.wall.stand;        // a tap on a standing wall chooses it; on anything else lets go
+            if (sid && !(sel && sel.k === 'stand' && sel.id === sid)) select({ k: 'stand', id: sid }); else if (sel) select(null);
+          }
           tap = null; return false;
         }
         if (e.pointerId !== drag.pid) return true;
@@ -213,14 +227,63 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     async function removeSel() {
       if (!sel) return; const pre = clone(st);
       if (sel.k === 'work') { st.ids = st.ids.filter(i => i !== sel.id); delete st.placements[sel.id]; }
+      else if (sel.k === 'stand') {      // its works go back to the room's walls; the last one taken away stays away
+        st.plinths = st.plinths.filter(p => p.id !== sel.id);
+        for (const id of st.ids) if (st.placements[id] && st.placements[id].wall.startsWith(sel.id + '-')) delete st.placements[id];
+        if (!stStands().length && !st.plinths.some(p => p.kind === 'no-stands')) st.plinths.push({ id: 'no-stands', kind: 'no-stands' });
+      }
       else { const q = stPlinth(sel.id); if (q && q.work) st.ids = st.ids.filter(i => i !== q.work); st.plinths = st.plinths.filter(p => p.id !== sel.id); }
       push(pre); save(); sel = null; pop = ''; outerSel = sel; await open();
     }
     async function sizePlinth(k) {
       const pre = clone(st);
-      if (sel && sel.k === 'plinth') stPlinth(sel.id).size = k;
+      if (sel && sel.k === 'plinth') { const q = stPlinth(sel.id); q.size = k; delete q.dims; }
       else { const { f, p } = centreAhead(), id = 'p-' + Math.random().toString(36).slice(2, 8); st.plinths.push({ id, x: p.x + f.x * 2.2, z: p.z + f.z * 2.2, size: k, work: null }); sel = { k: 'plinth', id }; }
       push(pre); save(); pop = ''; outerSel = sel; await open();
+    }
+    // a change to a plinth's measures or to a standing wall: the room is drawn again a moment after the last tap
+    let later = 0, laterPre = null;
+    function soon(pre) {
+      if (!laterPre) laterPre = pre;
+      clearTimeout(later); refresh();
+      later = setTimeout(async () => { push(laterPre); laterPre = null; save(); outerSel = sel; outerPop = pop; await open(); }, 700);
+    }
+    function dimPlinth(i, by) {
+      const q = sel && sel.k === 'plinth' && stPlinth(sel.id); if (!q) return;
+      const pre = clone(st), d = plinthDims(q).slice(), lim = [PLINTH_LIMITS.w, PLINTH_LIMITS.d, PLINTH_LIMITS.h][i];
+      d[i] = Math.max(lim[0], Math.min(lim[1], d[i] + by)); q.dims = d;
+      const b = plinthOf(q.id);                              // at once: the box takes the new measures (the object on it follows when the room is drawn again)
+      if (b) { const o = b.spec.size; b.box.scale.set(d[0] / o[0], d[2] / o[2], d[1] / o[1]); b.box.position.y = d[2] / 200; if (b.face) b.face.position.y += (d[2] - (b.shownH || o[2])) / 100; b.shownH = d[2]; api.dirty(); }
+      soon(pre);
+    }
+    function addStand() {
+      const pre = clone(st), { f, p } = centreAhead(), id = 'stand-' + Math.random().toString(36).slice(2, 8);
+      // across the way the artist is looking, a few steps ahead
+      const rot = Math.abs(f.x) > Math.abs(f.z) ? 90 : 0;
+      st.plinths = st.plinths.filter(q => q.kind !== 'no-stands');
+      st.plinths.push({ id, kind: 'stand', x: +(p.x + f.x * 4).toFixed(2), z: +(p.z + f.z * 4).toFixed(2), len: 3, rot });
+      sel = { k: 'stand', id }; pop = 'stand'; soon(pre);
+    }
+    function editStand(what, by) {
+      const q = sel && sel.k === 'stand' && stPlinth(sel.id); if (!q) return;
+      const pre = clone(st);
+      if (what === 'len') q.len = +Math.max(STAND.len[0], Math.min(STAND.len[1], q.len + by * STAND.step)).toFixed(2);
+      else if (what === 'rot') q.rot = (((q.rot + by * STAND.turn) % 180) + 180) % 180;
+      else if (what === 'side' || what === 'away') {     // as the artist sees it: to the right, or further away, along the room's nearer axis
+        const { f } = centreAhead(), alongX = Math.abs(f.x) > Math.abs(f.z), fwd = alongX ? [Math.sign(f.x), 0] : [0, Math.sign(f.z)], right = [-fwd[1], fwd[0]];
+        const d = what === 'away' ? fwd : right;
+        q.x = +Math.max(0.6, Math.min(W - 0.6, q.x + d[0] * by * 0.25)).toFixed(2); q.z = +Math.max(0.6, Math.min(D - 0.6, q.z + d[1] * by * 0.25)).toFixed(2);
+      }
+      else if (what === 'here') { const { f, p } = centreAhead(); q.x = +(p.x + f.x * 4).toFixed(2); q.z = +(p.z + f.z * 4).toFixed(2); }
+      // at once, roughly: the wall's body moves and turns (its faces and works follow when the room is drawn again)
+      const b = (api.stands || []).find(x => x.id === q.id);
+      if (b) {
+        b.group.position.set(q.x, 0, q.z); b.group.rotation.y = -q.rot * Math.PI / 180; b.body.scale.x = q.len / b.spec.len;
+        api.scene.traverse(o => { if (o.userData.kind === 'wall' && o.userData.stand === q.id) o.visible = false; });
+        for (const p of api.pieces) { const pl = st.placements[p.h.id]; if (pl && pl.wall.startsWith(q.id + '-')) p.g.visible = false; }
+        mark(); api.dirty();
+      }
+      soon(pre);
     }
     function lineUp(mode) {
       if (!sel || sel.k !== 'work') return;
@@ -228,7 +291,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       const line = mode === 'c' ? ref.y : mode === 't' ? ref.y + rh / 2 : ref.y - rh / 2;
       for (const id of [sel.id, ...onWall(ref.wall, sel.id)]) {
         const h = sizes[id][1], y = mode === 'c' ? line : mode === 't' ? line - h / 2 : line + h / 2;
-        putWork(id, wl, st.placements[id].a, Math.max(h / 2 + 0.1, Math.min(H - h / 2 - 0.1, y)));
+        putWork(id, wl, st.placements[id].a, Math.max(h / 2 + 0.1, Math.min(wl.size[1] - h / 2 - 0.1, y)));
       }
       push(pre); save(); pop = ''; ui.pop.hidden = true; refresh();
     }
@@ -248,7 +311,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       const same = sig(pre) === sig(st); Object.assign(st, pre); save();
       if (!same) { sel = null; outerSel = null; await open(); return; }
       for (const id of st.ids) { const p = st.placements[id]; if (p && pieceOf(id)) api.movePiece(pieceOf(id), wallOf(p.wall), p.a, p.y); }
-      for (const p of st.plinths) if (plinthOf(p.id)) api.movePlinth(plinthOf(p.id), p.x, p.z);
+      for (const p of st.plinths) if (!p.kind && plinthOf(p.id)) api.movePlinth(plinthOf(p.id), p.x, p.z);
       refresh();
     }
 
@@ -260,6 +323,17 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         return rest.length ? `<p class="he-h">Add to the show${sel && sel.k === 'plinth' && !stPlinth(sel.id).work ? ': objects go on the selected plinth' : ''}</p><div class="he-grid">${rest.map(w => `<button type="button" data-add="${esc(w.id)}"><img src="${thumb(w)}" alt=""><span>${esc(w.title)}</span>${w.kind === 'object' ? '<i>object</i>' : ''}</button>`).join('')}</div>`
           : '<p class="he-note">Every work you have is already in the show. Bring more in under Works.</p>';
       }
+      const step = (label, val, key, less = '−', more = '+') => `<div class="he-step"><span>${label}</span><button type="button" data-st="${key}:-1" aria-label="${label}: less">${less}</button><b>${val}</b><button type="button" data-st="${key}:1" aria-label="${label}: more">${more}</button></div>`;
+      if (pop === 'stand') {
+        const q = sel && sel.k === 'stand' && stPlinth(sel.id);
+        if (!q) return `<p class="he-h">A wall that stands in the room: paintings hang on both sides</p><div class="he-row he-row1"><button type="button" data-st="add:1"><b>Stand a wall here</b><span>3 m wide, in front of you</span></button></div>`;
+        return `<div class="he-steps">${step('Width', q.len.toFixed(2) + ' m', 'len')}${step('Angle', Math.round(q.rot) + '°', 'rot')}${step('Move sideways', '25 cm', 'side', '←', '→')}${step('Move away', '25 cm', 'away', '↓', '↑')}</div>
+          <div class="he-acts"><button type="button" data-st="here:1">Bring it here</button><button type="button" data-st="add:1">Another wall</button><button type="button" class="he-del" data-st="rm:1">Remove</button></div>`;
+      }
+      if (pop === 'plinth' && sel && sel.k === 'plinth' && stPlinth(sel.id)) {
+        const d = plinthDims(stPlinth(sel.id));
+        return `<div class="he-steps">${step('Width', d[0] + ' cm', 'pw')}${step('Length', d[1] + ' cm', 'pd')}${step('Height', d[2] + ' cm', 'ph')}<div class="he-step he-pre"><span>Made sizes</span>${Object.keys(PLINTHS).map(k => `<button type="button" data-plinth="${k}" aria-label="${PNAME[k]}: ${PLINTHS[k].join(' × ')} cm">${k.toUpperCase()}</button>`).join('')}</div></div>`;
+      }
       if (pop === 'plinth') return `<p class="he-h">${sel && sel.k === 'plinth' ? 'Change the plinth’s size' : 'Stand a plinth on the floor'}</p><div class="he-row">${Object.entries(PLINTHS).map(([k, [w, d, h]]) => `<button type="button" data-plinth="${k}"><b>${PNAME[k]}</b><span>${w} × ${d} cm, ${h} high</span></button>`).join('')}</div>`;
       if (pop === 'line') return `<p class="he-h">Put every work on this wall on the same line as the selected one</p><div class="he-row">${[['c', 'Centre line'], ['t', 'Top line'], ['b', 'Bottom line']].map(([k, n]) => `<button type="button" data-line="${k}"><b>${n}</b></button>`).join('')}</div>`;
       return '';
@@ -268,23 +342,24 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       if (!ui) return;
       const work = sel && sel.k === 'work';
       ui.bar.querySelector('[data-a=line]').disabled = !work; ui.bar.querySelector('[data-a=even]').disabled = !work; ui.bar.querySelector('[data-a=undo]').disabled = !undo.length;
-      ui.bar.querySelectorAll('[data-a=add],[data-a=plinth],[data-a=line]').forEach(b => b.setAttribute('aria-pressed', String(pop === b.dataset.a)));
+      ui.bar.querySelectorAll('[data-a=add],[data-a=plinth],[data-a=stand],[data-a=line]').forEach(b => b.setAttribute('aria-pressed', String(pop === b.dataset.a)));
       if (pop) { ui.pop.hidden = false; ui.pop.innerHTML = popHtml(); } else if (!noteT || ui.pop.querySelector('.he-note') == null) ui.pop.hidden = true;
-      if (!sel) { ui.sel.hidden = true; return; }
+      if (!sel || sel.k === 'stand') { ui.sel.hidden = true; return; }      // (a standing wall's panel has its own Remove)
       ui.sel.hidden = false;
       if (work) {
         const w = byId(sel.id), p = st.placements[sel.id], [sw, sh] = sizes[sel.id];
         ui.sel.querySelector('.he-t').innerHTML = `<b>${esc(w ? w.title : '')}</b><span>${cm(sw)} × ${cm(sh)} cm</span><span>${cm(p.a - sw / 2)} cm from the left · ${cm(p.y)} cm high</span>`;
       } else {
         const q = stPlinth(sel.id), o = q && q.work ? byId(q.work) : null;
-        ui.sel.querySelector('.he-t').innerHTML = q ? `<b>${PNAME[q.size]} plinth</b><span>${PLINTHS[q.size].join(' × ')} cm</span><span>${o ? esc(o.title) : 'Empty: add an object to it'}</span>` : '';
+        if (sel.k === 'stand') { ui.sel.querySelector('.he-t').innerHTML = q ? `<b>Standing wall</b><span>${q.len.toFixed(2)} m wide · ${Math.round(q.rot)}°</span><span>Paintings hang on both sides</span>` : ''; return; }
+        ui.sel.querySelector('.he-t').innerHTML = q ? `<b>${q.dims ? 'Plinth' : PNAME[q.size] + ' plinth'}</b><span>${plinthDims(q).join(' × ')} cm</span><span>${o ? esc(o.title) : 'Empty: add an object to it'}</span>` : '';
       }
     }
     function attach(a) {
       api = a;
       const box = document.createElement('div'); box.className = 'he';
       box.innerHTML = `<div class="he-bar" role="toolbar" aria-label="Hang the works">
-          <button type="button" data-a="add"><b>Add</b><span>work</span></button><button type="button" data-a="plinth"><b>Plinth</b><span>floor</span></button>
+          <button type="button" data-a="add"><b>Add</b><span>work</span></button><button type="button" data-a="plinth"><b>Plinth</b><span>floor</span></button><button type="button" data-a="stand"><b>Wall</b><span>standing</span></button>
           <button type="button" data-a="line"><b>Line up</b><span>wall</span></button><button type="button" data-a="even"><b>Space</b><span>evenly</span></button><button type="button" data-a="undo"><b>Undo</b><span>last</span></button></div>
         <div class="he-pop" hidden></div>
         <div class="he-sel" hidden><div class="he-t"></div><button type="button" class="he-rm">Remove</button></div>`;
@@ -294,18 +369,21 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       ui.bar.onclick = e => {
         const b = e.target.closest('button'); if (!b || b.disabled) return;
         const k = b.dataset.a;
-        if (k === 'add' || k === 'plinth' || k === 'line') toggle(k); else if (k === 'even') even(); else if (k === 'undo') doUndo();
+        if (k === 'add' || k === 'plinth' || k === 'stand' || k === 'line') toggle(k); else if (k === 'even') even(); else if (k === 'undo') doUndo();
       };
       ui.pop.onclick = e => {
         const b = e.target.closest('button'); if (!b) return;
-        if (b.dataset.add) addWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line);
+        if (b.dataset.st) {
+          const [k, v] = b.dataset.st.split(':'), by = +v;
+          if (k === 'add') addStand(); else if (k === 'rm') removeSel(); else if (k === 'pw') dimPlinth(0, by * 5); else if (k === 'pd') dimPlinth(1, by * 5); else if (k === 'ph') dimPlinth(2, by * 5); else editStand(k, by);
+        } else if (b.dataset.add) addWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line);
       };
       ui.sel.querySelector('.he-rm').onclick = removeSel;
       if (pose) api.setPose(pose.at, pose.to);
       if (sel) mark();
       refresh();
     }
-    const ctlObj = { pointer, attach, get api() { return api; }, setSel(s) { sel = s; } };
+    const ctlObj = { pointer, attach, get api() { return api; }, setSel(s) { sel = s; }, sel: () => sel };
     return ctlObj;
   }
 

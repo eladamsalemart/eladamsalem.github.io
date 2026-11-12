@@ -55,7 +55,8 @@ to a tour or the viewer is done:
 (the owner said so); ask only for what needs their own login or money. Never ask for a key in the chat: secrets go in
 GitHub secrets or the environment's settings. Report briefly, in Hebrew.
 Every email to the owner (reports, reminders, summaries, anything sent by mail) goes to the app's mailbox
-ooopenstudio@gmail.com, never to eladamsalem1@ (the owner asked on 10.11).
+ooopenstudio@gmail.com, never to eladamsalem1@ (the owner asked on 10.11). The same for GitHub: don't comment on,
+close or reopen issues or pull requests when a silent edit will do, each one mails the owner.
 
 **Accounts and what reaches them from a session**
 - GitHub `eladamsalemart/eladamsalem.github.io`: code on `studio`, the live site on `main` (eladamsalem.com/open-studio/).
@@ -84,7 +85,11 @@ that wasn't copied. "Art map: exhibitions" daily (sites, newsletters, Makore; pa
 "App health" (2.11, the owner asked for a stage that checks, fixes and improves by itself): after every publish and every
 3 days it runs `studio/app/health/health.cjs` (every kind of page as an iPhone, Home's speed, the 3D room, the way in),
 `check_home.cjs`, `check_app.py` and `health/deps.py` (libraries: vulnerabilities fail, updates are notes) on the live
-site, and opens/updates a GitHub issue labelled `app-health` when something is broken. A scheduled task on the owner's
+site, and keeps its report in one standing issue (label `health-report`, edited in place, labelled `app-health` only
+while something is broken). Since 11.11 nothing in it mails the owner's own address: the run never ends red (the job
+does), the issue is never commented on, closed or reopened, and a change of state is mailed to ooopenstudio@. GitHub's
+own mails (a failed run of another workflow, a new issue) go to ooopenstudio@ too: the owner made it the account's
+default notifications address on 11.11 (github.com/settings/notifications; only their login can change it). A scheduled task on the owner's
 account ("Open Studio: app health (fix and improve, Sonnet)", trig_01M2ANWFBaQUXo9MyyBzTVSD, nightly 03:41 Israel time;
 the Opus one, trig_014jaVdgnMaAojFCVD8RpH9b, is paused) wakes a dedicated session on Sonnet, "Open Studio: app health
 (nightly, Sonnet)" (session_01BXFf6RhxRTmCxBSX7W3Cxs, opened with the repository

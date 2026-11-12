@@ -185,12 +185,16 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   // the room's surfaces show the photos themselves, projected back from where each was taken (see below)
   const shots = (spec.views || []).filter(v => v.project), roomMats = [];
   const room = m => { if (shots.length) roomMats.push(m); return m; };
+  // a wall that is glass from side to side and floor to ceiling: not a picture of the outside pasted on the wall (flat, and wrong
+  // from everywhere but where it was taken), but glass to look through: the garden stands outside it (addOutside, below)
+  const glassWalls = new Set(((BK && BK.plates) || []).filter(p => { const w = surfaces.find(x => x.name === p.wall); return w && p.from <= 0.02 && p.to >= w.size[0] - 0.02 && p.z0 <= 0.02 && p.z1 >= w.size[1] - 0.02; }).map(p => p.wall));
   surfaces.forEach((s, i) => {
+    if (glassWalls.has(s.name)) return;
     if (s.kind === 'reveal') { const r = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide }))); r.userData.kind = 'reveal'; scene.add(r); return; }
     if (s.kind === 'wall' || s.kind === 'ceiling') {
       const masks = s.kind === 'wall' ? ((spec.blocks || {})[s.name] || []) : [];
-      const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks), s.openings || [], s.kind === 'wall' ? 0.03 : 0);
-      m.userData.kind = s.kind; scene.add(m);
+      const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks), s.openings || [], s.kind === 'wall' && !s.stand ? 0.03 : 0);
+      m.userData.kind = s.kind; if (s.stand) m.userData.stand = s.stand; scene.add(m);
       for (const o of s.openings || []) addOpening(s, o);
     }
   });
@@ -198,7 +202,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   // window plates: each window (or glass wall) of a baked room photographed again, alone, at several times the wall's
   // resolution (the outside is what a phone magnifies most); laid over the same place in the wall's picture
   for (const p of (BK && BK.plates) || []) {
-    const s = surfaces.find(x => x.name === p.wall); if (!s) continue;
+    const s = surfaces.find(x => x.name === p.wall); if (!s || glassWalls.has(p.wall)) continue;
     loadTex(p.texture).then(t => {
       if (!t) return;
       const U = V(s.u), N = V(s.normal), O = V(s.origin), mid = (p.from + p.to) / 2;
@@ -209,6 +213,66 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       m.userData.kind = 'wall'; scene.add(m); dirty = true;
     });
   }
+
+  // --- the outside of a glass wall --------------------------------------------------------------------------------------
+  // A real garden, photographed all round (Poly Haven's killesberg_park, CC0), stands outside: the sky and the far trees on a
+  // great dome, and the ground of the photograph laid flat at the floor's level out to them (the dome's lower half is brought
+  // down onto the ground plane, as seen from the camera's height when it was taken). So the view turns as the visitor turns, the
+  // paving outside runs on from the floor and slides past the window frames as they walk, and near things move more than far ones.
+  // The glass itself: slim dark frames, a head and a sill, and a faint sheen.
+  function addOutside() {
+    if (!glassWalls.size) return;
+    const walls = surfaces.filter(s => glassWalls.has(s.name));
+    const cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2, RAD = Math.min(40, camera.far - 3), CAM = 1.6, GROUND = -0.02;
+    const RG = Math.max(8, Math.max(R.x1 - R.x0, R.z1 - R.z0) / 2 + 3.5);     // (how far the paving runs before the flower beds, from the room's middle)
+    const UC = 0.55, V0 = 0.20, V1 = 0.96;                       // (the panorama's column that faces the first glass wall; the rows kept)
+    const first = V(walls[0].normal).negate(), yaw = Math.atan2(first.x, -first.z);
+    const onlyFront = walls.every(w => V(w.normal).negate().angleTo(first) < 0.01);
+    const dir = base => 'data/rooms/_outside/' + base;
+    for (const [file, u0] of onlyFront ? [['garden-a.jpg', 0.30]] : [['garden-a.jpg', 0.30], ['garden-b.jpg', 0.80]]) {
+      const NU = 72, NV = 56, pos = [], uv = [], idx = [];
+      for (let j = 0; j <= NV; j++) for (let i = 0; i <= NU; i++) {
+        const u = u0 + 0.5 * i / NU, v = V0 + (V1 - V0) * j / NV, lon = (u - UC) * 2 * Math.PI + yaw, lat = (0.5 - v) * Math.PI;
+        const dx = Math.sin(lon) * Math.cos(lat), dy = Math.sin(lat), dz = -Math.cos(lon) * Math.cos(lat);
+        // below the horizon: where that ray meets the ground, out to the planting (RG); from there the planting stands upright, and
+        // what rises above the horizon leans back to the far dome (near shrubs, then trees, then sky: each further than the last)
+        const cl = Math.max(0.2, Math.cos(lat)), k = Math.min(1, Math.max(0, lat / 0.6)), rh = RG + (RAD - RG) * k * k * (3 - 2 * k);
+        const t = dy < 0 ? Math.min((CAM - GROUND) / -dy, RG / cl) : Math.min(rh / cl, RAD);
+        pos.push(cx + dx * t, CAM + dy * t, cz + dz * t); uv.push(i / NU, 1 - j / NV);
+      }
+      for (let j = 0; j < NV; j++) for (let i = 0; i < NU; i++) { const a = j * (NU + 1) + i, b = a + 1, c = a + NU + 1, d = c + 1; idx.push(a, c, b, b, c, d); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
+      const mat = new THREE.MeshBasicMaterial({ color: 0xd9dcdc, toneMapped: false, side: THREE.DoubleSide });
+      const m = new THREE.Mesh(g, mat); m.userData.kind = 'outside'; m.frustumCulled = false; scene.add(m);
+      loadTex(dir(file)).then(t => { if (!t) return; t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy()); mat.map = t; mat.color.set(0xffffff); mat.needsUpdate = true; dirty = true; });
+    }
+    const frame = new THREE.MeshBasicMaterial({ color: 0x1c1c1d, toneMapped: false });
+    const sheen = new THREE.MeshBasicMaterial({ color: 0xeaf1f2, transparent: true, opacity: 0.055, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
+    // (stone: a speckled grey, drawn once)
+    const sc = document.createElement('canvas'); sc.width = sc.height = 256; const sx = sc.getContext('2d');
+    sx.fillStyle = '#8b8882'; sx.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 5200; i++) { const g = 105 + Math.random() * 70 | 0; sx.fillStyle = `rgba(${g},${g - 2},${g - 6},${0.10 + Math.random() * 0.22})`; sx.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 2.2, 1 + Math.random() * 2.2); }
+    sx.strokeStyle = 'rgba(40,38,36,.5)'; sx.lineWidth = 1.5; sx.strokeRect(0.5, 0.5, 255, 255);        // (the slabs' joints)
+    const stone = new THREE.CanvasTexture(sc); stone.wrapS = stone.wrapT = THREE.RepeatWrapping; stone.colorSpace = THREE.SRGBColorSpace; stone.anisotropy = 8;
+    const tex = (rx, ry) => { const t = stone.clone(); t.repeat.set(rx, ry); t.needsUpdate = true; return t; };
+    let terrace, kerbM, kerbTop;
+    for (const s of walls) {
+      const U = V(s.u), N = V(s.normal), O = V(s.origin), [len, h] = s.size, n = Math.max(1, Math.round(len / 2));
+      terrace = new THREE.MeshBasicMaterial({ map: tex((len + 6) / 0.9, 2.8 / 0.9), color: 0xb9b6ae, toneMapped: false });
+      kerbM = new THREE.MeshBasicMaterial({ map: tex((len + 6) / 0.9, 0.45), color: 0x8d8a83, toneMapped: false }); kerbTop = new THREE.MeshBasicMaterial({ map: tex((len + 6) / 0.9, 0.33), color: 0xc4c1b9, toneMapped: false });
+      const grp = new THREE.Group(); grp.matrixAutoUpdate = false; grp.matrix.makeBasis(U, new THREE.Vector3(0, 1, 0), N).setPosition(O.clone().setY(0)); grp.userData.kind = 'glass';
+      const bar = (w, hh, x, y) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, hh, 0.09), frame); b.position.set(x, y, -0.03); grp.add(b); };
+      for (let k = 0; k <= n; k++) bar(k === 0 || k === n ? 0.09 : 0.055, h, len * k / n, h / 2);
+      bar(len, 0.12, len / 2, h - 0.06); bar(len, 0.05, len / 2, 0.025);
+      // a stone terrace outside, as wide as the glass, and a low planter wall at its far edge: real things near the window (they
+      // slide against the garden as the visitor walks), and they cover the strip where the photograph's ground is at its poorest
+      const TD = 2.8, deck = new THREE.Mesh(new THREE.PlaneGeometry(len + 6, TD), terrace); deck.rotation.x = -Math.PI / 2; deck.position.set(len / 2, -0.012, -TD / 2 - 0.02); grp.add(deck);
+      const kerb = new THREE.Mesh(new THREE.BoxGeometry(len + 6, 0.42, 0.3), [kerbM, kerbM, kerbTop, kerbM, kerbM, kerbM]); kerb.position.set(len / 2, 0.2, -TD - 0.15); grp.add(kerb);
+      const pane = new THREE.Mesh(new THREE.PlaneGeometry(len, h), sheen); pane.position.set(len / 2, h / 2, -0.03); pane.renderOrder = 5; grp.add(pane);
+      scene.add(grp);
+    }
+  }
+  addOutside();
 
   // through an opening: the wall's thickness, and a plain room beyond with the same floor
   function addOpening(s, o) {
@@ -558,6 +622,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   // in the order the show was hung (a designed show: as its artist or curator set it), else along the room
   const plinths = addPlinths(THREE, scene, spec.plinths, loadTex, spec.plinthRoom || {});
   plinthList.push(...plinths);
+  const standBodies = (await import('./plinths.js')).addStands(THREE, scene, spec.stands, spec.plinthRoom || {});   // the freestanding walls' bodies (their faces are surfaces)
   if (spec.furniture) {    // the Living room's sofa, rug, table and lamp (space/furniture.js); a visitor does not walk through them
     const { addFurniture } = await import('./plinths.js'); const f = addFurniture(THREE, scene, spec.furniture);
     for (const c of f.solid) plinthList.push({ group: { position: { x: c.x, z: c.z } }, spec: { size: [(c.r - 0.35) * 200, 0] } });
@@ -874,7 +939,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const rw = R.x1 - R.x0, rd = R.z1 - R.z0, ms = 120 / Math.max(rw, rd);
   const mx = x => 6 + (x - R.x0) * ms, mz = z => 6 + (z - R.z0) * ms;
   map.setAttribute('viewBox', `0 0 ${rw * ms + 12} ${rd * ms + 12}`); map.style.width = `${rw * ms + 12}px`;
-  map.innerHTML = `<rect class="room" x="6" y="6" width="${rw * ms}" height="${rd * ms}" rx="1.5"/>` + pieces.map((p, i) => {
+  map.innerHTML = `<rect class="room" x="6" y="6" width="${rw * ms}" height="${rd * ms}" rx="1.5"/>` + (spec.solids || []).map(([ax, az, bx, bz]) => `<line class="stand" x1="${mx(ax)}" y1="${mz(az)}" x2="${mx(bx)}" y2="${mz(bz)}"/>`).join('') + pieces.map((p, i) => {
     const a = new THREE.Vector3(p.facing.z, 0, -p.facing.x).multiplyScalar(p.size.w / 200), c = p.centre;
     const xy = `x1="${mx(c.x - a.x)}" y1="${mz(c.z - a.z)}" x2="${mx(c.x + a.x)}" y2="${mz(c.z + a.z)}"`;
     return `<line class="work" ${xy}/><line class="hit" data-i="${i}" ${xy}><title>${p.w.title}</title></line>`;
@@ -1126,11 +1191,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   setMode('walk'); show();
   if (exitLabel) $('.sv-x').textContent = exitLabel;
   if (editor) {
-    $('.sv-modes').hidden = true; $('.sv-hint').innerHTML = 'Tap a work or a plinth, then drag it<br>Drag the wall behind to look around';
+    $('.sv-modes').hidden = true; $('.sv-hint').innerHTML = 'Tap a work or a plinth, then drag it. Tap a standing wall to move it<br>Drag the wall behind to look around';
     // what the hang editor may do to the room: move a work to a place on a wall, a plinth on the floor
     const dM = 0.035 + 0.004;
     editor.attach({
-      THREE, scene, camera, canvas, root, pieces, plinths, floor: floorMesh, EYE, surfaces, R, ray,
+      THREE, scene, camera, canvas, root, pieces, plinths, stands: standBodies, floor: floorMesh, EYE, surfaces, R, ray,
       dirty() { dirty = true; },
       pose() { return { at: pos.toArray(), to: look.toArray() }; },
       setPose(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },

@@ -39,7 +39,7 @@ export const KINDS = {
 // THE ARCHIVE SWITCH (owner, 10.11): only these kinds are offered to artists, in this order. Every other kind keeps all its
 // data and files in data/rooms and stays loadable (shows already in one still open); it is just not offered. To bring a
 // kind back, add its key here. The 2/3-rooms variants follow their kind.
-export const ACTIVE_KINDS = ['apartment', 'black-box'];
+export const ACTIVE_KINDS = ['white-cube', 'concrete', 'glass-pavilion'];
 export const isActiveKind = k => ACTIVE_KINDS.includes(k);
 const SIZE = { small: 'Small', large: 'Large', medium: 'Medium' };
 const BAKED = new URL('../data/rooms/', import.meta.url).href;
@@ -74,6 +74,46 @@ const MARGIN = 0.7, GAP = 0.9, MIN_GAP = 0.5, DEPTH = 0.035;
 // plinths an artist can place on the floor: width, depth, height in cm
 export const PLINTHS = { s: [30, 30, 100], m: [40, 40, 90], l: [60, 60, 70] };
 const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
+// a plinth's width, depth and height in cm: one of the three made sizes, or the artist's own (p.dims)
+export const PLINTH_LIMITS = { w: [20, 200], d: [20, 200], h: [20, 150] };
+export const plinthDims = p => {
+  const d = Array.isArray(p.dims) && p.dims.length === 3 && p.dims.every(v => v > 0) ? p.dims : PLINTHS[p.size] || PLINTHS.m;
+  return [clampN(+d[0], ...PLINTH_LIMITS.w), clampN(+d[1], ...PLINTH_LIMITS.d), clampN(+d[2], ...PLINTH_LIMITS.h)];
+};
+// A freestanding wall (a coulisse) the artist stands in the room, to hang paintings on both its faces: in the list of plinths as
+// { id, kind: 'stand', x, z, len (m), rot (degrees, 0 = along the room's width) }. Its height suits paintings and is the room's to set.
+export const STAND = { t: 0.24, len: [1.5, 6], step: 0.25, turn: 15 };
+export const isStand = p => !!p && p.kind === 'stand';
+export const standHeight = R => +Math.min(2.8, Math.max(2.2, (R.h || 3) - 0.5)).toFixed(2);
+// the stands a room comes with (the Glass pavilion's picture shows two): only while the artist has set none and has not taken them all away
+function defaultStands(R) {
+  if (R.kind !== 'glass-pavilion' || R.cells > 1) return [];
+  const len = +Math.min(3.5, R.d * 0.4).toFixed(2);
+  return [0.3, 0.55].map((k, i) => ({ id: 'stand-' + (i + 1), kind: 'stand', x: +(R.w * k).toFixed(2), z: +(R.d / 2).toFixed(2), len, rot: 90 }));
+}
+export function standsOf(design, R) {
+  const list = design.plinths || [];
+  const own = list.filter(isStand);
+  const src = own.length || list.some(p => p && p.kind === 'no-stands') ? own : defaultStands(R);
+  return src.map(p => {
+    const len = clampN(+p.len || 3, ...STAND.len), rot = ((+p.rot || 0) % 180 + 180) % 180, r = rot * Math.PI / 180;
+    const ex = Math.abs(Math.cos(r)) * len / 2 + 0.6, ez = Math.abs(Math.sin(r)) * len / 2 + 0.6;       // (both ends stay inside the room, with room to walk round)
+    return { id: p.id, kind: 'stand', x: +clampN(+p.x || R.w / 2, Math.min(ex, R.w / 2), Math.max(R.w - ex, R.w / 2)).toFixed(3), z: +clampN(+p.z || R.d / 2, Math.min(ez, R.d / 2), Math.max(R.d - ez, R.d / 2)).toFixed(3), len: +len.toFixed(2), rot, h: standHeight(R) };
+  });
+}
+// each face of a stand as a wall a work hangs on (the same shape as the room's walls: origin at the top, u along it, normal out of it)
+function standWalls(stands) {
+  const out = [];
+  for (const s of stands) {
+    const r = s.rot * Math.PI / 180, n = [-Math.sin(r), Math.cos(r)];
+    for (const [k, sg] of [['a', 1], ['b', -1]]) {
+      const N = [n[0] * sg, n[1] * sg], U = [N[1], -N[0]];
+      out.push({ name: `${s.id}-${k}`, stand: s.id, h: s.h, len: s.len, blocks: [], normal: [N[0], 0, N[1]], u: [U[0], 0, U[1]],
+        origin: [s.x + N[0] * STAND.t / 2 - U[0] * s.len / 2, s.h, s.z + N[1] * STAND.t / 2 - U[1] * s.len / 2] });
+    }
+  }
+  return out;
+}
 
 // --- helpers ---------------------------------------------------------------------------------------------
 function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -190,6 +230,7 @@ function stretches(walls, R = {}) {
   if (R.baked) {
     // the free stretches of each wall, between its windows, glass and door, each walked from high a to low a
     for (const wl of walls) {
+      if (wl.stand) { if (wl.len - 0.7 >= 0.6) out.push({ wall: wl, from: wl.len - 0.35, to: 0.35 }); continue; }
       const cut = [...(wl.blocks || R.blocks[wl.name] || []), ...(wl.door ? [wl.door] : [])].map(([a, b]) => [a - 0.4, b + 0.4]).sort((p, q) => q[0] - p[0]);
       let hi = wl.len - MARGIN;
       for (const [a, b] of cut) { if (hi - Math.max(b, MARGIN) >= 0.6) out.push({ wall: wl, from: hi, to: Math.max(b, MARGIN), ...(wl.door ? { last: true } : {}) }); hi = Math.min(hi, a); }
@@ -200,7 +241,8 @@ function stretches(walls, R = {}) {
   for (const wl of walls) {
     if (wl.door) {
       out.push({ wall: wl, from: wl.door[0] - 0.5, to: MARGIN, last: true });
-    } else out.push({ wall: wl, from: wl.len - MARGIN, to: MARGIN });
+    } else if (wl.stand) { if (wl.len - 0.7 >= 0.6) out.push({ wall: wl, from: wl.len - 0.35, to: 0.35 }); }
+    else out.push({ wall: wl, from: wl.len - MARGIN, to: MARGIN });
   }
   return out;
 }
@@ -208,7 +250,7 @@ function stretches(walls, R = {}) {
 // hang the works: in order, filling each stretch while the works and their gaps fit, then spacing each
 // stretch's works evenly. Returns placements and the works that didn't fit.
 export function hang(design, sized) {
-  const R = { ...ROOMS[design.room] }, walls = wallsOf(R), H = R.h;
+  const R = { ...ROOMS[design.room] }, stands = standsOf(design, R), walls = [...wallsOf(R), ...standWalls(stands)], H = R.h;
   const centre = Math.min(Math.max(+(design.centre || 150) / 100, 1.3), 1.7);
   const order = sized.map((s, i) => ({ ...s, i }));
   // works on the door wall only if the other walls are full
@@ -238,17 +280,17 @@ export function hang(design, sized) {
     let a = run.from - g;
     for (const it of run.items) {
       const wm = it.w / 100, hm = it.h / 100;
-      const y = Math.min(Math.max(centre, hm / 2 + 0.35), H - hm / 2 - 0.35);
+      const WH = run.wall.h || H, y = Math.min(Math.max(Math.min(centre, WH / 2 + 0.2), hm / 2 + 0.35), Math.max(WH - hm / 2 - 0.2, WH / 2));
       placed.push({ ...it, wall: run.wall, a: a - wm / 2, y });
       a -= wm + g;
     }
   }
   for (const it of manual) {
     const wl = walls.find(w => w.name === it.at.wall), wm = it.w / 100, hm = it.h / 100;
-    placed.push({ ...it, wall: wl, a: clampN(it.at.a, Math.min(wm / 2, wl.len / 2), Math.max(wl.len - wm / 2, wl.len / 2)), y: clampN(it.at.y, hm / 2 + 0.1, Math.max(hm / 2 + 0.1, H - hm / 2 - 0.1)) });
+    placed.push({ ...it, wall: wl, a: clampN(it.at.a, Math.min(wm / 2, wl.len / 2), Math.max(wl.len - wm / 2, wl.len / 2)), y: clampN(it.at.y, hm / 2 + 0.1, Math.max(hm / 2 + 0.1, (wl.h || H) - hm / 2 - 0.1)) });
   }
   placed.sort((p, q) => p.i - q.i);
-  return { R, walls, placed, left };
+  return { R, walls, placed, left, stands };
 }
 
 // where no work may hang on each wall (windows, glass, the door), with a margin, as [from, to] along the wall
@@ -274,6 +316,22 @@ function drawBakedWall(R, wl, works, img, editing) {
     else { pool(ctx, x, y - 0.1 * k, (wm / 2 + 0.6) * k, (hm / 2 + 0.62) * k, 0.1); pool(ctx, x, y - (hm / 2 + 0.55) * k, (wm / 2 + 0.2) * k, 0.9 * k, 0.03); }
   }
   ctx.globalCompositeOperation = 'source-over';
+  return c;
+}
+
+// a freestanding wall's face: smooth white paint (charcoal in a dark room), a little brighter towards the top, in shade at its foot,
+// and a soft pool of light on each work
+function drawStandFace(R, wl, works, editing) {
+  const ppm = 96, c = canvas(wl.len * ppm, wl.h * ppm), ctx = c.getContext('2d'), dark = R.light === 'narrow' || R.kind === 'black-box';
+  ctx.fillStyle = dark ? '#2e2e31' : '#efede8'; ctx.fillRect(0, 0, c.width, c.height);
+  const g = ctx.createLinearGradient(0, 0, 0, c.height);
+  g.addColorStop(0, dark ? 'rgba(255,255,255,.03)' : 'rgba(255,255,255,.35)'); g.addColorStop(0.55, 'rgba(255,255,255,0)'); g.addColorStop(0.9, 'rgba(0,0,0,.03)'); g.addColorStop(1, 'rgba(0,0,0,.12)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, c.width, c.height);
+  if (!editing) {
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of works) { const wm = p.w / 100, hm = p.h / 100; pool(ctx, p.a * ppm, (wl.h - p.y) * ppm - 0.1 * ppm, (wm / 2 + 0.6) * ppm, (hm / 2 + 0.62) * ppm, dark ? 0.2 : 0.07, dark ? '255,236,205' : undefined); }
+    ctx.globalCompositeOperation = 'source-over';
+  }
   return c;
 }
 
@@ -448,12 +506,12 @@ export async function buildRoom(design, src) {
   const pl = design.placements || {};
   const wallWorks = design.works.filter(w => !isObject(w)), objects = design.works.filter(isObject);
   const sized = await Promise.all(wallWorks.map(async w => ({ work: w, ...(await sizeOf(w, src)), wall: w.wall, at: w.id ? pl[w.id] : null })));
-  const { R, walls, placed, left } = hang(design, sized);
+  const { R, walls, placed, left, stands } = hang(design, sized);
   // plinths: those the artist set, and one in the middle of the room for each object not yet on one
-  const plinths = (design.plinths || []).filter(p => PLINTHS[p.size]).map(p => ({ ...p }));
+  const plinths = (design.plinths || []).filter(p => !p.kind && (PLINTHS[p.size] || p.dims)).map(p => ({ ...p }));
   const free = objects.filter(o => !plinths.some(p => p.work === o.id));
   free.forEach((o, i) => plinths.push({ id: 'p-' + (o.id || i), x: R.w * (i + 1) / (free.length + 1), z: R.d / 2, size: 'm', work: o.id }));
-  for (const p of plinths) { const [pw, pd] = PLINTHS[p.size]; p.x = clampN(p.x, pw / 200 + 0.4, Math.max(pw / 200 + 0.4, R.w - pw / 200 - 0.4)); p.z = clampN(p.z, pd / 200 + 0.4, Math.max(pd / 200 + 0.4, R.d - pd / 200 - 0.4)); }
+  for (const p of plinths) { const [pw, pd] = plinthDims(p); p.x = clampN(p.x, pw / 200 + 0.4, Math.max(pw / 200 + 0.4, R.w - pw / 200 - 0.4)); p.z = clampN(p.z, pd / 200 + 0.4, Math.max(pd / 200 + 0.4, R.d - pd / 200 - 0.4)); }
   const objSized = await Promise.all(objects.map(async o => ({ o, ...(await sizeOf(o, src)) })));
   const paint = (PAINTS[design.paint] || PAINTS[ROOMS[design.room].paint])[1];
   const seed = hash(design.title + design.room);
@@ -462,6 +520,11 @@ export async function buildRoom(design, src) {
   const surfaces = [];
   for (const wl of walls) {
     const on = placed.filter(p => p.wall === wl);
+    if (wl.stand) {     // a freestanding wall's face: white paint, lit like the room, drawn here
+      surfaces.push({ name: wl.name, kind: 'wall', stand: wl.stand, texture: await keep(drawStandFace(R, wl, on, !!design.editing)),
+        origin: wl.origin, u: wl.u, v: [0, -1, 0], size: [wl.len, wl.h], normal: wl.normal, openings: [] });
+      continue;
+    }
     const file = R.baked + (wl.file || wl.name) + '.jpg';
     const plain = R.baked && !wl.flip && !wl.partition && (!on.length || R.light === 'daylight' || design.editing);   // (nothing to add to the photograph)
     const img = R.baked && !plain ? await loadImg(file).catch(() => null) : null;
@@ -502,13 +565,16 @@ export async function buildRoom(design, src) {
     version: 2, title: design.title, source: `${ROOMS[design.room].name}, a virtual room`, virtual: true, ordered: true, ...(R.baked ? { baked: { kind: R.kind, plates: (R.plates || []).flatMap(p => R.cells > 1 && p.wall !== 'wall-x0' && p.wall !== 'wall-x1' ? Array.from({ length: R.cells }, (_, k) => ({ ...p, wall: `${p.wall}-c${k}`, texture: R.baked + p.file })) : [{ ...p, texture: R.baked + p.file }]) },
       ...(R.cells > 1 ? { partitions: Array.from({ length: R.cells - 1 }, (_, i) => ({ x: (i + 1) * R.cell, t: PART, door: (R.doorSpan || [R.d / 2 - 0.7, R.d / 2 + 0.7]) })) } : {}) } : {}),
     room: { x0: 0, x1: R.w, z0: 0, z1: R.d, height: R.h }, surfaces, works, views: [], floorReflect, plaster: await keep(plaster),
-    plinths: plinths.map(p => { const x = objSized.find(q => q.o.id === p.work); return { id: p.id, x: p.x, z: p.z, size: PLINTHS[p.size], key: p.size, work: p.work || null,
+    stands: stands.map(s => ({ ...s, t: STAND.t })),
+    solids: stands.map(s => { const r = s.rot * Math.PI / 180, dx = Math.cos(r) * s.len / 2, dz = Math.sin(r) * s.len / 2; return [s.x - dx, s.z - dz, s.x + dx, s.z + dz]; }),
+    plinths: plinths.map(p => { const x = objSized.find(q => q.o.id === p.work); return { id: p.id, x: p.x, z: p.z, size: plinthDims(p), key: p.size, work: p.work || null,
       obj: x ? { id: x.o.id, title: x.o.title, image: x.o.image, w: x.w, h: x.h } : null }; }),
     blocks: blocksOf(design.room),
   };
   const placements = {};
   for (const p of placed) if (p.work.id) placements[p.work.id] = { wall: p.wall.name, a: +p.a.toFixed(3), y: +p.y.toFixed(3) };
-  return { spec, placements, plinths: plinths.map(({ id, x, z, size, work }) => ({ id, x: +x.toFixed(3), z: +z.toFixed(3), size, work: work || null })), left: left.map(x => x.work), revoke: () => urls.forEach(u => URL.revokeObjectURL(u)) };
+  return { spec, placements, plinths: [...plinths.map(({ id, x, z, size, dims, work }) => ({ id, x: +x.toFixed(3), z: +z.toFixed(3), size, ...(dims ? { dims: plinthDims({ dims }) } : {}), work: work || null })),
+      ...stands.map(({ id, x, z, len, rot }) => ({ id, kind: 'stand', x, z, len, rot })), ...((design.plinths || []).some(p => p && p.kind === 'no-stands') ? [{ id: 'no-stands', kind: 'no-stands' }] : [])], left: left.map(x => x.work), revoke: () => urls.forEach(u => URL.revokeObjectURL(u)) };
 }
 
 

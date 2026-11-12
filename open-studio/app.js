@@ -107,7 +107,7 @@ function buildModel(d) {
   const cities = [];
   for (const e of exhibitions) if (e.city && !cities.some(c => c.name === e.city)) cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
   if (artist.city && !cities.some(c => c.name === artist.city)) cities.push({ name: artist.city, slug: slugify(artist.city), country: artist.country });
-  const m = { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: { ...(d.thumbs || {}) }, spaces: d.spaces || {},
+  const m = { s, artist, artists: [artist], works, exhibitions, objects, cities, cv: d.cv, media: d.media || {}, thumbs: { ...(d.thumbs || {}) }, mids: {}, spaces: d.spaces || {},
     live: [], listings: [], places: {} };
   if (d.world) addWorld(m, d.world, uniq, seen);
   if (d.community) addCommunity(m, d.community, uniq, seen);
@@ -235,6 +235,7 @@ function addWorld(m, w, uniq, seen) {
   for (const l of m.listings) for (const ev of l.events) ev.listing = l;
   m.places = w.places || {};
   Object.assign(m.thumbs, w.thumbs || {});
+  Object.assign(m.mids, w.mids || {});
   for (const e of m.exhibitions) if (e.city && !m.cities.some(c => c.name === e.city)) m.cities.push({ name: e.city, slug: slugify(e.city), country: e.country });
 }
 
@@ -304,7 +305,7 @@ const LOGO = '<svg class="mark" viewBox="0 0 132 132" aria-hidden="true"><rect x
 // the screen (sizes: how wide it shows; most images here are covers and rows, a third of the screen or less)
 const im = (p, alt, attrs = '', sizes = '33vw') => {
   if (!p) return '';
-  const t = M.thumbs[p], set = t ? ` srcset="${esc(t)} 640w, ${esc(src(p))} 2000w" sizes="${sizes}"` : '';
+  const t = M.thumbs[p], mid = M.mids[p], set = t ? ` srcset="${esc(t)} 640w, ${mid ? `${esc(mid)} 1200w, ` : ''}${esc(src(p))} 2000w" sizes="${sizes}"` : '';
   return `<img src="${esc(src(p))}"${set} alt="${esc(alt)}" loading="lazy" ${attrs}>`;
 };
 const metaLine = w => [w.year, w.medium, w.size].filter(Boolean).join(' · ');
@@ -407,9 +408,10 @@ function walkRow(list, label) {
   const card = e => {
     const on = isOn(e), room = e.virtual && bakedRoom(e.virtual.room);
     const alt = e.images[0] ? src(e.images[0]) : room ? `data/rooms/${room}/view.jpg` : '';
-    const first = e.space ? `data/spaces/${e.slug}/preview.jpg` : '';
+    const sk = e.space ? (Object.keys(M.spaces || {}).find(k => M.spaces[k] === e.space) || e.slug) : '';   // (the room's folder: a second show with the same title has slug …-2, the room does not)
+    const first = e.space ? `data/spaces/${sk}/preview.jpg` : '';
     const pill = e.space ? `<span class="livepill"><i></i>${on ? 'Live now' : 'In 3D'}</span>` : on ? `<span class="livepill"><i></i>On now</span>` : '';
-    return `<li><div class="wc${e.space ? ' has-room' : ''}" data-slug="${esc(e.slug)}">
+    return `<li><div class="wc${e.space ? ' has-room' : ''}" data-slug="${esc(e.slug)}" data-space="${esc(sk)}">
       <div class="wc-arch">${first ? `<img class="wc-poster" src="${esc(first)}" data-alt="${esc(alt)}" alt="" loading="lazy" onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt='';this.closest('.wc').classList.add('nofilm')}">` : alt ? `<img class="wc-poster" src="${esc(alt)}" alt="" loading="lazy">` : ''}
         ${pill}
         <div class="wc-cap"><a class="wc-t" href="#/exhibition/${esc(e.slug)}"><b${heb(e.title)}>${esc(e.title)}</b></a><span>${esc([byOf(e), e.city].filter(Boolean).join(' · '))}</span></div>
@@ -431,7 +433,7 @@ function wireWalk(root) {
       if (!en.isIntersecting) { if (v) v.pause(); continue; }
       if (!c.classList.contains('has-room') || c.classList.contains('nofilm')) continue;
       if (!v) {
-        const s = esc(c.dataset.slug), a = c.querySelector('.wc-arch');
+        const s = esc(c.dataset.space || c.dataset.slug), a = c.querySelector('.wc-arch');
         a.insertAdjacentHTML('afterbegin', `<video class="wc-film" muted loop playsinline preload="auto" poster="data/spaces/${s}/preview.jpg" aria-hidden="true"><source src="data/spaces/${s}/preview.hevc.mp4" type='video/mp4; codecs="hvc1"'><source src="data/spaces/${s}/preview.webm" type='video/webm; codecs="vp9"'><source src="data/spaces/${s}/preview.mp4" type="video/mp4"></video>`);
         v = a.firstElementChild;
         v.addEventListener('playing', () => c.classList.add('ready'), { once: true });
@@ -1301,6 +1303,7 @@ if ('serviceWorker' in navigator && !window.STUDIO_DATA && location.protocol ===
   let prompt = null;
   const show = () => {
     if (document.querySelector('.install')) return;
+    if (document.querySelector('.wl')) { setTimeout(show, 4000); return; }      // (not over the sign-in buttons: wait until the welcome screen is gone)
     const card = document.createElement('aside');
     card.className = 'install';
     card.innerHTML = `<img src="icons/icon-192.png" alt=""><div><b>Get Open Studio</b>${ios
