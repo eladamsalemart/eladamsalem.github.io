@@ -62,7 +62,7 @@ def reset(o):
     s.cycles.caustics_reflective = False; s.cycles.caustics_refractive = False
     s.cycles.sample_clamp_indirect = 8.0
     s.render.resolution_x, s.render.resolution_y = o['w'], o['h']
-    s.render.image_settings.file_format = 'JPEG'; s.render.image_settings.quality = 92
+    s.render.image_settings.file_format = 'JPEG'; s.render.image_settings.quality = 88
     s.view_settings.view_transform = 'AgX'
     try: s.view_settings.look = 'AgX - Medium High Contrast'
     except TypeError: pass
@@ -821,8 +821,8 @@ def white_cube(v):
         return camera((5.6, 0.5, EYE), (1.2, 3.6, 1.45), lens=18)
     if v == 'large':           # a hall 15 x 10 x 5.5 with a north skylight strip
         r = Room(0, 0, 15, 10, 5.5, floor, plaster, ceil, doors=[('e', 2.0, 2.2, 3.0)], ceiling_open=(1.5, 7.2, 13.5, 8.4))
-        mesh('diffuser', [(1.5, 7.2, 5.4), (13.5, 7.2, 5.4), (13.5, 8.4, 5.4), (1.5, 8.4, 5.4)], [(0, 1, 2, 3)], emission('skylight', 2.2, 6500))
-        area('skylight', (7.5, 7.8, 5.38), (12, 1.2), 160, 6500)
+        mesh('diffuser', [(1.5, 7.2, 5.4), (13.5, 7.2, 5.4), (13.5, 8.4, 5.4), (1.5, 8.4, 5.4)], [(0, 1, 2, 3)], emission('skylight', 2.2, 4400))
+        area('skylight', (7.5, 7.8, 5.38), (12, 1.2), 160, 4400)       # (a touch cooler than the washers, not blue: the walls stay white)
         track(1, 2.6, 14, 2.6, 5.5)
         ambient(r, 80)
         fill(r, works_of('hilma-af-klint', n=3) + works_of('henri-matisse', n=3), walls='nw', ceiling=5.5, lux=180)
@@ -1401,15 +1401,15 @@ def garden_outside(W, D, sides, zg=-0.2, seed=3):
 
 
 def glass_pavilion(v):
-    granite = mat('terrazzo', tex='terrazzo_tiles', scale=2.0, rough_mul=0.6, coat=0.2, bump=0.2, smudges=('SurfaceImperfections003', 2.5, 0.6), streaks=True)
+    granite = mat('terrazzo', tex='terrazzo_tiles', scale=2.0, tint=(0.62, 0.61, 0.59), tint_mix=0.45, rough_mul=0.6, coat=0.2, bump=0.2, smudges=('SurfaceImperfections003', 2.5, 0.6), streaks=True)
     white = mat('pavilion-wall', (0.84, 0.84, 0.82), 0.9, tex='painted_plaster_wall', scale=2.5, tint=(0.85, 0.85, 0.83), tint_mix=0.06, bump=0.2)
     steel = mat('black-steel', (0.02, 0.02, 0.022), 0.4, metal=0.85)
-    ceil = mat('pavilion-ceiling', (0.72, 0.72, 0.7), 0.85, tex='plastered_wall_04', scale=2.5, tint=(0.72, 0.72, 0.7), tint_mix=0.06, bump=0.2)
+    ceil = mat('pavilion-ceiling', (0.84, 0.84, 0.83), 0.9, tex='plastered_wall_04', scale=2.5, tint=(0.84, 0.84, 0.83), tint_mix=0.05, bump=0.12)
     world(hdri=hdri('garden'), strength=GARDEN_STRENGTH, rot=GARDEN_ROT)
     W, D, H = {'small': (10, 8, 4), 'large': (24, 16, 5)}.get(v, (14, 9, 4.5))
     box('floor', -2, -2, -0.2, W + 2, D + 2, 0, granite)
     box('roof', -2, -2, H, W + 2, D + 2, H + 0.6, ceil)
-    sides = 'nesw' if v == 'large' else ('n' if v == 'small' else 'n')
+    sides = 'n'               # (owner, 11.11: glass in one wall; the other three solid, for works; white freestanding walls in the room)
     garden_outside(W, D, sides)
     # glass walls with black steel mullions every 2 m; solid white walls where there is no glass
     for wall, (p0, p1) in {'s': ((0, 0), (W, 0)), 'n': ((W, D), (0, D)), 'w': ((0, D), (0, 0)), 'e': ((W, 0), (W, D))}.items():
@@ -1427,12 +1427,14 @@ def glass_pavilion(v):
             else: box('wall.' + wall, p0[0] - (0.25 if wall == 'w' else 0), min(p0[1], p1[1]), 0, p0[0] + (0.25 if wall == 'e' else 0), max(p0[1], p1[1]), H, white)
     # freestanding white walls inside, set back from the glass, with the works on them
     area('sky-bounce', (W / 2, D / 2, H - 0.05), (W - 1, D - 1), 140, 6000)
-    stands = [] if SURF['on'] else ([(W * 0.3, D * 0.45), (W * 0.65, D * 0.55)] if v != 'small' else [(W * 0.45, D * 0.4)])
+    SL, SH, ST = (3.0 if v == 'small' else 4.0), min(3.0, H - 1.0), 0.24
+    stands = {'small': [(W * 0.5, D * 0.5)], 'large': [(W * 0.2, D * 0.62), (W * 0.5, D * 0.4), (W * 0.8, D * 0.62)]}.get(v, [(W * 0.3, D * 0.42), (W * 0.7, D * 0.58)])
+    if SURF['on']: stands = []        # (the app stands its own freestanding walls, which the artist moves: none in the surfaces)
     shell = _fake_room(0, 0, W, D, H); shell.glass = sides; SHELLS.append(shell)
     for i, (sx, sy) in enumerate(stands):
-        box('stand', sx - 2.0, sy - 0.12, 0, sx + 2.0, sy + 0.12, 3.2, white)
+        box('stand', sx - SL / 2, sy - ST / 2, 0, sx + SL / 2, sy + ST / 2, SH, white, bevel=0.002)
         ws = works_of('claude-monet')[i * 2:(i + 1) * 2] or works_of('claude-monet', n=1)
-        hang_wall(ws[:1], (sx - 2.0, sy - 0.122, 0), (sx + 2.0, sy - 0.122, 0), (0, -1, 0), ceiling=H, lux=220)
+        hang_wall(ws[:1], (sx - SL / 2, sy - ST / 2 - 0.002, 0), (sx + SL / 2, sy - ST / 2 - 0.002, 0), (0, -1, 0), ceiling=H, lux=220)
     if 'w' not in sides:
         fill(Room.__new__(Room) if False else _fake_room(0, 0, W, D, H), works_of('claude-monet')[4:6], walls='w', ceiling=H, light=False)
     return camera((W - 1.2, 0.9, EYE), (W * 0.3, D - 0.5, 1.8), lens=17)
@@ -1632,7 +1634,7 @@ TYPES = {
     'studio': (studio, 'Artist studio, north light', {'small': 'Small studio, 5 × 4 m', 'large': 'Sawtooth studio, 10 × 7 m', '': 'Studio with a tall window, 8 × 6 m'}),
     'apartment': (apartment, "Collector's home", {'small': 'Studio flat, 5 × 4.5 m', 'large': 'Large living room, 9 × 6 m', '': 'Living room, 7 × 5 m'}),
     'black-box': (black_box, 'Black box', {'small': 'Dark cell, 8 × 6 m', 'large': 'Round room, 12 m across', '': 'Projection hall, 14 × 10 m'}),
-    'glass-pavilion': (glass_pavilion, 'Glass pavilion', {'small': 'Pavilion with a glass wall, 10 × 8 m', 'large': 'Glass hall, 24 × 16 m', '': 'Gallery with a glass end, 14 × 9 m'}),
+    'glass-pavilion': (glass_pavilion, 'Glass pavilion', {'small': 'Pavilion with a glass wall, 10 × 8 m', 'large': 'Hall with a glass wall, 24 × 16 m', '': 'Gallery with a glass end, 14 × 9 m'}),
     'japanese': (japanese, 'Japanese room', {'small': 'Tea room, 3.6 × 3.6 m', 'large': 'Long engawa room, 12 × 4.5 m', '': 'Gallery with a tokonoma, 9 × 6 m'}),
 }
 
@@ -1644,7 +1646,7 @@ def surfaces(slug, o, label):
     if len(SHELLS) != 1: print(f'{slug}: not one room, no surfaces'); return
     r = SHELLS[0]; s = bpy.context.scene
     W, D, H = r.x1 - r.x0, r.y1 - r.y0, r.h
-    loose = ('table', 'trestle', 'sofa', 'cushion', 'rug', 'lamp', 'bench', 'stand', 'tokonoma', 'vase', 'partition', 'column', 'label')
+    loose = ('table', 'trestle', 'sofa', 'cushion', 'rug', 'lamp', 'bench', 'tokonoma', 'vase', 'partition', 'column', 'label')
     for ob in bpy.data.objects:      # the lights' lenses and the furniture are not part of a surface's picture (their shadows are)
         if ob.type == 'LIGHT': ob.visible_camera = False
         elif ob.name.split('.')[0] in loose: ob.hide_render = True      # (not even their shadows: the viewer has no furniture, and the floor under a rug was baked black)
@@ -1655,10 +1657,10 @@ def surfaces(slug, o, label):
     s.cycles.samples = int(int(o.get('surface_samples', 128)) * (0.5 if o['type'] == 'loft' else 1))
     cam = bpy.data.cameras.new('surface'); cam.type = 'ORTHO'
     ob = bpy.data.objects.new('surface', cam); bpy.context.collection.objects.link(ob); s.camera = ob
-    # per-surface resolution budget (phones): a wall up to 3072 px wide, a floor or ceiling up to 2560 (seen at a slant), each
-    # at most `ppm` pixels a metre (walls) or two thirds of it (floor, ceiling); a window plate up to 4096 px at 520 px/m
+    # per-surface resolution budget (phones): a wall up to 2560 px wide, a floor or ceiling up to 2048 (seen at a slant), each
+    # at most `ppm` pixels a metre (walls) or two thirds of it (floor, ceiling); a window plate up to 3072 px at 520 px/m
     PPM_PLATE = int(o.get('ppm_plate', 520))
-    def shoot(name, pos, rot, w, h, clip, dist=None, cap=3072, ppm_=None, shift=(0, 0)):
+    def shoot(name, pos, rot, w, h, clip, dist=None, cap=2560, ppm_=None, shift=(0, 0)):
         # a wall: a perspective camera framing exactly the wall (parallel to it, so the wall keeps its scale) shows
         # through a window what a visitor in the room would see; the floor and the ceiling: straight down and up.
         # shift: frames only a part of the wall (a window plate), same projection, so it lies exactly over the wall's picture
@@ -1673,7 +1675,7 @@ def surfaces(slug, o, label):
         cam.clip_start, cam.clip_end = clip
         ob.location = pos; ob.rotation_euler = rot
         s.render.filepath = os.path.join(out, name + '.jpg')
-        s.render.image_settings.quality = 92
+        s.render.image_settings.quality = 88
         print(f'  {name}: {s.render.resolution_x}x{s.render.resolution_y} ({pm:.0f} px/m)', flush=True)
         bpy.ops.render.render(write_still=True)
     cx, cy = (r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2
@@ -1701,12 +1703,19 @@ def surfaces(slug, o, label):
         if wdt < 0.3 or hgt < 0.3: continue
         sh = ((a0 + a1) / 2 - ln / 2) / max(wdt, hgt), ((z0 + z1) / 2 - H / 2) / max(wdt, hgt)
         fn = f'win-{nm}-{i}'
-        shoot(fn, pos, rot, wdt, hgt, clip, dist, cap=4096, ppm_=PPM_PLATE, shift=sh)
+        shoot(fn, pos, rot, wdt, hgt, clip, dist, cap=3072, ppm_=PPM_PLATE, shift=sh)
         plates.append({'wall': nm, 'from': round(a0, 3), 'to': round(a1, 3), 'z0': round(z0, 3), 'z1': round(z1, 3), 'file': fn + '.jpg'})
+    # freestanding walls (the glass pavilion's): both faces, each from in front of it, as a wall; the app builds the wall from them
+    stands = []
+    for i, (sx, sy, sl, sh_, st) in enumerate(getattr(r, 'stands', []) or []):
+        dz = 2.0
+        shoot(f'stand-{i}-a', (sx, sy - st / 2 - dz, sh_ / 2), (math.pi / 2, 0, 0), sl, sh_, (dz - 0.03, dz + 0.03), dz)              # the face away from the glass (app: normal +z)
+        shoot(f'stand-{i}-b', (sx, sy + st / 2 + dz, sh_ / 2), (math.pi / 2, 0, math.pi), sl, sh_, (dz - 0.03, dz + 0.03), dz)       # the face toward the glass (app: normal -z)
+        stands.append({'x': round(sx - r.x0, 3), 'z': round(r.y1 - sy, 3), 'len': sl, 'h': sh_, 't': st, 'files': [f'stand-{i}-a.jpg', f'stand-{i}-b.jpg']})
     s.cycles.samples = base_samples
     FL = min(200, ppm * 2 // 3)
-    shoot('floor', (cx, cy, H - 0.02), (0, 0, 0), W, D, (H - 0.04, H + 0.2), cap=2560, ppm_=FL)
-    shoot('ceiling', (cx, cy, 0.02), (math.pi, 0, 0), W, D, (H - 0.4, 60), cap=2560, ppm_=FL)
+    shoot('floor', (cx, cy, H - 0.02), (0, 0, 0), W, D, (H - 0.04, H + 0.2), cap=2048, ppm_=FL)
+    shoot('ceiling', (cx, cy, 0.02), (math.pi, 0, 0), W, D, (H - 0.4, 60), cap=2048, ppm_=FL)
     # what the app needs besides: the size, the door, and where no work can hang (windows, glass, doors)
     def a_of(wall, c):
         return {'n': c - r.x0, 'w': c - r.y0, 's': r.x1 - c, 'e': r.y1 - c}[wall]
@@ -1721,14 +1730,14 @@ def surfaces(slug, o, label):
         blocks[name[wall]].append([0, round(W if wall in 'ns' else D, 3)])
     meta = {'slug': slug, 'type': o['type'], 'label': label, 'w': round(W, 3), 'd': round(D, 3), 'h': round(H, 3),
             'door': door, 'blocks': {k: v for k, v in blocks.items() if v}, 'light': LIGHTING.get(o['type'], 'spots'),
-            'floorReflect': REFLECT.get(o['type'], [0.04, 0.18]), 'ppm': ppm, 'plates': plates}
+            'floorReflect': REFLECT.get(o['type'], [0.04, 0.18]), 'ppm': ppm, 'plates': plates, **({'stands': stands} if stands else {})}
     json.dump(meta, open(os.path.join(out, 'room.json'), 'w'), indent=1)
 
 
 # how a room is lit, for the light the app adds round each work; how much its floor reflects (near, low angle)
 LIGHTING = {'white-cube': 'spots', 'loft': 'spots', 'salon': 'narrow', 'black-box': 'narrow', 'apartment': 'spots',
             'skylit-hall': 'daylight', 'concrete': 'daylight', 'studio': 'daylight', 'glass-pavilion': 'daylight', 'japanese': 'daylight'}
-REFLECT = {'white-cube': [0.06, 0.26], 'black-box': [0.08, 0.34], 'glass-pavilion': [0.06, 0.28], 'concrete': [0.04, 0.18],
+REFLECT = {'white-cube': [0.04, 0.16], 'black-box': [0.08, 0.34], 'glass-pavilion': [0.06, 0.28], 'concrete': [0.04, 0.18],
            'loft': [0.03, 0.14], 'skylit-hall': [0.03, 0.14], 'salon': [0.03, 0.14], 'apartment': [0.03, 0.14],
            'studio': [0.0, 0.0], 'japanese': [0.0, 0.0]}
 
@@ -1748,6 +1757,7 @@ def main():
         try:
             s.view_settings.use_white_balance = True
             s.view_settings.white_balance_temperature = BALANCE.get(o['type'], 4300)
+            if o['type'] in TINT: s.view_settings.white_balance_tint = TINT[o['type']]
         except Exception as e: print('no white balance:', e)
         slug = f'{o["type"]}{"-" + v if v else ""}'
         if o['surfaces']:
@@ -1764,7 +1774,8 @@ def main():
 
 BB_HOUSE = float(os.environ.get('BB_HOUSE', '60'))
 BB_WASH = float(os.environ.get('BB_WASH', '22'))
-EXPOSURE = {'black-box': 0.5, 'apartment': float(os.environ.get('APT_EXP', '0.6'))}
+TINT = {'white-cube': float(os.environ.get('WC_TINT', '0'))}        # (the washers' 4000 K came out a little magenta on white)
+EXPOSURE = {'white-cube': float(os.environ.get('WC_EXP', '0.5')), 'glass-pavilion': 0.45, ('concrete', 'large'): 0.8, 'black-box': 0.5, 'apartment': float(os.environ.get('APT_EXP', '0.6'))}
 APT_WASH = float(os.environ.get('APT_WASH', '55'))
 APT_K = float(os.environ.get('APT_K', '5000'))
 APT_FILL = float(os.environ.get('APT_FILL', '100'))
@@ -1774,7 +1785,7 @@ GARDEN_ROT = float(os.environ.get('GARDEN_ROT', '200'))
 STREET_ROT = float(os.environ.get('STREET_ROT', '90'))
 WIN_STRENGTH = float(os.environ.get('WIN_STRENGTH', '4'))
 # the white point a photographer would set: warm museum light (3000 K spots) a little warm, daylight rooms neutral
-BALANCE = {'white-cube': 3800, 'salon': 4300, 'black-box': 3900, 'apartment': 5200, 'loft': 6800, 'skylit-hall': 4800,
+BALANCE = {'white-cube': 4000, 'salon': 4300, 'black-box': 3900, 'apartment': 5200, 'loft': 6800, 'skylit-hall': 4800,
            'concrete': 6800, 'studio': 7000, 'glass-pavilion': 6300, 'japanese': 6000}
 
 if __name__ == '__main__':
