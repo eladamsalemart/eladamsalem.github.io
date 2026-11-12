@@ -18,11 +18,16 @@ Commit and push every finished piece at once. While working, write `date +%s > .
 - Share links (43f67fb; workflow also on main 64e6ea4): share_pages.py writes s/<slug>/ and by/<slug>/ at every publish;
   Share button on the exhibition page; the artist's Share uses the share page when it exists.
 
-## In progress
-- Waiting for the "Studio rooms" bakes (b0dd235, then 4b8b55d) to finish; then look at the three kinds at phone size
-  (scratchpad rooms.sh, or just open #/onview) and at the pavilion's floor (should be grey terrazzo, not brown).
+- Hanging (13a4934): a work hung more than 5.5 m away is walked up to.
+- Rooms (4881ed0): concrete-large lit brighter (slot 1900, ambient 80). Local quick renders (16 samples) show white-cube-large
+  neutral, pavilion floor light terrazzo, concrete-large workable.
+- Live share pages checked: /open-studio/s/celebration-virtual/ answers 200 with og:image.
+- Morning report written: summary.md (update its rooms section once the bake is in the app).
 
-## Next, in order
-1. Check the live share page: https://eladamsalem.com/open-studio/s/celebration-virtual/ (200, og:image present).
-2. Rooms after the bake: fix what the photographs show.
-3. Hebrew morning report: studio/design/night-2026-11-13/summary.md.
+## In progress
+- Waiting for the "Studio rooms" bakes (b0dd235 running since 22:46 UTC, then the newest push) to finish and publish.
+
+## Next, in order (for a restart session)
+1. If the bake finished: open #/studio/onview at phone size, look at the three kinds in every size (white cube large must not be
+   blue, pavilion floor grey, concrete large not dark). Fix what the photographs show; update summary.md.
+2. If it has not finished: nothing to do; do not start a second worker. Stop.
