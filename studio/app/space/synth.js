@@ -88,8 +88,10 @@ export const standHeight = R => +Math.min(2.8, Math.max(2.2, (R.h || 3) - 0.5)).
 // the stands a room comes with (the Glass pavilion's picture shows two): only while the artist has set none and has not taken them all away
 function defaultStands(R) {
   if (R.kind !== 'glass-pavilion' || R.cells > 1) return [];
-  const len = +Math.min(3.5, R.d * 0.4).toFixed(2);
-  return [0.3, 0.55].map((k, i) => ({ id: 'stand-' + (i + 1), kind: 'stand', x: +(R.w * k).toFixed(2), z: +(R.d / 2).toFixed(2), len, rot: 90 }));
+  // as in the room's picture: wings across the room on the side away from the glass, the middle left open, so the way in looks
+  // down the hall with a wall and its work at each step and the garden beside
+  const len = R.w < 12 ? 2.5 : R.w > 20 ? 4 : 3, at = R.w < 12 ? [0.45] : R.w > 20 ? [0.6, 0.4, 0.2] : [0.55, 0.28];
+  return at.map((kx, i) => ({ id: 'stand-' + (i + 1), kind: 'stand', x: +(R.w * kx).toFixed(2), z: +(R.d * 0.7).toFixed(2), len, rot: 90 }));
 }
 export function standsOf(design, R) {
   const list = design.plinths || [];
@@ -570,6 +572,8 @@ export async function buildRoom(design, src) {
     plinths: plinths.map(p => { const x = objSized.find(q => q.o.id === p.work); return { id: p.id, x: p.x, z: p.z, size: plinthDims(p), key: p.size, work: p.work || null,
       obj: x ? { id: x.o.id, title: x.o.title, image: x.o.image, w: x.w, h: x.h } : null }; }),
     blocks: blocksOf(design.room),
+    // the pavilion is first seen as in its picture: from the corner by the way in, across the wings to the glass and the garden
+    ...(R.kind === 'glass-pavilion' && !(R.cells > 1) ? { start: { pos: [R.w - 1.2, R.d - 0.9], look: [R.w * 0.3, 0.5] } } : {}),
   };
   const placements = {};
   for (const p of placed) if (p.work.id) placements[p.work.id] = { wall: p.wall.name, a: +p.a.toFixed(3), y: +p.y.toFixed(3) };
