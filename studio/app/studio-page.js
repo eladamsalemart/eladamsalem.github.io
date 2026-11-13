@@ -200,7 +200,7 @@ export function mount(c) {
     if (!sec) { wrap.querySelector('.statement').closest('.wrap').insertAdjacentHTML('beforeend', '<section class="sec" id="works"></section>'); sec = wrap.querySelector('#works'); }
     sec.innerHTML = worksInner(); wireGrips(sec);
     // the exhibitions
-    let covers = wrap.querySelector('.covers');
+    let covers = wrap.querySelector('.covers') || wrap.querySelector('.walkbox');      // (the page shows its exhibitions as a row of arches: the same section, not a second one)
     if (!covers) { (sec || wrap).insertAdjacentHTML(sec ? 'afterend' : 'beforeend', '<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">0</span></div><div class="covers"></div></section>'); covers = wrap.querySelector('.covers'); }
     covers.closest('.sec').insertAdjacentHTML('beforeend', '<button type="button" class="ed-sec-add" data-ed="ex-new" style="margin-top:14px">+ Add an exhibition</button>');
     covers.querySelectorAll('a').forEach(x => { x.dataset.slug = x.getAttribute('href').slice(13); });
@@ -248,7 +248,7 @@ export function mount(c) {
   function onTap(e) {
     const t = e.target;
     if (t.closest('[contenteditable]')) return;
-    const ed = t.closest('[data-ed]'), row = t.closest('a.row[data-slug]'), cv = t.closest('.covers a[data-slug]');
+    const ed = t.closest('[data-ed]'), row = t.closest('a.row[data-slug]'), cv = t.closest('.covers a[data-slug], .walkbox .wc[data-slug]');
     if (t.closest('.row > span:last-child')) { e.preventDefault(); return; }
     if (ed) { e.preventDefault(); ({ cover: coverSheet, profile: profileSheet, 'work-new': () => pickPhotos(), 'ex-new': () => go('#/studio/exhibition/new'), cv: cvSheet })[ed.dataset.ed](); return; }
     const wk = t.closest('.wk');
