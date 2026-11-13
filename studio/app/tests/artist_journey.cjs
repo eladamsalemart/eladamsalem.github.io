@@ -96,6 +96,15 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
       await dragTo(from, to);
       await p.waitForFunction(y => { const l = document.querySelector('.hp:not([hidden]) .hp-svg [data-k="stand"]'); if (!l || !window.__he || !window.__he.api) return false; const b = l.getBoundingClientRect(); return Math.abs(b.top + b.height / 2 - y) < 25; }, to[1], { timeout: 55000 });
     });
+    // the chosen standing wall is turned to a diagonal by one of its ends
+    if (await p.locator('.hp-svg [data-k="spin"]').count()) await step('plan-turn-stand', 90000, async () => {
+      const c = await mid('.hp-svg .hp-stand.on'), h = await mid('.hp-svg [data-k="spin"]');
+      await dragTo(h, [c[0] + 30, c[1] + 30]);
+      const box = await p.evaluate(() => { const b = document.querySelector('.hp-svg .hp-stand.on').getBoundingClientRect(); return [b.width, b.height]; });
+      if (!(box[0] > 20 && box[1] > 20)) throw new Error(`the wall did not turn to a diagonal: ${box.map(Math.round)}`);
+      await shot('plan-diagonal');
+    });
+    else bad.push('the chosen standing wall has no handles to turn it by');
     // pinched closer (the wheel here), the plan grows about the finger and the work still answers a drag; "Whole room" brings it back
     await step('plan-zoom', 40000, async () => {
       const wall = () => p.evaluate(() => { const l = document.querySelector('.hp-svg .hp-wall'); return Math.hypot(l.x2.baseVal.value - l.x1.baseVal.value, l.y2.baseVal.value - l.y1.baseVal.value); });
