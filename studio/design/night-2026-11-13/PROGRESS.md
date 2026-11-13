@@ -31,3 +31,6 @@ Commit and push every finished piece at once. While working, write `date +%s > .
 1. If the bake finished: open #/studio/onview at phone size, look at the three kinds in every size (white cube large must not be
    blue, pavilion floor grey, concrete large not dark). Fix what the photographs show; update summary.md.
 2. If it has not finished: nothing to do; do not start a second worker. Stop.
+
+## 13.11 07:50
+Bake finished and published; renders checked (white cube neutral, pavilion floor light, concrete large a little dark but workable). summary.md updated. List done.
