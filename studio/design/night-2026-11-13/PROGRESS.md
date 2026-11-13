@@ -57,3 +57,10 @@ Bake finished and published; renders checked (white cube neutral, pavilion floor
 - Plan: a chosen standing wall moves by its body, turns by handles beyond its ends (69717df); it stays inside the room at any angle (e601468). Both proven by the journey test.
 - `studio/VISION.md`: the vision, problems, stages, tools and what is needed from the owner, in Hebrew.
 - `from-zero/`: a new artist's journey, 24 screens with notes on where it sticks and six proposals (not built; the owner decides).
+
+## 13.11, evening
+
+- Live (017410b): a guide after sign-up for artists (5 cards) and art lovers (4), with real screens; sign-up asks only a name; exhibitions are sent for review and approved in the control room (migration 2026-11-13_virtual_shows_review, applied by the new "Supabase migrations" workflow); "Hang all" in the Add tray.
+- Not built from the six proposals: one screen for bringing work in, one progress strip for the whole journey.
+- The full journey did not pass on the last two local runs: time budgets only (the laptop was on battery, everything ran twice as slow); the new hang-all step passed. Run it again on mains power.
+- `studio/ESSENCE.md`, the PDF of it, and the teaser film in from-zero/.
