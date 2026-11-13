@@ -208,19 +208,32 @@ function role(u) {
     </div>`, 'wl-pick');
 }
 
-function artistSoon(u) {
+// --- the guide: a few cards right after "I make art" / "I love art", each with the real screen it talks about ---------
+const GUIDES = {
+  artist: { end: '#/studio', go: 'Open my studio', cards: [
+    ['a1', 'Bring your work in', 'Photos from your phone, your website or a Drive folder. Choose many at once; titles and sizes come after.'],
+    ['a2', 'Give each work its real size', 'Width and height in centimetres. Visitors see every work at its true scale, and a work needs its size to hang in a room.'],
+    ['a3', 'Make an exhibition', 'A virtual exhibition is a room that exists only here: you choose a space and hang your works in it. A show you had in a real place goes under Past exhibitions, with its photos.'],
+    ['a4', 'Hang on the plan', 'Tap a work to put it on a wall, then drag it where you want it. Add standing walls and plinths.'],
+    ['a5', 'Walk in, then send it', 'Walk through as a visitor would. Open Studio looks at every new page and every exhibition before it goes live.'] ] },
+  lover: { end: '#/', go: 'Start looking', cards: [
+    ['l1', 'Follow the artists you like', 'Tap Follow on an artist\u2019s page. Their new works and exhibitions come to your Home.'],
+    ['l2', 'Walk through exhibitions', 'Shows that are on now, and virtual ones you walk through in 3D, on your phone.'],
+    ['l3', 'Find what\u2019s on near you', 'The map shows the galleries and museums with a show today. Tap a place for its hours and what hangs there.'],
+    ['l4', 'Your Home remembers', 'The stars are what you opened last and the artists you follow. Pinch out to meet someone new.'] ] },
+};
+let gi = 0;
+function guide(kind) {
+  const g = GUIDES[kind], n = g.cards.length; gi = Math.max(0, Math.min(n - 1, gi));
+  const [img, h, t] = g.cards[gi], last = gi === n - 1;
   return shell(`
-    <header class="wl-brand">${LOGO_MARK}<span>Open Studio</span></header>
-    <div class="wl-mid">
-      <figure class="wl-arch wl-arch-sm wl-empty" aria-hidden="true"></figure>
-      <h1>Your studio is open</h1>
-      <p class="wl-lede">Make your page in a minute: bring your work in from your website, Instagram, a Drive folder or your phone, and design exhibitions in rooms that exist only here. Open Studio looks at every new page before it goes live.</p>
-      <div class="wl-btns">
-        <a class="wl-go" href="#/studio">Open your studio</a>
-        <a class="wl-link" href="#/" data-browse>Look around first</a>
-        <button type="button" class="wl-link" data-role="lover">I'm here as an art lover</button>
-        <button type="button" class="wl-link" data-signout>Sign out</button>
-      </div>
+    <header class="wl-brand">${LOGO_MARK}<span>Open Studio</span><button type="button" class="wl-link wl-skip" data-g="end"${last ? ' hidden' : ''}>Skip</button></header>
+    <div class="wl-mid wl-guide" data-kind="${kind}">
+      <figure class="wl-gf"><img src="icons/guide/${img}.jpg" alt="" width="480" height="677"></figure>
+      <p class="wl-gn" aria-label="Step ${gi + 1} of ${n}">${g.cards.map((_, i) => `<i${i === gi ? ' class="on"' : ''}></i>`).join('')}</p>
+      <h1>${h}</h1>
+      <p class="wl-lede">${t}</p>
+      <div class="wl-gb">${gi ? '<button type="button" class="wl-btn wl-gback" data-g="-1">Back</button>' : ''}<button type="button" class="wl-go" data-g="${last ? 'end' : '1'}">${last ? g.go : 'Next'}</button></div>
     </div>`, 'wl-pick');
 }
 
@@ -230,6 +243,7 @@ function accountPage(u) {
     <h1>Your account</h1>
     <dl class="wl-dl">${u.name ? `<div><dt>Name</dt><dd>${esc(u.name)}</dd></div>` : ''}<div><dt>Email</dt><dd>${esc(u.email || '—')}</dd></div><div><dt>Here as</dt><dd>${u.role === 'artist' ? 'An artist' : 'An art lover'}</dd></div></dl>
     <div class="wl-btns">
+      <a class="wl-link" href="#/welcome/${u.role === 'artist' ? 'artist' : 'tour'}">How it works</a>
       <a class="wl-link" href="#/welcome/details">Change your details</a>
       ${u.role === 'artist' ? '<a class="wl-go" href="#/studio">Your studio</a>' : ''}<button type="button" class="wl-link" data-role="${u.role === 'artist' ? 'lover' : 'artist'}">${u.role === 'artist' ? 'I’m here as an art lover' : 'I make art'}</button>
       <button type="button" class="wl-go wl-out" data-signout>Sign out</button>
@@ -274,7 +288,7 @@ export async function screen(hash, app, go) {
     }).catch(() => {});
   }
   else if (step === 'role') { if (!u) return go('#/welcome'); app.innerHTML = role(u); }
-  else if (step === 'artist') app.innerHTML = artistSoon(u);
+  else if (step === 'artist' || step === 'tour') { if (!u) return go('#/welcome'); app.innerHTML = guide(step === 'artist' ? 'artist' : 'lover'); }
   else {
     if (u && u.role) return go('#/');
     app.innerHTML = welcome({ email: true }, err);
@@ -378,7 +392,8 @@ function wire(app, go) {
     const r = b.dataset.role;
     b.setAttribute('aria-busy', 'true'); app.querySelectorAll('[data-role]').forEach(x => { x.disabled = true; });
     const u = account() || {};
-    if (previewing()) { pretend({ role: r }); return go(r === 'artist' ? '#/welcome/artist' : '#/'); }
+    gi = 0;
+    if (previewing()) { pretend({ role: r }); return go(r === 'artist' ? '#/welcome/artist' : '#/welcome/tour'); }
     try {
       const c = await client();
       const { data, error } = await c.auth.updateUser({ data: { role: r } });
@@ -389,7 +404,12 @@ function wire(app, go) {
       console.warn(e);
       try { localStorage.setItem(USER_KEY, JSON.stringify({ ...u, role: r })); } catch {}
     }
-    go(r === 'artist' ? '#/welcome/artist' : '#/');
+    go(r === 'artist' ? '#/welcome/artist' : '#/welcome/tour');
+  });
+  app.querySelectorAll('[data-g]').forEach(b => b.onclick = () => {      // the guide: next, back, or out of it
+    const k = app.querySelector('.wl-guide').dataset.kind, g = b.dataset.g;
+    if (g === 'end') { gi = 0; return go(GUIDES[k].end); }
+    gi += +g; app.innerHTML = guide(k); wire(app, go); const h = app.querySelector('h1'); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
   });
   app.querySelectorAll('[data-browse]').forEach(a => a.onclick = () => { try { sessionStorage.setItem('os-browse', '1'); } catch {} });
   app.querySelectorAll('[data-signout]').forEach(b => b.onclick = async () => {

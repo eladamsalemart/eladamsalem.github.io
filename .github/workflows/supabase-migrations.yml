@@ -1,0 +1,47 @@
+# Open Studio: the database's migrations (studio/supabase/migrate.py). A push that adds a file to
+# studio/supabase/migrations/ runs the new ones, in name order, and stops at the first that fails. It then writes
+# what the public schema is now to studio/supabase/schema.live.json (no data), and which migrations ran.
+# Migrations are additive only.
+name: "Supabase migrations"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [studio]
+    paths:
+      - "studio/supabase/migrations/**"
+      - "studio/supabase/migrate.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: supabase-migrations
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio
+      - name: Run the new migrations, then read the schema
+        id: run
+        continue-on-error: true
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: python3 studio/supabase/migrate.py
+      - name: Keep the result with the code
+        run: |
+          git config user.name "open-studio"
+          git config user.email "open-studio@users.noreply.github.com"
+          git add studio/supabase/migrations.applied.json studio/supabase/migrations.result.json studio/supabase/schema.live.json 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -m "Supabase: migrations and the schema as it is, $(date -u +%Y-%m-%d)"
+          for i in 1 2 3; do
+            git pull --rebase origin studio && git push origin HEAD:studio && exit 0
+            sleep 5
+          done
+          exit 1
