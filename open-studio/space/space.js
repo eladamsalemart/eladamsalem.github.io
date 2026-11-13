@@ -1033,6 +1033,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (editor && editor.pointer('up', e)) return;
     lift(e);
     if (!drag) return; drag = null; if (moved > 6) return;
+    if (editor) return;      // while hanging, a tap chooses things and never walks: a tap that missed a work used to walk the artist to the wall
     const r = canvas.getBoundingClientRect();
     ray.setFromCamera({ x: (e.clientX - r.left) / r.width * 2 - 1, y: -(e.clientY - r.top) / r.height * 2 + 1 }, camera);
     const hit = ray.intersectObjects([...pieces.map(p => p.mesh), ...(floorMesh ? [floorMesh] : [])])[0];

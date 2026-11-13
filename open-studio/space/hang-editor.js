@@ -18,7 +18,7 @@ const SNAP = 0.06, GAP = 0.15;
 export async function openHangEditor({ design, library, state, src, shape, openSpace, onSave, onExit }) {
   const st = { ids: (state.ids || []).slice(), placements: clone(state.placements || {}), plinths: clone(state.plinths || []) };
   const undo = [];
-  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPop = st.ids.length || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
+  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, outerPop = st.ids.length || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
   const byId = id => library.find(w => w.id === id);
   const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
   const save = () => onSave(clone(st));
@@ -50,7 +50,8 @@ export async function openHangEditor({ design, library, state, src, shape, openS
   }
 
   function controller() {
-    let api = null, sel = outerSel, drag = null, tap = null, ui = null, pop = outerPop, noteT = 0, outline = null, guides = null;
+    let api = null, sel = outerSel, drag = null, tap = null, ui = null, pop = outerPop, noteT = 0, outline = null, guides = null, plan = false, pdrag = null;
+    const builtStands = Object.fromEntries(st.plinths.filter(isStand).map(q => [q.id, { x: q.x, z: q.z, rot: q.rot, len: q.len }]));
     outerPop = '';
     const sizes = {}; made.spec.works.forEach(h => { sizes[h.id] = [h.measured[0] / 100, h.measured[1] / 100]; });
     const blocks = made.spec.blocks || {};
@@ -86,7 +87,16 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     const pick = e => {
       rayAt(e);
       const objs = [...api.pieces.map(p => p.mesh), ...api.plinths.flatMap(q => [q.box, ...(q.face ? q.face.children : [])])];
-      const hit = api.ray.intersectObjects(objs, false)[0]; if (!hit) return null;
+      const hit = api.ray.intersectObjects(objs, false)[0];
+      if (!hit) {      // a finger is wider than a small work seen from across the room: the nearest work within a finger's reach
+        const w = wallRay(); if (!w) return null;
+        const m = Math.max(0.12, w.t * 0.035); let best = null;
+        for (const id of onWall(w.wall.name)) {
+          const q = st.placements[id], [sw, sh] = sizes[id], d = Math.hypot(Math.max(0, Math.abs(w.a - q.a) - sw / 2), Math.max(0, Math.abs(w.y - q.y) - sh / 2));
+          if (d < m && (!best || d < best.d)) best = { d, id };
+        }
+        return best ? { k: 'work', id: best.id } : null;
+      }
       const pl = hit.object.userData.plinth;
       if (pl) return { k: 'plinth', id: pl };
       const p = api.pieces.find(x => x.mesh === hit.object); return p ? { k: 'work', id: p.h.id } : null;
@@ -160,7 +170,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     // --- moving ---------------------------------------------------------------------------------------------------------
     function putWork(id, wl, a, y) { api.movePiece(pieceOf(id), wl, a, y); st.placements[id] = { wall: wl.name, a: +a.toFixed(3), y: +y.toFixed(3) }; }
     function putPlinth(id, x, z) { const q = stPlinth(id); q.x = +x.toFixed(3); q.z = +z.toFixed(3); api.movePlinth(plinthOf(id), x, z); }
-    function select(s) { sel = s; if (s && s.k === 'stand') pop = 'stand'; else if (pop === 'stand' || pop === 'plinth') pop = ''; if (s && api.root.querySelector('.sv-hint')) api.root.querySelector('.sv-hint').style.opacity = 0; mark(); refresh(); }
+    function select(s) { sel = s; if (s && s.k === 'stand' && !plan) pop = 'stand'; else if (pop === 'stand' || pop === 'plinth') pop = ''; if (s && api.root.querySelector('.sv-hint')) api.root.querySelector('.sv-hint').style.opacity = 0; mark(); refresh(); }
 
     function pointer(type, e) {
       if (type === 'down') {
@@ -205,7 +215,8 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     }
 
     // --- the tools --------------------------------------------------------------------------------------------------------
-    const centreAhead = () => { const f = api.camera.getWorldDirection(new api.THREE.Vector3()); return { f, p: api.camera.position }; };
+    // where a new thing goes: a few steps ahead of the artist, or, on the plan, the middle of the room
+    const centreAhead = () => plan ? { f: new api.THREE.Vector3(0, 0, 1e-6), p: new api.THREE.Vector3(W / 2, 0, D / 2) } : { f: api.camera.getWorldDirection(new api.THREE.Vector3()), p: api.camera.position };
     function note(t) { clearTimeout(noteT); pop = ''; ui.pop.hidden = false; ui.pop.innerHTML = `<p class="he-note">${esc(t)}</p>`; noteT = setTimeout(() => { if (!pop) ui.pop.hidden = true; }, 2600); }
     async function addWork(id) {
       const w = byId(id); if (!w) return;
@@ -218,17 +229,22 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       } else {
         const sz = await sizeOf(shape(w), src), ww = sz.w / 100;
         api.ray.setFromCamera({ x: 0, y: 0 }, api.camera);
-        const hw = wallRay() || { wall: api.surfaces.find(s => s.kind === 'wall'), a: 2 };
+        let hw = wallRay() || { wall: api.surfaces.find(s => s.kind === 'wall'), a: 2 };
+        if (plan) {      // on the plan: the longest wall of the room that has room, then the standing walls
+          const walls = api.surfaces.filter(s => s.kind === 'wall').sort((p, q) => (p.stand ? 1 : 0) - (q.stand ? 1 : 0) || q.size[0] - p.size[0]);
+          const wl = walls.find(s => freeSpot(s, s.size[0] / 2, ww, true) != null) || walls[0];
+          hw = { wall: wl, a: wl.size[0] / 2 };
+        }
         let a = freeSpot(hw.wall, hw.a, ww, true);
-        if (a == null) {      // the wall looked at has no room (it is glass, or full): the nearest wall facing the artist that has
+        if (a == null && !plan) {      // the wall looked at has no room (it is glass, or full): the nearest wall facing the artist that has
           const cam = api.camera.position, mid = s => V(s.origin).addScaledVector(V(s.u), s.size[0] / 2);
           const others = api.surfaces.filter(s => s.kind === 'wall' && s !== hw.wall && V(s.normal).dot(cam.clone().sub(mid(s))) > 0).sort((p, q) => mid(p).distanceTo(cam) - mid(q).distanceTo(cam));
           for (const s of others) { const x = freeSpot(s, s.size[0] / 2, ww, true); if (x != null) { hw.wall = s; a = x; turn = mid(s).addScaledVector(V(s.u), x - s.size[0] / 2).setY(design.centre / 100).toArray(); break; } }
-          if (a == null) a = freeSpot(hw.wall, hw.a, ww);
         }
+        if (a == null) a = freeSpot(hw.wall, hw.a, ww);
         // hung far from where the artist stands (a large room on a phone: the work would be a speck): stand in front of it
         const spot = V(hw.wall.origin).addScaledVector(V(hw.wall.u), a).setY(design.centre / 100);
-        if (spot.distanceTo(api.camera.position) > 5.5) { near = spot.clone().addScaledVector(V(hw.wall.normal), Math.max(2.8, ww * 1.4 + 1.4)).setY(api.EYE).toArray(); turn = spot.toArray(); }
+        if (!plan && spot.distanceTo(api.camera.position) > 5.5) { near = spot.clone().addScaledVector(V(hw.wall.normal), Math.max(2.8, ww * 1.4 + 1.4)).setY(api.EYE).toArray(); turn = spot.toArray(); }
         st.ids.push(id); st.placements[id] = { wall: hw.wall.name, a: +a.toFixed(3), y: design.centre / 100 };
       }
       push(pre); save(); sel = { k: w.kind === 'object' ? 'plinth' : 'work', id: w.kind === 'object' ? 'p-' + id : id }; pop = ''; outerSel = sel; await open();
@@ -294,7 +310,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         for (const p of api.pieces) { const pl = st.placements[p.h.id]; if (pl && pl.wall.startsWith(q.id + '-')) p.g.visible = false; }
         mark(); api.dirty();
       }
-      soon(pre);
+      soon(pre); drawPlan();
     }
     function lineUp(mode) {
       if (!sel || sel.k !== 'work') return;
@@ -323,6 +339,121 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       if (!same) { sel = null; outerSel = null; await open(); return; }
       for (const id of st.ids) { const p = st.placements[id]; if (p && pieceOf(id)) api.movePiece(pieceOf(id), wallOf(p.wall), p.a, p.y); }
       for (const p of st.plinths) if (!p.kind && plinthOf(p.id)) api.movePlinth(plinthOf(p.id), p.x, p.z);
+      refresh();
+    }
+
+
+    // --- the plan: the room from above, drawn in lines, for placing things roughly before walking in ------------------------
+    // Works are dragged to any wall (the room's or a standing wall's side), standing walls and plinths across the floor.
+    // The same state as the room's: what is placed here is where it hangs when the artist walks in.
+    let pv = null;                                            // the plan's view: scale, origin, turned or not
+    const standStale = id => { const q = stPlinth(id), b = builtStands[id]; return !q || !b || q.rot !== b.rot || q.len !== b.len; };
+    const standShift = id => { const q = stPlinth(id), b = builtStands[id]; return q && b ? [q.x - b.x, q.z - b.z] : [0, 0]; };
+    const wallXZ = wl => {                                    // a wall's line on the floor: where it starts, its direction, its inward normal
+      const [dx, dz] = wl.stand ? standShift(wl.stand) : [0, 0];
+      return { ox: wl.origin[0] + dx, oz: wl.origin[2] + dz, ux: wl.u[0], uz: wl.u[2], nx: wl.normal[0], nz: wl.normal[2], len: wl.size[0] };
+    };
+    function planView() {
+      const r = ui.svg.getBoundingClientRect(), pad = 34;
+      const walls = api.surfaces.filter(s => s.kind === 'wall' && !s.stand);
+      let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+      for (const wl of walls) for (const t of [0, wl.size[0]]) { const x = wl.origin[0] + wl.u[0] * t, z = wl.origin[2] + wl.u[2] * t; x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+      const rw = x1 - x0, rd = z1 - z0, turn = (r.height > r.width) !== (rd > rw);      // the long side of the room along the long side of the screen
+      const pw = turn ? rd : rw, ph = turn ? rw : rd, k = Math.min((r.width - 2 * pad) / pw, (r.height - 2 * pad) / ph);
+      const ox = (r.width - pw * k) / 2, oy = (r.height - ph * k) / 2;
+      pv = { k, w: r.width, h: r.height, left: r.left, top: r.top, x0, x1, z0, z1, turn,
+        to: (x, z) => turn ? [ox + (z1 - z) * k, oy + (x - x0) * k] : [ox + (x - x0) * k, oy + (z - z0) * k],
+        from: (sx, sy) => turn ? [x0 + (sy - oy) / k, z1 - (sx - ox) / k] : [x0 + (sx - ox) / k, z0 + (sy - oy) / k],
+        dir: (dx, dz) => turn ? [-dz, dx] : [dx, dz] };
+      return pv;
+    }
+    function drawPlan() {
+      if (!plan || !ui || !api) return;
+      const v = planView(); if (v.w < 10) return;
+      const f = n => n.toFixed(1), L = (a, b, cls, extra = '') => `<line class="${cls}" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" ${extra}/>`;
+      let out = '', top = '';
+      for (const wl of api.surfaces.filter(s => s.kind === 'wall' && !s.stand)) {
+        const g = wallXZ(wl), at = t => v.to(g.ox + g.ux * t, g.oz + g.uz * t);
+        out += L(at(0), at(g.len), 'hp-wall');
+        for (const [b0, b1] of blocks[wl.name] || []) out += L(at(Math.max(0, b0)), at(Math.min(g.len, b1)), 'hp-open-in');      // glass, a window, the way in
+      }
+      for (const q of stStands()) {
+        const r = q.rot * Math.PI / 180, hx = Math.cos(r) * q.len / 2, hz = Math.sin(r) * q.len / 2, a = v.to(q.x - hx, q.z - hz), b = v.to(q.x + hx, q.z + hz), on = sel && sel.k === 'stand' && sel.id === q.id;
+        out += L(a, b, 'hp-stand' + (on ? ' on' : ''), `style="stroke-width:${f(Math.max(5, STAND.t * v.k))}px"`) + L(a, b, 'hp-hit', `data-k="stand" data-id="${esc(q.id)}"`);
+      }
+      for (const q of st.plinths) if (!q.kind) {
+        const [pw, pd] = plinthDims(q), c = v.to(q.x, q.z), [sw, sd] = v.dir(pw / 100 * v.k, pd / 100 * v.k).map(Math.abs), on = sel && sel.k === 'plinth' && sel.id === q.id, o = q.work && byId(q.work);
+        const w = Math.max(12, sw), d = Math.max(12, sd);
+        out += `<rect class="hp-plinth${on ? ' on' : ''}" x="${f(c[0] - w / 2)}" y="${f(c[1] - d / 2)}" width="${f(w)}" height="${f(d)}"/>` + (o ? `<image href="${thumb(o)}" x="${f(c[0] - 13)}" y="${f(c[1] - 13)}" width="26" height="26" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 13px)"/>` : '')
+          + `<circle class="hp-hit" cx="${f(c[0])}" cy="${f(c[1])}" r="22" data-k="plinth" data-id="${esc(q.id)}"/>`;
+      }
+      for (const id of st.ids) {
+        const pl = st.placements[id], wl = pl && wallOf(pl.wall), w = byId(id); if (!wl || !sizes[id] || !w || (wl.stand && standStale(wl.stand))) continue;
+        const g = wallXZ(wl), sw = sizes[id][0], cx = g.ox + g.ux * pl.a, cz = g.oz + g.uz * pl.a, on = sel && sel.k === 'work' && sel.id === id;
+        const a = v.to(cx - g.ux * sw / 2 + g.nx * 0.04, cz - g.uz * sw / 2 + g.nz * 0.04), b = v.to(cx + g.ux * sw / 2 + g.nx * 0.04, cz + g.uz * sw / 2 + g.nz * 0.04);
+        const c = v.to(cx, cz), n = v.dir(g.nx, g.nz), T = 30, t = [c[0] + n[0] * (T / 2 + 9), c[1] + n[1] * (T / 2 + 9)];
+        const one = L(a, b, 'hp-work' + (on ? ' on' : '')) + `<image href="${thumb(w)}" x="${f(t[0] - T / 2)}" y="${f(t[1] - T / 2)}" width="${T}" height="${T}" preserveAspectRatio="xMidYMid slice"/><rect class="hp-thumb${on ? ' on' : ''}" x="${f(t[0] - T / 2)}" y="${f(t[1] - T / 2)}" width="${T}" height="${T}"/>`
+          + `<circle class="hp-hit" cx="${f(t[0])}" cy="${f(t[1])}" r="21" data-k="work" data-id="${esc(id)}"><title>${esc(w.title)}</title></circle>`;
+        if (on) top += one; else out += one;
+      }
+      // the room's measures, as on an architect's plan
+      const m = n => (Math.round(n * 10) / 10) + ' m', c0 = v.to(v.x0, v.z0), c1 = v.to(v.x1, v.z1), lx = Math.min(c0[0], c1[0]), rx = Math.max(c0[0], c1[0]), ty = Math.min(c0[1], c1[1]), by = Math.max(c0[1], c1[1]);
+      out += `<text class="hp-dim" x="${f((lx + rx) / 2)}" y="${f(ty - 12)}" text-anchor="middle">${m(v.turn ? v.z1 - v.z0 : v.x1 - v.x0)}</text><text class="hp-dim" transform="translate(${f(lx - 12)} ${f((ty + by) / 2)}) rotate(-90)" text-anchor="middle">${m(v.turn ? v.x1 - v.x0 : v.z1 - v.z0)}</text>`;
+      ui.svg.setAttribute('viewBox', `0 0 ${f(v.w)} ${f(v.h)}`); ui.svg.innerHTML = out + top;
+    }
+    function nearestWall(x, z) {
+      let best = null;
+      for (const wl of api.surfaces.filter(s => s.kind === 'wall' && !(s.stand && standStale(s.stand)))) {
+        const g = wallXZ(wl), rx = x - g.ox, rz = z - g.oz, along = Math.max(0, Math.min(g.len, rx * g.ux + rz * g.uz));
+        const side = rx * g.nx + rz * g.nz, d = Math.hypot(rx - g.ux * along, rz - g.uz * along) + (side < -0.02 ? 0.6 : 0);      // (the side of the wall the finger is on)
+        if (!best || d < best.d) best = { wl, a: along, d };
+      }
+      return best;
+    }
+    function planPointer(e) {
+      if (!plan || !pv) return;
+      if (e.type === 'pointerdown') {
+        if (pdrag) return;
+        const t = e.target.closest('[data-k]');
+        if (pop) { pop = ''; clearTimeout(noteT); noteT = 0; }
+        if (!t) { select(null); return; }
+        const hit = { k: t.dataset.k, id: t.dataset.id }; select(hit);
+        const [x, z] = pv.from(e.clientX - pv.left, e.clientY - pv.top), q = hit.k === 'work' ? null : stPlinth(hit.id);
+        pdrag = { ...hit, pid: e.pointerId, pre: clone(st), moved: 0, sx: e.clientX, sy: e.clientY, off: q ? [x - q.x, z - q.z] : [0, 0] };
+        try { ui.svg.setPointerCapture(e.pointerId); } catch {}
+        e.preventDefault(); return;
+      }
+      if (!pdrag || e.pointerId !== pdrag.pid) return;
+      if (e.type === 'pointermove') {
+        pdrag.moved = Math.max(pdrag.moved, Math.abs(e.clientX - pdrag.sx) + Math.abs(e.clientY - pdrag.sy));
+        if (pdrag.moved < 6) return;
+        const [x, z] = pv.from(e.clientX - pv.left, e.clientY - pv.top);
+        if (pdrag.k === 'work') {
+          const n = nearestWall(x, z); if (!n) return;
+          const was = st.placements[pdrag.id], r = constrain(n.wl, n.a, was && was.wall === n.wl.name ? was.y : design.centre / 100, pdrag.id);
+          putWork(pdrag.id, n.wl, r.a, r.y);
+        } else if (pdrag.k === 'plinth') {
+          const r = constrainPlinth(x - pdrag.off[0], z - pdrag.off[1], pdrag.id); putPlinth(pdrag.id, r.x, r.z);
+        } else {
+          const q = stPlinth(pdrag.id), snap = n => Math.round(n * 20) / 20;
+          q.x = Math.max(0.6, Math.min(W - 0.6, snap(x - pdrag.off[0]))); q.z = Math.max(0.6, Math.min(D - 0.6, snap(z - pdrag.off[1])));
+        }
+        refresh(); return;
+      }
+      const d = pdrag; pdrag = null;
+      if (d.moved >= 6) { if (d.k === 'stand') soon(d.pre); else { push(d.pre); save(); refresh(); } }
+    }
+    function setPlan(on) {
+      plan = on; outerPlan = on; if (!on) pop = ''; ui.hp.hidden = !on; api.root.classList.toggle('planning', on);
+      ui.bar.querySelector('[data-a=line]').hidden = on; ui.bar.querySelector('[data-a=even]').hidden = on;
+      if (!on && sel) {                                       // walking in: stand in front of what was chosen on the plan
+        if (sel.k === 'work' && st.placements[sel.id] && wallOf(st.placements[sel.id].wall) && sizes[sel.id]) {
+          const pl = st.placements[sel.id], wl = wallOf(pl.wall), to = V(wl.origin).addScaledVector(V(wl.u), pl.a).setY(pl.y);
+          const at = to.clone().addScaledVector(V(wl.normal), Math.max(2.8, sizes[sel.id][0] * 1.4 + 1.4)).setY(api.EYE);
+          api.setPose(api.clamp(at).toArray(), to.toArray());
+        }
+        if (sel.k === 'stand') { sel = null; mark(); }
+      }
       refresh();
     }
 
@@ -355,7 +486,8 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       ui.bar.querySelector('[data-a=line]').disabled = !work; ui.bar.querySelector('[data-a=even]').disabled = !work; ui.bar.querySelector('[data-a=undo]').disabled = !undo.length;
       ui.bar.querySelectorAll('[data-a=add],[data-a=plinth],[data-a=stand],[data-a=line]').forEach(b => b.setAttribute('aria-pressed', String(pop === b.dataset.a)));
       if (pop) { ui.pop.hidden = false; ui.pop.innerHTML = popHtml(); } else if (!noteT || ui.pop.querySelector('.he-note') == null) ui.pop.hidden = true;
-      if (!sel || sel.k === 'stand') { ui.sel.hidden = true; return; }      // (a standing wall's panel has its own Remove)
+      drawPlan(); ui.std.hidden = !(plan && sel && sel.k === 'stand');
+      if (!sel || (sel.k === 'stand' && !plan)) { ui.sel.hidden = true; return; }      // (in the room a standing wall's panel has its own Remove)
       ui.sel.hidden = false;
       if (work) {
         const w = byId(sel.id), p = st.placements[sel.id], [sw, sh] = sizes[sel.id];
@@ -373,10 +505,19 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       box.innerHTML = `<div class="he-bar" role="toolbar" aria-label="Hang the works">
           <button type="button" data-a="add"><b>Add</b><span>work</span></button><button type="button" data-a="plinth"><b>Plinth</b><span>floor</span></button><button type="button" data-a="stand"><b>Wall</b><span>standing</span></button>
           <button type="button" data-a="line"><b>Line up</b><span>wall</span></button><button type="button" data-a="even"><b>Space</b><span>evenly</span></button><button type="button" data-a="undo"><b>Undo</b><span>last</span></button></div>
+        <div class="hp" hidden><p class="hp-h">Place things roughly here: drag a work to a wall, drag the standing walls and plinths. Then walk in and hang by eye.</p><svg class="hp-svg" aria-label="Plan of the room"></svg><button type="button" class="hp-go">Walk in</button></div>
+        <button type="button" class="hp-open">Plan</button>
         <div class="he-pop" hidden></div>
-        <div class="he-sel" hidden><div class="he-t"></div><button type="button" class="he-rm">Remove</button></div>`;
+        <div class="he-sel" hidden><div class="he-t"></div><div class="he-std" hidden><button type="button" data-st="len:-1" aria-label="Narrower">−</button><button type="button" data-st="len:1" aria-label="Wider">+</button><button type="button" data-st="rot:6">Turn</button></div><button type="button" class="he-rm">Remove</button></div>`;
       api.root.append(box);
-      ui = { bar: box.querySelector('.he-bar'), pop: box.querySelector('.he-pop'), sel: box.querySelector('.he-sel') };
+      ui = { bar: box.querySelector('.he-bar'), pop: box.querySelector('.he-pop'), sel: box.querySelector('.he-sel'), hp: box.querySelector('.hp'), svg: box.querySelector('.hp-svg'), std: box.querySelector('.he-std') };
+      ui.std.onclick = e => { const b = e.target.closest('button'); if (b) { const [k, v] = b.dataset.st.split(':'); editStand(k, +v); } };
+      box.querySelector('.hp-go').onclick = () => setPlan(false);
+      box.querySelector('.hp-open').onclick = () => setPlan(true);
+      const map = api.root.querySelector('.sv-map');      // the small plan by the door opens the large one
+      if (map) map.addEventListener('click', e => { e.stopImmediatePropagation(); setPlan(true); }, true);
+      for (const t of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) ui.svg.addEventListener(t, planPointer);
+      addEventListener('resize', drawPlan);
       const toggle = k => { pop = pop === k ? '' : k; clearTimeout(noteT); noteT = 0; refresh(); };
       ui.bar.onclick = e => {
         const b = e.target.closest('button'); if (!b || b.disabled) return;
@@ -393,7 +534,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       ui.sel.querySelector('.he-rm').onclick = removeSel;
       if (pose) api.setPose(pose.at, pose.to);
       if (sel) mark();
-      refresh();
+      if (outerPlan) setPlan(true); else refresh();
     }
     const ctlObj = { pointer, attach, get api() { return api; }, setSel(s) { sel = s; }, sel: () => sel };
     return ctlObj;
