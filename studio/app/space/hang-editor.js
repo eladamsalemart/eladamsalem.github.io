@@ -18,7 +18,7 @@ const SNAP = 0.06, GAP = 0.15;
 export async function openHangEditor({ design, library, state, src, shape, openSpace, onSave, onExit }) {
   const st = { ids: (state.ids || []).slice(), placements: clone(state.placements || {}), plinths: clone(state.plinths || []) };
   const undo = [];
-  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, zoom = { s: 1, tx: 0, ty: 0 }, outerPop = st.ids.length || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
+  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, zoom = { s: 1, tx: 0, ty: 0 }, startAt = null, outerPop = st.ids.length || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
   const byId = id => library.find(w => w.id === id);
   const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.colour || '') + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
   const save = () => onSave(clone(st));
@@ -42,6 +42,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
   async function open1() {
     const next = await build();
     const was = view, keepPose = ctl && ctl.api ? ctl.api.pose() : null;
+    if (ctl && ctl.api) { outerSel = ctl.sel(); outerPop = ctl.pop(); }      // (what the artist chose or opened while the room was being drawn stays)
     if (was) { was.close(); made.revoke(); }
     made = next; pose = keepPose;
     ctl = controller();
@@ -402,6 +403,10 @@ export async function openHangEditor({ design, library, state, src, shape, openS
           + `<circle class="hp-hit" cx="${f(t[0])}" cy="${f(t[1])}" r="21" data-k="work" data-id="${esc(id)}"><title>${esc(w.title)}</title></circle>`;
         if (on) top += one; else out += one;
       }
+      if (startAt) {      // where the visitor comes in: what they see first is decided from here
+        const c = v.to(startAt[0], startAt[2]);
+        out += `<g class="hp-in"><circle cx="${f(c[0])}" cy="${f(c[1])}" r="4"/><text x="${f(c[0] + (c[0] < v.w / 2 ? 9 : -9))}" y="${f(c[1] + 3.5)}" text-anchor="${c[0] < v.w / 2 ? 'start' : 'end'}">Way in</text></g>`;
+      }
       // the room's measures, as on an architect's plan
       const m = n => (Math.round(n * 10) / 10) + ' m', c0 = v.to(v.x0, v.z0), c1 = v.to(v.x1, v.z1), lx = Math.min(c0[0], c1[0]), rx = Math.max(c0[0], c1[0]), ty = Math.min(c0[1], c1[1]), by = Math.max(c0[1], c1[1]);
       out += `<text class="hp-dim" x="${f((lx + rx) / 2)}" y="${f(ty - 12)}" text-anchor="middle">${m(v.turn ? v.z1 - v.z0 : v.x1 - v.x0)}</text><text class="hp-dim" transform="translate(${f(lx - 12)} ${f((ty + by) / 2)}) rotate(-90)" text-anchor="middle">${m(v.turn ? v.x1 - v.x0 : v.z1 - v.z0)}</text>`;
@@ -494,6 +499,10 @@ export async function openHangEditor({ design, library, state, src, shape, openS
           const at = to.clone().addScaledVector(V(wl.normal), Math.max(2.8, sizes[sel.id][0] * 1.4 + 1.4)).setY(api.EYE);
           api.setPose(api.clamp(at).toArray(), to.toArray());
         }
+        if (sel.k === 'plinth' && stPlinth(sel.id)) {      // a plinth: a few steps from it, from the side with the most room
+          const q = stPlinth(sel.id), to = V([q.x, 1, q.z]), at = api.clamp(V([q.x + (q.x > W / 2 ? -3 : 3), api.EYE, q.z]));
+          api.setPose(at.toArray(), to.toArray());
+        }
         if (sel.k === 'stand') { sel = null; mark(); }
       }
       refresh();
@@ -578,11 +587,12 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         } else if (b.dataset.col != null) colourPlinth(b.dataset.col); else if (b.dataset.add) addWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line);
       };
       ui.sel.querySelector('.he-rm').onclick = removeSel;
+      if (!startAt) startAt = api.pose().at;      // (where a visitor's walk begins: marked on the plan)
       if (pose) api.setPose(pose.at, pose.to);
       if (sel) mark();
       if (outerPlan) setPlan(true); else refresh();
     }
-    const ctlObj = { pointer, attach, get api() { return api; }, setSel(s) { sel = s; }, sel: () => sel };
+    const ctlObj = { pointer, attach, get api() { return api; }, setSel(s) { sel = s; }, sel: () => sel, pop: () => pop };
     return ctlObj;
   }
 

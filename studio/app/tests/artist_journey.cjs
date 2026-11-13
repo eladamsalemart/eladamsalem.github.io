@@ -105,6 +105,16 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
       await shot('plan-zoomed'); await targets('plan zoomed');
       await p.tap('.hp-fit'); const back = await wall(); if (Math.abs(back - before) > 1) throw new Error('Whole room did not bring the plan back');
     });
+    // a plinth stood on the plan, painted black: its colour is kept, and walking in stands in front of it
+    await step('plinth-colour', 150000, async () => {
+      await p.tap('.he-bar [data-a="plinth"]'); await p.tap('.he-pop [data-plinth="m"]');
+      await p.waitForSelector('.hp-svg [data-k="plinth"]', { timeout: 60000 }); await p.waitForSelector('.he-more:not([hidden])', { timeout: 60000 });
+      await p.tap('.he-more'); await p.waitForSelector('.he-cols [data-col="black"]', { timeout: 20000 }); await targets('plinth panel'); await shot('plinth-panel');
+      await p.tap('.he-cols [data-col="black"]');
+      await p.waitForFunction(() => { const b = document.querySelector('.he-cols [data-col="black"]'); return b && b.getAttribute('aria-pressed') === 'true'; }, null, { timeout: 60000 });
+      await p.tap('.he-more');
+    });
+    if (!(await p.locator('.hp-in').count())) bad.push('the plan does not mark the way in');
     await step('walk-in', 40000, async () => { await p.tap('.hp-go'); await p.waitForFunction(() => document.querySelector('.hp').hidden && !document.querySelector('.sv').classList.contains('planning'), null, { timeout: 3000 }); await p.waitForTimeout(1500); });
     await step('leave-hang', 25000, async () => { await p.tap('.sv-x'); await p.waitForSelector('.ov-strip', { timeout: 24000 }); });
   }
