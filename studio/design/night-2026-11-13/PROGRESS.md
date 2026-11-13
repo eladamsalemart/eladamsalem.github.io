@@ -34,3 +34,5 @@ Commit and push every finished piece at once. While working, write `date +%s > .
 
 ## 13.11 07:50
 Bake finished and published; renders checked (white cube neutral, pavilion floor light, concrete large a little dark but workable). summary.md updated. List done.
+
+- Owner confirmed 13.11: the third room kind is glass-pavilion.
