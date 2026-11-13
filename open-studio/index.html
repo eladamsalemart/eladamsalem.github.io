@@ -1002,6 +1002,7 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
 .hp-plinth{fill:#FBFBF9;stroke:#141516;stroke-width:1.4}.hp-plinth.on{stroke:#D0261D;stroke-width:2.4}
 .hp-work{stroke:#D0261D;stroke-width:5;stroke-linecap:butt;opacity:.55}.hp-work.on{opacity:1}
 .hp-thumb{fill:none;stroke:#141516;stroke-width:1}.hp-thumb.on{stroke:#D0261D;stroke-width:2.6}
+.hp-in{pointer-events:none}.hp-in circle{fill:none;stroke:#1F4B3A;stroke-width:1.6}.hp-in text{font-size:10.5px;font-weight:600;fill:#1F4B3A}
 .hp-dim{font-size:11px;fill:#141516;opacity:.55;font-variant-numeric:tabular-nums}
 .hp-hit{fill:transparent;stroke:transparent;stroke-width:30;stroke-linecap:round;cursor:grab}
 .hp-go{position:absolute;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));min-height:52px;border:0;border-radius:12px;background:#1F4B3A;color:#FBFBF9;font:inherit;font-size:16px;font-weight:600;cursor:pointer}
@@ -1013,7 +1014,7 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
 .he-std{display:flex;gap:6px}.he-std[hidden]{display:none}
 .he-std button{min-width:44px;min-height:44px;border:1px solid #d9d6cf;border-radius:10px;background:none;font:inherit;font-size:13px;font-weight:600;color:inherit;cursor:pointer;padding:0 8px}
 .he-cols{display:flex;align-items:center;gap:10px;margin-top:12px}.he-cols span{font-size:11.5px;opacity:.62;margin-right:auto}.he-cols button{width:44px;height:44px;border-radius:50%;border:1px solid #c9c6bf;cursor:pointer}.he-cols button[aria-pressed=true]{box-shadow:0 0 0 2px #FBFBF9,0 0 0 4px #141516}
-.he-more{min-height:44px;border:1px solid #d9d6cf;border-radius:10px;background:none;font:inherit;font-size:12.5px;font-weight:600;color:inherit;cursor:pointer;padding:0 10px}.he-more[hidden]{display:none}.he-sel:has(.he-more:not([hidden])){grid-template-columns:1fr auto auto}
+.he-more{min-height:44px;border:1px solid #d9d6cf;border-radius:10px;background:none;font:inherit;font-size:12.5px;font-weight:600;color:inherit;cursor:pointer;padding:0 10px}.he-more[hidden]{display:none}.sv:not(.planning) .he-sel:has(.he-more:not([hidden])){grid-template-columns:1fr 1fr}.sv:not(.planning) .he-sel:has(.he-more:not([hidden])) .he-t{grid-column:1/-1}.he-sel:has(.he-more:not([hidden])){grid-template-columns:1fr auto auto}
 .he-bar button[hidden]{display:none}.sv.planning .he-bar{grid-template-columns:repeat(4,1fr)}
 .hp-fit{position:absolute;right:12px;top:calc(162px + env(safe-area-inset-top,0px));min-height:44px;padding:0 14px;border:1px solid #d9d6cf;border-radius:22px;background:#FBFBF9;color:#141516;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;z-index:1}.hp-fit[hidden]{display:none}
 @media (pointer:fine){.hp-go{left:auto;width:260px}}
