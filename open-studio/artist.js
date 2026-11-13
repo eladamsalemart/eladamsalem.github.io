@@ -364,14 +364,14 @@ function importer() {
     <div class="im-ways">
       <div class="st-card im-way"><h2>Photos from this phone</h2><p class="m small">The fastest way: take or choose photos of your works, as many as you like, straight on, the whole work in the picture. Then add titles and sizes in one sheet.</p>
         <label class="btn f"><input type="file" accept="image/*" multiple id="imFiles" hidden>Choose photos</label></div>
-      <form class="st-card im-way" data-kind="site"><h2>Your website</h2><p class="m small">We look at the page and its gallery pages for your images and their titles.</p>
+      <form class="st-card im-way" data-kind="site" data-way="site"><h2>Your website</h2><p class="m small">We look at the page and its gallery pages for your images and their titles.</p>
         <label class="vh" for="imSite">Website address</label><input id="imSite" name="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="yourname.com" value="${esc(site)}" required>
         <button class="btn f" type="submit">Find my work</button></form>
-      <div class="st-card im-way" id="imIg"><h2>Instagram</h2><p class="m small" id="imIgSay">Connect your Instagram (a professional account, linked to a Facebook Page) and choose posts from it.</p>
+      <div class="st-card im-way" id="imIg" data-way="ig"><h2>Instagram</h2><p class="m small" id="imIgSay">Connect your Instagram (a professional account, linked to a Facebook Page) and choose posts from it.</p>
         <div class="btns"><button class="btn f" type="button" id="imIgGo">Connect Instagram</button><button class="btn g" type="button" id="imIgOff" hidden>Disconnect</button></div>
         <details class="im-zip"><summary class="small">Or use Instagram’s download file</summary><p class="m small">In the Instagram app, <b>Settings → Accounts Centre → Your information and permissions → Download your information</b>, choose <b>Some of your information → Posts</b>, format <b>JSON</b>. Instagram emails you a file (.zip); choose it here.</p>
         <label class="btn g"><input type="file" accept=".zip,application/zip" id="imZip" hidden>Choose the Instagram file</label></details></div>
-      <div class="st-card im-way"><h2>Google Drive</h2><p class="m small">Choose images of your work from your Drive. Open Studio sees only the ones you choose.</p>
+      <div class="st-card im-way" data-way="drive"><h2>Google Drive</h2><p class="m small">Choose images of your work from your Drive. Open Studio sees only the ones you choose.</p>
         <div class="btns"><button class="btn f" type="button" id="imDriveGo">Choose from Google Drive</button></div>
         <details class="im-zip"><summary class="small">Or paste a shared folder link</summary>
         <form class="im-way" data-kind="drive"><p class="m small">A folder of images, shared as <b>Anyone with the link</b>.</p>
@@ -406,6 +406,9 @@ function wireImport(app, go) {
     const fresh = found.filter(x => !x.had).length;
     tell(!items.length ? 'Nothing found there.' : !fresh ? 'Everything here is already in your studio. Bring in the rest of your website below, or choose works to bring in again.' : '');
   };
+  // arriving from Add works on the page, for one way in: that way is brought under the eye
+  try { const way = sessionStorage.getItem('os-import-way'); sessionStorage.removeItem('os-import-way'); const card = way && app.querySelector(`.im-way[data-way="${way}"]`);
+    if (card) { card.classList.add('im-here'); setTimeout(() => { card.scrollIntoView({ block: 'center' }); const i = card.querySelector('input:not([type=file]):not([hidden])'); if (i && way === 'site' && !i.value) i.focus({ preventScroll: true }); }, 60); } } catch {}
   if (S.preview) {   // the control room's preview: the page as a new artist sees it, nothing fetched or kept
     const say = e => { if (e) e.preventDefault(); tell('<span dir="rtl" lang="he">בתצוגה מקדימה לא מייבאים בפועל: כך נראה הדף לאמן חדש.</span>'); };
     app.querySelectorAll('form.im-way').forEach(f => f.onsubmit = say);
