@@ -20,8 +20,8 @@
  },
  "light": "spots",
  "floorReflect": [
-  0.06,
-  0.26
+  0.04,
+  0.16
  ],
  "ppm": 300,
  "plates": []
