@@ -466,6 +466,7 @@ function home() {
     ${walk.length ? `<section class="hs-sec hs-walk" aria-labelledby="hsLive">
       <div class="hs-h"><h2 id="hsLive">Walk in now</h2><span class="hand side">you can walk in from here</span></div>
       ${walkRow(walk, 'Exhibitions you can walk into')}</section>` : ''}
+    <section class="hs-sec hs-mu" id="hsMuseum" aria-labelledby="hsMuH" hidden></section>
     <section class="hs-sec hs-new" id="hsNew" aria-labelledby="hsNewH" hidden></section>
     ${mine.length ? `<section class="hs-sec" aria-labelledby="hsArtists">
       <div class="hs-h"><h2 id="hsArtists">Your artists</h2><a class="hs-more" href="#/artists">All</a></div>
@@ -519,6 +520,7 @@ async function mountHome(root) {
   const hero = root.querySelector('.hs-hero'), pick = root.querySelector('.pick'), box = root.querySelector('#hsSky');
   const { stars, ties, slot } = skyOf();
   fillNew(root.querySelector('#hsNew'));
+  fillMuseum(root.querySelector('#hsMuseum'));
   root.querySelector('.sky-down').onclick = () => (root.querySelector('#hsNew:not([hidden])') || root.querySelector('.hs-sec')).scrollIntoView({ behavior: 'smooth', block: 'start' });
   const { sky } = await import('./sky.js');
   if (!box.isConnected) return;
@@ -571,6 +573,74 @@ async function mountHome(root) {
   wireWalk(root);
   fillNear(root.querySelector('#hsNear'));
 }
+
+// === the museum on Home ====================================================================================================
+// What the owner publishes on the Desk (museum_slots: live, inside its dates) is asked for afresh every time Home or the museum
+// opens, past every cache, so a publish shows on the next opening. The last answer is kept on the phone: Home draws it at once
+// and corrects it when the fresh one arrives, and a phone with no signal still gets the museum as it was last published.
+const MUSEUM_KEY = 'os-museum';
+const museumKept = () => { try { const k = JSON.parse(localStorage.getItem(MUSEUM_KEY)); if (k && Array.isArray(k.slots)) return k.slots; } catch {} return null; };
+async function liveSlots() {
+  try {
+    const r = await fetch(DB + 'museum_slots?select=slot,app_slug,colour,content,published_at&live=eq.true&order=slot',
+      { headers: { apikey: DB_KEY }, cache: 'no-store', signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined });
+    if (!r.ok) throw new Error(r.status);
+    const slots = await r.json();
+    try { localStorage.setItem(MUSEUM_KEY, JSON.stringify({ at: Date.now(), slots })); } catch {}
+    return slots;
+  } catch { return museumKept() || []; }
+}
+// a slot as a room: the Desk's own exhibition (its copy), or one of the app's shows by its slug; a slot with neither is skipped
+function museumRooms(slots) {
+  const shows = streetShows();
+  return slots.map(s => {
+    const c = s.content, e = s.app_slug && shows.find(x => x.slug === s.app_slug);
+    if (!c && !e) return null;
+    const ws = c ? (c.works || []) : e.works, slug = e ? e.slug : 'slot-' + s.slot, w = ws.find(x => x.thumb || x.image);
+    return { slug, slot: s, show: e, content: c, title: c ? c.title : e.title, works: ws, colour: s.colour || (M.virtualColours || {})[slug] || '',
+      img: w ? (w.thumb || M.thumbs[w.image] || src(w.image)) : e && e.images[0] ? pic(e.images[0]) : '' };
+  }).filter(Boolean);
+}
+const MU_CSS = `<style id="hsMuCss">
+.hs-mu .mu-in{position:relative;display:block;text-decoration:none;color:inherit}
+.hs-mu .mu-doors{display:flex;align-items:flex-end;gap:10px}
+.hs-mu .mu-door{flex:1 1 0;min-width:0;display:grid;gap:6px}
+.hs-mu .mu-door img,.hs-mu .mu-door i{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--card);border-radius:999px 999px 10px 12px / 999px 999px 12px 10px;box-shadow:0 0 0 1px color-mix(in srgb,var(--hs-pencil) 30%,transparent)}
+.hs-mu .mu-door:nth-child(2):not(:last-child) img,.hs-mu .mu-door:nth-child(2):not(:last-child) i{aspect-ratio:3/4.6}
+.hs-mu .mu-doors.one .mu-door img,.hs-mu .mu-doors.one .mu-door i{aspect-ratio:4/3.4;border-radius:160px 160px 14px 18px / 150px 150px 18px 14px}
+.hs-mu .mu-door u{display:block;height:4px;border-radius:2px;background:var(--c,var(--hs-pencil));opacity:.85}
+.hs-mu .mu-t{display:grid;gap:3px;margin-top:14px;padding-right:108px;min-height:44px;align-content:center}
+.hs-mu .mu-t b{font:500 21px/1.15 var(--serif)}
+.hs-mu .mu-t b[dir=rtl]{font:600 18px/1.25 'IBM Plex Sans Hebrew',var(--sans)}
+.hs-mu .mu-t span{font-size:14px;color:var(--muted)}
+.hs-mu .mu-go{position:absolute;right:0;bottom:0;min-height:44px;display:inline-flex;align-items:center;padding:0 18px;border-radius:999px;background:#fff;color:var(--hs-ink);font:600 15px var(--sans);box-shadow:0 8px 20px -12px var(--hs-shade)}
+.hs-mu .mu-in:active{opacity:.8}
+</style>`;
+const NUM = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'];
+function drawMuseum(box, slots) {
+  const rooms = museumRooms(slots || []), n = rooms.length;
+  if (!n) { box.hidden = true; box.innerHTML = ''; return; }
+  const sig = JSON.stringify(rooms.map(r => [r.slug, r.title, r.img, r.colour]));
+  if (box.dataset.sig === sig) return;                              // (nothing changed: leave the pictures alone)
+  box.dataset.sig = sig;
+  if (!document.getElementById('hsMuCss')) document.head.insertAdjacentHTML('beforeend', MU_CSS);
+  const doors = rooms.filter(r => r.img).slice(0, 3), names = rooms.map(r => r.title);
+  const list = n <= 2 ? names.join(' and ') : `${names.slice(0, 2).join(', ')} and ${n - 2} more`;
+  box.innerHTML = `<div class="hs-h"><h2 id="hsMuH">The Museum</h2><span class="hand side">${n === 1 ? 'one exhibition on now' : `${NUM[n].toLowerCase()} exhibitions on now`}</span></div>
+    <a class="mu-in" href="#/museum" aria-label="Walk into the museum: ${n} ${n === 1 ? 'exhibition' : 'exhibitions'} on now">
+      ${doors.length ? `<span class="mu-doors${doors.length === 1 ? ' one' : ''}">${doors.map(r => `<span class="mu-door"${r.colour ? ` style="--c:${esc(r.colour)}"` : ''}><img src="${esc(r.img)}" alt="" loading="lazy"><u></u></span>`).join('')}</span>` : ''}
+      <span class="mu-t"><b${heb(names[0])}>${esc(n === 1 ? names[0] : `${NUM[n]} exhibitions, one walk`)}</b><span${heb(list)}>${esc(n === 1 ? (rooms[0].content && rooms[0].content.curator ? 'Curated by ' + rooms[0].content.curator : `${rooms[0].works.length} works`) : list)}</span></span>
+      <span class="mu-go">Walk in</span></a>`;
+  box.hidden = false;
+}
+async function fillMuseum(box) {
+  if (!box) return;
+  const kept = museumKept(); if (kept) drawMuseum(box, kept);
+  const slots = await liveSlots();
+  if (box.isConnected) drawMuseum(box, slots);
+}
+// the app left open in the background and come back to (an installed app is rarely closed): Home asks again
+document.addEventListener('visibilitychange', () => { const box = document.getElementById('hsMuseum'); if (!document.hidden && box) fillMuseum(box); });
 
 // a calm shelf under the sky: who and what you haven't met, to scroll through without moving the sky
 function fillNew(box) {
@@ -1150,9 +1220,8 @@ async function enterStreet() {
   const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
   const shows = synth.streetShows(M), thumb = w => w.thumb || M.thumbs[w.image] || w.image;
   const set = (M.virtualColours || {}), over = {};
-  const get = t => fetch(DB + t, { headers: { apikey: DB_KEY }, signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined }).then(r => r.ok ? r.json() : []);
-  let slots = [];
-  try { slots = await get('museum_slots?select=slot,app_slug,colour,content&live=eq.true&order=slot'); } catch {}      // the Desk's slots (the database lets through only live ones inside their dates)
+  const get = t => fetch(DB + t, { headers: { apikey: DB_KEY }, cache: 'no-store', signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined }).then(r => r.ok ? r.json() : []);
+  const slots = await liveSlots();                                 // the Desk's slots, asked for afresh (the database lets through only live ones inside their dates)
   try { for (const r of await get('museum_colours?select=slug,colour')) over[r.slug] = r.colour; } catch {}
   let rooms;
   if (slots.length) {
