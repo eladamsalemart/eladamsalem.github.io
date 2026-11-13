@@ -36,3 +36,9 @@ Commit and push every finished piece at once. While working, write `date +%s > .
 Bake finished and published; renders checked (white cube neutral, pavilion floor light, concrete large a little dark but workable). summary.md updated. List done.
 
 - Owner confirmed 13.11: the third room kind is glass-pavilion.
+
+## Restart 07:46 (13.11)
+- Checked via the public GitHub API: "Studio rooms" run 43322980301 (b0dd235) finished "success" at 03:26 UTC but no room
+  assets were committed to studio; run 43329748998 (4881ed0) is still "in_progress" with no update since 03:26 UTC (looks stuck).
+  No gh login on this machine, so it cannot be cancelled or re-run from here. Nothing to look at yet; no second worker started.
+- Needed from the owner: look at the run in the Actions tab, cancel it if stuck, and re-run "Studio rooms".
