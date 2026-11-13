@@ -1,0 +1,139 @@
+<title>מסע אמן חדש</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Heebo:wght@400;500;700&display=swap">
+<style>
+/* layout: one column of steps, each a phone screen beside its words; rough spots carry a red margin note */
+:root { --paper:#FBFBF9; --card:#FFFFFF; --ink:#1B1A17; --soft:#5E5A52; --line:#DDD9CF; --green:#1F4B3A; --red:#B5361F; --wash:#FBEDE8;
+  --display:'Frank Ruhl Libre','David',serif; --body:'Heebo','Arial Hebrew',system-ui,sans-serif }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper:#16171A; --card:#1F2125; --ink:#EFECE4; --soft:#A9A498; --line:#34363C; --green:#8FC7AB; --red:#F08A73; --wash:#33211D; color-scheme:dark } }
+:root[data-theme="dark"] { --paper:#16171A; --card:#1F2125; --ink:#EFECE4; --soft:#A9A498; --line:#34363C; --green:#8FC7AB; --red:#F08A73; --wash:#33211D; color-scheme:dark }
+body { background:var(--paper); color:var(--ink); font:400 17px/1.6 var(--body); padding-block:28px 64px; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)) }
+main { max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:22px }
+h1 { font:700 clamp(30px,7vw,44px)/1.1 var(--display); margin:0; text-wrap:balance }
+.lead { margin:0; color:var(--soft); max-width:34em }
+.sum { display:flex; flex-wrap:wrap; gap:8px 26px; margin:0; padding:14px 0; border-block:1px solid var(--line); font-variant-numeric:tabular-nums }
+.sum div { display:flex; align-items:baseline; gap:8px } .sum b { font:700 26px/1 var(--display) } .sum span { color:var(--soft); font-size:15px }
+h2 { font:700 26px/1.2 var(--display); margin:26px 0 0; padding-top:18px; border-top:2px solid var(--ink) }
+.step { display:grid; grid-template-columns:minmax(0,200px) minmax(0,1fr); gap:20px; align-items:start }
+.step figure { margin:0; border:1px solid var(--line); border-radius:18px; overflow:hidden; background:var(--card) }
+.step img { display:block; width:100%; height:auto }
+.tx { min-width:0; display:flex; flex-direction:column; gap:6px; padding-top:4px }
+.num { margin:0; font-size:13px; color:var(--soft); font-variant-numeric:tabular-nums }
+h3 { font:700 21px/1.25 var(--display); margin:0 }
+.tx p { margin:0 }
+.note { background:var(--wash); border-radius:8px; padding:10px 12px; font-size:15.5px }
+.note b { display:block; color:var(--red); font-size:13px; font-weight:700 }
+.fix { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; counter-reset:f }
+.fix li { counter-increment:f; display:grid; grid-template-columns:34px minmax(0,1fr); gap:10px }
+.fix li::before { content:counter(f); font:700 22px/1.2 var(--display); color:var(--green) }
+.fix b { display:block; font-weight:700 } .fix span { color:var(--soft) }
+.foot { color:var(--soft); font-size:14.5px; margin:0 }
+@media (max-width:520px) { .step { grid-template-columns:minmax(0,1fr) } .step figure { max-width:300px } }
+</style>
+<main dir="rtl" lang="he">
+<h1>מסע אמן חדש, מאפס</h1>
+<p class="lead">כל מסך שאמנית חדשה רואה, מהפתיחה הראשונה של האפליקציה ועד תערוכה תלויה בחלל. צולם היום באפליקציה עצמה, בגודל אייפון, בתצוגה המקדימה (אמנית בדויה, שלוש תמונות בדויות).</p>
+<div class="sum"><div><b>24</b><span>מסכים בדרך</span></div><div><b>9</b><span>מקומות שנתקעים בהם</span></div><div><b>7</b><span>מסכים לפני התמונה הראשונה</span></div></div>
+<h2 id="c1">נכנסים</h2>
+<article class="step">
+  <figure><img src="img/01.jpg" width="520" height="1125" alt="מסך הפתיחה" loading="lazy"></figure>
+  <div class="tx"><p class="num">1 מתוך 24</p><h3>מסך הפתיחה</h3><p>ציור אחד, משפט אחד, כפתור אחד: להמשיך עם אימייל (או גוגל, כשהוא פעיל).</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/02.jpg" width="520" height="1125" alt="אימייל" loading="lazy"></figure>
+  <div class="tx"><p class="num">2 מתוך 24</p><h3>אימייל</h3><p>כותבים כתובת ומקבלים קוד של שש ספרות.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/03.jpg" width="520" height="1125" alt="הקוד" loading="lazy"></figure>
+  <div class="tx"><p class="num">3 מתוך 24</p><h3>הקוד</h3><p>מקלידים את הקוד מהמייל.</p></div>
+</article>
+<article class="step rough">
+  <figure><img src="img/04.jpg" width="520" height="1125" alt="פרטים אישיים" loading="lazy"></figure>
+  <div class="tx"><p class="num">4 מתוך 24</p><h3>פרטים אישיים</h3><p>שם פרטי, שם משפחה, גיל, מדינה ומגדר.</p><p class="note"><b>כאן נתקעים</b>חמישה שדות לפני שראו משהו מהאפליקציה. גיל, מדינה ומגדר אפשר לבקש אחר כך.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/05.jpg" width="520" height="1125" alt="מי אתה כאן" loading="lazy"></figure>
+  <div class="tx"><p class="num">5 מתוך 24</p><h3>מי אתה כאן</h3><p>שתי אפשרויות גדולות: I make art או I love art.</p></div>
+</article>
+<article class="step rough">
+  <figure><img src="img/06.jpg" width="520" height="1125" alt="הסטודיו שלך פתוח" loading="lazy"></figure>
+  <div class="tx"><p class="num">6 מתוך 24</p><h3>הסטודיו שלך פתוח</h3><p>מסך הסבר עם כפתור Open your studio.</p><p class="note"><b>כאן נתקעים</b>מסך שרק מסביר. אפשר לוותר עליו ולהיכנס ישר לסטודיו.</p></div>
+</article>
+<h2 id="c7">העמוד</h2>
+<article class="step rough">
+  <figure><img src="img/07.jpg" width="520" height="1125" alt="הסטודיו: מי אתה" loading="lazy"></figure>
+  <div class="tx"><p class="num">7 מתוך 24</p><h3>הסטודיו: מי אתה</h3><p>שם האמן, מה הוא יוצר, עיר, אינסטגרם ואתר. ואז Make my page.</p><p class="note"><b>כאן נתקעים</b>השם נשאל פעם שנייה (הוא כבר מולא בהרשמה), ואותו משפט על בדיקת העמוד חוזר משני המסכים הקודמים.</p></div>
+</article>
+<article class="step rough">
+  <figure><img src="img/08.jpg" width="520" height="1125" alt="להביא עבודות" loading="lazy"></figure>
+  <div class="tx"><p class="num">8 מתוך 24</p><h3>להביא עבודות</h3><p>ארבע דרכים בעמוד אחד ארוך: תמונות מהטלפון, האתר, אינסטגרם, דרייב.</p><p class="note"><b>כאן נתקעים</b>צריך לגלול כדי לראות את כל הדרכים. בראש המסך יש כבר לשוניות של תערוכה, לפני שיש עבודה אחת.</p></div>
+</article>
+<article class="step rough">
+  <figure><img src="img/09.jpg" width="520" height="1125" alt="בחרתי תמונות" loading="lazy"></figure>
+  <div class="tx"><p class="num">9 מתוך 24</p><h3>בחרתי תמונות</h3><p>כל תמונה מקבלת שם ומידות; סוג, שנה וטכניקה פעם אחת לכולן.</p><p class="note"><b>כאן נתקעים</b>המידות לא חובה כאן, אבל בלי מידה אי אפשר לתלות אחר כך. זה המקום לבקש אותן.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/10.jpg" width="520" height="1125" alt="העבודות בעמוד" loading="lazy"></figure>
+  <div class="tx"><p class="num">10 מתוך 24</p><h3>העבודות בעמוד</h3><p>רשימת העבודות לפי שנה. מתחת לכל אחת: Add its size.</p></div>
+</article>
+<article class="step rough">
+  <figure><img src="img/11.jpg" width="520" height="1125" alt="להוסיף עוד" loading="lazy"></figure>
+  <div class="tx"><p class="num">11 מתוך 24</p><h3>להוסיף עוד</h3><p>הכפתור Add works פותח את ארבע הדרכים כרשימה קצרה.</p><p class="note"><b>כאן נתקעים</b>זה המסך הברור יותר. כדאי שגם המסך הראשון של הבאת עבודות ייראה כך.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/12.jpg" width="520" height="1125" alt="עריכת עבודה" loading="lazy"></figure>
+  <div class="tx"><p class="num">12 מתוך 24</p><h3>עריכת עבודה</h3><p>נגיעה בעבודה פותחת אותה: שם, סוג, שנה, טכניקה ומידות. האפליקציה מעירה על איכות הצילום.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/13.jpg" width="520" height="1125" alt="אחרי השמירה" loading="lazy"></figure>
+  <div class="tx"><p class="num">13 מתוך 24</p><h3>אחרי השמירה</h3><p>השם והמידה מופיעים ברשימה. מחיקה ניתנת לביטול.</p></div>
+</article>
+<h2 id="c14">התערוכה</h2>
+<article class="step">
+  <figure><img src="img/14.jpg" width="520" height="1125" alt="לעשות תערוכה" loading="lazy"></figure>
+  <div class="tx"><p class="num">14 מתוך 24</p><h3>לעשות תערוכה</h3><p>שלושה צעדים בראש: Space, Name, Place works. בוחרים חלל.</p></div>
+</article>
+<article class="step rough">
+  <figure><img src="img/15.jpg" width="520" height="1125" alt="חלל וגודל" loading="lazy"></figure>
+  <div class="tx"><p class="num">15 מתוך 24</p><h3>חלל וגודל</h3><p>שלושה חללים, שלושה גדלים, ומספר חדרים בשורה. אפשר ללכת בחלל הריק.</p><p class="note"><b>כאן נתקעים</b>ארבע החלטות במסך אחד (חלל, גודל, חדרים, שם) ועוד שדה טקסט. לאמן חדש מספיק לבחור חלל; השאר עם ברירת מחדל.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/16.jpg" width="520" height="1125" alt="שם לתערוכה" loading="lazy"></figure>
+  <div class="tx"><p class="num">16 מתוך 24</p><h3>שם לתערוכה</h3><p>כותבים שם ולוחצים Place the works on the plan.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/17.jpg" width="520" height="1125" alt="השרטוט נפתח" loading="lazy"></figure>
+  <div class="tx"><p class="num">17 מתוך 24</p><h3>השרטוט נפתח</h3><p>החלל מלמעלה, והעבודות מחכות במגש Add to the show.</p></div>
+</article>
+<article class="step rough">
+  <figure><img src="img/18.jpg" width="520" height="1125" alt="עבודה ראשונה על הקיר" loading="lazy"></figure>
+  <div class="tx"><p class="num">18 מתוך 24</p><h3>עבודה ראשונה על הקיר</h3><p>נגיעה בעבודה תולה אותה; גוררים אותה לקיר אחר.</p><p class="note"><b>כאן נתקעים</b>כל עבודה נוספת בנפרד. הצעת תלייה ראשונה של כל העבודות בלחיצה אחת תחסוך את רוב העבודה.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/19.jpg" width="520" height="1125" alt="קוליסות" loading="lazy"></figure>
+  <div class="tx"><p class="num">19 מתוך 24</p><h3>קוליסות</h3><p>גוררים קוליסה בגוף שלה, ומסובבים אותה בעיגולים שבקצוות, גם לאלכסון.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/20.jpg" width="520" height="1125" alt="פדסטל" loading="lazy"></figure>
+  <div class="tx"><p class="num">20 מתוך 24</p><h3>פדסטל</h3><p>רוחב, אורך, גובה וצבע.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/21.jpg" width="520" height="1125" alt="נכנסים לחלל" loading="lazy"></figure>
+  <div class="tx"><p class="num">21 מתוך 24</p><h3>נכנסים לחלל</h3><p>Walk in: עומדים בחלל ומתקנים בעין.</p></div>
+</article>
+<article class="step rough">
+  <figure><img src="img/22.jpg" width="520" height="1125" alt="חוזרים לעמוד התערוכה" loading="lazy"></figure>
+  <div class="tx"><p class="num">22 מתוך 24</p><h3>חוזרים לעמוד התערוכה</h3><p>שלושת הצעדים מסומנים. Walk as a visitor מראה מה המבקר יראה.</p><p class="note"><b>כאן נתקעים</b>אחרי שלושה סימונים אין צעד רביעי ברור: איך מפרסמים, ומה קורה עכשיו.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/23.jpg" width="520" height="1125" alt="הליכה כמבקר" loading="lazy"></figure>
+  <div class="tx"><p class="num">23 מתוך 24</p><h3>הליכה כמבקר</h3><p>מכאן אפשר לחזור לשרטוט: Rearrange on the plan.</p></div>
+</article>
+<article class="step">
+  <figure><img src="img/24.jpg" width="520" height="1125" alt="העבודות בעמוד התערוכה" loading="lazy"></figure>
+  <div class="tx"><p class="num">24 מתוך 24</p><h3>העבודות בעמוד התערוכה</h3><p>זה המסך שאתה רואה היום: העבודות שנבחרו, עם אפשרות להוציא ולהוסיף.</p></div>
+</article>
+<h2>מה אני מציע לפשט</h2>
+<ol class="fix"><li><div><b>הרשמה בשלושה מסכים במקום שישה</b><span>אימייל, קוד, אמן או אוהב אמנות. השם פעם אחת. גיל, מדינה ומגדר נדחים לדף החשבון.</span></div></li><li><div><b>מסך אחד להבאת עבודות</b><span>ארבע הדרכים כרשימה קצרה, כמו בגיליון Add works. בלי לשוניות תערוכה עד שיש עבודה.</span></div></li><li><div><b>פס התקדמות אחד לכל המסע</b><span>עמוד, עבודות, תערוכה, שליחה לאישור. בכל מסך כפתור ירוק אחד: הצעד הבא.</span></div></li><li><div><b>מידות בזמן ההוספה</b><span>רוחב וגובה לכל תמונה, עם &quot;אותו דבר לכולן&quot;. בלי מידה העבודה לא נתלית, אז מבקשים אותה כשהכי קל.</span></div></li><li><div><b>תלייה ראשונה אוטומטית</b><span>האפליקציה תולה את כל העבודות לפי כללי תלייה, והאמן רק מזיז. השרטוט נשאר לתיקונים.</span></div></li><li><div><b>סוף ברור</b><span>אחרי התלייה: &quot;שלח לאישור&quot;, ומסך שאומר מה קורה עכשיו ומתי העמוד עולה.</span></div></li></ol>
+<p class="foot">הצילומים נעשו במחשב, בדפדפן שמדמה אייפון, ולא בטלפון אמיתי. ההערות האדומות הן הקריאה שלי של המסכים, ולא תצפית על אמנים אמיתיים.</p>
+</main>

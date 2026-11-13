@@ -51,3 +51,9 @@ Bake finished and published; renders checked (white cube neutral, pavilion floor
 - Journey test passes locally with new steps: plan-turn-stand, plan-zoom, plinth-colour.
 - Not done: dragging a work from the tray straight to a wall; a bluer sky in the garden picture (it is an overcast park);
   nothing checked on a real iPhone. The camera eases to a new pose, so slow test shots catch it mid-turn (not a bug).
+
+## 13.11, later
+
+- Plan: a chosen standing wall moves by its body, turns by handles beyond its ends (69717df); it stays inside the room at any angle (e601468). Both proven by the journey test.
+- `studio/VISION.md`: the vision, problems, stages, tools and what is needed from the owner, in Hebrew.
+- `from-zero/`: a new artist's journey, 24 screens with notes on where it sticks and six proposals (not built; the owner decides).
