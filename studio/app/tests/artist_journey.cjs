@@ -110,6 +110,11 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
       const box = await p.evaluate(() => { const b = document.querySelector('.hp-svg .hp-stand.on').getBoundingClientRect(); return [b.width, b.height]; });
       if (!(box[0] > 20 && box[1] > 20)) throw new Error(`the wall did not turn to a diagonal: ${box.map(Math.round)}`);
       await shot('plan-diagonal');
+      // and the chosen wall still moves when dragged by its body (the handles once covered it: it could only be turned)
+      await p.waitForFunction(() => !window.__he.busy(), null, { timeout: 60000 }); await p.waitForTimeout(2500); await p.waitForSelector('.hp-svg .hp-stand.on', { state: 'attached', timeout: 60000 });
+      const c0 = await mid('.hp-svg .hp-stand.on'); await dragTo(c0, [c0[0] + 50, c0[1] - 40]);
+      await p.waitForSelector('.hp-svg .hp-stand.on', { state: 'attached', timeout: 60000 }); const c1 = await mid('.hp-svg .hp-stand.on');
+      if (!(Math.abs(c1[0] - c0[0]) > 25 && Math.abs(c1[1] - c0[1]) > 20)) throw new Error(`the chosen wall did not move when dragged: ${c0.map(Math.round)} -> ${c1.map(Math.round)}`);
     });
     else bad.push('the chosen standing wall has no handles to turn it by');
     // pinched closer (the wheel here), the plan grows about the finger and the work still answers a drag; "Whole room" brings it back
