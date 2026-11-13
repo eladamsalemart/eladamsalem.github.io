@@ -103,7 +103,7 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
       await p.waitForFunction(y => { const l = document.querySelector('.hp:not([hidden]) .hp-svg [data-k="stand"]'); if (!l || !window.__he || !window.__he.api) return false; const b = l.getBoundingClientRect(); return Math.abs(b.top + b.height / 2 - y) < 25; }, to[1], { timeout: 55000 });
     });
     // the chosen standing wall is turned to a diagonal by one of its ends
-    if (await p.locator('.hp-svg [data-k="spin"]').count()) await step('plan-turn-stand', 90000, async () => {
+    if (await p.locator('.hp-svg [data-k="spin"]').count()) await step('plan-turn-stand', 150000, async () => {
       const c = await mid('.hp-svg .hp-stand.on'), h = await mid('.hp-svg [data-k="spin"]');
       await dragTo(h, [c[0] + 30, c[1] + 30]);
       await p.waitForSelector('.hp-svg .hp-stand.on', { state: 'attached', timeout: 60000 });
@@ -115,6 +115,17 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
       const c0 = await mid('.hp-svg .hp-stand.on'); await dragTo(c0, [c0[0] + 50, c0[1] - 40]);
       await p.waitForSelector('.hp-svg .hp-stand.on', { state: 'attached', timeout: 60000 }); const c1 = await mid('.hp-svg .hp-stand.on');
       if (!(Math.abs(c1[0] - c0[0]) > 25 && Math.abs(c1[1] - c0[1]) > 20)) throw new Error(`the chosen wall did not move when dragged: ${c0.map(Math.round)} -> ${c1.map(Math.round)}`);
+      // dragged far past a corner, both its ends stay inside the room (it once went through the room's wall on the plan)
+      await p.waitForFunction(() => !window.__he.busy(), null, { timeout: 60000 }); await p.waitForTimeout(2500); await p.waitForSelector('.hp-svg .hp-stand.on', { state: 'attached', timeout: 60000 });
+      const c2 = await mid('.hp-svg .hp-stand.on'); await dragTo(c2, [c2[0] - 300, c2[1] - 300]);
+      const out = await p.evaluate(() => {
+        const s = document.querySelector('.hp-svg .hp-stand.on'), n = k => s[k].baseVal.value, ws = [...document.querySelectorAll('.hp-svg .hp-wall')], all = k => ws.flatMap(l => [l[k + '1'].baseVal.value, l[k + '2'].baseVal.value]);
+        const lo = [Math.min(...all('x')), Math.min(...all('y'))], hi = [Math.max(...all('x')), Math.max(...all('y'))];
+        return [[n('x1'), n('y1')], [n('x2'), n('y2')]].some(e => e[0] < lo[0] + 2 || e[1] < lo[1] + 2 || e[0] > hi[0] - 2 || e[1] > hi[1] - 2);
+      });
+      if (out) throw new Error('a standing wall dragged to the corner goes through the room\'s wall');
+      await p.waitForFunction(() => !window.__he.busy(), null, { timeout: 60000 }); await p.waitForTimeout(2500); await p.waitForSelector('.hp-svg .hp-stand.on', { state: 'attached', timeout: 60000 });
+      const c3 = await mid('.hp-svg .hp-stand.on'); await dragTo(c3, c1);
     });
     else bad.push('the chosen standing wall has no handles to turn it by');
     // pinched closer (the wheel here), the plan grows about the finger and the work still answers a drag; "Whole room" brings it back

@@ -294,12 +294,17 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       const pre = clone(st); if (k) q.colour = k; else delete q.colour;
       push(pre); save(); outerSel = sel; outerPop = pop; refresh(); await open();
     }
+    function fitStand(q) {
+      const r = q.rot * Math.PI / 180, ex = Math.abs(Math.cos(r)) * q.len / 2 + 0.6, ez = Math.abs(Math.sin(r)) * q.len / 2 + 0.6;
+      q.x = +Math.max(Math.min(ex, W / 2), Math.min(Math.max(W - ex, W / 2), q.x)).toFixed(3); q.z = +Math.max(Math.min(ez, D / 2), Math.min(Math.max(D - ez, D / 2), q.z)).toFixed(3);
+      return q;
+    }
     function addStand() {
       const pre = clone(st), { f, p } = centreAhead(), id = 'stand-' + Math.random().toString(36).slice(2, 8);
       // across the way the artist is looking, a few steps ahead
       const rot = Math.abs(f.x) > Math.abs(f.z) ? 90 : 0;
       st.plinths = st.plinths.filter(q => q.kind !== 'no-stands');
-      st.plinths.push({ id, kind: 'stand', x: +(p.x + f.x * 4).toFixed(2), z: +(p.z + f.z * 4).toFixed(2), len: 3, rot });
+      st.plinths.push(fitStand({ id, kind: 'stand', x: +(p.x + f.x * 4).toFixed(2), z: +(p.z + f.z * 4).toFixed(2), len: 3, rot }));
       sel = { k: 'stand', id }; pop = 'stand'; soon(pre);
     }
     function editStand(what, by) {
@@ -313,6 +318,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         q.x = +Math.max(0.6, Math.min(W - 0.6, q.x + d[0] * by * 0.25)).toFixed(2); q.z = +Math.max(0.6, Math.min(D - 0.6, q.z + d[1] * by * 0.25)).toFixed(2);
       }
       else if (what === 'here') { const { f, p } = centreAhead(); q.x = +(p.x + f.x * 4).toFixed(2); q.z = +(p.z + f.z * 4).toFixed(2); }
+      fitStand(q);
       // at once, roughly: the wall's body moves and turns (its faces and works follow when the room is drawn again)
       const b = (api.stands || []).find(x => x.id === q.id);
       if (b) {
@@ -489,12 +495,12 @@ export async function openHangEditor({ design, library, state, src, shape, openS
           putWork(pdrag.id, n.wl, r.a, r.y);
         } else if (pdrag.k === 'spin') {      // an end of the wall follows the finger round its middle
           const q = stPlinth(pdrag.id), deg = Math.atan2(z - q.z, x - q.x) * 180 / Math.PI;
-          q.rot = ((Math.round(deg / STAND.turn) * STAND.turn) % 180 + 180) % 180;
+          q.rot = ((Math.round(deg / STAND.turn) * STAND.turn) % 180 + 180) % 180; fitStand(q);
         } else if (pdrag.k === 'plinth') {
           const r = constrainPlinth(x - pdrag.off[0], z - pdrag.off[1], pdrag.id); putPlinth(pdrag.id, r.x, r.z);
         } else {
           const q = stPlinth(pdrag.id), snap = n => Math.round(n * 20) / 20;
-          q.x = Math.max(0.6, Math.min(W - 0.6, snap(x - pdrag.off[0]))); q.z = Math.max(0.6, Math.min(D - 0.6, snap(z - pdrag.off[1])));
+          q.x = snap(x - pdrag.off[0]); q.z = snap(z - pdrag.off[1]); fitStand(q);
         }
         refresh(); return;
       }
