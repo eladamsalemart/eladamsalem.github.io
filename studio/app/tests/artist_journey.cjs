@@ -77,10 +77,27 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
 
   // the empty room opens on the artist's works: one tap hangs the first, and leaving shows it on the On View page
   if (!process.env.JOURNEY_NO_3D) {
-    await step('hang-first-work', 60000, async () => { await p.waitForSelector('.he-grid [data-add]', { timeout: 5000 }); const n = await p.locator('.he-grid [data-add]').count();
+    await step('hang-first-work', 60000, async () => { await p.waitForSelector('.he-grid [data-add]', { timeout: 20000 }); const n = await p.locator('.he-grid [data-add]').count();
       await p.tap('.he-grid [data-add]'); await p.waitForFunction(() => document.querySelector('.he-pop') && document.querySelector('.he-pop').hidden && document.querySelector('canvas'), null, { timeout: 50000 }); await p.waitForTimeout(1200);
       await p.tap('.he-bar [data-a="add"]'); await p.waitForFunction(k => document.querySelectorAll('.he-grid [data-add]').length === k - 1, n, { timeout: 5000 }); await p.tap('.he-bar [data-a="add"]'); });
-    await step('leave-hang', 8000, async () => { await p.tap('.sv-x'); await p.waitForSelector('.ov-strip', { timeout: 8000 }); });
+    // the plan: the room from above, where things are placed roughly. A work is dragged to another wall, a standing wall across the floor
+    const mid = async sel => { const b = await p.locator(sel).first().boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
+    const dragTo = async (from, to) => { await p.mouse.move(...from); await p.mouse.down(); for (let i = 1; i <= 8; i++) await p.mouse.move(from[0] + (to[0] - from[0]) * i / 8, from[1] + (to[1] - from[1]) * i / 8); await p.mouse.up(); };
+    await step('plan-shows', 5000, async () => { await p.waitForSelector('.hp:not([hidden]) .hp-svg [data-k="work"]', { timeout: 5000 }); if (!(await p.locator('.hp-svg .hp-wall').count())) throw new Error('the plan draws no walls'); });
+    await step('plan-drag-work', 20000, async () => {
+      const box = await p.locator('.hp-svg').boundingBox(), from = await mid('.hp-svg [data-k="work"]');
+      const to = [from[0] < box.x + box.width / 2 ? box.x + box.width - 50 : box.x + 50, box.y + box.height / 2];
+      await dragTo(from, to); await p.waitForTimeout(200);
+      const now = await mid('.hp-svg [data-k="work"]');
+      if (Math.hypot(now[0] - from[0], now[1] - from[1]) < 40) throw new Error('the work did not move on the plan');
+    });
+    if (await p.locator('.hp-svg [data-k="stand"]').count()) await step('plan-drag-stand', 60000, async () => {
+      const from = await mid('.hp-svg [data-k="stand"]'), to = [from[0], from[1] + 60];
+      await dragTo(from, to);
+      await p.waitForFunction(y => { const l = document.querySelector('.hp:not([hidden]) .hp-svg [data-k="stand"]'); if (!l || !window.__he || !window.__he.api) return false; const b = l.getBoundingClientRect(); return Math.abs(b.top + b.height / 2 - y) < 25; }, to[1], { timeout: 55000 });
+    });
+    await step('walk-in', 4000, async () => { await p.tap('.hp-go'); await p.waitForFunction(() => document.querySelector('.hp').hidden && !document.querySelector('.sv').classList.contains('planning'), null, { timeout: 3000 }); await p.waitForTimeout(1500); });
+    await step('leave-hang', 25000, async () => { await p.tap('.sv-x'); await p.waitForSelector('.ov-strip', { timeout: 24000 }); });
   }
 
   await b.close();
