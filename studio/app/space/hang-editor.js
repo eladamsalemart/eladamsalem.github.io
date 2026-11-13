@@ -20,7 +20,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
   const undo = [];
   let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, outerPop = st.ids.length || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
   const byId = id => library.find(w => w.id === id);
-  const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
+  const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.colour || '') + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
   const save = () => onSave(clone(st));
   const push = pre => { undo.push(pre); if (undo.length > 40) undo.shift(); };
 
@@ -283,6 +283,11 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       if (b) { const o = b.spec.size; b.box.scale.set(d[0] / o[0], d[2] / o[2], d[1] / o[1]); b.box.position.y = d[2] / 200; if (b.face) b.face.position.y += (d[2] - (b.shownH || o[2])) / 100; b.shownH = d[2]; api.dirty(); }
       soon(pre);
     }
+    async function colourPlinth(k) {
+      const q = sel && sel.k === 'plinth' && stPlinth(sel.id); if (!q) return;
+      const pre = clone(st); if (k) q.colour = k; else delete q.colour;
+      push(pre); save(); outerSel = sel; outerPop = pop; await open();
+    }
     function addStand() {
       const pre = clone(st), { f, p } = centreAhead(), id = 'stand-' + Math.random().toString(36).slice(2, 8);
       // across the way the artist is looking, a few steps ahead
@@ -474,7 +479,8 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       }
       if (pop === 'plinth' && sel && sel.k === 'plinth' && stPlinth(sel.id)) {
         const d = plinthDims(stPlinth(sel.id));
-        return `<div class="he-steps">${step('Width', d[0] + ' cm', 'pw')}${step('Length', d[1] + ' cm', 'pd')}${step('Height', d[2] + ' cm', 'ph')}<div class="he-step he-pre"><span>Made sizes</span>${Object.keys(PLINTHS).map(k => `<button type="button" data-plinth="${k}" aria-label="${PNAME[k]}: ${PLINTHS[k].join(' × ')} cm">${k.toUpperCase()}</button>`).join('')}</div></div>`;
+        return `<div class="he-steps">${step('Width', d[0] + ' cm', 'pw')}${step('Length', d[1] + ' cm', 'pd')}${step('Height', d[2] + ' cm', 'ph')}<div class="he-step he-pre"><span>Made sizes</span>${Object.keys(PLINTHS).map(k => `<button type="button" data-plinth="${k}" aria-label="${PNAME[k]}: ${PLINTHS[k].join(' × ')} cm">${k.toUpperCase()}</button>`).join('')}</div></div>
+          <div class="he-cols"><span>Colour</span>${[['', 'White', '#e9e6df'], ['grey', 'Grey', '#9b9b98'], ['black', 'Black', '#232325'], ['wood', 'Wood', '#b08a5e']].map(([k, n, c]) => `<button type="button" data-col="${k}" aria-label="${n}" aria-pressed="${(stPlinth(sel.id).colour || '') === k}" style="background:${c}"></button>`).join('')}</div>`;
       }
       if (pop === 'plinth') return `<p class="he-h">${sel && sel.k === 'plinth' ? 'Change the plinth’s size' : 'Stand a plinth on the floor'}</p><div class="he-row">${Object.entries(PLINTHS).map(([k, [w, d, h]]) => `<button type="button" data-plinth="${k}"><b>${PNAME[k]}</b><span>${w} × ${d} cm, ${h} high</span></button>`).join('')}</div>`;
       if (pop === 'line') return `<p class="he-h">Put every work on this wall on the same line as the selected one</p><div class="he-row">${[['c', 'Centre line'], ['t', 'Top line'], ['b', 'Bottom line']].map(([k, n]) => `<button type="button" data-line="${k}"><b>${n}</b></button>`).join('')}</div>`;
@@ -486,7 +492,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       ui.bar.querySelector('[data-a=line]').disabled = !work; ui.bar.querySelector('[data-a=even]').disabled = !work; ui.bar.querySelector('[data-a=undo]').disabled = !undo.length;
       ui.bar.querySelectorAll('[data-a=add],[data-a=plinth],[data-a=stand],[data-a=line]').forEach(b => b.setAttribute('aria-pressed', String(pop === b.dataset.a)));
       if (pop) { ui.pop.hidden = false; ui.pop.innerHTML = popHtml(); } else if (!noteT || ui.pop.querySelector('.he-note') == null) ui.pop.hidden = true;
-      drawPlan(); ui.std.hidden = !(plan && sel && sel.k === 'stand');
+      drawPlan(); ui.std.hidden = !(plan && sel && sel.k === 'stand'); ui.more.hidden = !(sel && sel.k === 'plinth');
       if (!sel || (sel.k === 'stand' && !plan)) { ui.sel.hidden = true; return; }      // (in the room a standing wall's panel has its own Remove)
       ui.sel.hidden = false;
       if (work) {
@@ -508,9 +514,10 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         <div class="hp" hidden><p class="hp-h">Place things roughly here: drag a work to a wall, drag the standing walls and plinths. Then walk in and hang by eye.</p><svg class="hp-svg" aria-label="Plan of the room"></svg><button type="button" class="hp-go">Walk in</button></div>
         <button type="button" class="hp-open">Plan</button>
         <div class="he-pop" hidden></div>
-        <div class="he-sel" hidden><div class="he-t"></div><div class="he-std" hidden><button type="button" data-st="len:-1" aria-label="Narrower">−</button><button type="button" data-st="len:1" aria-label="Wider">+</button><button type="button" data-st="rot:6">Turn</button></div><button type="button" class="he-rm">Remove</button></div>`;
+        <div class="he-sel" hidden><div class="he-t"></div><div class="he-std" hidden><button type="button" data-st="len:-1" aria-label="Narrower">−</button><button type="button" data-st="len:1" aria-label="Wider">+</button><button type="button" data-st="rot:6">Turn</button></div><button type="button" class="he-more" hidden>Size, colour</button><button type="button" class="he-rm">Remove</button></div>`;
       api.root.append(box);
-      ui = { bar: box.querySelector('.he-bar'), pop: box.querySelector('.he-pop'), sel: box.querySelector('.he-sel'), hp: box.querySelector('.hp'), svg: box.querySelector('.hp-svg'), std: box.querySelector('.he-std') };
+      ui = { bar: box.querySelector('.he-bar'), pop: box.querySelector('.he-pop'), sel: box.querySelector('.he-sel'), hp: box.querySelector('.hp'), svg: box.querySelector('.hp-svg'), std: box.querySelector('.he-std'), more: box.querySelector('.he-more') };
+      ui.more.onclick = () => { pop = pop === 'plinth' ? '' : 'plinth'; refresh(); };
       ui.std.onclick = e => { const b = e.target.closest('button'); if (b) { const [k, v] = b.dataset.st.split(':'); editStand(k, +v); } };
       box.querySelector('.hp-go').onclick = () => setPlan(false);
       box.querySelector('.hp-open').onclick = () => setPlan(true);
@@ -529,7 +536,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         if (b.dataset.st) {
           const [k, v] = b.dataset.st.split(':'), by = +v;
           if (k === 'add') addStand(); else if (k === 'rm') removeSel(); else if (k === 'pw') dimPlinth(0, by * 5); else if (k === 'pd') dimPlinth(1, by * 5); else if (k === 'ph') dimPlinth(2, by * 5); else editStand(k, by);
-        } else if (b.dataset.add) addWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line);
+        } else if (b.dataset.col != null) colourPlinth(b.dataset.col); else if (b.dataset.add) addWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line);
       };
       ui.sel.querySelector('.he-rm').onclick = removeSel;
       if (pose) api.setPose(pose.at, pose.to);

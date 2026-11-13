@@ -569,7 +569,7 @@ export async function buildRoom(design, src) {
     room: { x0: 0, x1: R.w, z0: 0, z1: R.d, height: R.h }, surfaces, works, views: [], floorReflect, plaster: await keep(plaster),
     stands: stands.map(s => ({ ...s, t: STAND.t })),
     solids: stands.map(s => { const r = s.rot * Math.PI / 180, dx = Math.cos(r) * s.len / 2, dz = Math.sin(r) * s.len / 2; return [s.x - dx, s.z - dz, s.x + dx, s.z + dz]; }),
-    plinths: plinths.map(p => { const x = objSized.find(q => q.o.id === p.work); return { id: p.id, x: p.x, z: p.z, size: plinthDims(p), key: p.size, work: p.work || null,
+    plinths: plinths.map(p => { const x = objSized.find(q => q.o.id === p.work); return { id: p.id, x: p.x, z: p.z, size: plinthDims(p), key: p.size, colour: p.colour || '', work: p.work || null,
       obj: x ? { id: x.o.id, title: x.o.title, image: x.o.image, w: x.w, h: x.h } : null }; }),
     blocks: blocksOf(design.room),
     // the pavilion is first seen as in its picture: from the corner by the way in, across the wings to the glass and the garden
@@ -577,7 +577,7 @@ export async function buildRoom(design, src) {
   };
   const placements = {};
   for (const p of placed) if (p.work.id) placements[p.work.id] = { wall: p.wall.name, a: +p.a.toFixed(3), y: +p.y.toFixed(3) };
-  return { spec, placements, plinths: [...plinths.map(({ id, x, z, size, dims, work }) => ({ id, x: +x.toFixed(3), z: +z.toFixed(3), size, ...(dims ? { dims: plinthDims({ dims }) } : {}), work: work || null })),
+  return { spec, placements, plinths: [...plinths.map(({ id, x, z, size, dims, work, colour }) => ({ id, x: +x.toFixed(3), z: +z.toFixed(3), size, ...(dims ? { dims: plinthDims({ dims }) } : {}), ...(colour ? { colour } : {}), work: work || null })),
       ...stands.map(({ id, x, z, len, rot }) => ({ id, kind: 'stand', x, z, len, rot })), ...((design.plinths || []).some(p => p && p.kind === 'no-stands') ? [{ id: 'no-stands', kind: 'no-stands' }] : [])], left: left.map(x => x.work), revoke: () => urls.forEach(u => URL.revokeObjectURL(u)) };
 }
 

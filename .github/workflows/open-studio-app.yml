@@ -61,6 +61,8 @@ jobs:
           done
           # the ten kinds of room, their surfaces photographed in Blender ("Studio rooms"), for artists' own shows
           cp -r $src/data/rooms open-studio/data/ 2>/dev/null || true
+          # the garden behind the glass walls (its folder must not start with an underscore: the site's host leaves those out)
+          test -f open-studio/data/rooms/outside/garden-a.jpg
           # small versions of the site's images, for grids and lists on a phone
           python3 /tmp/studio/studio/app/thumbs.py media open-studio
           # a share page for each show and each artist: a link that arrives with its picture and its name (WhatsApp, iMessage)

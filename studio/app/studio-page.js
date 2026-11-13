@@ -16,6 +16,7 @@ body.previewing .ed-bar{top:34px}
 .ed-seg{justify-self:center;display:flex;background:var(--card);border-radius:12px;padding:3px}
 .ed-seg button{min-height:44px;min-width:84px;border:0;border-radius:10px;background:none;font:700 16px var(--sans);color:var(--muted);cursor:pointer}
 .ed-seg button[aria-pressed=true]{background:var(--ink);color:var(--wall)}
+.ed-seg button{min-width:64px}.ed-seg .ed-ex{display:flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border-radius:10px;font:700 16px var(--sans);color:var(--ink);text-decoration:none}.ed-seg .ed-ex::after{content:'';width:6px;height:6px;border-radius:50%;background:#D0261D}
 .ed-chip{font:700 13px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:99px;background:var(--card);color:var(--muted);white-space:nowrap}
 .ed-chip.ok{background:color-mix(in srgb,#2f7d4f 16%,transparent);color:#2f7d4f}.ed-chip.no{background:color-mix(in srgb,var(--dot) 14%,transparent);color:var(--dot)}
 .ed .hero:not(:has(img)){min-height:300px;background:var(--card)}
@@ -154,13 +155,12 @@ export function mount(c) {
 
   const roomsCard = () => {
     const v = (S.virtual || []).find(x => x.onview), n = (S.virtual || []).length;
-    return `<div class="ed-card"><a class="ed-room" href="#/studio/onview"><b>${v ? `On View: ${esc(v.title || 'Untitled')}` : 'On View'}</b><span>${v ? (v.status === 'published' ? 'Shown first on your page.' : 'Not published yet.') : 'Hang what matters to you now in a 3D room. It shows first on your page.'}</span></a>
-      <a class="ed-room" href="#/studio/exhibitions"><b>Exhibitions and 3D tours</b><span>${S.exhibitions.length} ${S.exhibitions.length === 1 ? 'exhibition' : 'exhibitions'}${n ? ` · ${n} virtual` : ''}. Walkable tours, photos, rooms.</span></a></div>`;
+    return `<div class="ed-card"><a class="ed-room" href="#/studio/exhibitions"><b>Exhibitions and 3D tours</b><span>${S.exhibitions.length} ${S.exhibitions.length === 1 ? 'exhibition' : 'exhibitions'}${n ? ` · ${n} virtual` : ''}. Walkable tours, photos, rooms.</span></a></div>`;
   };
 
   // --- drawing -------------------------------------------------------------------------------------------------
   const bar = () => `<div class="ed-bar"><a class="ed-back" href="#/" aria-label="Back to Open Studio">←</a>
-    <div class="ed-seg" role="group" aria-label="Mode"><button type="button" data-mode="edit" aria-pressed="${mode() === 'edit'}">Edit</button><button type="button" data-mode="view" aria-pressed="${mode() === 'view'}">View</button></div>
+    <div class="ed-seg" role="group" aria-label="Mode"><button type="button" data-mode="edit" aria-pressed="${mode() === 'edit'}">Edit</button><button type="button" data-mode="view" aria-pressed="${mode() === 'view'}">View</button><a class="ed-ex" href="#/studio/onview">Exhibition</a></div>
     <span class="ed-chip ${state()[1]}" id="edChip">${state()[0]}</span></div>`;
   const chip = (t, cls) => { const e = app.querySelector('#edChip'); if (e) { e.textContent = t || state()[0]; e.className = 'ed-chip ' + (t ? '' : state()[1]); } };
 
