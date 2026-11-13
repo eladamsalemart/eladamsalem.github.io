@@ -211,16 +211,16 @@ function role(u) {
 // --- the guide: a few cards right after "I make art" / "I love art", each with the real screen it talks about ---------
 const GUIDES = {
   artist: { end: '#/studio', go: 'Open my studio', cards: [
-    ['a1', 'Bring your work in', 'Photos from your phone, your website or a Drive folder. Choose many at once; titles and sizes come after.'],
-    ['a2', 'Give each work its real size', 'Width and height in centimetres. Visitors see every work at its true scale, and a work needs its size to hang in a room.'],
-    ['a3', 'Make an exhibition', 'A virtual exhibition is a room that exists only here: you choose a space and hang your works in it. A show you had in a real place goes under Past exhibitions, with its photos.'],
-    ['a4', 'Hang on the plan', 'Tap a work to put it on a wall, then drag it where you want it. Add standing walls and plinths.'],
-    ['a5', 'Walk in, then send it', 'Walk through as a visitor would. Open Studio looks at every new page and every exhibition before it goes live.'] ] },
+    ['icons/guide/a1.jpg', 'Bring your work in', 'Photos from your phone, your website or a Drive folder. Choose many at once; titles and sizes come after.'],
+    ['icons/guide/a2.jpg', 'Give each work its real size', 'Width and height in centimetres. Visitors see every work at its true scale, and a work needs its size to hang in a room.'],
+    ['icons/guide/a3.jpg', 'Make an exhibition', 'A virtual exhibition is a room that exists only here: you choose a space and hang your works in it. A show you had in a real place goes under Past exhibitions, with its photos.'],
+    ['icons/guide/a4.jpg', 'Hang on the plan', 'Tap a work to put it on a wall, then drag it where you want it. Add standing walls and plinths.'],
+    ['icons/guide/a5.jpg', 'Walk in, then send it', 'Walk through as a visitor would. Open Studio looks at every new page and every exhibition before it goes live.'] ] },
   lover: { end: '#/', go: 'Start looking', cards: [
-    ['l1', 'Follow the artists you like', 'Tap Follow on an artist\u2019s page. Their new works and exhibitions come to your Home.'],
-    ['l2', 'Walk through exhibitions', 'Shows that are on now, and virtual ones you walk through in 3D, on your phone.'],
-    ['l3', 'Find what\u2019s on near you', 'The map shows the galleries and museums with a show today. Tap a place for its hours and what hangs there.'],
-    ['l4', 'Your Home remembers', 'The stars are what you opened last and the artists you follow. Pinch out to meet someone new.'] ] },
+    ['icons/guide/l1.jpg', 'Follow the artists you like', 'Tap Follow on an artist\u2019s page. Their new works and exhibitions come to your Home.'],
+    ['icons/guide/l2.jpg', 'Walk through exhibitions', 'Shows that are on now, and virtual ones you walk through in 3D, on your phone.'],
+    ['icons/guide/l3.jpg', 'Find what\u2019s on near you', 'The map shows the galleries and museums with a show today. Tap a place for its hours and what hangs there.'],
+    ['icons/guide/l4.jpg', 'Your Home remembers', 'The stars are what you opened last and the artists you follow. Pinch out to meet someone new.'] ] },
 };
 let gi = 0;
 function guide(kind) {
@@ -229,7 +229,7 @@ function guide(kind) {
   return shell(`
     <header class="wl-brand">${LOGO_MARK}<span>Open Studio</span><button type="button" class="wl-link wl-skip" data-g="end"${last ? ' hidden' : ''}>Skip</button></header>
     <div class="wl-mid wl-guide" data-kind="${kind}">
-      <figure class="wl-gf"><img src="icons/guide/${img}.jpg" alt="" width="480" height="677"></figure>
+      <figure class="wl-gf"><img src="${img}" alt="" width="480" height="677"></figure>
       <p class="wl-gn" aria-label="Step ${gi + 1} of ${n}">${g.cards.map((_, i) => `<i${i === gi ? ' class="on"' : ''}></i>`).join('')}</p>
       <h1>${h}</h1>
       <p class="wl-lede">${t}</p>
