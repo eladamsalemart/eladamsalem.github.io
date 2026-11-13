@@ -330,11 +330,12 @@ async function hangIn(v, done, add) {
     onExit: done,
   });
 }
-async function walkIn(v) {
+// (the artist walking their own exhibition as a visitor: one button there goes to the plan, to move works, walls and plinths)
+async function walkIn(v, edit) {
   const [{ buildRoom }, { openSpace }] = await Promise.all([synth(), import('./space/space.js')]);
   const works = v.works.map(workOf).filter(Boolean).map(shapeWork);
   const made = await buildRoom({ title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre, works, placements: v.placements, plinths: v.plinths }, u => u);
-  const view = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => made.revoke() });
+  const view = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => made.revoke(), ...(edit ? { choose: { label: 'Rearrange on the plan', onChoose: edit } } : {}) });
   window.__spaceView = view;
 }
 
@@ -686,7 +687,7 @@ function wireOnView(app, go, vx) {
     a.dataset.h = html; a.innerHTML = html;
     const h = a.querySelector('#vxHang'), w = a.querySelector('#vxWalk'), p = a.querySelector('#vxPub');
     if (h) h.onclick = busy(h, 'Building the room…', hang);
-    if (w) w.onclick = busy(w, 'Building the room…', () => walkIn(keep(true)));
+    if (w) w.onclick = busy(w, 'Building the room…', () => walkIn(keep(true), () => hang()));
     if (p) p.onclick = publish;
   };
   function publish() {
@@ -814,7 +815,7 @@ function wire(app, go) {
     });
     vx.onsubmit = e => { e.preventDefault(); keep(); go(onview ? '#/studio/onview' : '#/studio/exhibitions'); };
     const walk = $('#vxWalk');
-    if (walk) walk.onclick = async () => { walk.disabled = true; walk.textContent = 'Building the room…'; try { await walkIn(keep()); } finally { walk.disabled = false; walk.textContent = 'Walk in'; } };
+    if (walk) walk.onclick = async () => { walk.disabled = true; walk.textContent = 'Building the room…'; try { await walkIn(keep(), () => hangIn(keep(), () => go('#/studio/onview', true))); } finally { walk.disabled = false; walk.textContent = 'Walk in'; } };
     const hang = $('#vxHang');
     if (hang) hang.onclick = async () => { hang.disabled = true; hang.textContent = 'Building the room…'; try { await hangIn(keep(), () => go('#/studio/onview', true)); } finally { hang.disabled = false; } };
     const del = $('#vxDel');

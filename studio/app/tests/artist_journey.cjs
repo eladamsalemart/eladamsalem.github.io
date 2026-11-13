@@ -100,6 +100,7 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
     if (await p.locator('.hp-svg [data-k="spin"]').count()) await step('plan-turn-stand', 90000, async () => {
       const c = await mid('.hp-svg .hp-stand.on'), h = await mid('.hp-svg [data-k="spin"]');
       await dragTo(h, [c[0] + 30, c[1] + 30]);
+      await p.waitForSelector('.hp-svg .hp-stand.on', { state: 'attached', timeout: 60000 });
       const box = await p.evaluate(() => { const b = document.querySelector('.hp-svg .hp-stand.on').getBoundingClientRect(); return [b.width, b.height]; });
       if (!(box[0] > 20 && box[1] > 20)) throw new Error(`the wall did not turn to a diagonal: ${box.map(Math.round)}`);
       await shot('plan-diagonal');
@@ -126,6 +127,11 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
     if (!(await p.locator('.hp-in').count())) bad.push('the plan does not mark the way in');
     await step('walk-in', 40000, async () => { await p.tap('.hp-go'); await p.waitForFunction(() => document.querySelector('.hp').hidden && !document.querySelector('.sv').classList.contains('planning'), null, { timeout: 3000 }); await p.waitForTimeout(1500); });
     await step('leave-hang', 25000, async () => { await p.tap('.sv-x'); await p.waitForSelector('.ov-tiles', { timeout: 24000 }); });
+    // walking it as a visitor, the artist has one button that goes to the plan
+    await step('walk-to-plan', 300000, async () => {
+      await p.tap('#vxWalk'); await p.waitForSelector('.sv-choose button', { timeout: 60000 }); await p.waitForTimeout(800); await shot('visitor-walk');
+      await p.tap('.sv-choose button'); await p.waitForSelector('.hp:not([hidden]) .hp-svg .hp-wall', { state: 'attached', timeout: 200000 }); await shot('plan-from-walk'); await p.evaluate(() => document.querySelector('.sv-x').click()); await p.waitForSelector('.ov-tiles', { timeout: 24000 });
+    });
     // on the exhibition's page the works can be changed: one is taken out there, and Add opens the plan on the artist's works
     await step('change-works', 90000, async () => {
       await targets('exhibition works'); await shot('works-on-page');
