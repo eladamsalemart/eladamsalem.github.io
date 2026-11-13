@@ -1,0 +1,1224 @@
+{
+ "columns": [
+  {
+   "table_name": "admins",
+   "column_name": "user_id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "admins",
+   "column_name": "added_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "artists",
+   "column_name": "id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "slug",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "name",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "discipline",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "city",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "country",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "statement",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "bio",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "photo",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "link",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "instagram",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "status",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'draft'::text"
+  },
+  {
+   "table_name": "artists",
+   "column_name": "note",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "artists",
+   "column_name": "updated_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "artists",
+   "column_name": "cv",
+   "data_type": "jsonb",
+   "is_nullable": "NO",
+   "column_default": "'[]'::jsonb"
+  },
+  {
+   "table_name": "artists",
+   "column_name": "exhibitions",
+   "data_type": "jsonb",
+   "is_nullable": "NO",
+   "column_default": "'[]'::jsonb"
+  },
+  {
+   "table_name": "artists",
+   "column_name": "sent_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "hero",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "artists",
+   "column_name": "hero_pos",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "change_requests",
+   "column_name": "id",
+   "data_type": "bigint",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "change_requests",
+   "column_name": "by_user",
+   "data_type": "uuid",
+   "is_nullable": "YES",
+   "column_default": "auth.uid()"
+  },
+  {
+   "table_name": "change_requests",
+   "column_name": "body",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "change_requests",
+   "column_name": "status",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'open'::text"
+  },
+  {
+   "table_name": "change_requests",
+   "column_name": "issue",
+   "data_type": "integer",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "change_requests",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "conversations",
+   "column_name": "id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": "gen_random_uuid()"
+  },
+  {
+   "table_name": "conversations",
+   "column_name": "user_id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "conversations",
+   "column_name": "subject",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "''::text"
+  },
+  {
+   "table_name": "conversations",
+   "column_name": "status",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'open'::text"
+  },
+  {
+   "table_name": "conversations",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "conversations",
+   "column_name": "updated_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "instagram_links",
+   "column_name": "user_id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "instagram_links",
+   "column_name": "ig_id",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "instagram_links",
+   "column_name": "username",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "instagram_links",
+   "column_name": "token",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "instagram_links",
+   "column_name": "expires_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "instagram_links",
+   "column_name": "updated_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "messages",
+   "column_name": "id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": "gen_random_uuid()"
+  },
+  {
+   "table_name": "messages",
+   "column_name": "conversation_id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "messages",
+   "column_name": "sender_id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "messages",
+   "column_name": "from_admin",
+   "data_type": "boolean",
+   "is_nullable": "NO",
+   "column_default": "false"
+  },
+  {
+   "table_name": "messages",
+   "column_name": "body",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "messages",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "museum_colours",
+   "column_name": "slug",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_colours",
+   "column_name": "colour",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_colours",
+   "column_name": "updated_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "museum_exhibitions",
+   "column_name": "id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": "gen_random_uuid()"
+  },
+  {
+   "table_name": "museum_exhibitions",
+   "column_name": "title",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'Untitled'::text"
+  },
+  {
+   "table_name": "museum_exhibitions",
+   "column_name": "curator",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_exhibitions",
+   "column_name": "text",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_exhibitions",
+   "column_name": "works",
+   "data_type": "jsonb",
+   "is_nullable": "NO",
+   "column_default": "'[]'::jsonb"
+  },
+  {
+   "table_name": "museum_exhibitions",
+   "column_name": "plinths",
+   "data_type": "jsonb",
+   "is_nullable": "NO",
+   "column_default": "'[]'::jsonb"
+  },
+  {
+   "table_name": "museum_exhibitions",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "museum_exhibitions",
+   "column_name": "updated_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "museum_slots",
+   "column_name": "slot",
+   "data_type": "integer",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_slots",
+   "column_name": "exhibition_id",
+   "data_type": "uuid",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_slots",
+   "column_name": "app_slug",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_slots",
+   "column_name": "live",
+   "data_type": "boolean",
+   "is_nullable": "NO",
+   "column_default": "false"
+  },
+  {
+   "table_name": "museum_slots",
+   "column_name": "from_date",
+   "data_type": "date",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_slots",
+   "column_name": "to_date",
+   "data_type": "date",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_slots",
+   "column_name": "colour",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_slots",
+   "column_name": "content",
+   "data_type": "jsonb",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_slots",
+   "column_name": "published_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_slots",
+   "column_name": "updated_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "profiles",
+   "column_name": "id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "profiles",
+   "column_name": "first_name",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "profiles",
+   "column_name": "last_name",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "profiles",
+   "column_name": "age",
+   "data_type": "smallint",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "profiles",
+   "column_name": "country",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "profiles",
+   "column_name": "gender",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "profiles",
+   "column_name": "role",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "profiles",
+   "column_name": "provider",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "profiles",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "profiles",
+   "column_name": "updated_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": "gen_random_uuid()"
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "owner_id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": "auth.uid()"
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "kind",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'artist'::text"
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "slug",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "title",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "room",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'white-cube'::text"
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "paint",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "centre",
+   "data_type": "integer",
+   "is_nullable": "NO",
+   "column_default": "150"
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "text",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "curator",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "works",
+   "data_type": "jsonb",
+   "is_nullable": "NO",
+   "column_default": "'[]'::jsonb"
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "status",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'draft'::text"
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "starts",
+   "data_type": "date",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "ends",
+   "data_type": "date",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "updated_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "on_view",
+   "data_type": "boolean",
+   "is_nullable": "NO",
+   "column_default": "false"
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "plinths",
+   "data_type": "jsonb",
+   "is_nullable": "NO",
+   "column_default": "'[]'::jsonb"
+  },
+  {
+   "table_name": "works",
+   "column_name": "id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": "gen_random_uuid()"
+  },
+  {
+   "table_name": "works",
+   "column_name": "artist_id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": "auth.uid()"
+  },
+  {
+   "table_name": "works",
+   "column_name": "title",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "works",
+   "column_name": "year",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "works",
+   "column_name": "medium",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "works",
+   "column_name": "width",
+   "data_type": "numeric",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "works",
+   "column_name": "height",
+   "data_type": "numeric",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "works",
+   "column_name": "depth",
+   "data_type": "numeric",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "works",
+   "column_name": "image",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "works",
+   "column_name": "thumb",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "works",
+   "column_name": "source",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "works",
+   "column_name": "position",
+   "data_type": "integer",
+   "is_nullable": "NO",
+   "column_default": "0"
+  },
+  {
+   "table_name": "works",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "works",
+   "column_name": "reviewed_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "works",
+   "column_name": "hidden",
+   "data_type": "boolean",
+   "is_nullable": "NO",
+   "column_default": "false"
+  },
+  {
+   "table_name": "works",
+   "column_name": "kind",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'work'::text"
+  },
+  {
+   "table_name": "works",
+   "column_name": "category",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  }
+ ],
+ "checks": [
+  {
+   "table": "artists",
+   "conname": "artists_name_check",
+   "def": "CHECK (((length(name) >= 1) AND (length(name) <= 120)))"
+  },
+  {
+   "table": "artists",
+   "conname": "artists_slug_check",
+   "def": "CHECK ((slug ~ '^[a-z0-9][a-z0-9-]{1,59}$'::text))"
+  },
+  {
+   "table": "artists",
+   "conname": "artists_status_check",
+   "def": "CHECK ((status = ANY (ARRAY['draft'::text, 'pending'::text, 'changes'::text, 'approved'::text, 'hidden'::text])))"
+  },
+  {
+   "table": "change_requests",
+   "conname": "change_requests_body_check",
+   "def": "CHECK (((length(body) >= 3) AND (length(body) <= 4000)))"
+  },
+  {
+   "table": "change_requests",
+   "conname": "change_requests_status_check",
+   "def": "CHECK ((status = ANY (ARRAY['open'::text, 'filed'::text, 'done'::text])))"
+  },
+  {
+   "table": "conversations",
+   "conname": "conversations_status_check",
+   "def": "CHECK ((status = ANY (ARRAY['open'::text, 'answered'::text, 'closed'::text])))"
+  },
+  {
+   "table": "messages",
+   "conname": "messages_body_check",
+   "def": "CHECK (((length(body) >= 1) AND (length(body) <= 5000)))"
+  },
+  {
+   "table": "museum_colours",
+   "conname": "museum_colours_colour_check",
+   "def": "CHECK ((colour ~ '^#[0-9a-fA-F]{6}$'::text))"
+  },
+  {
+   "table": "museum_colours",
+   "conname": "museum_colours_slug_check",
+   "def": "CHECK (((length(slug) >= 1) AND (length(slug) <= 120)))"
+  },
+  {
+   "table": "museum_exhibitions",
+   "conname": "museum_exhibitions_title_check",
+   "def": "CHECK ((length(title) <= 200))"
+  },
+  {
+   "table": "museum_slots",
+   "conname": "museum_slots_colour_check",
+   "def": "CHECK (((colour IS NULL) OR (colour ~ '^#[0-9a-fA-F]{6}$'::text)))"
+  },
+  {
+   "table": "museum_slots",
+   "conname": "museum_slots_slot_check",
+   "def": "CHECK (((slot >= 1) AND (slot <= 8)))"
+  },
+  {
+   "table": "profiles",
+   "conname": "profiles_age_check",
+   "def": "CHECK (((age >= 13) AND (age <= 120)))"
+  },
+  {
+   "table": "profiles",
+   "conname": "profiles_country_check",
+   "def": "CHECK ((country ~ '^[A-Z]{2}$'::text))"
+  },
+  {
+   "table": "profiles",
+   "conname": "profiles_first_name_check",
+   "def": "CHECK ((char_length(first_name) <= 80))"
+  },
+  {
+   "table": "profiles",
+   "conname": "profiles_gender_check",
+   "def": "CHECK ((gender = ANY (ARRAY['woman'::text, 'man'::text, 'non-binary'::text, 'prefer-not'::text])))"
+  },
+  {
+   "table": "profiles",
+   "conname": "profiles_last_name_check",
+   "def": "CHECK ((char_length(last_name) <= 80))"
+  },
+  {
+   "table": "profiles",
+   "conname": "profiles_role_check",
+   "def": "CHECK ((role = ANY (ARRAY['artist'::text, 'lover'::text])))"
+  },
+  {
+   "table": "virtual_shows",
+   "conname": "virtual_shows_centre_check",
+   "def": "CHECK (((centre >= 120) AND (centre <= 180)))"
+  },
+  {
+   "table": "virtual_shows",
+   "conname": "virtual_shows_kind_check",
+   "def": "CHECK ((kind = ANY (ARRAY['artist'::text, 'curated'::text])))"
+  },
+  {
+   "table": "virtual_shows",
+   "conname": "virtual_shows_slug_check",
+   "def": "CHECK ((slug ~ '^[a-z0-9][a-z0-9-]{1,79}$'::text))"
+  },
+  {
+   "table": "virtual_shows",
+   "conname": "virtual_shows_status_check",
+   "def": "CHECK ((status = ANY (ARRAY['draft'::text, 'published'::text])))"
+  },
+  {
+   "table": "virtual_shows",
+   "conname": "virtual_shows_title_check",
+   "def": "CHECK (((length(title) >= 1) AND (length(title) <= 160)))"
+  },
+  {
+   "table": "works",
+   "conname": "works_kind_check",
+   "def": "CHECK ((kind = ANY (ARRAY['work'::text, 'object'::text])))"
+  },
+  {
+   "table": "works",
+   "conname": "works_title_check",
+   "def": "CHECK (((length(title) >= 1) AND (length(title) <= 200)))"
+  }
+ ],
+ "triggers": [
+  {
+   "table": "artists",
+   "trigger_name": "artists_guard",
+   "action_timing": "BEFORE",
+   "event_manipulation": "INSERT",
+   "action_statement": "EXECUTE FUNCTION artists_guard()"
+  },
+  {
+   "table": "artists",
+   "trigger_name": "artists_guard",
+   "action_timing": "BEFORE",
+   "event_manipulation": "UPDATE",
+   "action_statement": "EXECUTE FUNCTION artists_guard()"
+  },
+  {
+   "table": "profiles",
+   "trigger_name": "profiles_touch",
+   "action_timing": "BEFORE",
+   "event_manipulation": "UPDATE",
+   "action_statement": "EXECUTE FUNCTION touch_updated_at()"
+  },
+  {
+   "table": "works",
+   "trigger_name": "works_keep_review",
+   "action_timing": "BEFORE",
+   "event_manipulation": "INSERT",
+   "action_statement": "EXECUTE FUNCTION works_keep_review()"
+  },
+  {
+   "table": "works",
+   "trigger_name": "works_keep_review",
+   "action_timing": "BEFORE",
+   "event_manipulation": "UPDATE",
+   "action_statement": "EXECUTE FUNCTION works_keep_review()"
+  }
+ ],
+ "policies": [
+  {
+   "tablename": "admins",
+   "policyname": "Admins see the admins",
+   "cmd": "SELECT",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": null
+  },
+  {
+   "tablename": "artists",
+   "policyname": "Admins remove a page",
+   "cmd": "DELETE",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": null
+  },
+  {
+   "tablename": "artists",
+   "policyname": "An artist creates their own page",
+   "cmd": "INSERT",
+   "roles": "{authenticated}",
+   "qual": null,
+   "with_check": "(id = ( SELECT auth.uid() AS uid))"
+  },
+  {
+   "tablename": "artists",
+   "policyname": "An artist edits their own page; admins any",
+   "cmd": "UPDATE",
+   "roles": "{authenticated}",
+   "qual": "((id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin))",
+   "with_check": "((id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin))"
+  },
+  {
+   "tablename": "artists",
+   "policyname": "Approved artists are public; an artist sees their own; admins a",
+   "cmd": "SELECT",
+   "roles": "{anon,authenticated}",
+   "qual": "((status = 'approved'::text) OR (id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin))",
+   "with_check": null
+  },
+  {
+   "tablename": "change_requests",
+   "policyname": "Admins make requests",
+   "cmd": "INSERT",
+   "roles": "{authenticated}",
+   "qual": null,
+   "with_check": "(( SELECT is_admin() AS is_admin) AND (by_user = ( SELECT auth.uid() AS uid)))"
+  },
+  {
+   "tablename": "change_requests",
+   "policyname": "Admins read requests",
+   "cmd": "SELECT",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": null
+  },
+  {
+   "tablename": "conversations",
+   "policyname": "conversations_insert",
+   "cmd": "INSERT",
+   "roles": "{authenticated}",
+   "qual": null,
+   "with_check": "(user_id = ( SELECT auth.uid() AS uid))"
+  },
+  {
+   "tablename": "conversations",
+   "policyname": "conversations_select",
+   "cmd": "SELECT",
+   "roles": "{authenticated}",
+   "qual": "((user_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin))",
+   "with_check": null
+  },
+  {
+   "tablename": "conversations",
+   "policyname": "conversations_update",
+   "cmd": "UPDATE",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": "( SELECT is_admin() AS is_admin)"
+  },
+  {
+   "tablename": "messages",
+   "policyname": "messages_insert",
+   "cmd": "INSERT",
+   "roles": "{authenticated}",
+   "qual": null,
+   "with_check": "((sender_id = ( SELECT auth.uid() AS uid)) AND ((( SELECT is_admin() AS is_admin) AND from_admin) OR ((NOT from_admin) AND (EXISTS ( SELECT 1\n   FROM conversations c\n  WHERE ((c.id = messages.conversation_id) AND (c.user_id = ( SELECT auth.uid() AS uid))))))))"
+  },
+  {
+   "tablename": "messages",
+   "policyname": "messages_select",
+   "cmd": "SELECT",
+   "roles": "{authenticated}",
+   "qual": "(( SELECT is_admin() AS is_admin) OR (EXISTS ( SELECT 1\n   FROM conversations c\n  WHERE ((c.id = messages.conversation_id) AND (c.user_id = ( SELECT auth.uid() AS uid))))))",
+   "with_check": null
+  },
+  {
+   "tablename": "museum_colours",
+   "policyname": "museum_colours_delete",
+   "cmd": "DELETE",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": null
+  },
+  {
+   "tablename": "museum_colours",
+   "policyname": "museum_colours_insert",
+   "cmd": "INSERT",
+   "roles": "{authenticated}",
+   "qual": null,
+   "with_check": "( SELECT is_admin() AS is_admin)"
+  },
+  {
+   "tablename": "museum_colours",
+   "policyname": "museum_colours_read",
+   "cmd": "SELECT",
+   "roles": "{anon,authenticated}",
+   "qual": "true",
+   "with_check": null
+  },
+  {
+   "tablename": "museum_colours",
+   "policyname": "museum_colours_update",
+   "cmd": "UPDATE",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": "( SELECT is_admin() AS is_admin)"
+  },
+  {
+   "tablename": "museum_exhibitions",
+   "policyname": "museum_ex_admin_all",
+   "cmd": "ALL",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": "( SELECT is_admin() AS is_admin)"
+  },
+  {
+   "tablename": "museum_slots",
+   "policyname": "museum_slots_admin_all",
+   "cmd": "ALL",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": "( SELECT is_admin() AS is_admin)"
+  },
+  {
+   "tablename": "museum_slots",
+   "policyname": "museum_slots_public",
+   "cmd": "SELECT",
+   "roles": "{anon,authenticated}",
+   "qual": "(live AND ((from_date IS NULL) OR (from_date <= ((now() AT TIME ZONE 'Asia/Jerusalem'::text))::date)) AND ((to_date IS NULL) OR (to_date >= ((now() AT TIME ZONE 'Asia/Jerusalem'::text))::date)))",
+   "with_check": null
+  },
+  {
+   "tablename": "profiles",
+   "policyname": "A person changes their own profile",
+   "cmd": "UPDATE",
+   "roles": "{authenticated}",
+   "qual": "(( SELECT auth.uid() AS uid) = id)",
+   "with_check": "(( SELECT auth.uid() AS uid) = id)"
+  },
+  {
+   "tablename": "profiles",
+   "policyname": "A person creates their own profile",
+   "cmd": "INSERT",
+   "roles": "{authenticated}",
+   "qual": null,
+   "with_check": "(( SELECT auth.uid() AS uid) = id)"
+  },
+  {
+   "tablename": "profiles",
+   "policyname": "A person reads their own profile",
+   "cmd": "SELECT",
+   "roles": "{authenticated}",
+   "qual": "(( SELECT auth.uid() AS uid) = id)",
+   "with_check": null
+  },
+  {
+   "tablename": "profiles",
+   "policyname": "An admin reads every profile",
+   "cmd": "SELECT",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": null
+  },
+  {
+   "tablename": "virtual_shows",
+   "policyname": "An artist designs their own; admins curate",
+   "cmd": "INSERT",
+   "roles": "{authenticated}",
+   "qual": null,
+   "with_check": "((owner_id = ( SELECT auth.uid() AS uid)) AND ((kind = 'artist'::text) OR ( SELECT is_admin() AS is_admin)))"
+  },
+  {
+   "tablename": "virtual_shows",
+   "policyname": "Owners and admins change a show",
+   "cmd": "UPDATE",
+   "roles": "{authenticated}",
+   "qual": "((owner_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin))",
+   "with_check": "(((owner_id = ( SELECT auth.uid() AS uid)) AND (kind = 'artist'::text)) OR ( SELECT is_admin() AS is_admin))"
+  },
+  {
+   "tablename": "virtual_shows",
+   "policyname": "Owners and admins remove a show",
+   "cmd": "DELETE",
+   "roles": "{authenticated}",
+   "qual": "((owner_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin))",
+   "with_check": null
+  },
+  {
+   "tablename": "virtual_shows",
+   "policyname": "Published shows are public (an artist's once approved); owners ",
+   "cmd": "SELECT",
+   "roles": "{anon,authenticated}",
+   "qual": "((owner_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin) OR ((status = 'published'::text) AND ((kind = 'curated'::text) OR (EXISTS ( SELECT 1\n   FROM artists a\n  WHERE ((a.id = virtual_shows.owner_id) AND (a.status = 'approved'::text)))))))",
+   "with_check": null
+  },
+  {
+   "tablename": "works",
+   "policyname": "An artist adds their own works",
+   "cmd": "INSERT",
+   "roles": "{authenticated}",
+   "qual": null,
+   "with_check": "(artist_id = ( SELECT auth.uid() AS uid))"
+  },
+  {
+   "tablename": "works",
+   "policyname": "An artist edits their own works; admins any",
+   "cmd": "UPDATE",
+   "roles": "{authenticated}",
+   "qual": "((artist_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin))",
+   "with_check": "((artist_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin))"
+  },
+  {
+   "tablename": "works",
+   "policyname": "An artist removes their own works; admins any",
+   "cmd": "DELETE",
+   "roles": "{authenticated}",
+   "qual": "((artist_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin))",
+   "with_check": null
+  },
+  {
+   "tablename": "works",
+   "policyname": "Works of approved artists are public unless hidden; an artist s",
+   "cmd": "SELECT",
+   "roles": "{anon,authenticated}",
+   "qual": "((artist_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin) OR ((NOT hidden) AND (EXISTS ( SELECT 1\n   FROM artists a\n  WHERE ((a.id = works.artist_id) AND (a.status = 'approved'::text))))))",
+   "with_check": null
+  }
+ ],
+ "functions": [
+  {
+   "proname": "artists_guard",
+   "def": "CREATE OR REPLACE FUNCTION public.artists_guard()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n  if not public.is_admin() then\n    if tg_op = 'INSERT' then new.status := 'draft'; new.note := null; new.sent_at := null;\n    else\n      new.note := old.note;\n      if (old.status in ('draft', 'changes') and new.status = 'pending') then new.sent_at := now();\n      elsif (old.status = 'pending' and new.status = 'draft') then new.sent_at := old.sent_at;\n      else new.status := old.status; new.sent_at := old.sent_at; end if;\n    end if;\n  end if;\n  new.updated_at := now();\n  return new;\nend $function$\n"
+  },
+  {
+   "proname": "handle_new_user",
+   "def": "CREATE OR REPLACE FUNCTION public.handle_new_user()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n  meta jsonb := coalesce(new.raw_user_meta_data, '{}'::jsonb);\n  full_name text := coalesce(meta->>'full_name', meta->>'name', '');\nbegin\n  insert into public.profiles (id, first_name, last_name, provider)\n  values (\n    new.id,\n    nullif(coalesce(meta->>'given_name', meta->>'first_name', split_part(full_name, ' ', 1)), ''),\n    nullif(coalesce(meta->>'family_name', meta->>'last_name', regexp_replace(full_name, '^\\S+\\s*', '')), ''),\n    coalesce(new.raw_app_meta_data->>'provider', 'email'))\n  on conflict (id) do nothing;\n  if lower(new.email) in ('eladamsalem1@gmail.com', 'ooopenstudio@gmail.com') then\n    insert into public.admins (user_id) values (new.id) on conflict do nothing;\n  end if;\n  return new;\nend $function$\n"
+  },
+  {
+   "proname": "is_admin",
+   "def": "CREATE OR REPLACE FUNCTION public.is_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$ select exists (select 1 from public.admins where user_id = (select auth.uid())) $function$\n"
+  },
+  {
+   "proname": "touch_updated_at",
+   "def": "CREATE OR REPLACE FUNCTION public.touch_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin new.updated_at = now(); return new; end $function$\n"
+  },
+  {
+   "proname": "works_keep_review",
+   "def": "CREATE OR REPLACE FUNCTION public.works_keep_review()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nbegin\n  if not public.is_admin() then\n    if tg_op = 'INSERT' then new.hidden := false; new.reviewed_at := null;\n    else new.hidden := old.hidden; new.reviewed_at := old.reviewed_at; end if;\n  end if;\n  return new;\nend $function$\n"
+  }
+ ]
+}
