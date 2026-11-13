@@ -40,7 +40,12 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     if (again) { again = false; outerSel = ctl && ctl.sel ? ctl.sel() : outerSel; await open(); }
   }
   async function open1() {
-    const next = await build();
+    let next = await build();
+    for (let i = 0; i < 3 && ctl && ctl.busy && ctl.busy(); i++) {
+      const was = sig(st); while (ctl.busy()) await new Promise(r => setTimeout(r, 150));
+      if (sig(st) === was) break;
+      next.revoke(); next = await build();      // (what the drag changed: drawn again with it)
+    }
     const was = view, keepPose = ctl && ctl.api ? ctl.api.pose() : null;
     if (ctl && ctl.api) { outerSel = ctl.sel(); outerPop = ctl.pop(); }      // (what the artist chose or opened while the room was being drawn stays)
     if (was) { was.close(); made.revoke(); }
@@ -387,7 +392,9 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       for (const q of stStands()) {
         const r = q.rot * Math.PI / 180, hx = Math.cos(r) * q.len / 2, hz = Math.sin(r) * q.len / 2, a = v.to(q.x - hx, q.z - hz), b = v.to(q.x + hx, q.z + hz), on = sel && sel.k === 'stand' && sel.id === q.id;
         out += L(a, b, 'hp-stand' + (on ? ' on' : ''), `style="stroke-width:${f(Math.max(5, STAND.t * v.k))}px"`) + L(a, b, 'hp-hit', `data-k="stand" data-id="${esc(q.id)}"`);
-        if (on) for (const e of [a, b]) spin += `<circle class="hp-spin" cx="${f(e[0])}" cy="${f(e[1])}" r="7"/><circle class="hp-hit" cx="${f(e[0])}" cy="${f(e[1])}" r="20" data-k="spin" data-id="${esc(q.id)}"/>`;
+        if (on) { const n = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, ux = (b[0] - a[0]) / n, uy = (b[1] - a[1]) / n, OUT = 26;
+          for (const [e, s] of [[a, -1], [b, 1]]) { const hx = e[0] + ux * OUT * s, hy = e[1] + uy * OUT * s;
+            spin += `<line class="hp-arm" x1="${f(e[0])}" y1="${f(e[1])}" x2="${f(hx)}" y2="${f(hy)}"/><circle class="hp-spin" cx="${f(hx)}" cy="${f(hy)}" r="8"/><circle class="hp-hit" cx="${f(hx)}" cy="${f(hy)}" r="19" data-k="spin" data-id="${esc(q.id)}"/>`; } }
       }
       for (const q of st.plinths) if (!q.kind) {
         const [pw, pd] = plinthDims(q), c = v.to(q.x, q.z), [sw, sd] = v.dir(pw / 100 * v.k, pd / 100 * v.k).map(Math.abs), on = sel && sel.k === 'plinth' && sel.id === q.id, o = q.work && byId(q.work);
@@ -599,7 +606,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       if (sel) mark();
       if (outerPlan) setPlan(true); else refresh();
     }
-    const ctlObj = { pointer, attach, get api() { return api; }, setSel(s) { sel = s; }, sel: () => sel, pop: () => pop };
+    const ctlObj = { pointer, attach, get api() { return api; }, setSel(s) { sel = s; }, sel: () => sel, pop: () => pop, busy: () => !!(pdrag || drag || pinch) };
     return ctlObj;
   }
 
