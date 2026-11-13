@@ -133,7 +133,7 @@ function readiness(ex, works) {
 // --- screens --------------------------------------------------------------------------------------------
 // (a studio page without a page to go back to leads out to the app itself, its Home)
 const head = (title, back) => `<div class="st-head"><a class="back" href="${back || '#/'}">← ${back ? 'Back' : 'Open Studio'}</a><span class="tag">Open Studio for Artists</span></div><h1 class="st-h1">${esc(title)}</h1>`;
-const nav = cur => `<nav class="st-nav" aria-label="Studio">${[['', 'Your page'], ['onview', 'On View'], ['exhibitions', 'Exhibitions and tours'], ['import', 'Bring work in']].map(([k, t]) => `<a href="#/studio${k ? '/' + k : ''}" ${cur === k ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
+const nav = cur => `<nav class="st-nav" aria-label="Studio">${[['', 'Your page'], ['onview', 'Make an exhibition'], ['exhibitions', 'Past exhibitions'], ['import', 'Bring work in']].map(([k, t]) => `<a href="#/studio${k ? '/' + k : ''}" ${cur === k ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
 
 function signIn() {
   return `<div class="wrap gut st">
@@ -190,7 +190,7 @@ const SIZE_ORDER = ['small', 'medium', 'large'];
 const firstOf = list => (list.find(([, r]) => r.variant === 'medium') || list.slice().sort(([, a], [, b]) => SIZE_ORDER.indexOf(a.variant) - SIZE_ORDER.indexOf(b.variant))[0])[0];
 function onView() {
   const kinds = kindsOf();
-  if (!Object.keys(kinds).length) return `<div class="wrap gut st">${head('On View')}${nav('onview')}<p class="m">The spaces are being prepared. Come back in a little while.</p></div>`;
+  if (!Object.keys(kinds).length) return `<div class="wrap gut st">${head('Make an exhibition')}${nav('onview')}<p class="m">The spaces are being prepared. Come back in a little while.</p></div>`;
   return onViewPage((S.virtual || []).find(v => v.onview));
 }
 // --- choosing the space: one large picture of the room that is chosen, the kinds under it as small pictures, its sizes as
@@ -220,7 +220,7 @@ function spacePicker(v) {
 function ovHung(v) {
   const ws = (v.works || []).map(workOf).filter(Boolean);
   if (!S.works.length) return `<p class="ov-none">You have no works on your page yet. <a href="#/studio">Add a few first</a>, then hang them here.</p>`;
-  if (!ws.length) return `<p class="ov-none">Nothing hangs yet. Walk in, tap Add, and drag each work onto a wall. Sculptures stand on plinths.</p>`;
+  if (!ws.length) return `<p class="ov-none">Nothing is placed yet. Open the plan, tap Add, and drag each work to a wall. Then walk in and see it.</p>`;
   return `<button type="button" class="ov-strip" data-hang aria-label="${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'}: walk in to rehang">${ws.slice(0, 4).map(w => `<img src="${esc(srcOf(w.thumb || w.image))}" alt="" loading="lazy" decoding="async">`).join('')}${ws.length > 4 ? `<i>+${ws.length - 4}</i>` : ''}<span>${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'}</span></button>
     <p class="m small" id="vxFit" aria-live="polite"></p>`;
 }
@@ -229,13 +229,13 @@ function ovBar(v, title) {
   const hung = (v.works || []).map(workOf).filter(Boolean).length, pub = v.status === 'published';
   const hang = (cls, t) => `<button class="btn ${cls}" type="button" id="vxHang">${t}</button>`, walk = (cls, t) => `<button class="btn ${cls}" type="button" id="vxWalk">${t}</button>`;
   if (!S.works.length) return `<a class="btn f" href="#/studio">Add works to your page first</a>${hang('g', 'Walk in')}`;
-  if (!hung) return hang('f', 'Walk in and hang the works');
+  if (!hung) return hang('f', 'Place the works on the plan');
   if (S.cloud && !pub) return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">Put it on my page</button>`;
   return `${hang('g', 'Rehang')}${walk('f', 'Walk as a visitor')}`;
 }
 function onViewPage(v0) {
   const v = v0 || { id: '', title: '', room: '', works: [], text: '', centre: 150 }, pub = v.status === 'published';
-  return `<div class="wrap gut st ov">${head('On View')}${nav('onview')}
+  return `<div class="wrap gut st ov">${head('Make an exhibition')}${nav('onview')}
     <p class="ov-lede">The exhibition you are showing now. It opens your page${S.cloud ? ', and goes out in Open Studio’s feed' : ''}.</p>
     ${ovSteps(v)}
     ${!v0 && ovGone ? '<p class="ov-undo" role="status">The exhibition was deleted.<button type="button" class="ov-link" id="vxUndo">Undo</button></p>' : ''}
@@ -252,7 +252,7 @@ function onViewPage(v0) {
   </div>`;
 }
 // On View in four steps, always on screen: where you are, what comes next, one tap to it
-const OV_STEPS = [['space', 'Space', '.ov-space'], ['title', 'Title', '[name=title]'], ['hang', 'Hang', '#ovHung'], ['pub', 'Publish', '#ovState']];
+const OV_STEPS = [['space', 'Space', '.ov-space'], ['title', 'Name', '[name=title]'], ['hang', 'Place works', '#ovHung'], ['pub', 'Publish', '#ovState']];
 function ovDone(v, title) {
   return { space: !!(ROOMS[v.room] && ROOMS[v.room].baked), title: !!String(title ?? v.title ?? '').trim(), hang: (v.works || []).length > 0, pub: v.status === 'published' };
 }
@@ -268,7 +268,7 @@ function designer(id, onview = false) {
   const paint = v.paint || R.paint;
   const rest = S.works.filter(w => !v.works.includes(w.id));
   const drawn = Object.entries(ROOMS).filter(([, r]) => !r.baked);
-  return `<div class="wrap gut st">${onview ? head('On View') + nav('onview') + ovSteps(v) : head(isNew ? 'A virtual exhibition' : v.title || 'Untitled', '#/studio/exhibitions')}
+  return `<div class="wrap gut st">${onview ? head('Make an exhibition') + nav('onview') + ovSteps(v) : head(isNew ? 'A virtual exhibition' : v.title || 'Untitled', '#/studio/exhibitions')}
     ${onview ? `<div class="m ov-why"><p><b>What it is.</b> The exhibition of the art that matters to you right now. Pick a space, hang a few works in it, and walk it yourself before anyone else does.</p>
       <p><b>Why it matters.</b> It goes out in Open Studio’s feed, and it shows first on your artist page: people who find you walk into your work before anything else.</p></div>`
       : '<p class="m">Choose a room, the colour of its walls and the works, in the order a visitor will walk past them. The room is built around them, every work at its real size.</p>'}
@@ -285,7 +285,7 @@ function designer(id, onview = false) {
       </fieldset>
       ${onview ? `<input type="hidden" name="centre" value="${+v.centre || 150}">` : `<label>Hung at, centre (cm)<input name="centre" type="range" min="135" max="160" step="1" value="${+v.centre || 150}"><span class="m small" id="vxCentre">${+v.centre || 150} cm from the floor to the middle of each work</span></label>`}
       <label>${onview ? 'In your words: what this exhibition is' : 'About the exhibition'}<textarea name="text" rows="4">${esc(v.text)}</textarea></label>
-      <div class="btns">${onview ? `<button class="btn f" type="button" id="vxHang" ${ROOMS[v.room] && v.title ? '' : 'disabled'}>${v.works.length ? 'Hang the works' : 'Walk in and hang the works'}</button><button class="btn g" type="button" id="vxWalk" ${v.works.length && ROOMS[v.room] ? '' : 'disabled'}>Walk as a visitor</button>` : `<button class="btn f" type="button" id="vxWalk" ${v.works.length && ROOMS[v.room] ? '' : 'disabled'}>Walk in</button>`}<button class="btn g" type="submit">Save</button>${isNew ? '' : '<button class="btn g" type="button" id="vxDel">Delete</button>'}</div>
+      <div class="btns">${onview ? `<button class="btn f" type="button" id="vxHang" ${ROOMS[v.room] && v.title ? '' : 'disabled'}>${v.works.length ? 'Place and hang the works' : 'Place the works on the plan'}</button><button class="btn g" type="button" id="vxWalk" ${v.works.length && ROOMS[v.room] ? '' : 'disabled'}>Walk as a visitor</button>` : `<button class="btn f" type="button" id="vxWalk" ${v.works.length && ROOMS[v.room] ? '' : 'disabled'}>Walk in</button>`}<button class="btn g" type="submit">Save</button>${isNew ? '' : '<button class="btn g" type="button" id="vxDel">Delete</button>'}</div>
       ${S.cloud ? (v.id ? `<div class="btns"><button class="btn ${v.status === 'published' ? 'g' : 'f'}" type="button" id="vxPub">${v.status === 'published' ? 'Take it down' : onview ? 'Put it on my page' : 'Publish'}</button></div>
         <p class="m small">${v.status === 'published' ? (S.status === 'approved' ? (onview ? 'On view: at the top of your page, and in Shows.' : 'Published: on your page and in Shows.') : 'Published: it shows on your page and in Shows once your page is approved.') : 'A draft: only you see it.'}</p>` : '')
         : '<p class="m small">In this demo the design stays on this phone. With an artist’s account, Publish puts it on your page and in Shows.</p>'}
