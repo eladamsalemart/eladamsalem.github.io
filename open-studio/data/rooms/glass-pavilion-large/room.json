@@ -1,7 +1,7 @@
 {
  "slug": "glass-pavilion-large",
  "type": "glass-pavilion",
- "label": "Glass hall, 24 \u00d7 16 m",
+ "label": "Hall with a glass wall, 24 \u00d7 16 m",
  "w": 24,
  "d": 16,
  "h": 5,
@@ -12,24 +12,6 @@
     0,
     24
    ]
-  ],
-  "wall-x0": [
-   [
-    0,
-    16
-   ]
-  ],
-  "wall-z1": [
-   [
-    0,
-    24
-   ]
-  ],
-  "wall-x1": [
-   [
-    0,
-    16
-   ]
   ]
  },
  "light": "daylight",
@@ -37,7 +19,7 @@
   0.06,
   0.28
  ],
- "ppm": 300,
+ "ppm": 250,
  "plates": [
   {
    "wall": "wall-z0",
@@ -46,30 +28,6 @@
    "z0": 0.0,
    "z1": 5,
    "file": "win-wall-z0-0.jpg"
-  },
-  {
-   "wall": "wall-x1",
-   "from": 0.0,
-   "to": 16,
-   "z0": 0.0,
-   "z1": 5,
-   "file": "win-wall-x1-1.jpg"
-  },
-  {
-   "wall": "wall-z1",
-   "from": 0.0,
-   "to": 24,
-   "z0": 0.0,
-   "z1": 5,
-   "file": "win-wall-z1-2.jpg"
-  },
-  {
-   "wall": "wall-x0",
-   "from": 0.0,
-   "to": 16,
-   "z0": 0.0,
-   "z1": 5,
-   "file": "win-wall-x0-3.jpg"
   }
  ]
 }
