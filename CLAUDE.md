@@ -146,6 +146,16 @@ the emailed code via the Gmail connector); clean the test data afterwards.
 past, each one you can step into. Instagram's direct connection waits for a Meta developer app (the owner's); until
 then the export zip, a website, Drive and the phone or computer.
 
+**Owner's decisions (13.11)** — Every page AND every virtual exhibition is approved before it goes live: `virtual_shows.status`
+draft -> pending -> published | changes (`note`, `sent_at`; trigger `virtual_shows_guard`: only an admin publishes; the artist
+sends, takes back, takes down). The control room's queue has a card per exhibition waiting. Money comes from artists, art schools
+and galleries, never from art lovers. Sign-up asks only a name (age, country, gender are optional, on the account page); after
+"I make art" / "I love art" comes a guide of a few cards with real screens (`GUIDES` in auth.js, pictures in `icons/guide/`),
+open again from the account page ("How it works"). Vision and plan: `studio/ESSENCE.md` (why, who pays, risks) and
+`studio/VISION.md` (stages, tools); the new artist's journey screen by screen: `studio/design/night-2026-11-13/from-zero/`.
+Database without the connector: the "Supabase migrations" workflow runs new files in `studio/supabase/migrations/` on push
+(additive only) and writes the schema as it is to `studio/supabase/schema.live.json` and the result to `migrations.result.json`.
+
 **Open** — Home: from the ten (`studio/design/home-ten/`) the owner liked the constellation (not its black) and the
 artist's hand, and asked for Home as a sky of what they used last (near), with who and what they haven't met further
 out (pinch to step back), a live tour you can step into on Home, then the map, shows on now, your artists; pastels.

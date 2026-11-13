@@ -227,12 +227,15 @@ function ovHung(v) {
     <p class="m small" id="vxFit" aria-live="polite"></p>`;
 }
 // one thing to do next, always under the thumb
+const showState = v => v.status === 'published' ? (S.status === 'approved' ? 'On view: it opens your page, and it is in Shows.' : 'Approved: it shows once your page is live.')
+  : v.status === 'pending' ? 'In review: Open Studio looks at every exhibition before it goes live. You can go on editing.'
+  : v.status === 'changes' ? `Open Studio asks for a change: ${esc(v.note || 'see your page')}` : 'A draft: only you see it.';
 function ovBar(v, title) {
   const hung = (v.works || []).map(workOf).filter(Boolean).length, pub = v.status === 'published';
   const hang = (cls, t) => `<button class="btn ${cls}" type="button" id="vxHang">${t}</button>`, walk = (cls, t) => `<button class="btn ${cls}" type="button" id="vxWalk">${t}</button>`;
   if (!S.works.length) return `<a class="btn f" href="#/studio">Add works to your page first</a>${hang('g', 'Walk in')}`;
   if (!hung) return hang('f', 'Place the works on the plan');
-  if (S.cloud && !pub) return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">Put it on my page</button>`;
+  if (S.cloud && !pub && v.status !== 'pending') return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">${v.status === 'changes' ? 'Send again' : 'Send for review'}</button>`;
   return `${hang('g', 'Rehang')}${walk('f', 'Walk as a visitor')}`;
 }
 function onViewPage(v0) {
@@ -247,16 +250,16 @@ function onViewPage(v0) {
       <section id="ovHung" aria-label="The works">${ovHung(v)}</section>
       <label><span>In your words <span class="ov-opt">(optional)</span></span><textarea name="text" rows="3" placeholder="What this exhibition is, as you would say it at the door.">${esc(v.text)}</textarea></label>
       <input type="hidden" name="centre" value="${+v.centre || 150}">
-      <p class="m small ov-state" id="ovState">${S.cloud ? (pub ? (S.status === 'approved' ? 'On view: it opens your page, and it is in Shows.' : 'Published: it shows once your page is approved.') : 'A draft: only you see it.') : 'A pretend studio: the exhibition stays on this phone.'}
-        ${S.cloud && pub ? '<button type="button" class="ov-link" id="vxPub">Take it down</button>' : ''}${v.id ? '<button type="button" class="ov-link" id="vxDel">Delete</button>' : ''}</p>
+      <p class="m small ov-state" id="ovState">${S.cloud ? showState(v) : 'A pretend studio: the exhibition stays on this phone.'}
+        ${S.cloud && (pub || v.status === 'pending') ? `<button type="button" class="ov-link" id="vxPub">${pub ? 'Take it down' : 'Take it back'}</button>` : ''}${v.id ? '<button type="button" class="ov-link" id="vxDel">Delete</button>' : ''}</p>
     </form>
     <div class="ov-bar"><span class="ov-saved" id="ovSaved" role="status"></span><div class="ov-acts" id="ovActs">${ovBar(v)}</div></div>
   </div>`;
 }
 // On View in four steps, always on screen: where you are, what comes next, one tap to it
-const OV_STEPS = [['space', 'Space', '.ov-space'], ['title', 'Name', '[name=title]'], ['hang', 'Place works', '#ovHung'], ['pub', 'Publish', '#ovState']];
+const OV_STEPS = [['space', 'Space', '.ov-space'], ['title', 'Name', '[name=title]'], ['hang', 'Place works', '#ovHung'], ['pub', 'Send', '#ovState']];
 function ovDone(v, title) {
-  return { space: !!(ROOMS[v.room] && ROOMS[v.room].baked), title: !!String(title ?? v.title ?? '').trim(), hang: (v.works || []).length > 0, pub: v.status === 'published' };
+  return { space: !!(ROOMS[v.room] && ROOMS[v.room].baked), title: !!String(title ?? v.title ?? '').trim(), hang: (v.works || []).length > 0, pub: v.status === 'published' || v.status === 'pending' };
 }
 function ovSteps(v, title) {
   const d = ovDone(v, title), steps = OV_STEPS.filter(x => x[0] !== 'pub' || S.cloud), now = steps.findIndex(x => !d[x[0]]);
@@ -288,9 +291,9 @@ function designer(id, onview = false) {
       ${onview ? `<input type="hidden" name="centre" value="${+v.centre || 150}">` : `<label>Hung at, centre (cm)<input name="centre" type="range" min="135" max="160" step="1" value="${+v.centre || 150}"><span class="m small" id="vxCentre">${+v.centre || 150} cm from the floor to the middle of each work</span></label>`}
       <label>${onview ? 'In your words: what this exhibition is' : 'About the exhibition'}<textarea name="text" rows="4">${esc(v.text)}</textarea></label>
       <div class="btns">${onview ? `<button class="btn f" type="button" id="vxHang" ${ROOMS[v.room] && v.title ? '' : 'disabled'}>${v.works.length ? 'Place and hang the works' : 'Place the works on the plan'}</button><button class="btn g" type="button" id="vxWalk" ${v.works.length && ROOMS[v.room] ? '' : 'disabled'}>Walk as a visitor</button>` : `<button class="btn f" type="button" id="vxWalk" ${v.works.length && ROOMS[v.room] ? '' : 'disabled'}>Walk in</button>`}<button class="btn g" type="submit">Save</button>${isNew ? '' : '<button class="btn g" type="button" id="vxDel">Delete</button>'}</div>
-      ${S.cloud ? (v.id ? `<div class="btns"><button class="btn ${v.status === 'published' ? 'g' : 'f'}" type="button" id="vxPub">${v.status === 'published' ? 'Take it down' : onview ? 'Put it on my page' : 'Publish'}</button></div>
-        <p class="m small">${v.status === 'published' ? (S.status === 'approved' ? (onview ? 'On view: at the top of your page, and in Shows.' : 'Published: on your page and in Shows.') : 'Published: it shows on your page and in Shows once your page is approved.') : 'A draft: only you see it.'}</p>` : '')
-        : '<p class="m small">In this demo the design stays on this phone. With an artist’s account, Publish puts it on your page and in Shows.</p>'}
+      ${S.cloud ? (v.id ? `<div class="btns"><button class="btn ${v.status === 'published' ? 'g' : 'f'}" type="button" id="vxPub">${v.status === 'published' ? 'Take it down' : v.status === 'pending' ? 'Take it back' : v.status === 'changes' ? 'Send again' : 'Send for review'}</button></div>
+        <p class="m small">${showState(v)}</p>` : '')
+        : '<p class="m small">In this demo the design stays on this phone. With an artist’s account you send it to Open Studio, and once approved it is on your page and in Shows.</p>'}
     </form>
   </div>`;
 }
@@ -342,7 +345,7 @@ async function walkIn(v, edit) {
 // --- a real artist's first visit: their page, in a minute ---------------------------------------------------------------
 function setup(u) {
   return `<div class="wrap gut st">${head('Your studio')}
-    <p class="m">Who you are, then your work, and you have a page of your own: you build it right on the page. Open Studio looks at every new page before it goes live.</p>
+    <p class="m">Who you are, then your work, and you have a page of your own: you build it right on the page.</p>
     <form class="st-form" id="setup">
       <label>Your name, as an artist, in English letters (the app is in English)<input name="name" required value="${esc(/^[\x00-\u024f\s'.-]+$/.test(u.name || '') ? u.name : '')}" autocomplete="name" placeholder="e.g. Maya Cohen"></label>
       <div class="st-row"><label>You make<input name="discipline" placeholder="Painting"></label><label>City<input name="city" placeholder="Tel Aviv"></label></div>
@@ -696,7 +699,7 @@ function wireOnView(app, go, vx) {
   function publish() {
     const k = keep(true), t = vx.elements.title;
     if (k.status !== 'published' && !k.title) { t.scrollIntoView({ block: 'center' }); t.focus({ preventScroll: true }); t.setAttribute('aria-invalid', 'true'); return say('Give it a title first'); }
-    k.status = k.status === 'published' ? 'draft' : 'published'; save(); go('#/studio/onview', true);
+    const out = k.status === 'published' || k.status === 'pending'; k.status = out ? 'draft' : 'pending'; save(); if (!out) say('Sent to Open Studio'); go('#/studio/onview', true);
   }
   const pubLink = $('#ovState #vxPub'); if (pubLink) pubLink.onclick = publish;
   // the room that is chosen: its picture, its name, its sizes; in place
@@ -773,7 +776,7 @@ function wire(app, go) {
   };
   wireImport(app, go);
   const pub = $('#vxPub');
-  if (pub) pub.onclick = () => { const v = S.virtual.find(x => x.id === $('#vxForm').dataset.id); if (!v) return; v.status = v.status === 'published' ? 'draft' : 'published'; save(); go(v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`, true); };
+  if (pub) pub.onclick = () => { const v = S.virtual.find(x => x.id === $('#vxForm').dataset.id); if (!v) return; v.status = v.status === 'published' || v.status === 'pending' ? 'draft' : 'pending'; save(); go(v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`, true); };
 
   const vx = $('#vxForm');
   if (vx && vx.dataset.onview) wireOnView(app, go, vx);

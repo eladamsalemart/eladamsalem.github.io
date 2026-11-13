@@ -162,6 +162,15 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
       await p.tap('.ov-tiles .ov-add'); await p.waitForSelector('.he-grid [data-add]', { timeout: 60000 }); await p.tap('.sv-x'); await p.waitForSelector('.ov-tiles, .ov-none', { timeout: 24000 });
       await p.tap('.ov-tiles [data-unhang]'); await p.waitForFunction(k => document.querySelectorAll('.ov-tiles [data-unhang]').length === k - 1, n, { timeout: 4000 });
     });
+    // "Hang all" in the Add tray: every work still waiting goes into the show in one tap
+    await step('hang-all', 150000, async () => {
+      await p.evaluate(() => (document.querySelector('.ov-tiles .ov-add') || document.querySelector('#vxHang')).click());
+      await p.waitForSelector('.he-pop [data-addall]', { timeout: 90000 }); await targets('add tray');
+      const left = await p.locator('.he-grid [data-add]').count(), had = await p.locator('.hp-svg [data-k="work"]').count();
+      await p.evaluate(() => document.querySelector('.he-pop [data-addall]').click());
+      await p.waitForFunction(n => document.querySelectorAll('.hp-svg [data-k="work"]').length >= n, had + left, { timeout: 90000 }); await shot('hang-all');
+      if (left < 2) throw new Error('fewer than two works were waiting');
+    });
   }
 
   await b.close();

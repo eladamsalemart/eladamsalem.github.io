@@ -179,17 +179,17 @@ function countryOptions(chosen) {
   const opt = ([c, n]) => `<option value="${c}"${c === chosen ? ' selected' : ''}>${esc(n)}</option>`;
   return opt(['IL', names.of('IL') || 'Israel']) + '<option disabled>──────────</option>' + list.filter(([c]) => c !== 'IL').map(opt).join('');
 }
-function details(p, err) {
+function details(p, err, full) {
   p = p || {};
   return shell(`
-    <h1>A little about you</h1>
-    <p class="wl-lede">So the artists and shows you see are the right ones. Only you can see this.</p>
+    <h1>${full ? 'Your details' : 'What’s your name?'}</h1>
+    <p class="wl-lede">${full ? 'So the artists and shows you see are the right ones. Only you can see this.' : 'As you would like to be called here.'}</p>
     <form class="wl-form wl-details" id="wlDetails" novalidate>
       <div class="wl-two"><span><label for="wl-first">First name</label><input id="wl-first" name="first" autocomplete="given-name" value="${esc(p.first_name || '')}" required></span>
         <span><label for="wl-last">Last name</label><input id="wl-last" name="last" autocomplete="family-name" value="${esc(p.last_name || '')}" required></span></div>
-      <div class="wl-two"><span><label for="wl-age">Age</label><input id="wl-age" name="age" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="${esc(p.age || '')}" required></span>
+      ${full ? `<div class="wl-two"><span><label for="wl-age">Age</label><input id="wl-age" name="age" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="${esc(p.age || '')}"></span>
         <span><label for="wl-country">Country you live in</label><select id="wl-country" name="country" autocomplete="country">${countryOptions(p.country || 'IL')}</select></span></div>
-      <fieldset class="wl-gender"><legend>Gender</legend>${GENDERS.map(([v, t]) => `<label><input type="radio" name="gender" value="${v}"${p.gender === v ? ' checked' : ''}><span>${t}</span></label>`).join('')}</fieldset>
+      <fieldset class="wl-gender"><legend>Gender</legend>${GENDERS.map(([v, t]) => `<label><input type="radio" name="gender" value="${v}"${p.gender === v ? ' checked' : ''}><span>${t}</span></label>`).join('')}</fieldset>` : ''}
       ${err ? `<p class="wl-err" role="alert">${esc(err)}</p>` : ''}
       <button type="submit" class="wl-go">Continue</button>
     </form>`, 'wl-step');
@@ -282,9 +282,9 @@ export async function screen(hash, app, go) {
   else if (step === 'sent') { if (!pending.email) return go('#/welcome/email'); app.innerHTML = sent(pending.email, err); }
   else if (step === 'details') {
     if (!u) return go('#/welcome');
-    app.innerHTML = details(profile, err);
+    app.innerHTML = details(profile, err, u.details === true);
     if (!profile) client().then(c => c.from('profiles').select('*').eq('id', u.id).maybeSingle()).then(({ data }) => {
-      if (data && location.hash === '#/welcome/details' && !app.querySelector('#wl-first').value) { profile = data; app.innerHTML = details(data); wire(app, go); }
+      if (data && location.hash === '#/welcome/details' && !app.querySelector('#wl-first').value) { profile = data; app.innerHTML = details(data, '', u.details === true); wire(app, go); }
     }).catch(() => {});
   }
   else if (step === 'role') { if (!u) return go('#/welcome'); app.innerHTML = role(u); }
@@ -371,10 +371,10 @@ function wire(app, go) {
   if (df) df.onsubmit = async ev => {
     ev.preventDefault();
     const f = new FormData(df), v = k => String(f.get(k) || '').trim();
-    const p = { first_name: v('first'), last_name: v('last'), age: parseInt(v('age'), 10), country: v('country'), gender: v('gender') };
-    const bad = !p.first_name || !p.last_name ? 'Your first and last name, please.' : !(p.age >= 13 && p.age <= 120) ? 'Your age in years (13 or over).'
-      : !p.gender ? 'Choose one under Gender (Prefer not to say is fine).' : '';
-    if (bad) { app.innerHTML = details(p, bad); return wire(app, go); }
+    const full = !!df.querySelector('[name=age]'), p = { first_name: v('first'), last_name: v('last') };
+    if (full) { p.age = v('age') ? parseInt(v('age'), 10) : null; p.country = v('country') || null; p.gender = v('gender') || null; }
+    const bad = !p.first_name || !p.last_name ? 'Your first and last name, please.' : full && p.age != null && !(p.age >= 13 && p.age <= 120) ? 'Your age in years (13 or over).' : '';
+    if (bad) { app.innerHTML = details(p, bad, full); return wire(app, go); }
     const b = df.querySelector('.wl-go'); busy(b, true, 'Saving…');
     if (previewing()) { profile = { ...p }; pretend({ details: true, name: `${p.first_name} ${p.last_name}` }); return go(account().role ? '#/' : '#/welcome/role'); }
     try {
@@ -386,7 +386,7 @@ function wire(app, go) {
       const { data } = await c.auth.getUser();
       keep(data.user || { id: u.id, email: u.email }, { details: true, name: `${p.first_name} ${p.last_name}` });
       go(account().role ? '#/' : '#/welcome/role');
-    } catch (e) { console.warn(e); app.innerHTML = details(p, 'That didn\u2019t save. Check the connection and try again.'); wire(app, go); }
+    } catch (e) { console.warn(e); app.innerHTML = details(p, 'That didn\u2019t save. Check the connection and try again.', full); wire(app, go); }
   };
   app.querySelectorAll('[data-role]').forEach(b => b.onclick = async () => {
     const r = b.dataset.role;
