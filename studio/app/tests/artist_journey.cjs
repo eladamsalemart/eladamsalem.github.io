@@ -49,6 +49,12 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
   await targets('add works sheet');
   await step('add-to-page', 4000, async () => { await p.tap('#adGo'); await p.waitForFunction(() => document.querySelectorAll('#works .wk').length === 3 && !document.querySelector('.sh'), null, { timeout: 8000 }); });
   await targets('my page');
+  // Add works on the page offers every way work comes in; a way other than the phone opens Bring work in at that way
+  await step('add-works-ways', 8000, async () => {
+    await p.tap('#edAdd'); await p.waitForSelector('.sh .ed-src [data-src="phone"]', { timeout: 3000 }); await targets('add works ways'); await shot('add-works-ways');
+    await p.tap('.sh .ed-src [data-src="drive"]'); await p.waitForSelector('.im-way.im-here[data-way="drive"]', { timeout: 4000 }); await shot('bring-in-drive');
+    await p.evaluate(() => { location.hash = '#/studio'; }); await p.waitForSelector('#works .wk', { timeout: 4000 });
+  });
   // how long the page itself takes to answer a tap on a work (the script's own tap adds its waiting for the page to settle)
   times['edit-answers'] = Math.round(await p.evaluate(() => new Promise(done => { const t = performance.now(); document.querySelector('#works .wk .wk-t').click();
     requestAnimationFrame(() => requestAnimationFrame(() => { const ms = performance.now() - t; document.querySelector('.sh .sh-x').click(); done(ms); })); })));

@@ -51,6 +51,7 @@ body.previewing .ed-bar{top:34px}
 .ed .covers a{cursor:pointer}
 .ed-fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:40;min-height:52px;padding:0 22px 0 18px;border:0;border-radius:99px;background:var(--ink);color:var(--wall);font:600 16px var(--sans);display:flex;align-items:center;gap:8px;box-shadow:0 6px 24px rgba(0,0,0,.28);cursor:pointer}
 .ed-fab b{font-size:22px;line-height:1;font-weight:400}
+.ed-src{display:grid;gap:0;margin:0 0 6px}.ed-src>*{display:grid;gap:2px;min-height:64px;align-content:center;padding:10px 28px 10px 2px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;font:inherit;color:var(--ink);text-decoration:none;cursor:pointer;position:relative}.ed-src>*:last-child{border-bottom:0}.ed-src b{font:600 17px var(--sans)}.ed-src span{font-size:14px;color:var(--muted);line-height:1.35}.ed-src>*::after{content:'→';position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--muted)}
 .ed-foot{padding:28px 0 96px;display:flex;gap:16px;flex-wrap:wrap}
 .ed-room{display:grid;gap:4px;text-decoration:none;color:inherit}.ed-room b{font-size:17px}.ed-room span{font-size:14px;color:var(--muted)}
 .sh-back{position:fixed;inset:0;z-index:100;background:rgba(20,18,14,.42);display:flex;align-items:flex-end;justify-content:center}
@@ -215,7 +216,15 @@ export function mount(c) {
     bio.setAttribute('role', 'textbox'); bio.setAttribute('aria-multiline', 'true'); bio.setAttribute('aria-label', 'Your story, for the About page');
     bio.onblur = () => { const v = bio.innerText.trim(); if (v !== (S.artist.bio || '')) { S.artist.bio = v; commit(); } };
     wrap.querySelector('#edSo').onclick = () => c.signOut();
-    app.querySelector('#edAdd').onclick = () => pickPhotos();
+    // Add works: one place for every way work comes in (the phone's photos, or where the work already is)
+    app.querySelector('#edAdd').onclick = () => sheet('Add works', `<div class="ed-src">
+        <button type="button" data-src="phone"><b>Photos from this phone</b><span>Take or choose photos, as many as you like.</span></button>
+        <a href="#/studio/import" data-src="site"><b>Your website</b><span>We find your images and their titles.</span></a>
+        <a href="#/studio/import" data-src="drive"><b>Google Drive</b><span>Choose images from your Drive, or paste a folder link.</span></a>
+        <a href="#/studio/import" data-src="ig"><b>Instagram</b><span>Choose from your posts.</span></a></div>`, (b, close) => {
+      b.querySelector('[data-src=phone]').onclick = () => { close(); pickPhotos(); };
+      b.querySelectorAll('a[data-src]').forEach(a => a.onclick = () => { try { sessionStorage.setItem('os-import-way', a.dataset.src); } catch {} close(); });
+    });
     // taps
     app.onclick = onTap;
     app.onkeydown = e => { const r = e.target.classList && e.target.classList.contains('wk') ? e.target : null; if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); workSheet(r.dataset.id); } };
