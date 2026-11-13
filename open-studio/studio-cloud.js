@@ -15,7 +15,7 @@ export async function session() {
 
 const rowToWork = r => ({ id: r.id, title: r.title, year: r.year || '', medium: r.medium || '', width: r.width ?? '', height: r.height ?? '', depth: r.depth ?? '', kind: r.kind || 'work', category: r.category || '',
   image: r.image, thumb: r.thumb || r.image, source: r.source || '', framed: 'no', check: { W: 2000, H: 2000, long: 2000, mean: 120, clipped: 0, sharp: 0.5, backdrop: false } });
-const rowToShow = r => ({ id: r.id, title: r.title, room: r.room, paint: r.paint || '', centre: r.centre, text: r.text || '', status: r.status, slug: r.slug, onview: !!r.on_view,
+const rowToShow = r => ({ id: r.id, title: r.title, room: r.room, paint: r.paint || '', centre: r.centre, text: r.text || '', status: r.status, note: r.note || '', slug: r.slug, onview: !!r.on_view,
   works: (r.works || []).map(w => w.id), plinths: r.plinths || [],
   placements: Object.fromEntries((r.works || []).filter(w => w.id && w.wall).map(w => [w.id, { wall: w.wall, a: w.a, y: w.y }])) });
 
@@ -136,7 +136,7 @@ async function push(S) {
       .map(w => ({ id: w.id, title: w.title, image: w.image, thumb: w.thumb, width: +w.width || null, height: +w.height || null, depth: +w.depth || null, year: w.year, medium: w.medium, kind: w.kind === 'object' ? 'object' : 'work',
         ...((v.placements || {})[w.id] || {}) }));
     const { error } = await c.from('virtual_shows').upsert({ id: v.id, owner_id: user.id, kind: 'artist', title: v.title || 'Untitled', room: v.room, paint: v.paint || null,
-      centre: +v.centre || 150, text: v.text || null, works, plinths: v.plinths || [], status: v.status === 'published' ? 'published' : 'draft', slug: v.slug || null, on_view: !!v.onview });
+      centre: +v.centre || 150, text: v.text || null, works, plinths: v.plinths || [], status: ['published', 'pending', 'changes'].includes(v.status) ? v.status : 'draft', slug: v.slug || null, on_view: !!v.onview });
     if (error) throw error;
   }
   const goneV = (was.virtual || []).filter(v => !(S.virtual || []).some(x => x.id === v.id)).map(v => v.id);
