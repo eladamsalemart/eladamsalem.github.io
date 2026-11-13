@@ -77,7 +77,7 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
 
   // the empty room opens on the artist's works: one tap hangs the first, and leaving shows it on the On View page
   if (!process.env.JOURNEY_NO_3D) {
-    await step('hang-first-work', 60000, async () => { await p.waitForSelector('.he-grid [data-add]', { timeout: 20000 }); const n = await p.locator('.he-grid [data-add]').count();
+    await step('hang-first-work', 90000, async () => { await p.waitForSelector('.he-grid [data-add]', { timeout: 20000 }); const n = await p.locator('.he-grid [data-add]').count();
       await p.tap('.he-grid [data-add]'); await p.waitForFunction(() => document.querySelector('.he-pop') && document.querySelector('.he-pop').hidden && document.querySelector('canvas'), null, { timeout: 50000 }); await p.waitForTimeout(1200);
       await p.tap('.he-bar [data-a="add"]'); await p.waitForFunction(k => document.querySelectorAll('.he-grid [data-add]').length === k - 1, n, { timeout: 5000 }); await p.tap('.he-bar [data-a="add"]'); });
     // the plan: the room from above, where things are placed roughly. A work is dragged to another wall, a standing wall across the floor

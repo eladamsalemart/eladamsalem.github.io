@@ -1,6 +1,8 @@
 // Plinths on the floor of a virtual room, with an object (a sculpture, a vessel) standing on each at its real size.
 // The object's photo stands upright as a cut-out that always faces the visitor (its transparent edge, when the photo
 // has one; otherwise its rectangle). Used by the viewer for every visitor, and by the hang editor to move them.
+// the colours a plinth can be painted: name, its sides, its top
+export const PLINTH_COLOURS = { grey: ['Grey', 0x9b9b98, 0xa9a9a6], black: ['Black', 0x232325, 0x303033], wood: ['Wood', 0xb08a5e, 0xbd9a70] };
 export function addPlinths(THREE, scene, list, loadTex, room = {}) {
   const handles = [];
   // a dark room (the Black box): charcoal plinths, each in a spotlight from the grid above; a light room: white plinths
@@ -9,7 +11,9 @@ export function addPlinths(THREE, scene, list, loadTex, room = {}) {
   for (const p of list || []) {
     const [w, d, h] = p.size.map(v => v / 100);
     const g = new THREE.Group(); g.position.set(p.x, 0, p.z);
-    const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), [mat, mat, top, mat, mat, mat]);
+    // the artist's own colour for it (white is the room's)
+    const own = PLINTH_COLOURS[p.colour], m1 = own ? new THREE.MeshLambertMaterial({ color: own[1] }) : mat, m2 = own ? new THREE.MeshLambertMaterial({ color: own[2] }) : top;
+    const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), [m1, m1, m2, m1, m1, m1]);
     box.position.y = h / 2; box.userData.kind = 'plinth'; box.userData.plinth = p.id;
     // a soft shadow on the floor round the foot
     const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
