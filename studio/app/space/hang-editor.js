@@ -18,7 +18,7 @@ const SNAP = 0.06, GAP = 0.15;
 export async function openHangEditor({ design, library, state, src, shape, openSpace, onSave, onExit }) {
   const st = { ids: (state.ids || []).slice(), placements: clone(state.placements || {}), plinths: clone(state.plinths || []) };
   const undo = [];
-  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, outerPop = st.ids.length || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
+  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, zoom = { s: 1, tx: 0, ty: 0 }, outerPop = st.ids.length || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
   const byId = id => library.find(w => w.id === id);
   const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.colour || '') + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
   const save = () => onSave(clone(st));
@@ -364,8 +364,9 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
       for (const wl of walls) for (const t of [0, wl.size[0]]) { const x = wl.origin[0] + wl.u[0] * t, z = wl.origin[2] + wl.u[2] * t; x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
       const rw = x1 - x0, rd = z1 - z0, turn = (r.height > r.width) !== (rd > rw);      // the long side of the room along the long side of the screen
-      const pw = turn ? rd : rw, ph = turn ? rw : rd, k = Math.min((r.width - 2 * pad) / pw, (r.height - 2 * pad) / ph);
-      const ox = (r.width - pw * k) / 2, oy = (r.height - ph * k) / 2;
+      const pw = turn ? rd : rw, ph = turn ? rw : rd;
+      const k0 = Math.min((r.width - 2 * pad) / pw, (r.height - 2 * pad) / ph), k = k0 * zoom.s;      // (pinched closer: the same plan, larger, about the middle)
+      const ox = r.width / 2 + ((r.width - pw * k0) / 2 - r.width / 2) * zoom.s + zoom.tx, oy = r.height / 2 + ((r.height - ph * k0) / 2 - r.height / 2) * zoom.s + zoom.ty;
       pv = { k, w: r.width, h: r.height, left: r.left, top: r.top, x0, x1, z0, z1, turn,
         to: (x, z) => turn ? [ox + (z1 - z) * k, oy + (x - x0) * k] : [ox + (x - x0) * k, oy + (z - z0) * k],
         from: (sx, sy) => turn ? [x0 + (sy - oy) / k, z1 - (sx - ox) / k] : [x0 + (sx - ox) / k, z0 + (sy - oy) / k],
@@ -415,13 +416,49 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       }
       return best;
     }
+    // two fingers pinch the plan closer (a large room's works are small on a phone); one finger on the paper moves it
+    const fingers = new Map(); let pinch = null, pan = null, lastTap = 0;
+    function zoomTo(s, tx, ty) {
+      s = Math.max(1, Math.min(5, s)); const mx = (s - 1) * pv.w / 2, my = (s - 1) * pv.h / 2;
+      zoom.s = s; zoom.tx = Math.max(-mx, Math.min(mx, tx)); zoom.ty = Math.max(-my, Math.min(my, ty));
+      ui.fit.hidden = s < 1.02; drawPlan();
+    }
+    const zoomAbout = (s, px, py, bx, by) => zoomTo(s, px - pv.w / 2 - (bx - pv.w / 2) * Math.max(1, Math.min(5, s)), py - pv.h / 2 - (by - pv.h / 2) * Math.max(1, Math.min(5, s)));
+    const unzoomed = (px, py) => [(px - zoom.tx - pv.w / 2) / zoom.s + pv.w / 2, (py - zoom.ty - pv.h / 2) / zoom.s + pv.h / 2];
+    function planWheel(e) {
+      if (!plan || !pv) return; e.preventDefault();
+      const px = e.clientX - pv.left, py = e.clientY - pv.top, [bx, by] = unzoomed(px, py);
+      zoomAbout(zoom.s * (e.deltaY < 0 ? 1.15 : 1 / 1.15), px, py, bx, by);
+    }
     function planPointer(e) {
       if (!plan || !pv) return;
+      const px = e.clientX - pv.left, py = e.clientY - pv.top;
+      if (e.type === 'pointerdown') fingers.set(e.pointerId, [px, py]); else if (e.type === 'pointermove') { if (fingers.has(e.pointerId)) fingers.set(e.pointerId, [px, py]); } else fingers.delete(e.pointerId);
+      if (fingers.size >= 2) {
+        const [a, b] = [...fingers.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+        if (!pinch) {
+          if (pdrag) { const d = pdrag; pdrag = null; if (d.moved >= 6) { if (d.k === 'stand') soon(d.pre); else { push(d.pre); save(); } } }      // (a second finger: the drag ends where it is)
+          pan = null; pinch = { d, s: zoom.s, b: unzoomed(m[0], m[1]) }; try { ui.svg.setPointerCapture(e.pointerId); } catch {}
+        } else zoomAbout(pinch.s * d / pinch.d, m[0], m[1], pinch.b[0], pinch.b[1]);
+        e.preventDefault(); return;
+      }
+      if (pinch) { if (!fingers.size) pinch = null; return; }      // (the pinch ends when both fingers are up)
+      if (pan) {
+        if (e.type === 'pointermove') { pan.moved = Math.max(pan.moved, Math.abs(px - pan.x) + Math.abs(py - pan.y)); if (pan.moved > 6 && zoom.s > 1) zoomTo(zoom.s, pan.tx + px - pan.x, pan.ty + py - pan.y); }
+        else {
+          if (pan.moved <= 6 && e.type === 'pointerup') {      // a double tap on the paper: closer, or back to the whole room
+            const now = Date.now();
+            if (now - lastTap < 320) { lastTap = 0; if (zoom.s > 1.02) zoomTo(1, 0, 0); else { const [bx, by] = unzoomed(px, py); zoomAbout(2.4, px, py, bx, by); } } else lastTap = now;
+          }
+          pan = null;
+        }
+        return;
+      }
       if (e.type === 'pointerdown') {
         if (pdrag) return;
         const t = e.target.closest('[data-k]');
         if (pop) { pop = ''; clearTimeout(noteT); noteT = 0; }
-        if (!t) { select(null); return; }
+        if (!t) { select(null); pan = { x: px, y: py, tx: zoom.tx, ty: zoom.ty, moved: 0 }; try { ui.svg.setPointerCapture(e.pointerId); } catch {} return; }
         const hit = { k: t.dataset.k, id: t.dataset.id }; select(hit);
         const [x, z] = pv.from(e.clientX - pv.left, e.clientY - pv.top), q = hit.k === 'work' ? null : stPlinth(hit.id);
         pdrag = { ...hit, pid: e.pointerId, pre: clone(st), moved: 0, sx: e.clientX, sy: e.clientY, off: q ? [x - q.x, z - q.z] : [0, 0] };
@@ -511,15 +548,17 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       box.innerHTML = `<div class="he-bar" role="toolbar" aria-label="Hang the works">
           <button type="button" data-a="add"><b>Add</b><span>work</span></button><button type="button" data-a="plinth"><b>Plinth</b><span>floor</span></button><button type="button" data-a="stand"><b>Wall</b><span>standing</span></button>
           <button type="button" data-a="line"><b>Line up</b><span>wall</span></button><button type="button" data-a="even"><b>Space</b><span>evenly</span></button><button type="button" data-a="undo"><b>Undo</b><span>last</span></button></div>
-        <div class="hp" hidden><p class="hp-h">Place things roughly here: drag a work to a wall, drag the standing walls and plinths. Then walk in and hang by eye.</p><svg class="hp-svg" aria-label="Plan of the room"></svg><button type="button" class="hp-go">Walk in</button></div>
+        <div class="hp" hidden><p class="hp-h">Place things roughly here: drag a work to a wall, drag the standing walls and plinths. Then walk in and hang by eye.</p><svg class="hp-svg" aria-label="Plan of the room"></svg><button type="button" class="hp-fit" hidden>Whole room</button><button type="button" class="hp-go">Walk in</button></div>
         <button type="button" class="hp-open">Plan</button>
         <div class="he-pop" hidden></div>
         <div class="he-sel" hidden><div class="he-t"></div><div class="he-std" hidden><button type="button" data-st="len:-1" aria-label="Narrower">−</button><button type="button" data-st="len:1" aria-label="Wider">+</button><button type="button" data-st="rot:6">Turn</button></div><button type="button" class="he-more" hidden>Size, colour</button><button type="button" class="he-rm">Remove</button></div>`;
       api.root.append(box);
-      ui = { bar: box.querySelector('.he-bar'), pop: box.querySelector('.he-pop'), sel: box.querySelector('.he-sel'), hp: box.querySelector('.hp'), svg: box.querySelector('.hp-svg'), std: box.querySelector('.he-std'), more: box.querySelector('.he-more') };
+      ui = { bar: box.querySelector('.he-bar'), pop: box.querySelector('.he-pop'), sel: box.querySelector('.he-sel'), hp: box.querySelector('.hp'), svg: box.querySelector('.hp-svg'), fit: box.querySelector('.hp-fit'), std: box.querySelector('.he-std'), more: box.querySelector('.he-more') };
       ui.more.onclick = () => { pop = pop === 'plinth' ? '' : 'plinth'; refresh(); };
       ui.std.onclick = e => { const b = e.target.closest('button'); if (b) { const [k, v] = b.dataset.st.split(':'); editStand(k, +v); } };
       box.querySelector('.hp-go').onclick = () => setPlan(false);
+      ui.fit.onclick = () => zoomTo(1, 0, 0); ui.fit.hidden = zoom.s < 1.02;
+      ui.svg.addEventListener('wheel', planWheel, { passive: false });
       box.querySelector('.hp-open').onclick = () => setPlan(true);
       const map = api.root.querySelector('.sv-map');      // the small plan by the door opens the large one
       if (map) map.addEventListener('click', e => { e.stopImmediatePropagation(); setPlan(true); }, true);

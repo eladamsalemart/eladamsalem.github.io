@@ -96,7 +96,16 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
       await dragTo(from, to);
       await p.waitForFunction(y => { const l = document.querySelector('.hp:not([hidden]) .hp-svg [data-k="stand"]'); if (!l || !window.__he || !window.__he.api) return false; const b = l.getBoundingClientRect(); return Math.abs(b.top + b.height / 2 - y) < 25; }, to[1], { timeout: 55000 });
     });
-    await step('walk-in', 4000, async () => { await p.tap('.hp-go'); await p.waitForFunction(() => document.querySelector('.hp').hidden && !document.querySelector('.sv').classList.contains('planning'), null, { timeout: 3000 }); await p.waitForTimeout(1500); });
+    // pinched closer (the wheel here), the plan grows about the finger and the work still answers a drag; "Whole room" brings it back
+    await step('plan-zoom', 40000, async () => {
+      const wall = () => p.evaluate(() => { const l = document.querySelector('.hp-svg .hp-wall'); return Math.hypot(l.x2.baseVal.value - l.x1.baseVal.value, l.y2.baseVal.value - l.y1.baseVal.value); });
+      const before = await wall(), r = await p.locator('.hp-svg').boundingBox();
+      await p.evaluate(([x, y]) => { for (let i = 0; i < 5; i++) document.querySelector('.hp-svg').dispatchEvent(new WheelEvent('wheel', { deltaY: -100, clientX: x, clientY: y, bubbles: true, cancelable: true })); }, [r.x + r.width / 2, r.y + r.height / 2]);
+      const zoomed = await wall(); if (!(zoomed > before * 1.6)) throw new Error(`the plan did not grow: ${before} -> ${zoomed}`);
+      await shot('plan-zoomed'); await targets('plan zoomed');
+      await p.tap('.hp-fit'); const back = await wall(); if (Math.abs(back - before) > 1) throw new Error('Whole room did not bring the plan back');
+    });
+    await step('walk-in', 40000, async () => { await p.tap('.hp-go'); await p.waitForFunction(() => document.querySelector('.hp').hidden && !document.querySelector('.sv').classList.contains('planning'), null, { timeout: 3000 }); await p.waitForTimeout(1500); });
     await step('leave-hang', 25000, async () => { await p.tap('.sv-x'); await p.waitForSelector('.ov-strip', { timeout: 24000 }); });
   }
 
