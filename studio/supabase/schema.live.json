@@ -666,6 +666,20 @@
    "column_default": "'[]'::jsonb"
   },
   {
+   "table_name": "virtual_shows",
+   "column_name": "note",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "virtual_shows",
+   "column_name": "sent_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
    "table_name": "works",
    "column_name": "id",
    "data_type": "uuid",
@@ -894,7 +908,7 @@
   {
    "table": "virtual_shows",
    "conname": "virtual_shows_status_check",
-   "def": "CHECK ((status = ANY (ARRAY['draft'::text, 'published'::text])))"
+   "def": "CHECK ((status = ANY (ARRAY['draft'::text, 'pending'::text, 'changes'::text, 'published'::text])))"
   },
   {
    "table": "virtual_shows",
@@ -933,6 +947,20 @@
    "action_timing": "BEFORE",
    "event_manipulation": "UPDATE",
    "action_statement": "EXECUTE FUNCTION touch_updated_at()"
+  },
+  {
+   "table": "virtual_shows",
+   "trigger_name": "virtual_shows_guard",
+   "action_timing": "BEFORE",
+   "event_manipulation": "INSERT",
+   "action_statement": "EXECUTE FUNCTION virtual_shows_guard()"
+  },
+  {
+   "table": "virtual_shows",
+   "trigger_name": "virtual_shows_guard",
+   "action_timing": "BEFORE",
+   "event_manipulation": "UPDATE",
+   "action_statement": "EXECUTE FUNCTION virtual_shows_guard()"
   },
   {
    "table": "works",
@@ -1215,6 +1243,10 @@
   {
    "proname": "touch_updated_at",
    "def": "CREATE OR REPLACE FUNCTION public.touch_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin new.updated_at = now(); return new; end $function$\n"
+  },
+  {
+   "proname": "virtual_shows_guard",
+   "def": "CREATE OR REPLACE FUNCTION public.virtual_shows_guard()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n  if not public.is_admin() then\n    if tg_op = 'INSERT' then\n      new.note := null;\n      if new.status in ('pending', 'published') then new.status := 'pending'; new.sent_at := now();\n      else new.status := 'draft'; new.sent_at := null; end if;\n    else\n      new.note := old.note; new.sent_at := old.sent_at;\n      if old.status = 'published' then\n        if new.status <> 'published' then new.status := 'draft'; end if;          -- taken down by the artist\n      elsif new.status in ('pending', 'published') then\n        if old.status <> 'pending' then new.sent_at := now(); end if;             -- sent for a look\n        new.status := 'pending';\n      elsif new.status <> old.status then new.status := 'draft';                  -- taken back\n      end if;\n    end if;\n  end if;\n  return new;\nend $function$\n"
   },
   {
    "proname": "works_keep_review",
