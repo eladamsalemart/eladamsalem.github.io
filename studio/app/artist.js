@@ -221,7 +221,9 @@ function ovHung(v) {
   const ws = (v.works || []).map(workOf).filter(Boolean);
   if (!S.works.length) return `<p class="ov-none">You have no works on your page yet. <a href="#/studio">Add a few first</a>, then hang them here.</p>`;
   if (!ws.length) return `<p class="ov-none">Nothing is placed yet. Open the plan, tap Add, and drag each work to a wall. Then walk in and see it.</p>`;
-  return `<button type="button" class="ov-strip" data-hang aria-label="${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'}: walk in to rehang">${ws.slice(0, 4).map(w => `<img src="${esc(srcOf(w.thumb || w.image))}" alt="" loading="lazy" decoding="async">`).join('')}${ws.length > 4 ? `<i>+${ws.length - 4}</i>` : ''}<span>${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'}</span></button>
+  const more = S.works.some(w => !(v.works || []).includes(w.id));
+  return `<div class="ov-works"><p class="ov-wh"><b>${ws.length} ${ws.length === 1 ? 'work' : 'works'} in this exhibition</b><button type="button" class="ov-link" data-hang>Rearrange</button></p>
+    <ul class="ov-tiles">${ws.map(w => `<li><img src="${esc(srcOf(w.thumb || w.image))}" alt="${esc(w.title || 'Untitled')}" loading="lazy" decoding="async"><button type="button" class="ov-rm" data-unhang="${esc(w.id)}" aria-label="Take ${esc(w.title || 'this work')} out of the exhibition">×</button></li>`).join('')}${more ? '<li><button type="button" class="ov-add" data-hang="add" aria-label="Add works"><b aria-hidden="true">+</b>Add</button></li>' : ''}</ul></div>
     <p class="m small" id="vxFit" aria-live="polite"></p>`;
 }
 // one thing to do next, always under the thumb
@@ -318,12 +320,12 @@ const SCULPT = /sculpt|object|ceramic|installation/i, CLAY = /ceramic|clay|porce
 const shapeWork = w => ({ id: w.id, kind: SCULPT.test(w.category || '') || (+w.depth > 0 && !FLAT.test(w.medium || '')) || (!w.category && !FLAT.test(w.medium || '') && CLAY.test(w.medium || '')) ? 'object' : w.kind, title: w.title, image: srcOf(w.image), width: w.width, height: w.height, pairs: w.width && w.height ? [[+w.height, +w.width]] : [],
   year: w.year, medium: w.medium, artist: { name: S.artist.name } });
 // the hang editor: inside the walkable room the artist adds, removes and places the works and plinths
-async function hangIn(v, done) {
+async function hangIn(v, done, add) {
   const [{ openHangEditor }, { openSpace }] = await Promise.all([import('./space/hang-editor.js'), import('./space/space.js')]);
   await openHangEditor({
     design: { title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre || 150 },
     library: S.works.map(w => ({ ...shapeWork(w), thumb: srcOf(w.thumb || w.image) })), state: { ids: v.works, placements: v.placements, plinths: v.plinths },
-    src: u => u, shape: w => w, openSpace,
+    src: u => u, shape: w => w, openSpace, add,
     onSave: s => { v.works = s.ids; v.placements = s.placements; v.plinths = s.plinths; save(); },
     onExit: done,
   });
@@ -677,7 +679,7 @@ function wireOnView(app, go, vx) {
     t.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); if (t.matches('input')) setTimeout(() => t.focus({ preventScroll: true }), 350);
   }); };
   const busy = (b, t, fn) => async () => { if (working) return; const was = b.textContent; working = true; b.disabled = true; b.textContent = t; try { await fn(); } catch (e) { console.error(e); say('That did not open. Try again.'); } finally { working = false; b.disabled = false; b.textContent = was; } };
-  const hang = () => hangIn(keep(true), () => go('#/studio/onview', true));
+  const hang = add => hangIn(keep(true), () => go('#/studio/onview', true), add === true);
   const acts = () => {
     const a = $('#ovActs'), html = ovBar(now());
     if (working || a.dataset.h === html) return;   // (never swap a button under the finger that is tapping it)
@@ -708,11 +710,16 @@ function wireOnView(app, go, vx) {
     setRoom(same ? same[0] : firstOf(list));
   });
   vx.addEventListener('click', e => {
-    const s = e.target.closest('[data-size]'), r = e.target.closest('[data-rooms]'), p = e.target.closest('[data-preview]'), h = e.target.closest('[data-hang]');
+    const s = e.target.closest('[data-size]'), r = e.target.closest('[data-rooms]'), p = e.target.closest('[data-preview]'), h = e.target.closest('[data-hang]'), u = e.target.closest('[data-unhang]');
     if (s) { const many = (vx.elements.room.value.match(/-[23]r$/) || [''])[0]; setRoom(ROOMS[s.dataset.size + many] ? s.dataset.size + many : s.dataset.size); }
     else if (r) setRoom(r.dataset.rooms);
     else if (p) busy(p, 'Opening…', () => previewSpace(vx.elements.room.value, () => keep()))();
-    else if (h) busy(h.querySelector('span') || h, 'Building the room…', hang)();
+    else if (u && v) {      // a work taken out of the exhibition, here on the page (it stays on the artist's page; Add brings it back)
+      const id = u.dataset.unhang; v.works = (v.works || []).filter(x => x !== id); if (v.placements) delete v.placements[id];
+      v.plinths = (v.plinths || []).filter(q => q.work !== id); save(); say('Taken out');
+      $('#ovHung').innerHTML = ovHung(v); steps(); acts(); if (v.works.length) fitNote(app, v);
+    }
+    else if (h) busy(h, h.dataset.hang === 'add' ? '…' : 'Opening…', () => hang(h.dataset.hang === 'add'))();
   });
   vx.addEventListener('input', e => { if (e.target.name === 'title') { e.target.removeAttribute('aria-invalid'); steps(); } clearTimeout(timer); timer = setTimeout(() => { keep(); acts(); }, 600); });
   vx.addEventListener('change', e => { if (e.target.name === 'title' || e.target.name === 'text') { clearTimeout(timer); keep(); acts(); } });

@@ -125,7 +125,15 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
     });
     if (!(await p.locator('.hp-in').count())) bad.push('the plan does not mark the way in');
     await step('walk-in', 40000, async () => { await p.tap('.hp-go'); await p.waitForFunction(() => document.querySelector('.hp').hidden && !document.querySelector('.sv').classList.contains('planning'), null, { timeout: 3000 }); await p.waitForTimeout(1500); });
-    await step('leave-hang', 25000, async () => { await p.tap('.sv-x'); await p.waitForSelector('.ov-strip', { timeout: 24000 }); });
+    await step('leave-hang', 25000, async () => { await p.tap('.sv-x'); await p.waitForSelector('.ov-tiles', { timeout: 24000 }); });
+    // on the exhibition's page the works can be changed: one is taken out there, and Add opens the plan on the artist's works
+    await step('change-works', 90000, async () => {
+      await targets('exhibition works'); await shot('works-on-page');
+      const n = await p.locator('.ov-tiles [data-unhang]').count(); if (!n) throw new Error('no work can be taken out');
+      if (!(await p.locator('.ov-tiles .ov-add').count())) throw new Error('no way to add works from the page');
+      await p.tap('.ov-tiles .ov-add'); await p.waitForSelector('.he-grid [data-add]', { timeout: 60000 }); await p.tap('.sv-x'); await p.waitForSelector('.ov-tiles, .ov-none', { timeout: 24000 });
+      await p.tap('.ov-tiles [data-unhang]'); await p.waitForFunction(k => document.querySelectorAll('.ov-tiles [data-unhang]').length === k - 1, n, { timeout: 4000 });
+    });
   }
 
   await b.close();
