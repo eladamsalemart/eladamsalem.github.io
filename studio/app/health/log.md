@@ -2,6 +2,10 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-13: share links asked for pages that were not there
+
+- Issue #8 again (since 03:33): three kinds of show page failed a request, `s/<slug>/index.html` (404 for Ritual, aborted for the others). Cause: the new Share links (43f67fb) asked the site, with a HEAD request, whether each show has a share page; a show without one was a failed request on every visit. Fixed: share_pages.py writes `share.json` (the pages that exist) and also a page for each real room (Ritual); app.js reads that list once and asks for nothing else. `studio/app/share.json` is an empty list for local runs. Checked on the live site after publish. No improvement tonight (the day's work was the artists' editor and the glass rooms).
+
 ## 2026-11-12: issue #8, a room's poster asked for under the wrong folder
 
 - Issue #8 (since 11-10): Home asked for `data/spaces/ritual-elad-amsalem-2/preview.jpg`, 404. Cause: a second show with the same title gets the slug `…-2` and shares the room, but the walk row built the film/poster path from the show's slug, not the room's folder. Fixed in app.js `walkRow` (the room's own key, `data-space`). Local health.cjs passes with the fix; the run without the fix hung locally and was not completed, so the proof is the live site: failing before, checked again after publish. No improvement tonight.

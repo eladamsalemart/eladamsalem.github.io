@@ -64,12 +64,14 @@ def main():
         tags = f'<meta property="og:image" content="{html.escape(img, True)}">\n<meta name="twitter:card" content="summary_large_image">\n' if img else '<meta name="twitter:card" content="summary">\n'
         d = out / folder / slug
         d.mkdir(parents=True, exist_ok=True)
+        made.setdefault(folder, []).append(slug)
         (d / 'index.html').write_text(PAGE.format(
             title=html.escape(title, True), text=html.escape(short(text), True), url=html.escape(f'{base}{folder}/{slug}/', True),
             image=tags, to=html.escape(to, True), to_js=json.dumps(to)), encoding='utf-8')
         return 1
 
     n = 0
+    made = {}                  # (which pages exist: written to share.json, so the app never asks for one that isn't there)
     names = {'elad-amsalem': 'Elad Amsalem'}
     world = json.loads((app / 'data/demo/world.json').read_text(encoding='utf-8'))
     for a in world.get('artists', []):
@@ -89,6 +91,15 @@ def main():
         n += page('s', s['slug'], f"{s['title']} · Open Studio", text, (s.get('images') or [''])[0], f"../../#/exhibition/{s['slug']}")
     for a in world.get('artists', []):
         n += page('by', a['slug'], f"{a['name']} · Open Studio", a.get('statement') or f"{a['name']} on Open Studio", a.get('portrait', ''), f"../../#/artist/{a['slug']}")
+
+    # the real exhibitions kept as rooms you can walk into (data/spaces/index.json)
+    try:
+        for slug, sp in json.loads((app / 'data/spaces/index.json').read_text(encoding='utf-8')).items():
+            if slug not in made.get('s', []):
+                pic = f'data/spaces/{slug}/preview.jpg' if (app / 'data/spaces' / slug / 'preview.jpg').exists() else ''
+                n += page('s', slug, f"{sp.get('title') or slug} · Open Studio", 'An exhibition you can walk into, on Open Studio', pic, f"../../#/exhibition/{slug}")
+    except Exception as e:
+        print('share pages: the rooms were not read:', e)
 
     # the artists who joined, and the shows they published
     try:
@@ -114,6 +125,7 @@ def main():
         who = (owner.get(v.get('owner_id')) or {}).get('name', '')
         text = v.get('text') or f"An exhibition on Open Studio{', hung by ' + who if who else ''}"
         n += page('s', slug, f"{v.get('title') or 'Untitled'} · Open Studio", text, hung or room, f"../../#/exhibition/{slug}")
+    (out / 'share.json').write_text(json.dumps({k: sorted(set(v)) for k, v in made.items()}), encoding='utf-8')
     print(f'share pages: {n} written ({len(shows)} published shows and {len(artists)} artists from the database)')
 
 

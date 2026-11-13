@@ -1277,10 +1277,11 @@ document.addEventListener('click', e => { const t = e.target.closest('[data-zoom
 // (share_pages.py, at every publish), else the app's own address. Asked for once and kept, so a tap on Share has it at hand.
 const LINKS = new Map();
 window.shareLink = (dir, slug, hash) => {
-  const base = location.origin + location.pathname.replace(/[^/]*$/, ''), k = `${dir}/${slug}`;
-  if (!LINKS.has(k)) LINKS.set(k, fetch(`${base}${k}/index.html`, { method: 'HEAD', cache: 'no-store', signal: AbortSignal.timeout ? AbortSignal.timeout(2500) : undefined })
-    .then(r => r.ok ? `${base}${k}/` : `${base}#${hash}`).catch(() => { LINKS.delete(k); return `${base}#${hash}`; }));
-  return LINKS.get(k);
+  // (which share pages exist is read once from share.json, written with them at every publish: asking for a page that isn't there
+  //  would be a failed request on the phone for every show without one)
+  const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  if (!LINKS.has('list')) LINKS.set('list', fetch(`${base}share.json`, { signal: AbortSignal.timeout ? AbortSignal.timeout(2500) : undefined }).then(r => r.ok ? r.json() : {}).catch(() => { LINKS.delete('list'); return {}; }));
+  return LINKS.get('list').then(l => (l[dir] || []).includes(slug) ? `${base}${dir}/${slug}/` : `${base}#${hash}`);
 };
 document.addEventListener('click', async ev => {
   const t = ev.target.closest('[data-share-show]'); if (!t) return;
