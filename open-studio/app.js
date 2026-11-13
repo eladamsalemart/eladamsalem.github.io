@@ -708,6 +708,7 @@ const exhibitionOf = slug => M.exhibitions.find(x => x.slug === slug) || (M.spac
 function exhibition(slug) {
   const e = exhibitionOf(slug);
   if (!e) return notFound();
+  if (e.space) window.shareLink('s', e.slug, `/exhibition/${e.slug}`);
   return `<div class="wrap gut">
     <div class="album">
       ${im(e.images[0], `Installation view of ${e.title}`, 'class="cover" loading="eager"', '100vw')}
@@ -717,7 +718,7 @@ function exhibition(slug) {
       <div class="m">${esc([e.dates, e.virtual ? e.venue : e.kind === 'online' ? 'An online exhibition' : e.venue].filter(Boolean).join(' · '))}${e.curator ? ` · Curated by ${esc(e.curator)}` : ''}</div>
       ${status(e) !== 'past' && (e.address || e.hours) ? `<div class="visit">${e.address ? `<a href="#/map/${e.slug}"><b>${esc(e.venue)}</b><span>${esc(e.address)}</span></a>` : ''}${e.hours ? `<span>${esc(e.hours)}</span>` : ''}</div>` : ''}
       ${e.events.filter(v => +v.at > Date.now() - 3 * 3600000).map(v => `<div class="event"><b>${esc(dayName(v.at))}</b><span>${lh(`${v.what} · ${hm(v.at)}`)} · ${esc(v.at.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }))}</span></div>`).join('')}
-      ${e.space ? `<div class="btns"><a class="btn f" href="#/exhibition/${e.slug}/space">Enter the space</a></div><p class="m">${e.virtual ? `${esc(e.space.source)}: a room that exists only here, ${e.virtual.kind === 'curated' ? 'hung by the curator' : 'hung by the artist'}, every work at its real size.` : `${esc(e.space.source)}: a walkable 3D space in the room's own light, with every work at its measured size and place.`}</p>` : ''}
+      ${e.space ? `<div class="btns"><a class="btn f" href="#/exhibition/${e.slug}/space">Enter the space</a><button type="button" class="btn g" data-share-show="${e.slug}">Share</button></div><p class="m">${e.virtual ? `${esc(e.space.source)}: a room that exists only here, ${e.virtual.kind === 'curated' ? 'hung by the curator' : 'hung by the artist'}, every work at its real size.` : `${esc(e.space.source)}: a walkable 3D space in the room's own light, with every work at its measured size and place.`}</p>` : ''}
     </div>
     ${e.works.length ? `<section class="sec"><div class="sec-h"><h2>Works</h2><span class="more">${e.works.length} works</span></div>
       ${e.confirmed ? '' : `<p class="note">${e.space ? 'Identified from the installation photos, in walking order. Waiting for the artist to confirm.' : 'Draft list, grouped by year. Waiting for the artist to confirm which works were in the show.'}</p>`}
@@ -1271,6 +1272,24 @@ function openZoom(url) {
   document.body.append(z); z.querySelector('.x').focus();
 }
 document.addEventListener('click', e => { const t = e.target.closest('[data-zoom]'); if (t) openZoom(t.dataset.zoom); });
+
+// A link that arrives with its picture: the share page of a show ('s') or an artist ('by') when one was published for it
+// (share_pages.py, at every publish), else the app's own address. Asked for once and kept, so a tap on Share has it at hand.
+const LINKS = new Map();
+window.shareLink = (dir, slug, hash) => {
+  // (which share pages exist is read once from share.json, written with them at every publish: asking for a page that isn't there
+  //  would be a failed request on the phone for every show without one)
+  const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  if (!LINKS.has('list')) LINKS.set('list', fetch(`${base}share.json`, { signal: AbortSignal.timeout ? AbortSignal.timeout(2500) : undefined }).then(r => r.ok ? r.json() : {}).catch(() => { LINKS.delete('list'); return {}; }));
+  return LINKS.get('list').then(l => (l[dir] || []).includes(slug) ? `${base}${dir}/${slug}/` : `${base}#${hash}`);
+};
+document.addEventListener('click', async ev => {
+  const t = ev.target.closest('[data-share-show]'); if (!t) return;
+  const e = exhibitionOf(t.dataset.shareShow); if (!e) return;
+  const url = await window.shareLink('s', e.slug, `/exhibition/${e.slug}`);
+  try { if (navigator.share) { await navigator.share({ title: e.title, text: `${e.title} on Open Studio`, url }); return; } } catch (x) { if (x && x.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(url); t.textContent = 'Link copied'; setTimeout(() => { t.textContent = 'Share'; }, 2000); } catch { prompt('Copy the link', url); }
+});
 
 const returning = /[?&](code|token_hash|error_description)=/.test(location.search) ? import('./auth.js').then(m => m.finishReturn()).catch(() => {}) : Promise.resolve();
 Promise.all([loadData(), returning]).then(([d]) => { M = buildModel(d); render(); window.addEventListener('hashchange', render); freshCommunity(d); })

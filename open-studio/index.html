@@ -6,6 +6,13 @@
 <meta name="robots" content="noindex, nofollow">
 <!-- app:head -->
 <title>Open Studio</title>
+<meta name="description" content="Artists' studios and exhibitions you can walk into, every work at its real size.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Open Studio">
+<meta property="og:title" content="Open Studio">
+<meta property="og:description" content="Artists' studios and exhibitions you can walk into, every work at its real size.">
+<meta property="og:image" content="https://eladamsalem.com/open-studio/data/spaces/celebration-virtual/preview.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -930,7 +937,7 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
 .ov-opt{font-weight:400;color:var(--muted);font-size:13px}
 .ov-none{margin:0;padding:14px;border:1.5px dashed var(--edge,var(--line));border-radius:12px;font-size:15px;line-height:1.45;color:var(--muted)}.ov-none a{color:var(--ink);font-weight:600}
 .ov-strip{display:flex;align-items:center;gap:6px;width:100%;min-height:64px;padding:8px;border:1.5px solid var(--edge,var(--line));border-radius:12px;background:#fff;font:inherit;color:var(--ink);cursor:pointer;text-align:left;transition:transform .1s ease-out}
-.ov-strip img{width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none}.ov-strip i{font:600 13px var(--sans);color:var(--muted);font-style:normal}.ov-strip span{margin-left:auto;padding-left:6px;font:600 14px var(--sans);text-align:right}
+.ov-strip img{width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none}.ov-strip i{font:600 13px var(--sans);color:var(--muted);font-style:normal}.ov-strip span{margin-left:auto;padding-left:6px;white-space:nowrap;font:600 14px var(--sans);text-align:right}
 #vxFit{margin:6px 0 0}#vxFit:empty{display:none}
 .ov-state{display:flex;flex-wrap:wrap;align-items:center;gap:2px 14px;margin:0}
 .ov-link{min-height:44px;padding:0 2px;border:0;background:none;font:600 14px var(--sans);color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -1034,6 +1041,7 @@ body[data-look="night"]{--lh-ink:#D8D3FF}
 .rv-bar button{min-width:44px;min-height:44px;border:0;background:transparent;color:inherit;font-size:22px;cursor:pointer}
 body.reviewing{padding-top:calc(56px + env(safe-area-inset-top,0px))}
 .pv-bar{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(6px + env(safe-area-inset-top,0px)) 14px 6px;background:#1F2A44;color:#F6F1E7;font:500 13px/1.3 var(--sans)}
+body.previewing .sv{top:calc(56px + env(safe-area-inset-top,0px))}   /* the 3D room starts under the preview bar, so its Exit / Done stays in reach */
 .pv-bar button{min-height:44px;padding:0 14px;border-radius:99px;border:1.5px solid #F6F1E7;background:transparent;color:inherit;font:600 13px var(--sans);cursor:pointer}
 body.previewing{padding-top:calc(56px + env(safe-area-inset-top,0px))}
 .adm-steps{display:grid;gap:8px;padding-inline-start:20px}.adm-steps code{font-size:13px;word-break:break-all}
@@ -1048,21 +1056,21 @@ body.previewing{padding-top:calc(56px + env(safe-area-inset-top,0px))}
 /* --- where people edit: light, large, high contrast (WCAG AA and better), 44px targets --- */
 :root.lite:root{--wall:#FBFAF6;--paper:#FFFFFF;--ink:#16140F;--muted:#463F33;--line:#BDB5A3;--edge:#6F675A;--rule:#16140F;--card:#EEEAE0;--dot:#1B5E3F;--stage:#F4F1EA;--shade:rgba(20,18,14,.72);color-scheme:light}
 .lite body{font-size:17px;line-height:1.55}
-.lite .st,.lite .adm,.lite .ed,.lite .sh{font-size:17px}
-.lite .st .small,.lite .st .m,.lite .ed .m,.lite .adm .m,.lite .sh .m,.lite .sh .small{font-size:16px}
-.lite .st-form label{font-size:16px;font-weight:600;color:var(--ink);gap:7px}
-.lite .st-form legend{font-size:16px}
-.lite .st-form input:not([type=checkbox]):not([type=file]),.lite .st-form textarea,.lite .st-form select,.lite .ax-ask input,.lite .ax-search{border:1.5px solid var(--edge);min-height:48px;font-size:17px;background:#fff}
+.lite .st,.lite .ed,.lite .sh{font-size:16px}.lite .adm{font-size:17px}   /* (the artists' editor: calmer and smaller than it was, owner 12.11; still AA, 16 px in every field, 44 px targets. The control room keeps its size) */
+.lite .st .small,.lite .st .m,.lite .ed .m,.lite .sh .m,.lite .sh .small{font-size:14px}.lite .adm .m{font-size:16px}
+.lite .st-form label{font-size:13.5px;font-weight:600;color:var(--muted);gap:5px}.lite .adm .st-form label{font-size:16px;color:var(--ink);gap:7px}
+.lite .st-form legend{font-size:14px}.lite .adm .st-form legend{font-size:16px}
+.lite .st-form input:not([type=checkbox]):not([type=file]),.lite .st-form textarea,.lite .st-form select,.lite .ax-ask input,.lite .ax-search{border:1.5px solid var(--edge);min-height:46px;font-size:16px;font-weight:400;background:#fff}
 .lite .st-form fieldset{border:1.5px solid var(--edge)}
 .lite input::placeholder,.lite textarea::placeholder{color:#5E564A;opacity:1}
 .lite :focus-visible{outline:3px solid #0B4FD6;outline-offset:2px}
 .lite .btn{font-size:16px;min-height:48px;border-width:2px}.lite .btn.g{border-color:var(--edge)}
 .lite .k,.lite .tag,.lite .st-flag,.lite .ed-chip{font-size:13px;color:var(--muted)}
 .lite .st-flag.ok,.lite .ed-chip.ok{color:#14532D}.lite .st-flag.no,.lite .ed-chip.no{color:#7A2E0E;background:color-mix(in srgb,#B3421F 12%,transparent)}
-.lite .st-nav a,.lite .ax-seg a,.lite .ax-chips button{font-size:16px;min-height:44px;display:inline-flex;align-items:center}
+.lite .st-nav a{font-size:14px;min-height:44px;display:inline-flex;align-items:center;padding-inline:12px}.lite .ax-seg a,.lite .ax-chips button{font-size:16px;min-height:44px;display:inline-flex;align-items:center}
 .lite .ax-t i{background:#7A4410}
-.st-how{margin:10px 0;padding-left:22px;display:grid;gap:10px;font-size:16px}.st-how li::marker{font-weight:700}.st-after{padding:14px;border:1.5px dashed var(--edge,var(--line));border-radius:12px}
-.st-step h2{font-size:26px}
+.st-how{margin:10px 0;padding-left:22px;display:grid;gap:8px;font-size:15px}.st-how li::marker{font-weight:700}.st-after{padding:14px;border:1.5px dashed var(--edge,var(--line));border-radius:12px}
+.st-step h2{font-size:20px}
 .lite .adm{font-size:17px;line-height:1.55}.lite .ax-meta,.lite .ax-sum span,.lite .ax-keys,.lite .adm .m,.lite .adm small{font-size:15px!important;color:var(--muted)}.lite .ax-l,.lite .ax-tabs a{font-size:15px;font-weight:600}.lite .ax-badge{font-size:13px;background:#1B5E3F}.lite .ax-card h3,.lite .ax-row b{font-weight:700}
 </style>
 

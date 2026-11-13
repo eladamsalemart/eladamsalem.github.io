@@ -107,7 +107,7 @@ body.sh-open{overflow:hidden}
 .kd-c span{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:99px;border:1.5px solid var(--edge);font:600 16px var(--sans);color:var(--ink);background:var(--paper)}
 .kd-c input:checked+span{background:var(--ink);color:var(--wall);border-color:var(--ink)}.kd-c input:focus-visible+span{outline:3px solid var(--dot);outline-offset:2px}
 .wk-prev{display:grid;grid-template-columns:132px auto;gap:14px;align-items:center;justify-items:start}.wk-pv{width:132px;height:132px;box-sizing:border-box;padding:6px;background:var(--card);border-radius:3px;overflow:hidden;display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(27,26,23,.08)}.wk-pv img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;box-shadow:0 1px 4px rgba(27,26,23,.28)}
-.ed-toast{display:flex;gap:14px;align-items:center}.ed-toast button{min-height:44px;padding:0 6px;background:none;border:0;color:var(--wall);font:700 16px var(--sans);text-decoration:underline;cursor:pointer}
+.ed-toast{display:flex;gap:14px;align-items:center;white-space:nowrap}.ed-toast button{min-height:44px;padding:0 6px;background:none;border:0;color:var(--wall);font:700 16px var(--sans);text-decoration:underline;cursor:pointer}
 `;
 const hook = () => { if (!document.getElementById('edCss')) { const s = document.createElement('style'); s.id = 'edCss'; s.textContent = CSS; document.head.append(s); } };
 
@@ -200,7 +200,7 @@ export function mount(c) {
     if (!sec) { wrap.querySelector('.statement').closest('.wrap').insertAdjacentHTML('beforeend', '<section class="sec" id="works"></section>'); sec = wrap.querySelector('#works'); }
     sec.innerHTML = worksInner(); wireGrips(sec);
     // the exhibitions
-    let covers = wrap.querySelector('.covers');
+    let covers = wrap.querySelector('.covers') || wrap.querySelector('.walkbox');      // (the page shows its exhibitions as a row of arches: the same section, not a second one)
     if (!covers) { (sec || wrap).insertAdjacentHTML(sec ? 'afterend' : 'beforeend', '<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">0</span></div><div class="covers"></div></section>'); covers = wrap.querySelector('.covers'); }
     covers.closest('.sec').insertAdjacentHTML('beforeend', '<button type="button" class="ed-sec-add" data-ed="ex-new" style="margin-top:14px">+ Add an exhibition</button>');
     covers.querySelectorAll('a').forEach(x => { x.dataset.slug = x.getAttribute('href').slice(13); });
@@ -230,7 +230,8 @@ export function mount(c) {
       else pickPhotos();
     });
     app.querySelectorAll('[data-share]').forEach(b => b.onclick = async () => {
-      const url = `${location.origin}${location.pathname}#/artist/${(a && a.slug) || S.slug || ''}`;
+      const slug = (a && a.slug) || S.slug || '';
+      const url = slug && window.shareLink ? await window.shareLink('by', slug, `/artist/${slug}`) : `${location.origin}${location.pathname}#/artist/${slug}`;
       try { if (navigator.share) { await navigator.share({ title: S.artist.name, text: `${S.artist.name} on Open Studio`, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
       try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { prompt('Copy your page’s link', url); }
     });
@@ -247,7 +248,7 @@ export function mount(c) {
   function onTap(e) {
     const t = e.target;
     if (t.closest('[contenteditable]')) return;
-    const ed = t.closest('[data-ed]'), row = t.closest('a.row[data-slug]'), cv = t.closest('.covers a[data-slug]');
+    const ed = t.closest('[data-ed]'), row = t.closest('a.row[data-slug]'), cv = t.closest('.covers a[data-slug], .walkbox .wc[data-slug]');
     if (t.closest('.row > span:last-child')) { e.preventDefault(); return; }
     if (ed) { e.preventDefault(); ({ cover: coverSheet, profile: profileSheet, 'work-new': () => pickPhotos(), 'ex-new': () => go('#/studio/exhibition/new'), cv: cvSheet })[ed.dataset.ed](); return; }
     const wk = t.closest('.wk');
@@ -379,6 +380,7 @@ export function mount(c) {
 
   // --- sheets ---------------------------------------------------------------------------------------------------
   function sheet(title, html, wireIt, foot) {
+    document.querySelectorAll('.ed-toast').forEach(x => x.remove());   // (a note about the last thing never sits on the next one)
     const el = document.createElement('div'); el.className = 'sh-back';
     el.innerHTML = `<div class="sh" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sh-h"><b>${esc(title)}</b><button type="button" class="sh-x" aria-label="Close">×</button></div><div class="sh-b">${html}</div>${foot ? `<div class="sh-f">${foot}</div>` : ''}</div>`;
     document.body.append(el); document.body.classList.add('sh-open');

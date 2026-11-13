@@ -110,7 +110,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   }
   const HQ_FRAG = `
     uniform vec2 hqTex; uniform vec2 hqSize; uniform float hqAmp; uniform vec2 hqMask[4];
-    uniform sampler2D hqDetail; uniform float hqDetK; uniform float hqDetM;
+    uniform sampler2D hqDetail; uniform float hqDetK; uniform float hqDetM; uniform float hqSoft;
     float hqH(vec2 p) { vec3 q = fract(vec3(p.xyx) * .1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
     float hqN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
       return mix(mix(hqH(i), hqH(i + vec2(1., 0.)), f.x), mix(hqH(i + vec2(0., 1.)), hqH(i + vec2(1., 1.)), f.x), f.y); }
@@ -137,13 +137,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       for (int i = 0; i < 4; i++) m *= 1.0 - (smoothstep(hqMask[i].x - 0.03, hqMask[i].x + 0.03, p.x) - smoothstep(hqMask[i].y - 0.03, hqMask[i].y + 0.03, p.x));
       float dt = 0.0;
       if (hqDetK > 0.0) dt = (texture2D(hqDetail, p / hqDetM).r - 0.5) * hqDetK;
-      return (1.0 + hqAmp * g * 2.0 * m) * (1.0 + dt * m);
+      return (1.0 + hqAmp * g * 2.0 * m) * (1.0 + dt * m * hqSoft);
     }`;
   // kind: 0 walls, 1 floor, 2 ceiling; size: the surface (or its repeating tile) in metres; masks: stretches of a wall
   // along u that show something else (windows: the outside must not get plaster grain)
-  function enhance(mat, tex, kind, size, masks = [], key = '') {
+  function enhance(mat, tex, kind, size, masks = [], key = '', soft = 1) {      // soft: a freshly painted board (a standing wall) carries less of the old plaster's mottle
     if (!BK || !tex || !tex.image) return mat;
-    const amp = 1.6 * (DETAIL[BK.kind] || [0.03, 0.03, 0.02])[kind];
+    const amp = 1.6 * soft * (DETAIL[BK.kind] || [0.03, 0.03, 0.02])[kind];
     const prev = mat.onBeforeCompile;
     const mk = [0, 1, 2, 3].map(i => masks[i] ? new THREE.Vector2(masks[i][0], masks[i][1]) : new THREE.Vector2(-9, -9));
     mat.onBeforeCompile = sh => {
@@ -151,13 +151,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       sh.uniforms.hqTex = { value: new THREE.Vector2(tex.image.width, tex.image.height) };
       sh.uniforms.hqSize = { value: new THREE.Vector2(size[0] / (tex.repeat ? tex.repeat.x : 1), size[1] / (tex.repeat ? tex.repeat.y : 1)) };
       sh.uniforms.hqAmp = { value: amp };
-      sh.uniforms.hqMask = { value: mk };
+      sh.uniforms.hqMask = { value: mk }; sh.uniforms.hqSoft = { value: soft };
       sh.uniforms.hqDetail = detU; sh.uniforms.hqDetM = { value: det ? det[1] : 2 };
       sh.uniforms.hqDetK = kind === 1 ? { value: 0 } : detK;                          // (walls and ceiling; the floor's boards are in its photograph)
       sh.fragmentShader = sh.fragmentShader.replace('void main() {', HQ_FRAG + '\nvoid main() {')
         .replace('#include <map_fragment>', '#ifdef USE_MAP\n vec4 sampledDiffuseColor = hqRead(map, vMapUv);\n diffuseColor *= sampledDiffuseColor;\n diffuseColor.rgb *= hqGrain(vMapUv);\n#endif');
     };
-    mat.customProgramCacheKey = () => 'hq' + kind + key;
+    mat.customProgramCacheKey = () => 'hq' + kind + key + (soft < 1 ? 's' : '');
     return mat;
   }
 
@@ -204,7 +204,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (s.kind === 'reveal') { const r = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide }))); r.userData.kind = 'reveal'; scene.add(r); return; }
     if (s.kind === 'wall' || s.kind === 'ceiling') {
       const masks = s.kind === 'wall' ? ((spec.blocks || {})[s.name] || []) : [];
-      const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks), s.openings || [], s.kind === 'wall' && !s.stand ? 0.03 : 0);
+      const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks, '', s.stand ? 0.3 : 1), s.openings || [], s.kind === 'wall' && !s.stand ? 0.03 : 0);
       m.userData.kind = s.kind; if (s.stand) m.userData.stand = s.stand; scene.add(m);
       for (const o of s.openings || []) addOpening(s, o);
     }
