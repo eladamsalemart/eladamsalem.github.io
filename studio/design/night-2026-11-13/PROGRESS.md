@@ -42,3 +42,12 @@ Bake finished and published; renders checked (white cube neutral, pavilion floor
   assets were committed to studio; run 43329748998 (4881ed0) is still "in_progress" with no update since 03:26 UTC (looks stuck).
   No gh login on this machine, so it cannot be cancelled or re-run from here. Nothing to look at yet; no second worker started.
 - Needed from the owner: look at the run in the Actions tab, cancel it if stuck, and re-run "Studio rooms".
+
+## 13.11, day: the plan (owner asked for diagonals; "keep improving")
+- Plan: pinch zoom, one-finger pan, double tap, "Whole room" (90d06bb). Way in marked; a chosen plinth is faced on walking
+  in; plinth panel in the room no longer squeezed; selection and open panel survive a rebuild (3a5a615).
+- Standing walls: a handle at each end of the chosen wall turns it in 15 degree steps; Turn is 45 degrees. Works and
+  plinths added on the plan appear at once, the room rebuilds behind (in 789da3a). Live: sw `open-studio-789da3a`.
+- Journey test passes locally with new steps: plan-turn-stand, plan-zoom, plinth-colour.
+- Not done: dragging a work from the tray straight to a wall; a bluer sky in the garden picture (it is an overcast park);
+  nothing checked on a real iPhone. The camera eases to a new pose, so slow test shots catch it mid-turn (not a bug).
