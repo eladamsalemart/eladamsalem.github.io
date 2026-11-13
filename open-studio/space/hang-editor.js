@@ -15,10 +15,10 @@ const SNAP = 0.06, GAP = 0.15;
 
 // design: { title, room, paint, centre }; library: every work the artist has (id, title, image, thumb, width, height, kind);
 // state: { ids, placements, plinths }; shape(work): the work as buildRoom wants it
-export async function openHangEditor({ design, library, state, src, shape, openSpace, onSave, onExit }) {
+export async function openHangEditor({ design, library, state, src, shape, openSpace, onSave, onExit, add }) {
   const st = { ids: (state.ids || []).slice(), placements: clone(state.placements || {}), plinths: clone(state.plinths || []) };
   const undo = [];
-  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, zoom = { s: 1, tx: 0, ty: 0 }, startAt = null, outerPop = st.ids.length || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
+  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, zoom = { s: 1, tx: 0, ty: 0 }, startAt = null, outerPop = (st.ids.length && !add) || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
   const byId = id => library.find(w => w.id === id);
   const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.colour || '') + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
   const save = () => onSave(clone(st));
