@@ -18,7 +18,7 @@ const SNAP = 0.06, GAP = 0.15;
 export async function openHangEditor({ design, library, state, src, shape, openSpace, onSave, onExit, add }) {
   const st = { ids: (state.ids || []).slice(), placements: clone(state.placements || {}), plinths: clone(state.plinths || []) };
   const undo = [];
-  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, zoom = { s: 1, tx: 0, ty: 0 }, startAt = null, outerPop = (st.ids.length && !add) || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
+  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, picked = new Set(),      /* (the works chosen in the Add tray: kept while the room is drawn again behind it) */  zoom = { s: 1, tx: 0, ty: 0 }, startAt = null, outerPop = (st.ids.length && !add) || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
   const byId = id => library.find(w => w.id === id);
   const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.colour || '') + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
   const save = () => onSave(clone(st));
@@ -259,9 +259,21 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       // hung somewhere else than where the artist looked, or far away: turn to it, and walk up to it
       if (turn && ctl && ctl.api) ctl.api.setPose(near ? ctl.api.clamp(V(near)).toArray() : ctl.api.pose().at, turn);
     }
-    async function addAll() {
-      const rest = library.filter(w => !st.ids.includes(w.id)); if (!rest.length) return;
-      const pre = clone(st); for (const w of rest) await addWork(w.id, true);
+    const goLabel = () => picked.size ? `Add ${picked.size} ${picked.size === 1 ? 'work' : 'works'} to the show` : 'Tap the works you want';
+    function pickSync() {      // the tray as it is, after a tap: the frames, the button's count, "Choose all" or "Clear"
+      ui.pop.querySelectorAll('[data-add]').forEach(b => b.setAttribute('aria-pressed', picked.has(b.dataset.add)));
+      const go = ui.pop.querySelector('[data-addgo]'), all = ui.pop.querySelector('[data-addall]'), n = ui.pop.querySelectorAll('[data-add]').length;
+      if (go) { go.textContent = goLabel(); go.disabled = !picked.size; }
+      if (all) all.textContent = picked.size === n ? 'Clear' : 'Choose all';
+    }
+    function pickWork(id) { if (picked.has(id)) picked.delete(id); else picked.add(id); pickSync(); }
+    function pickAll() { const ids = [...ui.pop.querySelectorAll('[data-add]')].map(b => b.dataset.add); if (picked.size === ids.length) picked.clear(); else ids.forEach(i => picked.add(i)); pickSync(); }
+    async function addPicked() {
+      const ids = library.filter(w => picked.has(w.id) && !st.ids.includes(w.id)).map(w => w.id); if (!ids.length) return;
+      const go = ui.pop.querySelector('[data-addgo]'); if (go) { go.disabled = true; go.textContent = 'Adding…'; }
+      picked.clear();
+      if (ids.length === 1) return addWork(ids[0]);
+      const pre = clone(st); for (const id of ids) await addWork(id, true);
       push(pre); save(); sel = null; pop = ''; outerSel = null; outerPop = ''; refresh(); await open();
     }
     async function removeSel() {
@@ -537,7 +549,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     function popHtml() {
       if (pop === 'add') {
         const rest = library.filter(w => !st.ids.includes(w.id));
-        return rest.length ? `<p class="he-h">Add to the show${sel && sel.k === 'plinth' && !stPlinth(sel.id).work ? ': objects go on the selected plinth' : ''}${rest.length > 1 ? `<button type="button" class="he-all" data-addall>Hang all ${rest.length}</button>` : ''}</p><div class="he-grid">${rest.map(w => `<button type="button" data-add="${esc(w.id)}"><img src="${thumb(w)}" alt=""><span>${esc(w.title)}</span>${w.kind === 'object' ? '<i>object</i>' : ''}</button>`).join('')}</div>`
+        return rest.length ? `<p class="he-h">Add to the show${sel && sel.k === 'plinth' && !stPlinth(sel.id).work ? ': objects go on the selected plinth' : ''}${rest.length > 1 ? `<button type="button" class="he-all" data-addall>${rest.every(w => picked.has(w.id)) ? 'Clear' : 'Choose all'}</button>` : ''}</p><div class="he-grid">${rest.map(w => `<button type="button" data-add="${esc(w.id)}" aria-pressed="${picked.has(w.id)}"><img src="${thumb(w)}" alt=""><span>${esc(w.title)}</span>${w.kind === 'object' ? '<i>object</i>' : ''}<b class="he-ck" aria-hidden="true">✓</b></button>`).join('')}</div><button type="button" class="he-addgo" data-addgo ${rest.some(w => picked.has(w.id)) ? '' : 'disabled'}>${goLabel()}</button>`
           : '<p class="he-note">Every work you have is already in the show. Bring more in under Works.</p>';
       }
       const step = (label, val, key, less = '−', more = '+') => `<div class="he-step"><span>${label}</span><button type="button" data-st="${key}:-1" aria-label="${label}: less">${less}</button><b>${val}</b><button type="button" data-st="${key}:1" aria-label="${label}: more">${more}</button></div>`;
@@ -603,13 +615,19 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         const k = b.dataset.a;
         if (k === 'add' || k === 'plinth' || k === 'stand' || k === 'line') toggle(k); else if (k === 'even') even(); else if (k === 'undo') doUndo();
       };
-      ui.pop.onclick = e => {
-        const b = e.target.closest('button'); if (!b) return;
+      const popTap = b => {
         if (b.dataset.st) {
           const [k, v] = b.dataset.st.split(':'), by = +v;
           if (k === 'add') addStand(); else if (k === 'rm') removeSel(); else if (k === 'pw') dimPlinth(0, by * 5); else if (k === 'pd') dimPlinth(1, by * 5); else if (k === 'ph') dimPlinth(2, by * 5); else editStand(k, by);
-        } else if (b.dataset.col != null) colourPlinth(b.dataset.col); else if (b.dataset.addall != null) addAll(); else if (b.dataset.add) addWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line);
+        } else if (b.dataset.col != null) colourPlinth(b.dataset.col); else if (b.dataset.addall != null) pickAll(); else if (b.dataset.addgo != null) addPicked(); else if (b.dataset.add) pickWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line);
       };
+      // A finger that went down just before the room was drawn again lifts over this new panel: no click follows,
+      // and the tap would be lost. A lift here with no press here and no click after it is taken as the tap.
+      let popDown = false, popClick = 0;
+      ui.pop.addEventListener('pointerdown', () => { popDown = true; });
+      ui.pop.onclick = e => { const b = e.target.closest('button'); popDown = false; if (!b) return; popClick = performance.now(); popTap(b); };
+      ui.pop.addEventListener('pointerup', e => { const b = e.target.closest('button'), was = popDown, t = performance.now(); popDown = false; if (was || !b || b.disabled) return;
+        setTimeout(() => { if (popClick < t && b.isConnected) popTap(b); }, 90); });
       ui.sel.querySelector('.he-rm').onclick = removeSel;
       if (!startAt) startAt = api.pose().at;      // (where a visitor's walk begins: marked on the plan)
       if (pose) api.setPose(pose.at, pose.to);

@@ -133,7 +133,7 @@ function readiness(ex, works) {
 // --- screens --------------------------------------------------------------------------------------------
 // (a studio page without a page to go back to leads out to the app itself, its Home)
 const head = (title, back) => `<div class="st-head"><a class="back" href="${back || '#/'}">← ${back ? 'Back' : 'Open Studio'}</a><span class="tag">Open Studio for Artists</span></div><h1 class="st-h1">${esc(title)}</h1>`;
-const nav = cur => `<nav class="st-nav" aria-label="Studio">${[['', 'Your page'], ['onview', 'Make an exhibition'], ['exhibitions', 'Past exhibitions'], ['import', 'Bring work in']].map(([k, t]) => `<a href="#/studio${k ? '/' + k : ''}" ${cur === k ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
+const nav = cur => `<nav class="st-nav" aria-label="Studio">${[['', 'Your page'], ['exhibitions', 'Exhibitions'], ['import', 'Bring work in']].map(([k, t]) => `<a href="#/studio${k ? '/' + k : ''}" ${cur === k || (k === 'exhibitions' && cur === 'onview') ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
 
 function signIn() {
   return `<div class="wrap gut st">
@@ -159,13 +159,19 @@ function byYear(list) {
 const detail = w => [w.medium, w.width && w.height ? `${w.height} × ${w.width}${w.depth ? ` × ${w.depth}` : ''} cm` : '', w.kind === 'object' ? w.year : ''].filter(Boolean).join(' · ');
 
 function exhibitions() {
+  const vs = S.virtual || [], on = vs.find(v => v.onview);
+  const vState = v => v.status === 'published' ? ['ok', 'Live'] : v.status === 'pending' ? ['', 'In review'] : v.status === 'changes' ? ['no', 'Changes asked'] : ['', 'Draft'];
   return `<div class="wrap gut st">${head('Exhibitions')}${nav('exhibitions')}
-    <div class="btns" style="padding-block:6px 18px"><a class="btn f" href="#/studio/exhibitions/new">Add an exhibition</a><a class="btn g" href="#/studio/virtual/new">Design a virtual exhibition</a></div>
-    ${(S.virtual || []).length ? `<section class="sec" style="padding-top:0"><div class="sec-h"><h2>Virtual</h2><span class="more">rooms that exist only here</span></div><div class="list">${S.virtual.map(v => `<a class="row" href="${v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`}"><img src="${esc(thumbOf(v.works[0]))}" alt=""><div class="t"><div><b>${esc(v.title || 'Untitled')}</b></div><div class="m">${esc(roomName(v.room))} · ${v.works.length} works</div></div><span class="st-flag ok">${v.onview ? 'On view' : 'Virtual'}</span></a>`).join('')}</div></section>` : ''}
-    <div class="list">${S.exhibitions.map(ex => {
-      return `<a class="row" href="#/studio/exhibition/${ex.id}"><img src="${esc(ex.cover || (ex.photos[0] || {}).src || '')}" alt=""><div class="t"><div><b>${esc(ex.title)}</b></div><div class="m">${esc([ex.venue, ex.year].filter(Boolean).join(' · '))}</div></div>
-        <span class="st-flag ${tourFlag(ex)[0]}">${tourFlag(ex)[1]}</span></a>`;
-    }).join('')}</div>
+    <p class="m">There are two kinds of exhibition here, and they are made in different ways.</p>
+    <section class="st-card ex-kind" aria-labelledby="exV"><p class="ex-tag">Virtual</p><h2 id="exV">An exhibition that exists only here</h2>
+      <p class="m small">You choose one of Open Studio’s rooms and hang your works in it. Visitors walk through it on their phone. Nothing has to exist in the real world.</p>
+      ${vs.length ? `<div class="list">${vs.map(v => `<a class="row" href="${v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`}"><img src="${esc(thumbOf(v.works[0]))}" alt=""><div class="t"><div><b>${esc(v.title || 'Untitled')}</b></div><div class="m">${esc(roomName(v.room))} · ${v.works.length} works</div></div><span class="st-flag ${vState(v)[0]}">${vState(v)[1]}</span></a>`).join('')}</div>` : ''}
+      <div class="btns"><a class="btn f" href="${on || !vs.length ? '#/studio/onview' : '#/studio/virtual/new'}">${on ? 'Open your virtual exhibition' : vs.length ? 'Design another' : 'Make a virtual exhibition'}</a></div></section>
+    <section class="st-card ex-kind" aria-labelledby="exR"><p class="ex-tag real">Real</p><h2 id="exR">An exhibition that happened</h2>
+      <p class="m small">A show you had in a gallery, a studio or any real place. Add its photos or a walk-through video. When there is enough material, Open Studio builds a 3D walk of the real room from it.</p>
+      ${S.exhibitions.length ? `<div class="list">${S.exhibitions.map(ex => `<a class="row" href="#/studio/exhibition/${ex.id}"><img src="${esc(ex.cover || (ex.photos[0] || {}).src || '')}" alt=""><div class="t"><div><b>${esc(ex.title)}</b></div><div class="m">${esc([ex.venue, ex.year].filter(Boolean).join(' · '))}</div></div>
+        <span class="st-flag ${tourFlag(ex)[0]}">${tourFlag(ex)[1]}</span></a>`).join('')}</div>` : ''}
+      <div class="btns"><a class="btn ${S.exhibitions.length ? 'g' : 'f'}" href="#/studio/exhibitions/new">Add a real exhibition</a></div></section>
   </div>`;
 }
 
@@ -190,7 +196,7 @@ const SIZE_ORDER = ['small', 'medium', 'large'];
 const firstOf = list => (list.find(([, r]) => r.variant === 'medium') || list.slice().sort(([, a], [, b]) => SIZE_ORDER.indexOf(a.variant) - SIZE_ORDER.indexOf(b.variant))[0])[0];
 function onView() {
   const kinds = kindsOf();
-  if (!Object.keys(kinds).length) return `<div class="wrap gut st">${head('Make an exhibition')}${nav('onview')}<p class="m">The spaces are being prepared. Come back in a little while.</p></div>`;
+  if (!Object.keys(kinds).length) return `<div class="wrap gut st">${head('A virtual exhibition', '#/studio/exhibitions')}${nav('onview')}<p class="m">The spaces are being prepared. Come back in a little while.</p></div>`;
   return onViewPage((S.virtual || []).find(v => v.onview));
 }
 // --- choosing the space: one large picture of the room that is chosen, the kinds under it as small pictures, its sizes as
@@ -240,7 +246,7 @@ function ovBar(v, title) {
 }
 function onViewPage(v0) {
   const v = v0 || { id: '', title: '', room: '', works: [], text: '', centre: 150 }, pub = v.status === 'published';
-  return `<div class="wrap gut st ov">${head('Make an exhibition')}${nav('onview')}
+  return `<div class="wrap gut st ov">${head('A virtual exhibition', '#/studio/exhibitions')}${nav('onview')}
     <p class="ov-lede">The exhibition you are showing now. It opens your page${S.cloud ? ', and goes out in Open Studio’s feed' : ''}.</p>
     ${ovSteps(v)}
     ${!v0 && ovGone ? '<p class="ov-undo" role="status">The exhibition was deleted.<button type="button" class="ov-link" id="vxUndo">Undo</button></p>' : ''}
@@ -273,7 +279,7 @@ function designer(id, onview = false) {
   const paint = v.paint || R.paint;
   const rest = S.works.filter(w => !v.works.includes(w.id));
   const drawn = Object.entries(ROOMS).filter(([, r]) => !r.baked);
-  return `<div class="wrap gut st">${onview ? head('Make an exhibition') + nav('onview') + ovSteps(v) : head(isNew ? 'A virtual exhibition' : v.title || 'Untitled', '#/studio/exhibitions')}
+  return `<div class="wrap gut st">${onview ? head('A virtual exhibition', '#/studio/exhibitions') + nav('onview') + ovSteps(v) : head(isNew ? 'A virtual exhibition' : v.title || 'Untitled', '#/studio/exhibitions')}
     ${onview ? `<div class="m ov-why"><p><b>What it is.</b> The exhibition of the art that matters to you right now. Pick a space, hang a few works in it, and walk it yourself before anyone else does.</p>
       <p><b>Why it matters.</b> It goes out in Open Studio’s feed, and it shows first on your artist page: people who find you walk into your work before anything else.</p></div>`
       : '<p class="m">Choose a room, the colour of its walls and the works, in the order a visitor will walk past them. The room is built around them, every work at its real size.</p>'}

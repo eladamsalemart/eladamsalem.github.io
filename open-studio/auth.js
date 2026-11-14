@@ -213,7 +213,7 @@ const GUIDES = {
   artist: { end: '#/studio', go: 'Open my studio', cards: [
     ['icons/guide/a1.jpg', 'Bring your work in', 'Photos from your phone, your website or a Drive folder. Choose many at once; titles and sizes come after.'],
     ['icons/guide/a2.jpg', 'Give each work its real size', 'Width and height in centimetres. Visitors see every work at its true scale, and a work needs its size to hang in a room.'],
-    ['icons/guide/a3.jpg', 'Make an exhibition', 'A virtual exhibition is a room that exists only here: you choose a space and hang your works in it. A show you had in a real place goes under Past exhibitions, with its photos.'],
+    ['icons/guide/a3.jpg', 'Make an exhibition', 'Two kinds. A virtual exhibition is a room that exists only here: you choose a space and hang your works in it. A real one is a show you had somewhere: you add its photos or a video.'],
     ['icons/guide/a4.jpg', 'Hang on the plan', 'Tap a work to put it on a wall, then drag it where you want it. Add standing walls and plinths.'],
     ['icons/guide/a5.jpg', 'Walk in, then send it', 'Walk through as a visitor would. Open Studio looks at every new page and every exhibition before it goes live.'] ] },
   lover: { end: '#/', go: 'Start looking', cards: [
