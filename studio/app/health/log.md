@@ -2,6 +2,10 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-14: nothing to do
+
+- No open issues or owner requests (issue #8 closed itself after the 11-13 fix). health.cjs, check_home, check_app, deps.py pass on the live site (Home 17 ms frames). No improvement tonight: the last two days changed the artists' editor and the glass rooms, enough to let settle. Still available: three 0.187, maplibre-gl 6.18, supabase-js 2.119, playwright 1.65.1.
+
 ## 2026-11-13: share links asked for pages that were not there
 
 - Issue #8 again (since 03:33): three kinds of show page failed a request, `s/<slug>/index.html` (404 for Ritual, aborted for the others). Cause: the new Share links (43f67fb) asked the site, with a HEAD request, whether each show has a share page; a show without one was a failed request on every visit. Fixed: share_pages.py writes `share.json` (the pages that exist) and also a page for each real room (Ritual); app.js reads that list once and asks for nothing else. `studio/app/share.json` is an empty list for local runs. Checked on the live site after publish. No improvement tonight (the day's work was the artists' editor and the glass rooms).
