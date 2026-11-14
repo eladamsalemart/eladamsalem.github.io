@@ -160,3 +160,11 @@ and approvals; never ask for a key in the chat (secrets go in GitHub secrets).
    `exedit.js` (walls to scale, plinths, wall text). Tables `museum_exhibitions` (admin only) and `museum_slots` (a live slot holds a copy of its
    exhibition; public read only live and inside dates). The street (`enterStreet` in app.js) reads live slots, else the automatic street. The phone admin
    (`admin.js`) shows the rooms read-only. Notes: `studio/design/night-2026-11-11/desk.md`.
+13b. The museum on Home, and a hall instead of the street (owner, 13.11). Home has one section, The Museum (app.js `fillMuseum`/`drawMuseum`,
+   styles injected as `MU_CSS`), shown only while a slot is live; `liveSlots()` asks `museum_slots` afresh (no-store) each time Home or the
+   museum opens and when the app is come back to, and keeps the last answer in localStorage `os-museum` for a phone without signal. A publish
+   on the Desk therefore shows on the next opening, with no delay of ours. Test: `node studio/app/tests/museum_live.cjs` (plays the Desk's
+   writes; with `live` as third argument it only reads the real site). The owner does not want one long street: three plans in
+   `studio/design/museum-hall/` (page + PDF, Hebrew). Plan 1, The Court, is built as a trial in synth.js `buildHall` and opens only with
+   `?hall` in the address (`/open-studio/?hall#/museum`); `buildStreet` stays the default UNTIL THE OWNER CHOOSES. If he chooses the Court:
+   run the phone inspection on it, draw its plan on the Desk (museum.js draws the street's 4+4), rename "The Museum Street" on Shows.
