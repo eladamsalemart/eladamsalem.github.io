@@ -879,3 +879,204 @@ export async function buildStreet(rooms, src, thumbOf = w => w.image, opts = {})
   }
   return { spec, length: L };
 }
+
+// =====================================================================================================================
+// The Court (13.11): a trial of a museum that is not a street, behind a switch (open the app with ?hall; the street stays
+// the default until the owner chooses). One top-lit hall, 20 x 16.6 m and 6 m high; the eight rooms open off its four sides,
+// two a side, each through its colour threshold; you come in at the middle of the south side and face a single work on the
+// north wall between two doors. In the hall stand two freestanding walls (coulisses) and, when an exhibition has objects,
+// plinths: each carries ONE work, the first of an exhibition, with the exhibition's name beside it. The rooms are the
+// street's rooms (the Desk's walls, plinths, labels and words are read the same way), so nothing changes on the Desk.
+// Design and the two other plans: studio/design/museum-hall/.
+// =====================================================================================================================
+const CT = { W: 20, D: 16.6, H: 6, O: 8.2 };
+// where the rooms open, in the order the slots fill them: the two ahead of you, then the sides from far to near, then beside the way in
+// (side, the door's middle along that side, and how far the room's middle lies from the door's: the two ahead have their doors toward the
+// middle of the wall, so that a phone, which sees a narrow slice, has both in view from the way in with the single work between them)
+const CT_PLACES = [['n', 6.3, -2.2], ['n', 13.7, 2.2], ['w', 4.15, 0], ['e', 4.15, 0], ['w', 12.45, 0], ['e', 12.45, 0], ['s', 4.1, 0], ['s', 15.9, 0]];
+export async function buildHall(rooms, src, thumbOf = w => w.image, opts = {}) {
+  const { RH, RD, RW, VD, MOUTH, DOOR_H, RIM } = SH, { W, D, H, O } = CT;
+  const X0 = O, X1 = O + W, Z0 = O, Z1 = O + D, TX = W + 2 * O, TZ = D + 2 * O, CX = X0 + W / 2, CZ = Z0 + D / 2;
+  rooms = rooms.slice(0, 8);
+  const surfaces = [], solids = [], works = [], plinthsOut = [], flat = new Map();
+  const plain = c => { if (!flat.has(c)) { const cv = canvas(4, 4), x = cv.getContext('2d'); x.fillStyle = c; x.fillRect(0, 0, 4, 4); flat.set(c, cv.toDataURL('image/png')); } return flat.get(c); };
+  const noise = (x, w, h, count, a) => { for (let i = 0; i < count; i++) { const v = Math.random() < 0.5 ? 255 : 0; x.fillStyle = `rgba(${v},${v},${v},${Math.random() * a})`; x.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 1.5, 1 + Math.random() * 1.5); } };
+  // a wall by its middle (cx, cz), facing (nx, nz); it runs along u = (nz, -nx), the right hand of someone looking at it
+  const wall = (name, cx, cz, nx, nz, len, o = {}) => {
+    const ux = nz, uz = -nx, x = cx - ux * len / 2, z = cz - uz * len / 2, holes = o.holes || [], h = o.h || H;
+    surfaces.push({ name, kind: 'wall', texture: o.tex, origin: [x, h, z], u: [ux, 0, uz], v: [0, -1, 0], size: [len, h], normal: [nx, 0, nz],
+      openings: holes.map(([a, b]) => ({ from: a, to: b, height: DOOR_H, arch: false, depth: 0.1, through: true, bare: true })) });
+    let a = 0; for (const [f, t] of [...holes, [len, len]].sort((p, q) => p[0] - q[0])) { if (f > a + 0.01) solids.push([x + ux * a, z + uz * a, x + ux * f, z + uz * f]); a = Math.max(a, t); }
+    return { n: [nx, nz], len, at: s => [x + ux * s, z + uz * s] };
+  };
+  // a flat rectangle between two corners at height y, facing up or down
+  const rect = (name, kind, a, b, y, up, tex) => { const x = Math.min(a[0], b[0]), z = Math.min(a[1], b[1]), w = Math.abs(b[0] - a[0]), d = Math.abs(b[1] - a[1]);
+    surfaces.push({ name, kind, texture: tex, origin: [x, y, up ? z : z + d], u: [1, 0, 0], v: up ? [0, 0, 1] : [0, 0, -1], size: [w, d], normal: [0, up ? 1 : -1, 0], openings: [] }); };
+  const plate = (name, lines, cx, cy, cz, N, w, h) => {
+    const c = canvas(w * 400, h * 400), x = c.getContext('2d'); x.fillStyle = 'rgba(250,248,244,0.96)'; x.fillRect(0, 0, c.width, c.height);
+    x.fillStyle = 'rgba(40,36,30,0.88)'; x.textBaseline = 'top';
+    let yy = 8; lines.forEach((ln, k) => { x.font = `${k === 0 ? 'italic 600 17px' : '400 14px'} Georgia, serif`; let s = String(ln); while (x.measureText(s).width > c.width - 16 && s.length > 4) s = s.slice(0, -2); x.fillText(s, 8, yy); yy += k === 0 ? 22 : 18; });
+    const ux = N[2], uz = -N[0];
+    surfaces.push({ name, kind: 'wall', texture: jpg(c, 0.9), origin: [cx - ux * w / 2, cy + h / 2, cz - uz * w / 2], u: [ux, 0, uz], v: [0, -1, 0], size: [w, h], normal: [N[0], 0, N[2]], openings: [] });
+  };
+  // a work on a wall: p = its middle on the wall's face, n = the wall's normal
+  const hangAt = (work, wm, hm, p, n, y, label) => {
+    const N = [n[0], 0, n[1]], off = 0.039, ux = N[2], uz = -N[0];
+    works.push({ id: work.slug || work.id, work: work.title, image: work.image, imageSmall: thumbOf(work), size: [wm * 100, hm * 100], measured: [wm * 100, hm * 100],
+      centre: [p[0] + N[0] * off, y, p[1] + N[2] * off], axes: [[N[2], 0, -N[0]], [0, 1, 0], N], depth: 0.035, lightScale: 1 });
+    if (label) { const d = (label.side || 1) * (wm / 2 + 0.3);
+      plate(`lab${works.length}`, label.lines, p[0] + ux * d + N[0] * 0.012, Math.max(0.6, y - hm / 2 + 0.2), p[1] + uz * d + N[2] * 0.012, N, 0.4, 0.28); }
+  };
+
+  // the four sides of the hall: o points out of the hall (into the rooms), r is the right hand of someone walking out through a door
+  const SIDE = { n: { o: [0, -1], mid: [CX, Z0], len: W, at: t => [X0 + t, Z0] }, s: { o: [0, 1], mid: [CX, Z1], len: W, at: t => [X0 + t, Z1] },
+    w: { o: [-1, 0], mid: [X0, CZ], len: D, at: t => [X0, Z0 + t] }, e: { o: [1, 0], mid: [X1, CZ], len: D, at: t => [X1, Z0 + t] } };
+  const doors = rooms.map((room, i) => { const [k, t, sh0] = CT_PLACES[i], S = SIDE[k], o = S.o, r = [-o[1], o[0]], c = S.at(t), sh = sh0 * (k === 'n' ? 1 : 1);
+    const start = [S.mid[0] - r[0] * S.len / 2, S.mid[1] - r[1] * S.len / 2], m = (c[0] - start[0]) * r[0] + (c[1] - start[1]) * r[1];
+    return { i, room, side: k, o, r, c, m, sh, P: (a, b) => [c[0] + r[0] * a + o[0] * b, c[1] + r[1] * a + o[1] * b] }; });
+
+  // --- the hall's walls: light plaster under daylight from above, each threshold's colour on the wall beside it, the exhibition's name over its door
+  const PPM = 64;
+  const hallWall = (k, extra) => {
+    const S = SIDE[k], w = Math.round(S.len * PPM), h = Math.round(H * PPM), c = canvas(w, h), x = c.getContext('2d');
+    x.fillStyle = '#f3f1ec'; x.fillRect(0, 0, w, h);
+    const top = x.createLinearGradient(0, 0, 0, 2.6 * PPM); top.addColorStop(0, 'rgba(255,255,255,0.75)'); top.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = top; x.fillRect(0, 0, w, 2.6 * PPM);
+    for (const d of doors.filter(q => q.side === k)) {
+      x.save(); x.translate(d.m * PPM, (H - 1.5) * PPM); x.scale(3.3 * PPM, 2.6 * PPM);
+      const g = x.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, rgba(d.room.colour, 0.3)); g.addColorStop(0.5, rgba(d.room.colour, 0.11)); g.addColorStop(1, rgba(d.room.colour, 0));
+      x.fillStyle = g; x.fillRect(-1, -1, 2, 2); x.restore();
+    }
+    const ao = x.createLinearGradient(0, h - 0.7 * PPM, 0, h); ao.addColorStop(0, 'rgba(70,58,44,0)'); ao.addColorStop(1, 'rgba(70,58,44,0.2)'); x.fillStyle = ao; x.fillRect(0, h - 0.7 * PPM, w, 0.7 * PPM);
+    x.fillStyle = 'rgba(255,255,255,0.35)'; x.fillRect(0, h - 0.12 * PPM, w, 0.12 * PPM); x.fillStyle = 'rgba(60,50,40,0.3)'; x.fillRect(0, h - 0.125 * PPM, w, 1.5);
+    noise(x, w, h, 9000, 0.05);
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    for (const d of doors.filter(q => q.side === k)) {
+      const cx = d.m * PPM, cy = (H - (DOOR_H + 0.75)) * PPM, t = d.room.title;
+      let fs = 0.34 * PPM; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(t).width > 3.4 * PPM && fs > 10) { fs -= 1; x.font = `500 ${fs}px Georgia, serif`; }
+      x.fillStyle = 'rgba(40,36,30,0.85)'; x.fillText(t, cx, cy - 0.05 * PPM);
+      x.fillStyle = d.room.colour; x.fillRect(cx - 0.4 * PPM, cy + 0.22 * PPM, 0.8 * PPM, 3);
+      x.fillStyle = 'rgba(40,36,30,0.5)'; x.font = `${0.15 * PPM}px Georgia, serif`; x.fillText(`${d.room.works.length} works`, cx, cy + 0.42 * PPM);
+    }
+    if (extra) extra(x, w, h);
+    return jpg(c);
+  };
+  for (const k of ['n', 's', 'w', 'e']) {
+    const S = SIDE[k];
+    wall('hall-' + k, S.mid[0], S.mid[1], -S.o[0], -S.o[1], S.len, { holes: doors.filter(d => d.side === k).map(d => [d.m - MOUTH / 2, d.m + MOUTH / 2]),
+      tex: hallWall(k, k === 's' ? (x, w, h) => {            // the way in: the museum's name, behind you as you come in
+        x.fillStyle = 'rgba(40,36,30,0.85)'; x.font = `500 ${0.5 * PPM}px Georgia, serif`; x.fillText('The Museum', w / 2, h - 2.5 * PPM);
+        x.fillStyle = 'rgba(40,36,30,0.5)'; x.font = `${0.17 * PPM}px Georgia, serif`; x.fillText(`${rooms.length} exhibitions open off this hall`, w / 2, h - 2.0 * PPM); } : null) });
+  }
+
+  // --- the hall's floor (pale terrazzo, daylight pooled in the middle, each threshold's colour spilled at its door) and its ceiling (one skylight in a grid of beams)
+  {
+    const FP = 48, fw = Math.round(W * FP), fh = Math.round(D * FP), c = canvas(fw, fh), x = c.getContext('2d');
+    x.fillStyle = '#d9d5cc'; x.fillRect(0, 0, fw, fh);
+    const day = x.createRadialGradient(fw / 2, fh / 2, 0, fw / 2, fh / 2, fw * 0.6); day.addColorStop(0, 'rgba(255,255,255,0.3)'); day.addColorStop(1, 'rgba(90,76,60,0.16)'); x.fillStyle = day; x.fillRect(0, 0, fw, fh);
+    for (let i = 0; i < 9000; i++) { const t = Math.random(); x.fillStyle = t < 0.4 ? 'rgba(255,255,255,0.35)' : t < 0.8 ? 'rgba(80,70,60,0.18)' : 'rgba(190,160,130,0.25)'; x.fillRect(Math.random() * fw, Math.random() * fh, 1 + Math.random() * 2, 1 + Math.random() * 2); }
+    for (const d of doors) {
+      x.save(); x.translate((d.c[0] - X0) * FP, (d.c[1] - Z0) * FP); x.scale(MOUTH * 1.15 * FP, MOUTH * 1.15 * FP);
+      const g = x.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, rgba(d.room.colour, 0.5)); g.addColorStop(0.5, rgba(d.room.colour, 0.18)); g.addColorStop(1, rgba(d.room.colour, 0));
+      x.fillStyle = g; x.fillRect(-1, -1, 2, 2); x.restore();
+    }
+    rect('hall-floor', 'wall', [X0, Z0], [X1, Z1], 0.003, true, jpg(c, 0.9));
+    const cw = 800, ch = Math.round(800 * D / W), cc = canvas(cw, ch), y = cc.getContext('2d');
+    y.fillStyle = '#e9e6df'; y.fillRect(0, 0, cw, ch);
+    const nx = 5, nz = 4, bw = 14, m = 46;
+    for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
+      const px = m + i * (cw - 2 * m) / nx + bw / 2, pz = m + j * (ch - 2 * m) / nz + bw / 2, pw = (cw - 2 * m) / nx - bw, ph = (ch - 2 * m) / nz - bw;
+      const g = y.createRadialGradient(px + pw / 2, pz + ph / 2, 0, px + pw / 2, pz + ph / 2, pw * 0.8); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#eef3f6'); y.fillStyle = g; y.fillRect(px, pz, pw, ph);
+    }
+    surfaces.push({ name: 'hall-ceiling', kind: 'ceiling', texture: jpg(cc, 0.95), origin: [X0, H, Z1], u: [1, 0, 0], v: [0, 0, -1], size: [W, D], normal: [0, -1, 0], openings: [] });
+  }
+  surfaces.push({ name: 'floor', kind: 'floor', texture: plain('#cfc9be'), tileXY: [2, 2], origin: [0, 0, 0], u: [1, 0, 0], v: [0, 0, 1], size: [TX, TZ], normal: [0, 1, 0], openings: [] });
+
+  const roomWall = (() => { const c = canvas(64, 256), x = c.getContext('2d'); x.fillStyle = '#f4f1ec'; x.fillRect(0, 0, 64, 256);
+    const t = x.createLinearGradient(0, 0, 0, 40); t.addColorStop(0, 'rgba(120,108,92,0.16)'); t.addColorStop(1, 'rgba(120,108,92,0)'); x.fillStyle = t; x.fillRect(0, 0, 64, 40);
+    const b = x.createLinearGradient(0, 190, 0, 256); b.addColorStop(0, 'rgba(70,58,44,0)'); b.addColorStop(1, 'rgba(70,58,44,0.2)'); x.fillStyle = b; x.fillRect(0, 190, 64, 66);
+    x.fillStyle = 'rgba(255,255,255,0.35)'; x.fillRect(0, 243, 64, 13); x.fillStyle = 'rgba(60,50,40,0.3)'; x.fillRect(0, 242, 64, 1.5); return jpg(c); })();
+  const oak = (() => { const P = 64, w = RW * P, h = RD * P, c = canvas(w, h), x = c.getContext('2d'); x.fillStyle = '#d3bd9a'; x.fillRect(0, 0, w, h);
+    for (let k = 0; k < h; k += 0.18 * P) { x.fillStyle = `rgba(${Math.random() < 0.5 ? '255,255,255' : '90,66,40'},${0.03 + Math.random() * 0.05})`; x.fillRect(0, k, w, 0.18 * P); x.fillStyle = 'rgba(80,60,40,0.14)'; x.fillRect(0, k, w, 1); }
+    const e = 0.5 * P, edge = (ax, ay, bx, by, rx, ry, rw, rh) => { const g = x.createLinearGradient(ax, ay, bx, by); g.addColorStop(0, 'rgba(60,44,28,0.2)'); g.addColorStop(1, 'rgba(60,44,28,0)'); x.fillStyle = g; x.fillRect(rx, ry, rw, rh); };
+    edge(0, 0, 0, e, 0, 0, w, e); edge(0, h, 0, h - e, 0, h - e, w, e); edge(0, 0, e, 0, 0, 0, e, h); edge(w, 0, w - e, 0, w - e, 0, e, h); return jpg(c, 0.9); })();
+
+  // --- the rooms: each as the street builds it (threshold in the show's colour, three walls to hang on), turned to its side of the hall
+  for (const d of doors) {
+    const { i, room: r, o, P } = d, c = r.colour, R = d.r, M2 = MOUTH / 2, A0 = d.sh - RW / 2, A1 = d.sh + RW / 2;     // (the room runs from A0 to A1 across, the door's middle at 0)
+    wall(`th${i}l`, ...P(-M2, VD / 2), R[0], R[1], VD, { h: DOOR_H, tex: plain(shade(c, 0.8)) });
+    wall(`th${i}r`, ...P(M2, VD / 2), -R[0], -R[1], VD, { h: DOOR_H, tex: plain(shade(c, 0.92)) });
+    rect(`th${i}-ceil`, 'ceiling', P(-M2, 0), P(M2, VD), DOOR_H, false, plain(shade(c, 0.96)));
+    rect(`th${i}-floor`, 'wall', P(-M2, 0), P(M2, VD), 0.006, true, plain(shade(c, 0.88)));
+    const rimTex = plain(shade(c, 0.7));
+    const rim = (nm, a0, a1, y0, y1) => { const q = P(a0, -0.012); surfaces.push({ name: `rim${i}${nm}`, kind: 'wall', texture: rimTex, origin: [q[0], y1, q[1]], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [a1 - a0, y1 - y0], normal: [-o[0], 0, -o[1]], openings: [] }); };
+    rim('l', -M2 - RIM, -M2, 0, DOOR_H + RIM); rim('r', M2, M2 + RIM, 0, DOOR_H + RIM); rim('t', -M2 - RIM, M2 + RIM, DOOR_H, DOOR_H + RIM);
+    rect(`r${i}-floor`, 'wall', P(A0, VD), P(A1, VD + RD), 0.004, true, oak);
+    rect(`r${i}-ceil`, 'ceiling', P(A0, VD), P(A1, VD + RD), RH, false, plain('#f7f4ee'));
+    wall(`r${i}-front`, ...P(d.sh, VD), o[0], o[1], RW, { holes: [[A1 - M2, A1 + M2]], h: RH, tex: roomWall });
+    const runs = [wall(`r${i}-left`, ...P(A0, VD + RD / 2), R[0], R[1], RD, { h: RH, tex: roomWall }), wall(`r${i}-back`, ...P(d.sh, VD + RD), -o[0], -o[1], RW, { h: RH, tex: roomWall }), wall(`r${i}-right`, ...P(A1, VD + RD / 2), -R[0], -R[1], RD, { h: RH, tex: roomWall })];
+    const put = (work, wm, hm, run, ac, y) => hangAt(work, wm, hm, run.at(ac), run.n, y, r.labels ? { side: ac + wm / 2 + 0.55 > run.len ? -1 : 1,
+      lines: [work.title, [work.artist && (work.artist.name || work.artist), work.year].filter(Boolean).join(', '), work.medium || '', work.note || ''].filter(Boolean) } : null);
+    // the Desk's hang (s = metres along the left, back and right walls as seen from the door; y = the height of the work's middle), else the automatic one
+    const manual = r.works.filter(w => w.s != null), autoW = r.works.filter(w => w.s == null).slice(0, 8);
+    for (const work of manual) {
+      const sz = await sizeOf({ ...work, image: thumbOf(work) }, src), [wm, hm] = streetFit(sz.w, sz.h).map(v => v / 100);
+      const k = work.s < RD ? 0 : work.s < RD + RW ? 1 : 2, a0 = k === 0 ? 0 : k === 1 ? RD : RD + RW;
+      put(work, wm, hm, runs[k], Math.min(Math.max(work.s - a0, wm / 2 + 0.1), runs[k].len - wm / 2 - 0.1), work.y != null ? work.y : 1.5);
+    }
+    for (const p of r.plinths || []) {
+      const key = PLINTHS[p.size] ? p.size : 'm', ob = (r.objects || {})[p.work], q = P(Math.min(Math.max(p.x, 0.5), RW - 0.5) + A0, VD + Math.min(Math.max(p.z, 0.5), RD - 0.5));
+      plinthsOut.push({ id: `${i}-${p.id}`, x: q[0], z: q[1], size: PLINTHS[key], key, work: p.work || null, obj: ob ? { id: ob.id, title: ob.title, image: ob.image, w: ob.w, h: ob.h } : null });
+    }
+    if (r.text) {
+      const lines = String(r.text).split(/\n+/).join(' ').match(/.{1,46}(\s|$)/g) || [];
+      const cv = canvas(640, 520), x = cv.getContext('2d'); x.fillStyle = 'rgba(250,248,244,0.97)'; x.fillRect(0, 0, 640, 520); x.fillStyle = 'rgba(40,36,30,0.9)'; x.textBaseline = 'top';
+      x.font = 'italic 600 34px Georgia, serif'; x.fillText(String(r.title).slice(0, 30), 30, 28); x.font = '400 20px Georgia, serif';
+      if (r.curator) { x.fillStyle = 'rgba(40,36,30,0.55)'; x.fillText('Curated by ' + r.curator, 30, 78); x.fillStyle = 'rgba(40,36,30,0.9)'; }
+      lines.slice(0, 11).forEach((ln, k) => x.fillText(ln.trim(), 30, 122 + k * 32));
+      const q = P(M2 + 2.3 < A1 ? M2 + 2.1 : -M2 - 0.5, VD + 0.012);      // (beside the door, on the side that has the wall for it)
+      surfaces.push({ name: `r${i}-intro`, kind: 'wall', texture: jpg(cv, 0.92), origin: [q[0], 2.6, q[1]], u: [-R[0], 0, -R[1]], v: [0, -1, 0], size: [1.6, 1.3], normal: [o[0], 0, o[1]], openings: [] });
+    }
+    const sized = await Promise.all(autoW.map(async work => { const s = await sizeOf({ ...work, image: thumbOf(work) }, src), k = Math.min(1, 140 / Math.max(s.w, s.h)); return { work, w: s.w * k, h: s.h * k }; }));
+    const GAP = 0.5, MG = 0.7, bucket = runs.map(() => []);
+    let ri = 0;
+    for (const s of sized) {
+      while (ri < runs.length && bucket[ri].reduce((t, q) => t + q.w / 100 + GAP, 0) + s.w / 100 > runs[ri].len - 2 * MG) ri++;
+      if (ri >= runs.length) break;
+      bucket[ri].push(s);
+    }
+    bucket.forEach((items, k) => {
+      if (!items.length) return;
+      const run = runs[k], total = items.reduce((t, q) => t + q.w / 100, 0), g = (run.len - total) / (items.length + 1);
+      let a = g;
+      for (const s of items) { const wm = s.w / 100, hm = s.h / 100; put(s.work, wm, hm, run, a + wm / 2, Math.min(Math.max(1.5, hm / 2 + 0.4), RH - hm / 2 - 0.5)); a += wm + g; }
+    });
+  }
+
+  // --- in the hall: single works. One from each exhibition (its first), on the north wall between the two doors ahead and on the
+  //     two faces of each coulisse, the exhibition's name beside it; and the exhibitions' objects (up to three) on plinths
+  const stands = [{ id: 'hall-a', x: X0 + 5.6, z: Z0 + 10.6, len: 3.6, rot: 0, h: 2.8 }, { id: 'hall-b', x: X0 + 14.4, z: Z0 + 6.6, len: 3.6, rot: 0, h: 2.8 }];
+  const faces = standWalls(stands), face = (() => { const c = canvas(256, 256), x = c.getContext('2d'); x.fillStyle = '#f6f4ef'; x.fillRect(0, 0, 256, 256);
+    const b = x.createLinearGradient(0, 200, 0, 256); b.addColorStop(0, 'rgba(70,58,44,0)'); b.addColorStop(1, 'rgba(70,58,44,0.16)'); x.fillStyle = b; x.fillRect(0, 200, 256, 56); return jpg(c); })();
+  for (const f of faces) surfaces.push({ name: f.name, kind: 'wall', stand: f.stand, texture: face, origin: f.origin, u: f.u, v: [0, -1, 0], size: [f.len, f.h], normal: f.normal, openings: [] });
+  for (const s of stands) solids.push([s.x - s.len / 2, s.z, s.x + s.len / 2, s.z]);
+  const mid = f => [f.origin[0] + f.u[0] * f.len / 2, f.origin[2] + f.u[2] * f.len / 2];
+  const spots = [{ p: [CX, Z0], n: [0, 1], max: 250, y: 1.85 }, ...[0, 2, 1, 3].map(k => ({ p: mid(faces[k]), n: [faces[k].normal[0], faces[k].normal[2]], max: 150, y: 1.5 }))];
+  const heralds = rooms.map(r => ({ r, w: r.works.find(w => w.image) })).filter(q => q.w).slice(0, spots.length);
+  for (const [k, q] of heralds.entries()) {
+    const sp = spots[k], s = await sizeOf({ ...q.w, image: thumbOf(q.w) }, src), f = Math.min(sp.max / Math.max(s.w, s.h), k === 0 ? 3 : 1.6);
+    hangAt(q.w, s.w * f / 100, s.h * f / 100, sp.p, sp.n, sp.y, { lines: [q.w.title, [q.w.artist && (q.w.artist.name || q.w.artist), q.w.year].filter(Boolean).join(', '), 'In: ' + q.r.title].filter(Boolean) });
+  }
+  const objs = rooms.flatMap(r => Object.values(r.objects || {}).slice(0, 1)).slice(0, 3), at = [[CX, CZ + 0.4], [X0 + 15.2, Z0 + 12.2], [X0 + 4.8, Z0 + 4.6]];
+  objs.forEach((ob, k) => plinthsOut.push({ id: 'hall-p' + k, x: at[k][0], z: at[k][1], size: PLINTHS.m, key: 'm', work: ob.id, obj: { id: ob.id, title: ob.title, image: ob.image, w: ob.w, h: ob.h } }));
+
+  const spec = {
+    version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 60, noSpots: true,
+    baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: H },
+    room: { x0: 0, x1: TX, z0: 0, z1: TZ, height: H }, surfaces, works, views: [], floorReflect: [0, 0], solids,
+    stands: stands.map(s => ({ ...s, kind: 'stand', t: STAND.t })),
+    start: { pos: [CX, Z1 - 1.1], look: [CX, Z0] },
+    ...(plinthsOut.length ? { plinths: plinthsOut } : {}),
+  };
+  if (opts.focus != null && doors[opts.focus]) { const d = doors[opts.focus]; spec.start = { pos: d.P(0, -3.2), look: d.P(0, 3) }; }
+  return { spec, size: [W, D] };
+}
