@@ -19,6 +19,12 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
     if (!sessionStorage.getItem('os-preview')) sessionStorage.setItem('os-preview', JSON.stringify({ user: { id: 'journey-test', role: 'artist', name: 'Maya Cohen', email: 'maya@example.com' } }));
   });
   const p = await ctx.newPage(), bad = [], times = {};
+  // waits are polled on a timer, not on the frame clock: while a room is being drawn in software the frames starve,
+  // and a wait on them times out although the page is already as asked
+  const wf = p.waitForFunction.bind(p), ws = p.waitForSelector.bind(p);
+  p.waitForFunction = (fn, arg, o = {}) => wf(fn, arg, { polling: 150, ...o });
+  p.waitForSelector = (sel, o = {}) => o.state === 'hidden' || o.state === 'detached' ? ws(sel, o)
+    : wf(([q, seen]) => { const e = document.querySelector(q); return !!e && (!seen || e.getClientRects().length > 0); }, [sel, o.state !== 'attached'], { polling: 150, timeout: o.timeout });
   if (SLOW) { const cdp = await ctx.newCDPSession(p); await cdp.send('Emulation.setCPUThrottlingRate', { rate: SLOW }); }
   if (KINDS) await p.route(/space\/synth\.js/, async r => { const res = await r.fetch(); let t = await res.text();
     t = t.replace(/export const ACTIVE_KINDS = \[[^\]]*\]/, `export const ACTIVE_KINDS = ${JSON.stringify(KINDS.split(','))}`); r.fulfill({ response: res, body: t }); });
@@ -67,6 +73,21 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
     await p.waitForFunction(() => document.querySelectorAll('#works .wk').length === 2); await p.tap('.ed-toast button'); await p.waitForFunction(() => document.querySelectorAll('#works .wk').length === 3); });
 
   // On View: every kind offered, every size of it, then a title, and the hang wakes
+  // Edit is the page as visitors see it: every work by year and the About page are pages of their own, one tap away and back
+  await step('page-pages', 12000, async () => {
+    await shot('edit-page');
+    await p.tap('[data-ed="sub-works"]'); await p.waitForSelector('.ed-subp #works .wk-grip', { timeout: 4000 }); await targets('all works'); await shot('all-works');
+    await p.tap('[data-ed="sub-back"]'); await p.waitForSelector('[data-ed="sub-about"]', { timeout: 4000 });
+    await p.tap('[data-ed="sub-about"]'); await p.waitForSelector('#edBio', { timeout: 4000 }); await targets('about page'); await shot('about-page');
+    await p.tap('[data-ed="sub-back"]'); await p.waitForSelector('#works .wk', { timeout: 4000 });
+    if (await p.locator('#edBio').count()) throw new Error('the About text is still on the page itself');
+  });
+  // the two kinds of exhibition, told apart on one page
+  await step('two-kinds', 6000, async () => {
+    await p.evaluate(() => { location.hash = '#/studio/exhibitions'; }); await p.waitForSelector('.ex-kind', { timeout: 4000 });
+    if ((await p.locator('.ex-kind').count()) !== 2) throw new Error('the exhibitions page does not show the two kinds');
+    await targets('exhibitions'); await shot('two-kinds');
+  });
   await step('onview-open', 5000, async () => { await p.evaluate(() => { location.hash = '#/studio/onview'; }); await p.waitForSelector('#vxForm .ov-kind', { timeout: 10000 }); });
   await targets('on view');
   const kinds = await p.$$eval('#vxForm input[name=kind]', l => l.map(i => i.value));
@@ -84,12 +105,13 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
   // the empty room opens on the artist's works: one tap hangs the first, and leaving shows it on the On View page
   if (!process.env.JOURNEY_NO_3D) {
     await step('hang-first-work', 90000, async () => { await p.waitForSelector('.he-grid [data-add]', { timeout: 20000 }); const n = await p.locator('.he-grid [data-add]').count();
-      await p.tap('.he-grid [data-add]'); await p.waitForFunction(() => document.querySelector('.he-pop') && document.querySelector('.he-pop').hidden && document.querySelector('canvas'), null, { timeout: 50000 }); await p.waitForTimeout(1200);
+      await p.tap('.he-grid [data-add]'); await p.waitForFunction(() => document.querySelector('.he-grid [data-add][aria-pressed="true"]'), null, { timeout: 4000, polling: 150 }); await targets('add tray'); await shot('work-chosen'); await p.tap('.he-pop [data-addgo]');
+      await p.waitForFunction(() => document.querySelector('.he-pop') && document.querySelector('.he-pop').hidden && document.querySelector('canvas'), null, { timeout: 50000 }); await p.waitForTimeout(1200);
       await p.tap('.he-bar [data-a="add"]'); await p.waitForFunction(k => document.querySelectorAll('.he-grid [data-add]').length === k - 1, n, { timeout: 5000 }); await p.tap('.he-bar [data-a="add"]'); });
     // the plan: the room from above, where things are placed roughly. A work is dragged to another wall, a standing wall across the floor
     const mid = async sel => { const b = await p.locator(sel).first().boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
     const dragTo = async (from, to) => { await p.mouse.move(...from); await p.mouse.down(); for (let i = 1; i <= 8; i++) await p.mouse.move(from[0] + (to[0] - from[0]) * i / 8, from[1] + (to[1] - from[1]) * i / 8); await p.mouse.up(); };
-    await step('plan-shows', 5000, async () => { await p.waitForSelector('.hp:not([hidden]) .hp-svg [data-k="work"]', { timeout: 5000 }); if (!(await p.locator('.hp-svg .hp-wall').count())) throw new Error('the plan draws no walls'); });
+    await step('plan-shows', 5000, async () => { await p.waitForFunction(() => document.querySelector('.hp:not([hidden]) .hp-svg [data-k="work"]'), null, { timeout: 5000, polling: 150 }); if (!(await p.locator('.hp-svg .hp-wall').count())) throw new Error('the plan draws no walls'); });
     await step('plan-drag-work', 20000, async () => {
       const box = await p.locator('.hp-svg').boundingBox(), from = await mid('.hp-svg [data-k="work"]');
       const to = [from[0] < box.x + box.width / 2 ? box.x + box.width - 50 : box.x + 50, box.y + box.height / 2];
@@ -162,12 +184,13 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
       await p.tap('.ov-tiles .ov-add'); await p.waitForSelector('.he-grid [data-add]', { timeout: 60000 }); await p.tap('.sv-x'); await p.waitForSelector('.ov-tiles, .ov-none', { timeout: 24000 });
       await p.tap('.ov-tiles [data-unhang]'); await p.waitForFunction(k => document.querySelectorAll('.ov-tiles [data-unhang]').length === k - 1, n, { timeout: 4000 });
     });
-    // "Hang all" in the Add tray: every work still waiting goes into the show in one tap
+    // several works chosen in the Add tray (here all of them, with Choose all) go into the show together
     await step('hang-all', 150000, async () => {
       await p.evaluate(() => (document.querySelector('.ov-tiles .ov-add') || document.querySelector('#vxHang')).click());
       await p.waitForSelector('.he-pop [data-addall]', { timeout: 90000 }); await targets('add tray');
       const left = await p.locator('.he-grid [data-add]').count(), had = await p.locator('.hp-svg [data-k="work"]').count();
-      await p.evaluate(() => document.querySelector('.he-pop [data-addall]').click());
+      await p.evaluate(() => document.querySelector('.he-pop [data-addall]').click()); await p.waitForFunction(() => !document.querySelector('.he-pop [data-addgo]').disabled, null, { timeout: 3000 }); await shot('all-chosen');
+      await p.evaluate(() => document.querySelector('.he-pop [data-addgo]').click());
       await p.waitForFunction(n => document.querySelectorAll('.hp-svg [data-k="work"]').length >= n, had + left, { timeout: 90000 }); await shot('hang-all');
       if (left < 2) throw new Error('fewer than two works were waiting');
     });

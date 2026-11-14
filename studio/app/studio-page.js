@@ -52,6 +52,8 @@ body.previewing .ed-bar{top:34px}
 .ed-fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:40;min-height:52px;padding:0 22px 0 18px;border:0;border-radius:99px;background:var(--ink);color:var(--wall);font:600 16px var(--sans);display:flex;align-items:center;gap:8px;box-shadow:0 6px 24px rgba(0,0,0,.28);cursor:pointer}
 .ed-fab b{font-size:22px;line-height:1;font-weight:400}
 .ed-src{display:grid;gap:0;margin:0 0 6px}.ed-src>*{display:grid;gap:2px;min-height:64px;align-content:center;padding:10px 28px 10px 2px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;font:inherit;color:var(--ink);text-decoration:none;cursor:pointer;position:relative}.ed-src>*:last-child{border-bottom:0}.ed-src b{font:600 17px var(--sans)}.ed-src span{font-size:14px;color:var(--muted);line-height:1.35}.ed-src>*::after{content:'→';position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--muted)}
+.wk-short .wk-grip{display:none}.ed-subp{padding-top:10px;padding-bottom:110px}
+.ed-subback{display:inline-flex;align-items:center;min-height:44px;padding:0 2px;border:0;background:none;font:600 15px var(--sans);color:inherit;cursor:pointer}
 .ed-foot{padding:28px 0 96px;display:flex;gap:16px;flex-wrap:wrap}
 .ed-room{display:grid;gap:4px;text-decoration:none;color:inherit}.ed-room b{font-size:17px}.ed-room span{font-size:14px;color:var(--muted)}
 .sh-back{position:fixed;inset:0;z-index:100;background:rgba(20,18,14,.42);display:flex;align-items:flex-end;justify-content:center}
@@ -161,11 +163,13 @@ export function mount(c) {
 
   // --- drawing -------------------------------------------------------------------------------------------------
   const bar = () => `<div class="ed-bar"><a class="ed-back" href="#/" aria-label="Back to Open Studio">←</a>
-    <div class="ed-seg" role="group" aria-label="Mode"><button type="button" data-mode="edit" aria-pressed="${mode() === 'edit'}">Edit</button><button type="button" data-mode="view" aria-pressed="${mode() === 'view'}">View</button><a class="ed-ex" href="#/studio/onview">Exhibition</a></div>
+    <div class="ed-seg" role="group" aria-label="Mode"><button type="button" data-mode="edit" aria-pressed="${mode() === 'edit'}">Edit</button><button type="button" data-mode="view" aria-pressed="${mode() === 'view'}">View</button><a class="ed-ex" href="#/studio/exhibitions">Exhibitions</a></div>
     <span class="ed-chip ${state()[1]}" id="edChip">${state()[0]}</span></div>`;
   const chip = (t, cls) => { const e = app.querySelector('#edChip'); if (e) { e.textContent = t || state()[0]; e.className = 'ed-chip ' + (t ? '' : state()[1]); } };
 
+  let sub = '';                                             // '' the page itself, 'works' every work by year, 'about' the About page
   function draw() {
+    if (mode() === 'edit' && sub) return drawSub();
     const y = scrollY;
     a = tools.ownPage(S);
     app.innerHTML = bar() + tools.artistPage(a) + (mode() === 'edit' ? '<button type="button" class="ed-fab" id="edAdd"><b>+</b> Add works</button>' : '');
@@ -187,7 +191,7 @@ export function mount(c) {
     const ov = hero.querySelector('.ov .wrap'); ov.setAttribute('role', 'button'); ov.tabIndex = 0; ov.dataset.ed = 'profile';
     ov.querySelector('h1').insertAdjacentHTML('beforeend', '<span class="ed-pen" aria-hidden="true">✎</span>');
     // the follow row isn't for your own page
-    const top = wrap.querySelector('.btns'); if (top) top.remove();
+    const top = wrap.querySelector('.btns'); if (top) top.innerHTML = '<button type="button" class="btn g" data-ed="sub-about">✎ About &amp; CV</button>';
     // the statement, written in place
     const st = wrap.querySelector('.statement');
     st.contentEditable = 'plaintext-only'; if (st.contentEditable !== 'plaintext-only') st.contentEditable = 'true';
@@ -205,19 +209,16 @@ export function mount(c) {
     if (!covers) { (sec || wrap).insertAdjacentHTML(sec ? 'afterend' : 'beforeend', '<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">0</span></div><div class="covers"></div></section>'); covers = wrap.querySelector('.covers'); }
     covers.closest('.sec').insertAdjacentHTML('beforeend', '<button type="button" class="ed-sec-add" data-ed="ex-new" style="margin-top:14px">+ Add an exhibition</button>');
     covers.querySelectorAll('a').forEach(x => { x.dataset.slug = x.getAttribute('href').slice(13); });
-    // the About page: the bio and the CV
-    wrap.insertAdjacentHTML('beforeend', `<section class="sec"><div class="sec-h"><h2>About</h2><span class="more">on your About page</span></div>
-      <div class="prose"><p id="edBio" contenteditable="plaintext-only" data-ph="Studies, shows, residencies: your story, as you would tell it."></p></div></section>
-      <section class="sec"><div class="sec-h"><h2>CV</h2><button type="button" class="more" data-ed="cv">${(S.artist.cv || []).length ? 'Edit' : 'Add'}</button></div>
-      ${(S.artist.cv || []).length ? `<div class="cv">${cvHtml(S.artist.cv)}</div>` : '<p class="m">Education, exhibitions, awards. Add the lines you would put on a CV.</p>'}</section>
-      ${roomsCard()}
-      <div class="ed-foot"><button type="button" class="more" id="edSo">Sign out</button></div>`);
-    const bio = wrap.querySelector('#edBio'); bio.textContent = S.artist.bio || '';
-    bio.setAttribute('role', 'textbox'); bio.setAttribute('aria-multiline', 'true'); bio.setAttribute('aria-label', 'Your story, for the About page');
-    bio.onblur = () => { const v = bio.innerText.trim(); if (v !== (S.artist.bio || '')) { S.artist.bio = v; commit(); } };
+    wrap.insertAdjacentHTML('beforeend', `${roomsCard()}<div class="ed-foot"><button type="button" class="more" id="edSo">Sign out</button></div>`);
     wrap.querySelector('#edSo').onclick = () => c.signOut();
+    app.querySelector('#edAdd').onclick = addSheet;
+    // taps
+    app.onclick = onTap;
+    app.onkeydown = keys;
+  }
+  const keys = e => { const r = e.target.classList && e.target.classList.contains('wk') ? e.target : null; if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); workSheet(r.dataset.id); } };
     // Add works: one place for every way work comes in (the phone's photos, or where the work already is)
-    app.querySelector('#edAdd').onclick = () => sheet('Add works', `<div class="ed-src">
+  const addSheet = () => sheet('Add works', `<div class="ed-src">
         <button type="button" data-src="phone"><b>Photos from this phone</b><span>Take or choose photos, as many as you like.</span></button>
         <a href="#/studio/import" data-src="site"><b>Your website</b><span>We find your images and their titles.</span></a>
         <a href="#/studio/import" data-src="drive"><b>Google Drive</b><span>Choose images from your Drive, or paste a folder link.</span></a>
@@ -225,10 +226,25 @@ export function mount(c) {
       b.querySelector('[data-src=phone]').onclick = () => { close(); pickPhotos(); };
       b.querySelectorAll('a[data-src]').forEach(a => a.onclick = () => { try { sessionStorage.setItem('os-import-way', a.dataset.src); } catch {} close(); });
     });
-    // taps
-    app.onclick = onTap;
-    app.onkeydown = e => { const r = e.target.classList && e.target.classList.contains('wk') ? e.target : null; if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); workSheet(r.dataset.id); } };
+  // a page of its own inside Edit: every work by year (edit, reorder), or the About page (the story and the CV)
+  function drawSub() {
+    app.innerHTML = bar() + `<div class="wrap gut ed-subp"><button type="button" class="ed-subback" data-ed="sub-back">← Your page</button>
+      ${sub === 'works' ? '<section class="sec" id="works"></section>' : `<section class="sec"><div class="sec-h"><h2>About</h2><span class="more">your About page</span></div>
+      <div class="prose"><p id="edBio" contenteditable="plaintext-only" data-ph="Studies, shows, residencies: your story, as you would tell it."></p></div></section>
+      <section class="sec"><div class="sec-h"><h2>CV</h2><button type="button" class="more" data-ed="cv">${(S.artist.cv || []).length ? 'Edit' : 'Add'}</button></div>
+      ${(S.artist.cv || []).length ? `<div class="cv">${cvHtml(S.artist.cv)}</div>` : '<p class="m">Education, exhibitions, awards. Add the lines you would put on a CV.</p>'}</section>`}</div>`
+      + (sub === 'works' ? '<button type="button" class="ed-fab" id="edAdd"><b>+</b> Add works</button>' : '');
+    app.classList.add('ed');
+    app.querySelector('.ed-bar').querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { sub = ''; setMode(b.dataset.mode); draw(); scrollTo(0, 0); });
+    if (sub === 'works') { drawWorks(); app.querySelector('#edAdd').onclick = addSheet; }
+    else {
+      const bio = app.querySelector('#edBio'); bio.textContent = S.artist.bio || '';
+      bio.setAttribute('role', 'textbox'); bio.setAttribute('aria-multiline', 'true'); bio.setAttribute('aria-label', 'Your story, for the About page');
+      bio.onblur = () => { const v = bio.innerText.trim(); if (v !== (S.artist.bio || '')) { S.artist.bio = v; commit(); } };
+    }
+    app.onclick = onTap; app.onkeydown = keys; scrollTo(0, 0);
   }
+  const openSub = k => { sub = k; draw(); scrollTo(0, 0); };
   const cvHtml = cv => [...new Set(cv.map(l => l.group || ''))].map(g => `<section class="cv-g">${g ? `<h3>${esc(g)}</h3>` : ''}<dl>${cv.filter(l => (l.group || '') === g).map(l => `<div><dt>${esc(l.year)}</dt><dd>${esc(l.title)}${l.venue ? `<span>${esc(l.venue)}</span>` : ''}</dd></div>`).join('')}</dl></section>`).join('');
 
   function wireCard() {
@@ -259,7 +275,7 @@ export function mount(c) {
     if (t.closest('[contenteditable]')) return;
     const ed = t.closest('[data-ed]'), row = t.closest('a.row[data-slug]'), cv = t.closest('.covers a[data-slug], .walkbox .wc[data-slug]');
     if (t.closest('.row > span:last-child')) { e.preventDefault(); return; }
-    if (ed) { e.preventDefault(); ({ cover: coverSheet, profile: profileSheet, 'work-new': () => pickPhotos(), 'ex-new': () => go('#/studio/exhibition/new'), cv: cvSheet })[ed.dataset.ed](); return; }
+    if (ed) { e.preventDefault(); ({ cover: coverSheet, profile: profileSheet, 'work-new': () => pickPhotos(), 'ex-new': () => go('#/studio/exhibition/new'), cv: cvSheet, 'sub-works': () => openSub('works'), 'sub-about': () => openSub('about'), 'sub-back': () => openSub('') })[ed.dataset.ed](); return; }
     const wk = t.closest('.wk');
     if (wk) { if (!t.closest('.wk-grip')) workSheet(wk.dataset.id); return; }
     if (t.closest('[data-pick]')) { e.preventDefault(); pickPhotos(); return; }
@@ -321,6 +337,8 @@ export function mount(c) {
         <span class="wk-t"><b>${esc(w.title || 'Untitled')}</b><span>${esc(meta || 'No details yet')}</span>${up ? '<em class="up">Uploading…</em>' : !size && w.kind !== 'object' ? '<em>Add its size</em>' : ''}</span>
         <button type="button" class="wk-grip" aria-label="Move ${esc(w.title || 'Untitled')}: drag, or use the up and down arrow keys"></button></div>`;
     };
+    if (!sub) return `<div class="sec-h"><h2>Recent works</h2><span class="more">${n}</span></div><div class="wk-list wk-short">${S.works.slice(0, 5).map(row).join('')}</div>
+      <button type="button" class="ed-sec-add" data-ed="sub-works" style="margin-top:12px">${n > 5 ? `All ${n} works, by year` : 'Edit and reorder'}</button>`;
     return `${head}<p class="wk-hint">Tap a work to edit. Drag the dots to reorder within a year. <a href="#/studio/import">Import from a website</a></p>
       ${groups.map(([g, l]) => `<div class="wk-g"><h3>${esc(g)}</h3><div class="wk-list" data-g="${esc(g)}">${l.map(row).join('')}</div></div>`).join('')}`;
   };
