@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-13",
+ "updated": "2026-11-14",
  "sources": [
   {
    "source": "haifa-museum",
@@ -7,7 +7,7 @@
    "url": "https://www.hma.org.il/",
    "status": "ok",
    "shows": 5,
-   "events": 2
+   "events": 1
   },
   {
    "source": "tikotin",
@@ -21,7 +21,6 @@
    "source": "negev-museum",
    "place": "negev-museum-of-art",
    "url": "https://www.negev-museum.org.il/",
-   "via": "wordpress",
    "status": "ok",
    "shows": 3,
    "events": 0
@@ -248,9 +247,9 @@
    "place": "beit-benyamini",
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
-   "status": "ok",
+   "status": "nothing found",
    "shows": 0,
-   "events": 1
+   "events": 0
   },
   {
    "source": "site:beit-castel",
@@ -284,9 +283,9 @@
    "place": "benyamini-contemporary-ceramics-center",
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
-   "status": "ok",
+   "status": "nothing found",
    "shows": 0,
-   "events": 1
+   "events": 0
   },
   {
    "source": "site:bet-ot-ha-motsar-ha-yerushalmi",
@@ -437,8 +436,8 @@
    "place": "hezi-cohen-gallery",
    "url": "https://hezicohengallery.co.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -520,7 +519,7 @@
    "auto": true,
    "status": "ok",
    "shows": 6,
-   "events": 1
+   "events": 0
   },
   {
    "source": "site:maya-gallery",
@@ -779,7 +778,7 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 36,
+   "messages": 38,
    "matched": 4,
    "unmatched": 2,
    "shows": 0,
@@ -788,8 +787,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 2,
-   "seconds": 183,
+   "calls": 16,
+   "seconds": 158,
    "status": "TimeoutError: timed out"
   },
   {
