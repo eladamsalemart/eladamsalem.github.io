@@ -5,7 +5,7 @@ Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 ## 2026-11-15: maplibre-gl 6.17.0 → 6.18.0
 
 - Looked: no open issues or owner requests; health.cjs, check_home, check_app, deps.py pass on the live site (Home 1.9 s, 17 ms frames).
-- Improvement (last one was 11-08): maplibre-gl patch update, vendored (maplibre-gl.mjs and its worker; the CSS is identical). Local health.cjs and the live site after publish: see the line below.
+- Improvement (last one was 11-08): maplibre-gl patch update, vendored (maplibre-gl.mjs and its worker; the CSS is identical). Local health.cjs passes; after publish the live site serves 6.18.0 and health.cjs, check_home and check_app pass there.
 - Still available: three 0.187, supabase-js 2.119, playwright 1.65.1.
 
 ## 2026-11-14: nothing to do
