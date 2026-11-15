@@ -15,6 +15,8 @@ rules hold here (Hebrew to the owner, phone first, never loosen a check, follow 
 3. Run the checks yourself, on the live site:
    - `node studio/app/health/health.cjs https://eladamsalem.com/open-studio/ /tmp/health`
    - `node studio/app/check_home.cjs https://eladamsalem.com/open-studio/`
+   - `node studio/app/check_museum.cjs https://eladamsalem.com/open-studio/` (the Desk's live exhibitions are the ones Home's museum
+     and the street show; `MUSEUM_FAKE=1` proves it fails), `node studio/app/space/check_outside.cjs` after a change to a glass room
    - `python3 studio/app/check_app.py`, `python3 studio/app/health/deps.py`
    Look at the screenshots in `/tmp/health` yourself: a check that passes is not proof that it looks right.
 4. Read `studio/app/health/log.md`. **Nothing broken, nothing published since the last entry, and an improvement made

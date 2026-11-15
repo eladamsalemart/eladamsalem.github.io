@@ -136,6 +136,8 @@ async function queueData(c) {
     c.from('artists').select('id, name, discipline, city, country, statement, note, instagram, link, created_at, sent_at').eq('status', 'pending').order('created_at'),
     c.from('works').select('id, title, year, medium, width, height, thumb, image, created_at, artist_id, artists(name, status)').is('reviewed_at', null).order('created_at', { ascending: false }).limit(300),
     c.from('artists').select('id, name, exhibitions')]);
+  const { data: shows = [] } = await c.from('virtual_shows').select('id, owner_id, title, room, text, works, plinths, sent_at, note').eq('kind', 'artist').eq('status', 'pending').order('sent_at');
+  for (const s of shows || []) s.name = ((withShows || []).find(a => a.id === s.owner_id) || {}).name || '';
   const ids = waiting.map(a => a.id);
   const { data: aw = [] } = ids.length ? await c.from('works').select('artist_id, thumb, image').in('artist_id', ids).limit(400) : { data: [] };
   const groups = [];
@@ -143,7 +145,7 @@ async function queueData(c) {
     let g = groups.find(x => x.id === w.artist_id); if (!g) groups.push(g = { id: w.artist_id, name: w.artists ? w.artists.name : '', works: [] }); g.works.push(w); }
   const tours = withShows.flatMap(a => (a.exhibitions || []).filter(e => e.tour === 'requested' || e.tour === 'building').map(e => ({ uid: a.id, name: a.name, title: e.title, building: e.tour === 'building',
     photos: (e.photos || []).length, extra: (e.tourFiles || []).length, video: !!(e.video || (e.tourFiles || []).some(f => f.kind === 'video')), at: e.tourRequested || Date.now() })));
-  return { waiting, aw, groups, tours, n: waiting.length + groups.length + tours.length };
+  return { waiting, aw, groups, tours, shows: shows || [], n: waiting.length + groups.length + tours.length + (shows || []).length };
 }
 const queueCount = c => (QC && Date.now() - QC.t < 15000 ? QC.p : (QC = { t: Date.now(), p: queueData(c) }).p);
 const heading = n => n === 0 ? 'הכל מטופל' : n === 1 ? 'דבר אחד מחכה לך' : `${n} דברים מחכים לך`;
@@ -170,7 +172,17 @@ async function queue(c) {
   const tour = t => `<article class="ax-card" tabindex="0" data-kind="tour"><div class="ax-hd"><div><div class="ax-kind">בקשת סיור תלת־ממדי</div><h2>${esc(t.title)}</h2></div><span class="st-flag">${t.building ? 'בבנייה' : 'ביקש סיור'}</span></div>
     <p class="ax-meta"><bdi>${esc(t.name)}</bdi> · ${t.photos} צילומי הצבה · ${t.extra} קבצים לסיור${t.video ? ' · יש סרטון' : ''} · ${ago(t.at)}</p>
     <div class="ax-acts"><a class="btn f" href="#/preview/${t.uid}" data-act="preview">פתח את התערוכה</a></div></article>`;
-  const cards = [...q.waiting.map(artist), ...q.groups.map(works), ...q.tours.map(tour)].join('');
+  // a virtual exhibition an artist sent: every one is looked at before it goes live
+  const show = s => { const ws = s.works || [], hung = ws.filter(w => w.wall).length, stands = (s.plinths || []).filter(p => p.kind === 'stand').length, boxes = (s.plinths || []).filter(p => !p.kind).length;
+    return `<article class="ax-card" tabindex="0" data-kind="show" data-id="${s.id}" data-name="${esc(s.title)}">
+    <div class="ax-hd"><div><div class="ax-kind">תערוכה וירטואלית מחכה לאישור</div><h2 dir="auto">${esc(s.title)}</h2></div><span class="st-flag">נשלחה ${ago(s.sent_at || Date.now())}</span></div>
+    <p class="ax-meta"><bdi>${esc(s.name)}</bdi> · <bdi>${esc(s.room)}</bdi> · ${ws.length} עבודות (${hung} על קיר)${stands ? ` · ${stands} קוליסות` : ''}${boxes ? ` · ${boxes} פדסטלים` : ''}</p>
+    ${ws.length ? `<div class="ax-th">${ws.slice(0, 8).map(w => `<img src="${esc(w.thumb || w.image || '')}" alt="" loading="lazy">`).join('')}</div>` : ''}
+    ${s.text ? `<p class="ax-st" dir="auto">${esc(s.text)}</p>` : ''}
+    <div class="ax-ask" data-ask hidden><label>מה לשנות? האמן/ית רואה את זה בעמוד התערוכה (עדיף באנגלית)<input name="note" dir="auto" placeholder="e.g. Two works hang too close; give them room"></label>
+      <div class="ax-acts"><button type="button" class="btn f" data-act="send-ask">שלח לאמן/ית</button><button type="button" class="btn g" data-act="cancel-ask">ביטול</button></div></div>
+    <div class="ax-acts" data-main><button type="button" class="btn f" data-act="approve">אשר</button><button type="button" class="btn g" data-act="ask">בקש שינויים</button><a class="btn ax-t3" href="#/preview/${s.owner_id}" data-act="preview">צפה בעמוד האמן ←</a></div></article>`; };
+  const cards = [...q.waiting.map(artist), ...q.shows.map(show), ...q.groups.map(works), ...q.tours.map(tour)].join('');
   return `<p class="ax-sub" id="axSum"> </p><div class="ax-q" id="axQ">${cards}</div>
     <div class="ax-empty" id="axEmpty" ${q.n ? 'hidden' : ''}><b>אין מה לעשות</b><p class="m">כל מה שנשלח אליך טופל.</p><div class="ax-acts"><a class="btn g" href="#/admin/artists">לכל האמנים</a><a class="btn g" href="#/admin/curated">לתערוכות</a></div></div>
     <div class="ax-keys" aria-hidden="true" ${q.n ? '' : 'hidden'}><span><kbd>J</kbd> <kbd>K</kbd> מעבר בין פריטים</span><span><kbd>A</kbd> אשר</span><span><kbd>C</kbd> בקש שינויים</span><span><kbd>P</kbd> צפה בעמוד</span></div>`;
@@ -334,6 +346,12 @@ function wire(app, c, tab) {
         const { error, ids } = await decide(c, card.dataset.id, status, status === 'approved' ? '' : note);
         if (error) { b.disabled = false; return fail(error); }
         leave(card, `${status === 'approved' ? 'אושר/ה' : 'נשלחה בקשה לשינויים'}: ${card.dataset.name}`, async () => { const { error: er } = await c.from('artists').update({ status: 'pending', note: card.dataset.note || null }).eq('id', card.dataset.id); if (er) throw er; if (ids.length) await c.from('works').update({ reviewed_at: null }).in('id', ids); });
+      } else if (card.dataset.kind === 'show') {
+        const note = card.querySelector('[name=note]').value.trim(), status = act === 'approve' ? 'published' : 'changes';
+        if (status === 'changes' && !note) { b.disabled = false; card.querySelector('[name=note]').focus(); return; }
+        const { error } = await c.from('virtual_shows').update({ status, note: status === 'published' ? null : note }).eq('id', card.dataset.id);
+        if (error) { b.disabled = false; return fail(error); }
+        leave(card, `${status === 'published' ? 'התערוכה אושרה' : 'נשלחה בקשה לשינויים'}: ${card.dataset.name}`, async () => { const { error: er } = await c.from('virtual_shows').update({ status: 'pending', note: null }).eq('id', card.dataset.id); if (er) throw er; });
       } else if (act === 'ok-works') {
         const ids = $$(card, '.ax-t').map(t => t.dataset.w), hid = $$(card, '.ax-t.x').map(t => t.dataset.w), okk = ids.filter(i => !hid.includes(i)), now = new Date().toISOString();
         const jobs = [okk.length && c.from('works').update({ reviewed_at: now, hidden: false }).in('id', okk), hid.length && c.from('works').update({ reviewed_at: now, hidden: true }).in('id', hid)].filter(Boolean);

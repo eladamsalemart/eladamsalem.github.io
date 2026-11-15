@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-14",
+ "updated": "2026-11-15",
  "sources": [
   {
    "source": "haifa-museum",
@@ -463,7 +463,7 @@
    "place": "janco-dada-museum",
    "url": "https://www.jancodada.co.il/en/",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: Error",
    "shows": 0,
    "events": 0
   },
@@ -472,9 +472,9 @@
    "place": "jerusalem-print-workshop",
    "url": "http://www.jerusalemprintworkshop.org",
    "auto": true,
-   "status": "nothing found",
+   "status": "ok",
    "shows": 0,
-   "events": 0
+   "events": 2
   },
   {
    "source": "site:kabri-gallery",
@@ -697,8 +697,8 @@
    "place": "the-edmond-de-rothschild-center",
    "url": "http://edrcenter.com/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -778,17 +778,17 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 38,
+   "messages": 41,
    "matched": 4,
-   "unmatched": 2,
+   "unmatched": 3,
    "shows": 0,
    "events": 0
   },
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 16,
-   "seconds": 158,
+   "calls": 6,
+   "seconds": 527,
    "status": "TimeoutError: timed out"
   },
   {
@@ -796,7 +796,7 @@
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 19
+   "events": 18
   }
  ]
 }

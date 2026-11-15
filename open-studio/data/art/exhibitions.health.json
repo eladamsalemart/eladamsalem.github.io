@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-12",
+ "updated": "2026-11-15",
  "sources": [
   {
    "source": "haifa-museum",
@@ -7,7 +7,7 @@
    "url": "https://www.hma.org.il/",
    "status": "ok",
    "shows": 5,
-   "events": 2
+   "events": 1
   },
   {
    "source": "tikotin",
@@ -21,7 +21,6 @@
    "source": "negev-museum",
    "place": "negev-museum-of-art",
    "url": "https://www.negev-museum.org.il/",
-   "via": "wordpress",
    "status": "ok",
    "shows": 3,
    "events": 0
@@ -93,9 +92,9 @@
    "source": "ashdod",
    "place": "ashdod-art-museum",
    "url": "https://www.ashdodartmuseum.org.il/",
-   "browser": "TimeoutError",
-   "status": "unreachable",
-   "shows": 0,
+   "read": "browser",
+   "status": "ok",
+   "shows": 3,
    "events": 0
   },
   {
@@ -221,8 +220,8 @@
    "place": "bauhaus-center-tel-aviv",
    "url": "http://www.bauhaus-center.com/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -239,8 +238,8 @@
    "place": "beit-avi-chai",
    "url": "https://www.bac.org.il",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -248,9 +247,9 @@
    "place": "beit-benyamini",
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
-   "events": 1
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
   },
   {
    "source": "site:beit-castel",
@@ -284,9 +283,9 @@
    "place": "benyamini-contemporary-ceramics-center",
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
-   "status": "ok",
+   "status": "nothing found",
    "shows": 0,
-   "events": 1
+   "events": 0
   },
   {
    "source": "site:bet-ot-ha-motsar-ha-yerushalmi",
@@ -402,7 +401,7 @@
    "url": "https://hansen.co.il/",
    "auto": true,
    "status": "ok",
-   "shows": 4,
+   "shows": 5,
    "events": 0
   },
   {
@@ -437,8 +436,8 @@
    "place": "hezi-cohen-gallery",
    "url": "https://hezicohengallery.co.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -464,7 +463,7 @@
    "place": "janco-dada-museum",
    "url": "https://www.jancodada.co.il/en/",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: Error",
    "shows": 0,
    "events": 0
   },
@@ -473,9 +472,9 @@
    "place": "jerusalem-print-workshop",
    "url": "http://www.jerusalemprintworkshop.org",
    "auto": true,
-   "status": "nothing found",
+   "status": "ok",
    "shows": 0,
-   "events": 0
+   "events": 2
   },
   {
    "source": "site:kabri-gallery",
@@ -520,7 +519,7 @@
    "auto": true,
    "status": "ok",
    "shows": 6,
-   "events": 1
+   "events": 0
   },
   {
    "source": "site:maya-gallery",
@@ -698,8 +697,8 @@
    "place": "the-edmond-de-rothschild-center",
    "url": "http://edrcenter.com/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -779,17 +778,17 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 31,
+   "messages": 41,
    "matched": 4,
-   "unmatched": 2,
+   "unmatched": 3,
    "shows": 0,
-   "events": 2
+   "events": 0
   },
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 1,
-   "seconds": 0,
+   "calls": 6,
+   "seconds": 527,
    "status": "TimeoutError: timed out"
   },
   {
@@ -797,7 +796,7 @@
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 22
+   "events": 18
   }
  ]
 }
