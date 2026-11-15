@@ -64,3 +64,12 @@ Bake finished and published; renders checked (white cube neutral, pavilion floor
 - Not built from the six proposals: one screen for bringing work in, one progress strip for the whole journey.
 - The full journey did not pass on the last two local runs: time budgets only (the laptop was on battery, everything ran twice as slow); the new hang-all step passed. Run it again on mains power.
 - `studio/ESSENCE.md`, the PDF of it, and the teaser film in from-zero/.
+
+## 14-15.11
+
+- Correction to the line above: the journey failed on hang-first-work because of a comment of mine inside the test that cut the rest of its line (the test never tapped Add), not because of battery. Fixed; the test's waits now poll on a timer.
+- Live (2d234df): Edit is the page as visitors see it (Recent works, with "All N works, by year" and "About & CV" as pages of their own); the studio's Exhibitions tab shows two kinds, Virtual and Real, each with its list and button; in the Add tray works are chosen (framed, ticked), several at once, then "Add N works to the show".
+- Museum (another session, 8aaa24b and e883539): Home shows "The Museum" as published on the Desk, read afresh on every opening; three plans for a hall instead of the street in `studio/design/museum-hall/`, the Court built as a trial behind `?hall`. The owner then asked that session directly for an open museum (`studio/design/museum-open/`, in work there, not committed).
+- Owner's sharpening (in ESSENCE.md): real exhibitions first, no endless grid. Not yet carried into the product.
+- Open: exhibition approval not tested end to end with a test account; no walk-through preview of a pending exhibition in the control room; last full journey (j30) failed plinth-colour (tap timeout), walk-in (3 s wait) and plan-turn-stand (over budget).
+- Measured 15.11: under the software renderer the plan gets ~1.5 frames a second (the room draws behind it), yet the plinth tap succeeds (13 s). The j30 failures were slowness; test timeouts raised. Worth doing later: stop drawing the room while the plan covers it (saves a phone's battery).

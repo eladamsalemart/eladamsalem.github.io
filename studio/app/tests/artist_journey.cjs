@@ -125,7 +125,7 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
       await p.waitForFunction(y => { const l = document.querySelector('.hp:not([hidden]) .hp-svg [data-k="stand"]'); if (!l || !window.__he || !window.__he.api) return false; const b = l.getBoundingClientRect(); return Math.abs(b.top + b.height / 2 - y) < 25; }, to[1], { timeout: 55000 });
     });
     // the chosen standing wall is turned to a diagonal by one of its ends
-    if (await p.locator('.hp-svg [data-k="spin"]').count()) await step('plan-turn-stand', 150000, async () => {
+    if (await p.locator('.hp-svg [data-k="spin"]').count()) await step('plan-turn-stand', 240000, async () => {
       const c = await mid('.hp-svg .hp-stand.on'), h = await mid('.hp-svg [data-k="spin"]');
       await dragTo(h, [c[0] + 30, c[1] + 30]);
       await p.waitForSelector('.hp-svg .hp-stand.on', { state: 'attached', timeout: 60000 });
@@ -161,7 +161,7 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
     });
     // a plinth stood on the plan, painted black: its colour is kept, and walking in stands in front of it
     await step('plinth-colour', 150000, async () => {
-      await p.tap('.he-bar [data-a="plinth"]'); await p.tap('.he-pop [data-plinth="m"]');
+      await p.tap('.he-bar [data-a="plinth"]', { timeout: 90000 }); await p.tap('.he-pop [data-plinth="m"]', { timeout: 90000 });
       await p.waitForSelector('.hp-svg [data-k="plinth"]', { timeout: 60000 }); await p.waitForSelector('.he-more:not([hidden])', { timeout: 60000 });
       await p.tap('.he-more'); await p.waitForSelector('.he-cols [data-col="black"]', { timeout: 20000 }); await targets('plinth panel'); await shot('plinth-panel');
       await p.tap('.he-cols [data-col="black"]');
@@ -169,7 +169,7 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
       await p.tap('.he-more');
     });
     if (!(await p.locator('.hp-in').count())) bad.push('the plan does not mark the way in');
-    await step('walk-in', 40000, async () => { await p.tap('.hp-go'); await p.waitForFunction(() => document.querySelector('.hp').hidden && !document.querySelector('.sv').classList.contains('planning'), null, { timeout: 3000 }); await p.waitForTimeout(1500); });
+    await step('walk-in', 40000, async () => { await p.tap('.hp-go'); await p.waitForFunction(() => document.querySelector('.hp').hidden && !document.querySelector('.sv').classList.contains('planning'), null, { timeout: 30000 }); await p.waitForTimeout(1500); });
     await step('leave-hang', 25000, async () => { await p.tap('.sv-x'); await p.waitForSelector('.ov-tiles', { timeout: 24000 }); });
     // walking it as a visitor, the artist has one button that goes to the plan
     await step('walk-to-plan', 300000, async () => {

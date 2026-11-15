@@ -156,6 +156,15 @@ open again from the account page ("How it works"). Vision and plan: `studio/ESSE
 Database without the connector: the "Supabase migrations" workflow runs new files in `studio/supabase/migrations/` on push
 (additive only) and writes the schema as it is to `studio/supabase/schema.live.json` and the result to `migrations.result.json`.
 
+**Standing rule (owner, 15.11)** — When the usage limit ends and later resets with the computer on, resume the night work on every open task
+from where it stopped, without waiting for "continue": read `studio/design/night-2026-11-13/PROGRESS.md`, keep the heartbeat.
+
+**Since 14.11** — The artist's Edit is the page as visitors see it (all works by year and About & CV are pages of their own
+inside Edit); the studio's Exhibitions tab has two kinds, Virtual and Real; the Add tray chooses several works at once. Home has
+"The Museum" (what the Desk published, read on every opening); the hall that may replace the street: `studio/design/museum-hall/`
+(the Court behind `?hall`) and the owner's open museum, `studio/design/museum-open/`. The owner's sharpening (ESSENCE.md): real
+exhibitions first, never an endless grid. State and what is open: `studio/design/night-2026-11-13/PROGRESS.md`.
+
 **Open** — Home: from the ten (`studio/design/home-ten/`) the owner liked the constellation (not its black) and the
 artist's hand, and asked for Home as a sky of what they used last (near), with who and what they haven't met further
 out (pinch to step back), a live tour you can step into on Home, then the map, shows on now, your artists; pastels.
