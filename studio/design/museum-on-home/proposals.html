@@ -1,0 +1,94 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>המוזיאון בעמוד הבית</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Hebrew:wght@400;500;600&family=Waiting+for+the+Sunrise&display=swap">
+<style>
+/* layout: a short brief, then four phone-width studies side by side (stacking on a phone), each with what it says and what it costs */
+:root{--bg:#f3efe6;--fg:#1c1a16;--muted:#5d564a;--line:#cfc6b4;--card:#fbf9f3;--accent:#1b5e3f;
+ --sky1:#cfe0f4;--sky2:#f3d9e6;--paper:#efe9dc;--pencil:#4a4f8a;--ink:#16140f;
+ --m-wall:#f4f1ea;--m-floor:#e3ded3;--m-ceil:#faf7f0;--m-end:#fffdf8;--s1:#f2c9d4;--s2:#cfe3d6;--s3:#f6e2b8;
+ --serif:"Fraunces","Times New Roman",serif;--sans:"IBM Plex Sans","IBM Plex Sans Hebrew","Helvetica Neue",Arial,sans-serif;--he:"IBM Plex Sans Hebrew","IBM Plex Sans",Arial,sans-serif;--hand:"Waiting for the Sunrise",cursive}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1a17;--fg:#efeadf;--muted:#b3ab9b;--line:#3d3a33;--card:#24231f;--accent:#7fc7a2;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1b1a17;--fg:#efeadf;--muted:#b3ab9b;--line:#3d3a33;--card:#24231f;--accent:#7fc7a2;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--he);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+main{max-width:1180px;margin:0 auto;display:grid;gap:28px}
+h1{font:600 28px/1.25 var(--he);margin:0;text-wrap:balance} h2{font:600 19px/1.3 var(--he);margin:0} p{margin:0;max-width:62ch}
+.lede{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px 22px;align-items:start}
+.opt{display:grid;gap:12px;min-width:0} .opt .k{font:600 12px var(--he);letter-spacing:.04em;color:var(--accent)}
+.opt ul{margin:0;padding-inline-start:18px;display:grid;gap:4px;color:var(--muted);font-size:14.5px}
+.pick{border:1.5px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--card);display:grid;gap:8px}
+/* the phone: always the app's own daylight look, whatever the page's theme */
+.ph{direction:ltr;width:100%;max-width:320px;justify-self:center;border-radius:26px;overflow:hidden;border:1px solid var(--line);background:#efe9dc;color:#16140f;font-family:var(--sans);box-shadow:0 14px 34px -22px rgba(0,0,0,.5)}
+.sky{background:linear-gradient(180deg,#cfe0f4,#f3d9e6 78%,#efe9dc);padding:10px 10px 0;position:relative}
+.sky .brand{font:600 12px var(--sans);display:flex;justify-content:space-between;color:#16140f} .sky .brand span{color:#4a4f8a;font-weight:400}
+.sec{padding:14px 14px 18px;display:grid;gap:10px}
+.hh{display:flex;justify-content:space-between;align-items:baseline} .hh b{font:500 20px var(--serif)} .hand{font:400 15px var(--hand);color:#4a4f8a}
+.btn{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:999px;background:#fff;color:#16140f;font:600 13.5px var(--sans);box-shadow:0 8px 20px -12px rgba(0,0,0,.45)} .btn.d{background:#16140f;color:#fff}
+.sub{font-size:12.5px;color:#463f33} .t{font:500 18px/1.2 var(--serif)}
+.next{padding:8px 14px 14px;display:flex;gap:8px;opacity:.55} .next i{flex:1;aspect-ratio:3/4;border-radius:999px 999px 8px 8px;background:#d9d2c2;display:block}
+.nextl{padding:0 14px;font:500 15px var(--serif);opacity:.55}
+/* A: the doorway */
+.door{position:relative;border-radius:150px 150px 12px 12px;overflow:hidden;box-shadow:0 0 0 1px rgba(74,79,138,.35)} .door svg{display:block}
+.door .cap{position:absolute;left:0;right:0;bottom:0;padding:34px 14px 12px;background:linear-gradient(180deg,transparent,rgba(22,20,15,.6));color:#fff;display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+/* B: the plan */
+.plan{background:#fbf8f1;border-radius:12px;padding:10px;box-shadow:0 0 0 1px rgba(74,79,138,.3)} .plan text{font:500 7.5px var(--sans);fill:#463f33}
+/* C: the building on the horizon */
+.hor{position:relative;margin:0 -10px} .hor svg{display:block}
+/* D: the strip */
+.strip{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;background:#fbf8f1;border-radius:14px;padding:10px;box-shadow:0 0 0 1px rgba(74,79,138,.3)}
+.strip .mini{border-radius:10px;overflow:hidden} .ticks{display:flex;gap:4px} .ticks i{flex:1;height:5px;border-radius:3px;display:block}
+</style>
+<main dir="rtl" lang="he">
+<header style="display:grid;gap:10px">
+<h1>איך המוזיאון נכנס לעמוד הבית, מתחת לכוכבים</h1>
+<p class="lede">היום המוזיאון מופיע כשלוש קשתות קטנות, כמו עוד שורת תערוכות. הוא צריך להיקרא כמקום: חלל אחד שנכנסים אליו והולכים בו. מה שמייחד אותו כבר קיים בפנים, רחוב לבן עם דלתות צבעוניות, אז כל ההצעות נשענות על התמונה הזאת. ארבע הצעות, כולן יושבות ישר מתחת לכוכבים ומעל "Walk in now".</p>
+</header>
+<section class="grid">
+
+<article class="opt"><span class="k">הצעה 1</span><h2>הפתח</h2>
+<div class="ph"><div class="sky"><div class="brand">Open Studio <span>Sun 15 Nov</span></div><svg class="stars" viewBox="0 0 300 150" width="100%" aria-hidden="true"><g fill="none" stroke="var(--pencil)" stroke-width=".7" opacity=".7"><path d="M62 38 C110 60 150 52 214 30"/><path d="M62 38 C70 80 110 108 150 118"/><path d="M214 30 C230 70 200 100 150 118"/></g><g><circle cx="62" cy="38" r="15" fill="var(--s1)"/><circle cx="214" cy="30" r="12" fill="var(--s2)"/><circle cx="150" cy="118" r="13" fill="var(--s3)"/><circle cx="262" cy="92" r="5" fill="var(--s2)" opacity=".6"/><circle cx="28" cy="104" r="4" fill="var(--s1)" opacity=".6"/></g></svg></div>
+<div class="sec"><div class="hh"><b>The Museum</b><span class="hand">open now</span></div>
+<div class="door"><svg viewBox="0 0 300 190" width="100%" role="img" aria-label="The museum street: a white corridor with six coloured doors"><rect width="300" height="190" fill="var(--m-wall)"/><polygon points="0.0,190.0 300.0,190.0 192.0,124.3 108.0,124.3" fill="var(--m-floor)"/><polygon points="0.0,0.0 300.0,0.0 192.0,71.1 108.0,71.1" fill="var(--m-ceil)"/><rect x="108.0" y="71.1" width="84.0" height="53.2" fill="var(--m-end)"/><polygon points="24.0,175.4 36.8,167.7 36.8,67.2 24.0,63.7" fill="#c9a227"/><ellipse cx="44.4" cy="171.5" rx="21.8" ry="5.0" fill="#c9a227" opacity=".22"/><polygon points="57.0,155.3 69.8,147.6 69.8,76.4 57.0,72.9" fill="#d9772b"/><ellipse cx="77.4" cy="151.5" rx="16.1" ry="3.7" fill="#d9772b" opacity=".22"/><polygon points="84.0,138.9 96.8,131.2 96.8,84.0 84.0,80.4" fill="#2c9c6a"/><ellipse cx="104.4" cy="135.1" rx="11.4" ry="2.6" fill="#2c9c6a" opacity=".22"/><polygon points="276.0,175.4 263.2,167.7 263.2,67.2 276.0,63.7" fill="#c8553d"/><ellipse cx="255.6" cy="171.5" rx="21.8" ry="5.0" fill="#c8553d" opacity=".22"/><polygon points="243.0,155.3 230.2,147.6 230.2,76.4 243.0,72.9" fill="#2f7fb8"/><ellipse cx="222.6" cy="151.5" rx="16.1" ry="3.7" fill="#2f7fb8" opacity=".22"/><polygon points="216.0,138.9 203.2,131.2 203.2,84.0 216.0,80.4" fill="#8b3a2f"/><ellipse cx="195.6" cy="135.1" rx="11.4" ry="2.6" fill="#8b3a2f" opacity=".22"/><line x1="0" y1="0" x2="108.0" y2="71.1" stroke="var(--pencil)" stroke-width=".8" opacity=".55"/><line x1="300" y1="0" x2="192.0" y2="71.1" stroke="var(--pencil)" stroke-width=".8" opacity=".55"/><line x1="0" y1="190" x2="108.0" y2="124.3" stroke="var(--pencil)" stroke-width=".8" opacity=".55"/><line x1="300" y1="190" x2="192.0" y2="124.3" stroke="var(--pencil)" stroke-width=".8" opacity=".55"/><rect x="108.0" y="71.1" width="84.0" height="53.2" fill="none" stroke="var(--pencil)" stroke-width=".8" opacity=".55"/></svg><div class="cap"><div><div class="t">Six exhibitions, one walk</div><div style="font-size:12px;opacity:.9">A place you walk through</div></div><span class="btn">Walk in</span></div></div></div>
+<div class="nextl">Walk in now</div><div class="next"><i></i><i></i><i></i></div></div>
+<p>קשת אחת גדולה ברוחב המסך, ודרכה רואים את הרחוב עצמו עם הדלתות הצבעוניות. הקשתות הקטנות של התערוכות נשארות למטה, והגודל הוא שמבדיל: שער אחד גדול מול חלונות קטנים.</p>
+<ul><li>הכי ברור במבט ראשון: זה מקום, ונכנסים אליו.</li><li>אפשר להחליף את הציור בסרטון קצר של הליכה ברחוב.</li><li>תופס הרבה גובה במסך, כ-300 פיקסלים.</li></ul></article>
+
+<article class="opt"><span class="k">הצעה 2</span><h2>התוכנית</h2>
+<div class="ph"><div class="sky"><div class="brand">Open Studio <span>Sun 15 Nov</span></div><svg class="stars" viewBox="0 0 300 150" width="100%" aria-hidden="true"><g fill="none" stroke="var(--pencil)" stroke-width=".7" opacity=".7"><path d="M62 38 C110 60 150 52 214 30"/><path d="M62 38 C70 80 110 108 150 118"/><path d="M214 30 C230 70 200 100 150 118"/></g><g><circle cx="62" cy="38" r="15" fill="var(--s1)"/><circle cx="214" cy="30" r="12" fill="var(--s2)"/><circle cx="150" cy="118" r="13" fill="var(--s3)"/><circle cx="262" cy="92" r="5" fill="var(--s2)" opacity=".6"/><circle cx="28" cy="104" r="4" fill="var(--s1)" opacity=".6"/></g></svg></div>
+<div class="sec"><div class="hh"><b>The Museum</b><span class="hand">six rooms, one street</span></div>
+<div class="plan"><svg viewBox="0 0 280 150" width="100%" role="img" aria-label="A floor plan of the museum: a street with three rooms on each side">
+<g fill="none" stroke="#4a4f8a" stroke-width="1.1"><rect x="6" y="56" width="268" height="38" rx="2"/>
+<rect x="44" y="8" width="64" height="48" rx="2"/><rect x="44" y="94" width="64" height="48" rx="2"/><rect x="122" y="8" width="64" height="48" rx="2"/><rect x="122" y="94" width="64" height="48" rx="2"/><rect x="200" y="8" width="64" height="48" rx="2"/><rect x="200" y="94" width="64" height="48" rx="2"/></g>
+<rect x="66" y="53" width="20" height="6" fill="#c9a227"/><rect x="66" y="91" width="20" height="6" fill="#c8553d"/><rect x="144" y="53" width="20" height="6" fill="#d9772b"/><rect x="144" y="91" width="20" height="6" fill="#2f7fb8"/><rect x="222" y="53" width="20" height="6" fill="#2c9c6a"/><rect x="222" y="91" width="20" height="6" fill="#8b3a2f"/>
+<text x="50" y="24">Celebration</text><text x="128" y="24">Green Hour</text><text x="206" y="24">Future</text><text x="50" y="132">Seen from…</text><text x="128" y="132">A Room of…</text><text x="206" y="132">Colour…</text>
+<circle cx="20" cy="75" r="4.5" fill="#d0261d"/><path d="M28 75h26" stroke="#d0261d" stroke-width="1.2" stroke-dasharray="3 3"/><text x="12" y="68" style="font:400 11px var(--hand);fill:#4a4f8a">you start here</text></svg></div>
+<div style="display:flex;justify-content:space-between;align-items:center"><span class="sub">Tap a room to start there</span><span class="btn d">Walk in</span></div></div>
+<div class="nextl">Walk in now</div><div class="next"><i></i><i></i><i></i></div></div>
+<p>תוכנית קומה מצוירת בעיפרון: הרחוב, שישה חדרים, דלת בצבע של כל תערוכה ונקודת "אתה מתחיל כאן". מדבר באותה שפה של מפת הכוכבים שמעליו, והקשה על חדר מתחילה את הסיור משם.</p>
+<ul><li>מסביר הכי טוב שזה חלל אחד עם כמה תערוכות.</li><li>מתעדכן לבד לפי מה שפרסמת ב-Desk (מספר חדרים, שמות, צבעים).</li><li>פחות מפתה מתמונה: זו מפה, לא מראה של המקום.</li></ul></article>
+
+<article class="opt"><span class="k">הצעה 3</span><h2>הבניין באופק</h2>
+<div class="ph"><div class="sky"><div class="brand">Open Studio <span>Sun 15 Nov</span></div><svg class="stars" viewBox="0 0 300 150" width="100%" aria-hidden="true"><g fill="none" stroke="var(--pencil)" stroke-width=".7" opacity=".7"><path d="M62 38 C110 60 150 52 214 30"/><path d="M62 38 C70 80 110 108 150 118"/><path d="M214 30 C230 70 200 100 150 118"/></g><g><circle cx="62" cy="38" r="15" fill="var(--s1)"/><circle cx="214" cy="30" r="12" fill="var(--s2)"/><circle cx="150" cy="118" r="13" fill="var(--s3)"/><circle cx="262" cy="92" r="5" fill="var(--s2)" opacity=".6"/><circle cx="28" cy="104" r="4" fill="var(--s1)" opacity=".6"/></g></svg>
+<div class="hor"><svg viewBox="0 0 320 120" width="100%" role="img" aria-label="The museum as a long low building under the sky, its doors lit in six colours">
+<path d="M0 104h320" stroke="#4a4f8a" stroke-width=".9" opacity=".6"/>
+<rect x="34" y="52" width="252" height="52" fill="#fffdf8" stroke="#4a4f8a" stroke-width="1"/><path d="M26 52h268" stroke="#4a4f8a" stroke-width="1.4"/>
+<rect x="52" y="66" width="20" height="38" fill="#c9a227"/><ellipse cx="62" cy="108" rx="16" ry="3.5" fill="#c9a227" opacity=".3"/><rect x="90" y="66" width="20" height="38" fill="#c8553d"/><ellipse cx="100" cy="108" rx="16" ry="3.5" fill="#c8553d" opacity=".3"/><rect x="128" y="66" width="20" height="38" fill="#d9772b"/><ellipse cx="138" cy="108" rx="16" ry="3.5" fill="#d9772b" opacity=".3"/><rect x="166" y="66" width="20" height="38" fill="#2f7fb8"/><ellipse cx="176" cy="108" rx="16" ry="3.5" fill="#2f7fb8" opacity=".3"/><rect x="204" y="66" width="20" height="38" fill="#2c9c6a"/><ellipse cx="214" cy="108" rx="16" ry="3.5" fill="#2c9c6a" opacity=".3"/><rect x="242" y="66" width="20" height="38" fill="#8b3a2f"/><ellipse cx="252" cy="108" rx="16" ry="3.5" fill="#8b3a2f" opacity=".3"/>
+<path d="M150 30 C150 40 156 46 160 52" fill="none" stroke="#4a4f8a" stroke-width=".7" opacity=".7"/></svg></div></div>
+<div class="sec" style="padding-top:8px"><div class="hh"><b>The Museum</b><span class="hand">six exhibitions on now</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="sub">One building, six doors. Walk the whole street, or go straight to a door.</span><span class="btn d" style="flex:none">Walk in</span></div></div>
+<div class="nextl">Walk in now</div><div class="next"><i></i><i></i><i></i></div></div>
+<p>שמי הכוכבים נגמרים בקו אופק, ועליו עומד המוזיאון כבניין ארוך ונמוך עם שש דלתות מוארות בצבעי התערוכות. קו עיפרון יורד מהכוכבים אל הגג, כך שהמוזיאון נהיה חלק מהשמים ולא עוד כרטיס מתחתם.</p>
+<ul><li>הכי מחובר לכוכבים, והכי שונה מקשתות התערוכות.</li><li>קצר בגובה, כ-200 פיקסלים.</li><li>משנה את התחתית של אזור הכוכבים. אמרת שעמוד הבית סגור, אז זה דורש את האישור שלך.</li></ul></article>
+
+<article class="opt"><span class="k">הצעה 4</span><h2>הפס</h2>
+<div class="ph"><div class="sky"><div class="brand">Open Studio <span>Sun 15 Nov</span></div><svg class="stars" viewBox="0 0 300 150" width="100%" aria-hidden="true"><g fill="none" stroke="var(--pencil)" stroke-width=".7" opacity=".7"><path d="M62 38 C110 60 150 52 214 30"/><path d="M62 38 C70 80 110 108 150 118"/><path d="M214 30 C230 70 200 100 150 118"/></g><g><circle cx="62" cy="38" r="15" fill="var(--s1)"/><circle cx="214" cy="30" r="12" fill="var(--s2)"/><circle cx="150" cy="118" r="13" fill="var(--s3)"/><circle cx="262" cy="92" r="5" fill="var(--s2)" opacity=".6"/><circle cx="28" cy="104" r="4" fill="var(--s1)" opacity=".6"/></g></svg></div>
+<div class="sec"><div class="strip"><div class="mini"><svg viewBox="0 0 96 96" width="100%" role="img" aria-label="The museum street: a white corridor with six coloured doors"><rect width="96" height="96" fill="var(--m-wall)"/><polygon points="0.0,96.0 96.0,96.0 61.4,62.8 34.6,62.8" fill="var(--m-floor)"/><polygon points="0.0,0.0 96.0,0.0 61.4,35.9 34.6,35.9" fill="var(--m-ceil)"/><rect x="34.6" y="35.9" width="26.9" height="26.9" fill="var(--m-end)"/><polygon points="7.7,88.6 11.8,84.7 11.8,34.0 7.7,32.2" fill="#c9a227"/><ellipse cx="23.7" cy="86.7" rx="21.8" ry="5.0" fill="#c9a227" opacity=".22"/><polygon points="18.2,78.5 22.3,74.6 22.3,38.6 18.2,36.8" fill="#d9772b"/><ellipse cx="34.3" cy="76.5" rx="16.1" ry="3.7" fill="#d9772b" opacity=".22"/><polygon points="26.9,70.2 31.0,66.3 31.0,42.4 26.9,40.6" fill="#2c9c6a"/><ellipse cx="42.9" cy="68.2" rx="11.4" ry="2.6" fill="#2c9c6a" opacity=".22"/><polygon points="88.3,88.6 84.2,84.7 84.2,34.0 88.3,32.2" fill="#c8553d"/><ellipse cx="72.3" cy="86.7" rx="21.8" ry="5.0" fill="#c8553d" opacity=".22"/><polygon points="77.8,78.5 73.7,74.6 73.7,38.6 77.8,36.8" fill="#2f7fb8"/><ellipse cx="61.7" cy="76.5" rx="16.1" ry="3.7" fill="#2f7fb8" opacity=".22"/><polygon points="69.1,70.2 65.0,66.3 65.0,42.4 69.1,40.6" fill="#8b3a2f"/><ellipse cx="53.1" cy="68.2" rx="11.4" ry="2.6" fill="#8b3a2f" opacity=".22"/><line x1="0" y1="0" x2="34.6" y2="35.9" stroke="var(--pencil)" stroke-width=".8" opacity=".55"/><line x1="96" y1="0" x2="61.4" y2="35.9" stroke="var(--pencil)" stroke-width=".8" opacity=".55"/><line x1="0" y1="96" x2="34.6" y2="62.8" stroke="var(--pencil)" stroke-width=".8" opacity=".55"/><line x1="96" y1="96" x2="61.4" y2="62.8" stroke="var(--pencil)" stroke-width=".8" opacity=".55"/><rect x="34.6" y="35.9" width="26.9" height="26.9" fill="none" stroke="var(--pencil)" stroke-width=".8" opacity=".55"/></svg></div><div style="display:grid;gap:6px"><div class="hh"><b style="font-size:18px">The Museum</b></div><div class="sub">Six exhibitions, one walk. About 8 minutes.</div><div class="ticks"><i style="background:#c9a227"></i><i style="background:#c8553d"></i><i style="background:#d9772b"></i><i style="background:#2f7fb8"></i><i style="background:#2c9c6a"></i><i style="background:#8b3a2f"></i></div><span class="btn d" style="justify-self:start;min-height:36px">Walk in</span></div></div></div>
+<div class="nextl">Walk in now</div><div class="next"><i></i><i></i><i></i></div></div>
+<p>כרטיס נמוך אחד: תמונה קטנה של הרחוב, שורה אחת של הסבר, שישה פסי צבע (אחד לכל תערוכה) וכפתור. הכי פחות שינוי בעמוד.</p>
+<ul><li>תופס הכי מעט מקום, כ-120 פיקסלים.</li><li>הכי קל לבנות.</li><li>הכי פחות מזמין: נראה כמו פרסומת קטנה, לא כמו מקום.</li></ul></article>
+</section>
+
+<section class="pick"><h2>ההמלצה שלי: הצעה 1, עם התוכנית של הצעה 2 בתוכה</h2>
+<p>השער הגדול הוא מה שמזמין להיכנס, והתוכנית הקטנה היא מה שמסביר. הייתי בונה את הקשת של הצעה 1, ובפינה שלה מפת רחוב זעירה עם שש הדלתות, כמו המפה שכבר מופיעה בתוך הסיור. הצעה 3 היא היפה ביותר בעיניי, אבל היא נוגעת באזור הכוכבים, ולכן לא הייתי הולך אליה בלי שתגיד.</p>
+<p class="lede">הציורים כאן הם סקיצות. בבנייה אמיתית התמונה בשער תהיה צילום או סרטון של הרחוב כפי שהוא כרגע, עם התערוכות שפרסמת.</p></section>
+</main>
