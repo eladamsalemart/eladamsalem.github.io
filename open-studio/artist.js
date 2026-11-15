@@ -133,7 +133,7 @@ function readiness(ex, works) {
 // --- screens --------------------------------------------------------------------------------------------
 // (a studio page without a page to go back to leads out to the app itself, its Home)
 const head = (title, back) => `<div class="st-head"><a class="back" href="${back || '#/'}">← ${back ? 'Back' : 'Open Studio'}</a><span class="tag">Open Studio for Artists</span></div><h1 class="st-h1">${esc(title)}</h1>`;
-const nav = cur => `<nav class="st-nav" aria-label="Studio">${[['', 'Your page'], ['onview', 'Make an exhibition'], ['exhibitions', 'Past exhibitions'], ['import', 'Bring work in']].map(([k, t]) => `<a href="#/studio${k ? '/' + k : ''}" ${cur === k ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
+const nav = cur => `<nav class="st-nav" aria-label="Studio">${[['', 'Your page'], ['exhibitions', 'Exhibitions'], ['import', 'Bring work in']].map(([k, t]) => `<a href="#/studio${k ? '/' + k : ''}" ${cur === k || (k === 'exhibitions' && cur === 'onview') ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
 
 function signIn() {
   return `<div class="wrap gut st">
@@ -159,13 +159,19 @@ function byYear(list) {
 const detail = w => [w.medium, w.width && w.height ? `${w.height} × ${w.width}${w.depth ? ` × ${w.depth}` : ''} cm` : '', w.kind === 'object' ? w.year : ''].filter(Boolean).join(' · ');
 
 function exhibitions() {
+  const vs = S.virtual || [], on = vs.find(v => v.onview);
+  const vState = v => v.status === 'published' ? ['ok', 'Live'] : v.status === 'pending' ? ['', 'In review'] : v.status === 'changes' ? ['no', 'Changes asked'] : ['', 'Draft'];
   return `<div class="wrap gut st">${head('Exhibitions')}${nav('exhibitions')}
-    <div class="btns" style="padding-block:6px 18px"><a class="btn f" href="#/studio/exhibitions/new">Add an exhibition</a><a class="btn g" href="#/studio/virtual/new">Design a virtual exhibition</a></div>
-    ${(S.virtual || []).length ? `<section class="sec" style="padding-top:0"><div class="sec-h"><h2>Virtual</h2><span class="more">rooms that exist only here</span></div><div class="list">${S.virtual.map(v => `<a class="row" href="${v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`}"><img src="${esc(thumbOf(v.works[0]))}" alt=""><div class="t"><div><b>${esc(v.title || 'Untitled')}</b></div><div class="m">${esc(roomName(v.room))} · ${v.works.length} works</div></div><span class="st-flag ok">${v.onview ? 'On view' : 'Virtual'}</span></a>`).join('')}</div></section>` : ''}
-    <div class="list">${S.exhibitions.map(ex => {
-      return `<a class="row" href="#/studio/exhibition/${ex.id}"><img src="${esc(ex.cover || (ex.photos[0] || {}).src || '')}" alt=""><div class="t"><div><b>${esc(ex.title)}</b></div><div class="m">${esc([ex.venue, ex.year].filter(Boolean).join(' · '))}</div></div>
-        <span class="st-flag ${tourFlag(ex)[0]}">${tourFlag(ex)[1]}</span></a>`;
-    }).join('')}</div>
+    <p class="m">There are two kinds of exhibition here, and they are made in different ways.</p>
+    <section class="st-card ex-kind" aria-labelledby="exV"><p class="ex-tag">Virtual</p><h2 id="exV">An exhibition that exists only here</h2>
+      <p class="m small">You choose one of Open Studio’s rooms and hang your works in it. Visitors walk through it on their phone. Nothing has to exist in the real world.</p>
+      ${vs.length ? `<div class="list">${vs.map(v => `<a class="row" href="${v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`}"><img src="${esc(thumbOf(v.works[0]))}" alt=""><div class="t"><div><b>${esc(v.title || 'Untitled')}</b></div><div class="m">${esc(roomName(v.room))} · ${v.works.length} works</div></div><span class="st-flag ${vState(v)[0]}">${vState(v)[1]}</span></a>`).join('')}</div>` : ''}
+      <div class="btns"><a class="btn f" href="${on || !vs.length ? '#/studio/onview' : '#/studio/virtual/new'}">${on ? 'Open your virtual exhibition' : vs.length ? 'Design another' : 'Make a virtual exhibition'}</a></div></section>
+    <section class="st-card ex-kind" aria-labelledby="exR"><p class="ex-tag real">Real</p><h2 id="exR">An exhibition that happened</h2>
+      <p class="m small">A show you had in a gallery, a studio or any real place. Add its photos or a walk-through video. When there is enough material, Open Studio builds a 3D walk of the real room from it.</p>
+      ${S.exhibitions.length ? `<div class="list">${S.exhibitions.map(ex => `<a class="row" href="#/studio/exhibition/${ex.id}"><img src="${esc(ex.cover || (ex.photos[0] || {}).src || '')}" alt=""><div class="t"><div><b>${esc(ex.title)}</b></div><div class="m">${esc([ex.venue, ex.year].filter(Boolean).join(' · '))}</div></div>
+        <span class="st-flag ${tourFlag(ex)[0]}">${tourFlag(ex)[1]}</span></a>`).join('')}</div>` : ''}
+      <div class="btns"><a class="btn ${S.exhibitions.length ? 'g' : 'f'}" href="#/studio/exhibitions/new">Add a real exhibition</a></div></section>
   </div>`;
 }
 
@@ -190,7 +196,7 @@ const SIZE_ORDER = ['small', 'medium', 'large'];
 const firstOf = list => (list.find(([, r]) => r.variant === 'medium') || list.slice().sort(([, a], [, b]) => SIZE_ORDER.indexOf(a.variant) - SIZE_ORDER.indexOf(b.variant))[0])[0];
 function onView() {
   const kinds = kindsOf();
-  if (!Object.keys(kinds).length) return `<div class="wrap gut st">${head('Make an exhibition')}${nav('onview')}<p class="m">The spaces are being prepared. Come back in a little while.</p></div>`;
+  if (!Object.keys(kinds).length) return `<div class="wrap gut st">${head('A virtual exhibition', '#/studio/exhibitions')}${nav('onview')}<p class="m">The spaces are being prepared. Come back in a little while.</p></div>`;
   return onViewPage((S.virtual || []).find(v => v.onview));
 }
 // --- choosing the space: one large picture of the room that is chosen, the kinds under it as small pictures, its sizes as
@@ -221,21 +227,26 @@ function ovHung(v) {
   const ws = (v.works || []).map(workOf).filter(Boolean);
   if (!S.works.length) return `<p class="ov-none">You have no works on your page yet. <a href="#/studio">Add a few first</a>, then hang them here.</p>`;
   if (!ws.length) return `<p class="ov-none">Nothing is placed yet. Open the plan, tap Add, and drag each work to a wall. Then walk in and see it.</p>`;
-  return `<button type="button" class="ov-strip" data-hang aria-label="${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'}: walk in to rehang">${ws.slice(0, 4).map(w => `<img src="${esc(srcOf(w.thumb || w.image))}" alt="" loading="lazy" decoding="async">`).join('')}${ws.length > 4 ? `<i>+${ws.length - 4}</i>` : ''}<span>${ws.length} ${ws.length === 1 ? 'work hangs' : 'works hang'}</span></button>
+  const more = S.works.some(w => !(v.works || []).includes(w.id));
+  return `<div class="ov-works"><p class="ov-wh"><b>${ws.length} ${ws.length === 1 ? 'work' : 'works'} in this exhibition</b><button type="button" class="ov-link" data-hang>Rearrange</button></p>
+    <ul class="ov-tiles">${ws.map(w => `<li><img src="${esc(srcOf(w.thumb || w.image))}" alt="${esc(w.title || 'Untitled')}" loading="lazy" decoding="async"><button type="button" class="ov-rm" data-unhang="${esc(w.id)}" aria-label="Take ${esc(w.title || 'this work')} out of the exhibition">×</button></li>`).join('')}${more ? '<li><button type="button" class="ov-add" data-hang="add" aria-label="Add works"><b aria-hidden="true">+</b>Add</button></li>' : ''}</ul></div>
     <p class="m small" id="vxFit" aria-live="polite"></p>`;
 }
 // one thing to do next, always under the thumb
+const showState = v => v.status === 'published' ? (S.status === 'approved' ? 'On view: it opens your page, and it is in Shows.' : 'Approved: it shows once your page is live.')
+  : v.status === 'pending' ? 'In review: Open Studio looks at every exhibition before it goes live. You can go on editing.'
+  : v.status === 'changes' ? `Open Studio asks for a change: ${esc(v.note || 'see your page')}` : 'A draft: only you see it.';
 function ovBar(v, title) {
   const hung = (v.works || []).map(workOf).filter(Boolean).length, pub = v.status === 'published';
   const hang = (cls, t) => `<button class="btn ${cls}" type="button" id="vxHang">${t}</button>`, walk = (cls, t) => `<button class="btn ${cls}" type="button" id="vxWalk">${t}</button>`;
   if (!S.works.length) return `<a class="btn f" href="#/studio">Add works to your page first</a>${hang('g', 'Walk in')}`;
   if (!hung) return hang('f', 'Place the works on the plan');
-  if (S.cloud && !pub) return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">Put it on my page</button>`;
+  if (S.cloud && !pub && v.status !== 'pending') return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">${v.status === 'changes' ? 'Send again' : 'Send for review'}</button>`;
   return `${hang('g', 'Rehang')}${walk('f', 'Walk as a visitor')}`;
 }
 function onViewPage(v0) {
   const v = v0 || { id: '', title: '', room: '', works: [], text: '', centre: 150 }, pub = v.status === 'published';
-  return `<div class="wrap gut st ov">${head('Make an exhibition')}${nav('onview')}
+  return `<div class="wrap gut st ov">${head('A virtual exhibition', '#/studio/exhibitions')}${nav('onview')}
     <p class="ov-lede">The exhibition you are showing now. It opens your page${S.cloud ? ', and goes out in Open Studio’s feed' : ''}.</p>
     ${ovSteps(v)}
     ${!v0 && ovGone ? '<p class="ov-undo" role="status">The exhibition was deleted.<button type="button" class="ov-link" id="vxUndo">Undo</button></p>' : ''}
@@ -245,16 +256,16 @@ function onViewPage(v0) {
       <section id="ovHung" aria-label="The works">${ovHung(v)}</section>
       <label><span>In your words <span class="ov-opt">(optional)</span></span><textarea name="text" rows="3" placeholder="What this exhibition is, as you would say it at the door.">${esc(v.text)}</textarea></label>
       <input type="hidden" name="centre" value="${+v.centre || 150}">
-      <p class="m small ov-state" id="ovState">${S.cloud ? (pub ? (S.status === 'approved' ? 'On view: it opens your page, and it is in Shows.' : 'Published: it shows once your page is approved.') : 'A draft: only you see it.') : 'A pretend studio: the exhibition stays on this phone.'}
-        ${S.cloud && pub ? '<button type="button" class="ov-link" id="vxPub">Take it down</button>' : ''}${v.id ? '<button type="button" class="ov-link" id="vxDel">Delete</button>' : ''}</p>
+      <p class="m small ov-state" id="ovState">${S.cloud ? showState(v) : 'A pretend studio: the exhibition stays on this phone.'}
+        ${S.cloud && (pub || v.status === 'pending') ? `<button type="button" class="ov-link" id="vxPub">${pub ? 'Take it down' : 'Take it back'}</button>` : ''}${v.id ? '<button type="button" class="ov-link" id="vxDel">Delete</button>' : ''}</p>
     </form>
     <div class="ov-bar"><span class="ov-saved" id="ovSaved" role="status"></span><div class="ov-acts" id="ovActs">${ovBar(v)}</div></div>
   </div>`;
 }
 // On View in four steps, always on screen: where you are, what comes next, one tap to it
-const OV_STEPS = [['space', 'Space', '.ov-space'], ['title', 'Name', '[name=title]'], ['hang', 'Place works', '#ovHung'], ['pub', 'Publish', '#ovState']];
+const OV_STEPS = [['space', 'Space', '.ov-space'], ['title', 'Name', '[name=title]'], ['hang', 'Place works', '#ovHung'], ['pub', 'Send', '#ovState']];
 function ovDone(v, title) {
-  return { space: !!(ROOMS[v.room] && ROOMS[v.room].baked), title: !!String(title ?? v.title ?? '').trim(), hang: (v.works || []).length > 0, pub: v.status === 'published' };
+  return { space: !!(ROOMS[v.room] && ROOMS[v.room].baked), title: !!String(title ?? v.title ?? '').trim(), hang: (v.works || []).length > 0, pub: v.status === 'published' || v.status === 'pending' };
 }
 function ovSteps(v, title) {
   const d = ovDone(v, title), steps = OV_STEPS.filter(x => x[0] !== 'pub' || S.cloud), now = steps.findIndex(x => !d[x[0]]);
@@ -268,7 +279,7 @@ function designer(id, onview = false) {
   const paint = v.paint || R.paint;
   const rest = S.works.filter(w => !v.works.includes(w.id));
   const drawn = Object.entries(ROOMS).filter(([, r]) => !r.baked);
-  return `<div class="wrap gut st">${onview ? head('Make an exhibition') + nav('onview') + ovSteps(v) : head(isNew ? 'A virtual exhibition' : v.title || 'Untitled', '#/studio/exhibitions')}
+  return `<div class="wrap gut st">${onview ? head('A virtual exhibition', '#/studio/exhibitions') + nav('onview') + ovSteps(v) : head(isNew ? 'A virtual exhibition' : v.title || 'Untitled', '#/studio/exhibitions')}
     ${onview ? `<div class="m ov-why"><p><b>What it is.</b> The exhibition of the art that matters to you right now. Pick a space, hang a few works in it, and walk it yourself before anyone else does.</p>
       <p><b>Why it matters.</b> It goes out in Open Studio’s feed, and it shows first on your artist page: people who find you walk into your work before anything else.</p></div>`
       : '<p class="m">Choose a room, the colour of its walls and the works, in the order a visitor will walk past them. The room is built around them, every work at its real size.</p>'}
@@ -286,9 +297,9 @@ function designer(id, onview = false) {
       ${onview ? `<input type="hidden" name="centre" value="${+v.centre || 150}">` : `<label>Hung at, centre (cm)<input name="centre" type="range" min="135" max="160" step="1" value="${+v.centre || 150}"><span class="m small" id="vxCentre">${+v.centre || 150} cm from the floor to the middle of each work</span></label>`}
       <label>${onview ? 'In your words: what this exhibition is' : 'About the exhibition'}<textarea name="text" rows="4">${esc(v.text)}</textarea></label>
       <div class="btns">${onview ? `<button class="btn f" type="button" id="vxHang" ${ROOMS[v.room] && v.title ? '' : 'disabled'}>${v.works.length ? 'Place and hang the works' : 'Place the works on the plan'}</button><button class="btn g" type="button" id="vxWalk" ${v.works.length && ROOMS[v.room] ? '' : 'disabled'}>Walk as a visitor</button>` : `<button class="btn f" type="button" id="vxWalk" ${v.works.length && ROOMS[v.room] ? '' : 'disabled'}>Walk in</button>`}<button class="btn g" type="submit">Save</button>${isNew ? '' : '<button class="btn g" type="button" id="vxDel">Delete</button>'}</div>
-      ${S.cloud ? (v.id ? `<div class="btns"><button class="btn ${v.status === 'published' ? 'g' : 'f'}" type="button" id="vxPub">${v.status === 'published' ? 'Take it down' : onview ? 'Put it on my page' : 'Publish'}</button></div>
-        <p class="m small">${v.status === 'published' ? (S.status === 'approved' ? (onview ? 'On view: at the top of your page, and in Shows.' : 'Published: on your page and in Shows.') : 'Published: it shows on your page and in Shows once your page is approved.') : 'A draft: only you see it.'}</p>` : '')
-        : '<p class="m small">In this demo the design stays on this phone. With an artist’s account, Publish puts it on your page and in Shows.</p>'}
+      ${S.cloud ? (v.id ? `<div class="btns"><button class="btn ${v.status === 'published' ? 'g' : 'f'}" type="button" id="vxPub">${v.status === 'published' ? 'Take it down' : v.status === 'pending' ? 'Take it back' : v.status === 'changes' ? 'Send again' : 'Send for review'}</button></div>
+        <p class="m small">${showState(v)}</p>` : '')
+        : '<p class="m small">In this demo the design stays on this phone. With an artist’s account you send it to Open Studio, and once approved it is on your page and in Shows.</p>'}
     </form>
   </div>`;
 }
@@ -318,28 +329,29 @@ const SCULPT = /sculpt|object|ceramic|installation/i, CLAY = /ceramic|clay|porce
 const shapeWork = w => ({ id: w.id, kind: SCULPT.test(w.category || '') || (+w.depth > 0 && !FLAT.test(w.medium || '')) || (!w.category && !FLAT.test(w.medium || '') && CLAY.test(w.medium || '')) ? 'object' : w.kind, title: w.title, image: srcOf(w.image), width: w.width, height: w.height, pairs: w.width && w.height ? [[+w.height, +w.width]] : [],
   year: w.year, medium: w.medium, artist: { name: S.artist.name } });
 // the hang editor: inside the walkable room the artist adds, removes and places the works and plinths
-async function hangIn(v, done) {
+async function hangIn(v, done, add) {
   const [{ openHangEditor }, { openSpace }] = await Promise.all([import('./space/hang-editor.js'), import('./space/space.js')]);
   await openHangEditor({
     design: { title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre || 150 },
     library: S.works.map(w => ({ ...shapeWork(w), thumb: srcOf(w.thumb || w.image) })), state: { ids: v.works, placements: v.placements, plinths: v.plinths },
-    src: u => u, shape: w => w, openSpace,
+    src: u => u, shape: w => w, openSpace, add,
     onSave: s => { v.works = s.ids; v.placements = s.placements; v.plinths = s.plinths; save(); },
     onExit: done,
   });
 }
-async function walkIn(v) {
+// (the artist walking their own exhibition as a visitor: one button there goes to the plan, to move works, walls and plinths)
+async function walkIn(v, edit) {
   const [{ buildRoom }, { openSpace }] = await Promise.all([synth(), import('./space/space.js')]);
   const works = v.works.map(workOf).filter(Boolean).map(shapeWork);
   const made = await buildRoom({ title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre, works, placements: v.placements, plinths: v.plinths }, u => u);
-  const view = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => made.revoke() });
+  const view = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => made.revoke(), ...(edit ? { choose: { label: 'Rearrange on the plan', onChoose: edit } } : {}) });
   window.__spaceView = view;
 }
 
 // --- a real artist's first visit: their page, in a minute ---------------------------------------------------------------
 function setup(u) {
   return `<div class="wrap gut st">${head('Your studio')}
-    <p class="m">Who you are, then your work, and you have a page of your own: you build it right on the page. Open Studio looks at every new page before it goes live.</p>
+    <p class="m">Who you are, then your work, and you have a page of your own: you build it right on the page.</p>
     <form class="st-form" id="setup">
       <label>Your name, as an artist, in English letters (the app is in English)<input name="name" required value="${esc(/^[\x00-\u024f\s'.-]+$/.test(u.name || '') ? u.name : '')}" autocomplete="name" placeholder="e.g. Maya Cohen"></label>
       <div class="st-row"><label>You make<input name="discipline" placeholder="Painting"></label><label>City<input name="city" placeholder="Tel Aviv"></label></div>
@@ -361,14 +373,14 @@ function importer() {
     <div class="im-ways">
       <div class="st-card im-way"><h2>Photos from this phone</h2><p class="m small">The fastest way: take or choose photos of your works, as many as you like, straight on, the whole work in the picture. Then add titles and sizes in one sheet.</p>
         <label class="btn f"><input type="file" accept="image/*" multiple id="imFiles" hidden>Choose photos</label></div>
-      <form class="st-card im-way" data-kind="site"><h2>Your website</h2><p class="m small">We look at the page and its gallery pages for your images and their titles.</p>
+      <form class="st-card im-way" data-kind="site" data-way="site"><h2>Your website</h2><p class="m small">We look at the page and its gallery pages for your images and their titles.</p>
         <label class="vh" for="imSite">Website address</label><input id="imSite" name="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="yourname.com" value="${esc(site)}" required>
         <button class="btn f" type="submit">Find my work</button></form>
-      <div class="st-card im-way" id="imIg"><h2>Instagram</h2><p class="m small" id="imIgSay">Connect your Instagram (a professional account, linked to a Facebook Page) and choose posts from it.</p>
+      <div class="st-card im-way" id="imIg" data-way="ig"><h2>Instagram</h2><p class="m small" id="imIgSay">Connect your Instagram (a professional account, linked to a Facebook Page) and choose posts from it.</p>
         <div class="btns"><button class="btn f" type="button" id="imIgGo">Connect Instagram</button><button class="btn g" type="button" id="imIgOff" hidden>Disconnect</button></div>
         <details class="im-zip"><summary class="small">Or use Instagram’s download file</summary><p class="m small">In the Instagram app, <b>Settings → Accounts Centre → Your information and permissions → Download your information</b>, choose <b>Some of your information → Posts</b>, format <b>JSON</b>. Instagram emails you a file (.zip); choose it here.</p>
         <label class="btn g"><input type="file" accept=".zip,application/zip" id="imZip" hidden>Choose the Instagram file</label></details></div>
-      <div class="st-card im-way"><h2>Google Drive</h2><p class="m small">Choose images of your work from your Drive. Open Studio sees only the ones you choose.</p>
+      <div class="st-card im-way" data-way="drive"><h2>Google Drive</h2><p class="m small">Choose images of your work from your Drive. Open Studio sees only the ones you choose.</p>
         <div class="btns"><button class="btn f" type="button" id="imDriveGo">Choose from Google Drive</button></div>
         <details class="im-zip"><summary class="small">Or paste a shared folder link</summary>
         <form class="im-way" data-kind="drive"><p class="m small">A folder of images, shared as <b>Anyone with the link</b>.</p>
@@ -403,6 +415,9 @@ function wireImport(app, go) {
     const fresh = found.filter(x => !x.had).length;
     tell(!items.length ? 'Nothing found there.' : !fresh ? 'Everything here is already in your studio. Bring in the rest of your website below, or choose works to bring in again.' : '');
   };
+  // arriving from Add works on the page, for one way in: that way is brought under the eye
+  try { const way = sessionStorage.getItem('os-import-way'); sessionStorage.removeItem('os-import-way'); const card = way && app.querySelector(`.im-way[data-way="${way}"]`);
+    if (card) { card.classList.add('im-here'); setTimeout(() => { card.scrollIntoView({ block: 'center' }); const i = card.querySelector('input:not([type=file]):not([hidden])'); if (i && way === 'site' && !i.value) i.focus({ preventScroll: true }); }, 60); } } catch {}
   if (S.preview) {   // the control room's preview: the page as a new artist sees it, nothing fetched or kept
     const say = e => { if (e) e.preventDefault(); tell('<span dir="rtl" lang="he">בתצוגה מקדימה לא מייבאים בפועל: כך נראה הדף לאמן חדש.</span>'); };
     app.querySelectorAll('form.im-way').forEach(f => f.onsubmit = say);
@@ -677,20 +692,20 @@ function wireOnView(app, go, vx) {
     t.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); if (t.matches('input')) setTimeout(() => t.focus({ preventScroll: true }), 350);
   }); };
   const busy = (b, t, fn) => async () => { if (working) return; const was = b.textContent; working = true; b.disabled = true; b.textContent = t; try { await fn(); } catch (e) { console.error(e); say('That did not open. Try again.'); } finally { working = false; b.disabled = false; b.textContent = was; } };
-  const hang = () => hangIn(keep(true), () => go('#/studio/onview', true));
+  const hang = add => hangIn(keep(true), () => go('#/studio/onview', true), add === true);
   const acts = () => {
     const a = $('#ovActs'), html = ovBar(now());
     if (working || a.dataset.h === html) return;   // (never swap a button under the finger that is tapping it)
     a.dataset.h = html; a.innerHTML = html;
     const h = a.querySelector('#vxHang'), w = a.querySelector('#vxWalk'), p = a.querySelector('#vxPub');
     if (h) h.onclick = busy(h, 'Building the room…', hang);
-    if (w) w.onclick = busy(w, 'Building the room…', () => walkIn(keep(true)));
+    if (w) w.onclick = busy(w, 'Building the room…', () => walkIn(keep(true), () => hang()));
     if (p) p.onclick = publish;
   };
   function publish() {
     const k = keep(true), t = vx.elements.title;
     if (k.status !== 'published' && !k.title) { t.scrollIntoView({ block: 'center' }); t.focus({ preventScroll: true }); t.setAttribute('aria-invalid', 'true'); return say('Give it a title first'); }
-    k.status = k.status === 'published' ? 'draft' : 'published'; save(); go('#/studio/onview', true);
+    const out = k.status === 'published' || k.status === 'pending'; k.status = out ? 'draft' : 'pending'; save(); if (!out) say('Sent to Open Studio'); go('#/studio/onview', true);
   }
   const pubLink = $('#ovState #vxPub'); if (pubLink) pubLink.onclick = publish;
   // the room that is chosen: its picture, its name, its sizes; in place
@@ -708,11 +723,16 @@ function wireOnView(app, go, vx) {
     setRoom(same ? same[0] : firstOf(list));
   });
   vx.addEventListener('click', e => {
-    const s = e.target.closest('[data-size]'), r = e.target.closest('[data-rooms]'), p = e.target.closest('[data-preview]'), h = e.target.closest('[data-hang]');
+    const s = e.target.closest('[data-size]'), r = e.target.closest('[data-rooms]'), p = e.target.closest('[data-preview]'), h = e.target.closest('[data-hang]'), u = e.target.closest('[data-unhang]');
     if (s) { const many = (vx.elements.room.value.match(/-[23]r$/) || [''])[0]; setRoom(ROOMS[s.dataset.size + many] ? s.dataset.size + many : s.dataset.size); }
     else if (r) setRoom(r.dataset.rooms);
     else if (p) busy(p, 'Opening…', () => previewSpace(vx.elements.room.value, () => keep()))();
-    else if (h) busy(h.querySelector('span') || h, 'Building the room…', hang)();
+    else if (u && v) {      // a work taken out of the exhibition, here on the page (it stays on the artist's page; Add brings it back)
+      const id = u.dataset.unhang; v.works = (v.works || []).filter(x => x !== id); if (v.placements) delete v.placements[id];
+      v.plinths = (v.plinths || []).filter(q => q.work !== id); save(); say('Taken out');
+      $('#ovHung').innerHTML = ovHung(v); steps(); acts(); if (v.works.length) fitNote(app, v);
+    }
+    else if (h) busy(h, h.dataset.hang === 'add' ? '…' : 'Opening…', () => hang(h.dataset.hang === 'add'))();
   });
   vx.addEventListener('input', e => { if (e.target.name === 'title') { e.target.removeAttribute('aria-invalid'); steps(); } clearTimeout(timer); timer = setTimeout(() => { keep(); acts(); }, 600); });
   vx.addEventListener('change', e => { if (e.target.name === 'title' || e.target.name === 'text') { clearTimeout(timer); keep(); acts(); } });
@@ -762,7 +782,7 @@ function wire(app, go) {
   };
   wireImport(app, go);
   const pub = $('#vxPub');
-  if (pub) pub.onclick = () => { const v = S.virtual.find(x => x.id === $('#vxForm').dataset.id); if (!v) return; v.status = v.status === 'published' ? 'draft' : 'published'; save(); go(v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`, true); };
+  if (pub) pub.onclick = () => { const v = S.virtual.find(x => x.id === $('#vxForm').dataset.id); if (!v) return; v.status = v.status === 'published' || v.status === 'pending' ? 'draft' : 'pending'; save(); go(v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`, true); };
 
   const vx = $('#vxForm');
   if (vx && vx.dataset.onview) wireOnView(app, go, vx);
@@ -807,7 +827,7 @@ function wire(app, go) {
     });
     vx.onsubmit = e => { e.preventDefault(); keep(); go(onview ? '#/studio/onview' : '#/studio/exhibitions'); };
     const walk = $('#vxWalk');
-    if (walk) walk.onclick = async () => { walk.disabled = true; walk.textContent = 'Building the room…'; try { await walkIn(keep()); } finally { walk.disabled = false; walk.textContent = 'Walk in'; } };
+    if (walk) walk.onclick = async () => { walk.disabled = true; walk.textContent = 'Building the room…'; try { await walkIn(keep(), () => hangIn(keep(), () => go('#/studio/onview', true))); } finally { walk.disabled = false; walk.textContent = 'Walk in'; } };
     const hang = $('#vxHang');
     if (hang) hang.onclick = async () => { hang.disabled = true; hang.textContent = 'Building the room…'; try { await hangIn(keep(), () => go('#/studio/onview', true)); } finally { hang.disabled = false; } };
     const del = $('#vxDel');
