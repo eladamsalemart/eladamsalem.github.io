@@ -463,10 +463,10 @@ function home() {
       <div class="pick" hidden aria-live="polite"></div>
       <button type="button" class="sky-down"><span class="hand">your artists, shows and what’s near</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10l6 6 6-6"/></svg></button>
     </section>
+    <section class="hs-sec hs-mu" id="hsMuseum" aria-labelledby="hsMuH" hidden></section>
     ${walk.length ? `<section class="hs-sec hs-walk" aria-labelledby="hsLive">
       <div class="hs-h"><h2 id="hsLive">Walk in now</h2><span class="hand side">you can walk in from here</span></div>
       ${walkRow(walk, 'Exhibitions you can walk into')}</section>` : ''}
-    <section class="hs-sec hs-mu" id="hsMuseum" aria-labelledby="hsMuH" hidden></section>
     <section class="hs-sec hs-new" id="hsNew" aria-labelledby="hsNewH" hidden></section>
     ${mine.length ? `<section class="hs-sec" aria-labelledby="hsArtists">
       <div class="hs-h"><h2 id="hsArtists">Your artists</h2><a class="hs-more" href="#/artists">All</a></div>
@@ -603,12 +603,18 @@ function museumRooms(slots) {
 }
 const MU_CSS = `<style id="hsMuCss">
 .hs-mu .mu-in{position:relative;display:block;text-decoration:none;color:inherit}
-.hs-mu .mu-doors{display:flex;align-items:flex-end;gap:10px}
-.hs-mu .mu-door{flex:1 1 0;min-width:0;display:grid;gap:6px}
-.hs-mu .mu-door img,.hs-mu .mu-door i{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--card);border-radius:999px 999px 10px 12px / 999px 999px 12px 10px;box-shadow:0 0 0 1px color-mix(in srgb,var(--hs-pencil) 30%,transparent)}
-.hs-mu .mu-door:nth-child(2):not(:last-child) img,.hs-mu .mu-door:nth-child(2):not(:last-child) i{aspect-ratio:3/4.6}
-.hs-mu .mu-doors.one .mu-door img,.hs-mu .mu-doors.one .mu-door i{aspect-ratio:4/3.4;border-radius:160px 160px 14px 18px / 150px 150px 18px 14px}
-.hs-mu .mu-door u{display:block;height:4px;border-radius:2px;background:var(--c,var(--hs-pencil));opacity:.85}
+.hs-mu .mu-gate{position:relative;display:block;aspect-ratio:6/5;overflow:hidden;border-radius:190px 190px 16px 18px / 170px 170px 18px 16px;background:#f6f3ec;box-shadow:0 0 0 1px color-mix(in srgb,var(--hs-pencil) 34%,transparent),0 18px 34px -26px var(--hs-shade)}
+.hs-mu .mu-gate svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hs-mu .mu-walk{transform-origin:50% 52%;will-change:transform,opacity;animation:muWalk 36s linear infinite}
+.hs-mu .mu-walk.b{animation-delay:-18s}
+.hs-mu .mu-gate.rest .mu-walk{animation-play-state:paused}
+@keyframes muWalk{0%{transform:scale(1);opacity:0}14%{opacity:1}86%{opacity:1}100%{transform:scale(2);opacity:0}}
+@media (prefers-reduced-motion:reduce){.hs-mu .mu-walk{animation:none}.hs-mu .mu-walk.b{display:none}}
+.hs-mu .mu-cap{position:absolute;left:0;right:0;bottom:0;padding:46px 16px 14px;background:linear-gradient(180deg,transparent,rgba(24,22,18,.62));color:#fff;display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.hs-mu .mu-cap b{display:block;font:500 21px/1.15 var(--serif)}
+.hs-mu .mu-cap b[dir=rtl]{font:600 18px/1.25 'IBM Plex Sans Hebrew',var(--sans)}
+.hs-mu .mu-cap span span{display:block;font-size:13px;opacity:.92;margin-top:3px}
+.hs-mu .mu-cap .mu-go{position:static;flex:none}
 .hs-mu .mu-t{display:grid;gap:3px;margin-top:14px;padding-right:108px;min-height:44px;align-content:center}
 .hs-mu .mu-t b{font:500 21px/1.15 var(--serif)}
 .hs-mu .mu-t b[dir=rtl]{font:600 18px/1.25 'IBM Plex Sans Hebrew',var(--sans)}
@@ -616,6 +622,33 @@ const MU_CSS = `<style id="hsMuCss">
 .hs-mu .mu-go{position:absolute;right:0;bottom:0;min-height:44px;display:inline-flex;align-items:center;padding:0 18px;border-radius:999px;background:#fff;color:var(--hs-ink);font:600 15px var(--sans);box-shadow:0 8px 20px -12px var(--hs-shade)}
 .hs-mu .mu-in:active{opacity:.8}
 </style>`;
+// The museum's gate on Home: a wide look down its street (white walls, a door in the colour of each exhibition published on the
+// Desk), slowly walked into. Not a film and not the live 3D room (Home must stay quick): the street drawn as a picture, in two
+// layers that each grow from the far end towards the visitor and fade into one another, so the walk never stops and never jumps.
+// Lines to the vanishing point look the same at every size, so they are drawn once and stand still; only the doors move.
+const GATE_HUES = ['#c9a227', '#c8553d', '#d9772b', '#2f7fb8', '#2c9c6a', '#8b3a2f', '#7a5ea8', '#3c8f9a'];
+function gateSvg(colours) {
+  const W = 360, H = 300, cx = W / 2, cy = H * 0.52, f = v => v.toFixed(1);
+  const P = (x, y, s) => [cx + (x - cx) * s, cy + (y - cy) * s];          // a point of the near frame, seen at depth s (1 near, 0 far)
+  const poly = (pts, fill, extra = '') => `<polygon points="${pts.map(p => f(p[0]) + ',' + f(p[1])).join(' ')}" fill="${fill}"${extra}/>`;
+  const far = 0.07, a = P(0, 0, far), b = P(W, H, far);
+  const still = poly([[0, H], [W, H], P(W, H, far), P(0, H, far)], '#e4dfd4') + poly([[0, 0], [W, 0], P(W, 0, far), P(0, 0, far)], '#fbf8f1')
+    + poly([[0, 0], P(0, 0, far), P(0, H, far), [0, H]], '#f3efe7') + poly([[W, 0], P(W, 0, far), P(W, H, far), [W, H]], '#efebe2')
+    + `<rect x="${f(a[0])}" y="${f(a[1])}" width="${f(b[0] - a[0])}" height="${f(b[1] - a[1])}" fill="#fffdf8"/>`
+    + [[0, 0], [W, 0], [0, H], [W, H]].map(([x, y]) => { const e = P(x, y, far); return `<line x1="${x}" y1="${y}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="#5F6499" stroke-width=".7" opacity=".5"/>`; }).join('');
+  const layer = shift => {
+    let out = '';
+    for (let j = 0; j < 10; j++) {
+      const s0 = 0.94 * Math.pow(2, -j / 3), s1 = s0 * 0.84, left = j % 2 === 0, x = left ? 0 : W, c = colours[(j + shift) % colours.length], top = H * 0.27;
+      out += poly([P(x, H, s0), P(x, H, s1), P(x, top, s1), P(x, top, s0)], c);
+      const m = P(x + (left ? 46 : -46), H, (s0 + s1) / 2);
+      out += `<ellipse cx="${f(m[0])}" cy="${f(m[1] - 1)}" rx="${f(40 * s0)}" ry="${f(7 * s0)}" fill="${c}" opacity=".2"/>`;
+    }
+    return out;
+  };
+  const svg = (cls, inner) => `<svg${cls ? ` class="${cls}"` : ''} viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${inner}</svg>`;
+  return svg('', still) + svg('mu-walk', layer(0)) + svg('mu-walk b', layer(3 % colours.length || 1));
+}
 const NUM = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'];
 function drawMuseum(box, slots) {
   const rooms = museumRooms(slots || []), n = rooms.length;
@@ -628,9 +661,13 @@ function drawMuseum(box, slots) {
   const list = n <= 2 ? names.join(' and ') : `${names.slice(0, 2).join(', ')} and ${n - 2} more`;
   box.innerHTML = `<div class="hs-h"><h2 id="hsMuH">The Museum</h2><span class="hand side">${n === 1 ? 'one exhibition on now' : `${NUM[n].toLowerCase()} exhibitions on now`}</span></div>
     <a class="mu-in" href="#/museum" aria-label="Walk into the museum: ${n} ${n === 1 ? 'exhibition' : 'exhibitions'} on now">
-      ${doors.length ? `<span class="mu-doors${doors.length === 1 ? ' one' : ''}">${doors.map(r => `<span class="mu-door"${r.colour ? ` style="--c:${esc(r.colour)}"` : ''}><img src="${esc(r.img)}" alt="" loading="lazy"><u></u></span>`).join('')}</span>` : ''}
-      <span class="mu-t"><b${heb(names[0])}>${esc(n === 1 ? names[0] : `${NUM[n]} exhibitions, one walk`)}</b><span${heb(list)}>${esc(n === 1 ? (rooms[0].content && rooms[0].content.curator ? 'Curated by ' + rooms[0].content.curator : `${rooms[0].works.length} works`) : list)}</span></span>
-      <span class="mu-go">Walk in</span></a>`;
+      <span class="mu-gate rest" data-n="${n}">${gateSvg(rooms.map((r, k) => r.colour || GATE_HUES[k % GATE_HUES.length]))}
+        <span class="mu-cap"><span><b${heb(names[0])}>${esc(n === 1 ? names[0] : `${NUM[n]} exhibitions, one walk`)}</b><span${heb(list)}>${esc(n === 1 ? (rooms[0].content && rooms[0].content.curator ? 'Curated by ' + rooms[0].content.curator : `${rooms[0].works.length} works`) : list)}</span></span>
+        <span class="mu-go">Walk in</span></span></span></a>`;
+  // the walk moves only while the gate is on the screen (Home stays still, and quick, the rest of the time)
+  const gate = box.querySelector('.mu-gate');
+  if (gate && 'IntersectionObserver' in window) { if (box._io) box._io.disconnect(); box._io = new IntersectionObserver(es => { for (const e of es) gate.classList.toggle('rest', !e.isIntersecting); }, { threshold: 0.15 }); box._io.observe(gate); }
+  else if (gate) gate.classList.remove('rest');
   box.hidden = false;
 }
 async function fillMuseum(box) {
