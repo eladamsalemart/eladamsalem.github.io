@@ -32,8 +32,16 @@ const DB = (app.match(/const DB = '([^']+)'/) || [])[1], KEY = (app.match(/const
       const label = await p.locator('.hs-mu .mu-in').getAttribute('aria-label');
       onHome = +((label || '').match(/(\d+) exhibition/) || [])[1] || 0;
       if (onHome !== slots.length) fails.push(`the Desk has ${slots.length} exhibitions live (${slots.map(s => s.app_slug || 'slot-' + s.slot).join(', ')}) but Home's museum shows ${onHome}: a published one does not reach the app`);
-      const doors = await p.locator('.hs-mu .mu-door img').evaluateAll(a => a.map(i => i.complete && i.naturalWidth > 0));
-      if (!doors.length) fails.push('Home\'s museum has no picture at its doors'); else if (doors.includes(false)) fails.push('a picture at the museum\'s doors on Home did not load');
+      const gate = await p.evaluate(() => { const g = document.querySelector('.hs-mu .mu-gate'); if (!g) return null; const r = g.getBoundingClientRect(), w = g.querySelector('.mu-walk'); return { n: +g.dataset.n, w: r.width, h: r.height, doors: g.querySelectorAll('.mu-walk polygon').length, moves: w ? getComputedStyle(w).animationName : '' }; });
+      if (!gate) fails.push('Home\'s museum has no gate to walk in through');
+      else {
+        if (gate.n !== slots.length) fails.push(`the gate was drawn for ${gate.n} exhibitions, the Desk has ${slots.length}`);
+        if (gate.w < 300 || gate.h < 220) fails.push(`the gate is small (${Math.round(gate.w)} x ${Math.round(gate.h)}): it must be the wide way in under the stars`);
+        if (!gate.doors) fails.push('the gate shows no doors');
+        if (gate.moves !== 'muWalk') fails.push('the gate does not move (the slow walk in is missing)');
+      }
+      const order = await p.evaluate(() => { const m = document.querySelector('.hs-mu'), w = document.querySelector('.hs-walk'), s = document.querySelector('.hs .sky, .hs-sky, .sky'); return { beforeWalk: !w || !!(m.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING) }; });
+      if (!order.beforeWalk) fails.push('the museum is not right under the stars (Walk in now comes before it)');
       await box.screenshot({ path: out + '/museum-home.png' }).catch(() => {});
     } else {
       await p.waitForTimeout(6000);
