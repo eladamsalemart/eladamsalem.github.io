@@ -1,0 +1,201 @@
+{
+ "sections": [
+  {
+   "id": "renaissance",
+   "title": "The Renaissance",
+   "years": "c. 1300 - 1600",
+   "before": "Gothic",
+   "after": "Baroque",
+   "folder": "data/museum/renaissance",
+   "door": {
+    "radius": 12,
+    "lateral": 0
+   },
+   "bays": [
+    {
+     "title": "At the threshold",
+     "years": "c. 1300 - 1430",
+     "text": "Before the Renaissance had a name, painters began to give figures weight and a place to stand. Giotto's mourners lean in; Masaccio builds a chapel in paint; in Bruges, van Eyck paints a room and everything in it.",
+     "aL": -4,
+     "aR": 4,
+     "len": 9,
+     "h": 4.4,
+     "floor": "stone",
+     "wall": "#e4dccb",
+     "door": 3.4,
+     "open": 3.4,
+     "works": [
+      "giotto-lamentation",
+      "masaccio-holy-trinity",
+      "van-eyck-arnolfini-portrait"
+     ]
+    },
+    {
+     "title": "Florence, 1430-1500",
+     "years": "The Early Renaissance",
+     "text": "Perspective, anatomy and the old myths come back. Botticelli paints goddesses for the Medici; Mantegna foreshortens a dead Christ so sharply that the feet fill the picture. The space opens up.",
+     "aL": -5,
+     "aR": 7,
+     "len": 10,
+     "h": 4.4,
+     "floor": "oak",
+     "wall": "#d9dfd0",
+     "open": 5,
+     "works": [
+      "botticelli-birth-of-venus",
+      "botticelli-primavera",
+      "mantegna-lamentation-dead-christ",
+      "bellini-feast-of-the-gods"
+     ]
+    },
+    {
+     "title": "Rome and Venice",
+     "years": "The High Renaissance, 1495 - 1520",
+     "text": "A few years, a few cities, and the greatest names at once: Leonardo, Raphael, Michelangelo, Titian. Painters become sculptors and architects too. Here the room is tallest, and a stone David stands in it.",
+     "aL": -6,
+     "aR": 11,
+     "len": 13,
+     "h": 6.0,
+     "floor": "marble",
+     "wall": "#efe9de",
+     "sky": true,
+     "open": 6,
+     "works": [
+      "raphael-school-of-athens",
+      "michelangelo-creation-of-adam",
+      "leonardo-mona-lisa",
+      "leonardo-lady-with-an-ermine",
+      "raphael-sistine-madonna",
+      "michelangelo-doni-tondo",
+      "titian-venus-of-urbino",
+      "giorgione-the-tempest"
+     ],
+     "props": [
+      {
+       "kind": "glb",
+       "url": "data/museum/renaissance/models/david-scantheworld-100k.glb",
+       "a": 2.4,
+       "b": 7.0,
+       "rot": 3.14159,
+       "h": 2.7,
+       "plinth": {
+        "w": 1.0,
+        "d": 1.0,
+        "h": 1.0
+       },
+       "label": [
+        "David, 1501-04",
+        "Michelangelo. Scan of the marble:",
+        "Scan the World, CC BY-SA 4.0 (reduced, scaled 1:2)"
+       ]
+      },
+      {
+       "kind": "glb",
+       "url": "data/museum/renaissance/models/pieta-smk-plaster-cast-100k.glb",
+       "a": -3.6,
+       "b": 10.6,
+       "rot": 3.14159,
+       "h": 0.95,
+       "plinth": {
+        "w": 0.9,
+        "d": 0.9,
+        "h": 0.85
+       },
+       "label": [
+        "Pieta, 1498-99",
+        "Michelangelo. Plaster cast, scan:",
+        "Statens Museum for Kunst, CC0"
+       ]
+      },
+      {
+       "kind": "glb",
+       "url": "data/museum/renaissance/models/david-head-smk-plaster-cast-100k.glb",
+       "a": 8.4,
+       "b": 10.8,
+       "rot": 3.14159,
+       "h": 0.62,
+       "plinth": {
+        "w": 0.6,
+        "d": 0.6,
+        "h": 1.15
+       },
+       "label": [
+        "Head of David",
+        "Plaster cast, scan:",
+        "Statens Museum for Kunst, CC0"
+       ]
+      },
+      {
+       "kind": "tempietto",
+       "a": 6.0,
+       "b": 4.2,
+       "rot": 0.6,
+       "h": 0.62,
+       "plinth": {
+        "w": 0.85,
+        "d": 0.85,
+        "h": 0.95
+       },
+       "label": [
+        "Tempietto, Rome",
+        "Bramante, 1502",
+        "Model, simplified"
+       ]
+      },
+      {
+       "kind": "dome",
+       "a": 8.8,
+       "b": 6.6,
+       "rot": -0.4,
+       "h": 0.7,
+       "plinth": {
+        "w": 0.85,
+        "d": 0.85,
+        "h": 0.95
+       },
+       "label": [
+        "Dome of Florence Cathedral",
+        "Brunelleschi, 1436",
+        "Model, simplified"
+       ]
+      },
+      {
+       "kind": "rotonda",
+       "a": 6.0,
+       "b": 8.8,
+       "rot": 0.3,
+       "h": 0.58,
+       "plinth": {
+        "w": 0.85,
+        "d": 0.85,
+        "h": 0.95
+       },
+       "label": [
+        "Villa Rotonda, Vicenza",
+        "Palladio, 1566",
+        "Model, simplified"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "After the summit",
+     "years": "Mannerism and the North, 1520 - 1600",
+     "text": "Once perfection had been reached, painters stretched it: long necks, twisted bodies, acid colours. In the north, Bruegel turned the same eye on a village in snow.",
+     "aL": -9,
+     "aR": 5,
+     "len": 9,
+     "h": 5.0,
+     "floor": "slate",
+     "wall": "#c9b9a6",
+     "works": [
+      "pontormo-deposition",
+      "parmigianino-madonna-long-neck",
+      "bronzino-allegory-venus-cupid",
+      "bruegel-hunters-in-the-snow"
+     ]
+    }
+   ]
+  }
+ ]
+}

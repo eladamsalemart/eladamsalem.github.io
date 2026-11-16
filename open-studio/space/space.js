@@ -288,6 +288,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     }
   }
   addOutside();
+  if (spec.props) import('./props.js').then(m => m.addProps({ THREE, scene, spec, renderer, mark: () => { dirty = true; } })).catch(e => console.warn('props', e));      // (sculpture and maquettes on plinths)
   if (spec.outdoors) import('./outdoors.js').then(m => m.addOutdoors({ THREE, scene, spec, loadTex, renderer, mark: () => { dirty = true; } })).catch(e => console.warn('outdoors', e));      // (an open-air museum: the sky by the visitor's clock, real trees, street lamps)
 
   // through an opening: the wall's thickness, and a plain room beyond with the same floor
@@ -1277,7 +1278,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       camera.updateMatrixWorld();
       if (ibrNear) ibrNear(camera.position.clone(), camera.getWorldDirection(new THREE.Vector3()));
       if (ibrLeaveOut) ibrLeaveOut(leaveOut && leaveOut.photo, !!leaveOut, leaveOut && leaveOut.cover);
-      const bg = scene.background; scene.background = new THREE.Color('#ff00ff');   // a hole shows as magenta
+      const bg = scene.background; if (!spec.outdoors) scene.background = new THREE.Color('#ff00ff');   // a hole shows as magenta (an open-air museum has its sky: no holes to find)
       const swapped = [], walls = [];
       scene.traverse(o => { if (o.userData.kind === 'wall') walls.push(o); });
       if (ids) scene.traverse(o => {

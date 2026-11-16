@@ -16,9 +16,9 @@ import { client } from './auth.js';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const REPO = 'eladamsalemart/eladamsalem.github.io';
 const USERS = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/functions/v1/admin-users';
-const NAV = [['', 'תור'], ['artists', 'קהילה'], ['shows', 'תערוכות'], ['curated', 'מוזיאון'], ['system', 'מערכת']];
-const TITLES = { '': 'תור', artists: 'קהילה', shows: 'תערוכות', curated: 'המוזיאון', system: 'מערכת' };
-const TAB_OF = { '': '', artists: 'artists', people: 'artists', shows: 'shows', curated: 'curated', system: 'system', requests: 'system', health: 'system' };
+const NAV = [['', 'תור'], ['artists', 'קהילה'], ['shows', 'תערוכות'], ['curated', 'מוזיאון'], ['agent', 'סוכן'], ['system', 'מערכת']];
+const TITLES = { '': 'תור', artists: 'קהילה', shows: 'תערוכות', agent: 'סוכן', curated: 'המוזיאון', system: 'מערכת' };
+const TAB_OF = { '': '', artists: 'artists', people: 'artists', shows: 'shows', agent: 'agent', curated: 'curated', system: 'system', requests: 'system', health: 'system' };
 let M = null;                                    // the app's content
 let APP = null, GO = null, KEYS = null, QC = null, HC = null, QT = '';   // the page; navigation; key handler; queue and health caches; queue title
 const day = t => new Date(t).toLocaleDateString('he-IL', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -35,7 +35,7 @@ html:has(.adm){background:var(--wall)}body:has(.adm){max-width:none;box-shadow:n
 .ax-main{padding:env(safe-area-inset-top,0px) max(16px,env(safe-area-inset-right,0px)) 110px max(16px,env(safe-area-inset-left,0px));min-width:0}
 .ax-top{display:flex;justify-content:space-between;align-items:center;min-height:44px}
 .ax-h1{font:400 32px/1.1 var(--serif);padding:6px 0 4px}.ax-sub{color:var(--muted);font-size:14px;padding-bottom:14px;min-height:1.5em}
-.ax-tabs{position:fixed;inset:auto 0 0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--wall) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.ax-tabs{position:fixed;inset:auto 0 0;z-index:6;display:grid;grid-template-columns:repeat(6,1fr);background:color-mix(in srgb,var(--wall) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
 .ax-tabs a,.ax-side a.ax-l{display:flex;align-items:center;justify-content:center;gap:6px;min-height:56px;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none}
 .ax-tabs a[aria-current]{color:var(--ink);font-weight:700;box-shadow:inset 0 -2px 0 var(--dot)}
 .ax-badge{background:var(--dot);color:var(--wall);border-radius:99px;font:600 11px/18px var(--sans);min-width:18px;height:18px;text-align:center;padding:0 5px;font-style:normal}.ax-badge:empty{display:none}
@@ -89,6 +89,13 @@ html:has(.adm){background:var(--wall)}body:has(.adm){max-width:none;box-shadow:n
  .ax-toast{inset-inline:auto 40px;bottom:28px;min-width:320px}
  .ax-two{grid-template-columns:repeat(2,minmax(0,1fr));gap:36px}.ax-cols{grid-template-columns:repeat(3,1fr)}
  .ax-list{max-width:900px}}
+.ag{display:grid;gap:12px;max-width:760px}.ag-log{display:grid;gap:10px;align-content:start;min-height:40vh;max-height:62vh;overflow:auto;padding:4px 2px}
+.ag-m{padding:10px 14px;border-radius:16px;max-width:92%;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5}
+.ag-m.me{background:var(--ink);color:var(--wall);justify-self:start}.ag-m.ai{background:var(--paper);border:1px solid var(--line);justify-self:end}
+.ag-m.tool{background:none;color:var(--muted);font-size:12px;padding:0 6px;justify-self:end}
+.ag-in{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}.ag-in textarea{font:inherit;font-size:16px;padding:10px 12px;min-height:56px;max-height:30vh;border:1px solid var(--line);border-radius:12px;background:var(--wall);color:var(--ink);resize:vertical}
+.ag-st{font-size:13px;color:var(--muted)}.ag-set{display:grid;gap:8px}.ag-set code{direction:ltr;display:block;background:var(--card);padding:8px 10px;border-radius:8px;overflow-wrap:anywhere}
+@media(prefers-reduced-motion:reduce){.ag-log{scroll-behavior:auto}}
 @media(prefers-reduced-motion:reduce){.ax-card{transition:none}}`;
 
 const nav = (tab, cls) => NAV.map(([k, t]) => `<a ${cls ? `class="${cls}"` : ''} href="#/admin${k ? '/' + k : ''}" ${k === tab ? 'aria-current="page"' : ''}><span>${t}</span>${k === '' ? '<i class="ax-badge" data-q></i>' : k === 'system' ? '<i class="ax-dot" data-h hidden></i>' : ''}</a>`).join('');
@@ -118,6 +125,7 @@ async function draw(hash, keepScroll) {
   if (tab === 'artists') body = await artists(c);
   else if (tab === 'people') body = await people(c);
   else if (tab === 'shows') body = await showsTab(c);
+  else if (tab === 'agent') body = agentTab();
   else if (tab === 'curated') body = `<div class="ax-narrow">${await curated(c)}</div>`;
   else if (nt === 'system') body = system();
   else body = await queue(c);
@@ -280,6 +288,50 @@ async function showsTab(c) {
       <div class="list">${rest.map(exRow).join('') || '<p class="m small">אין.</p>'}</div></section></div>`;
 }
 
+// --- the agent: talk to Claude Code, working in this repository, on the owner's own computer (studio/agent/bridge.mjs) ---------
+const BRIDGE = 'http://127.0.0.1:8799';
+const agentTab = () => `<div class="ag"><p class="m">שיחה עם הסוכן של Open Studio: הוא מכיר את האפליקציה, את התוכנית ואת הכוונה, ועובד על הקוד והתוכן. אומרים לו מה לעשות, והוא עושה, ושואל כשמשהו לא ברור. הוא עובד רק כשהמחשב שלך דולק והגשר פועל.</p>
+  <div class="ag-st" id="agSt">בודק חיבור…</div><div class="ag-set" id="agSet" hidden></div>
+  <div class="ag-log" id="agLog" aria-live="polite"></div>
+  <form class="ag-in" id="agForm" hidden><textarea id="agTxt" rows="2" placeholder="מה לעשות?" aria-label="הודעה לסוכן"></textarea><button class="btn f" type="submit" id="agGo">שלח</button></form></div>`;
+function wireAgent(app) {
+  const $ = s => app.querySelector(s), st = $('#agSt'), set = $('#agSet'), log = $('#agLog'), form = $('#agForm'), txt = $('#agTxt'), go = $('#agGo');
+  let token = '', session = '';
+  try { token = localStorage.getItem('os-agent-token') || ''; session = sessionStorage.getItem('os-agent-session') || ''; } catch {}
+  const add = (cls, t) => { const d = document.createElement('div'); d.className = 'ag-m ' + cls; d.textContent = t; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; };
+  const head = () => ({ authorization: `Bearer ${token}`, 'content-type': 'application/json' });
+  const check = async () => {
+    let r; try { r = await (await fetch(BRIDGE + '/status', { headers: head() })).json(); } catch { r = null; }
+    form.hidden = true; set.hidden = true;
+    if (!r) { st.textContent = 'הסוכן לא מחובר.'; set.hidden = false; set.innerHTML = '<p class="m">כדי להפעיל אותו: במחשב, פתח את התיקייה <b dir="ltr">Documents\\site-work\\studio\\agent</b> ולחץ פעמיים על <b dir="ltr">start-agent.cmd</b>, ואז לחץ כאן "נסה שוב". (בפעם הראשונה צריך להיכנס ל־Claude Code במחשב: להריץ <code>claude</code> ולכתוב /login.)</p><button class="btn g" type="button" id="agRetry">נסה שוב</button>'; $('#agRetry').onclick = check; return; }
+    if (!r.authed) { st.textContent = 'מחובר לגשר. צריך להדביק את הקוד פעם אחת.'; set.hidden = false; set.innerHTML = '<p class="m">בחלון של הגשר מודפס "Token". העתק אותו והדבק כאן:</p><input class="ax-search" id="agTok" dir="ltr" autocomplete="off" aria-label="הקוד של הגשר"><button class="btn f" type="button" id="agTokGo">שמור</button>'; $('#agTokGo').onclick = () => { token = $('#agTok').value.trim(); try { localStorage.setItem('os-agent-token', token); } catch {} check(); }; return; }
+    st.textContent = r.mock ? 'מחובר (מצב בדיקה).' : 'מחובר.'; form.hidden = false; txt.focus();
+  };
+  form.onsubmit = async e => {
+    e.preventDefault(); const message = txt.value.trim(); if (!message) return;
+    txt.value = ''; add('me', message); go.disabled = true; const ai = add('ai', '…'); let text = '';
+    try {
+      const res = await fetch(BRIDGE + '/ask', { method: 'POST', headers: head(), body: JSON.stringify({ message, session }) });
+      if (!res.ok) throw new Error(res.status === 401 ? 'הקוד לא נכון' : `שגיאה ${res.status}`);
+      const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+      for (;;) {
+        const { done, value } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true });
+        let i; while ((i = buf.indexOf('\n')) >= 0) {
+          const l = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (!l) continue;
+          let j; try { j = JSON.parse(l); } catch { continue; }
+          if (j.t) { text += j.t; ai.textContent = text; log.scrollTop = log.scrollHeight; }
+          if (j.tool) add('tool', `עובד: ${j.tool}`);
+          if (j.done) { if (j.session) { session = j.session; try { sessionStorage.setItem('os-agent-session', session); } catch {} } if (j.error) add('ai', `לא הצליח: ${j.error}`); }
+        }
+      }
+      if (!text) ai.remove();
+    } catch (er) { ai.textContent = `לא הצליח: ${er.message}`; }
+    go.disabled = false; txt.focus();
+  };
+  txt.onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) form.requestSubmit(); };
+  check();
+}
+
 // --- the system: how the app is, asking for a change, trying it as someone new ----------------------------------------
 const gh = p => fetch(`https://api.github.com/repos/${REPO}/${p}`, { headers: { Accept: 'application/vnd.github+json' } }).then(r => r.ok ? r.json() : null).catch(() => null);
 const healthState = () => (HC && Date.now() - HC.t < 6e5 ? HC.p : (HC = { t: Date.now(), p: Promise.all([gh('issues?labels=app-health&state=open'), gh('actions/runs?per_page=40')]).then(([issues, runs]) => ({ issues, runs })) }).p);
@@ -437,6 +489,7 @@ function wire(app, c, tab) {
     };
     let loaded = false; real.ontoggle = () => { if (real.open && !loaded) { loaded = true; list(); } };
   }
+  if (tab === 'agent') wireAgent(app);
   if (tab === 'shows') {
     const apply = () => { M.hidden = HID; M.exhibitions = (M.allExhibitions || M.exhibitions).filter(e => !HID.has('ex:' + e.slug));
       try { const cc = JSON.parse(localStorage.getItem('os-community') || 'null'); if (cc) { cc.hidden = [...HID].map(key => ({ key })); localStorage.setItem('os-community', JSON.stringify(cc)); } } catch {} };
