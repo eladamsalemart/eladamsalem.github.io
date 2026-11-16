@@ -165,7 +165,7 @@ function exhibitions() {
     <p class="m">There are two kinds of exhibition here, and they are made in different ways.</p>
     <section class="st-card ex-kind" aria-labelledby="exV"><p class="ex-tag">Virtual</p><h2 id="exV">An exhibition that exists only here</h2>
       <p class="m small">You choose one of Open Studio’s rooms and hang your works in it. Visitors walk through it on their phone. Nothing has to exist in the real world.</p>
-      ${vs.length ? `<div class="list">${vs.map(v => `<a class="row" href="${v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`}"><img src="${esc(thumbOf(v.works[0]))}" alt=""><div class="t"><div><b>${esc(v.title || 'Untitled')}</b></div><div class="m">${esc(roomName(v.room))} · ${v.works.length} works</div></div><span class="st-flag ${vState(v)[0]}">${vState(v)[1]}</span></a>`).join('')}</div>` : ''}
+      ${vs.length ? `<div class="list">${vs.map(v => `<div class="ex-vi"><a class="row" href="${v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`}"><img src="${esc(thumbOf(v.works[0]))}" alt=""><div class="t"><div><b>${esc(v.title || 'Untitled')}</b></div><div class="m">${esc(roomName(v.room))} · ${v.works.length} works</div></div><span class="st-flag ${vState(v)[0]}">${vState(v)[1]}</span></a>${S.cloud ? `<button type="button" class="btn g ex-vp" data-vpub="${esc(v.id)}">${v.status === 'published' ? 'Take off my page' : v.status === 'pending' ? 'Take it back' : ADMIN ? 'Show on my page' : 'Send for review'}</button>` : ''}</div>`).join('')}</div>` : ''}
       <div class="btns"><a class="btn f" href="${on || !vs.length ? '#/studio/onview' : '#/studio/virtual/new'}">${on ? 'Open your virtual exhibition' : vs.length ? 'Design another' : 'Make a virtual exhibition'}</a></div></section>
     <section class="st-card ex-kind" aria-labelledby="exR"><p class="ex-tag real">Real</p><h2 id="exR">An exhibition that happened</h2>
       <p class="m small">A show you had in a gallery, a studio or any real place. Add its photos or a walk-through video. When there is enough material, Open Studio builds a 3D walk of the real room from it.</p>
@@ -978,11 +978,18 @@ export async function studio(hash, app, go, M, tools) {
   else if (m.startsWith('exhibition/')) html = exhibitionPage(m.slice(11));
   else if (m.startsWith('virtual/') || m === 'exhibitions' || m === 'onview') {
     { const m = await synth(); ({ ROOMS, PAINTS } = m); ACTIVE = m.ACTIVE_KINDS || []; }
+    if (m === 'exhibitions') await askAdmin();
     html = m === 'exhibitions' ? exhibitions() : m === 'onview' ? onView() : designer(m.slice(8));
   }
   else if (m === 'import') html = importer();
   else { go('#/studio'); return; }
   app.innerHTML = html;
   wire(app, go);
+  app.querySelectorAll('[data-vpub]').forEach(b => b.onclick = () => {          // (the Exhibitions tab: a virtual exhibition on the page or not)
+    const v = (S.virtual || []).find(x => x.id === b.dataset.vpub); if (!v) return;
+    const out = v.status === 'published' || v.status === 'pending';
+    if (!out && !v.title) return go(`#/studio/virtual/${v.id}`);
+    v.status = out ? 'draft' : ADMIN ? 'published' : 'pending'; save(); go('#/studio/exhibitions', true);
+  });
   if (restoreY != null) { const y = restoreY; restoreY = null; requestAnimationFrame(() => scrollTo({ top: y, behavior: 'instant' })); }
 }
