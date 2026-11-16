@@ -15,7 +15,7 @@ const NUM = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']
   const p = await ctx.newPage(), bad = [], ok = [];
   const say = (cond, good, wrong) => (cond ? ok : bad).push(cond ? good : wrong);
   p.on('pageerror', e => bad.push(`a script error: ${e.message}`));
-  const section = () => p.evaluate(() => { const s = document.getElementById('hsMuseum'); return !s || s.hidden ? null : { side: s.querySelector('.side').textContent, t: s.querySelector('.mu-t').textContent, doors: s.querySelectorAll('.mu-door img').length, href: s.querySelector('a.mu-in').getAttribute('href') }; });
+  const section = () => p.evaluate(() => { const s = document.getElementById('hsMuseum'); return !s || s.hidden ? null : { side: s.querySelector('.side').textContent, t: s.querySelector('.mu-cap b').textContent, doors: +s.querySelector('.mu-gate').dataset.n, href: s.querySelector('a.mu-in').getAttribute('href') }; });
   const waitSide = (txt, ms = 15000) => p.waitForFunction(t => { const s = document.getElementById('hsMuseum'); return t === null ? !!s && s.hidden : !!s && !s.hidden && s.querySelector('.side').textContent.includes(t); }, txt, { timeout: ms, polling: 150 }).then(() => true, () => false);
   const shot = async name => { if (shots) { await p.evaluate(() => document.getElementById('hsMuseum').scrollIntoView({ block: 'center' })); await p.waitForTimeout(700); await p.screenshot({ path: `${shots}/${name}.png` }); } };
 
@@ -43,7 +43,7 @@ const NUM = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']
     await p.addInitScript(() => { const f = window.fetch; window.__modes = []; window.fetch = function (u, o) { if (String(u).includes('museum_slots')) window.__modes.push((o && o.cache) || 'default'); return f.apply(this, arguments); }; });
     await p.goto(`${base}?guest#/`);
     say(await waitSide('two exhibitions'), 'Home shows the museum as published: two exhibitions', `Home after the first publish: ${JSON.stringify(await section())}`);
-    const s1 = await section(); say(s1 && s1.href === '#/museum' && s1.doors === 2, 'one way in (#/museum), a picture for each exhibition', `the way in or the pictures are wrong: ${JSON.stringify(s1)}`);
+    const s1 = await section(); say(s1 && s1.href === '#/museum' && s1.doors === 2, 'one way in (#/museum), a door for each exhibition', `the way in or the doors are wrong: ${JSON.stringify(s1)}`);
     await shot('home-museum-two');
     // 1. a third room is published while the app is open; the visitor goes to Shows and comes back Home (no reload)
     now = [...A, own(3, 'A Third Room', 4)];
