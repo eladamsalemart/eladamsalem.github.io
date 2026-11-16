@@ -1,0 +1,330 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Museum, open: the four sketch models</title>
+<!-- A sketch model of each proposal for the museum, drawn with three.js: the same model gives the plan (from above, no roof),
+     the view from the air and the views at eye height. Not the app's viewer: a quick architect's model to choose from.
+     model.html?c=field|descent|path|cluster&v=plan|air|a|b|c   (render.cjs photographs them all) -->
+<style>
+html, body { margin: 0; background: #f3f1ea; overflow: hidden; height: 100%; }
+canvas { display: block; }
+.lb { position: absolute; transform: translate(-50%, -50%); font: 600 15px Heebo, Arial, sans-serif; color: #1d1d1b; background: rgba(255, 255, 255, .86); padding: 2px 8px; border-radius: 3px; white-space: nowrap; direction: rtl; }
+.lb.f { background: none; color: #8a5a2b; font-weight: 500; }
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const q = new URLSearchParams(location.search), C = q.get('c') || 'field', VIEW = q.get('v') || 'air';
+const W = innerWidth, H = innerHeight;
+const scene = new THREE.Scene();
+const mgr = new THREE.LoadingManager(), TL = new THREE.TextureLoader(mgr);
+const ART = '../../app/data/demo/works/';
+const glassList = [], roofList = [], ghostList = [];
+
+// ---- materials ----------------------------------------------------------------------------------------------------------
+const concTex = TL.load('../../app/data/rooms/detail/concrete.jpg'); concTex.wrapS = concTex.wrapT = THREE.RepeatWrapping; concTex.colorSpace = THREE.SRGBColorSpace;
+const std = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.92, metalness: 0, ...o });
+const M = {
+  white: std(0xf4f2ec), warm: std(0xe9e3d6), concrete: std(0xb9b7b1, { map: concTex }), darkc: std(0x77766f, { map: concTex }),
+  floor: std(0xcfccc4, { roughness: 0.55 }), oak: std(0xc9a676, { roughness: 0.7 }), terrazzo: std(0xdedad0, { roughness: 0.5 }),
+  green: std(0x2f4a3c), terra: std(0xb5694a), ink: std(0x24282b), timber: std(0x5b4636), blue: std(0x1c67e3),
+  grass: std(0xa9b98a), gravel: std(0xd9d2c0), water: std(0x8fa7ad, { roughness: 0.2 }), steel: std(0x3a3d40, { roughness: 0.5 }),
+  bronze: std(0x6a543a, { roughness: 0.45, metalness: 0.5 }), stone: std(0xe6e1d6, { roughness: 0.6 }), leaf: std(0x7d9a68), trunk: std(0x6b5a48),
+  glass: new THREE.MeshStandardMaterial({ color: 0xcfe3e6, transparent: true, opacity: 0.16, roughness: 0.05, metalness: 0.2, side: THREE.DoubleSide, depthWrite: false }),
+  milk: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, side: THREE.DoubleSide }),
+};
+const mat = m => typeof m === 'string' ? M[m] : m;
+
+// ---- primitives ---------------------------------------------------------------------------------------------------------
+function add(mesh, o = {}) { mesh.castShadow = !o.noCast; mesh.receiveShadow = true; if (o.roof) roofList.push(mesh); scene.add(mesh); return mesh; }
+function box(cx, cy, cz, sx, sy, sz, m, ry = 0, o = {}) {
+  const g = new THREE.BoxGeometry(sx, sy, sz);
+  if (mat(m).map) { const uv = g.attributes.uv, k = 1 / 3; for (let i = 0; i < uv.count; i++) { const f = Math.floor(i / 4); const su = f < 2 ? sz : sx, sv = (f === 2 || f === 3) ? sz : sy; uv.setXY(i, uv.getX(i) * su * k, uv.getY(i) * sv * k); } }
+  const b = new THREE.Mesh(g, mat(m)); b.position.set(cx, cy, cz); b.rotation.y = ry; return add(b, o);
+}
+const len = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+const along = (a, b, s) => { const L = len(a, b); return [a[0] + (b[0] - a[0]) * s / L, a[1] + (b[1] - a[1]) * s / L]; };
+function seg(a, b, y0, h, t, m, o) { const L = len(a, b); if (L < 0.02 || h < 0.02) return; return box((a[0] + b[0]) / 2, y0 + h / 2, (a[1] + b[1]) / 2, L, h, t, m, -Math.atan2(b[1] - a[1], b[0] - a[0]), o); }
+function glassSeg(a, b, y0, h) {
+  const L = len(a, b); if (L < 0.05) return;
+  const p = seg(a, b, y0, h, 0.03, 'glass', { noCast: true }); p.userData.glass = true; glassList.push(p); p.receiveShadow = false;
+  const n = Math.max(1, Math.round(L / 2.4));
+  for (let i = 0; i <= n; i++) { const c = along(a, b, L * i / n); box(c[0], y0 + h / 2, c[1], 0.05, h, 0.09, 'steel', -Math.atan2(b[1] - a[1], b[0] - a[0])); }
+  seg(a, b, y0 + h - 0.07, 0.07, 0.09, 'steel'); seg(a, b, y0, 0.05, 0.09, 'steel');
+}
+// a wall from a to b; o.gaps: [[from, to, doorHeight]] along it (a lintel closes the wall above a door lower than the wall)
+function wall(a, b, o = {}) {
+  const h = o.h ?? 4, y0 = o.y0 ?? 0, t = o.t ?? 0.3, m = o.mat || 'white', L = len(a, b), put = m === 'glass' ? (p, r, yy, hh) => glassSeg(p, r, yy, hh) : (p, r, yy, hh) => seg(p, r, yy, hh, t, m);
+  let s = 0;
+  for (const [g0, g1, dh] of [...(o.gaps || [])].sort((x, y) => x[0] - y[0])) {
+    put(along(a, b, s), along(a, b, g0), y0, h);
+    if (dh && dh < h) put(along(a, b, g0), along(a, b, g1), y0 + dh, h - dh);
+    s = g1;
+  }
+  put(along(a, b, s), b, y0, h);
+  return { a, b, t: m === 'glass' ? 0.03 : t, y0, h };
+}
+function shapeOf(pts) { const s = new THREE.Shape(); pts.forEach((p, i) => i ? s.lineTo(p[0], -p[1]) : s.moveTo(p[0], -p[1])); s.closePath(); return s; }
+function circle(cx, cz, r, n = 28) { return Array.from({ length: n }, (_, i) => [cx + r * Math.cos(i / n * 2 * Math.PI), cz + r * Math.sin(i / n * 2 * Math.PI)]); }
+function poly(pts, yTop, t, m, o = {}) {
+  const s = shapeOf(pts); for (const hl of o.holes || []) s.holes.push(new THREE.Path(hl.map(p => new THREE.Vector2(p[0], -p[1]))));
+  const g = new THREE.ExtrudeGeometry(s, { depth: t, bevelEnabled: false }); g.rotateX(-Math.PI / 2);
+  if (mat(m).map) { const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 3, uv.getY(i) / 3); }
+  const me = new THREE.Mesh(g, mat(m)); me.position.y = yTop - t;
+  if (mat(m) === M.glass || mat(m) === M.milk) { glassList.push(me); me.userData.glass = true; o.noCast = true; }
+  return add(me, o);
+}
+const rectPts = (x0, z0, x1, z1) => [[x0, z0], [x1, z0], [x1, z1], [x0, z1]];
+function rot(cx, cz, w, d, deg) { const a = deg * Math.PI / 180, c = Math.cos(a), s = Math.sin(a); return [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2]].map(([x, z]) => [cx + x * c - z * s, cz + x * s + z * c]); }
+const centre = pts => [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length];
+const scalePts = (pts, k, c = centre(pts)) => pts.map(p => [c[0] + (p[0] - c[0]) * k, c[1] + (p[1] - c[1]) * k]);
+// a picture on a wall (a→b), s metres along it, on the side `side` (+1: the left of a→b turned... the normal (dz,-dx))
+function normalOf(a, b, side) { const L = len(a, b); return [(b[1] - a[1]) / L * side, -(b[0] - a[0]) / L * side]; }
+function art(wl, s, side, w, h, img, yc) {
+  const { a, b, t, y0 } = wl, n = normalOf(a, b, side), c = along(a, b, s), y = y0 + (yc ?? 1.55);
+  const tex = TL.load(ART + img + '.jpg'); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 }));
+  p.position.set(c[0] + n[0] * (t / 2 + 0.045), y, c[1] + n[1] * (t / 2 + 0.045)); p.rotation.y = Math.atan2(n[0], n[1]); add(p, { noCast: true });
+  const f = new THREE.Mesh(new THREE.BoxGeometry(w + 0.06, h + 0.06, 0.04), M.ink); f.position.set(c[0] + n[0] * (t / 2 + 0.02), y, c[1] + n[1] * (t / 2 + 0.02)); f.rotation.y = p.rotation.y; add(f);
+}
+const sideTo = (wl, t) => { const n = normalOf(wl.a, wl.b, 1), m = [(wl.a[0] + wl.b[0]) / 2, (wl.a[1] + wl.b[1]) / 2]; return n[0] * (t[0] - m[0]) + n[1] * (t[1] - m[1]) > 0 ? 1 : -1; };
+function text(wl, s, side, str, size, yc, color = '#1d1d1b') {
+  const { a, b, t, y0 } = wl, n = normalOf(a, b, side), c = along(a, b, s);
+  const cv = document.createElement('canvas'), x = cv.getContext('2d'); x.font = `500 160px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+  const tw = [...str].reduce((sum, ch) => sum + x.measureText(ch).width + 22, 0); cv.width = Math.ceil(tw + 40); cv.height = 220;
+  x.font = `500 160px "Helvetica Neue", Helvetica, Arial, sans-serif`; x.fillStyle = color; x.textBaseline = 'middle'; let px = 20; for (const ch of str) { x.fillText(ch, px, 115); px += x.measureText(ch).width + 22; }
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  const hh = size * 1.4, p = new THREE.Mesh(new THREE.PlaneGeometry(hh * cv.width / cv.height, hh), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
+  p.position.set(c[0] + n[0] * (t / 2 + 0.02), y0 + yc, c[1] + n[1] * (t / 2 + 0.02)); p.rotation.y = Math.atan2(n[0], n[1]); scene.add(p); glassList.push(p);
+}
+function plinth(x, z, o = {}) {
+  const w = o.w ?? 0.5, h = o.h ?? 1.0, y0 = o.y0 ?? 0; box(x, y0 + h / 2, z, w, h, w, o.mat || 'stone', o.r || 0);
+  const k = o.obj ?? 0, m = o.om || 'bronze'; let g;
+  if (k === 0) g = new THREE.IcosahedronGeometry(0.2, 0); else if (k === 1) g = new THREE.CapsuleGeometry(0.09, 0.42, 4, 10); else if (k === 2) g = new THREE.TorusGeometry(0.17, 0.06, 10, 24); else g = new THREE.ConeGeometry(0.16, 0.5, 5);
+  const ob = new THREE.Mesh(g, mat(m)); ob.position.set(x, y0 + h + (k === 1 ? 0.3 : k === 3 ? 0.25 : 0.22), z); ob.rotation.y = x; add(ob);
+}
+function person(x, z, y0 = 0, s = 1) {
+  const m = std(0x4d4f52); const b = new THREE.Mesh(new THREE.CapsuleGeometry(0.16 * s, 1.0 * s, 4, 10), m); b.position.set(x, y0 + 0.78 * s, z); add(b);
+  const hd = new THREE.Mesh(new THREE.SphereGeometry(0.105 * s, 14, 10), m); hd.position.set(x, y0 + 1.58 * s, z); add(hd);
+}
+function tree(x, z, s = 1, y0 = 0) {
+  const t = new THREE.Mesh(new THREE.CylinderGeometry(0.09 * s, 0.13 * s, 2.6 * s, 7), M.trunk); t.position.set(x, y0 + 1.3 * s, z); add(t);
+  for (const [dx, dy, dz, r] of [[0, 3.6, 0, 1.7], [0.9, 3.1, 0.4, 1.2], [-0.8, 3.3, -0.5, 1.3], [0.1, 4.4, -0.3, 1.1]]) { const c = new THREE.Mesh(new THREE.IcosahedronGeometry(r * s, 1), M.leaf); c.position.set(x + dx * s, y0 + dy * s, z + dz * s); add(c); }
+}
+function stairs(x, z, deg, width, n, rise, tread, y0, m = 'concrete') {
+  const a = deg * Math.PI / 180, dx = Math.cos(a), dz = Math.sin(a), bottom = y0 - n * rise;
+  for (let i = 0; i < n; i++) { const top = y0 - (i + 1) * rise, c = (i + 0.5) * tread; box(x + dx * c, (top + bottom) / 2 - 0.01, z + dz * c, tread + 0.005, top - bottom + 0.02, width, m, -a); }
+}
+function ghost(pts) {
+  const g = new THREE.BufferGeometry().setFromPoints([...pts, pts[0]].map(p => new THREE.Vector3(p[0], 0.12, p[1])));
+  const l = new THREE.Line(g, new THREE.LineDashedMaterial({ color: 0x8a5a2b, dashSize: 0.7, gapSize: 0.45 })); l.computeLineDistances(); scene.add(l); ghostList.push(l);
+}
+// a closed room on any four (or more) corners; o.open: { edge, w, doorH, at } is its way in; o.sky: a roof light
+function room(pts, o = {}) {
+  const h = o.h ?? 4.5, y0 = o.y0 ?? 0, walls = [];
+  pts.forEach((p, i) => { const b = pts[(i + 1) % pts.length], op = (o.open || []).filter(e => e.edge === i); walls.push(wall(p, b, { h, y0, mat: o.mat || 'white', t: o.t ?? 0.35, gaps: op.map(e => { const L = len(p, b), at = e.at ?? L / 2; return [at - e.w / 2, at + e.w / 2, e.doorH ?? 3.2]; }) })); });
+  poly(pts, y0 + 0.03, 0.03, o.floor || 'oak', { noCast: true });
+  const holes = o.sky ? [scalePts(pts, o.sky)] : [];
+  poly(scalePts(pts, 1.01), y0 + h + 0.25, 0.25, o.roofMat || o.mat || 'white', { holes, roof: true });
+  if (o.sky) poly(scalePts(pts, o.sky), y0 + h + 0.2, 0.02, 'milk', { roof: true });
+  return walls;
+}
+
+// ---- the four proposals ---------------------------------------------------------------------------------------------------
+const P = {};
+// 1. The Field: one glass house, no rooms. Free walls at their own angles make clearings; an exhibition is a clearing.
+P.field = () => {
+  const per = [[0, 4], [46, 0], [44, 26], [16, 30], [-2, 20]];
+  poly(rectPts(-50, -45, 100, 70), 0, 0.05, 'grass', { noCast: true });
+  poly(per, 0.06, 0.06, 'floor', { noCast: true });
+  per.forEach((p, i) => wall(p, per[(i + 1) % 5], { h: 4.6, mat: 'glass', gaps: i === 3 ? [[8, 11, 2.6]] : [] }));
+  const lights = [circle(9, 21, 2.2), circle(24, 12.5, 2.8), circle(37, 17, 1.8), circle(14, 8, 1.4), circle(33, 6.5, 1.2), circle(27, 23, 1.5), circle(40, 10, 1.0)];
+  poly(scalePts(per, 1.06), 4.85, 0.25, 'white', { holes: lights, roof: true });
+  for (const [x, z] of [[6, 8], [16, 5], [28, 3.5], [40, 4], [42, 14], [41, 23], [30, 26], [18, 27], [3, 18], [12, 13], [22, 16], [32, 14]]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 4.6, 12), M.white); c.position.set(x, 2.3, z); add(c); }
+  const w1 = wall([10.5, 17.2], [17, 15.4], { h: 3.2 }), w2 = wall([5.6, 8.5], [6.6, 14], { h: 3.6, mat: 'concrete' }),
+    w3 = wall([18, 6], [27.5, 7.6], { h: 3.4 }), w4 = wall([30, 9.5], [31.2, 17.5], { h: 3.4 }), w5 = wall([20.5, 19.2], [27, 20.4], { h: 3.0 }),
+    w6 = wall([34, 3.6], [41, 4.8], { h: 4.6, mat: 'concrete' }), w7 = wall([36.4, 11.5], [36, 21], { h: 3.4, mat: 'green' }),
+    w8 = wall([21.5, 24.6], [29.5, 26], { h: 2.8, mat: 'terra' }), w9 = wall([11.5, 5.4], [15, 3.4], { h: 2.6 });
+  art(w1, 3.4, 1, 2.6, 1.9, 'the-starry-night-m', 1.6);
+  text(w3, 2.6, -1, 'IMPRESSIONISM', 0.2, 2.75); art(w3, 2.2, -1, 1.5, 1.15, 'impression-sunrise'); art(w3, 4.9, -1, 1.2, 1.5, 'woman-with-a-parasol-madame-monet-and-her-son'); art(w3, 7.6, -1, 1.7, 1.2, 'garden-at-sainte-adresse');
+  art(w4, 2.2, 1, 1.6, 1.2, 'la-grenouillere'); art(w4, 5.4, 1, 1.5, 1.15, 'regatta-at-sainte-adresse'); art(w5, 3.3, 1, 2.0, 1.4, 'luncheon-on-the-grass');
+  art(w2, 2.8, -1, 1.5, 1.9, 'girl-with-a-pearl-earring', 1.7); art(w6, 3.5, -1, 2.6, 1.9, 'composition-vii', 1.9);
+  art(w7, 2.6, 1, 1.3, 1.6, 'self-portrait-in-a-straw-hat'); art(w7, 5.2, 1, 1.2, 1.5, 'self-portrait-by-judith-leyster'); art(w7, 7.6, 1, 1.1, 1.4, 'self-portrait-with-two-flowers-in-her-raised-lef');
+  art(w8, 2.2, 1, 1.4, 1.0, 'fine-wind-clear-morning', 1.5); art(w8, 5.2, 1, 1.4, 1.0, 'naruto-whirlpools', 1.5); art(w9, 2, -1, 1.0, 1.3, 'blue-nude', 1.5);
+  plinth(12.5, 21.5, { obj: 1 }); plinth(15.6, 23.4, { h: 0.8, obj: 0 }); plinth(8.4, 17.6, { h: 1.15, obj: 2 }); plinth(24.5, 13, { w: 0.9, h: 0.5, obj: 3 }); plinth(33, 22.4, { obj: 1 }); plinth(39.5, 9, { h: 1.1, obj: 0 });
+  person(22.5, 10.2); person(23.3, 10.5); person(34.3, 17); person(13, 19.3); person(26, 22.6);
+  for (const [x, z, s] of [[-8, 8, 1.2], [-9, 26, 1], [6, 36, 1.3], [26, 36, 1.1], [50, 32, 1.2], [53, 12, 1], [50, -5, 1.2], [24, -7, 1.3], [4, -4, 1], [38, -8, 0.9], [-12, 16, 1.1], [58, 22, 1.2]]) tree(x, z, s);
+  ghost([[46, 0], [62, -2], [60, 20], [44, 26]]);
+  return { bounds: [-14, -10, 64, 38], sun: [-14, 52, 20],
+    labels: [[9, 23.5, 'נחיתה'], [24, 13.5, 'אימפרסיוניזם'], [38.5, 16, 'דיוקן עצמי'], [25.5, 23, 'תערוכה מתחלפת'], [9, 10.5, 'יצירה אחת'], [37, 7.5, 'קיר בטון'], [53, 9, 'הגג ממשיך לכאן', 1]],
+    views: { air: { eye: [-6, 30, 52], look: [24, 0, 12], fov: 38 }, a: { eye: [4.6, 1.6, 21.2], look: [22, 1.7, 11], fov: 64 }, b: { eye: [17.5, 1.6, 13.6], look: [25, 1.7, 7], fov: 62 }, c: { eye: [29, 1.6, 22.5], look: [37, 1.6, 15], fov: 62 } } };
+};
+// 2. The Descent: a small glass house on the ground; a wide stair goes down into a great concrete hall lit from a sunken court.
+P.descent = () => {
+  const Y = -5.4, stair = rectPts(5, 1, 14, 5), court = rectPts(40, 0, 50, 16), slot = rectPts(16, 14.6, 39, 15.7), msky = rectPts(21, 19, 27, 25), dsky = rectPts(29, -6.2, 31, -4.2);
+  const above = VIEW === 'plan' || VIEW === 'air';
+  poly(rectPts(-40, -40, 90, 60), 0, 0.05, 'grass', { holes: above ? [[[3.7, -0.3], [21.7, -0.3], [21.7, -11.3], [36.3, -11.3], [36.3, -0.3], [50.3, -0.3], [50.3, 16.3], [32.3, 16.3], [32.3, 28.8], [15.7, 28.8], [15.7, 16.3], [3.7, 16.3]]] : [stair, court, slot, msky, dsky], noCast: true });
+  if (!above) { poly(rectPts(-1, -13, 51.5, 29), -0.05, 0.4, 'concrete', { holes: [stair, court, slot, msky, dsky] }); poly(rectPts(-5, -6, 39.6, 14.2), 0.03, 0.03, 'gravel', { holes: [stair], noCast: true }); }
+  // the glass house
+  const pav = rectPts(-3, -3.5, 17, 9.5); poly(pav, 0.06, 0.03, 'floor', { holes: [stair], noCast: true });
+  pav.forEach((p, i) => wall(p, pav[(i + 1) % 4], { h: 4, mat: 'glass', gaps: i === 3 ? [[5, 8, 2.6]] : [] }));
+  poly(scalePts(pav, 1.12), 4.2, 0.2, 'white', { roof: true });
+  for (const [x, z] of [[-2.4, -2.9], [16.4, -2.9], [16.4, 8.9], [-2.4, 8.9]]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 4, 12), M.steel); c.position.set(x, 2, z); add(c); }
+  const c1 = wall([-1.6, -0.2], [2.6, -1.4], { h: 2.8 }); art(c1, 2.2, 1, 2.2, 1.6, 'the-starry-night-m');
+  const c2 = wall([9, 7.4], [13.4, 8.2], { h: 2.6, mat: 'concrete' }); art(c2, 2.2, -1, 1.4, 1.7, 'girl-with-a-pearl-earring', 1.5);
+  plinth(1.4, 6.6, { obj: 1 }); plinth(3.6, 3.2, { h: 0.8, obj: 0 }); plinth(15.5, 6.2, { h: 1.1, obj: 2 });
+  for (const [a, b] of [[[5, 5], [14, 5]], [[14, 5], [14, 1]], [[5, 1], [14, 1]]]) { const g = seg(a, b, 0, 1.0, 0.02, 'glass', { noCast: true }); glassList.push(g); g.userData.glass = true; }
+  person(15.2, 3); person(8.5, 6.4);
+  // the stair and the hall under the ground
+  stairs(5, 3, 0, 4, 30, 0.18, 0.3, 0);
+  poly(rectPts(4, 0, 40, 16), Y + 0.03, 0.2, 'floor', { noCast: true });
+  wall([4, 0], [4, 16], { y0: Y, h: 5.4, mat: 'concrete' });
+  const hs = wall([4, 0], [40, 0], { y0: Y, h: 5.4, mat: 'concrete', gaps: [[24, 27, 3.4]] });
+  const hn = wall([4, 16], [40, 16], { y0: Y, h: 5.4, mat: 'concrete', gaps: [[18, 22, 3.6]] });
+  wall([40, 0], [40, 16], { y0: Y, h: 5.4, mat: 'glass', gaps: [[10, 13, 2.8]] });
+  text(hn, 9.5, -1, 'IMPRESSIONISM', 0.3, 4.2, '#f4f2ec'); text(hs, 31.5, 1, 'ON NOW', 0.22, 4.1, '#f4f2ec');
+  art(hn, 9.5, -1, 3.0, 2.2, 'luncheon-on-the-grass', 1.9); art(hn, 27, -1, 2.6, 1.9, 'composition-vii', 1.8); art(hn, 32, -1, 1.7, 2.1, 'dance', 1.8);
+  art(hs, 17.5, 1, 2.4, 1.8, 'barge-haulers-on-the-volga', 1.8); art(hs, 32.5, 1, 2.2, 1.6, 'cafe-terrace-at-night', 1.8);
+  const k1 = wall([19, 6.2], [24.5, 7.6], { y0: Y, h: 3.2 }), k2 = wall([31.5, 4.2], [32.6, 10.4], { y0: Y, h: 3.4 });
+  art(k1, 2.8, -1, 1.9, 1.4, 'irises'); art(k1, 2.8, 1, 1.6, 1.3, 'bedroom-in-arles'); art(k2, 3.1, -1, 1.7, 2.1, 'olympia'); art(k2, 3.1, 1, 2.0, 1.5, 'music');
+  plinth(16.5, 10.5, { y0: Y, obj: 1 }); plinth(27.5, 11.2, { y0: Y, h: 0.8, obj: 0 }); plinth(36, 7.5, { y0: Y, h: 1.1, obj: 3 }); plinth(13.8, 12.4, { y0: Y, w: 0.9, h: 0.45, obj: 2 });
+  person(15.6, 2.6, Y); person(21.5, 4.4, Y); person(22.3, 4.8, Y); person(29, 12.8, Y); person(35.5, 12, Y);
+  // the sunken court
+  poly(court, Y + 0.02, 0.2, 'gravel', { noCast: true });
+  wall([40, 0], [50, 0], { y0: Y, h: 5.4, mat: 'concrete' }); wall([50, 0], [50, 16], { y0: Y, h: 5.4, mat: 'concrete' }); wall([50, 16], [40, 16], { y0: Y, h: 5.4, mat: 'concrete' });
+  tree(46, 10.5, 1.15, Y); plinth(44, 4.2, { y0: Y, w: 1.1, h: 0.5, obj: 1, om: 'stone' }); poly(rectPts(46.5, 1.5, 49, 6.5), Y + 0.05, 0.03, 'water', { noCast: true });
+  // the white room of Impressionism, lit from above; the dark room across the hall
+  const mr = [[16, 16.35], [32, 16.35], [32, 28.5], [16, 28.5]]; poly(mr, Y + 0.03, 0.2, 'oak', { noCast: true });
+  const m1 = wall(mr[1], mr[2], { y0: Y, h: 5.4 }), m2 = wall(mr[2], mr[3], { y0: Y, h: 5.4 }), m3 = wall(mr[3], mr[0], { y0: Y, h: 5.4 });
+  seg([16, 16.26], [22, 16.26], Y, 5.4, 0.12, 'white'); seg([26, 16.26], [32, 16.26], Y, 5.4, 0.12, 'white');
+  if (!above) poly(msky, -0.3, 0.02, 'milk');
+  art(m2, 8, 1, 4.2, 2.0, 'impression-sunrise', 1.9); art(m1, 6, 1, 2.0, 2.5, 'woman-with-a-parasol-madame-monet-and-her-son', 1.9); art(m3, 6, 1, 2.6, 1.9, 'garden-at-sainte-adresse', 1.9);
+  art(m1, 10.2, 1, 1.5, 1.1, 'la-grenouillere', 1.7); art(m3, 2, 1, 1.5, 1.15, 'regatta-at-sainte-adresse', 1.7);
+  box(24, Y + 0.24, 22.5, 2.4, 0.45, 0.7, 'oak'); person(22.4, 24.6, Y); person(27, 23, Y);
+  const dr = [[22, -0.35], [36, -0.35], [36, -11], [22, -11]]; poly(dr, Y + 0.03, 0.2, 'ink', { noCast: true });
+  const d1 = wall(dr[1], dr[2], { y0: Y, h: 5.4, mat: 'ink' }), d2 = wall(dr[2], dr[3], { y0: Y, h: 5.4, mat: 'ink' }), d3 = wall(dr[3], dr[0], { y0: Y, h: 5.4, mat: 'ink' });
+  art(d2, 7, -1, 4.6, 2.6, 'composition-viii', 2.2); art(d1, 5.5, -1, 1.6, 2.0, 'saturn-devouring-his-son', 1.9); art(d3, 5.5, -1, 1.8, 1.4, 'steep-street-in-moonlight', 1.8);
+  for (const [x, z, s] of [[-10, 14, 1.2], [-12, -8, 1], [8, -14, 1.1], [30, 34, 1.2], [58, 22, 1.3], [60, -4, 1], [44, -14, 1.2], [10, 22, 1], [-8, 30, 1.2], [56, 36, 1]]) tree(x, z, s);
+  ghost(rectPts(6, 17, 15, 27)); ghost(rectPts(8, -10, 20, -1));
+  return { bounds: [-14, -18, 62, 36], sun: [26, 50, -16], under: Y,
+    labels: [[1.5, 8, 'נחיתה: בית זכוכית'], [9.5, 3, 'מדרגות ↓'], [26, 9, 'אולם הבטון (5.4 מ׳ מתחת)'], [45, 9, 'חצר שקועה'], [24, 23, 'אימפרסיוניזם'], [29, -6, 'חדר חשוך'], [10.5, 22, 'חדר שייחפר', 1], [14, -5.5, 'חדר שייחפר', 1]],
+    views: { air: { eye: [-4, 34, 46], look: [26, -4, 8], fov: 38 }, a: { eye: [-2.2, 1.6, 7.6], look: [11, 0.1, 2.6], fov: 66 }, b: { eye: [9.5, -2.2, 3.2], look: [30, -3.6, 9.5], fov: 66 }, c: { eye: [24, Y + 1.6, 11.5], look: [24, Y + 1.9, 26], fov: 62 }, d: { eye: [18, Y + 1.6, 11.5], look: [42, Y + 2.0, 7.6], fov: 62 } } };
+};
+// 3. The Path: houses of different make around a garden, joined by a walk of glass. You are always beside the garden.
+P.path = () => {
+  const R = [[0, 0], [15, -4.5], [31, -1], [35, 13], [22, 23], [3, 18]], cen = centre(R), n = R.length, Wd = 3.4, hC = 3.0;
+  poly(rectPts(-45, -45, 80, 62), 0, 0.05, 'grass', { noCast: true });
+  const off = d => R.map((p, i) => { const a = R[(i + n - 1) % n], b = R[(i + 1) % n]; const e1 = [(p[0] - a[0]) / len(a, p), (p[1] - a[1]) / len(a, p)], e2 = [(b[0] - p[0]) / len(p, b), (b[1] - p[1]) / len(p, b)];
+    let n1 = [e1[1], -e1[0]], n2 = [e2[1], -e2[0]]; if ((p[0] + n1[0] - cen[0]) ** 2 + (p[1] + n1[1] - cen[1]) ** 2 < (p[0] - cen[0]) ** 2 + (p[1] - cen[1]) ** 2) { n1 = [-n1[0], -n1[1]]; n2 = [-n2[0], -n2[1]]; }
+    const m = [n1[0] + n2[0], n1[1] + n2[1]], ml = Math.hypot(...m), k = d / (ml / 2 * ml / 2 * 2 / ml * ml / 2) ; const mm = [m[0] / ml, m[1] / ml], cosh = mm[0] * n1[0] + mm[1] * n1[1]; return [p[0] + mm[0] * d / cosh, p[1] + mm[1] * d / cosh]; });
+  const out = off(Wd / 2), inn = off(-Wd / 2);
+  poly(out, 0.08, 0.08, 'floor', { holes: [inn], noCast: true }); poly(scalePts(out, 1.03), hC + 0.18, 0.16, 'white', { holes: [scalePts(inn, 0.96)], roof: true });
+  inn.forEach((p, i) => wall(p, inn[(i + 1) % n], { h: hC, mat: 'glass', gaps: i === 1 ? [[6, 8.4, 2.5]] : [] }));
+  // the houses, each set against one stretch of the walk (edge i of the ring, s along it), each with its way in
+  const houses = [[0, 8, 13, 10, 6.5, 'white', 'oak', 0.45, 'IMPRESSIONISM', '#1d1d1b'], [2, 7.4, 10, 11, 4.2, 'concrete', 'floor', 0, 'ON NOW', '#f4f2ec'], [3, 8.4, 9, 9, 5, 'timber', 'oak', 0.3, 'ONE WORK', '#f4f2ec'], [5, 9, 12, 9, 4, 'glass', 'floor', 0, '', '']];
+  const gaps = {}, fronts = [];
+  for (const [e, s, w, d, h, m, fl, sky, title, col] of houses) {
+    const a = out[e], b = out[(e + 1) % n], L = len(a, b), u = [(b[0] - a[0]) / L, (b[1] - a[1]) / L]; let nn = [u[1], -u[0]]; const mid = along(a, b, s); if ((mid[0] + nn[0] - cen[0]) ** 2 + (mid[1] + nn[1] - cen[1]) ** 2 < (mid[0] - cen[0]) ** 2 + (mid[1] - cen[1]) ** 2) nn = [-nn[0], -nn[1]];
+    const p0 = along(a, b, s - w / 2), p1 = along(a, b, s + w / 2), pts = [p0, p1, [p1[0] + nn[0] * d, p1[1] + nn[1] * d], [p0[0] + nn[0] * d, p0[1] + nn[1] * d]];
+    (gaps[e] ||= []).push([s - w / 2, s + w / 2]);
+    if (m === 'glass') { poly(pts, 0.08, 0.08, 'floor', { noCast: true }); [1, 2, 3].forEach(i => wall(pts[i], pts[(i + 1) % 4], { h, mat: 'glass', gaps: i === 2 ? [[4.5, 7.5, 2.6]] : [] })); poly(scalePts(pts, 1.1), h + 0.2, 0.2, 'white', { roof: true }); fronts.push({ pts, nn, u, glass: true }); continue; }
+    const ws = room(pts, { h, mat: m, floor: fl, sky: sky || undefined, open: [{ edge: 0, w: 3, doorH: 2.7 }] });
+    fronts.push({ pts, ws, nn, u, title, col, h, w, d, m });
+  }
+  out.forEach((p, i) => wall(p, out[(i + 1) % n], { h: hC, mat: 'glass', gaps: (gaps[i] || []).map(g => [g[0], g[1], 0]) }));
+  // what hangs: the title beside each door, works inside, a few on the houses' fronts along the walk
+  const [imp, con, one, land] = fronts;
+  const artIn = (f, i, s2, _side, ...rest) => art(f.ws[i], s2, sideTo(f.ws[i], centre(f.pts)), ...rest);
+  text(imp.ws[0], 2.6, sideTo(imp.ws[0], cen), imp.title, 0.16, 2.3, imp.col); artIn(imp, 2, 6.5, 1, 3.4, 1.7, 'impression-sunrise', 2); artIn(imp, 1, 5, 1, 1.8, 2.3, 'woman-with-a-parasol-madame-monet-and-her-son', 1.9); artIn(imp, 3, 5, 1, 2.3, 1.7, 'garden-at-sainte-adresse', 1.9); art(imp.ws[0], 10.8, sideTo(imp.ws[0], cen), 1.3, 1.0, 'la-grenouillere', 1.6);
+  text(con.ws[0], 2.0, sideTo(con.ws[0], cen), con.title, 0.16, 2.3, con.col); artIn(con, 2, 5, 1, 2.6, 1.9, 'composition-vii', 1.8); artIn(con, 1, 5.5, 1, 1.8, 1.4, 'cafe-terrace-at-night', 1.7); artIn(con, 3, 5.5, 1, 1.6, 2.0, 'dance', 1.8); art(con.ws[0], 8.4, sideTo(con.ws[0], cen), 1.2, 1.5, 'blue-nude', 1.6);
+  text(one.ws[0], 1.9, sideTo(one.ws[0], cen), one.title, 0.14, 2.3, one.col); artIn(one, 2, 4.5, 1, 2.8, 2.1, 'the-starry-night-m', 2);
+  // (the landing house: glass on three sides, a coulisse and plinths, the garden through it)
+  { const { pts, nn, u } = land, c = centre(pts); const k = wall([c[0] - u[0] * 2.2 + nn[0] * 1.2, c[1] - u[1] * 2.2 + nn[1] * 1.2], [c[0] + u[0] * 2.2 + nn[0] * 0.4, c[1] + u[1] * 2.2 + nn[1] * 0.4], { h: 2.8 }); art(k, 2.3, -1, 2.2, 1.6, 'luncheon-on-the-grass'); art(k, 2.3, 1, 1.4, 1.8, 'girl-with-a-pearl-earring', 1.5);
+    plinth(c[0] + u[0] * 4 - nn[0] * 1.5, c[1] + u[1] * 4 - nn[1] * 1.5, { obj: 1 }); plinth(c[0] - u[0] * 3.8 - nn[0] * 2.2, c[1] - u[1] * 3.8 - nn[1] * 2.2, { h: 0.8, obj: 0 }); plinth(c[0] - u[0] * 4.2 + nn[0] * 2.6, c[1] - u[1] * 4.2 + nn[1] * 2.6, { h: 1.1, obj: 2 }); person(c[0] + u[0] * 1 + nn[0] * 2.8, c[1] + u[1] * 1 + nn[1] * 2.8); }
+  // the garden in the middle: a pond, sculpture in the open, trees
+  poly(circle(cen[0] + 2, cen[1] - 1, 3.4, 9).map((p, i) => [p[0] + (i % 2) * 0.8, p[1] * 1 + (i % 3) * 0.3]), 0.07, 0.04, 'water', { noCast: true });
+  plinth(cen[0] - 5, cen[1] + 2.5, { w: 1.2, h: 0.4, obj: 1, om: 'stone' }); plinth(cen[0] + 7, cen[1] + 5, { w: 0.9, h: 0.7, obj: 3 }); tree(cen[0] - 3, cen[1] - 5, 0.9); tree(cen[0] + 8, cen[1] - 3, 1.0); tree(cen[0] - 1, cen[1] + 7, 0.8);
+  person(9, -0.9); person(31.6, 5); person(27.5, 17.6); person(12.5, 19.6);
+  for (const [x, z, s] of [[-16, -8, 1.2], [-4, -16, 1], [34, -18, 1.2], [50, -4, 1.1], [52, 16, 1.3], [40, 30, 1], [18, 36, 1.2], [-2, 32, 1.1], [-20, 22, 1.3], [48, 28, 0.9], [-22, 4, 1]]) tree(x, z, s);
+  { const a = out[4], b = out[5], u = [(b[0] - a[0]) / len(a, b), (b[1] - a[1]) / len(a, b)], nn = [-u[1], u[0]], s0 = along(a, b, 4), s1 = along(a, b, 15); const sg = (cen[0] - s0[0]) * nn[0] + (cen[1] - s0[1]) * nn[1] > 0 ? -1 : 1; ghost([s0, s1, [s1[0] + nn[0] * sg * 10, s1[1] + nn[1] * sg * 10], [s0[0] + nn[0] * sg * 10, s0[1] + nn[1] * sg * 10]]); P._g = [(s0[0] + s1[0]) / 2 + nn[0] * sg * 5, (s0[1] + s1[1]) / 2 + nn[1] * sg * 5]; }
+  const lc = f => centre(f.pts);
+  return { bounds: [-24, -22, 54, 38], sun: [-18, 50, 18],
+    labels: [[...lc(land), 'נחיתה'], [...lc(imp), 'אימפרסיוניזם'], [...lc(con), 'בית הבטון'], [...lc(one), 'יצירה אחת'], [cen[0] + 1, cen[1] + 2, 'הגן'], [...P._g, 'הבית הבא', 1]],
+    views: { air: { eye: [-14, 34, 50], look: [18, 0, 8], fov: 38 }, a: (() => { const c = lc(land); return { eye: [c[0] + land.nn[0] * 3.6 + land.u[0] * 4.4, 1.6, c[1] + land.nn[1] * 3.6 + land.u[1] * 4.4], look: [c[0] - land.nn[0] * 9 - land.u[0] * 3, 1.3, c[1] - land.nn[1] * 9 - land.u[1] * 3], fov: 68 }; })(), b: (() => { const e = along(R[5], R[0], len(R[5], R[0]) - 4.5), l = along(R[0], R[1], 7); return { eye: [e[0], 1.6, e[1]], look: [l[0] + imp.nn[0] * 1.2, 1.8, l[1] + imp.nn[1] * 1.2], fov: 66 }; })(), c: (() => { const c = lc(imp); return { eye: [c[0] - imp.nn[0] * 3.4 + imp.u[0] * 1.5, 1.6, c[1] - imp.nn[1] * 3.4 + imp.u[1] * 1.5], look: [c[0] + imp.nn[0] * 5, 2.0, c[1] + imp.nn[1] * 5], fov: 64 }; })(), d: (() => { const e = along(R[2], R[3], 1.5), l = along(R[2], R[3], 12); return { eye: [e[0], 1.6, e[1]], look: [l[0] + con.nn[0] * 1.5, 1.6, l[1] + con.nn[1] * 1.5], fov: 64 }; })() } };
+};
+// 4. The Cluster: houses of different size and make, each turned its own way; the landing is the space left between them.
+P.cluster = () => {
+  poly(rectPts(-50, -50, 60, 55), 0, 0.05, 'grass', { noCast: true });
+  const B = [[-2, -15.5, 15, 11, 7, 7, 'white', 'oak', 0.4, 'IMPRESSIONISM', '#1d1d1b'], [16, -5, 10, 13, -72, 5, 'concrete', 'floor', 0, 'ON NOW', '#f4f2ec'], [14.5, 11, 9, 9, 28, 4.3, 'timber', 'oak', 0.3, 'ONE WORK', '#f4f2ec'], [-2.5, 16.5, 13, 8, -9, 5.5, 'terra', 'floor', 0, 'PHOTOGRAPHY', '#f4f2ec'], [-16.5, 1, 7.5, 7.5, 14, 9, 'white', 'floor', 0.5, 'TOWER', '#1d1d1b']];
+  const inner = [], rooms = [];
+  B.forEach(([cx, cz, w, d, r, h, m, fl, sky, title, col]) => {
+    let pts = rot(cx, cz, w, d, r);
+    // turn the list so that edge 0 is the face nearest the middle (0, 0)
+    let best = 0, bd = 1e9; pts.forEach((p, i) => { const q2 = pts[(i + 1) % 4], md = Math.hypot((p[0] + q2[0]) / 2, (p[1] + q2[1]) / 2); if (md < bd) { bd = md; best = i; } });
+    pts = [...pts.slice(best), ...pts.slice(0, best)];
+    const ws = room(pts, { h, mat: m, floor: fl, sky: sky || undefined, open: [{ edge: 0, w: 3.4, doorH: Math.min(3.4, h - 0.8), at: len(pts[0], pts[1]) - 3.2 }] });
+    const L = len(pts[0], pts[1]); if (title) text(ws[0], L / 2 - 4.2 > 1 ? 2.6 : L / 2, sideTo(ws[0], [0, 0]), title, 0.17, 2.6, col);
+    rooms.push({ pts, ws, h }); inner.push(pts[0], pts[1]);
+  });
+  // order the inner corners round the middle; glass joins one house to the next; the landing's floor and glass roof on that outline
+  const ang = p => Math.atan2(p[1], p[0]); const ring = [...inner].sort((a, b) => ang(a) - ang(b));
+  poly(ring, 0.05, 0.05, 'terrazzo', { noCast: true }); poly(ring, 4.25, 0.04, 'glass', { roof: true });
+  ring.forEach((p, i) => { const b = ring[(i + 1) % ring.length]; if (!rooms.some(r => (r.pts[0] === p && r.pts[1] === b) || (r.pts[1] === p && r.pts[0] === b))) wall(p, b, { h: 4.2, mat: 'glass', gaps: (p[0] + b[0]) / 2 < -6 && (p[1] + b[1]) / 2 > 4 ? [[len(p, b) / 2 - 1.3, len(p, b) / 2 + 1.3, 2.6]] : [] }); });
+  for (let i = 0; i < 6; i++) { const z = -9 + i * 3.6; seg([-13, z + i * 0.4], [12, z - 1.2 + i * 0.4], 4.25, 0.16, 0.08, 'steel'); }
+  const k1 = wall([-6.5, 4.6], [-2.2, 2.6], { h: 2.9 }), k2 = wall([4.2, -4.4], [7.2, 0.4], { h: 3.2, mat: 'concrete' }), k3 = wall([1.5, 7.2], [6, 6.4], { h: 2.6 });
+  art(k1, 2.4, 1, 2.3, 1.7, 'the-starry-night-m'); art(k1, 2.4, -1, 1.5, 1.9, 'girl-with-a-pearl-earring', 1.5); art(k2, 2.8, 1, 2.0, 1.5, 'irises'); art(k2, 2.8, -1, 1.5, 1.9, 'self-portrait-in-a-straw-hat', 1.6); art(k3, 2.3, -1, 1.7, 1.2, 'fine-wind-clear-morning', 1.5);
+  plinth(-1.5, -3.2, { obj: 1 }); plinth(1.4, -5.6, { h: 0.8, obj: 0 }); plinth(-7, -2.4, { h: 1.15, obj: 2 }); plinth(8.6, 4.4, { w: 0.9, h: 0.5, obj: 3 }); plinth(-3.4, 8.4, { obj: 0 });
+  // inside the houses
+  const [r1, r2, r3, r4, r5] = rooms;
+  art(r1.ws[2], 7.5, 1, 4.0, 2.0, 'impression-sunrise', 2.1); art(r1.ws[1], 5.5, 1, 1.9, 2.4, 'woman-with-a-parasol-madame-monet-and-her-son', 2); art(r1.ws[3], 5.5, 1, 2.5, 1.8, 'garden-at-sainte-adresse', 2); art(r1.ws[2], 2.2, 1, 1.5, 1.15, 'la-grenouillere', 1.7); art(r1.ws[2], 12.8, 1, 1.5, 1.15, 'regatta-at-sainte-adresse', 1.7);
+  art(r2.ws[2], 5, 1, 2.6, 1.9, 'composition-vii', 1.8); art(r2.ws[1], 6.5, 1, 1.9, 1.4, 'cafe-terrace-at-night', 1.7); art(r2.ws[3], 6.5, 1, 1.6, 2.0, 'dance', 1.8);
+  art(r3.ws[2], 4.5, 1, 2.8, 2.1, 'luncheon-on-the-grass', 2); art(r4.ws[2], 3.3, 1, 1.6, 1.2, 'naruto-whirlpools', 1.6); art(r4.ws[2], 6.5, 1, 1.6, 1.2, 'numazu-twilight-numazu-tasogare-zu', 1.6); art(r4.ws[2], 9.7, 1, 1.6, 1.2, 'steep-street-in-moonlight', 1.6); art(r5.ws[2], 3.75, 1, 2.0, 3.0, 'blue-dancers', 2.6);
+  person(-0.5, -8.4); person(0.4, -8.8); person(9.5, -3); person(-9.5, 3.4); person(3, 10.5); person(-3, -15);
+  for (const [x, z, s] of [[-26, -14, 1.2], [-28, 12, 1], [-14, 28, 1.3], [10, 30, 1.1], [30, 22, 1.2], [34, 2, 1], [28, -20, 1.2], [8, -30, 1.3], [-12, -30, 1], [-30, -2, 0.9], [22, 30, 1]]) tree(x, z, s);
+  ghost(rot(27, 8, 9, 12, 12)); ghost(rot(-17, -14, 8, 9, -20));
+  return { bounds: [-32, -30, 38, 30], sun: [18, 52, 16],
+    labels: [[0, 1, 'נחיתה'], [-2, -15.5, 'אימפרסיוניזם'], [16, -5, 'בית הבטון'], [14.5, 11, 'יצירה אחת'], [-2.5, 16.5, 'צילום'], [-16.5, 1, 'המגדל'], [27, 8, 'בית שיצטרף', 1], [-17, -14, 'בית שיצטרף', 1]],
+    views: { air: { eye: [-22, 36, 44], look: [0, 0, -2], fov: 38 }, a: { eye: [-9.6, 1.6, 8.2], look: [3, 2.2, -7], fov: 68 }, b: { eye: [1.5, 1.6, 2.5], look: [-1.5, 2.3, -12], fov: 66 }, c: { eye: [-1, 1.6, 0], look: [12, 1.8, 0.5], fov: 64 } } };
+};
+
+// ---- build, light, look -------------------------------------------------------------------------------------------------
+const cfg = P[C]();
+const sky = document.createElement('canvas'); sky.width = 4; sky.height = 256; { const x = sky.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#9fc0dc'); g.addColorStop(0.55, '#dbe7ee'); g.addColorStop(1, '#f1efe8'); x.fillStyle = g; x.fillRect(0, 0, 4, 256); }
+const skyTex = new THREE.CanvasTexture(sky); skyTex.colorSpace = THREE.SRGBColorSpace;
+scene.background = VIEW === 'plan' ? new THREE.Color(0xf3f1ea) : skyTex;
+scene.add(new THREE.HemisphereLight(0xffffff, 0xe6e0d4, 2.5));
+const sun = new THREE.DirectionalLight(0xfff1dc, 2.6); const bc = [(cfg.bounds[0] + cfg.bounds[2]) / 2, (cfg.bounds[1] + cfg.bounds[3]) / 2];
+sun.position.set(bc[0] + cfg.sun[0], cfg.sun[1], bc[1] + cfg.sun[2]); sun.target.position.set(bc[0], 0, bc[1]); scene.add(sun.target);
+sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -52, right: 52, top: 52, bottom: -52, near: 1, far: 180 }); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.04; scene.add(sun);
+if (cfg.under) { for (const [x, z] of [[14, 8], [26, 8], [36, 8], [24, 22], [29, -5]]) { const l = new THREE.PointLight(0xfff1dc, 34, 30, 1.2); l.position.set(x, cfg.under + 4.6, z); scene.add(l); } }
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(devicePixelRatio); renderer.setSize(W, H); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 0.92; document.body.append(renderer.domElement);
+let cam;
+if (VIEW === 'plan') {
+  const [x0, z0, x1, z1] = cfg.bounds, bw = x1 - x0, bh = z1 - z0, k = Math.max(bw / W, bh / H), hw = W * k / 2, hh = H * k / 2;
+  cam = new THREE.OrthographicCamera(-hw, hw, hh, -hh, 0.1, 200); cam.position.set(bc[0], 80, bc[1]); cam.up.set(0, 0, -1); cam.lookAt(bc[0], 0, bc[1]);
+  for (const [x, z, t, f] of cfg.labels) { const d = document.createElement('div'); d.className = 'lb' + (f ? ' f' : ''); d.textContent = t; d.style.left = (W / 2 + (x - bc[0]) / k) + 'px'; d.style.top = (H / 2 + (z - bc[1]) / k) + 'px'; document.body.append(d); }
+  // a 10 m scale bar
+  const sb = document.createElement('div'); sb.style.cssText = `position:absolute;left:24px;bottom:22px;width:${10 / k}px;border:2px solid #1d1d1b;border-top:0;height:7px;font:500 13px Heebo,Arial;direction:rtl;text-align:center`; sb.innerHTML = '<span style="position:relative;top:-20px">10 מ׳</span>'; document.body.append(sb);
+} else {
+  const v = cfg.views[VIEW]; cam = new THREE.PerspectiveCamera(v.fov, W / H, 0.1, 400); cam.position.set(...v.eye); cam.lookAt(...v.look);
+}
+if (VIEW === 'plan' || VIEW === 'air') roofList.forEach(r => { r.visible = false; }); else ghostList.forEach(g => { g.visible = false; });
+const composer = new EffectComposer(renderer); composer.setPixelRatio(devicePixelRatio); composer.setSize(W, H);
+composer.addPass(new RenderPass(scene, cam));
+const ao = new GTAOPass(scene, cam, W, H); ao.blendIntensity = 1.0; ao.updateGtaoMaterial({ radius: VIEW === 'plan' || VIEW === 'air' ? 1.6 : 0.9, distanceExponent: 1.4, thickness: 1.2, scale: 1.0, samples: 16 });
+const ov = ao.overrideVisibility.bind(ao), rv = ao.restoreVisibility.bind(ao);
+ao.overrideVisibility = () => { ov(); glassList.forEach(g => { g.userData.v = g.visible; g.visible = false; }); };
+ao.restoreVisibility = () => { rv(); glassList.forEach(g => { g.visible = g.userData.v; }); };
+if (q.has('ao')) composer.addPass(ao);   // (off: it leaves black blocks in some views)
+composer.addPass(new OutputPass());
+mgr.onLoad = () => { let n = 0; const tick = () => { composer.render(); if (++n < 4) requestAnimationFrame(tick); else window.__ready = true; }; tick(); };
+mgr.onError = u => { console.error('missing', u); };
+if (q.has('dbg')) window.__dbg = (x, y) => { const r = new THREE.Raycaster(); r.setFromCamera(new THREE.Vector2(x, y), cam); return r.intersectObjects(scene.children, true).slice(0, 4).map(h => [h.object.geometry.type, h.object.material.color && h.object.material.color.getHexString(), !!h.object.material.map, h.point.toArray().map(v => +v.toFixed(1)), +h.distance.toFixed(1)]); };
+</script>
