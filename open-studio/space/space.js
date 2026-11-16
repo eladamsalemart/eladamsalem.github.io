@@ -52,6 +52,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   root.prepend(renderer.domElement);
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#d8d7d3');
+  if (spec.sky) { const c = document.createElement('canvas'); c.width = 4; c.height = 256; const x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, spec.sky[0]); g.addColorStop(0.6, spec.sky[1]); g.addColorStop(1, spec.sky[1]); x.fillStyle = g; x.fillRect(0, 0, 4, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t; }      // (an open-air museum: a sky behind the garden)
   // a tight depth range (far / near of a few hundred) keeps surfaces from flickering against each other
   const camera = new THREE.PerspectiveCamera(60, 1, 0.08, spec.far || 45);
   const rig = new THREE.Group(); rig.add(camera); scene.add(rig);
@@ -1163,6 +1164,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     const still = !renderer.xr.isPresenting && pos.distanceToSquared(lastPos) < 1e-10 && look.distanceToSquared(lastLook) < 1e-10 && Math.abs(camera.fov - lastFov) < 1e-4;
     lastPos.copy(pos); lastLook.copy(look); lastFov = camera.fov;
     if (still && !dirty) return;
+    // the hang editor's plan covers the room: nothing to draw behind it (it is drawn again the moment the plan closes)
+    if (root.classList.contains('planning')) { dirty = true; return; }
     dirty = false;
     // a phone that can't keep up draws at a lower resolution rather than stutter
     frameTimes.push(dt); if (frameTimes.length > 40) frameTimes.shift();
