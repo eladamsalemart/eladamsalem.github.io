@@ -1359,6 +1359,7 @@ export const SKY_PLAN = {
     { id: 'house-1', type: 'house', slot: 1, door: [41, 21], dir: 270 }, { id: 'house-2', type: 'house', slot: 2, door: [52, 18.5], dir: 273 }, { id: 'house-3', type: 'house', slot: 3, door: [31, 19.5], dir: 268 },
     { id: 'house-4', type: 'house', slot: 4, door: [63, 20.5], dir: 272 }, { id: 'house-5', type: 'house', slot: 5, door: [78, 26], dir: 2 }, { id: 'house-6', type: 'house', slot: 6, door: [77.5, 44], dir: -3 },
     { id: 'house-7', type: 'house', slot: 7, door: [32, 53], dir: 92 }, { id: 'house-8', type: 'house', slot: 8, door: [64, 54.5], dir: 88 },
+    { id: 'ritual', type: 'house', slot: 57, tour: 'ritual', door: [79, 60], dir: 0 },
     { id: 'renaissance', type: 'section', section: 'renaissance', door: [14, 47], dir: [0, -1] },
   ],
 };
@@ -1481,6 +1482,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
 
   for (const [x, z] of PLAN.piers) { const t = wallTex(tintHex('#bfbcb5', { tint: env.tint.map(v => Math.pow(v, 0.5)) }), true); for (const [nx, nz] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) wall(`pier${x}-${z}-${nx}${nz}`, x + nx * 0.7, z + nz * 0.7, nx, nz, 1.4, { h: HH, tex: t }); }       // (eight piers carry the roof)
   const directory = [];
+  const hotspots = [];
   // --- the houses: each as the street builds its room (a porch in the show's colour, three walls to hang on), turned to its own place
   for (const { d, r, k: i } of houseList) {
     const { o, c } = d, R = d.r, P = (a, b) => [c[0] + R[0] * a + o[0] * b, c[1] + R[1] * a + o[1] * b];
@@ -1495,8 +1497,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     rim('l', -M2 - RIM, -M2, 0, DOOR_H + RIM); rim('r', M2, M2 + RIM, 0, DOOR_H + RIM); rim('t', -M2 - RIM, M2 + RIM, DOOR_H, DOOR_H + RIM);
     orect(`r${i}-floor`, 'wall', P, R, o, A0, A1, VD, VD + RD, 0.004, true, floorTex(fl));
     orect(`r${i}-ceil`, 'ceiling', P, R, o, A0, A1, VD, VD + RD, rh, false, ceil);
-    const WIN = [[0.55, 2.05, 0.9, 3.0], [5.95, 7.45, 0.9, 3.0]];                       // (two windows, either side of the way in: the visitor looks out at the plaza)
-    wall(`r${i}-front`, ...P(0, VD), o[0], o[1], RW, { holes: [[A1 - M2, A1 + M2], ...WIN], h: rh, tex: roomWall });
+    wall(`r${i}-front`, ...P(0, VD), o[0], o[1], RW, { holes: [[A1 - M2, A1 + M2]], h: rh, tex: roomWall });
     const runs = [wall(`r${i}-left`, ...P(A0, VD + RD / 2), R[0], R[1], RD, { h: rh, tex: roomWall }), wall(`r${i}-back`, ...P(0, VD + RD), -o[0], -o[1], RW, { h: rh, tex: roomWall }), wall(`r${i}-right`, ...P(A1, VD + RD / 2), -R[0], -R[1], RD, { h: rh, tex: roomWall })];
     // its title, above the way in, on the face that looks at the plaza
     { const cv = canvas(1024, 256), x = cv.getContext('2d'); x.fillStyle = dark ? '#8d8b85' : ft; x.fillRect(0, 0, 1024, 256);
@@ -1516,14 +1517,41 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       const key = PLINTHS[p.size] ? p.size : 'm', ob = (r.objects || {})[p.work], q = P(Math.min(Math.max(p.x, 0.5), RW - 0.5) + A0, VD + Math.min(Math.max(p.z, 0.5), RD - 0.5));
       plinthsOut.push({ id: `${i}-${p.id}`, x: q[0], z: q[1], size: PLINTHS[key], key, work: p.work || null, obj: ob ? { id: ob.id, title: ob.title, image: ob.image, w: ob.w, h: ob.h } : null });
     }
-    if (r.text) {
-      const lines = String(r.text).split(/\n+/).join(' ').match(/.{1,46}(\s|$)/g) || [];
-      const cv = canvas(640, 520), x = cv.getContext('2d'); x.fillStyle = 'rgba(250,248,244,0.97)'; x.fillRect(0, 0, 640, 520); x.fillStyle = 'rgba(40,36,30,0.9)'; x.textBaseline = 'top';
-      x.font = 'italic 600 34px Georgia, serif'; x.fillText(String(r.title).slice(0, 30), 30, 28); x.font = '400 20px Georgia, serif';
-      if (r.curator) { x.fillStyle = 'rgba(40,36,30,0.55)'; x.fillText('Curated by ' + r.curator, 30, 78); x.fillStyle = 'rgba(40,36,30,0.9)'; }
-      lines.slice(0, 11).forEach((ln, k) => x.fillText(ln.trim(), 30, 122 + k * 32));
-      const q = P(M2 + 2.3 < A1 ? M2 + 2.1 : -M2 - 0.5, VD + 0.012);
-      surfaces.push({ name: `r${i}-intro`, kind: 'wall', texture: jpg(cv, 0.92), origin: [q[0], 2.6, q[1]], u: [-R[0], 0, -R[1]], v: [0, -1, 0], size: [1.6, 1.3], normal: [o[0], 0, o[1]], openings: [] });
+    // its text: a plate on the OUTSIDE wall, beside the way in; tapped like a work, it opens to be read (spec.hotspots), in the language it was written in
+    { const paras = (Array.isArray(r.text) ? r.text : String(r.text || '').split(/\n+/)).map(t => String(t).trim()).filter(Boolean);
+      if (paras.length) {
+        const he = /[֐-׿]/.test(paras.join('')), cv = canvas(560, 760), x = cv.getContext('2d');
+        x.fillStyle = 'rgba(250,248,244,1)'; x.fillRect(0, 0, 560, 760); x.strokeStyle = col; x.lineWidth = 6; x.strokeRect(3, 3, 554, 754);
+        x.fillStyle = 'rgba(40,36,30,0.92)'; x.textBaseline = 'top'; x.direction = he ? 'rtl' : 'ltr'; x.textAlign = he ? 'right' : 'left'; const X0 = he ? 520 : 40;
+        let fs = 54; const ty = String(r.title); x.font = `italic 600 ${fs}px Georgia, serif`; while (x.measureText(ty).width > 480 && fs > 26) { fs -= 2; x.font = `italic 600 ${fs}px Georgia, serif`; }
+        x.fillText(ty, X0, 36); let yy = 36 + fs + 18;
+        if (r.curator || r.sub) { x.font = '400 22px Georgia, serif'; x.fillStyle = 'rgba(40,36,30,0.55)'; x.fillText(String(r.curator ? 'Curated by ' + r.curator : r.sub).slice(0, 40), X0, yy); yy += 40; }
+        x.fillStyle = 'rgba(40,36,30,0.88)'; x.font = '400 29px Georgia, serif';
+        const words = paras.join(' ').split(/\s+/), lines = []; let ln = '';
+        for (const w of words) { const t = ln ? ln + ' ' + w : w; if (x.measureText(t).width > 485) { lines.push(ln); ln = w; } else ln = t; }
+        if (ln) lines.push(ln); const room = Math.floor((680 - yy) / 38);
+        lines.slice(0, room).forEach((l, k) => x.fillText(k === room - 1 && lines.length > room ? l + ' …' : l, X0, yy + k * 38));
+        x.font = '600 22px system-ui, sans-serif'; x.fillStyle = col; x.textAlign = 'center'; x.direction = 'ltr'; x.fillText(he ? 'Tap to read · לחצו לקריאה' : 'Tap to read', 280, 702);
+        const q = P(2.45, VD - 0.04), pw = 1.4, ph = pw * 760 / 560, o0 = [q[0], 0.95 + ph, q[1]], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
+        surfaces.push({ name: `r${i}-text`, kind: 'wall', texture: jpg(cv, 0.92), origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, openings: [] });
+        hotspots.push({ id: r.slug, title: r.title, sub: r.curator ? 'Curated by ' + r.curator : (r.sub || ''), text: paras, lang: he ? 'he' : 'en', kind: 'text', origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, enter: r.enter || null });
+      } }
+    // a house that holds a copy of an artist's own exhibition (r.enter): an arched picture of its original space on the back wall, and a tap walks into that space
+    if (r.enter && r.enter.image) {
+      const img = await new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src(r.enter.image); });
+      const PW = 2.2, PH = 3.0, cw = 720, ch = Math.round(cw * PH / PW), cv = canvas(cw, ch), x = cv.getContext('2d'), pad = 26;
+      x.fillStyle = dark ? '#8d8b85' : ft; x.fillRect(0, 0, cw, ch);
+      const arch = (g, inset) => { const w = cw - 2 * inset, rr = w / 2; g.beginPath(); g.moveTo(inset, ch - inset); g.lineTo(inset, inset + rr); g.arc(cw / 2, inset + rr, rr, Math.PI, 0); g.lineTo(cw - inset, ch - inset); g.closePath(); };
+      arch(x, pad - 10); x.fillStyle = col; x.fill();
+      x.save(); arch(x, pad); x.clip();
+      if (img) { const s = Math.max((cw - 2 * pad) / img.width, (ch - 2 * pad) / img.height); x.drawImage(img, cw / 2 - img.width * s / 2, ch / 2 - img.height * s / 2, img.width * s, img.height * s); } else { x.fillStyle = '#2b2824'; x.fillRect(0, 0, cw, ch); }
+      const g = x.createLinearGradient(0, ch - 260, 0, ch); g.addColorStop(0, 'rgba(20,16,12,0)'); g.addColorStop(1, 'rgba(20,16,12,0.55)'); x.fillStyle = g; x.fillRect(0, ch - 260, cw, 260);
+      x.restore();
+      x.fillStyle = 'rgba(250,248,244,0.96)'; x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.font = '600 34px system-ui, sans-serif'; x.fillText(r.enter.label || 'Walk into the original space', cw / 2, ch - 70);
+      const q = P(-PW / 2, VD + RD - 0.03), o0 = [q[0], 0.15 + PH, q[1]], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
+      surfaces.push({ name: `r${i}-portal`, kind: 'wall', texture: jpg(cv, 0.93), origin: o0, u, v: [0, -1, 0], size: [PW, PH], normal: nrm, openings: [] });
+      hotspots.push({ id: r.slug + '-portal', title: r.title, kind: 'portal', direct: true, origin: o0, u, v: [0, -1, 0], size: [PW, PH], normal: nrm, enter: r.enter });
+      runs.splice(1, 1);                                                                       // (the back wall is the portal's: works hang on the other two)
     }
     const sized = await Promise.all(autoW.map(async work => { const s = await sizeOf({ ...work, image: thumbOf(work) }, src), k = Math.min(1, 140 / Math.max(s.w, s.h)); return { work, w: s.w * k, h: s.h * k }; }));
     const GAP = 0.5, MG = 0.7, bucket = runs.map(() => []);
@@ -1642,7 +1670,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 190, noSpots: true,
     outdoors: { hour: env.hour, centre: [CX, CZ], lamps: [], treeline: 'data/rooms/outside/treeline.webp', treeRadius: 120, treeHeight: 46 },
     baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: 4 },
-    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], solids, directory,
+    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], solids, directory, hotspots,
     stands: stands.map(s => ({ ...s, kind: 'stand', t: STAND.t })), ...(props.length ? { props } : {}),
     start: { pos: PLAN.start.pos, look: PLAN.start.look },
     ...(plinthsOut.length ? { plinths: plinthsOut } : {}),
