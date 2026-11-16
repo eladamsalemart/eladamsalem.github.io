@@ -258,7 +258,10 @@ const nextEvent = e => e.events.filter(v => +v.at > Date.now() - 3 * 3600000).so
 const worksOf = a => { const l = M.works.filter(w => w.artist === a && w.kind !== 'object'); return a.community ? l.sort((x, y) => (+y.year || 0) - (+x.year || 0) || x.i - y.i) : l; };   // newest year first; inside a year, the artist's own order
 const objectsOf = a => M.works.filter(w => w.artist === a && w.kind === 'object');
 // an artist's shows, their own first (a group show after)
-const showsOf = a => M.exhibitions.filter(e => (e.artists || [e.artist]).includes(a)).sort((x, y) => (y.artist === a) - (x.artist === a));
+// the same person can be two artists here: the site's own content, and the account they made in the app (same name). Their virtual
+// exhibitions live on the account, so the page of either one shows them (the real ones are on both, and are not doubled).
+const twinOf = a => M.artists.find(b => b !== a && b.name && a.name && b.name.trim().toLowerCase() === a.name.trim().toLowerCase());
+const showsOf = a => { const t = twinOf(a); return M.exhibitions.filter(e => (e.artists || [e.artist]).includes(a) || (t && e.kind === 'online' && (e.artists || [e.artist]).includes(t))).sort((x, y) => (y.artist === a) - (x.artist === a)); };
 const byOf = e => (e.artists || [e.artist]).map(a => a.name).join(' × ');
 const dayName = t => { const d = Math.round((new Date(t).setHours(0, 0, 0, 0) - today()) / DAY); return d === 0 ? 'Tonight' : d === 1 ? 'Tomorrow' : t.toLocaleDateString('en-GB', { weekday: 'short' }); };
 const hm = t => t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
