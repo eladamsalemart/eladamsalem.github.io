@@ -1,6 +1,6 @@
 # Museum realism roadmap (standing mandate, owner 16.11)
 
-**Owner's rule:** every "תמשיך" = take the NEXT unchecked item here, finish it with proof (phone-sized shots, speed check), publish, tick it, write one line in the log below. The bar is "as realistic as a good architectural render, on an iPhone". Do not stop for weeks. Tell the owner in Hebrew when a tool or software is needed (the list at the bottom).
+**Owner's rule (16.11: do not stop, this runs for the month; item after item without waiting):** every "תמשיך" = take the NEXT unchecked item here, finish it with proof (phone-sized shots, speed check), publish, tick it, write one line in the log below. The bar is "as realistic as a good architectural render, on an iPhone". Do not stop for weeks. Tell the owner in Hebrew when a tool or software is needed (the list at the bottom).
 
 Source of the plan: `studio/design/museum-directions/research/04*` (top path: Blender-authored shell, Cycles lightmap bake, GLB with Meshopt/KTX2, PBR CC0 materials, sky + IBL, skylight atmospherics, floor reflections, tone mapping, portal culling, quality ladder).
 
@@ -13,7 +13,7 @@ Source of the plan: `studio/design/museum-directions/research/04*` (top path: Bl
 
 ## Next, in order (one per "תמשיך")
 1. [x] **Contact shadows / ambient occlusion baked into the floor** (16.11): soft dark around every house, pier, stand, pedestal and at the glass walls' foot. Still open from this item: the same soft dark at the foot of the walls INSIDE houses and under plinths (plinth floor shadow).
-2. [ ] **Glass that looks like glass**: faint reflection of the room on the glass at grazing angles, slightly green edge tint, mullion thickness and shadow, a faint dirt/sheen gradient.
+2. [x] (16.11, baked into the glass texture: sky/floor sheen, soft diagonal reflections, green edge cast, lit mullion edge + shadow, dirt at foot) **Glass that looks like glass**: faint reflection of the room on the glass at grazing angles, slightly green edge tint, mullion thickness and shadow, a faint dirt/sheen gradient.
 3. [ ] **Floor**: polished-concrete reflection of the light pools and the houses (cheap planar/blurred reflection), joint lines every 3 m, subtle wear; grass outside the pool not stair-stepped (check the green patch near the pool/east side).
 4. [ ] **Sky + IBL**: PMREM environment from the hour's sky so every material gets the right ambient colour; tone mapping (ACES/AgX) and exposure by hour.
 5. [ ] **Skylight atmospherics**: light shafts/dust under the soft oculi at low sun; glow around the brightest openings.
