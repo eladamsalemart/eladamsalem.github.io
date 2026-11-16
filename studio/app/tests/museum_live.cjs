@@ -73,7 +73,8 @@ const NUM = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']
       if (opened && shots) await p.screenshot({ path: `${shots}/museum-plan-open.png` });
       const before = await p.evaluate(() => window.__spaceView.inspect.where().pos);
       if (opened) await p.tap('.sv-dir-l button:nth-of-type(3)');
-      await p.waitForTimeout(800);
+      await p.waitForFunction(() => document.querySelector('.sv-dir').hidden, null, { timeout: 10000, polling: 100 }).catch(() => {});      // (the floor's mirror is built a few seconds after opening: on software GL that stalls a frame or two)
+      await p.waitForTimeout(500);
       const after = await p.evaluate(() => ({ pos: window.__spaceView.inspect.where().pos, hidden: document.querySelector('.sv-dir').hidden }));
       say(opened && after.hidden && Math.hypot(after.pos[0] - before[0], after.pos[2] - before[2]) > 3, 'a tap on an exhibition in the list takes the visitor there and closes the plan', `the jump did not happen: ${JSON.stringify([before, after])}`);
     }
