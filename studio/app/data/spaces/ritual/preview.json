@@ -1,7 +1,7 @@
 {
  "frames": 900,
- "flicker": 3.377,
- "motion": 2.776,
+ "flicker": 3.041,
+ "motion": 2.545,
  "psnr_db": 38.1,
  "width": 1080,
  "height": 1440,
@@ -9,8 +9,8 @@
  "seconds": 30,
  "peak_deg_per_s": 3.46,
  "kb": {
-  "preview.mp4": 4566,
-  "preview.hevc.mp4": 3898,
-  "preview.webm": 3093
+  "preview.mp4": 4161,
+  "preview.hevc.mp4": 3258,
+  "preview.webm": 2848
  }
 }
