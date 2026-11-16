@@ -40,7 +40,7 @@ function freshCommunity(d) {
 }
 const DB = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/rest/v1/', DB_KEY = 'sb_publishable_VKboaeE8UE3iwVKhyr4FSA_faDO17fu';
 async function communityData() {
-  const signal = AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
+  const signal = AbortSignal.timeout ? AbortSignal.timeout(20000) : undefined;      // (only ever asked for in the background: the first paint is the phone's last copy)
   const q = path => fetch(DB + path, { headers: { apikey: DB_KEY }, signal }).then(r => r.ok ? r.json() : []);
   const [artists, works, shows, hidden] = await Promise.all([
     q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,hero,hero_pos,link,instagram,cv,exhibitions&status=eq.approved'),
