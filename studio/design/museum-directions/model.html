@@ -1,0 +1,21 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Museum directions: sketch models</title>
+<!-- model.html?d=A..F&v=plan|section|air|e1|e2|e3 : the sketch model of one direction (engine.js, dir-X.js), photographed by render.cjs -->
+<style>
+html, body { margin: 0; background: #f3f1ea; overflow: hidden; height: 100%; }
+canvas { display: block; }
+.lb { position: absolute; transform: translate(-50%, -50%); font: 600 15px Heebo, Arial, sans-serif; color: #1d1d1b; background: rgba(255, 255, 255, .88); padding: 2px 8px; border-radius: 3px; white-space: nowrap; direction: rtl; }
+.lb.f { background: none; color: #8a5a2b; font-weight: 500; }
+.scale { position: absolute; left: 24px; bottom: 22px; border: 2px solid #1d1d1b; border-top: 0; height: 7px; font: 500 13px Heebo, Arial; direction: rtl; text-align: center; }
+.scale span { position: relative; top: -20px; }
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import { createEngine } from './engine.js';
+const q = new URLSearchParams(location.search), D = q.get('d') || 'C', view = q.get('v') || 'air';
+const E = createEngine({ view, W: innerWidth, H: innerHeight });
+const mod = await import(`./dir-${D}.js`);
+const cfg = mod.build(E);
+E.finish(cfg);
+</script>
