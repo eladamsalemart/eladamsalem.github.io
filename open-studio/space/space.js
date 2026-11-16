@@ -171,7 +171,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     const [su, sv] = s.size;
     const lo = -Math.min(pad, 0.01);                              // under the floor just enough to close the seam
     const shape = new THREE.Shape([new THREE.Vector2(-pad, lo), new THREE.Vector2(su + pad, lo), new THREE.Vector2(su + pad, sv + pad), new THREE.Vector2(-pad, sv + pad)]);
-    for (const o of holes) shape.holes.push(openingPath(o, new THREE.Path()));
+    for (const o of holes) shape.holes.push(openingPath(o, new THREE.Path(), o.sill || 0));
     const g = new THREE.ShapeGeometry(shape, 24);
     const pos = g.attributes.position, uv = g.attributes.uv;
     const O = V(s.origin), U = V(s.u), Vd = V(s.v);
@@ -288,6 +288,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     }
   }
   addOutside();
+  if (spec.props) import('./props.js').then(m => m.addProps({ THREE, scene, spec, renderer, mark: () => { dirty = true; } })).catch(e => console.warn('props', e));      // (sculpture and maquettes on plinths)
+  if (spec.outdoors) import('./outdoors.js').then(m => m.addOutdoors({ THREE, scene, spec, loadTex, renderer, mark: () => { dirty = true; } })).catch(e => console.warn('outdoors', e));      // (an open-air museum: the sky by the visitor's clock, real trees, street lamps)
 
   // through an opening: the wall's thickness, and a plain room beyond with the same floor
   function addOpening(s, o) {
@@ -1199,7 +1201,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
         });
       }
     }
-    renderer.render(scene, camera);
+    if (!root.classList.contains('planning')) renderer.render(scene, camera);   // the plan covers the room: do not draw it (battery)
   }
   renderer.setAnimationLoop(frame);
 
@@ -1276,7 +1278,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       camera.updateMatrixWorld();
       if (ibrNear) ibrNear(camera.position.clone(), camera.getWorldDirection(new THREE.Vector3()));
       if (ibrLeaveOut) ibrLeaveOut(leaveOut && leaveOut.photo, !!leaveOut, leaveOut && leaveOut.cover);
-      const bg = scene.background; scene.background = new THREE.Color('#ff00ff');   // a hole shows as magenta
+      const bg = scene.background; if (!spec.outdoors) scene.background = new THREE.Color('#ff00ff');   // a hole shows as magenta (an open-air museum has its sky: no holes to find)
       const swapped = [], walls = [];
       scene.traverse(o => { if (o.userData.kind === 'wall') walls.push(o); });
       if (ids) scene.traverse(o => {
