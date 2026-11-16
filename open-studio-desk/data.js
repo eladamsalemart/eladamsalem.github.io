@@ -89,6 +89,8 @@ const real = {
   async slots() { const c = await client(); return ok(await c.from('museum_slots').select('*').order('slot')); },
   async saveSlot(slot, patch) { const c = await client(); return ok(await c.from('museum_slots').upsert({ slot, ...patch, updated_at: new Date().toISOString() }).select().single()); },
   async clearSlot(slot) { const c = await client(); ok(await c.from('museum_slots').delete().eq('slot', slot)); },
+  async plan() { const c = await client(); const r = ok(await c.from('museum_plan').select('plan').eq('key', 'main').maybeSingle()); return r ? r.plan : null; },
+  async savePlan(plan) { const c = await client(); ok(await c.from('museum_plan').upsert({ key: 'main', plan, updated_at: new Date().toISOString() })); },
   // the curator's colour for each exhibition's threshold in the museum street (public read; only an admin writes: RLS)
   async streetColours() { const c = await client(); return Object.fromEntries(ok(await c.from('museum_colours').select('slug,colour')).map(r => [r.slug, r.colour])); },
   async setStreetColour(slug, colour) { const c = await client(); if (colour) ok(await c.from('museum_colours').upsert({ slug, colour, updated_at: new Date().toISOString() })); else ok(await c.from('museum_colours').delete().eq('slug', slug)); },
@@ -166,7 +168,7 @@ async function museum() {
     { slot: 3, exhibition_id: null, app_slug: 'celebration-virtual', live: true, from_date: null, to_date: null, colour: null, content: null, published_at: null }] };
   return MU;
 }
-let mockStreet = null;
+let mockStreet = null, mockPlan = null;
 const mock = {
   mode: 'mock',
   async session() { return { email: 'guest@demo' }; }, async returnFromLink() {}, async sendCode() {}, async verify() {}, async signOut() { location.search = ''; }, async isAdmin() { return true; },
@@ -207,6 +209,8 @@ const mock = {
     Object.assign(s, patch); return { ...s };
   },
   async clearSlot(slot) { const m = await museum(); m.slots = m.slots.filter(s => s.slot !== slot); },
+  async plan() { await wait(); return mockPlan; },
+  async savePlan(plan) { await wait(60); mockPlan = JSON.parse(JSON.stringify(plan)); },
   async streetColours() { await wait(); return { ...(mockStreet || (mockStreet = {})) }; },
   async setStreetColour(slug, colour) { await wait(); mockStreet = mockStreet || {}; if (colour) mockStreet[slug] = colour; else delete mockStreet[slug]; },
   async conversations() { const w = await world(); await wait(); return w.convs.map(c => ({ ...c, last: c.msgs[c.msgs.length - 1].body })).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)); },

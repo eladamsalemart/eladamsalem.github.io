@@ -77,22 +77,76 @@ export async function home(ctx) {
   const colourOf = r => r ? (r.colour || (r.app_slug && (appOf(r.app_slug) || {}).colour) || (r.exhibition_id && AUTO[r.exhibition_id]) || null) : null;
   const hasLive = rows => [...SL.values()].some(s => s.live);
   const SYm = await ctx.synth().catch(() => null);
-  // the BASE of the museum, drawn from the description the building is generated from (studio/design/museum-sky/README.md): the hall, the Square's pool, the eight houses by their slot,
-  // the history sections. Stage 2 (not built): add a space / remove a space here, which writes the description to the table museum_plan; the app already builds any valid description.
+  // ---- the building's plan (stage 2): spaces are added, removed and placed here; the description is written to the table museum_plan and the app builds whatever is valid ----
+  let PLAN = await api.plan().catch(() => null), selSp = null, placing = null;
+  const planNow = () => SYm && SYm.planOf ? SYm.planOf(PLAN) : null;
+  const rad = d => d * Math.PI / 180;
+  // a space's footprint on the floor: four corners (house: 8 x 6 m and its porch; history wing: a long chain of bays), a little larger than the walls so the neighbour's walls never touch
+  const footOf = (sp, pad = 0) => { const door = sp.door, o = sp.type === 'house' ? [Math.cos(rad(sp.dir)), Math.sin(rad(sp.dir))] : sp.dir, R = [-o[1], o[0]];
+    const [l0, l1, d0, d1] = sp.type === 'house' ? [-4.1, 4.1, -0.3, 7.9] : [-5, 11, 0, 41], c = (a, b) => [door[0] + R[0] * a + o[0] * b, door[1] + R[1] * a + o[1] * b];
+    return [c(l0 - pad, d0 - pad), c(l1 + pad, d0 - pad), c(l1 + pad, d1 + pad), c(l0 - pad, d1 + pad)]; };
+  const sat = (A, B) => { for (const P of [A, B]) for (let i = 0; i < 4; i++) { const p = P[i], q = P[(i + 1) % 4], nx = q[1] - p[1], nz = p[0] - q[0], pr = Q => Q.map(v => v[0] * nx + v[1] * nz), a = pr(A), b = pr(B);
+      if (Math.max(...a) < Math.min(...b) || Math.max(...b) < Math.min(...a)) return false; } return true; };
+  const rectPts = (x0, z0, x1, z1) => [[x0, z0], [x1, z0], [x1, z1], [x0, z1]];
+  const whyNot = (sp, P) => {                                                    // null when the place is good, else what is in the way (Hebrew)
+    const F = footOf(sp, 0.4), { w, d } = P.hall;
+    if (F.some(([x, z]) => x < 0.6 || z < 0.6 || x > w - 0.6 || z > d - 0.6)) return 'חורג מהבניין';
+    for (const o of P.spaces) if (sat(F, footOf(o))) return 'נוגע במרחב אחר';
+    if (P.pool && sat(F, rectPts(P.pool[0] - 1, P.pool[1] - 1, P.pool[2] + 1, P.pool[3] + 1))) return 'על הבריכה';
+    for (const [x, z] of P.piers) if (sat(F, rectPts(x - 1.5, z - 1.5, x + 1.5, z + 1.5))) return 'על עמוד';
+    for (const s of P.stands) { const a = rad(s.rot), c = [Math.cos(a), Math.sin(a)], n = [-c[1], c[0]], h = s.len / 2;
+      if (sat(F, [[s.x - c[0] * h - n[0] * 0.8, s.z - c[1] * h - n[1] * 0.8], [s.x + c[0] * h - n[0] * 0.8, s.z + c[1] * h - n[1] * 0.8], [s.x + c[0] * h + n[0] * 0.8, s.z + c[1] * h + n[1] * 0.8], [s.x - c[0] * h + n[0] * 0.8, s.z - c[1] * h + n[1] * 0.8]])) return 'על קולישה'; }
+    if (sat(F, rectPts(P.entrance.at[0] - 2, d - 9, P.entrance.at[1] + 2, d))) return 'חוסם את הכניסה';
+    if (sat(F, rectPts(P.start.pos[0] - 3, P.start.pos[1] - 3, P.start.pos[0] + 3, P.start.pos[1] + 3))) return 'על נקודת ההגעה';
+    return null; };
+  const nameOf = sp => sp.type === 'section' ? 'אגף היסטוריה' : sp.tour ? `חלל מקורי: ${sp.tour}` : sp.slot > 8 ? `בית נוסף ${sp.slot}` : `בית ${sp.slot}`;
+  const saveSpaces = async (label, edit) => {                                    // edit(spaces) -> the new list; undo writes the previous description back (or the base)
+    const P = planNow(), prev = PLAN, next = { ...JSON.parse(JSON.stringify(P)), spaces: edit(JSON.parse(JSON.stringify(P.spaces))) };
+    try { await api.savePlan(next); PLAN = next; draw(); toast(label, async () => { try { await api.savePlan(prev || JSON.parse(JSON.stringify(SYm.planOf(null)))); PLAN = prev; selSp = null; draw(); } catch (e) { fail(e); } }); } catch (e) { fail(e); } };
+  const extraSlots = () => { const P = planNow(); return P ? P.spaces.filter(sp => sp.type === 'house' && !sp.tour && sp.slot > 8).map(sp => sp.slot) : []; };
   const baseBlock = () => {
-    if (!SYm || !SYm.planOf) return '';
-    const P = SYm.planOf(null), W = P.hall.w, D = P.hall.d, pr = (c, o, a, b) => [c[0] - o[1] * a + o[0] * b, c[1] + o[0] * a + o[1] * b];
-    const shapes = P.spaces.map(sp => {
-      if (sp.type === 'house') { const a = sp.dir * Math.PI / 180, o = [Math.cos(a), Math.sin(a)], pts = [pr(sp.door, o, -4, 0), pr(sp.door, o, 4, 0), pr(sp.door, o, 4, 7.8), pr(sp.door, o, -4, 7.8)], m = pr(sp.door, o, 0, 4.4);
-        return `<polygon points="${pts.map(q => q.map(v => v.toFixed(1)).join(',')).join(' ')}" class="b-h"/><text x="${m[0].toFixed(1)}" y="${(m[1] + 1.3).toFixed(1)}" class="b-n">${sp.slot}</text>`; }
-      const o = sp.dir, pts = [pr(sp.door, o, -5, 0), pr(sp.door, o, 11, 0), pr(sp.door, o, 11, 41), pr(sp.door, o, -5, 41)], m = pr(sp.door, o, 3, 20);
-      return `<polygon points="${pts.map(q => q.map(v => v.toFixed(1)).join(',')).join(' ')}" class="b-s"/><text x="${m[0].toFixed(1)}" y="${m[1].toFixed(1)}" class="b-t">אגף היסטוריה</text>`; }).join('');
+    const P = planNow(); if (!P) return '';
+    const W = P.hall.w, D = P.hall.d;
+    const shapes = P.spaces.map(sp => { const F = footOf(sp), pts = F.map(q => q.map(v => v.toFixed(1)).join(',')).join(' '), cx = F.reduce((t, q) => t + q[0], 0) / 4, cz = F.reduce((t, q) => t + q[1], 0) / 4, on = sp.id === selSp;
+      return `<g class="b-g${on ? ' on' : ''}" data-id="${esc(sp.id)}" tabindex="0" role="button" aria-label="${esc(nameOf(sp))}" aria-pressed="${on}"><polygon points="${pts}" class="${sp.type === 'house' ? (sp.tour ? 'b-r' : 'b-h') : 'b-s'}"/><text x="${cx.toFixed(1)}" y="${(cz + 1.1).toFixed(1)}" class="${sp.type === 'house' ? 'b-n' : 'b-t'}">${sp.type === 'section' ? 'אגף היסטוריה' : sp.tour ? 'חלל מקורי' : sp.slot}</text></g>`; }).join('');
     const pool = P.pool ? `<rect x="${P.pool[0]}" y="${P.pool[1]}" width="${P.pool[2] - P.pool[0]}" height="${P.pool[3] - P.pool[1]}" class="b-p"/>` : '';
-    return `<section class="mp-base"><div class="tray-h"><h2>בסיס המבנה</h2><span class="muted small">בניין אחד: ${W} × ${D} מ׳, גג אחד, זכוכית מסביב. נבנה מתיאור (רשימת מרחבים).</span></div>
-      <svg viewBox="-2 -2 ${W + 4} ${D + 4}" class="mp-svg" role="img" aria-label="תוכנית הבסיס: אולם אחד ובו שמונה בתים ואגף היסטוריה" dir="ltr"><rect x="0" y="0" width="${W}" height="${D}" class="b-hall"/>${pool}${shapes}</svg>
-      <div class="mp-acts"><button type="button" class="btn" disabled title="שלב 2: עוד לא נבנה">הוסף מרחב</button><button type="button" class="btn" disabled title="שלב 2: עוד לא נבנה">הסר מרחב</button>
-      <span class="muted small">שלב ראשון: ממלאים ומרוקנים את הבתים הקיימים. הוספה והסרה של מרחבים (אגפים, בתים, מדורי היסטוריה) יתווספו בשלב 2; האפליקציה כבר בונה כל תיאור תקין.</span></div></section>`;
+    const piers = P.piers.map(([x, z]) => `<rect x="${x - 0.7}" y="${z - 0.7}" width="1.4" height="1.4" class="b-pier"/>`).join('');
+    const sel = P.spaces.find(s => s.id === selSp);
+    return `<section class="mp-base"><div class="tray-h"><h2>תוכנית הבניין</h2><span class="muted small">בניין אחד: ${W} × ${D} מ׳, גג אחד, זכוכית מסביב. ${P.spaces.length} מרחבים. לחיצה על מרחב בוחרת אותו.</span></div>
+      ${placing ? `<div class="mp-place" role="status"><b>${esc(placing.label)}</b> · לחץ על התוכנית היכן תהיה הדלת (החדר נמשך לכיוון ${esc(placing.dirName)}). <span id="mp-why" class="muted"></span> <button type="button" class="btn" id="mp-cancel">ביטול <kbd>Esc</kbd></button></div>` : ''}
+      <svg viewBox="-2 -2 ${W + 4} ${D + 4}" class="mp-svg${placing ? ' placing' : ''}" id="mp-svg" role="img" aria-label="תוכנית הבניין" dir="ltr"><rect x="0" y="0" width="${W}" height="${D}" class="b-hall"/>${pool}${piers}${shapes}<g id="mp-ghost"></g></svg>
+      <div class="mp-acts"><button type="button" class="btn p" id="mp-add">הוסף מרחב</button><button type="button" class="btn" id="mp-del" ${sel ? '' : 'disabled'}>${sel ? 'הסר: ' + esc(nameOf(sel)) : 'הסר מרחב'}</button>
+      <span class="muted small">${sel ? (sel.type === 'house' && !sel.tour && sel.slot <= 8 ? 'התערוכה שבבית נשארת בחדר שלה כאן, אבל המבקרים לא יראו אותה עד שהבית יוחזר.' : 'ההסרה רק מוחקת את המרחב מהבניין. אפשר לבטל מיד, ואפשר להוסיף שוב.') : 'בחר מרחב בתוכנית כדי להסיר אותו, או הוסף חדש.'}</span></div></section>
+      <dialog id="mp-dlg" class="dlg"><form method="dialog" id="mp-f"><h2>הוספת מרחב</h2>
+        <label class="field">סוג<select id="mp-type"><option value="house">בית לתערוכה (תערוכה מהשולחן, עם מספר חדר חדש)</option><option value="tour">תערוכה של אמן עם החלל המקורי שלה (קשת אל הסיור)</option></select></label>
+        <label class="field" id="mp-slugw" hidden>שם התערוכה בקישור (למשל ritual)<input id="mp-slug" type="text" dir="ltr" placeholder="ritual"></label>
+        <label class="field">החדר נמשך לכיוון (הדלת פונה אל הכיכר)<select id="mp-dir"><option value="0">מזרח (ימינה בתוכנית)</option><option value="90">דרום (למטה)</option><option value="180">מערב (שמאלה)</option><option value="270">צפון (למעלה)</option></select></label>
+        <p class="muted small" id="mp-err" style="color:#a03020"></p>
+        <div class="dlg-b"><button class="btn" value="x">ביטול</button><button class="btn p" id="mp-go" value="go">המשך: בחירת מקום</button></div></form></dialog>`;
   };
+  function wireBase() {
+    const svg = $('#mp-svg'); if (!svg) return;
+    const pt = e => { const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse()); return [Math.round(p.x * 2) / 2, Math.round(p.y * 2) / 2]; };
+    $$('.b-g').forEach(g => { const pick = () => { selSp = selSp === g.dataset.id ? null : g.dataset.id; draw(true); }; g.onclick = ev => { if (placing) return; ev.stopPropagation(); pick(); }; g.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } }; });
+    const del = $('#mp-del'); if (del) del.onclick = () => { const sp = planNow().spaces.find(s => s.id === selSp); if (!sp) return; selSp = null; saveSpaces(`${nameOf(sp)} הוסר מהבניין`, L => L.filter(s => s.id !== sp.id)); };
+    const dlg = $('#mp-dlg'), type = $('#mp-type'), slugw = $('#mp-slugw');
+    $('#mp-add').onclick = () => { $('#mp-err').textContent = ''; slugw.hidden = type.value !== 'tour'; dlg.showModal(); };
+    type.onchange = () => { slugw.hidden = type.value !== 'tour'; };
+    $('#mp-go').onclick = async ev => { ev.preventDefault(); const P = planNow(), err = $('#mp-err'), dir = +$('#mp-dir').value, dirName = { 0: 'מזרח', 90: 'דרום', 180: 'מערב', 270: 'צפון' }[dir];
+      const used = new Set(P.spaces.map(s => s.slot).filter(Boolean)); let sp, label;
+      if (type.value === 'tour') { const slug = $('#mp-slug').value.trim().toLowerCase(); if (!/^[a-z0-9-]{2,60}$/.test(slug)) { err.textContent = 'כתוב את שם התערוכה באנגלית, כמו ritual'; return; }
+        if (P.spaces.some(s => s.tour === slug)) { err.textContent = 'התערוכה הזאת כבר בבניין'; return; }
+        const ok = await fetch(APP + `data/spaces/${slug}.json`).then(r => r.ok).catch(() => false); if (!ok) { err.textContent = 'לתערוכה הזאת אין עדיין חלל מצולם באפליקציה (data/spaces/' + slug + '.json)'; return; }
+        let n = 50; while (used.has(n)) n++; sp = { id: slug, type: 'house', slot: n, tour: slug, dir }; label = `חלל מקורי: ${slug}`; }
+      else { let n = 9; while (used.has(n)) n++; if (n > 48) { err.textContent = 'אין עוד מקום למספרי חדרים'; return; } sp = { id: 'house-' + n, type: 'house', slot: n, dir }; label = `בית ${n}`; }
+      placing = { sp, label, dirName }; dlg.close(); selSp = null; draw(true); };
+    const cancel = $('#mp-cancel'); if (cancel) cancel.onclick = () => { placing = null; draw(true); };
+    if (placing) {
+      const ghostOf = e => { const sp = { ...placing.sp, door: pt(e) }; return { sp, why: whyNot(sp, planNow()) }; };
+      svg.onpointermove = e => { const { sp, why } = ghostOf(e); $('#mp-ghost').innerHTML = `<polygon points="${footOf(sp).map(q => q.join(',')).join(' ')}" class="${why ? 'b-bad' : 'b-ok'}"/>`; $('#mp-why').textContent = why || 'אפשר'; };
+      svg.onclick = e => { const { sp, why } = ghostOf(e); if (why) { toast('אי אפשר כאן: ' + why); return; } placing = null; saveSpaces(`${nameOf(sp)} נוסף לבניין`, L => [...L, sp]); };
+    }
+  }
 
   async function auto(r) {                                                     // the colour the street would suggest for an exhibition, from its works
     const e = r && r.exhibition_id && exOf(r.exhibition_id); if (!e || AUTO[e.id] || r.colour) return;
@@ -146,7 +200,7 @@ export async function home(ctx) {
 
   function inspector() {
     const r = SL.get(sel), st = stateOf(r), has = r && (r.exhibition_id || r.app_slug), c = colourOf(r), isApp = r && r.app_slug, dirty = dirtyOf(r);
-    return `<div class="ip-h"><div><span class="kind">חדר ${sel} · ${sel <= 4 ? 'צד צפון' : sel <= 6 ? 'צד מזרח' : 'צד דרום'}</span><h2 dir="auto">${esc(title(r) || 'חדר ריק')}</h2></div>${st.k !== 'empty' ? `<span class="chip ${st.k === 'live' ? 'ok' : st.k === 'draft' ? '' : 'warn'}">${esc(st.t)}</span>` : ''}</div>
+    return `<div class="ip-h"><div><span class="kind">חדר ${sel} · ${sel > 8 ? 'בית נוסף' : sel <= 4 ? 'צד צפון' : sel <= 6 ? 'צד מזרח' : 'צד דרום'}</span><h2 dir="auto">${esc(title(r) || 'חדר ריק')}</h2></div>${st.k !== 'empty' ? `<span class="chip ${st.k === 'live' ? 'ok' : st.k === 'draft' ? '' : 'warn'}">${esc(st.t)}</span>` : ''}</div>
     <label class="field">התערוכה בחדר<select id="ip-ex"><option value="">— ריק —</option>
       <optgroup label="התערוכות שלי">${EX.map(e => `<option value="ex:${e.id}" ${r && r.exhibition_id === e.id ? 'selected' : ''}>${esc(e.title)}</option>`).join('')}</optgroup>
       <optgroup label="מובנות באפליקציה">${apps.map(a => `<option value="app:${esc(a.slug)}" ${r && r.app_slug === a.slug ? 'selected' : ''}>${esc(a.title)}</option>`).join('')}</optgroup></select></label>
@@ -166,7 +220,7 @@ export async function home(ctx) {
     page('museum', 'המוזיאון', `הבניין קבוע: שמונה בתים סביב הכיכר. כאן מחליטים איזו תערוכה תלויה בכל בית, מתי, ובאיזה צבע · ${live} מוצגות`, `
     ${live ? '' : `<div class="soon" style="margin-bottom:16px">כרגע המוזיאון רץ אוטומטית על התערוכות המובנות. ברגע שחדר אחד מוצג כאן, המוזיאון מציג רק את החדרים שהגדרת. <button type="button" class="btn" id="adopt" style="margin-inline-start:10px;min-height:38px">התחל מהרחוב הנוכחי</button></div>`}
     <div class="mu"><div class="mu-main"><div class="mp" dir="ltr"><span class="mp-ent">כניסה ←</span><button type="button" class="ib mp-help" id="mu-help" title="קיצורי מקשים (?)" aria-label="קיצורי מקשים">?</button>
-      <div class="mp-row">${[1, 3, 5, 7].map(room).join('')}</div><div class="mp-st" aria-hidden="true"><span>הכיכר</span></div><div class="mp-row">${[2, 4, 6, 8].map(room).join('')}</div></div>
+      <div class="mp-row">${[1, 3, 5, 7].map(room).join('')}</div><div class="mp-st" aria-hidden="true"><span>הכיכר</span></div><div class="mp-row">${[2, 4, 6, 8].map(room).join('')}</div>${extraSlots().length ? `<div class="mp-more"><span class="muted small">בתים נוספים</span><div class="mp-row">${extraSlots().map(room).join('')}</div></div>` : ''}</div>
       ${baseBlock()}<section class="tray"><div class="tray-h"><h2>התערוכות שלי</h2><span class="muted small">גרור אל חדר · לחיצה פותחת לעריכה</span><span class="grow"></span><button class="btn" id="walk-all">צפה ברחוב כולו</button><a class="btn p" href="#/museum/ex/new">תערוכה חדשה <kbd>N</kbd></a></div>
         <div class="tray-g">${EX.map(exCard).join('')}${EX.length ? '' : '<p class="muted">עוד אין תערוכות. התחל בתערוכה חדשה.</p>'}</div>
         ${apps.length ? `<details class="tray-a"><summary>תערוכות מובנות באפליקציה (${apps.length})</summary><div class="tray-g">${apps.map(appCard).join('')}</div></details>` : ''}</section></div>
@@ -176,7 +230,7 @@ export async function home(ctx) {
   function select(k) { sel = k; sessionStorage.setItem('mu-sel', k); $$('.rm').forEach(e => e.setAttribute('aria-pressed', +e.dataset.k === k)); $('#ip').innerHTML = inspector(); wireIp(); auto(SL.get(k)); }
   async function walk(all) {                                                  // one room, or the whole street as it is set here (rooms not shown yet too: this is the owner's preview)
     const rooms = []; let focus = 0; const SY = await ctx.synth();
-    for (let k = 1; k <= SLOTS; k++) { const r = SL.get(k); if (!r || !(all || k === sel)) continue;
+    for (let k = 1; k <= 64; k++) { const r = SL.get(k); if (!r || !(all || k === sel)) continue;
       const e = r.exhibition_id && exOf(r.exhibition_id), a = r.app_slug && appOf(r.app_slug); let room = null;
       if (e) { if (!r.colour && !AUTO[e.id]) await auto(r); room = roomOf({ ...e, id: e.id }, colourOf(r) || '#8a8a8a'); }
       else if (a && a.works.length) room = { slug: a.slug, title: a.title, works: a.works, colour: colourOf(r) || await SY.suggestColour(a.works.slice(0, 4).map(w => w.thumb), u => u, SY.slugHue(a.slug)) };
@@ -196,7 +250,7 @@ export async function home(ctx) {
     on('#ip-walk', 'onclick', () => walk(false)); on('#ip-clear', 'onclick', () => act(`חדר ${sel} פונה`, [[sel, null]]));
   }
   function wire() {
-    wireIp();
+    wireIp(); wireBase();
     $$('.rm').forEach(e => {
       e.onclick = () => select(+e.dataset.k); e.ondblclick = () => { const r = SL.get(+e.dataset.k); if (r && r.exhibition_id) location.hash = '#/museum/ex/' + r.exhibition_id; };
       e.ondragstart = ev => { ev.dataTransfer.setData('text/plain', 'room:' + e.dataset.k); ev.dataTransfer.effectAllowed = 'move'; };
@@ -212,6 +266,7 @@ export async function home(ctx) {
   const help = () => helpDlg('קיצורי מקשים · המוזיאון', [['← → ↑ ↓', 'מעבר בין חדרים'], ['1 – 8', 'בחירת חדר'], ['Enter', 'עריכת התערוכה שבחדר'], ['P', 'הצג או הסתר למבקרים'], ['W', 'צפייה בחדר בתלת־ממד'], ['Shift + W', 'צפייה ברחוב כולו'], ['Del', 'פינוי החדר'], ['Ctrl + Z', 'ביטול'], ['Ctrl + Shift + Z', 'שחזור'], ['N', 'תערוכה חדשה']]);
   keys(e => {
     const el = e.target; if (el && el.closest && el.closest('input,textarea,select,dialog') || e.metaKey && e.key !== 'z') return;
+    if (e.key === 'Escape' && placing) { placing = null; return draw(true); }
     if (e.key === '?') return help();
     const k = e.key, z = (e.ctrlKey || e.metaKey) && k.toLowerCase() === 'z';
     if (z) { e.preventDefault(); return e.shiftKey ? restore(redo, undo) : restore(undo, redo); }
