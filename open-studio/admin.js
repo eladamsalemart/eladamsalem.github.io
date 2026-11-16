@@ -16,9 +16,9 @@ import { client } from './auth.js';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const REPO = 'eladamsalemart/eladamsalem.github.io';
 const USERS = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/functions/v1/admin-users';
-const NAV = [['', 'תור'], ['artists', 'קהילה'], ['curated', 'מוזיאון'], ['system', 'מערכת']];
-const TITLES = { '': 'תור', artists: 'קהילה', curated: 'המוזיאון', system: 'מערכת' };
-const TAB_OF = { '': '', artists: 'artists', people: 'artists', curated: 'curated', system: 'system', requests: 'system', health: 'system' };
+const NAV = [['', 'תור'], ['artists', 'קהילה'], ['shows', 'תערוכות'], ['curated', 'מוזיאון'], ['system', 'מערכת']];
+const TITLES = { '': 'תור', artists: 'קהילה', shows: 'תערוכות', curated: 'המוזיאון', system: 'מערכת' };
+const TAB_OF = { '': '', artists: 'artists', people: 'artists', shows: 'shows', curated: 'curated', system: 'system', requests: 'system', health: 'system' };
 let M = null;                                    // the app's content
 let APP = null, GO = null, KEYS = null, QC = null, HC = null, QT = '';   // the page; navigation; key handler; queue and health caches; queue title
 const day = t => new Date(t).toLocaleDateString('he-IL', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -35,7 +35,7 @@ html:has(.adm){background:var(--wall)}body:has(.adm){max-width:none;box-shadow:n
 .ax-main{padding:env(safe-area-inset-top,0px) max(16px,env(safe-area-inset-right,0px)) 110px max(16px,env(safe-area-inset-left,0px));min-width:0}
 .ax-top{display:flex;justify-content:space-between;align-items:center;min-height:44px}
 .ax-h1{font:400 32px/1.1 var(--serif);padding:6px 0 4px}.ax-sub{color:var(--muted);font-size:14px;padding-bottom:14px;min-height:1.5em}
-.ax-tabs{position:fixed;inset:auto 0 0;z-index:6;display:grid;grid-template-columns:repeat(4,1fr);background:color-mix(in srgb,var(--wall) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.ax-tabs{position:fixed;inset:auto 0 0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--wall) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
 .ax-tabs a,.ax-side a.ax-l{display:flex;align-items:center;justify-content:center;gap:6px;min-height:56px;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none}
 .ax-tabs a[aria-current]{color:var(--ink);font-weight:700;box-shadow:inset 0 -2px 0 var(--dot)}
 .ax-badge{background:var(--dot);color:var(--wall);border-radius:99px;font:600 11px/18px var(--sans);min-width:18px;height:18px;text-align:center;padding:0 5px;font-style:normal}.ax-badge:empty{display:none}
@@ -117,6 +117,7 @@ async function draw(hash, keepScroll) {
   let body;
   if (tab === 'artists') body = await artists(c);
   else if (tab === 'people') body = await people(c);
+  else if (tab === 'shows') body = await showsTab(c);
   else if (tab === 'curated') body = `<div class="ax-narrow">${await curated(c)}</div>`;
   else if (nt === 'system') body = system();
   else body = await queue(c);
@@ -257,6 +258,26 @@ async function curated(c) {
   return `<p class="m">המוזיאון והתערוכות נערכים רק בשולחן העבודה, במחשב: <a href="/open-studio-desk/#/museum">פתח את שולחן העבודה</a>. כאן רק מה שתלוי עכשיו בחדרי הרחוב.</p>
     <div class="list">${slots.filter(r => r.exhibition_id || r.app_slug).map(r => { const [k, t] = state(r); return `<div class="row noimg"><div class="t"><div><b>חדר ${r.slot} · ${esc(name(r))}</b></div></div><span class="st-flag ${k}">${esc(t)}</span></div>`; }).join('') || '<p class="m small">עוד לא שובצו תערוכות בחדרים. הרחוב מציג את התערוכות המובנות.</p>'}</div>
     ${theirs.length ? `<section class="sec"><div class="sec-h"><h2>של האמנים עצמם</h2><span class="more">${theirs.length} מפורסמות</span></div><div class="list">${theirs.map(r => `<div class="row noimg"><div class="t"><div><b>${esc(r.title)}</b></div><div class="m">${r.works.length} עבודות</div></div><button class="btn g" data-unpublish="${r.id}">הורד</button></div>`).join('')}</div></section>` : ''}`;
+}
+
+// --- exhibitions: every exhibition the app shows. The owner's own first; all the others below, each one hidden or brought back,
+// --- or sent to the museum. Nothing is deleted here (hiding is undone with one tap).
+let HID = new Set();
+const exKind = e => e.demo ? 'הדגמה' : e.kind === 'online' ? 'וירטואלית' : 'אמיתית';
+const exMine = e => !e.demo && e.artist && (e.artist === M.artist || e.artist.name === M.artist.name);
+const exRow = e => { const off = HID.has('ex:' + e.slug); return `<div class="row noimg ax-ex"><div class="t"><div><b>${esc(e.title)}</b></div><div class="m">${esc(e.artist ? e.artist.name : '')}${e.year ? ' · ' + esc(e.year) : ''} · ${exKind(e)}</div></div>
+  <span class="st-flag ${off ? '' : 'ok'}">${off ? 'מוסתרת' : 'באפליקציה'}</span>
+  ${off ? '' : `<a class="btn g" href="#/exhibition/${esc(e.slug)}">פתח</a>`}<a class="btn g" href="/open-studio-desk/#/museum">למוזיאון</a>
+  <button type="button" class="btn g" data-hide="ex:${esc(e.slug)}">${off ? 'החזר' : 'הסתר'}</button></div>`; };
+async function showsTab(c) {
+  const { data } = await c.from('app_hidden').select('key'); HID = new Set((data || []).map(r => r.key));
+  const all = (M.allExhibitions || M.exhibitions).slice().sort((a, b) => (+b.year || 0) - (+a.year || 0));
+  const mine = all.filter(exMine), rest = all.filter(e => !exMine(e)), shown = rest.filter(e => !HID.has('ex:' + e.slug));
+  return `<div class="ax-narrow"><p class="m">כל התערוכות שהאפליקציה מציגה. "הסתר" מוריד תערוכה מהאפליקציה בלי למחוק אותה, ואפשר להחזיר בלחיצה. תערוכות המוזיאון נערכות בשולחן העבודה.</p>
+    <section class="sec"><div class="sec-h"><h2>אלעד אמסלם</h2><span class="more">${mine.length} תערוכות</span></div><div class="list">${mine.map(exRow).join('') || '<p class="m small">אין עדיין.</p>'}</div></section>
+    <section class="sec"><div class="sec-h"><h2>שאר התערוכות באפליקציה</h2><span class="more">${rest.length}</span></div>
+      ${shown.length ? `<p><button type="button" class="btn g" data-hideall="${shown.map(e => 'ex:' + e.slug).join('|')}">הסתר את כל ה־${shown.length} מהאפליקציה</button></p>` : ''}
+      <div class="list">${rest.map(exRow).join('') || '<p class="m small">אין.</p>'}</div></section></div>`;
 }
 
 // --- the system: how the app is, asking for a change, trying it as someone new ----------------------------------------
@@ -415,6 +436,18 @@ function wire(app, c, tab) {
       } catch (e) { box.innerHTML = `<p class="m small">${esc(e.message)}</p>`; }
     };
     let loaded = false; real.ontoggle = () => { if (real.open && !loaded) { loaded = true; list(); } };
+  }
+  if (tab === 'shows') {
+    const apply = () => { M.hidden = HID; M.exhibitions = (M.allExhibitions || M.exhibitions).filter(e => !HID.has('ex:' + e.slug));
+      try { const cc = JSON.parse(localStorage.getItem('os-community') || 'null'); if (cc) { cc.hidden = [...HID].map(key => ({ key })); localStorage.setItem('os-community', JSON.stringify(cc)); } } catch {} };
+    const set = async (keys, hide) => {
+      const { error } = hide ? await c.from('app_hidden').upsert(keys.map(key => ({ key }))) : await c.from('app_hidden').delete().in('key', keys);
+      if (error) return fail(error);
+      keys.forEach(k => hide ? HID.add(k) : HID.delete(k)); apply(); go(location.hash, true);
+      toast(`${hide ? 'הוסתרו' : 'הוחזרו'} ${keys.length}`, () => set(keys, !hide));
+    };
+    $$(app, '[data-hide]').forEach(b => b.onclick = () => set([b.dataset.hide], !HID.has(b.dataset.hide)));
+    $$(app, '[data-hideall]').forEach(b => b.onclick = () => set(b.dataset.hideall.split('|'), true));
   }
   app.querySelectorAll('[data-unpublish]').forEach(b => b.onclick = async () => { await c.from('virtual_shows').update({ status: 'draft' }).eq('id', b.dataset.unpublish); go(location.hash, true); });
 }
