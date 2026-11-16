@@ -1200,7 +1200,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
         });
       }
     }
-    renderer.render(scene, camera);
+    if (!root.classList.contains('planning')) renderer.render(scene, camera);   // the plan covers the room: do not draw it (battery)
   }
   renderer.setAnimationLoop(frame);
 
