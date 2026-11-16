@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-15",
+ "updated": "2026-11-16",
  "sources": [
   {
    "source": "haifa-museum",
@@ -238,8 +238,8 @@
    "place": "beit-avi-chai",
    "url": "https://www.bac.org.il",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -733,8 +733,8 @@
    "place": "wikidata-Q118342557",
    "url": "https://www.mariegallery.co.il/",
    "auto": true,
-   "status": "ok",
-   "shows": 2,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -778,7 +778,7 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 41,
+   "messages": 46,
    "matched": 4,
    "unmatched": 3,
    "shows": 0,
@@ -787,8 +787,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 6,
-   "seconds": 527,
+   "calls": 8,
+   "seconds": 606,
    "status": "TimeoutError: timed out"
   },
   {
