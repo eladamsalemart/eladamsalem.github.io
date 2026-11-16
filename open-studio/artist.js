@@ -246,7 +246,7 @@ function ovBar(v, title) {
 }
 // an owner of Open Studio (an admin) publishes their own exhibition at once; everyone else sends it for review
 let ADMIN = false, adminAsked = false;
-const askAdmin = () => adminAsked ? Promise.resolve() : (adminAsked = true, import('./studio-cloud.js').then(async m => { const s = await m.session(); if (!s) return; const { data } = await s.c.rpc('is_admin'); ADMIN = !!data; }).catch(() => {}));
+const askAdmin = () => adminAsked ? Promise.resolve() : (adminAsked = true, import('./studio-cloud.js').then(async m => { const s = await m.session(); if (!s) return; const { data } = await s.c.rpc('is_admin'); ADMIN = false && !!data; /* (16.11, the owner's word: an exhibition always goes through review, his own too) */ }).catch(() => {}));
 // where the exhibition stands, in one card: live in the app or not, and whether what you see here is saved to the cloud
 const ovStatus = v => {
   const st = v.status, k = st === 'published' ? ['ok', 'Live in the app', 'Visitors see this exhibition in Shows and on your page. A change you make here reaches them as soon as it is saved.']
