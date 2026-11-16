@@ -610,6 +610,9 @@ const MU_CSS = `<style id="hsMuCss">
 .hs-mu .mu-in{position:relative;display:block;text-decoration:none;color:inherit}
 .hs-mu .mu-gate{position:relative;display:block;aspect-ratio:6/5;overflow:hidden;border-radius:190px 190px 16px 18px / 170px 170px 18px 16px;background:#f6f3ec;box-shadow:0 0 0 1px color-mix(in srgb,var(--hs-pencil) 34%,transparent),0 18px 34px -26px var(--hs-shade)}
 .hs-mu .mu-gate svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hs-mu .mu-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .9s ease}
+.hs-mu .mu-gate.ready .mu-film{opacity:1}
+@media (prefers-reduced-motion:reduce){.hs-mu .mu-film{display:none}}
 .hs-mu .mu-walk{transform-origin:50% 52%;will-change:transform,opacity;animation:muWalk 36s linear infinite}
 .hs-mu .mu-walk.b{animation-delay:-18s}
 .hs-mu .mu-gate.rest .mu-walk{animation-play-state:paused}
@@ -664,15 +667,19 @@ function drawMuseum(box, slots) {
   if (!document.getElementById('hsMuCss')) document.head.insertAdjacentHTML('beforeend', MU_CSS);
   const doors = rooms.filter(r => r.img).slice(0, 3), names = rooms.map(r => r.title);
   const list = n <= 2 ? names.join(' and ') : `${names.slice(0, 2).join(', ')} and ${n - 2} more`;
-  box.innerHTML = `<div class="hs-h"><h2 id="hsMuH">The Museum</h2><span class="hand side">${n === 1 ? 'one exhibition on now' : `${NUM[n].toLowerCase()} exhibitions on now`}</span></div>
+  box.innerHTML = `<div class="hs-h"><h2 id="hsMuH">Open All Night</h2><span class="hand side">${n === 1 ? 'one exhibition on now' : `${NUM[n].toLowerCase()} exhibitions on now`}</span></div>
     <a class="mu-in" href="#/museum" aria-label="Walk into the museum: ${n} ${n === 1 ? 'exhibition' : 'exhibitions'} on now">
       <span class="mu-gate rest" data-n="${n}">${gateSvg(rooms.map((r, k) => r.colour || GATE_HUES[k % GATE_HUES.length]))}
-        <span class="mu-cap"><span><b${heb(names[0])}>${esc(n === 1 ? names[0] : `${NUM[n]} exhibitions, one walk`)}</b><span${heb(list)}>${esc(n === 1 ? (rooms[0].content && rooms[0].content.curator ? 'Curated by ' + rooms[0].content.curator : `${rooms[0].works.length} works`) : list)}</span></span>
+        <video class="mu-film" muted loop playsinline preload="none" poster="data/museum/preview.jpg" aria-hidden="true"><source src="data/museum/preview.webm" type='video/webm; codecs="vp9"'><source src="data/museum/preview.mp4" type="video/mp4"></video>
+        <span class="mu-cap"><span><b${heb(n === 1 ? names[0] : list)}>${esc(n === 1 ? names[0] : list)}</b></span>
         <span class="mu-go">Walk in</span></span></span></a>`;
   // the walk moves only while the gate is on the screen (Home stays still, and quick, the rest of the time)
   const gate = box.querySelector('.mu-gate');
-  if (gate && 'IntersectionObserver' in window) { if (box._io) box._io.disconnect(); box._io = new IntersectionObserver(es => { for (const e of es) gate.classList.toggle('rest', !e.isIntersecting); }, { threshold: 0.15 }); box._io.observe(gate); }
-  else if (gate) gate.classList.remove('rest');
+  const film = gate && gate.querySelector('.mu-film');
+  if (film) { film.addEventListener('playing', () => gate.classList.add('ready'), { once: true }); const last = film.querySelector('source:last-child'); if (last) last.addEventListener('error', () => film.remove()); }
+  const live = on => { gate.classList.toggle('rest', !on); if (film) { if (on) { film.preload = 'auto'; const p = film.play(); if (p && p.catch) p.catch(() => {}); } else film.pause(); } };
+  if (gate && 'IntersectionObserver' in window) { if (box._io) box._io.disconnect(); box._io = new IntersectionObserver(es => { for (const e of es) live(e.isIntersecting); }, { threshold: 0.15 }); box._io.observe(gate); }
+  else if (gate) live(true);
   box.hidden = false;
 }
 async function fillMuseum(box) {
@@ -1272,6 +1279,17 @@ async function enterSpace(slug) {
 // the museum street (space/synth.js buildStreet): one long walk indoors, a room off it for each virtual or online show, each with a
 // threshold in the colour its works suggest (data/virtual.json streetColours, else sampled here) unless the curator chose another (museum_colours)
 const streetShows = () => M.exhibitions.filter(e => (e.virtual || e.kind === 'online') && (e.works || []).length >= 3).slice(0, 8);     // (the same rule as synth.streetShows)
+// the museum's history sections (studio/museum-agents/): data/museum/sections.json, each with its credits file; any failure and the museum is built without it
+async function loadSections() {
+  try {
+    const j = await (await fetch('data/museum/sections.json', { cache: 'no-cache' })).json();
+    return await Promise.all((j.sections || []).filter(s => !s.hidden).map(async s => {
+      const list = await (await fetch(s.folder + '/credits.json', { cache: 'no-cache' })).json(), credits = {};
+      for (const c of list) credits[c.slug] = { ...c, image: `${s.folder}/works/${c.slug}.jpg`, thumb: `${s.folder}/works/${c.slug}-s.jpg` };
+      return { ...s, credits };
+    }));
+  } catch (e) { return []; }
+}
 async function enterStreet() {
   const synth = await import('./space/synth.js');
   const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
@@ -1295,7 +1313,7 @@ async function enterStreet() {
     colour: over[e.slug] || set[e.slug] || await synth.suggestColour(e.works.map(thumb), src, synth.slugHue(e.slug)),
   })));
   // (a trial of the museum as a hall with rooms off its four sides, not a street: only with ?hall in the address, until the owner chooses)
-  const qs = new URLSearchParams(location.search), made = await (qs.has('street') ? synth.buildStreet : qs.has('hall') ? synth.buildHall : synth.buildCluster)(rooms, src, thumb);   // (the open museum of houses is the museum, 16.11; ?street and ?hall keep the older plans)
+  const qs = new URLSearchParams(location.search), sections = qs.has('street') || qs.has('hall') ? [] : await loadSections(), made = await (qs.has('street') ? synth.buildStreet : qs.has('hall') ? synth.buildHall : synth.buildCluster)(rooms, src, thumb, { sections });   // (the open museum of houses is the museum, 16.11; ?street and ?hall keep the older plans)
   if (location.hash !== '#/museum') return;                       // (left while it was being built)
   openSpaceView = await openSpace({
     spec: made.spec, works: M.works, src,
