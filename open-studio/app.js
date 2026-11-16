@@ -1304,7 +1304,7 @@ async function enterStreet() {
       const c = s.content, e = s.app_slug && shows.find(x => x.slug === s.app_slug);
       if (!c && !e) return null;
       const ws = c ? (c.works || []) : e.works, slug = e ? e.slug : 'slot-' + s.slot;
-      return { slug, title: c ? c.title : e.title, works: ws, text: c && c.text, curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
+      return { slug, slot: s.slot, title: c ? c.title : e.title, works: ws, text: c && c.text, curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
         colour: s.colour || over[slug] || set[slug] || await synth.suggestColour(ws.map(thumb), src, synth.slugHue(slug)) };
     }))).filter(Boolean);
   }
@@ -1313,7 +1313,7 @@ async function enterStreet() {
     colour: over[e.slug] || set[e.slug] || await synth.suggestColour(e.works.map(thumb), src, synth.slugHue(e.slug)),
   })));
   // (a trial of the museum as a hall with rooms off its four sides, not a street: only with ?hall in the address, until the owner chooses)
-  const qs = new URLSearchParams(location.search), sections = qs.has('street') || qs.has('hall') ? [] : await loadSections(), made = await (qs.has('street') ? synth.buildStreet : qs.has('hall') ? synth.buildHall : synth.buildCluster)(rooms, src, thumb, { sections });   // (the open museum of houses is the museum, 16.11; ?street and ?hall keep the older plans)
+  const qs = new URLSearchParams(location.search), sections = qs.has('street') || qs.has('hall') ? [] : await loadSections(), plan = await get('museum_plan?select=plan&key=eq.main').then(r => (r[0] && r[0].plan) || null).catch(() => null), made = await (qs.has('street') ? synth.buildStreet : qs.has('hall') ? synth.buildHall : qs.has('cluster') ? synth.buildCluster : synth.buildSky)(rooms, src, thumb, { sections, plan });   // (the open museum of houses is the museum, 16.11; ?street and ?hall keep the older plans)
   if (location.hash !== '#/museum') return;                       // (left while it was being built)
   openSpaceView = await openSpace({
     spec: made.spec, works: M.works, src,

@@ -56,8 +56,8 @@ export function roomOf(E, colour) {
     works: E.works.filter(w => w.s != null && w.kind !== 'object' && w.image).map(w => ({ ...w, image: abs(w.image), thumb: abs(w.thumb || w.image), artist: { name: w.artist || '' } })) };
 }
 export async function walkStreet(rooms, focus, viewerCss, synth) {
-  const [{ buildStreet }, { openSpace }] = await Promise.all([synth(), import(APP + 'space/space.js'), viewerCss()]);
-  const made = await buildStreet(rooms, u => u, w => w.thumb || w.image, focus >= 0 ? { focus } : {});
+  const [SY, { openSpace }] = await Promise.all([synth(), import(APP + 'space/space.js'), viewerCss()]);
+  const made = await (SY.buildSky || SY.buildStreet)(rooms, u => u, w => w.thumb || w.image, focus >= 0 ? { focus } : {});      // (the preview is the museum as visitors get it: one building, eight houses)
   const works = rooms.flatMap(r => r.works);
   window.__spaceView = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => { window.__spaceView = null; } });
 }
@@ -76,6 +76,23 @@ export async function home(ctx) {
     return w ? abs(w.thumb || w.image) : r.app_slug && appOf(r.app_slug) ? appOf(r.app_slug).cover : ''; };
   const colourOf = r => r ? (r.colour || (r.app_slug && (appOf(r.app_slug) || {}).colour) || (r.exhibition_id && AUTO[r.exhibition_id]) || null) : null;
   const hasLive = rows => [...SL.values()].some(s => s.live);
+  const SYm = await ctx.synth().catch(() => null);
+  // the BASE of the museum, drawn from the description the building is generated from (studio/design/museum-sky/README.md): the hall, the Square's pool, the eight houses by their slot,
+  // the history sections. Stage 2 (not built): add a space / remove a space here, which writes the description to the table museum_plan; the app already builds any valid description.
+  const baseBlock = () => {
+    if (!SYm || !SYm.planOf) return '';
+    const P = SYm.planOf(null), W = P.hall.w, D = P.hall.d, pr = (c, o, a, b) => [c[0] - o[1] * a + o[0] * b, c[1] + o[0] * a + o[1] * b];
+    const shapes = P.spaces.map(sp => {
+      if (sp.type === 'house') { const a = sp.dir * Math.PI / 180, o = [Math.cos(a), Math.sin(a)], pts = [pr(sp.door, o, -4, 0), pr(sp.door, o, 4, 0), pr(sp.door, o, 4, 7.8), pr(sp.door, o, -4, 7.8)], m = pr(sp.door, o, 0, 4.4);
+        return `<polygon points="${pts.map(q => q.map(v => v.toFixed(1)).join(',')).join(' ')}" class="b-h"/><text x="${m[0].toFixed(1)}" y="${(m[1] + 1.3).toFixed(1)}" class="b-n">${sp.slot}</text>`; }
+      const o = sp.dir, pts = [pr(sp.door, o, -5, 0), pr(sp.door, o, 11, 0), pr(sp.door, o, 11, 41), pr(sp.door, o, -5, 41)], m = pr(sp.door, o, 3, 20);
+      return `<polygon points="${pts.map(q => q.map(v => v.toFixed(1)).join(',')).join(' ')}" class="b-s"/><text x="${m[0].toFixed(1)}" y="${m[1].toFixed(1)}" class="b-t">אגף היסטוריה</text>`; }).join('');
+    const pool = P.pool ? `<rect x="${P.pool[0]}" y="${P.pool[1]}" width="${P.pool[2] - P.pool[0]}" height="${P.pool[3] - P.pool[1]}" class="b-p"/>` : '';
+    return `<section class="mp-base"><div class="tray-h"><h2>בסיס המבנה</h2><span class="muted small">בניין אחד: ${W} × ${D} מ׳, גג אחד, זכוכית מסביב. נבנה מתיאור (רשימת מרחבים).</span></div>
+      <svg viewBox="-2 -2 ${W + 4} ${D + 4}" class="mp-svg" role="img" aria-label="תוכנית הבסיס: אולם אחד ובו שמונה בתים ואגף היסטוריה" dir="ltr"><rect x="0" y="0" width="${W}" height="${D}" class="b-hall"/>${pool}${shapes}</svg>
+      <div class="mp-acts"><button type="button" class="btn" disabled title="שלב 2: עוד לא נבנה">הוסף מרחב</button><button type="button" class="btn" disabled title="שלב 2: עוד לא נבנה">הסר מרחב</button>
+      <span class="muted small">שלב ראשון: ממלאים ומרוקנים את הבתים הקיימים. הוספה והסרה של מרחבים (אגפים, בתים, מדורי היסטוריה) יתווספו בשלב 2; האפליקציה כבר בונה כל תיאור תקין.</span></div></section>`;
+  };
 
   async function auto(r) {                                                     // the colour the street would suggest for an exhibition, from its works
     const e = r && r.exhibition_id && exOf(r.exhibition_id); if (!e || AUTO[e.id] || r.colour) return;
@@ -129,7 +146,7 @@ export async function home(ctx) {
 
   function inspector() {
     const r = SL.get(sel), st = stateOf(r), has = r && (r.exhibition_id || r.app_slug), c = colourOf(r), isApp = r && r.app_slug, dirty = dirtyOf(r);
-    return `<div class="ip-h"><div><span class="kind">חדר ${sel} · ${isNorth(sel) ? 'צד צפון' : 'צד דרום'}</span><h2 dir="auto">${esc(title(r) || 'חדר ריק')}</h2></div>${st.k !== 'empty' ? `<span class="chip ${st.k === 'live' ? 'ok' : st.k === 'draft' ? '' : 'warn'}">${esc(st.t)}</span>` : ''}</div>
+    return `<div class="ip-h"><div><span class="kind">חדר ${sel} · ${sel <= 4 ? 'צד צפון' : sel <= 6 ? 'צד מזרח' : 'צד דרום'}</span><h2 dir="auto">${esc(title(r) || 'חדר ריק')}</h2></div>${st.k !== 'empty' ? `<span class="chip ${st.k === 'live' ? 'ok' : st.k === 'draft' ? '' : 'warn'}">${esc(st.t)}</span>` : ''}</div>
     <label class="field">התערוכה בחדר<select id="ip-ex"><option value="">— ריק —</option>
       <optgroup label="התערוכות שלי">${EX.map(e => `<option value="ex:${e.id}" ${r && r.exhibition_id === e.id ? 'selected' : ''}>${esc(e.title)}</option>`).join('')}</optgroup>
       <optgroup label="מובנות באפליקציה">${apps.map(a => `<option value="app:${esc(a.slug)}" ${r && r.app_slug === a.slug ? 'selected' : ''}>${esc(a.title)}</option>`).join('')}</optgroup></select></label>
@@ -146,11 +163,11 @@ export async function home(ctx) {
   function draw(keepIns) {
     sessionStorage.setItem('mu-sel', sel);
     const live = [...SL.values()].filter(s => s.live).length;
-    page('museum', 'המוזיאון', `הרחוב קבוע, שמונה חדרים. כאן מחליטים איזו תערוכה תלויה בכל חדר, מתי, ובאיזה צבע · ${live} מוצגות`, `
-    ${live ? '' : `<div class="soon" style="margin-bottom:16px">כרגע הרחוב רץ אוטומטית על התערוכות המובנות. ברגע שחדר אחד מוצג כאן, הרחוב מציג רק את החדרים שהגדרת. <button type="button" class="btn" id="adopt" style="margin-inline-start:10px;min-height:38px">התחל מהרחוב הנוכחי</button></div>`}
+    page('museum', 'המוזיאון', `הבניין קבוע: שמונה בתים סביב הכיכר. כאן מחליטים איזו תערוכה תלויה בכל בית, מתי, ובאיזה צבע · ${live} מוצגות`, `
+    ${live ? '' : `<div class="soon" style="margin-bottom:16px">כרגע המוזיאון רץ אוטומטית על התערוכות המובנות. ברגע שחדר אחד מוצג כאן, המוזיאון מציג רק את החדרים שהגדרת. <button type="button" class="btn" id="adopt" style="margin-inline-start:10px;min-height:38px">התחל מהרחוב הנוכחי</button></div>`}
     <div class="mu"><div class="mu-main"><div class="mp" dir="ltr"><span class="mp-ent">כניסה ←</span><button type="button" class="ib mp-help" id="mu-help" title="קיצורי מקשים (?)" aria-label="קיצורי מקשים">?</button>
-      <div class="mp-row">${[1, 3, 5, 7].map(room).join('')}</div><div class="mp-st" aria-hidden="true"><span>הרחוב</span></div><div class="mp-row">${[2, 4, 6, 8].map(room).join('')}</div></div>
-      <section class="tray"><div class="tray-h"><h2>התערוכות שלי</h2><span class="muted small">גרור אל חדר · לחיצה פותחת לעריכה</span><span class="grow"></span><button class="btn" id="walk-all">צפה ברחוב כולו</button><a class="btn p" href="#/museum/ex/new">תערוכה חדשה <kbd>N</kbd></a></div>
+      <div class="mp-row">${[1, 3, 5, 7].map(room).join('')}</div><div class="mp-st" aria-hidden="true"><span>הכיכר</span></div><div class="mp-row">${[2, 4, 6, 8].map(room).join('')}</div></div>
+      ${baseBlock()}<section class="tray"><div class="tray-h"><h2>התערוכות שלי</h2><span class="muted small">גרור אל חדר · לחיצה פותחת לעריכה</span><span class="grow"></span><button class="btn" id="walk-all">צפה ברחוב כולו</button><a class="btn p" href="#/museum/ex/new">תערוכה חדשה <kbd>N</kbd></a></div>
         <div class="tray-g">${EX.map(exCard).join('')}${EX.length ? '' : '<p class="muted">עוד אין תערוכות. התחל בתערוכה חדשה.</p>'}</div>
         ${apps.length ? `<details class="tray-a"><summary>תערוכות מובנות באפליקציה (${apps.length})</summary><div class="tray-g">${apps.map(appCard).join('')}</div></details>` : ''}</section></div>
       <aside class="ip" id="ip" aria-label="פרטי החדר">${inspector()}</aside></div>`);
@@ -165,7 +182,7 @@ export async function home(ctx) {
       else if (a && a.works.length) room = { slug: a.slug, title: a.title, works: a.works, colour: colourOf(r) || await SY.suggestColour(a.works.slice(0, 4).map(w => w.thumb), u => u, SY.slugHue(a.slug)) };
       if (!room) continue; if (k === sel) focus = rooms.length; rooms.push(room); }
     if (!rooms.length) return toast(all ? 'אין עדיין תערוכות בחדרים' : 'בחדר הזה אין תערוכה לצפות בה');
-    toast(all ? 'בונה את הרחוב…' : 'בונה את החדר…'); try { await walkStreet(rooms, all ? -1 : focus, ctx.viewerCss, ctx.synth); } catch (e) { fail(e); }
+    toast(all ? 'בונה את המוזיאון…' : 'בונה את הבית…'); try { await walkStreet(rooms, all ? -1 : focus, ctx.viewerCss, ctx.synth); } catch (e) { fail(e); }
   }
   function wireIp() {
     const r = SL.get(sel), on = (id, ev, f) => { const e = $(id); if (e) e[ev] = f; };
