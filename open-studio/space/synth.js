@@ -1516,6 +1516,17 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   glassWall('glass-n', 0, 0, HX, 0, 0, 1); glassWall('glass-e', HX, 0, HX, HZ, -1, 0); glassWall('glass-w', 0, 0, 0, HZ, 1, 0); glassWall('glass-s', 0, HZ, HX, HZ, 0, -1, PLAN.entrance.at);
   if (PLAN.pool) { const [a0, b0, a1, b1] = PLAN.pool; solids.push([a0, b0, a1, b0], [a1, b0, a1, b1], [a1, b1, a0, b1], [a0, b1, a0, b0]); }                 // (the pool)
   const tints = ['#f4f1ec', '#cfcdc8', '#e8dccb', '#f1efe9', '#c9a690', '#e4e8e2', '#d8d3c8', '#f4f1ec'];     // the houses' walls: white, concrete, sand, ... (their own finish, not one tone)
+  // board-formed concrete for the piers: mottled, vertical board grain, pour joints every 2.4 m, tie holes on a 1.2 m grid, the foot a little dirty (baked once; the six piers share it)
+  const concreteTex = hex => { const cw = 128, ch = 1280, c = canvas(cw, ch), x = c.getContext('2d'); let sd = 11; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    x.fillStyle = hex; x.fillRect(0, 0, cw, ch);
+    for (let k = 0; k < 26; k++) { const cx = r() * cw, cy = r() * ch, rr = 18 + r() * 50, g = x.createRadialGradient(cx, cy, 0, cx, cy, rr), dk = r() < 0.5; g.addColorStop(0, dk ? 'rgba(70,66,60,0.10)' : 'rgba(255,255,255,0.10)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(cx - rr, cy - rr, rr * 2, rr * 2); }
+    for (let k = 0; k < 40; k++) { const bx = Math.round(k * cw / 40); x.fillStyle = `rgba(${r() < 0.5 ? '255,255,255' : '60,56,50'},${(0.025 + r() * 0.04).toFixed(3)})`; x.fillRect(bx, 0, 1 + Math.round(r() * 2), ch); }
+    for (let k = 0; k < 5200; k++) { x.fillStyle = `rgba(${r() < 0.5 ? '255,255,255' : '70,64,58'},${(r() * 0.2).toFixed(3)})`; x.fillRect(r() * cw, r() * ch, 1 + r() * 2, 1 + r() * 2); }
+    for (let k = 1; k < 6; k++) { const jy = Math.round(k * 2.4 * ch / 14); x.fillStyle = 'rgba(48,44,40,0.35)'; x.fillRect(0, jy, cw, 2); x.fillStyle = 'rgba(255,255,255,0.22)'; x.fillRect(0, jy + 2, cw, 1); }
+    for (let k = 0; k < 12; k++) for (const hx of [cw * 0.2, cw * 0.8]) { const hy = (0.6 + k * 1.2) * ch / 14; x.fillStyle = 'rgba(40,36,32,0.5)'; x.beginPath(); x.arc(hx, hy, 3, 0, 7); x.fill(); x.strokeStyle = 'rgba(255,255,255,0.28)'; x.lineWidth = 1; x.beginPath(); x.arc(hx, hy + 0.6, 3.6, 0.2, 2.9); x.stroke(); }
+    const g = x.createLinearGradient(0, ch * 0.88, 0, ch); g.addColorStop(0, 'rgba(70,60,48,0)'); g.addColorStop(1, 'rgba(70,60,48,0.28)'); x.fillStyle = g; x.fillRect(0, ch * 0.88, cw, ch * 0.12);
+    const t = x.createLinearGradient(0, 0, 0, ch * 0.08); t.addColorStop(0, 'rgba(70,64,58,0.2)'); t.addColorStop(1, 'rgba(70,64,58,0)'); x.fillStyle = t; x.fillRect(0, 0, cw, ch * 0.08);
+    return jpg(c, 0.9); };
   const wallTex = (hex, dark) => { const c = canvas(64, 256), x = c.getContext('2d'); x.fillStyle = hex; x.fillRect(0, 0, 64, 256);
     const t = x.createLinearGradient(0, 0, 0, 40); t.addColorStop(0, 'rgba(120,108,92,0.16)'); t.addColorStop(1, 'rgba(120,108,92,0)'); x.fillStyle = t; x.fillRect(0, 0, 64, 40);
     const b = x.createLinearGradient(0, 190, 0, 256); b.addColorStop(0, 'rgba(70,58,44,0)'); b.addColorStop(1, 'rgba(70,58,44,0.2)'); x.fillStyle = b; x.fillRect(0, 190, 64, 66);
@@ -1529,7 +1540,8 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   const sky = (() => { const c = canvas(256, 192), x = c.getContext('2d'); x.fillStyle = '#e9e7e1'; x.fillRect(0, 0, 256, 192); x.fillStyle = '#ffffff'; x.fillRect(40, 34, 176, 124);
     const g = x.createRadialGradient(128, 96, 0, 128, 96, 120); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(220,226,230,0.5)'); x.fillStyle = g; x.fillRect(40, 34, 176, 124); return jpg(c); })();
 
-  for (const [x, z] of PLAN.piers) { const t = wallTex(tintHex('#bfbcb5', { tint: env.tint.map(v => Math.pow(v, 0.5)) }), true); for (const [nx, nz] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) wall(`pier${x}-${z}-${nx}${nz}`, x + nx * 0.7, z + nz * 0.7, nx, nz, 1.4, { h: HH, tex: t }); }       // (eight piers carry the roof)
+  const pierTex = concreteTex(tintHex('#bfbcb5', { tint: env.tint.map(v => Math.pow(v, 0.5)) }));
+  for (const [x, z] of PLAN.piers) { const t = pierTex; for (const [nx, nz] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) wall(`pier${x}-${z}-${nx}${nz}`, x + nx * 0.7, z + nz * 0.7, nx, nz, 1.4, { h: HH, tex: t }); }       // (eight piers carry the roof)
   const directory = [];
   const hotspots = [];
   // --- the houses: each as the street builds its room (a porch in the show's colour, three walls to hang on), turned to its own place
