@@ -414,6 +414,27 @@
    "column_default": "now()"
   },
   {
+   "table_name": "museum_plan",
+   "column_name": "key",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'main'::text"
+  },
+  {
+   "table_name": "museum_plan",
+   "column_name": "plan",
+   "data_type": "jsonb",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "museum_plan",
+   "column_name": "updated_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
    "table_name": "museum_slots",
    "column_name": "slot",
    "data_type": "integer",
@@ -870,6 +891,11 @@
    "def": "CHECK ((length(title) <= 200))"
   },
   {
+   "table": "museum_plan",
+   "conname": "museum_plan_key_check",
+   "def": "CHECK ((key ~ '^[a-z0-9_-]{1,40}$'::text))"
+  },
+  {
    "table": "museum_slots",
    "conname": "museum_slots_colour_check",
    "def": "CHECK (((colour IS NULL) OR (colour ~ '^#[0-9a-fA-F]{6}$'::text)))"
@@ -877,7 +903,7 @@
   {
    "table": "museum_slots",
    "conname": "museum_slots_slot_check",
-   "def": "CHECK (((slot >= 1) AND (slot <= 8)))"
+   "def": "CHECK (((slot >= 1) AND (slot <= 64)))"
   },
   {
    "table": "profiles",
@@ -1148,6 +1174,22 @@
    "roles": "{authenticated}",
    "qual": "( SELECT is_admin() AS is_admin)",
    "with_check": "( SELECT is_admin() AS is_admin)"
+  },
+  {
+   "tablename": "museum_plan",
+   "policyname": "museum_plan_admin_all",
+   "cmd": "ALL",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": "( SELECT is_admin() AS is_admin)"
+  },
+  {
+   "tablename": "museum_plan",
+   "policyname": "museum_plan_public",
+   "cmd": "SELECT",
+   "roles": "{anon,authenticated}",
+   "qual": "true",
+   "with_check": null
   },
   {
    "tablename": "museum_slots",
