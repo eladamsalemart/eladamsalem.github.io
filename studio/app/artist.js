@@ -244,10 +244,19 @@ function ovBar(v, title) {
   if (S.cloud && !pub && v.status !== 'pending') return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">${v.status === 'changes' ? 'Send again' : 'Send for review'}</button>`;
   return `${hang('g', 'Rehang')}${walk('f', 'Walk as a visitor')}`;
 }
+// where the exhibition stands, in one card: live in the app or not, and whether what you see here is saved to the cloud
+const ovStatus = v => {
+  const st = v.status, k = st === 'published' ? ['ok', 'Live in the app', 'Visitors see this exhibition in Shows and on your page. A change you make here reaches them as soon as it is saved.']
+    : st === 'pending' ? ['wait', 'Waiting for Open Studio', 'Not live yet: Open Studio looks at every exhibition before it goes out. You can go on editing.']
+    : st === 'changes' ? ['no', 'Changes asked', esc(v.note || 'Open Studio asked for a change. See your page.')]
+    : ['', 'Draft: not in the app', 'Only you can see it. Send it for review when it is ready.'];
+  return `<div class="ov-status ${k[0]}" id="ovStatus"><b>${k[1]}</b><span>${k[2]}</span><em id="ovCloud" role="status">${v.id ? 'Saved to the cloud' : 'Not saved yet'}</em></div>`;
+};
 function onViewPage(v0) {
   const v = v0 || { id: '', title: '', room: '', works: [], text: '', centre: 150 }, pub = v.status === 'published';
   return `<div class="wrap gut st ov">${head('A virtual exhibition', '#/studio/exhibitions')}${nav('onview')}
     <p class="ov-lede">The exhibition you are showing now. It opens your page${S.cloud ? ', and goes out in Open Studio’s feed' : ''}.</p>
+    ${S.cloud ? ovStatus(v) : ''}
     ${ovSteps(v)}
     ${!v0 && ovGone ? '<p class="ov-undo" role="status">The exhibition was deleted.<button type="button" class="ov-link" id="vxUndo">Undo</button></p>' : ''}
     <form class="st-form st-vx" id="vxForm" data-id="${esc(v.id)}" data-onview="1" novalidate>
@@ -679,6 +688,12 @@ function wireOnView(app, go, vx) {
   const $ = s => app.querySelector(s), blank = { works: [], status: '' };
   let v = vx.dataset.id ? S.virtual.find(x => x.id === vx.dataset.id) : null, timer = 0, sayT = 0, coverN = 0, working = false;
   const say = t => { const el = $('#ovSaved'); if (!el) return; el.textContent = t; el.classList.add('on'); clearTimeout(sayT); sayT = setTimeout(() => el.classList.remove('on'), 1800); };
+  // the real state of the cloud copy (the quick 'Saved' above is only the local one)
+  const cloud = (cls, t, retry) => { const el = $('#ovCloud'); if (!el) return; el.className = cls; el.textContent = t; if (retry) { const b = document.createElement('button'); b.type = 'button'; b.className = 'ov-link'; b.textContent = 'Try again'; b.onclick = () => { cloud('', 'Saving…'); save(); }; el.append(' ', b); } };
+  const hhmm = t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  window.removeEventListener('studio-saving', window.__ovSaving); window.removeEventListener('studio-saved', window.__ovSaved); window.removeEventListener('studio-save-failed', window.__ovFail);
+  window.__ovSaving = () => cloud('', 'Saving…'); window.__ovSaved = e => cloud('ok', `Saved to the cloud · ${hhmm(e.detail || Date.now())}`); window.__ovFail = e => cloud('bad', `Not saved: ${(e.detail || 'no connection')}.`, true);
+  window.addEventListener('studio-saving', window.__ovSaving); window.addEventListener('studio-saved', window.__ovSaved); window.addEventListener('studio-save-failed', window.__ovFail);
   const keep = quiet => {
     const f = new FormData(vx), data = { title: f.get('title').trim(), room: f.get('room'), paint: '', centre: +f.get('centre') || 150, text: f.get('text'), onview: true };
     (S.virtual || []).forEach(x => { if (x !== v) x.onview = false; });

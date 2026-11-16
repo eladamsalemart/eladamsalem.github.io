@@ -1437,7 +1437,7 @@ document.addEventListener('click', async ev => {
 });
 
 const returning = /[?&](code|token_hash|error_description)=/.test(location.search) ? import('./auth.js').then(m => m.finishReturn()).catch(() => {}) : Promise.resolve();
-Promise.all([loadData(), returning]).then(([d]) => { M = buildModel(d); render(); window.addEventListener('hashchange', render); freshCommunity(d); })
+Promise.all([loadData(), returning]).then(([d]) => { M = buildModel(d); render(); window.addEventListener('hashchange', render); freshCommunity(d); window.addEventListener('studio-saved', () => freshCommunity(d)); })
   .then(() => {
     if (!signedIn() || /[?&](inspect|guest)(=|&|$)/.test(location.search)) return;
     import('./auth.js').then(m => m.refresh()).then(next => {
