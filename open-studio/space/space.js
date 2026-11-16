@@ -25,7 +25,9 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       <div class="sv-t"><b>${spec.title}</b><span>${spec.source}</span></div>
       <button type="button" class="sv-person" aria-pressed="false" title="A person, for scale" aria-label="Show a person for scale"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><circle cx="12" cy="4.2" r="2.4"/><path d="M8.6 8.2h6.8l1.3 6.6-1.9.4-.9-4.2V22h-2.2v-7.6h-.4V22H9.1V11l-.9 4.2-1.9-.4z"/></svg></button>
       <button type="button" class="sv-gyro" hidden aria-pressed="false" title="Look around by moving the phone">◎</button>
+      <button type="button" class="sv-wide" aria-pressed="false" title="Step back: see more of the room" aria-label="Wide view, like the 0.5 lens">0.5×</button>
       <button type="button" class="sv-vr" hidden>VR</button></div>
+    <div class="sv-turn" hidden role="status"><svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true"><g class="ph"><rect x="22" y="8" width="20" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="32" cy="50" r="1.6" fill="currentColor"/></g><path d="M50 20a22 22 0 0 1 4 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M55.5 28.5 54 34l-5-2.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><b>Turn your phone sideways</b><span>The room fills the whole screen</span></div>
     <div class="sv-modes seg" role="group" aria-label="Move by"><button type="button" data-mode="walk" aria-pressed="true">Walk</button><button type="button" data-mode="works" aria-pressed="false">Works</button><button type="button" data-mode="photos" aria-pressed="false">Photos</button></div>
     <svg class="sv-map" role="img" aria-label="Floor plan: the room, its works and where you stand. Tap a work to go to it."></svg>
     <figure class="sv-photo" hidden><img alt=""><figcaption>Original photo</figcaption></figure>
@@ -838,7 +840,14 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   clampStand(pos);
   const look = spec.start ? new THREE.Vector3(spec.start.look[0], EYE - 0.1, spec.start.look[1]) : longX ? new THREE.Vector3(cx - end * len, EYE - 0.1, cz) : new THREE.Vector3(cx, EYE - 0.1, cz - end * len);
   const tPos = pos.clone(), tLook = look.clone(), up = new THREE.Vector3(0, 1, 0), tUp = up.clone();
-  let tFov = 62, free = true;
+  let tFov = 62, free = true, wide = false;
+  const baseFov = () => camera.aspect > 1.3 ? 54 : wide ? 96 : 62;       // (sideways the screen itself is wide: a calmer lens)
+  $('.sv-wide').onclick = () => { wide = !wide; $('.sv-wide').setAttribute('aria-pressed', String(wide)); $('.sv-wide').textContent = wide ? '1×' : '0.5×'; if (mode === 'walk') tFov = baseFov(); dirty = true; };
+  // "Turn your phone sideways": the first thing on a phone held upright, for a few seconds or until a touch; gone once it is turned
+  { const turn = $('.sv-turn'), port = matchMedia('(orientation: portrait) and (pointer: coarse)');
+    const off = () => { turn.hidden = true; };
+    root.__turn = () => { if (port.matches && !editor) { turn.hidden = false; setTimeout(off, 4500); turn.addEventListener('pointerdown', off); root.addEventListener('pointerdown', off, { once: true }); } };       // (shown once the room is built)
+    port.addEventListener && port.addEventListener('change', off); }
   const fmtSize = p => `${Math.round(p.h.size[1])} × ${Math.round(p.h.size[0])} cm`;   // as recorded
   const workInfo = p => `<b>${p.w.title}</b><span>${[p.w.artist && p.w.artist.name, p.w.year].filter(Boolean).join(', ')}${p.w.medium ? ' · ' + p.w.medium : ''}</span><span class="sv-s">${fmtSize(p)}</span>${p.w.slug ? '<button type="button" class="sv-open">Open work</button>' : ''}`;
   function aimFrom(from, to) { const d = new THREE.Vector3().subVectors(to, from); yaw = Math.atan2(-d.x, -d.z); pitch = Math.atan2(d.y, Math.hypot(d.x, d.z)); }
@@ -850,7 +859,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   }
   let focused = null;
   function show() {
-    if (mode === 'walk') { goFree(); tFov = 62; $('.sv-photo').hidden = true; tPos.y = EYE; focused = undefined; return; }
+    if (mode === 'walk') { goFree(); tFov = baseFov(); $('.sv-photo').hidden = true; tPos.y = EYE; focused = undefined; return; }
     const list = mode === 'works' ? pieces : views;
     if (!list.length) return;
     idx = (idx + list.length) % list.length; free = false; walkTo = null; $('.sv-card').hidden = false;
@@ -1019,7 +1028,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   canvas.addEventListener('pointermove', e => {
     if (editor && editor.pointer('move', e)) return;
     if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pinch && touches.size === 2) { tFov = Math.max(22, Math.min(75, pinch.fov * pinch.d / Math.max(20, spread()))); dropHint(); return; }
+    if (pinch && touches.size === 2) { tFov = Math.max(22, Math.min(100, pinch.fov * pinch.d / Math.max(20, spread()))); dropHint(); return; }
     if (!drag) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y; moved += Math.abs(dx) + Math.abs(dy); drag = { x: e.clientX, y: e.clientY };
     if (moved > 6) {
@@ -1110,6 +1119,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     camera.aspect = r.width / r.height; camera.updateProjectionMatrix();
   }
   const ro = new ResizeObserver(resize); ro.observe(root); resize();
+  { let was = camera.aspect > 1.3; new ResizeObserver(() => { const now = camera.aspect > 1.3; if (now !== was) { was = now; if (mode === 'walk') tFov = baseFov(); } }).observe(root); }      // (turned: the lens for that way up)
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fwd = new THREE.Vector3(), sideV = new THREE.Vector3();
@@ -1200,7 +1210,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   $('.sv-x').onclick = close;
   if (choose) $('.sv-choose button').onclick = () => { close(); choose.onChoose(); };
   if (!(spec.works || []).length) { $('[data-mode="works"]').hidden = true; }
-  $('.sv-loading').hidden = true;
+  $('.sv-loading').hidden = true; if (root.__turn) root.__turn();
   setMode('walk'); show();
   if (exitLabel) $('.sv-x').textContent = exitLabel;
   if (editor) {

@@ -51,6 +51,14 @@ body.previewing .ed-bar{top:34px}
 .ed .covers a{cursor:pointer}
 .ed-fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:40;min-height:52px;padding:0 22px 0 18px;border:0;border-radius:99px;background:var(--ink);color:var(--wall);font:600 16px var(--sans);display:flex;align-items:center;gap:8px;box-shadow:0 6px 24px rgba(0,0,0,.28);cursor:pointer}
 .ed-fab b{font-size:22px;line-height:1;font-weight:400}
+.ed-order{margin-top:18px;border:1px solid var(--line);border-radius:14px;padding:12px 12px 6px;background:var(--paper)}
+.ed-order-h{display:grid;gap:2px;margin:0 0 6px}.ed-order-h b{font:600 15px var(--sans)}.ed-order-h span{font-size:13px;color:var(--muted)}
+.ed-order ol{list-style:none;margin:0;padding:0}
+.ed-order li{display:grid;grid-template-columns:24px minmax(0,1fr) 44px 44px;align-items:center;gap:6px;min-height:52px;border-top:1px solid var(--line)}
+.ed-order .n{font:600 13px var(--mono);color:var(--muted);text-align:center}
+.ed-order .t{display:grid;min-width:0}.ed-order .t b{font:600 15px var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ed-order .t small{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ed-order button{width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:none;font:inherit;font-size:17px;color:inherit;cursor:pointer}
+.ed-order button:disabled{opacity:.3;cursor:default}
 .ed-src{display:grid;gap:0;margin:0 0 6px}.ed-src>*{display:grid;gap:2px;min-height:64px;align-content:center;padding:10px 28px 10px 2px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;font:inherit;color:var(--ink);text-decoration:none;cursor:pointer;position:relative}.ed-src>*:last-child{border-bottom:0}.ed-src b{font:600 17px var(--sans)}.ed-src span{font-size:14px;color:var(--muted);line-height:1.35}.ed-src>*::after{content:'→';position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--muted)}
 .wk-short .wk-grip{display:none}.ed-subp{padding-top:10px;padding-bottom:110px}
 .ed-subback{display:inline-flex;align-items:center;min-height:44px;padding:0 2px;border:0;background:none;font:600 15px var(--sans);color:inherit;cursor:pointer}
@@ -209,6 +217,10 @@ export function mount(c) {
     if (!covers) { (sec || wrap).insertAdjacentHTML(sec ? 'afterend' : 'beforeend', '<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">0</span></div><div class="covers"></div></section>'); covers = wrap.querySelector('.covers'); }
     covers.closest('.sec').insertAdjacentHTML('beforeend', '<button type="button" class="ed-sec-add" data-ed="ex-new" style="margin-top:14px">+ Add an exhibition</button>');
     covers.querySelectorAll('a').forEach(x => { x.dataset.slug = x.getAttribute('href').slice(13); });
+    // the order of the arches is the artist's: a list under the row, each exhibition moved up or down (first = the first arch)
+    if ((S.exhibitions || []).length > 1) {
+      covers.closest('.sec').insertAdjacentHTML('beforeend', `<div class="ed-order" id="edOrder"><p class="ed-order-h"><b>Order of exhibitions</b><span>The first is the first arch on your page.</span></p><ol>${S.exhibitions.map((e, i) => `<li data-id="${esc(e.id)}"><span class="n">${i + 1}</span><span class="t"><b dir="auto">${esc(e.title || 'Untitled')}</b><small>${esc([e.venue, e.year].filter(Boolean).join(' · '))}</small></span><button type="button" data-mv="-1" aria-label="Move ${esc(e.title || 'this exhibition')} earlier"${i ? '' : ' disabled'}>↑</button><button type="button" data-mv="1" aria-label="Move ${esc(e.title || 'this exhibition')} later"${i < S.exhibitions.length - 1 ? '' : ' disabled'}>↓</button></li>`).join('')}</ol></div>`);
+    }
     wrap.insertAdjacentHTML('beforeend', `${roomsCard()}<div class="ed-foot"><button type="button" class="more" id="edSo">Sign out</button></div>`);
     wrap.querySelector('#edSo').onclick = () => c.signOut();
     app.querySelector('#edAdd').onclick = addSheet;
@@ -273,6 +285,16 @@ export function mount(c) {
   function onTap(e) {
     const t = e.target;
     if (t.closest('[contenteditable]')) return;
+    const mv = t.closest('#edOrder [data-mv]');
+    if (mv) {
+      e.preventDefault(); const id = mv.closest('li').dataset.id, i = S.exhibitions.findIndex(x => x.id === id), j = i + +mv.dataset.mv;
+      if (i < 0 || j < 0 || j >= S.exhibitions.length) return;
+      const was = S.exhibitions.slice(); [S.exhibitions[i], S.exhibitions[j]] = [S.exhibitions[j], S.exhibitions[i]];
+      const y = scrollY; commit(); draw(); scrollTo({ top: y, behavior: 'instant' });
+      const li = [...app.querySelectorAll('#edOrder li')].find(x => x.dataset.id === id), again = li && (li.querySelector(`[data-mv="${mv.dataset.mv}"]:not(:disabled)`) || li.querySelector('[data-mv]:not(:disabled)')); if (again) again.focus({ preventScroll: true });
+      toast('Order changed', () => { S.exhibitions = was; commit(); draw(); });
+      return;
+    }
     const ed = t.closest('[data-ed]'), row = t.closest('a.row[data-slug]'), cv = t.closest('.covers a[data-slug], .walkbox .wc[data-slug]');
     if (t.closest('.row > span:last-child')) { e.preventDefault(); return; }
     if (ed) { e.preventDefault(); ({ cover: coverSheet, profile: profileSheet, 'work-new': () => pickPhotos(), 'ex-new': () => go('#/studio/exhibition/new'), cv: cvSheet, 'sub-works': () => openSub('works'), 'sub-about': () => openSub('about'), 'sub-back': () => openSub('') })[ed.dataset.ed](); return; }
