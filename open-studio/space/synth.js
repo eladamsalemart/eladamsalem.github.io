@@ -1468,9 +1468,23 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     rect('hall-roof', 'ceiling', [0, 0], [HX, HZ], HH, false, jpg(c, 0.9));
   }
   const glassWall = (name, x0, z0, x1, z1, nx, nz, door) => {
-    const L = Math.hypot(x1 - x0, z1 - z0), ux = (x1 - x0) / L, uz = (z1 - z0) / L, c = canvas(Math.round(L * 10), 144), y = c.getContext('2d');
-    y.fillStyle = 'rgba(232,242,246,0.07)'; y.fillRect(0, 0, c.width, c.height); y.fillStyle = 'rgba(40,44,48,0.85)';
-    for (let k = 0; k <= L; k += 1.9) y.fillRect(Math.min(c.width - 2, k * 10), 0, 2, 144); for (const hh of [0.3, 0.62]) y.fillRect(0, hh * 144 - 1, c.width, 2); y.fillRect(0, 0, c.width, 4); y.fillRect(0, 140, c.width, 4);
+    const L = Math.hypot(x1 - x0, z1 - z0), ux = (x1 - x0) / L, uz = (z1 - z0) / L, S = 20, cw = Math.round(L * S), ch = Math.round(HH * S), c = canvas(cw, ch), y = c.getContext('2d');
+    // glass that reads as glass (baked, costs nothing while walking): a wash, the sky's and the floor's sheen at the top and the foot, soft diagonal reflections of the room, a green cast at each pane's edge,
+    // mullions with a lit edge and a soft shadow, transoms, a little dirt at the foot
+    let seed = 7; for (const ch2 of name) seed = (seed * 31 + ch2.charCodeAt(0)) % 9973; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    y.fillStyle = 'rgba(228,240,244,0.06)'; y.fillRect(0, 0, cw, ch);
+    let g = y.createLinearGradient(0, 0, 0, ch * 0.4); g.addColorStop(0, 'rgba(238,246,252,0.2)'); g.addColorStop(1, 'rgba(238,246,252,0)'); y.fillStyle = g; y.fillRect(0, 0, cw, ch * 0.4);
+    g = y.createLinearGradient(0, ch * 0.78, 0, ch); g.addColorStop(0, 'rgba(214,208,192,0)'); g.addColorStop(1, 'rgba(214,208,192,0.16)'); y.fillStyle = g; y.fillRect(0, ch * 0.78, cw, ch * 0.22);
+    for (let b = 0; b < Math.max(2, Math.round(L / 22)); b++) { const bx = rnd() * cw, bw = (1.4 + rnd() * 2.6) * S, lean = ch * 0.22; g = y.createLinearGradient(bx, 0, bx + bw, 0);
+      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, `rgba(255,255,255,${0.06 + rnd() * 0.05})`); g.addColorStop(1, 'rgba(255,255,255,0)'); y.fillStyle = g;
+      y.beginPath(); y.moveTo(bx, 0); y.lineTo(bx + bw, 0); y.lineTo(bx + bw - lean, ch); y.lineTo(bx - lean, ch); y.closePath(); y.fill(); }
+    const PANE = 1.9, mull = [], trans = [0.3 * HH, 0.62 * HH]; for (let k = 0; k <= L; k += PANE) mull.push(Math.min(cw - 3, k * S));
+    for (const m of mull) { for (const sgn of [1, -1]) { g = y.createLinearGradient(m, 0, m + sgn * 0.14 * S, 0); g.addColorStop(0, 'rgba(110,165,150,0.2)'); g.addColorStop(1, 'rgba(110,165,150,0)'); y.fillStyle = g; y.fillRect(sgn > 0 ? m : m - 0.14 * S, 0, 0.14 * S, ch); } }
+    for (const m of mull) { g = y.createLinearGradient(m + 3, 0, m + 3 + 0.22 * S, 0); g.addColorStop(0, 'rgba(20,24,28,0.22)'); g.addColorStop(1, 'rgba(20,24,28,0)'); y.fillStyle = g; y.fillRect(m + 3, 0, 0.22 * S, ch);
+      y.fillStyle = 'rgba(40,44,48,0.9)'; y.fillRect(m, 0, 3, ch); y.fillStyle = 'rgba(255,255,255,0.32)'; y.fillRect(m - 1, 0, 1, ch); }
+    for (const hh of trans) { const ty = hh * S; g = y.createLinearGradient(0, ty + 3, 0, ty + 3 + 0.2 * S); g.addColorStop(0, 'rgba(20,24,28,0.22)'); g.addColorStop(1, 'rgba(20,24,28,0)'); y.fillStyle = g; y.fillRect(0, ty + 3, cw, 0.2 * S); y.fillStyle = 'rgba(40,44,48,0.9)'; y.fillRect(0, ty, cw, 3); y.fillStyle = 'rgba(255,255,255,0.3)'; y.fillRect(0, ty - 1, cw, 1); }
+    y.fillStyle = 'rgba(40,44,48,0.9)'; y.fillRect(0, 0, cw, 5); y.fillRect(0, ch - 5, cw, 5);
+    for (let d = 0; d < L * 38; d++) { const dy = ch - Math.pow(rnd(), 2.2) * 1.8 * S; y.fillStyle = `rgba(96,86,70,${(0.03 + rnd() * 0.05).toFixed(3)})`; y.fillRect(rnd() * cw, dy, 1 + rnd() * 3, 1 + rnd() * 2); }
     surfaces.push({ name, kind: 'wall', glass: true, texture: c.toDataURL('image/png'), origin: [x0, HH, z0], u: [ux, 0, uz], v: [0, -1, 0], size: [L, HH], normal: [nx, 0, nz], openings: door ? [{ from: door[0], to: door[1], height: 3.8, arch: false, depth: 0.1, through: true, bare: true }] : [] });
     let a = 0; for (const [f, t] of [...(door ? [door] : []), [L, L]].sort((p, q) => p[0] - q[0])) { if (f > a + 0.01) solids.push([x0 + ux * a, z0 + uz * a, x0 + ux * f, z0 + uz * f]); a = Math.max(a, t); }
   };
