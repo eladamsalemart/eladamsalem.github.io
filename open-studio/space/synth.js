@@ -1,3 +1,4 @@
+import { envFor, tintHex } from './outdoors.js';
 // Virtual rooms: spaces that exist only in Open Studio, for exhibitions an artist (or a curator) designs here.
 //
 // A design is small: a room, a wall colour, the works in walking order and the height they hang at.
@@ -1101,7 +1102,7 @@ export function clusterLayout() {
   });
 }
 export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}) {
-  const { RD, RW, VD, MOUTH, DOOR_H, RIM } = SH, [CX, CZ] = CL.C, TOT = 120;
+  const { RD, RW, VD, MOUTH, DOOR_H, RIM } = SH, [CX, CZ] = CL.C, TOT = 170, env = envFor(opts.hour);
   rooms = rooms.slice(0, 8);
   const surfaces = [], solids = [], works = [], plinthsOut = [], flat = new Map();
   const plain = c => { if (!flat.has(c)) { const cv = canvas(4, 4), x = cv.getContext('2d'); x.fillStyle = c; x.fillRect(0, 0, 4, 4); flat.set(c, cv.toDataURL('image/png')); } return flat.get(c); };
@@ -1109,8 +1110,10 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
   const wall = (name, cx, cz, nx, nz, len, o = {}) => {
     const ux = nz, uz = -nx, x = cx - ux * len / 2, z = cz - uz * len / 2, holes = o.holes || [], h = o.h || 3.8;
     surfaces.push({ name, kind: 'wall', texture: o.tex, origin: [x, h, z], u: [ux, 0, uz], v: [0, -1, 0], size: [len, h], normal: [nx, 0, nz],
-      openings: holes.map(([a, b]) => ({ from: a, to: b, height: DOOR_H, arch: false, depth: 0.1, through: true, bare: true })) });
-    let a = 0; for (const [f, t] of [...holes, [len, len]].sort((p, q) => p[0] - q[0])) { if (f > a + 0.01) solids.push([x + ux * a, z + uz * a, x + ux * f, z + uz * f]); a = Math.max(a, t); }
+      openings: holes.map(([a, b, sill, top]) => ({ from: a, to: b, height: top || DOOR_H, sill: sill || 0, arch: false, depth: 0.1, through: true, bare: true })) });
+    if (o.noSolid) return { n: [nx, nz], len, at: s => [x + ux * s, z + uz * s] };
+    let a = 0; for (const [f, t] of [...holes.filter(q => !q[2]), [len, len]].sort((p, q) => p[0] - q[0])) { if (f > a + 0.01) solids.push([x + ux * a, z + uz * a, x + ux * f, z + uz * f]); a = Math.max(a, t); }
+    for (const q of holes.filter(q => q[2])) solids.push([x + ux * q[0], z + uz * q[0], x + ux * q[1], z + uz * q[1]]);       // (a window is not a way through)
     return { n: [nx, nz], len, at: s => [x + ux * s, z + uz * s] };
   };
   // a flat rectangle on the ground or ceiling, on a house's own axes: from P(a0, b0), a along r, b along o
@@ -1137,13 +1140,16 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
   {
     const g = canvas(256, 256), x = g.getContext('2d'); x.fillStyle = '#9fb27f'; x.fillRect(0, 0, 256, 256);
     for (let i = 0; i < 5200; i++) { const t = Math.random(); x.fillStyle = t < 0.5 ? 'rgba(255,255,230,0.12)' : t < 0.85 ? 'rgba(60,90,40,0.14)' : 'rgba(140,120,70,0.14)'; x.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 3, 1 + Math.random() * 2); }
-    surfaces.push({ name: 'floor', kind: 'floor', texture: jpg(g, 0.9), tileXY: [4, 4], origin: [0, 0, 0], u: [1, 0, 0], v: [0, 0, 1], size: [TOT, TOT], normal: [0, 1, 0], openings: [] });
+    const lite = (x, w, h) => { x.save(); x.globalCompositeOperation = 'multiply'; x.fillStyle = `rgb(${env.tint.map(v => Math.round(255 * v))})`; x.fillRect(0, 0, w, h); x.restore(); };
+    lite(x, 256, 256);
+    surfaces.push({ name: 'floor', kind: 'floor', texture: jpg(g, 0.9), tileXY: [4, 4], origin: [CX - TOT / 2, 0, CZ - TOT / 2], u: [1, 0, 0], v: [0, 0, 1], size: [TOT, TOT], normal: [0, 1, 0], openings: [] });
     const PZ = CL.PLAZA, FP = 36, fw = Math.round(2 * PZ * FP), c = canvas(fw, fw), y = c.getContext('2d');
     y.fillStyle = '#d9d5cc'; y.fillRect(0, 0, fw, fw);
     const day = y.createRadialGradient(fw / 2, fw / 2, 0, fw / 2, fw / 2, fw * 0.62); day.addColorStop(0, 'rgba(255,255,255,0.32)'); day.addColorStop(1, 'rgba(90,76,60,0.14)'); y.fillStyle = day; y.fillRect(0, 0, fw, fw);
     for (let i = 0; i < 16000; i++) { const t = Math.random(); y.fillStyle = t < 0.4 ? 'rgba(255,255,255,0.35)' : t < 0.8 ? 'rgba(80,70,60,0.18)' : 'rgba(190,160,130,0.25)'; y.fillRect(Math.random() * fw, Math.random() * fw, 1 + Math.random() * 2, 1 + Math.random() * 2); }
     y.strokeStyle = 'rgba(80,70,60,0.22)'; y.lineWidth = 2; for (let k = 0; k <= 8; k++) { const p = k * fw / 8; y.beginPath(); y.moveTo(p, 0); y.lineTo(p, fw); y.moveTo(0, p); y.lineTo(fw, p); y.stroke(); }
     y.strokeStyle = 'rgba(70,60,50,0.4)'; y.lineWidth = 8; y.strokeRect(4, 4, fw - 8, fw - 8);
+    lite(y, fw, fw);
     rect('plaza', 'wall', [CX - PZ, CZ - PZ], [CX + PZ, CZ + PZ], 0.003, true, jpg(c, 0.9));
   }
   const tints = ['#f4f1ec', '#cfcdc8', '#e8dccb', '#f1efe9', '#c9a690', '#e4e8e2', '#d8d3c8', '#f4f1ec'];     // the houses' walls: white, concrete, sand, ... (their own finish, not one tone)
@@ -1166,21 +1172,24 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
     const d = places[i], { o, c } = d, R = d.r, P = (a, b) => [c[0] + R[0] * a + o[0] * b, c[1] + R[1] * a + o[1] * b];
     const col = r.colour, M2 = MOUTH / 2, A0 = -RW / 2, A1 = RW / 2, rh = CL.RH[i], dark = i === 1 || i === 4, fl = i % 3, ft = tints[d.j];
     const roomWall = wallTex(dark ? '#8d8b85' : ft, dark), ceil = i % 2 === 0 ? sky : plain('#f7f4ee');
-    wall(`th${i}l`, ...P(-M2, VD / 2), R[0], R[1], VD, { h: DOOR_H, tex: plain(shade(col, 0.8)) });
-    wall(`th${i}r`, ...P(M2, VD / 2), -R[0], -R[1], VD, { h: DOOR_H, tex: plain(shade(col, 0.92)) });
+    wall(`th${i}l`, ...P(-M2, VD / 2), R[0], R[1], VD, { h: DOOR_H, tex: plain(tintHex(shade(col, 0.8), env)) });
+    wall(`th${i}r`, ...P(M2, VD / 2), -R[0], -R[1], VD, { h: DOOR_H, tex: plain(tintHex(shade(col, 0.92), env)) });
     orect(`th${i}-ceil`, 'ceiling', P, R, o, -M2, M2, 0, VD, DOOR_H, false, plain(shade(col, 0.96)));
     orect(`th${i}-floor`, 'wall', P, R, o, -M2, M2, 0, VD, 0.006, true, plain(shade(col, 0.88)));
-    const rimTex = plain(shade(col, 0.7));
+    const rimTex = plain(tintHex(shade(col, 0.7), env));
     const rim = (nm, a0, a1, y0, y1) => { const q = P(a0, -0.012); surfaces.push({ name: `rim${i}${nm}`, kind: 'wall', texture: rimTex, origin: [q[0], y1, q[1]], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [a1 - a0, y1 - y0], normal: [-o[0], 0, -o[1]], openings: [] }); };
     rim('l', -M2 - RIM, -M2, 0, DOOR_H + RIM); rim('r', M2, M2 + RIM, 0, DOOR_H + RIM); rim('t', -M2 - RIM, M2 + RIM, DOOR_H, DOOR_H + RIM);
     orect(`r${i}-floor`, 'wall', P, R, o, A0, A1, VD, VD + RD, 0.004, true, floorTex(fl));
     orect(`r${i}-ceil`, 'ceiling', P, R, o, A0, A1, VD, VD + RD, rh, false, ceil);
-    wall(`r${i}-front`, ...P(0, VD), o[0], o[1], RW, { holes: [[A1 - M2, A1 + M2]], h: rh, tex: roomWall });
+    const WIN = [[0.55, 2.05, 0.9, 3.0], [5.95, 7.45, 0.9, 3.0]];                       // (two windows, either side of the way in: the visitor looks out at the plaza)
+    wall(`r${i}-front`, ...P(0, VD), o[0], o[1], RW, { holes: [[A1 - M2, A1 + M2], ...WIN], h: rh, tex: roomWall });
     const runs = [wall(`r${i}-left`, ...P(A0, VD + RD / 2), R[0], R[1], RD, { h: rh, tex: roomWall }), wall(`r${i}-back`, ...P(0, VD + RD), -o[0], -o[1], RW, { h: rh, tex: roomWall }), wall(`r${i}-right`, ...P(A1, VD + RD / 2), -R[0], -R[1], RD, { h: rh, tex: roomWall })];
+    { const sk = plain(tintHex(dark ? '#7d7b76' : ft, env)), W0 = [[0, VD, o[0], o[1], RW, [[A1 - M2, A1 + M2], ...WIN], 0], [0, VD + RD, -o[0], -o[1], RW, [], 0], [A0, VD + RD / 2, R[0], R[1], RD, [], 0], [A1, VD + RD / 2, -R[0], -R[1], RD, [], 0]];
+      for (const [k, [a, b, nx, nz, len, holes]] of W0.entries()) { const q = P(a, b); wall(`r${i}-skin${k}`, q[0] - nx * 0.03, q[1] - nz * 0.03, -nx, -nz, len, { h: rh, tex: sk, noSolid: true, holes: holes.map(([f, t, sl, tp]) => [f, t, sl, tp]) }); } }
     // its title, above the way in, on the face that looks at the plaza
     { const cv = canvas(1024, 256), x = cv.getContext('2d'); x.fillStyle = dark ? '#8d8b85' : ft; x.fillRect(0, 0, 1024, 256);
       x.fillStyle = dark ? 'rgba(250,248,244,0.95)' : 'rgba(40,36,30,0.88)'; x.textAlign = 'center'; x.textBaseline = 'middle'; let fs = 120, t = r.title; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(t).width > 940 && fs > 24) { fs -= 4; x.font = `500 ${fs}px Georgia, serif`; }
-      x.fillText(t, 512, 108); x.fillStyle = col; x.fillRect(512 - 90, 190, 180, 8); const q = P(0, VD - 0.016), th = Math.min(0.8, rh - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
+      x.fillText(t, 512, 108); x.fillStyle = col; x.fillRect(512 - 90, 190, 180, 8); const q = P(0, VD - 0.05), th = Math.min(0.8, rh - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
       surfaces.push({ name: `r${i}-title`, kind: 'wall', texture: jpg(cv, 0.92), origin: [q[0] - R[0] * 1.8, y1, q[1] - R[1] * 1.8], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [3.6, th], normal: [-o[0], 0, -o[1]], openings: [] }); }
     const put = (work, wm, hm, run, ac, y) => hangAt(work, wm, hm, run.at(ac), run.n, y, r.labels ? { side: ac + wm / 2 + 0.55 > run.len ? -1 : 1,
       lines: [work.title, [work.artist && (work.artist.name || work.artist), work.year].filter(Boolean).join(', '), work.medium || '', work.note || ''].filter(Boolean) } : null);
@@ -1222,7 +1231,7 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
   // --- on the plaza: three freestanding walls at their own angles, the first work of each exhibition on their faces (the name beside it);
   //     and the exhibitions' objects (up to three) on plinths
   const stands = [{ id: 'pl-a', x: CX - 4.2, z: CZ + 2.4, len: 4, rot: 14, h: 2.8 }, { id: 'pl-b', x: CX + 3.6, z: CZ - 0.6, len: 4, rot: -22, h: 2.8 }, { id: 'pl-c', x: CX - 0.5, z: CZ - 6.2, len: 3.6, rot: 8, h: 2.8 }];
-  const faces = standWalls(stands), face = (() => { const c = canvas(256, 256), x = c.getContext('2d'); x.fillStyle = '#f6f4ef'; x.fillRect(0, 0, 256, 256);
+  const faces = standWalls(stands), face = (() => { const c = canvas(256, 256), x = c.getContext('2d'); x.fillStyle = tintHex('#f6f4ef', { tint: env.tint.map(v => Math.pow(v, 0.55)) }); x.fillRect(0, 0, 256, 256);
     const b = x.createLinearGradient(0, 200, 0, 256); b.addColorStop(0, 'rgba(70,58,44,0)'); b.addColorStop(1, 'rgba(70,58,44,0.16)'); x.fillStyle = b; x.fillRect(0, 200, 256, 56); return jpg(c); })();
   for (const f of faces) surfaces.push({ name: f.name, kind: 'wall', stand: f.stand, texture: face, origin: f.origin, u: f.u, v: [0, -1, 0], size: [f.len, f.h], normal: f.normal, openings: [] });
   for (const s of stands) { const a = s.rot * Math.PI / 180; solids.push([s.x - Math.cos(a) * s.len / 2, s.z - Math.sin(a) * s.len / 2, s.x + Math.cos(a) * s.len / 2, s.z + Math.sin(a) * s.len / 2]); }
@@ -1236,8 +1245,10 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
   const objs = rooms.flatMap(r => Object.values(r.objects || {}).slice(0, 1)).slice(0, 3), at = [[CX + 0.8, CZ + 3.8], [CX + 6.4, CZ + 5.4], [CX - 7.2, CZ - 1.6]];
   objs.forEach((ob, k) => plinthsOut.push({ id: 'pl-p' + k, x: at[k][0], z: at[k][1], size: PLINTHS.m, key: 'm', work: ob.id, obj: { id: ob.id, title: ob.title, image: ob.image, w: ob.w, h: ob.h } }));
 
+  const lamps = [70, 110, ...Array.from({ length: 7 }, (_, k) => 135 + 19.3 + k * 38.6)].map(a => [CX + 9.5 * Math.cos(a * Math.PI / 180), CZ + 9.5 * Math.sin(a * Math.PI / 180)]);
   const spec = {
-    version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 90, noSpots: true, sky: ['#9fbfd9', '#e9eef0'],
+    version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 150, noSpots: true, sky: ['#9fbfd9', '#e9eef0'],
+    outdoors: { hour: env.hour, centre: [CX, CZ], lamps, treeline: 'data/rooms/outside/treeline.webp', treeRadius: 70, treeHeight: 30 },
     baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: 4 },
     room: { x0: 22, x1: TOT - 22, z0: 22, z1: TOT - 22, height: 6 }, surfaces, works, views: [], floorReflect: [0, 0], solids,
     stands: stands.map(s => ({ ...s, kind: 'stand', t: STAND.t })),
