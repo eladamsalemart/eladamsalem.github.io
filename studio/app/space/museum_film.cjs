@@ -9,13 +9,13 @@ const { chromium } = require('playwright');
 const { execFileSync } = require('child_process');
 const fs = require('fs'), path = require('path'), os = require('os');
 const base = process.argv[2] || 'http://localhost:8199/studio/app/', out = path.join(__dirname, '..', 'data', 'museum'), tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mfilm-'));
-const C = 60, W = 1800, H = 1500, FOV = 62;
+const C = 48, W = 1800, H = 1500, FOV = 62;
 const VIEWS = JSON.parse(process.env.MUSEUM_VIEWS || 'null') || [
-  [12.8, [C + 1.2, 1.6, C + 10.5], [C - 1.5, 1.7, C - 12]],           // the way in at midday: the plaza, the walls with their first works, the houses
-  [13.4, [C + 0.6, 1.6, C + 8], [C - 1.5, 2.0, C + 38]],              // the other way: into the Renaissance wing, David at the end of the walk
-  [14.6, [58, 1.6, 100], [49, 1.8, 101]],                             // inside the wing's tall room: the School of Athens, the maquettes
-  [16.8, [C - 8, 1.6, C + 6], [C - 14, 1.8, C - 2]],                  // the late sun on the plaza, the tree line behind
-  [19.6, [C + 1.2, 1.6, C + 10.5], [C - 1.5, 1.9, C - 12]],           // the same way in after dark: the lamps, the lit doors
+  [12.8, [48, 1.6, 66.5], [48, 3.2, 34]],                             // the way in at midday: the square, the pool, the houses under one roof of soft light, the garden through the glass
+  [13.6, [30, 1.6, 52], [14, 2.6, 36]],                               // across the square to the Renaissance wing's door
+  [14.6, [14, 1.6, 35], [17, 2.3, 22]],                               // inside the wing: David at the end of the walk
+  [16.8, [66, 1.6, 52], [46, 3.4, 28]],                               // the late sun on the floor, the pools of light long and warm
+  [19.6, [48, 1.6, 66.5], [48, 3.0, 34]],                             // the same way in after dark: the lit houses, the garden gone dark behind the glass
 ];
 (async () => {
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });

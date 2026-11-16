@@ -39,6 +39,7 @@ const NUM = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']
     const A = [{ slot: 1, app_slug: 'celebration-virtual', colour: null, content: null }, own(2, 'Published From The Desk', 1)];
     let now = A, asks = 0, cacheModes = [];
     await p.route(u => u.href.includes('/rest/v1/museum_slots'), r => { asks++; r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(now) }); });
+    await p.route(u => u.href.includes('/rest/v1/app_hidden'), r => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '[]' }));      // (what the owner hid in the control room must not change this test)
     await p.route(u => u.href.includes('/rest/v1/museum_colours'), r => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '[]' }));
     await p.addInitScript(() => { const f = window.fetch; window.__modes = []; window.fetch = function (u, o) { if (String(u).includes('museum_slots')) window.__modes.push((o && o.cache) || 'default'); return f.apply(this, arguments); }; });
     await p.goto(`${base}?guest#/`);
@@ -63,6 +64,19 @@ const NUM = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']
     const built = await p.waitForFunction(() => window.__spaceView && document.querySelector('canvas'), null, { timeout: 180000, polling: 150 }).then(() => true, () => false);
     say(asks > before, 'opening the museum asks the database again', 'opening the museum did not ask the database');
     say(built, 'the museum opens with the published rooms', 'the museum did not open');
+    if (built) {                                                     // the plan is tappable: it opens large with a list; an entry takes the visitor there, facing it
+      await p.waitForTimeout(1500);
+      await p.tap('.sv-map');
+      const opened = await p.waitForSelector('.sv-dir:not([hidden])', { timeout: 6000 }).then(() => true, () => false);
+      const n = opened ? await p.evaluate(() => document.querySelectorAll('.sv-dir-l button').length) : 0;
+      say(opened && n >= 3, `tapping the plan opens it large with a list of ${n} places and exhibitions`, `the plan did not open as a list (opened ${opened}, ${n} entries)`);
+      if (opened && shots) await p.screenshot({ path: `${shots}/museum-plan-open.png` });
+      const before = await p.evaluate(() => window.__spaceView.inspect.where().pos);
+      if (opened) await p.tap('.sv-dir-l button:nth-of-type(3)');
+      await p.waitForTimeout(800);
+      const after = await p.evaluate(() => ({ pos: window.__spaceView.inspect.where().pos, hidden: document.querySelector('.sv-dir').hidden }));
+      say(opened && after.hidden && Math.hypot(after.pos[0] - before[0], after.pos[2] - before[2]) > 3, 'a tap on an exhibition in the list takes the visitor there and closes the plan', `the jump did not happen: ${JSON.stringify([before, after])}`);
+    }
     if (built && shots) { await p.waitForTimeout(2500); await p.screenshot({ path: `${shots}/museum-open.png` }); }
     // 4. everything is taken down: Home has no museum section
     now = [];
