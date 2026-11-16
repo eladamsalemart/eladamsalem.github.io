@@ -1445,15 +1445,24 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       gr.addColorStop(0, rgba(r.colour, 0.34)); gr.addColorStop(1, rgba(r.colour, 0)); y.fillStyle = gr; y.fillRect(px - rad, pz - rad, 2 * rad, 2 * rad); }
     if (env.day > 0.12) {
       const sx = -Math.cos(sunA), sz = -Math.sin(sunA), shift = HH / Math.tan(sunEl), ang = Math.atan2(sz, sx), a = 0.27 * env.day;
-      y.save(); y.globalCompositeOperation = 'lighter';
+      const pl = canvas(fw, fh), py = pl.getContext('2d'); py.globalCompositeOperation = 'lighter';
       for (let i = 0; i < HX / 4; i++) for (let j = 0; j < HZ / 4; j++) {
         const big = (i + j) % 2 === 0, r = (big ? 1.05 : 0.6) * 2.1, cx = (2 + i * 4 + sx * shift) * FP, cz = (2 + j * 4 + sz * shift) * FP;
         if (cx < -r * FP * 2 || cz < -r * FP * 2 || cx > fw + r * FP * 2 || cz > fh + r * FP * 2) continue;
-        y.save(); y.translate(cx, cz); y.rotate(ang); y.scale(1 / Math.sqrt(Math.sin(sunEl)), 1);
-        const gr = y.createRadialGradient(0, 0, 0, 0, 0, r * FP); gr.addColorStop(0, `rgba(255,246,226,${a})`); gr.addColorStop(0.45, `rgba(255,244,222,${a * 0.55})`); gr.addColorStop(1, 'rgba(255,240,215,0)');
-        y.fillStyle = gr; y.fillRect(-r * FP, -r * FP, 2 * r * FP, 2 * r * FP); y.restore();
+        py.save(); py.translate(cx, cz); py.rotate(ang); py.scale(1 / Math.sqrt(Math.sin(sunEl)), 1);
+        const gr = py.createRadialGradient(0, 0, 0, 0, 0, r * FP); gr.addColorStop(0, `rgba(255,246,226,${a})`); gr.addColorStop(0.45, `rgba(255,244,222,${a * 0.55})`); gr.addColorStop(1, 'rgba(255,240,215,0)');
+        py.fillStyle = gr; py.fillRect(-r * FP, -r * FP, 2 * r * FP, 2 * r * FP); py.restore();
       }
-      y.restore();
+      // what stands in the sun's way keeps the light off the floor behind it: each house, pier and stand throws a soft shadow along the slant, cut out of the pools (the roof only lets the sun in through its openings, so the shadow shows only where there is light)
+      { py.globalCompositeOperation = 'destination-out';
+        const hull = pts => { pts = pts.slice().sort((p1, p2) => p1[0] - p2[0] || p1[1] - p2[1]); const cr = (o, p1, p2) => (p1[0] - o[0]) * (p2[1] - o[1]) - (p1[1] - o[1]) * (p2[0] - o[0]), lo = [], up = [];
+          for (const q of pts) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); } for (const q of pts.slice().reverse()) { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); } return lo.slice(0, -1).concat(up.slice(0, -1)); };
+        const cast = (pts, h) => { const d = h / Math.tan(sunEl), all = [...pts, ...pts.map(q => [q[0] + sx * d, q[1] + sz * d])], H = hull(all), mx = H.reduce((t, q) => t + q[0], 0) / H.length, mz = H.reduce((t, q) => t + q[1], 0) / H.length;
+          for (let k = 6; k >= 0; k--) { const g = k * 0.16; py.fillStyle = `rgba(0,0,0,${k === 0 ? 0.55 : 0.12})`; py.beginPath(); H.forEach((q, n) => { const dx = q[0] - mx, dz = q[1] - mz, Ld = Math.hypot(dx, dz) || 1, X = (q[0] + dx / Ld * g) * FP, Z = (q[1] + dz / Ld * g) * FP; n ? py.lineTo(X, Z) : py.moveTo(X, Z); }); py.closePath(); py.fill(); } };
+        for (const { d, k } of houseList) { const [c, o, Rr] = [d.c, d.o, d.r], q = (a, b) => [c[0] + Rr[0] * a + o[0] * b, c[1] + Rr[1] * a + o[1] * b]; cast([q(-4, 0), q(4, 0), q(4, 7.8), q(-4, 7.8)], CL.RH[k % 8]); }
+        for (const [px, pz] of PLAN.piers) cast([[px - 0.7, pz - 0.7], [px + 0.7, pz - 0.7], [px + 0.7, pz + 0.7], [px - 0.7, pz + 0.7]], HH);
+        for (const st of PLAN.stands) { const a2 = st.rot * Math.PI / 180, c2 = [Math.cos(a2), Math.sin(a2)], n2 = [-c2[1], c2[0]], hh = st.len / 2; cast([[st.x - c2[0] * hh - n2[0] * 0.1, st.z - c2[1] * hh - n2[1] * 0.1], [st.x + c2[0] * hh - n2[0] * 0.1, st.z + c2[1] * hh - n2[1] * 0.1], [st.x + c2[0] * hh + n2[0] * 0.1, st.z + c2[1] * hh + n2[1] * 0.1], [st.x - c2[0] * hh + n2[0] * 0.1, st.z - c2[1] * hh + n2[1] * 0.1]], st.h); } }
+      y.save(); y.globalCompositeOperation = 'lighter'; y.drawImage(pl, 0, 0); y.restore();
     }
     lite(y, fw, fh, 0.5);
     rect('hall-floor', 'wall', [0, 0], [HX, HZ], 0.003, true, jpg(c, 0.88));

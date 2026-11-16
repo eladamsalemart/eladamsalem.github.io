@@ -19,7 +19,7 @@ Source of the plan: `studio/design/museum-directions/research/04*` (top path: Bl
 5. [x] (16.11, part: 16 soft light shafts under big oculi, along the sun slant, by day; open: dust motes, glow around the brightest openings) **Skylight atmospherics**: light shafts/dust under the soft oculi at low sun; glow around the brightest openings.
 6. [ ] **PBR materials**: CC0 concrete, plaster, oak with normal/roughness maps (KTX2 compressed) replacing flat painted textures; wall plaster with subtle sheen.
 7. [ ] **Real geometry for the details**: skirting, door frames with thickness and a shadow gap, ceiling coffers, window mullions as geometry not texture.
-8. [ ] **Houses lit from their own light**: warm interior light bleeding out through the doorway onto the floor, door-colour glow already there; add soft shadow of the house onto the plaza floor.
+8. [x] (16.11, part: houses, piers and stands throw soft sun shadows cut out of the light pools; open: warm interior light bleeding out of the doorways) **Houses lit from their own light**: warm interior light bleeding out through the doorway onto the floor, door-colour glow already there; add soft shadow of the house onto the plaza floor.
 9. [ ] **Blender-baked shell (lightmaps)** for the building: one GLB with UV2 lightmap per hour state (day / golden / night), loaded by a new `shell.js`. Needs Blender (see below).
 10. [ ] **Performance ladder**: portal culling per house, texture streaming, stillness render (higher quality when standing), measured on a real iPhone.
 11. [ ] **People and life** (wow): a few distant silhouettes walking, birds outside, water ripple in the pool, tree sway.
@@ -39,4 +39,4 @@ Source of the plan: `studio/design/museum-directions/research/04*` (top path: Bl
 
 ## Log
 - 16.11: items "Done" above; roadmap written.
-- 16.11: step 1 (floor contact shadows in `buildSky`, painted before the sun pools; no runtime cost; memory unchanged at 433 MB estimate).
+- 16.11: steps 2, 3, 5, 8 (part) done; see items. Step 1 (floor contact shadows in `buildSky`, painted before the sun pools; no runtime cost; memory unchanged at 433 MB estimate).
