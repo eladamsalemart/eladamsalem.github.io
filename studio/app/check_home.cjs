@@ -47,7 +47,9 @@ const shots = process.argv[3]; // a folder for a screenshot when something fails
   const why = () => p.evaluate(() => { const v = document.querySelector('.hs .wc video'); if (!v) return 'no video: Home took it away, every source failed';
     const r = v.getBoundingClientRect(); return `paused ${v.paused}, readyState ${v.readyState}, networkState ${v.networkState}, error ${v.error ? v.error.code : 'none'}, src ${v.currentSrc.split('/').slice(-2).join('/') || 'none'}, at y ${Math.round(r.top)} of ${innerHeight}`; });
   const answers = () => filmNet.map(([st, u]) => `${st} ${u.split('/').slice(-2).join('/')}`).join(', ') || 'no request';
-  if (!await plays()) {
+  // an artist's own show (a room drawn in the browser) has a poster and no film: Home shows it as it is, so there is no film to play
+  const posterOnly = await p.evaluate(() => { const w = document.querySelector('.hs .wc'); return !!w && /^show-[0-9a-f]{8}$/.test(w.dataset.space || w.dataset.slug || ''); });
+  if (!posterOnly && !await plays()) {
     // say why, so the next one can be fixed: the video's own state, what the host answered for it, and how it looked
     bad.push(`the room's film never played on Home (${await why()}; answers: ${answers()})`);
     if (shots) await p.screenshot({ path: require('path').join(shots, 'home-film.png') }).catch(() => {});
