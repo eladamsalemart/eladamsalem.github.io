@@ -241,15 +241,18 @@ function ovBar(v, title) {
   const hang = (cls, t) => `<button class="btn ${cls}" type="button" id="vxHang">${t}</button>`, walk = (cls, t) => `<button class="btn ${cls}" type="button" id="vxWalk">${t}</button>`;
   if (!S.works.length) return `<a class="btn f" href="#/studio">Add works to your page first</a>${hang('g', 'Walk in')}`;
   if (!hung) return hang('f', 'Place the works on the plan');
-  if (S.cloud && !pub && v.status !== 'pending') return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">${v.status === 'changes' ? 'Send again' : 'Send for review'}</button>`;
+  if (S.cloud && !pub && v.status !== 'pending') return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">${ADMIN ? 'Publish' : v.status === 'changes' ? 'Send again' : 'Send for review'}</button>`;
   return `${hang('g', 'Rehang')}${walk('f', 'Walk as a visitor')}`;
 }
+// an owner of Open Studio (an admin) publishes their own exhibition at once; everyone else sends it for review
+let ADMIN = false, adminAsked = false;
+const askAdmin = () => adminAsked ? Promise.resolve() : (adminAsked = true, import('./studio-cloud.js').then(async m => { const s = await m.session(); if (!s) return; const { data } = await s.c.rpc('is_admin'); ADMIN = !!data; }).catch(() => {}));
 // where the exhibition stands, in one card: live in the app or not, and whether what you see here is saved to the cloud
 const ovStatus = v => {
   const st = v.status, k = st === 'published' ? ['ok', 'Live in the app', 'Visitors see this exhibition in Shows and on your page. A change you make here reaches them as soon as it is saved.']
     : st === 'pending' ? ['wait', 'Waiting for Open Studio', 'Not live yet: Open Studio looks at every exhibition before it goes out. You can go on editing.']
     : st === 'changes' ? ['no', 'Changes asked', esc(v.note || 'Open Studio asked for a change. See your page.')]
-    : ['', 'Draft: not in the app', 'Only you can see it. Send it for review when it is ready.'];
+    : ['', 'Draft: not in the app', ADMIN ? 'Only you can see it. Press Publish and it goes live at once (you run Open Studio, so it needs no review).' : 'Only you can see it. Send it for review when it is ready.'];
   return `<div class="ov-status ${k[0]}" id="ovStatus"><b>${k[1]}</b><span>${k[2]}</span><em id="ovCloud" role="status">${v.id ? 'Saved to the cloud' : 'Not saved yet'}</em></div>`;
 };
 function onViewPage(v0) {
@@ -720,9 +723,10 @@ function wireOnView(app, go, vx) {
   function publish() {
     const k = keep(true), t = vx.elements.title;
     if (k.status !== 'published' && !k.title) { t.scrollIntoView({ block: 'center' }); t.focus({ preventScroll: true }); t.setAttribute('aria-invalid', 'true'); return say('Give it a title first'); }
-    const out = k.status === 'published' || k.status === 'pending'; k.status = out ? 'draft' : 'pending'; save(); if (!out) say('Sent to Open Studio'); go('#/studio/onview', true);
+    const out = k.status === 'published' || k.status === 'pending'; k.status = out ? 'draft' : ADMIN ? 'published' : 'pending'; save(); if (!out) say(ADMIN ? 'Published' : 'Sent to Open Studio'); go('#/studio/onview', true);
   }
   const pubLink = $('#ovState #vxPub'); if (pubLink) pubLink.onclick = publish;
+  askAdmin().then(() => { if (!ADMIN) return; acts(); const st = $('#ovStatus'); if (st) st.outerHTML = ovStatus(now()); });
   // the room that is chosen: its picture, its name, its sizes; in place
   const setRoom = slug => {
     if (!ROOMS[slug]) return;
