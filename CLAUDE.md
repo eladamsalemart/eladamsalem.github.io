@@ -159,6 +159,14 @@ Database without the connector: the "Supabase migrations" workflow runs new file
 **Standing rule (owner, 15.11)** — When the usage limit ends and later resets with the computer on, resume the night work on every open task
 from where it stopped, without waiting for "continue": read `studio/design/night-2026-11-13/PROGRESS.md`, keep the heartbeat.
 
+**Museum and control room, how they connect (owner, 16.11)** — The control room is for the computer (the phone version is not a
+priority now); from it the owner runs the app, and the agent tab (studio/agent) lives there (to be connected in the evening, at his
+computer). The museum is edited ONLY on the Desk (studio/desk, on the computer): add and remove its exhibitions, edit the museum's own
+exhibitions. Three kinds of exhibition, three connections: (1) museum exhibitions (made and edited on the Desk); (2) an artist's
+exhibition (e.g. Elad Amsalem's): the artist edits or uploads it on their own page, never the Desk; (3) the museum may TAKE an
+artist's exhibition (a copy that links back to its source), but the original stays the artist's. Not built yet; after the owner
+picks an architectural direction (studio/design/museum-directions/) the Desk's rooms/slots (8 street rooms) change with it.
+
 **Since 14.11** — The artist's Edit is the page as visitors see it (all works by year and About & CV are pages of their own
 inside Edit); the studio's Exhibitions tab has two kinds, Virtual and Real; the Add tray chooses several works at once. Home has
 "The Museum" (what the Desk published, read on every opening); the hall that may replace the street: `studio/design/museum-hall/`
