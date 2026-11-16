@@ -2,6 +2,10 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-16: nothing to do
+
+- No open issues or owner requests. health.cjs, check_home, check_museum (new: Desk's 6 live = Home's 6), check_app, deps.py pass on the live site (Home 17 ms frames). No improvement tonight (maplibre was 11-15; the day's other changes were the owner's: the museum gate on Home, tours sideways, the artist's order of exhibitions). Still available: three 0.187, supabase-js 2.119, playwright 1.65.1.
+
 ## 2026-11-15: maplibre-gl 6.17.0 → 6.18.0
 
 - Looked: no open issues or owner requests; health.cjs, check_home, check_app, deps.py pass on the live site (Home 1.9 s, 17 ms frames).

@@ -132,11 +132,11 @@ function addCommunity(m, c, uniq, seen) {
       cv: a.cv || [], hero: a.hero || '', heroPos: a.hero_pos || '' };
     A.set(a.id, x); m.artists.push(x);
     // their past exhibitions, as shows of the past (with their installation photos)
-    for (const e of a.exhibitions || []) {
+    for (const [ord, e] of (a.exhibitions || []).entries()) {
       const lines = String(e.text || '').split(/\n+/).map(t => t.trim()).filter(Boolean);
       m.exhibitions.push({ id: e.id, slug: uniq(slugify(`${e.title}-${slug}`)), title: e.title, year: e.year || '', venue: e.venue || '', dates: e.dates || '', text: lines,
         images: (e.photos || []).map(p => p.src || p).filter(Boolean), city: e.city || '', country: '', confirmed: true, artist: x, artists: [x], works: [], maybe: [],
-        space: (e.tour === 'live' && e.space && m.spaces[e.space.slug]) || null, workIds: e.works || [], kind: 'gallery', ...span(e.dates || '', e.year), events: [], community: true });
+        space: (e.tour === 'live' && e.space && m.spaces[e.space.slug]) || null, workIds: e.works || [], kind: 'gallery', ...span(e.dates || '', e.year), events: [], community: true, ord });      // (ord: the place the artist gave it on their page)
     }
   }
   m.exhibitions.sort((p, q) => (+q.year || 0) - (+p.year || 0));
@@ -750,6 +750,20 @@ function worksMore(list) {
   const body = kinds.length > 1 ? kinds.map(k => `<div class="wk-k"><h3>${esc(k || 'Other')}</h3>${byYear(list.filter(w => kindOf(w) === k))}</div>`).join('') : byYear(list);
   return `<details class="wk-more"><summary>${list.length} more ${list.length === 1 ? 'work' : 'works'}</summary>${body}</details>`;
 }
+// The row of arches on an artist's page is in the order the artist gave it (the order of their exhibitions in the studio: "Order of
+// exhibitions" on their page's editor). Shows with no place of their own (designed here, or from the app's own files) come first,
+// those on now before the past, as before.
+function showOrder(shows) {
+  return [...shows].sort((x, y) => (x.ord != null) - (y.ord != null) || (x.ord != null ? x.ord - y.ord : (status(y) !== 'past') - (status(x) !== 'past') || y.end - x.end));
+}
+// Under the arches, every exhibition by its year, newest first: not the artist's to arrange (the year does it), like the works by
+// year, and like albums in a discography.
+function showsByYear(shows) {
+  const yr = e => String(e.year || (e.end && new Date(e.end).getFullYear()) || '').slice(0, 4);
+  const ys = [...new Set(shows.map(yr))].sort((a, b) => (+b || 0) - (+a || 0));
+  const row = e => `<a class="row" href="#/exhibition/${e.slug}">${e.images[0] ? im(e.images[0], '') : '<span class="ex-noim"></span>'}<div class="t"><div><b${heb(e.title)}>${esc(e.title)}</b></div><div class="m">${esc([e.venue, e.city].filter(Boolean).join(' · ') || (e.kind === 'online' ? 'Online exhibition' : 'Exhibition'))}</div></div><span></span></a>`;
+  return `<div class="ex-years">${ys.map(y => `<div class="wk-y"><h4>${esc(y || 'Undated')}</h4><div class="list">${shows.filter(e => yr(e) === y).map(row).join('')}</div></div>`).join('')}</div>`;
+}
 function artistPage(slug) {
   const a = M.artists.find(x => x.slug === slug);
   if (!a) return notFound();
@@ -779,7 +793,8 @@ function artistPage(slug) {
       <div class="list">${works.slice(0, 5).map(workRow).join('')}</div>
       ${works.length > 5 ? worksMore(works.slice(5)) : ''}</section>
     ${shows.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">${shows.length}</span></div>
-      <div class="walkbox">${walkRow([...shows].sort((x, y) => (status(y) !== 'past') - (status(x) !== 'past') || y.end - x.end), `${a.name}: exhibitions`)}</div></section>` : ''}
+      <div class="walkbox">${walkRow(showOrder(shows), `${a.name}: exhibitions`)}</div>
+      ${shows.length > 2 ? showsByYear(shows) : ''}</section>` : ''}
     ${own && M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
       <div class="covers">${M.objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
     ${!own && objectsOf(a).length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
