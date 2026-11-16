@@ -139,6 +139,11 @@ async function push(S) {
     const { error } = await c.from('virtual_shows').upsert({ id: v.id, owner_id: user.id, kind: 'artist', title: v.title || 'Untitled', room: v.room, paint: v.paint || null,
       centre: +v.centre || 150, text: v.text || null, works, plinths: v.plinths || [], status: ['published', 'pending', 'changes'].includes(v.status) ? v.status : 'draft', slug: v.slug || null, on_view: !!v.onview });
     if (error) throw error;
+    // (read back: what Home and Shows show is this row, so it must be what the artist made)
+    const { data: back } = await c.from('virtual_shows').select('title,room,works,plinths').eq('id', v.id).maybeSingle();
+    const hung = list => (list || []).map(w => `${w.id}@${w.wall || ''}:${+w.a || 0}:${+w.y || 0}`).sort().join('|');
+    if (!back || back.title !== (v.title || 'Untitled') || (back.room || '') !== (v.room || '') || (back.plinths || []).length !== (v.plinths || []).length || hung(back.works) !== hung(works))
+      throw new Error('the cloud copy of this exhibition is not the one on your screen');
   }
   const goneV = (was.virtual || []).filter(v => !(S.virtual || []).some(x => x.id === v.id)).map(v => v.id);
   if (goneV.length) { const { error } = await c.from('virtual_shows').delete().in('id', goneV); if (error) throw error; }
