@@ -42,12 +42,13 @@ const DB = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/rest/v1/', DB_KEY = 'sb_pub
 async function communityData() {
   const signal = AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
   const q = path => fetch(DB + path, { headers: { apikey: DB_KEY }, signal }).then(r => r.ok ? r.json() : []);
-  const [artists, works, shows] = await Promise.all([
+  const [artists, works, shows, hidden] = await Promise.all([
     q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,hero,hero_pos,link,instagram,cv,exhibitions&status=eq.approved'),
     q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position,kind,category&order=position'),
     q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,starts,ends,owner_id,created_at,on_view&status=eq.published'),
+    q('app_hidden?select=key'),
   ]);
-  return { artists, works, shows };
+  return { artists, works, shows, hidden };
 }
 
 // --- model -----------------------------------------------------------------
@@ -113,6 +114,10 @@ function buildModel(d) {
   if (d.community) addCommunity(m, d.community, uniq, seen);
   if (d.virtual) { addVirtual(m, d.virtual, uniq); m.virtualColours = d.virtual.streetColours || {}; }
   if (d.community) addVirtual(m, { shows: d.community.shows.map(showOf(m)) }, uniq);
+  // exhibitions the owner hid in the control room (nothing is deleted there: they can come back); the control room lists all of them
+  m.allExhibitions = m.exhibitions.slice();
+  m.hidden = new Set(((d.community && d.community.hidden) || []).map(r => r.key));
+  m.exhibitions = m.exhibitions.filter(e => !m.hidden.has('ex:' + e.slug));
   // the inspection opens a space by its own name: an artist's tour (built from what they gave in the app) has no
   // exhibition of the site's to hang on, so it gets a bare one here, only while being inspected
   const insp = new URLSearchParams(location.search).get('inspect');

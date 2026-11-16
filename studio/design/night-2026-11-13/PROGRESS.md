@@ -73,3 +73,6 @@ Bake finished and published; renders checked (white cube neutral, pavilion floor
 - Owner's sharpening (in ESSENCE.md): real exhibitions first, no endless grid. Not yet carried into the product.
 - Open: exhibition approval not tested end to end with a test account; no walk-through preview of a pending exhibition in the control room; last full journey (j30) failed plinth-colour (tap timeout), walk-in (3 s wait) and plan-turn-stand (over budget).
 - Measured 15.11: under the software renderer the plan gets ~1.5 frames a second (the room draws behind it), yet the plinth tap succeeds (13 s). The j30 failures were slowness; test timeouts raised. Worth doing later: stop drawing the room while the plan covers it (saves a phone's battery).
+
+## 16.11 (restart after reset)
+- Space: the 3D room is no longer drawn while the plan covers it (space.js frame skips render when .planning). Not tested on a device. Rest of open list untouched this run.
