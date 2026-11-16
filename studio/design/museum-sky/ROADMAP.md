@@ -12,7 +12,7 @@ Source of the plan: `studio/design/museum-directions/research/04*` (top path: Bl
 - [x] Home film: a slow visitor's walk (16.11)
 
 ## Next, in order (one per "תמשיך")
-1. [ ] **Contact shadows / ambient occlusion baked into textures**: soft dark at every wall foot, plinth, pier base, house corner, under the stands (biggest gain per hour; no runtime cost).
+1. [x] **Contact shadows / ambient occlusion baked into the floor** (16.11): soft dark around every house, pier, stand, pedestal and at the glass walls' foot. Still open from this item: the same soft dark at the foot of the walls INSIDE houses and under plinths (plinth floor shadow).
 2. [ ] **Glass that looks like glass**: faint reflection of the room on the glass at grazing angles, slightly green edge tint, mullion thickness and shadow, a faint dirt/sheen gradient.
 3. [ ] **Floor**: polished-concrete reflection of the light pools and the houses (cheap planar/blurred reflection), joint lines every 3 m, subtle wear; grass outside the pool not stair-stepped (check the green patch near the pool/east side).
 4. [ ] **Sky + IBL**: PMREM environment from the hour's sky so every material gets the right ambient colour; tone mapping (ACES/AgX) and exposure by hour.
@@ -39,3 +39,4 @@ Source of the plan: `studio/design/museum-directions/research/04*` (top path: Bl
 
 ## Log
 - 16.11: items "Done" above; roadmap written.
+- 16.11: step 1 (floor contact shadows in `buildSky`, painted before the sun pools; no runtime cost; memory unchanged at 433 MB estimate).
