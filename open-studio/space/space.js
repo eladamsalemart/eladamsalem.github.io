@@ -1163,6 +1163,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     const still = !renderer.xr.isPresenting && pos.distanceToSquared(lastPos) < 1e-10 && look.distanceToSquared(lastLook) < 1e-10 && Math.abs(camera.fov - lastFov) < 1e-4;
     lastPos.copy(pos); lastLook.copy(look); lastFov = camera.fov;
     if (still && !dirty) return;
+    // the hang editor's plan covers the room: nothing to draw behind it (it is drawn again the moment the plan closes)
+    if (root.classList.contains('planning')) { dirty = true; return; }
     dirty = false;
     // a phone that can't keep up draws at a lower resolution rather than stutter
     frameTimes.push(dt); if (frameTimes.length > 40) frameTimes.shift();
