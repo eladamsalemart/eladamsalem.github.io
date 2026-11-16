@@ -1532,7 +1532,16 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     const b = x.createLinearGradient(0, 190, 0, 256); b.addColorStop(0, 'rgba(70,58,44,0)'); b.addColorStop(1, 'rgba(70,58,44,0.2)'); x.fillStyle = b; x.fillRect(0, 190, 64, 66);
     x.fillStyle = 'rgba(255,255,255,0.3)'; x.fillRect(0, 243, 64, 13); x.fillStyle = 'rgba(60,50,40,0.3)'; x.fillRect(0, 242, 64, 1.5); if (dark) noise(x, 64, 256, 500, 0.08); return jpg(c); };
   const floorTex = k => { const P = 64, w = RW * P, h = RD * P, c = canvas(w, h), x = c.getContext('2d');
-    if (k === 0) { x.fillStyle = '#d3bd9a'; x.fillRect(0, 0, w, h); for (let q = 0; q < h; q += 0.18 * P) { x.fillStyle = `rgba(${Math.random() < 0.5 ? '255,255,255' : '90,66,40'},${0.03 + Math.random() * 0.05})`; x.fillRect(0, q, w, 0.18 * P); x.fillStyle = 'rgba(80,60,40,0.14)'; x.fillRect(0, q, w, 1); } }
+    if (k === 0) {                                                  // oak boards: each its own tone, long grain, a few knots, bevelled edges, end joints staggered row by row
+      x.fillStyle = '#cdb68f'; x.fillRect(0, 0, w, h); const pw = 0.16 * P; let row = 0;
+      for (let q = 0; q < h; q += pw, row++) { let px = -((row * 0.37) % 1) * 1.8 * P;
+        while (px < w) { const len = (1.1 + Math.random() * 1.3) * P, tone = Math.random(), r0 = 200 + tone * 26 - 10, g0 = 172 + tone * 24 - 10, b0 = 128 + tone * 20 - 10;
+          x.fillStyle = `rgb(${r0 | 0},${g0 | 0},${b0 | 0})`; x.fillRect(px, q, len, pw);
+          for (let g = 0; g < 7; g++) { x.fillStyle = `rgba(${Math.random() < 0.5 ? '120,86,50' : '255,244,220'},${(0.04 + Math.random() * 0.07).toFixed(3)})`; x.fillRect(px, q + Math.random() * pw, len, 0.6 + Math.random()); }
+          if (Math.random() < 0.12) { const kx = px + Math.random() * len, ky = q + pw * 0.5, kg = x.createRadialGradient(kx, ky, 0, kx, ky, 3.2); kg.addColorStop(0, 'rgba(96,64,34,0.55)'); kg.addColorStop(1, 'rgba(96,64,34,0)'); x.fillStyle = kg; x.fillRect(kx - 4, ky - 4, 8, 8); }
+          x.fillStyle = 'rgba(70,50,30,0.5)'; x.fillRect(px, q, 1, pw); px += len; }
+        x.fillStyle = 'rgba(255,248,230,0.3)'; x.fillRect(0, q, w, 1); x.fillStyle = 'rgba(70,50,30,0.38)'; x.fillRect(0, q + pw - 1.2, w, 1.2); }
+      const sh = x.createLinearGradient(0, 0, w, h); sh.addColorStop(0, 'rgba(255,255,255,0.05)'); sh.addColorStop(1, 'rgba(70,50,30,0.06)'); x.fillStyle = sh; x.fillRect(0, 0, w, h); }
     else if (k === 1) { x.fillStyle = '#a8a6a0'; x.fillRect(0, 0, w, h); noise(x, w, h, 6000, 0.12); x.strokeStyle = 'rgba(60,58,54,0.18)'; for (let q = 0; q <= w; q += 2 * P) { x.beginPath(); x.moveTo(q, 0); x.lineTo(q, h); x.stroke(); } }
     else { x.fillStyle = '#e1d6c2'; x.fillRect(0, 0, w, h); for (let q = 0; q < h; q += 0.3 * P) { x.fillStyle = `rgba(255,255,255,${0.04 + Math.random() * 0.06})`; x.fillRect(0, q, w, 0.3 * P); } }
     const e = 0.5 * P, edge = (ax, ay, bx, by, rx, ry, rw, rh) => { const g = x.createLinearGradient(ax, ay, bx, by); g.addColorStop(0, 'rgba(60,44,28,0.2)'); g.addColorStop(1, 'rgba(60,44,28,0)'); x.fillStyle = g; x.fillRect(rx, ry, rw, rh); };
