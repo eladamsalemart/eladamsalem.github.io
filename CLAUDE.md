@@ -173,6 +173,13 @@ inside Edit); the studio's Exhibitions tab has two kinds, Virtual and Real; the 
 (the Court behind `?hall`) and the owner's open museum, `studio/design/museum-open/`. The owner's sharpening (ESSENCE.md): real
 exhibitions first, never an endless grid. State and what is open: `studio/design/night-2026-11-13/PROGRESS.md`.
 
+**The museum (16.11, the owner's choice: "Under One Sky")** — ONE building (96 x 72 m, one roof with soft round openings, glass all round; the garden, sky and trees
+are seen only through the glass, by the visitor's hour), the default for `#/museum` (`?street`, `?hall`, `?cluster` are older plans). It is generated from a DESCRIPTION (a base plus a
+list of spaces: `house` for a Desk slot, `section` for a history wing), not from a fixed street: `SKY_PLAN`/`planOf` in `studio/app/space/synth.js`, the Desk may store its own in
+`museum_plan` (key `main`), invalid parts fall back to the base; format in `studio/design/museum-sky/README.md`. Stage 1: the Desk fills/empties the eight houses and draws the base; stage 2 (not built):
+add/remove a space on the Desk. The small plan in the viewer is tappable (opens large, with a list of every exhibition; a tap jumps to it: `spec.directory`). Paintings only on walls,
+sculpture on plinths indoors (`props.js`). Home's tile film: `space/museum_film.cjs`. Test: `tests/museum_live.cjs`. Details: `studio/HANDOFF.md` 13d.
+
 **Open** — Home: from the ten (`studio/design/home-ten/`) the owner liked the constellation (not its black) and the
 artist's hand, and asked for Home as a sky of what they used last (near), with who and what they haven't met further
 out (pinch to step back), a live tour you can step into on Home, then the map, shows on now, your artists; pastels.
