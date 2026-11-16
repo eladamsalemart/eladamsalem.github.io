@@ -218,7 +218,7 @@ export function mount(c) {
   const isAdm = async () => { if (admin !== null) return admin; try { const m = await c.cloud(), s = await m.session(); admin = !!(s && (await s.c.rpc('is_admin')).data); } catch { admin = false; } return admin; };
   const vxNote = v => v.status === 'published' ? 'On your page and in the app' : v.status === 'pending' ? 'Waiting for Open Studio to approve' : v.status === 'changes' ? `Open Studio asked for a change${v.note ? ': ' + esc(v.note) : ''}` : 'Not on your page';
   async function vxFill(box) {
-    const adm = await isAdm();
+    const adm = false;                         // (16.11, the owner's word: an exhibition always goes through review, his own too)
     const label = v => v.status === 'published' ? 'Take off my page' : v.status === 'pending' ? 'Take it back' : adm ? 'Show on my page' : 'Send for review';
     box.innerHTML = `<p class="ed-order-h"><b>Virtual exhibitions</b><span>${adm ? 'You decide: it goes on your page and into the app at once.' : 'On your page and in the app once Open Studio approves it.'}</span></p>
       ${(S.virtual || []).map(v => `<div class="ed-vx-row" data-id="${esc(v.id)}"><a class="t" href="#/studio/virtual/${esc(v.id)}"><b dir="auto">${esc(v.title || 'Untitled')}</b><small>${vxNote(v)}</small></a><button type="button" class="btn g" data-vxs="${esc(v.id)}">${label(v)}</button></div>`).join('')}`;

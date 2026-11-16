@@ -1,0 +1,22 @@
+{
+  "_note": "Backup of the virtual exhibition 'Gaga' (virtual_shows.id 381468c2-dace-48b0-8ddb-a68aff1f8366, owner 9d1b42f7-f93e-4f9d-afe8-491d72a2cecc), deleted at the owner's request on 16.11.2026. The works themselves stay in the works table; this keeps the room, the hang and the plinths so it can be rebuilt.",
+  "title": "Gaga", "room": "glass-pavilion-large", "centre": 150, "status": "draft",
+  "placements": [
+    ["0c9af260-077f-43e5-91a0-b3b5a919e54f", "Together", "stand-0736zi-a", 1.574, 1.5],
+    ["07297df9-a015-4681-86fa-b1cea816375a", "Celebration", "stand-0736zi-a", 4.073, 1.5],
+    ["3e6b9567-ae03-4f19-a533-00f381682447", "Main space", "wall-x0", 3.445, 1.5],
+    ["7b2ccf63-a945-4a0d-a3c9-11e2ff87767b", "New workRefugee from newspaper", "wall-z1", 17.645, 1.5],
+    ["f4a6e54d-2215-4460-b82a-34b9abeaa249", "Adam and Eve", "wall-z1", 10.84, 1.585],
+    ["c677d588-05ed-407b-8d14-dc55c0891189", "Adan and Hava", "wall-z1", 8.118, 1.404],
+    ["91ebdf6b-f566-4ccc-88cc-c442dc3b8bab", "Sunflower", "wall-z1-c0", 6.26, 1.5],
+    ["4b73eec6-fd80-4c1b-807e-13d4892045cb", "Room", "wall-z1-c0", 2.995, 1.5],
+    ["29dc0360-52bd-4f20-9fc1-e51223435e65", "Group solo exhibition", "wall-z1-c1", 10.95, 1.5],
+    ["639c079b-64ea-4630-8078-b9ce094c16a6", "Carpet TV", "wall-z1-c1", 5.796, 1.5],
+    ["8c6af039-12e3-4971-9592-a32d90c809ce", "In nature", "wall-z1-c1", 2.817, 1.5]
+  ],
+  "plinths": [
+    {"x": 2.95, "z": 5.75, "id": "p-xd3q85", "size": "m", "work": null, "colour": "black"},
+    {"x": 2.15, "z": 5.1, "id": "p-ulrhlm", "size": "l", "dims": [125, 125, 20], "work": null, "colour": "grey"},
+    {"x": 6.8, "z": 2.9, "id": "stand-0736zi", "len": 6, "rot": 0, "kind": "stand"}
+  ]
+}

@@ -190,7 +190,7 @@ async function queue(c) {
     ${s.text ? `<p class="ax-st" dir="auto">${esc(s.text)}</p>` : ''}
     <div class="ax-ask" data-ask hidden><label>מה לשנות? האמן/ית רואה את זה בעמוד התערוכה (עדיף באנגלית)<input name="note" dir="auto" placeholder="e.g. Two works hang too close; give them room"></label>
       <div class="ax-acts"><button type="button" class="btn f" data-act="send-ask">שלח לאמן/ית</button><button type="button" class="btn g" data-act="cancel-ask">ביטול</button></div></div>
-    <div class="ax-acts" data-main><button type="button" class="btn f" data-act="approve">אשר</button><button type="button" class="btn g" data-act="ask">בקש שינויים</button><a class="btn ax-t3" href="#/preview/${s.owner_id}" data-act="preview">צפה בעמוד האמן ←</a></div></article>`; };
+    <div class="ax-acts" data-main><button type="button" class="btn f" data-act="approve">אשר</button><button type="button" class="btn g" data-act="ask">בקש שינויים</button><button type="button" class="btn g" data-act="walk">סיור בתערוכה</button><a class="btn ax-t3" href="#/preview/${s.owner_id}" data-act="preview">צפה בעמוד האמן ←</a></div></article>`; };
   const cards = [...q.waiting.map(artist), ...q.shows.map(show), ...q.groups.map(works), ...q.tours.map(tour)].join('');
   return `<p class="ax-sub" id="axSum"> </p><div class="ax-q" id="axQ">${cards}</div>
     <div class="ax-empty" id="axEmpty" ${q.n ? 'hidden' : ''}><b>אין מה לעשות</b><p class="m">כל מה שנשלח אליך טופל.</p><div class="ax-acts"><a class="btn g" href="#/admin/artists">לכל האמנים</a><a class="btn g" href="#/admin/curated">לתערוכות</a></div></div>
@@ -332,6 +332,16 @@ function wireAgent(app) {
   check();
 }
 
+// --- walking through an exhibition that waits for approval (the room is built from the saved row, as a visitor will see it) ---------
+async function walkShow(c, id) {
+  const { data: r, error } = await c.from('virtual_shows').select('*').eq('id', id).single(); if (error) throw error;
+  const [synth, { openSpace }] = await Promise.all([import('./space/synth.js'), import('./space/space.js')]);
+  const works = (r.works || []).map(w => ({ id: w.id, kind: w.kind === 'object' ? 'object' : 'work', title: w.title, image: w.image, thumb: w.thumb, width: w.width, height: w.height, depth: w.depth, year: w.year, medium: w.medium, artist: { name: '' } }));
+  const placements = Object.fromEntries((r.works || []).filter(w => w.wall).map(w => [w.id, { wall: w.wall, a: w.a, y: w.y }]));
+  const made = await synth.buildRoom({ title: r.title, room: r.room, paint: r.paint || '', centre: r.centre, works, placements, plinths: r.plinths || [] }, u => u);
+  await openSpace({ spec: made.spec, works, src: u => u, onClose: () => made.revoke() });
+}
+
 // --- the system: how the app is, asking for a change, trying it as someone new ----------------------------------------
 const gh = p => fetch(`https://api.github.com/repos/${REPO}/${p}`, { headers: { Accept: 'application/vnd.github+json' } }).then(r => r.ok ? r.json() : null).catch(() => null);
 const healthState = () => (HC && Date.now() - HC.t < 6e5 ? HC.p : (HC = { t: Date.now(), p: Promise.all([gh('issues?labels=app-health&state=open'), gh('actions/runs?per_page=40')]).then(([issues, runs]) => ({ issues, runs })) }).p);
@@ -405,6 +415,7 @@ function wire(app, c, tab) {
       const b = e.target.closest('[data-act]'); if (!b) return;
       const card = b.closest('.ax-card'), act = b.dataset.act;
       if (act === 'preview') return;
+      if (act === 'walk') { const t0 = b.textContent; b.disabled = true; b.textContent = 'בונה את החדר…'; try { await walkShow(c, card.dataset.id); } catch (er) { fail(er); } b.disabled = false; b.textContent = t0; return; }
       if (act === 'flag') {
         const on = !b.classList.contains('x'); b.classList.toggle('x', on); b.setAttribute('aria-pressed', on);
         const bad = card.querySelectorAll('.ax-t.x').length, all = card.querySelectorAll('.ax-t').length;
