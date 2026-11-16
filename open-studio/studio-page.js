@@ -189,6 +189,24 @@ export function mount(c) {
   const commit = () => { chip('Saving…'); Promise.resolve(save()).then(() => chip(), () => chip()); };
   const refreshCard = () => { const c0 = app.querySelector('#edCard'); if (c0) { c0.innerHTML = card(); wireCard(); } };
 
+  // virtual exhibitions on the page: who may publish, and the list with its switch
+  let admin = null;
+  const isAdm = async () => { if (admin !== null) return admin; try { const m = await c.cloud(), s = await m.session(); admin = !!(s && (await s.c.rpc('is_admin')).data); } catch { admin = false; } return admin; };
+  const vxNote = v => v.status === 'published' ? 'On your page and in the app' : v.status === 'pending' ? 'Waiting for Open Studio to approve' : v.status === 'changes' ? `Open Studio asked for a change${v.note ? ': ' + esc(v.note) : ''}` : 'Not on your page';
+  async function vxFill(box) {
+    const adm = await isAdm();
+    const label = v => v.status === 'published' ? 'Take off my page' : v.status === 'pending' ? 'Take it back' : adm ? 'Show on my page' : 'Send for review';
+    box.innerHTML = `<p class="ed-order-h"><b>Virtual exhibitions</b><span>${adm ? 'You decide: it goes on your page and into the app at once.' : 'On your page and in the app once Open Studio approves it.'}</span></p>
+      ${(S.virtual || []).map(v => `<div class="ed-vx-row" data-id="${esc(v.id)}"><a class="t" href="#/studio/virtual/${esc(v.id)}"><b dir="auto">${esc(v.title || 'Untitled')}</b><small>${vxNote(v)}</small></a><button type="button" class="btn g" data-vxs="${esc(v.id)}">${label(v)}</button></div>`).join('')}`;
+    box.querySelectorAll('[data-vxs]').forEach(b => b.onclick = () => {
+      const v = (S.virtual || []).find(x => x.id === b.dataset.vxs); if (!v) return;
+      const was = v.status, out = was === 'published' || was === 'pending';
+      if (!out && !v.title) { go(`#/studio/virtual/${v.id}`); return; }
+      v.status = out ? 'draft' : adm ? 'published' : 'pending'; commit(); vxFill(box);
+      toast(out ? `${v.title || 'The exhibition'} is off your page` : adm ? `${v.title || 'The exhibition'} is on your page` : 'Sent to Open Studio', () => { v.status = was; commit(); vxFill(box); });
+    });
+  }
+
   function decorate() {
     app.classList.add('ed');
     const hero = app.querySelector('.hero'), wrap = app.querySelector('.hero ~ .wrap');
@@ -215,6 +233,13 @@ export function mount(c) {
     // the exhibitions
     let covers = wrap.querySelector('.covers') || wrap.querySelector('.walkbox');      // (the page shows its exhibitions as a row of arches: the same section, not a second one)
     if (!covers) { (sec || wrap).insertAdjacentHTML(sec ? 'afterend' : 'beforeend', '<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">0</span></div><div class="covers"></div></section>'); covers = wrap.querySelector('.covers'); }
+    // the virtual exhibitions: each one is on the artist's page (and in the app) or not, and the artist decides here; an owner of
+    // Open Studio publishes at once, everyone else sends it for review
+    if (S.cloud && (S.virtual || []).length) {
+      const box = document.createElement('div'); box.className = 'ed-vx'; box.id = 'edVx';
+      covers.closest('.sec').insertAdjacentElement('beforeend', box);
+      vxFill(box);
+    }
     covers.closest('.sec').insertAdjacentHTML('beforeend', '<button type="button" class="ed-sec-add" data-ed="ex-new" style="margin-top:14px">+ Add an exhibition</button>');
     covers.querySelectorAll('a').forEach(x => { x.dataset.slug = x.getAttribute('href').slice(13); });
     // the order of the arches is the artist's: a list under the row, each exhibition moved up or down (first = the first arch)

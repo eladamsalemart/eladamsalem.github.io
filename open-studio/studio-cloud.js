@@ -84,7 +84,7 @@ const toBlob = async u => (await fetch(u)).blob();
 
 // --- saving: what changed since the last save goes to the database --------------------------------------------------
 let saving = Promise.resolve();
-export function save(S) { saving = saving.then(() => push(S)).catch(e => { console.error(e); window.dispatchEvent(new CustomEvent('studio-save-failed', { detail: e.message })); }); return saving; }
+export function save(S) { window.dispatchEvent(new CustomEvent('studio-saving')); saving = saving.then(() => push(S)).then(() => { window.dispatchEvent(new CustomEvent('studio-saved', { detail: Date.now() })); }).catch(e => { console.error(e); window.dispatchEvent(new CustomEvent('studio-save-failed', { detail: e.message })); }); return saving; }
 async function push(S) {
   const { c, user } = await session();
   const was = last ? JSON.parse(last) : { artist: {}, works: [], virtual: [] };
@@ -106,10 +106,11 @@ async function push(S) {
     if (error) throw error;
   }
   // works: new and changed ones written (images uploaded first), removed ones deleted, the order kept
-  const old = new Map(was.works.map(w => [w.id, JSON.stringify(w)]));
+  const old = new Map(was.works.map(w => [w.id, JSON.stringify(w)])), touched = new Set();      // (touched: works written now; the shows that hang them are written again, so a show never keeps an old copy of a work)
   for (const [i, w] of S.works.entries()) {
     if (!/^[0-9a-f-]{36}$/.test(w.id)) w.id = crypto.randomUUID();
     if (old.get(w.id) === JSON.stringify(w) && i === was.works.findIndex(x => x.id === w.id)) continue;
+    touched.add(w.id);
     if (isLocal(w.image) || isLocal(w.thumb)) {
       const tell = state => window.dispatchEvent(new CustomEvent('studio-upload', { detail: { id: w.id, state } }));
       tell('uploading');
@@ -131,13 +132,18 @@ async function push(S) {
   for (const v of S.virtual || []) {
     if (!/^[0-9a-f-]{36}$/.test(v.id)) v.id = crypto.randomUUID();
     const prev = (was.virtual || []).find(x => x.id === v.id);
-    if (prev && JSON.stringify(prev) === JSON.stringify(v)) continue;
+    if (prev && JSON.stringify(prev) === JSON.stringify(v) && !(v.works || []).some(id => touched.has(id))) continue;
     const works = v.works.map(id => S.works.find(w => w.id === id)).filter(Boolean)
       .map(w => ({ id: w.id, title: w.title, image: w.image, thumb: w.thumb, width: +w.width || null, height: +w.height || null, depth: +w.depth || null, year: w.year, medium: w.medium, kind: w.kind === 'object' ? 'object' : 'work',
         ...((v.placements || {})[w.id] || {}) }));
     const { error } = await c.from('virtual_shows').upsert({ id: v.id, owner_id: user.id, kind: 'artist', title: v.title || 'Untitled', room: v.room, paint: v.paint || null,
       centre: +v.centre || 150, text: v.text || null, works, plinths: v.plinths || [], status: ['published', 'pending', 'changes'].includes(v.status) ? v.status : 'draft', slug: v.slug || null, on_view: !!v.onview });
     if (error) throw error;
+    // (read back: what Home and Shows show is this row, so it must be what the artist made)
+    const { data: back } = await c.from('virtual_shows').select('title,room,works,plinths').eq('id', v.id).maybeSingle();
+    const hung = list => (list || []).map(w => `${w.id}@${w.wall || ''}:${+w.a || 0}:${+w.y || 0}`).sort().join('|');
+    if (!back || back.title !== (v.title || 'Untitled') || (back.room || '') !== (v.room || '') || (back.plinths || []).length !== (v.plinths || []).length || hung(back.works) !== hung(works))
+      throw new Error('the cloud copy of this exhibition is not the one on your screen');
   }
   const goneV = (was.virtual || []).filter(v => !(S.virtual || []).some(x => x.id === v.id)).map(v => v.id);
   if (goneV.length) { const { error } = await c.from('virtual_shows').delete().in('id', goneV); if (error) throw error; }

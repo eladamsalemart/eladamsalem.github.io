@@ -40,7 +40,7 @@ function freshCommunity(d) {
 }
 const DB = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/rest/v1/', DB_KEY = 'sb_publishable_VKboaeE8UE3iwVKhyr4FSA_faDO17fu';
 async function communityData() {
-  const signal = AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined;
+  const signal = AbortSignal.timeout ? AbortSignal.timeout(20000) : undefined;      // (only ever asked for in the background: the first paint is the phone's last copy)
   const q = path => fetch(DB + path, { headers: { apikey: DB_KEY }, signal }).then(r => r.ok ? r.json() : []);
   const [artists, works, shows, hidden] = await Promise.all([
     q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,hero,hero_pos,link,instagram,cv,exhibitions&status=eq.approved'),
@@ -114,6 +114,17 @@ function buildModel(d) {
   if (d.community) addCommunity(m, d.community, uniq, seen);
   if (d.virtual) { addVirtual(m, d.virtual, uniq); m.virtualColours = d.virtual.streetColours || {}; }
   if (d.community) addVirtual(m, { shows: d.community.shows.map(showOf(m)) }, uniq);
+  // the owner is two artists here: the site's own content (the first) and the account made in the app (the twin, same name). One
+  // person is one artist: the twin is an alias (no second entry in any list, its page is the first one's), and an exhibition of
+  // the twin's that the first already has (the real ones are on both) is not shown twice
+  const norm = t => String(t || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const twin = m.artists.find(x => x !== m.artist && x.community && norm(x.name) === norm(m.artist.name));
+  if (twin) {
+    twin.alias = true;
+    const mine = new Set(m.exhibitions.filter(e => e.artist === m.artist).map(e => norm(e.title)));
+    m.exhibitions = m.exhibitions.filter(e => !(e.artist === twin && e.kind !== 'online' && mine.has(norm(e.title))));
+    for (const e of m.exhibitions) { if (e.artist === twin) e.artist = m.artist; if (e.artists) e.artists = [...new Set(e.artists.map(x => x === twin ? m.artist : x))]; }
+  }
   // exhibitions the owner hid in the control room (nothing is deleted there: they can come back); the control room lists all of them
   m.allExhibitions = m.exhibitions.slice();
   m.hidden = new Set(((d.community && d.community.hidden) || []).map(r => r.key));
@@ -258,7 +269,10 @@ const nextEvent = e => e.events.filter(v => +v.at > Date.now() - 3 * 3600000).so
 const worksOf = a => { const l = M.works.filter(w => w.artist === a && w.kind !== 'object'); return a.community ? l.sort((x, y) => (+y.year || 0) - (+x.year || 0) || x.i - y.i) : l; };   // newest year first; inside a year, the artist's own order
 const objectsOf = a => M.works.filter(w => w.artist === a && w.kind === 'object');
 // an artist's shows, their own first (a group show after)
-const showsOf = a => M.exhibitions.filter(e => (e.artists || [e.artist]).includes(a)).sort((x, y) => (y.artist === a) - (x.artist === a));
+// the same person can be two artists here: the site's own content, and the account they made in the app (same name). Their virtual
+// exhibitions live on the account, so the page of either one shows them (the real ones are on both, and are not doubled).
+const twinOf = a => M.artists.find(b => b !== a && b.name && a.name && b.name.trim().toLowerCase() === a.name.trim().toLowerCase());
+const showsOf = a => { const t = twinOf(a); return M.exhibitions.filter(e => (e.artists || [e.artist]).includes(a) || (t && t.alias && (e.artists || [e.artist]).includes(t))).sort((x, y) => (y.artist === a) - (x.artist === a)); };
 const byOf = e => (e.artists || [e.artist]).map(a => a.name).join(' × ');
 const dayName = t => { const d = Math.round((new Date(t).setHours(0, 0, 0, 0) - today()) / DAY); return d === 0 ? 'Tonight' : d === 1 ? 'Tomorrow' : t.toLocaleDateString('en-GB', { weekday: 'short' }); };
 const hm = t => t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -392,7 +406,7 @@ function skyOf() {
     if (e) show(e, ring, noteOf(e));
   }
   // further out: who and what you haven't met yet
-  for (const a of M.artists) if (!following().includes(a.slug)) {
+  for (const a of M.artists.filter(x => !x.alias)) if (!following().includes(a.slug)) {
     const c = artist(a, 2, newsOf(a)); if (!c) continue;
     const e = showsOf(a).filter(x => status(x) !== 'past')[0] || showsOf(a)[0]; if (e) show(e, 2, noteOf(e), off(c, 105, 70));
     const w = worksOf(a).find(x => x.image); if (w) piece(w, 2, '', off(c, -105, 80));
@@ -777,7 +791,8 @@ function showsByYear(shows) {
   return `<div class="ex-years">${ys.map(y => `<div class="wk-y"><h4>${esc(y || 'Undated')}</h4><div class="list">${shows.filter(e => yr(e) === y).map(row).join('')}</div></div>`).join('')}</div>`;
 }
 function artistPage(slug) {
-  const a = M.artists.find(x => x.slug === slug);
+  let a = M.artists.find(x => x.slug === slug);
+  if (a && a.alias) a = M.artist;
   if (!a) return notFound();
   const shows = showsOf(a), works = worksOf(a), live = shows.find(e => status(e) !== 'past'), last = shows[0];
   const posts = M.live.filter(p => p.artist === a).sort((x, y) => y.at - x.at);
@@ -950,7 +965,7 @@ function results(q) {
   q = q.trim().toLowerCase();
   if (!q) return `<p class="m" style="color:var(--muted)">Search across everything on Studio.</p>`;
   const hit = (...xs) => xs.some(x => String(x || '').toLowerCase().includes(q));
-  const artists = M.artists.filter(a => hit(a.name, a.city, a.discipline));
+  const artists = M.artists.filter(a => !a.alias && hit(a.name, a.city, a.discipline));
   const shows = M.exhibitions.filter(e => hit(e.title, e.venue, e.city, e.year));
   const works = M.works.filter(w => hit(w.title, w.medium, w.year));
   const places = M.cities.filter(c => hit(c.name, c.country));
@@ -984,7 +999,7 @@ function placePage(slug) {
 
 // --- Artists: everyone on Open Studio, the ones you follow first ---------------------------------------
 function artistsPage() {
-  const fol = following(), list = [...M.artists].sort((a, b) => fol.includes(b.slug) - fol.includes(a.slug));
+  const fol = following(), list = M.artists.filter(a => !a.alias).sort((a, b) => fol.includes(b.slug) - fol.includes(a.slug));
   return `<div class="wrap gut">
     <div class="home-h"><h1>Artists</h1></div>
     <div class="artists">${list.map(a => {
@@ -1304,21 +1319,30 @@ async function enterStreet() {
       const c = s.content, e = s.app_slug && shows.find(x => x.slug === s.app_slug);
       if (!c && !e) return null;
       const ws = c ? (c.works || []) : e.works, slug = e ? e.slug : 'slot-' + s.slot;
-      return { slug, title: c ? c.title : e.title, works: ws, text: c && c.text, curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
+      return { slug, slot: s.slot, title: c ? c.title : e.title, works: ws, text: c ? c.text : (e && e.text), sub: !c && e ? [e.venue, e.dates || e.year].filter(Boolean).join(' · ') : '', curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
         colour: s.colour || over[slug] || set[slug] || await synth.suggestColour(ws.map(thumb), src, synth.slugHue(slug)) };
     }))).filter(Boolean);
   }
   if (!rooms || !rooms.length) rooms = await Promise.all(shows.map(async e => ({
-    slug: e.slug, title: e.title, works: e.works,
+    slug: e.slug, title: e.title, works: e.works, text: e.text, sub: [e.venue, e.dates || e.year].filter(Boolean).join(' · '),
     colour: over[e.slug] || set[e.slug] || await synth.suggestColour(e.works.map(thumb), src, synth.slugHue(e.slug)),
   })));
   // (a trial of the museum as a hall with rooms off its four sides, not a street: only with ?hall in the address, until the owner chooses)
-  const qs = new URLSearchParams(location.search), sections = qs.has('street') || qs.has('hall') ? [] : await loadSections(), made = await (qs.has('street') ? synth.buildStreet : qs.has('hall') ? synth.buildHall : synth.buildCluster)(rooms, src, thumb, { sections });   // (the open museum of houses is the museum, 16.11; ?street and ?hall keep the older plans)
+  // an artist's own exhibition added to the museum with its original space (a house of the plan with `tour`): its works and text are copied here, a tap on the arch walks into the photographed space
+  const planNow = await get('museum_plan?select=plan&key=eq.main').then(r => (r[0] && r[0].plan) || null).catch(() => null);
+  for (const sp of synth.planOf(planNow).spaces) {
+    const e = sp.type === 'house' && sp.tour && M.exhibitions.find(x => x.slug === sp.tour && x.space);
+    if (!e || rooms.some(r => r.slot === sp.slot)) continue;
+    rooms.push({ slug: e.slug, slot: sp.slot, title: e.title, works: e.works, text: e.text, sub: [e.venue, e.dates || e.year].filter(Boolean).join(' · '), colour: await synth.suggestColour(e.works.map(thumb), src, synth.slugHue(e.slug)),
+      enter: { hash: `#/exhibition/${e.slug}/space`, image: `data/spaces/${Object.keys(M.spaces || {}).find(k => M.spaces[k] === e.space) || e.slug}/preview.jpg`, label: 'Walk into the original space' } });
+  }
+  const qs = new URLSearchParams(location.search), sections = qs.has('street') || qs.has('hall') ? [] : await loadSections(), plan = await get('museum_plan?select=plan&key=eq.main').then(r => (r[0] && r[0].plan) || null).catch(() => null), made = await (qs.has('street') ? synth.buildStreet : qs.has('hall') ? synth.buildHall : qs.has('cluster') ? synth.buildCluster : synth.buildSky)(rooms, src, thumb, { sections, plan });   // (the open museum of houses is the museum, 16.11; ?street and ?hall keep the older plans)
   if (location.hash !== '#/museum') return;                       // (left while it was being built)
   openSpaceView = await openSpace({
     spec: made.spec, works: M.works, src,
     onClose: () => { openSpaceView = null; if (prevHash === '#/shows' || prevHash === '#/') history.back(); else location.replace('#/shows'); },
     onOpenWork: w => { location.hash = `#/work/${w.slug}`; },
+    onHotspot: h => { if (h.go && h.enter && h.enter.hash) { location.hash = h.enter.hash; return true; } },
   });
   window.__spaceView = openSpaceView;
 }
@@ -1437,7 +1461,7 @@ document.addEventListener('click', async ev => {
 });
 
 const returning = /[?&](code|token_hash|error_description)=/.test(location.search) ? import('./auth.js').then(m => m.finishReturn()).catch(() => {}) : Promise.resolve();
-Promise.all([loadData(), returning]).then(([d]) => { M = buildModel(d); render(); window.addEventListener('hashchange', render); freshCommunity(d); })
+Promise.all([loadData(), returning]).then(([d]) => { M = buildModel(d); render(); window.addEventListener('hashchange', render); freshCommunity(d); window.addEventListener('studio-saved', () => freshCommunity(d)); })
   .then(() => {
     if (!signedIn() || /[?&](inspect|guest)(=|&|$)/.test(location.search)) return;
     import('./auth.js').then(m => m.refresh()).then(next => {

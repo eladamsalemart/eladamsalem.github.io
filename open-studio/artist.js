@@ -165,7 +165,7 @@ function exhibitions() {
     <p class="m">There are two kinds of exhibition here, and they are made in different ways.</p>
     <section class="st-card ex-kind" aria-labelledby="exV"><p class="ex-tag">Virtual</p><h2 id="exV">An exhibition that exists only here</h2>
       <p class="m small">You choose one of Open Studio’s rooms and hang your works in it. Visitors walk through it on their phone. Nothing has to exist in the real world.</p>
-      ${vs.length ? `<div class="list">${vs.map(v => `<a class="row" href="${v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`}"><img src="${esc(thumbOf(v.works[0]))}" alt=""><div class="t"><div><b>${esc(v.title || 'Untitled')}</b></div><div class="m">${esc(roomName(v.room))} · ${v.works.length} works</div></div><span class="st-flag ${vState(v)[0]}">${vState(v)[1]}</span></a>`).join('')}</div>` : ''}
+      ${vs.length ? `<div class="list">${vs.map(v => `<div class="ex-vi"><a class="row" href="${v.onview ? '#/studio/onview' : `#/studio/virtual/${v.id}`}"><img src="${esc(thumbOf(v.works[0]))}" alt=""><div class="t"><div><b>${esc(v.title || 'Untitled')}</b></div><div class="m">${esc(roomName(v.room))} · ${v.works.length} works</div></div><span class="st-flag ${vState(v)[0]}">${vState(v)[1]}</span></a>${S.cloud ? `<button type="button" class="btn g ex-vp" data-vpub="${esc(v.id)}">${v.status === 'published' ? 'Take off my page' : v.status === 'pending' ? 'Take it back' : ADMIN ? 'Show on my page' : 'Send for review'}</button>` : ''}</div>`).join('')}</div>` : ''}
       <div class="btns"><a class="btn f" href="${on || !vs.length ? '#/studio/onview' : '#/studio/virtual/new'}">${on ? 'Open your virtual exhibition' : vs.length ? 'Design another' : 'Make a virtual exhibition'}</a></div></section>
     <section class="st-card ex-kind" aria-labelledby="exR"><p class="ex-tag real">Real</p><h2 id="exR">An exhibition that happened</h2>
       <p class="m small">A show you had in a gallery, a studio or any real place. Add its photos or a walk-through video. When there is enough material, Open Studio builds a 3D walk of the real room from it.</p>
@@ -241,13 +241,25 @@ function ovBar(v, title) {
   const hang = (cls, t) => `<button class="btn ${cls}" type="button" id="vxHang">${t}</button>`, walk = (cls, t) => `<button class="btn ${cls}" type="button" id="vxWalk">${t}</button>`;
   if (!S.works.length) return `<a class="btn f" href="#/studio">Add works to your page first</a>${hang('g', 'Walk in')}`;
   if (!hung) return hang('f', 'Place the works on the plan');
-  if (S.cloud && !pub && v.status !== 'pending') return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">${v.status === 'changes' ? 'Send again' : 'Send for review'}</button>`;
+  if (S.cloud && !pub && v.status !== 'pending') return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">${ADMIN ? 'Publish' : v.status === 'changes' ? 'Send again' : 'Send for review'}</button>`;
   return `${hang('g', 'Rehang')}${walk('f', 'Walk as a visitor')}`;
 }
+// an owner of Open Studio (an admin) publishes their own exhibition at once; everyone else sends it for review
+let ADMIN = false, adminAsked = false;
+const askAdmin = () => adminAsked ? Promise.resolve() : (adminAsked = true, import('./studio-cloud.js').then(async m => { const s = await m.session(); if (!s) return; const { data } = await s.c.rpc('is_admin'); ADMIN = !!data; }).catch(() => {}));
+// where the exhibition stands, in one card: live in the app or not, and whether what you see here is saved to the cloud
+const ovStatus = v => {
+  const st = v.status, k = st === 'published' ? ['ok', 'Live in the app', 'Visitors see this exhibition in Shows and on your page. A change you make here reaches them as soon as it is saved.']
+    : st === 'pending' ? ['wait', 'Waiting for Open Studio', 'Not live yet: Open Studio looks at every exhibition before it goes out. You can go on editing.']
+    : st === 'changes' ? ['no', 'Changes asked', esc(v.note || 'Open Studio asked for a change. See your page.')]
+    : ['', 'Draft: not in the app', ADMIN ? 'Only you can see it. Press Publish and it goes live at once (you run Open Studio, so it needs no review).' : 'Only you can see it. Send it for review when it is ready.'];
+  return `<div class="ov-status ${k[0]}" id="ovStatus"><b>${k[1]}</b><span>${k[2]}</span><em id="ovCloud" role="status">${v.id ? 'Saved to the cloud' : 'Not saved yet'}</em></div>`;
+};
 function onViewPage(v0) {
   const v = v0 || { id: '', title: '', room: '', works: [], text: '', centre: 150 }, pub = v.status === 'published';
   return `<div class="wrap gut st ov">${head('A virtual exhibition', '#/studio/exhibitions')}${nav('onview')}
     <p class="ov-lede">The exhibition you are showing now. It opens your page${S.cloud ? ', and goes out in Open Studio’s feed' : ''}.</p>
+    ${S.cloud ? ovStatus(v) : ''}
     ${ovSteps(v)}
     ${!v0 && ovGone ? '<p class="ov-undo" role="status">The exhibition was deleted.<button type="button" class="ov-link" id="vxUndo">Undo</button></p>' : ''}
     <form class="st-form st-vx" id="vxForm" data-id="${esc(v.id)}" data-onview="1" novalidate>
@@ -679,6 +691,12 @@ function wireOnView(app, go, vx) {
   const $ = s => app.querySelector(s), blank = { works: [], status: '' };
   let v = vx.dataset.id ? S.virtual.find(x => x.id === vx.dataset.id) : null, timer = 0, sayT = 0, coverN = 0, working = false;
   const say = t => { const el = $('#ovSaved'); if (!el) return; el.textContent = t; el.classList.add('on'); clearTimeout(sayT); sayT = setTimeout(() => el.classList.remove('on'), 1800); };
+  // the real state of the cloud copy (the quick 'Saved' above is only the local one)
+  const cloud = (cls, t, retry) => { const el = $('#ovCloud'); if (!el) return; el.className = cls; el.textContent = t; if (retry) { const b = document.createElement('button'); b.type = 'button'; b.className = 'ov-link'; b.textContent = 'Try again'; b.onclick = () => { cloud('', 'Saving…'); save(); }; el.append(' ', b); } };
+  const hhmm = t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  window.removeEventListener('studio-saving', window.__ovSaving); window.removeEventListener('studio-saved', window.__ovSaved); window.removeEventListener('studio-save-failed', window.__ovFail);
+  window.__ovSaving = () => cloud('', 'Saving…'); window.__ovSaved = e => cloud('ok', `Saved to the cloud · ${hhmm(e.detail || Date.now())}`); window.__ovFail = e => cloud('bad', `Not saved: ${(e.detail || 'no connection')}.`, true);
+  window.addEventListener('studio-saving', window.__ovSaving); window.addEventListener('studio-saved', window.__ovSaved); window.addEventListener('studio-save-failed', window.__ovFail);
   const keep = quiet => {
     const f = new FormData(vx), data = { title: f.get('title').trim(), room: f.get('room'), paint: '', centre: +f.get('centre') || 150, text: f.get('text'), onview: true };
     (S.virtual || []).forEach(x => { if (x !== v) x.onview = false; });
@@ -705,9 +723,10 @@ function wireOnView(app, go, vx) {
   function publish() {
     const k = keep(true), t = vx.elements.title;
     if (k.status !== 'published' && !k.title) { t.scrollIntoView({ block: 'center' }); t.focus({ preventScroll: true }); t.setAttribute('aria-invalid', 'true'); return say('Give it a title first'); }
-    const out = k.status === 'published' || k.status === 'pending'; k.status = out ? 'draft' : 'pending'; save(); if (!out) say('Sent to Open Studio'); go('#/studio/onview', true);
+    const out = k.status === 'published' || k.status === 'pending'; k.status = out ? 'draft' : ADMIN ? 'published' : 'pending'; save(); if (!out) say(ADMIN ? 'Published' : 'Sent to Open Studio'); go('#/studio/onview', true);
   }
   const pubLink = $('#ovState #vxPub'); if (pubLink) pubLink.onclick = publish;
+  askAdmin().then(() => { if (!ADMIN) return; acts(); const st = $('#ovStatus'); if (st) st.outerHTML = ovStatus(now()); });
   // the room that is chosen: its picture, its name, its sizes; in place
   const setRoom = slug => {
     if (!ROOMS[slug]) return;
@@ -959,11 +978,18 @@ export async function studio(hash, app, go, M, tools) {
   else if (m.startsWith('exhibition/')) html = exhibitionPage(m.slice(11));
   else if (m.startsWith('virtual/') || m === 'exhibitions' || m === 'onview') {
     { const m = await synth(); ({ ROOMS, PAINTS } = m); ACTIVE = m.ACTIVE_KINDS || []; }
+    if (m === 'exhibitions') await askAdmin();
     html = m === 'exhibitions' ? exhibitions() : m === 'onview' ? onView() : designer(m.slice(8));
   }
   else if (m === 'import') html = importer();
   else { go('#/studio'); return; }
   app.innerHTML = html;
   wire(app, go);
+  app.querySelectorAll('[data-vpub]').forEach(b => b.onclick = () => {          // (the Exhibitions tab: a virtual exhibition on the page or not)
+    const v = (S.virtual || []).find(x => x.id === b.dataset.vpub); if (!v) return;
+    const out = v.status === 'published' || v.status === 'pending';
+    if (!out && !v.title) return go(`#/studio/virtual/${v.id}`);
+    v.status = out ? 'draft' : ADMIN ? 'published' : 'pending'; save(); go('#/studio/exhibitions', true);
+  });
   if (restoreY != null) { const y = restoreY; restoreY = null; requestAnimationFrame(() => scrollTo({ top: y, behavior: 'instant' })); }
 }

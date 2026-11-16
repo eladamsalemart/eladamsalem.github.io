@@ -30,6 +30,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     <div class="sv-turn" hidden role="status"><svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true"><g class="ph"><rect x="22" y="8" width="20" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="32" cy="50" r="1.6" fill="currentColor"/></g><path d="M50 20a22 22 0 0 1 4 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M55.5 28.5 54 34l-5-2.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><b>Turn your phone sideways</b><span>The room fills the whole screen</span></div>
     <div class="sv-modes seg" role="group" aria-label="Move by"><button type="button" data-mode="walk" aria-pressed="true">Walk</button><button type="button" data-mode="works" aria-pressed="false">Works</button><button type="button" data-mode="photos" aria-pressed="false">Photos</button></div>
     <svg class="sv-map" role="img" aria-label="Floor plan: the room, its works and where you stand. Tap a work to go to it."></svg>
+    <div class="sv-dir" hidden role="dialog" aria-label="The plan and every exhibition"></div>
     <figure class="sv-photo" hidden><img alt=""><figcaption>Original photo</figcaption></figure>
     <span class="sv-dot" aria-hidden="true"></span>
     <div class="sv-joy" role="application" aria-label="Walk: drag the knob to move"><i></i></div>
@@ -205,6 +206,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   surfaces.forEach((s, i) => {
     if (glassWalls.has(s.name)) return;
     if (s.kind === 'reveal') { const r = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide }))); r.userData.kind = 'reveal'; scene.add(r); return; }
+    if (s.glass) { const gm = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }), s.openings || [], 0); gm.renderOrder = 4; gm.userData.kind = 'glass'; scene.add(gm); return; }      // (a glass wall: its mullions and a faint sheen, you see through the rest)
     if (s.kind === 'wall' || s.kind === 'ceiling') {
       const masks = s.kind === 'wall' ? ((spec.blocks || {})[s.name] || []) : [];
       const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks, '', s.stand ? 0.3 : 1), s.openings || [], s.kind === 'wall' && !s.stand ? 0.03 : 0);
@@ -974,7 +976,57 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     const t = `translate(${mx(pos.x).toFixed(1)} ${mz(pos.z).toFixed(1)}) rotate(${a.toFixed(0)})`;
     if (t !== mapAt) { me.setAttribute('transform', t); mapAt = t; }
   }
+  // --- the plan opens large, with the list of every exhibition and section (spec.directory: { title, kind, at: [x, z], look: [x, z] });
+  //     a tap on an entry (in the list or on its pin) takes the visitor there, facing it. The museum is big and walking takes time.
+  const dirEl = $('.sv-dir'), DIR = spec.directory || [];
+  let dirOpen = false;
+  if (DIR.length) {
+    if (!document.getElementById('svDirCss')) document.head.insertAdjacentHTML('beforeend', `<style id="svDirCss">
+.sv-map.tap{cursor:pointer;pointer-events:auto}.sv-map .tapt{font:600 9px system-ui,sans-serif;fill:#6d675d}
+.sv-dir{position:absolute;inset:0;z-index:40;background:rgba(246,243,236,.985);overflow:auto;-webkit-overflow-scrolling:touch;padding:calc(10px + env(safe-area-inset-top,0px)) 14px calc(18px + env(safe-area-inset-bottom,0px));color:#22201c;font:15px/1.4 system-ui,-apple-system,sans-serif}
+.sv-dir[hidden]{display:none}
+.sv-dir-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.sv-dir-h b{font:600 22px Georgia,serif}
+.sv-dir-x{min-width:44px;min-height:44px;border:0;border-radius:22px;background:#e9e3d6;font-size:24px;line-height:1;color:#22201c}
+.sv-dir-p{background:#fffdf8;border:1px solid #d9d2c3;border-radius:10px;padding:6px}.sv-dir-p svg{display:block;width:100%;height:auto;max-height:40vh}
+.sv-dir-p .room{fill:#f3f2ee;stroke:#141516;stroke-width:1.2}.sv-dir-p .work{stroke:#141516;stroke-width:2.4;stroke-linecap:round}.sv-dir-p .stand{stroke:#8d8a82;stroke-width:2}
+.sv-dir-p .pin{cursor:pointer}.sv-dir-p .pin circle{fill:#8a4b2c;stroke:#fff;stroke-width:1.4}.sv-dir-p .pin text{fill:#fff;font:700 8px system-ui,sans-serif;text-anchor:middle}.sv-dir-p .pin.h circle{fill:#1c67e3}.sv-dir-p .pin.p circle{fill:#3a3d40}
+.sv-dir-l{margin-top:12px}.sv-dir-l h4{margin:14px 0 6px;font:600 12px system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#6d675d}
+.sv-dir-l button{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:8px 12px;margin-bottom:6px;border:1px solid #d9d2c3;border-radius:10px;background:#fffdf8;color:#22201c;text-align:left;font:inherit}
+.sv-dir-l button i{flex:none;width:24px;height:24px;border-radius:12px;background:#8a4b2c;color:#fff;font:700 12px/24px system-ui,sans-serif;text-align:center;font-style:normal}.sv-dir-l button.h i{background:#1c67e3}.sv-dir-l button.p i{background:#3a3d40}
+.sv-dir-l button b{font-weight:600}.sv-dir-l button span{margin-left:auto;font-size:12px;color:#6d675d}
+</style>`);
+    map.classList.add('tap'); map.setAttribute('role', 'button'); map.setAttribute('tabindex', '0'); map.setAttribute('aria-label', 'Floor plan. Tap it for the list of every exhibition.');
+    map.insertAdjacentHTML('beforeend', `<text class="tapt" x="${rw * ms + 8}" y="${rd * ms + 9}" text-anchor="end">tap: all exhibitions</text>`);
+    map.setAttribute('viewBox', `0 0 ${rw * ms + 12} ${rd * ms + 16}`);
+    const KIND = { room: 'Exhibitions', history: 'History: a walk through time', place: 'Places' };
+    const jump = en => {
+      setMode('walk'); goFree(); walkTo = null;
+      const at = new THREE.Vector3(en.at[0], EYE, en.at[1]); pos.copy(at); tPos.copy(at); aimFrom(pos, new THREE.Vector3(en.look[0], EYE - 0.05, en.look[1]));
+      look.set(pos.x - Math.sin(yaw) * Math.cos(pitch), pos.y + Math.sin(pitch), pos.z - Math.cos(yaw) * Math.cos(pitch)); tLook.copy(look);       // (arrive already facing it: no swing from the old direction)
+      show(); dropHint(); closeDir(); dirty = true;
+    };
+    const closeDir = () => { dirOpen = false; dirEl.hidden = true; };
+    const openDir = () => {
+      dirOpen = true;
+      const big = map.cloneNode(true); big.removeAttribute('class'); big.removeAttribute('style'); big.removeAttribute('role'); big.removeAttribute('tabindex'); big.removeAttribute('aria-label'); big.querySelectorAll('.tapt,.hit').forEach(n => n.remove());
+      const pins = DIR.map((en, k) => `<g class="pin ${en.kind === 'history' ? 'h' : en.kind === 'place' ? 'p' : ''}" data-k="${k}"><circle cx="${mx(en.at[0])}" cy="${mz(en.at[1])}" r="6.2"/><text x="${mx(en.at[0])}" y="${mz(en.at[1]) + 2.8}">${k + 1}</text></g>`).join('');
+      big.insertAdjacentHTML('beforeend', pins);
+      let list = '', last = '';
+      DIR.forEach((en, k) => { const kind = en.kind || 'room'; if (kind !== last) { list += `<h4>${KIND[kind] || kind}</h4>`; last = kind; } list += `<button type="button" data-k="${k}" class="${kind === 'history' ? 'h' : kind === 'place' ? 'p' : ''}"><i>${k + 1}</i><b>${en.title}</b>${en.note ? `<span>${en.note}</span>` : ''}</button>`; });
+      dirEl.innerHTML = `<div class="sv-dir-h"><b>The museum</b><button type="button" class="sv-dir-x" aria-label="Close the plan">×</button></div><div class="sv-dir-p"></div><div class="sv-dir-l">${list}</div>`;
+      dirEl.querySelector('.sv-dir-p').append(big);
+      dirEl.hidden = false; dirEl.scrollTop = 0;
+    };
+    dirEl.addEventListener('click', e => {
+      if (e.target.closest('.sv-dir-x')) return closeDir();
+      const t = e.target.closest('[data-k]'); if (t) jump(DIR[+t.dataset.k]);
+    });
+    addEventListener('keydown', e => { if (e.key === 'Escape' && dirOpen) closeDir(); });
+    map.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDir(); } });
+    spec.__openDirectory = openDir;
+  }
   map.addEventListener('click', e => {
+    if (DIR.length) return spec.__openDirectory();
     const i = e.target.dataset && e.target.dataset.i;
     if (i != null) { setMode('works'); idx = pieces.indexOf(pieces[+i]); show(); return; }
     const b = map.getBoundingClientRect(), pad = 3, k = (rw * ms + 12) / (b.width - 2 * pad);   // screen -> plan units
