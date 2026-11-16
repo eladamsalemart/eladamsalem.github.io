@@ -1290,7 +1290,7 @@ async function enterStreet() {
     colour: over[e.slug] || set[e.slug] || await synth.suggestColour(e.works.map(thumb), src, synth.slugHue(e.slug)),
   })));
   // (a trial of the museum as a hall with rooms off its four sides, not a street: only with ?hall in the address, until the owner chooses)
-  const made = await (new URLSearchParams(location.search).has('hall') ? synth.buildHall : synth.buildStreet)(rooms, src, thumb);
+  const qs = new URLSearchParams(location.search), made = await (qs.has('cluster') ? synth.buildCluster : qs.has('hall') ? synth.buildHall : synth.buildStreet)(rooms, src, thumb);
   if (location.hash !== '#/museum') return;                       // (left while it was being built)
   openSpaceView = await openSpace({
     spec: made.spec, works: M.works, src,
