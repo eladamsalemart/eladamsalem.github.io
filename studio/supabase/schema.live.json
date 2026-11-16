@@ -15,6 +15,20 @@
    "column_default": "now()"
   },
   {
+   "table_name": "app_hidden",
+   "column_name": "key",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "app_hidden",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
    "table_name": "artists",
    "column_name": "id",
    "data_type": "uuid",
@@ -801,6 +815,11 @@
  ],
  "checks": [
   {
+   "table": "app_hidden",
+   "conname": "app_hidden_key_check",
+   "def": "CHECK ((length(key) <= 200))"
+  },
+  {
    "table": "artists",
    "conname": "artists_name_check",
    "def": "CHECK (((length(name) >= 1) AND (length(name) <= 120)))"
@@ -984,6 +1003,22 @@
    "cmd": "SELECT",
    "roles": "{authenticated}",
    "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": null
+  },
+  {
+   "tablename": "app_hidden",
+   "policyname": "app_hidden_admin_write",
+   "cmd": "ALL",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": "( SELECT is_admin() AS is_admin)"
+  },
+  {
+   "tablename": "app_hidden",
+   "policyname": "app_hidden_read",
+   "cmd": "SELECT",
+   "roles": "{anon,authenticated}",
+   "qual": "true",
    "with_check": null
   },
   {
