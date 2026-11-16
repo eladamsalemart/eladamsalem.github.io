@@ -11,7 +11,7 @@
 
 const EYE = 1.6, WALK = 1.9, MARGIN = 0.3;     // WALK: metres a second (was 1.3: too slow in a 24 m hall; a stroll through a gallery)
 
-export async function openSpace({ spec, works, src, onClose, onOpenWork, choose, editor, exitLabel }) {
+export async function openSpace({ spec, works, src, onClose, onOpenWork, choose, editor, exitLabel, onHotspot }) {
   const THREE = await import('three');
   const { Reflector } = await import('three/addons/objects/Reflector.js');
   const { addPlinths } = await import('./plinths.js');
@@ -31,6 +31,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     <div class="sv-modes seg" role="group" aria-label="Move by"><button type="button" data-mode="walk" aria-pressed="true">Walk</button><button type="button" data-mode="works" aria-pressed="false">Works</button><button type="button" data-mode="photos" aria-pressed="false">Photos</button></div>
     <svg class="sv-map" role="img" aria-label="Floor plan: the room, its works and where you stand. Tap a work to go to it."></svg>
     <div class="sv-dir" hidden role="dialog" aria-label="The plan and every exhibition"></div>
+    <div class="sv-read" hidden role="dialog" aria-label="Exhibition text"></div>
     <figure class="sv-photo" hidden><img alt=""><figcaption>Original photo</figcaption></figure>
     <span class="sv-dot" aria-hidden="true"></span>
     <div class="sv-joy" role="application" aria-label="Walk: drag the knob to move"><i></i></div>
@@ -1100,12 +1101,39 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (editor) return;      // while hanging, a tap chooses things and never walks: a tap that missed a work used to walk the artist to the wall
     const r = canvas.getBoundingClientRect();
     ray.setFromCamera({ x: (e.clientX - r.left) / r.width * 2 - 1, y: -(e.clientY - r.top) / r.height * 2 + 1 }, camera);
-    const hit = ray.intersectObjects([...pieces.map(p => p.mesh), ...(floorMesh ? [floorMesh] : [])])[0];
+    const hit = ray.intersectObjects([...pieces.map(p => p.mesh), ...(floorMesh ? [floorMesh] : []), ...HOT.map(h => h.mesh)])[0];
     if (!hit) return;
     dropHint();
+    { const h = HOT.find(q => q.mesh === hit.object); if (h) { openHot(h.spec); return; } }
     if (hit.object === floorMesh) { setMode('walk'); show(); walkTo = clampStand(hit.point.clone().setY(EYE), pos); return; }
     setMode('works'); idx = pieces.findIndex(p => p.mesh === hit.object); show();
   });
+
+  // hotspots: a plate of words on a wall (an exhibition's text, outside its room) is tapped like a work and read large (spec.hotspots: {title, text[], lang, kind, origin,u,v,size,normal})
+  const HOT = [];
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  for (const h of spec.hotspots || []) {
+    const m = planeMesh({ origin: h.origin, u: h.u, v: h.v, size: h.size }, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, visible: false }));
+    HOT.push({ spec: h, mesh: m });
+  }
+  function openHot(h) {
+    if (h.direct) { if (onHotspot) onHotspot({ ...h, go: true }); return; }
+    if (onHotspot && onHotspot(h) === true) return;
+    const el = $('.sv-read'); if (!el) return;
+    const rtl = h.lang === 'he';
+    el.innerHTML = `<div class="sv-read-h"><b>${esc(h.title)}</b><button class="sv-read-x" aria-label="Close">×</button></div>${h.sub ? `<p class="sv-read-s">${esc(h.sub)}</p>` : ''}<div class="sv-read-b" dir="${rtl ? 'rtl' : 'ltr'}">${(h.text || []).map(t => `<p>${esc(t)}</p>`).join('')}</div>${h.enter ? `<button class="sv-read-go">${esc(h.enter.label || 'Walk in')}</button>` : ''}`;
+    el.hidden = false; el.scrollTop = 0;
+    el.querySelector('.sv-read-x').onclick = () => { el.hidden = true; };
+    const go = el.querySelector('.sv-read-go'); if (go) go.onclick = () => { el.hidden = true; if (onHotspot) onHotspot({ ...h, go: true }); };
+  }
+  if (HOT.length && !document.getElementById('svReadCss')) {
+    const st = document.createElement('style'); st.id = 'svReadCss';
+    st.textContent = `.sv-read{position:absolute;inset:0;z-index:45;background:rgba(246,243,236,.985);overflow:auto;-webkit-overflow-scrolling:touch;padding:calc(14px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom));color:#22201c}.sv-read[hidden]{display:none}
+.sv-read-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}.sv-read-h b{font:600 26px/1.2 Georgia,serif}.sv-read-x{min-width:44px;min-height:44px;border:0;border-radius:22px;background:#e9e3d6;font-size:26px;line-height:1;color:#22201c;flex:none}
+.sv-read-s{font:italic 15px Georgia,serif;color:#6d675c;margin:0 0 14px}.sv-read-b p{font:17px/1.62 Georgia,serif;margin:0 0 14px}.sv-read-b[dir=rtl]{text-align:right}
+.sv-read-go{margin-top:8px;min-height:48px;padding:0 22px;border:0;border-radius:24px;background:#22201c;color:#f6f3ec;font:600 16px system-ui,sans-serif}`;
+    document.head.appendChild(st);
+  }
 
   // joystick: up/down walks forward/back, left/right steps sideways
   const joy = { x: 0, y: 0 }, pad = $('.sv-joy'), knob = pad.querySelector('i');

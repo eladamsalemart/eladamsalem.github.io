@@ -86,3 +86,9 @@ body:has(.ws){overflow:hidden}
 
 /* the base of the building, drawn from its description */
 .mp-base{margin-top:16px;background:#fffdf8;border:1px solid #d9d2c3;border-radius:14px;padding:14px 16px}.mp-svg{display:block;width:100%;max-width:640px;height:auto;margin:10px auto}.mp-svg .b-hall{fill:#f3f1ec;stroke:#8d8a82;stroke-width:.6}.mp-svg .b-h{fill:#e6d9c3;stroke:#8a4b2c;stroke-width:.35}.mp-svg .b-s{fill:#e8eef5;stroke:#1c67e3;stroke-width:.35;stroke-dasharray:1.2 .8}.mp-svg .b-p{fill:#bcd2d8}.mp-svg .b-n{font:700 3.2px system-ui,sans-serif;fill:#8a4b2c;text-anchor:middle}.mp-svg .b-t{font:600 2.6px system-ui,sans-serif;fill:#1c67e3;text-anchor:middle}.mp-acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+
+/* stage 2: the plan is edited here */
+.mp-svg .b-g{cursor:pointer}.mp-svg .b-g:focus-visible polygon,.mp-svg .b-g.on polygon{stroke:#1c67e3;stroke-width:.9}.mp-svg .b-g.on polygon{fill-opacity:.85}.mp-svg .b-r{fill:#efc9c0;stroke:#a03020;stroke-width:.35}.mp-svg .b-pier{fill:#9b978e}
+.mp-svg.placing{cursor:crosshair}.mp-svg .b-ok{fill:rgba(40,160,90,.35);stroke:#1f8a4c;stroke-width:.5;pointer-events:none}.mp-svg .b-bad{fill:rgba(200,60,40,.3);stroke:#a03020;stroke-width:.5;pointer-events:none}
+.mp-place{background:#eef4ff;border:1px solid #bcd0f5;border-radius:10px;padding:8px 12px;margin:8px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.mp-more{margin-top:8px}
+#mp-dlg{max-width:440px}#mp-dlg .field{display:block;margin:10px 0}#mp-dlg input,#mp-dlg select{width:100%}.dlg-b{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
