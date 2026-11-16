@@ -1466,6 +1466,22 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       gr.addColorStop(0, night ? 'rgba(74,90,126,1)' : 'rgba(238,246,255,1)'); gr.addColorStop(0.5, night ? 'rgba(70,84,118,0.9)' : 'rgba(236,244,252,0.92)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); y.fillStyle = gr; y.fillRect(cx - r, cz - r, 2 * r, 2 * r);
     }
     rect('hall-roof', 'ceiling', [0, 0], [HX, HZ], HH, false, jpg(c, 0.9));
+    // light shafts: a few of the roof's round openings let down a faint beam of dusty light along the sun's slant (two crossed soft planes each, one shared small texture); only by day
+    if (env.day > 0.12) {
+      const sx = -Math.cos(sunA), sz = -Math.sin(sunA), shift = HH / Math.tan(sunEl), L = Math.hypot(shift, HH), vv = [sx * shift / L, -HH / L, sz * shift / L], px = -sz, pz = sx;
+      const tc = canvas(64, 256), tx = tc.getContext('2d'), a0 = (0.15 + 0.2 * (1 - Math.sin(sunEl))) * Math.min(1, env.day * 1.4);
+      const gx = tx.createLinearGradient(0, 0, 64, 0); gx.addColorStop(0, 'rgba(255,246,226,0)'); gx.addColorStop(0.5, `rgba(255,246,226,${a0.toFixed(3)})`); gx.addColorStop(1, 'rgba(255,246,226,0)'); tx.fillStyle = gx; tx.fillRect(0, 0, 64, 256);
+      tx.globalCompositeOperation = 'destination-in'; const gy = tx.createLinearGradient(0, 0, 0, 256); gy.addColorStop(0, 'rgba(0,0,0,1)'); gy.addColorStop(0.55, 'rgba(0,0,0,0.55)'); gy.addColorStop(1, 'rgba(0,0,0,0)'); tx.fillStyle = gy; tx.fillRect(0, 0, 64, 256);
+      const beam = tc.toDataURL('image/png');
+      let n = 0;
+      for (let i = 0; i < HX / 4; i++) for (let j = 0; j < HZ / 4; j++) {
+        if ((i + j) % 2 !== 0 || (i * 7 + j * 3) % 11 !== 0) continue;
+        const r = 1.05 * 1.5, cx = 2 + i * 4, cz = 2 + j * 4, top = [cx, HH - 0.03, cz];
+        surfaces.push({ name: `beam${n}a`, kind: 'wall', glass: true, texture: beam, origin: [top[0] - px * r, top[1], top[2] - pz * r], u: [px, 0, pz], v: vv, size: [2 * r, L], normal: [sx, 0, sz], openings: [] });
+        surfaces.push({ name: `beam${n}b`, kind: 'wall', glass: true, texture: beam, origin: [top[0] - sx * r, top[1], top[2] - sz * r], u: [sx, 0, sz], v: vv, size: [2 * r, L], normal: [px, 0, pz], openings: [] });
+        n++;
+      }
+    }
   }
   const glassWall = (name, x0, z0, x1, z1, nx, nz, door) => {
     const L = Math.hypot(x1 - x0, z1 - z0), ux = (x1 - x0) / L, uz = (z1 - z0) / L, S = 20, cw = Math.round(L * S), ch = Math.round(HH * S), c = canvas(cw, ch), y = c.getContext('2d');
