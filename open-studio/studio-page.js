@@ -189,12 +189,36 @@ export function mount(c) {
   const commit = () => { chip('Saving…'); Promise.resolve(save()).then(() => chip(), () => chip()); };
   const refreshCard = () => { const c0 = app.querySelector('#edCard'); if (c0) { c0.innerHTML = card(); wireCard(); } };
 
+  // real exhibitions on the page: shown in the app or hidden (an owner's switch: it is the same one as in the control room)
+  const rxNorm = t => String(t || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const rxKey = x => { const M = c.M, e = (M.allExhibitions || M.exhibitions).find(y => y.kind !== 'online' && rxNorm(y.title) === rxNorm(x.title) && (y.artist === M.artist || (y.artist && y.artist.alias))); return e ? 'ex:' + e.slug : null; };
+  async function rxFill(box) {
+    if (!(await isAdm())) { box.remove(); return; }
+    const rows = (S.exhibitions || []).map(x => [x, rxKey(x)]).filter(([, k]) => k);
+    if (!rows.length) { box.remove(); return; }
+    const off = k => c.M.hidden && c.M.hidden.has(k);
+    box.innerHTML = `<p class="ed-order-h"><b>Real exhibitions in the app</b><span>Hide one from the app without deleting it; bring it back any time.</span></p>
+      ${rows.map(([x, k]) => `<div class="ed-vx-row"><span class="t"><b dir="auto">${esc(x.title || 'Untitled')}</b><small>${off(k) ? 'Hidden from the app' : 'In the app'}</small></span><button type="button" class="btn g" data-rxs="${esc(k)}">${off(k) ? 'Show in the app' : 'Hide from the app'}</button></div>`).join('')}`;
+    box.querySelectorAll('[data-rxs]').forEach(b => b.onclick = async () => {
+      const k = b.dataset.rxs, hide = !off(k);
+      try {
+        const m = await c.cloud(), s = await m.session();
+        const { error } = hide ? await s.c.from('app_hidden').upsert({ key: k }) : await s.c.from('app_hidden').delete().eq('key', k);
+        if (error) throw error;
+      } catch (e) { toast(`Not saved: ${e.message || e}`); return; }
+      const M = c.M; M.hidden = new Set(M.hidden || []); hide ? M.hidden.add(k) : M.hidden.delete(k);
+      M.exhibitions = (M.allExhibitions || M.exhibitions).filter(e => !M.hidden.has('ex:' + e.slug));
+      try { const cc = JSON.parse(localStorage.getItem('os-community') || 'null'); if (cc) { cc.hidden = [...M.hidden].map(key => ({ key })); localStorage.setItem('os-community', JSON.stringify(cc)); } } catch {}
+      toast(hide ? 'Hidden from the app' : 'Back in the app');
+      draw();
+    });
+  }
   // virtual exhibitions on the page: who may publish, and the list with its switch
   let admin = null;
   const isAdm = async () => { if (admin !== null) return admin; try { const m = await c.cloud(), s = await m.session(); admin = !!(s && (await s.c.rpc('is_admin')).data); } catch { admin = false; } return admin; };
   const vxNote = v => v.status === 'published' ? 'On your page and in the app' : v.status === 'pending' ? 'Waiting for Open Studio to approve' : v.status === 'changes' ? `Open Studio asked for a change${v.note ? ': ' + esc(v.note) : ''}` : 'Not on your page';
   async function vxFill(box) {
-    const adm = await isAdm();
+    const adm = false;                         // (16.11, the owner's word: an exhibition always goes through review, his own too)
     const label = v => v.status === 'published' ? 'Take off my page' : v.status === 'pending' ? 'Take it back' : adm ? 'Show on my page' : 'Send for review';
     box.innerHTML = `<p class="ed-order-h"><b>Virtual exhibitions</b><span>${adm ? 'You decide: it goes on your page and into the app at once.' : 'On your page and in the app once Open Studio approves it.'}</span></p>
       ${(S.virtual || []).map(v => `<div class="ed-vx-row" data-id="${esc(v.id)}"><a class="t" href="#/studio/virtual/${esc(v.id)}"><b dir="auto">${esc(v.title || 'Untitled')}</b><small>${vxNote(v)}</small></a><button type="button" class="btn g" data-vxs="${esc(v.id)}">${label(v)}</button></div>`).join('')}`;
@@ -239,6 +263,12 @@ export function mount(c) {
       const box = document.createElement('div'); box.className = 'ed-vx'; box.id = 'edVx';
       covers.closest('.sec').insertAdjacentElement('beforeend', box);
       vxFill(box);
+    }
+    // the real exhibitions: an owner of Open Studio hides one from the app (and brings it back); nothing is deleted
+    if (S.cloud && (S.exhibitions || []).length) {
+      const rx = document.createElement('div'); rx.className = 'ed-vx'; rx.id = 'edRx';
+      covers.closest('.sec').insertAdjacentElement('beforeend', rx);
+      rxFill(rx);
     }
     covers.closest('.sec').insertAdjacentHTML('beforeend', '<button type="button" class="ed-sec-add" data-ed="ex-new" style="margin-top:14px">+ Add an exhibition</button>');
     covers.querySelectorAll('a').forEach(x => { x.dataset.slug = x.getAttribute('href').slice(13); });
