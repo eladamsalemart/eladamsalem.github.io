@@ -1623,6 +1623,14 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       hotspots.push({ id: r.slug + '-portal', title: r.title, kind: 'portal', direct: true, origin: o0, u, v: [0, -1, 0], size: [PW, PH], normal: nrm, enter: r.enter });
       runs.splice(1, 1);                                                                       // (the back wall is the portal's: works hang on the other two)
     }
+    // the house's outer skin, in small details that read from the plaza: a recessed dark plinth (a shadow gap) at the foot of every outer face and a thin dark line under the top edge
+    { const gap = jpg((() => { const c2 = canvas(4, 16), g2 = c2.getContext('2d'), gr = g2.createLinearGradient(0, 0, 0, 16); gr.addColorStop(0, 'rgba(30,26,22,0.78)'); gr.addColorStop(1, 'rgba(30,26,22,0.55)'); g2.fillStyle = '#d9d5cd'; g2.fillRect(0, 0, 4, 16); g2.fillStyle = gr; g2.fillRect(0, 0, 4, 16); return c2; })(), 0.9);
+      const edge = (nm, p0, p1, nrm, y1, hgt) => { const L2 = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]), ux = (p1[0] - p0[0]) / L2, uz = (p1[1] - p0[1]) / L2;
+        surfaces.push({ name: `r${i}-${nm}`, kind: 'wall', texture: gap, origin: [p0[0] + nrm[0] * 0.012, y1, p0[1] + nrm[1] * 0.012], u: [ux, 0, uz], v: [0, -1, 0], size: [L2, hgt], normal: [nrm[0], 0, nrm[1]], openings: [] }); };
+      const nL = [-R[0], -R[1]], nR = [R[0], R[1]], nB = [o[0], o[1]], nF = [-o[0], -o[1]];
+      for (const [nm, y1, hgt] of [['gap', 0.16, 0.16], ['top', rh, 0.035]]) {
+        edge(nm + 'L', P(A0, VD), P(A0, VD + RD), nL, y1, hgt); edge(nm + 'R', P(A1, VD), P(A1, VD + RD), nR, y1, hgt); edge(nm + 'B', P(A0, VD + RD), P(A1, VD + RD), nB, y1, hgt);
+        edge(nm + 'F1', P(A0, VD), P(-M2, VD), nF, y1, hgt); edge(nm + 'F2', P(M2, VD), P(A1, VD), nF, y1, hgt); } }
     const sized = await Promise.all(autoW.map(async work => { const s = await sizeOf({ ...work, image: thumbOf(work) }, src), k = Math.min(1, 140 / Math.max(s.w, s.h)); return { work, w: s.w * k, h: s.h * k }; }));
     const GAP = 0.5, MG = 0.7, bucket = runs.map(() => []);
     let ri = 0;
