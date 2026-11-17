@@ -204,6 +204,35 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   // a wall that is glass from side to side and floor to ceiling: not a picture of the outside pasted on the wall (flat, and wrong
   // from everywhere but where it was taken), but glass to look through: the garden stands outside it (addOutside, below)
   const glassWalls = new Set(((BK && BK.plates) || []).filter(p => { const w = surfaces.find(x => x.name === p.wall); return w && p.from <= 0.02 && p.to >= w.size[0] - 0.02 && p.z0 <= 0.02 && p.z1 >= w.size[1] - 0.02; }).map(p => p.wall));
+  // a polished floor that is not the room's `floor` surface (the museum's terrazzo lies on a lawn): the surface turns translucent over a mirror laid just under it. Built a few seconds after opening (software GL
+  // and the first taps never wait for the second pass), drawn at 0.4 of the screen, redrawn every third frame while moving and not at all while still; the quality ladder below can switch it off.
+  let hallMirrorCtl = null;
+  function hallMirror(fm, s) {
+    const [rNear, rLow] = spec.mirrorSurface.reflect || [0.15, 0.5], my = spec.mirrorSurface.y ?? 0.01, prev = fm.material.onBeforeCompile;
+    const mU = { value: 0 }, alphaOn = v => { mU.value = v ? 1 : 0; fm.material.transparent = v; };       // (an opaque pass must write alpha 1: a smaller alpha would show through the canvas as white)
+    fm.material.customProgramCacheKey = () => (prev ? 'hq-mirror' : 'mirror') + rNear + '_' + rLow;
+    fm.material.onBeforeCompile = sh => {
+      if (prev) prev(sh); sh.uniforms.mirrorOn = mU;
+      sh.vertexShader = sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorldP = (modelMatrix * vec4(transformed, 1.0)).xyz;').replace('void main() {', 'varying vec3 vWorldP;\nvoid main() {');
+      sh.fragmentShader = sh.fragmentShader.replace('void main() {', 'uniform float mirrorOn;\nvarying vec3 vWorldP;\nvoid main() {').replace('#include <dithering_fragment>',
+        `float facing = clamp(normalize(cameraPosition - vWorldP).y, 0.0, 1.0);
+         gl_FragColor.a = mix(1.0, 1.0 - mix(${rNear.toFixed(3)}, ${rLow.toFixed(3)}, pow(1.0 - facing, 3.0)), mirrorOn);
+         #include <dithering_fragment>`);
+    };
+    setTimeout(() => {
+      const res = Math.min(2048, Math.round(Math.max(innerWidth, innerHeight) * Math.min(devicePixelRatio, 2) * 0.4));
+      const mirror = new Reflector(new THREE.PlaneGeometry(R.x1 - R.x0, R.z1 - R.z0), { textureWidth: res, textureHeight: res, color: 0xffffff, clipBias: 0.003 });
+      mirror.material.fragmentShader = mirror.material.fragmentShader.replace('blendOverlay( base.rgb, color )', 'base.rgb * color');
+      mirror.userData.kind = 'mirror'; mirror.rotation.x = -Math.PI / 2; mirror.position.set((R.x0 + R.x1) / 2, my, (R.z0 + R.z1) / 2); scene.add(mirror);
+      const draw = mirror.onBeforeRender; let lastKey = '', frame = 0;
+      mirror.onBeforeRender = (...a) => {
+        const cam = a[2], key = cam.matrixWorld.elements.join(',') + cam.fov; if (key === lastKey && frame > 0) return; lastKey = key; if (++frame % 3 !== 1 && frame > 3) return;
+        fm.visible = false; draw.apply(mirror, a); fm.visible = true; };
+      alphaOn(true);
+      hallMirrorCtl = { isOn: true, set(v) { this.isOn = v; mirror.visible = v; alphaOn(v); dirty = true; } };
+      dirty = true;
+    }, 3500);
+  }
   surfaces.forEach((s, i) => {
     if (glassWalls.has(s.name)) return;
     if (s.kind === 'reveal') { const r = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide }))); r.userData.kind = 'reveal'; scene.add(r); return; }
@@ -212,6 +241,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const masks = s.kind === 'wall' ? ((spec.blocks || {})[s.name] || []) : [];
       const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks, '', s.stand ? 0.3 : 1), s.openings || [], s.kind === 'wall' && !s.stand ? 0.03 : 0);
       m.userData.kind = s.kind; if (s.stand) m.userData.stand = s.stand; scene.add(m);
+      if (spec.mirrorSurface && s.name === spec.mirrorSurface.name) hallMirror(m, s);
       for (const o of s.openings || []) addOpening(s, o);
     }
   });
@@ -378,6 +408,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (withLight && lights[i]) { m.lightMap = lights[i]; m.lightMapIntensity = Math.PI * (floorS.lightScale || 1); }
     return m;
   }
+  let mirrorCtl = null;                                   // the floor's mirror, when there is one: the quality ladder switches it off before a phone has to stutter
   if (floorS) {
     const [rNear, rLow] = spec.floorReflect || [0, 0];
     floorMesh = planeMesh(floorS, floorMaterial(floorS.size[0], floorS.size[1]));
@@ -402,6 +433,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const mirrorRes = Math.min(2048, Math.round(Math.max(innerWidth, innerHeight) * Math.min(devicePixelRatio, 2) * (spec.floorReflectEco ? 0.4 : 0.6)));
       const mirror = new Reflector(new THREE.PlaneGeometry(R.x1 - R.x0, R.z1 - R.z0), { textureWidth: mirrorRes, textureHeight: mirrorRes, color: 0xffffff, clipBias: 0.003 });
       mirror.material.fragmentShader = mirror.material.fragmentShader.replace('blendOverlay( base.rgb, color )', 'base.rgb * color');
+      mirrorCtl = { isOn: true, set(v) { this.isOn = v; mirror.visible = v; floorMesh.material.transparent = v; dirty = true; } };
       mirror.userData.kind = 'mirror'; mirror.rotation.x = -Math.PI / 2; mirror.position.set((R.x0 + R.x1) / 2, -0.002, (R.z0 + R.z1) / 2); scene.add(mirror);
       const draw = mirror.onBeforeRender;
       // eco: a still camera keeps the last reflection, a moving one redraws it every third frame, at 0.4 of the screen (the reflection of a honed floor never shows the lag): a third of the cost on a phone
@@ -1261,7 +1293,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (frameTimes.length === 40 && now > nextAdapt) {
       const avg = frameTimes.reduce((a, b) => a + b) / 40, pr = renderer.getPixelRatio();
       if (avg > 0.028 && pr > 1) { renderer.setPixelRatio(Math.max(1, pr - 0.25)); resize(); nextAdapt = now + 1500; frameTimes.length = 0; }
+      else if (avg > 0.028 && pr <= 1 && hallMirrorCtl && hallMirrorCtl.isOn) { hallMirrorCtl.set(false); nextAdapt = now + 4000; frameTimes.length = 0; }
+      else if (avg > 0.028 && pr <= 1 && mirrorCtl && mirrorCtl.isOn) { mirrorCtl.set(false); nextAdapt = now + 4000; frameTimes.length = 0; }      // (already at the lowest resolution: the reflection goes next)
       else if (avg < 0.014 && pr < maxRatio) { renderer.setPixelRatio(Math.min(maxRatio, pr + 0.25)); resize(); nextAdapt = now + 4000; frameTimes.length = 0; }
+      else if (avg < 0.012 && pr >= maxRatio && mirrorCtl && !mirrorCtl.isOn) { mirrorCtl.set(true); nextAdapt = now + 8000; frameTimes.length = 0; }
+      else if (avg < 0.012 && pr >= maxRatio && hallMirrorCtl && !hallMirrorCtl.isOn) { hallMirrorCtl.set(true); nextAdapt = now + 8000; frameTimes.length = 0; }
     }
     if (mode === 'walk' && now > nextFocus) { focus(); nextFocus = now + 200; }
     if (ibrChoose && now > nextChoose) { ibrChoose(pos, new THREE.Vector3().subVectors(look, pos).normalize()); nextChoose = now + 700; }
@@ -1340,6 +1376,9 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     works() { return pieces.map(p => { const m = p.mesh.material, mats = [].concat(m), f = mats.find(x => x.emissiveMap) || mats[0]; const t = f && f.emissiveMap; let vis = true; for (let o = p.mesh; o; o = o.parent) vis = vis && o.visible; return { title: p.w.title, image: t && t.image ? [t.image.width, t.image.height] : [0, 0], visible: vis, inScene: !!p.mesh.parent && !!p.mesh.parent.parent }; }); },
     // stand somewhere and look at something, as a visitor walking would (the room keeps running: for testing
     // what a phone does as one walks, unlike shot() below)
+    meshes: () => { const o = []; scene.traverse(m => { if (m.isMesh) o.push([m.userData.kind || m.name || m.type, +m.position.y.toFixed(3), m.visible, m.renderOrder, !!(m.material && m.material.transparent), m.material && m.material.depthTest !== false]); }); return o; },
+    setVisible: (kind, v) => { scene.traverse(m => { if (m.userData && m.userData.kind === kind) m.visible = !!v; }); dirty = true; },
+    eco: () => ({ pixelRatio: renderer.getPixelRatio(), mirror: hallMirrorCtl ? hallMirrorCtl.isOn : mirrorCtl ? mirrorCtl.isOn : null }), setMirror: v => { if (hallMirrorCtl) hallMirrorCtl.set(!!v); else if (mirrorCtl) mirrorCtl.set(!!v); },
     where() { return { pos: pos.toArray(), look: look.toArray(), fov: camera.fov }; },
     place(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },
     // the images the room holds in the graphics memory, in MB (what a phone has to find room for)
