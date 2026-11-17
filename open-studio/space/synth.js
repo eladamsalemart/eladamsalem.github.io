@@ -1465,7 +1465,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       y.save(); y.globalCompositeOperation = 'lighter'; y.drawImage(pl, 0, 0); y.restore();
     }
     lite(y, fw, fh, 0.5);
-    rect('hall-floor', 'wall', [0, 0], [HX, HZ], 0.003, true, jpg(c, 0.88));
+    rect('hall-floor', 'wall', [0, 0], [HX, HZ], 0.02, true, jpg(c, 0.88));
   }
   {
     const FP = 12, fw = HX * FP, fh = HZ * FP, c = canvas(fw, fh), y = c.getContext('2d'), night = env.day < 0.3;
@@ -1561,11 +1561,11 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     wall(`th${i}l`, ...P(-M2, VD / 2), R[0], R[1], VD, { h: DOOR_H, tex: plain(tintHex(shade(col, 0.8), env)) });
     wall(`th${i}r`, ...P(M2, VD / 2), -R[0], -R[1], VD, { h: DOOR_H, tex: plain(tintHex(shade(col, 0.92), env)) });
     orect(`th${i}-ceil`, 'ceiling', P, R, o, -M2, M2, 0, VD, DOOR_H, false, plain(shade(col, 0.96)));
-    orect(`th${i}-floor`, 'wall', P, R, o, -M2, M2, 0, VD, 0.006, true, plain(shade(col, 0.88)));
+    orect(`th${i}-floor`, 'wall', P, R, o, -M2, M2, 0, VD, 0.032, true, plain(shade(col, 0.88)));
     const rimTex = plain(tintHex(shade(col, 0.7), env));
     const rim = (nm, a0, a1, y0, y1) => { const q = P(a0, -0.012); surfaces.push({ name: `rim${i}${nm}`, kind: 'wall', texture: rimTex, origin: [q[0], y1, q[1]], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [a1 - a0, y1 - y0], normal: [-o[0], 0, -o[1]], openings: [] }); };
     rim('l', -M2 - RIM, -M2, 0, DOOR_H + RIM); rim('r', M2, M2 + RIM, 0, DOOR_H + RIM); rim('t', -M2 - RIM, M2 + RIM, DOOR_H, DOOR_H + RIM);
-    orect(`r${i}-floor`, 'wall', P, R, o, A0, A1, VD, VD + RD, 0.004, true, floorTex(fl));
+    orect(`r${i}-floor`, 'wall', P, R, o, A0, A1, VD, VD + RD, 0.03, true, floorTex(fl));
     orect(`r${i}-ceil`, 'ceiling', P, R, o, A0, A1, VD, VD + RD, rh, false, ceil);
     wall(`r${i}-front`, ...P(0, VD), o[0], o[1], RW, { holes: [[A1 - M2, A1 + M2]], h: rh, tex: roomWall });
     const runs = [wall(`r${i}-left`, ...P(A0, VD + RD / 2), R[0], R[1], RD, { h: rh, tex: roomWall }), wall(`r${i}-back`, ...P(0, VD + RD), -o[0], -o[1], RW, { h: rh, tex: roomWall }), wall(`r${i}-right`, ...P(A1, VD + RD / 2), -R[0], -R[1], RD, { h: rh, tex: roomWall })];
@@ -1745,7 +1745,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 190, noSpots: true,
     outdoors: { hour: env.hour, centre: [CX, CZ], lamps: [], treeline: 'data/rooms/outside/treeline.webp', treeRadius: 120, treeHeight: 46 },
     baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: 4 },
-    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], solids, directory, hotspots,
+    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], mirrorSurface: { name: 'hall-floor', reflect: [0.16, 0.55], y: 0.01 }, solids, directory, hotspots,
     stands: stands.map(s => ({ ...s, kind: 'stand', t: STAND.t })), ...(props.length ? { props } : {}),
     start: { pos: PLAN.start.pos, look: PLAN.start.look },
     ...(plinthsOut.length ? { plinths: plinthsOut } : {}),
