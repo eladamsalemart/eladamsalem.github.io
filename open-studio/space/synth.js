@@ -1491,8 +1491,8 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       for (let i = 0; i < HX / 4; i++) for (let j = 0; j < HZ / 4; j++) {
         if ((i + j) % 2 !== 0 || (i * 7 + j * 3) % 11 !== 0) continue;
         const r = 1.05 * 1.5, cx = 2 + i * 4, cz = 2 + j * 4, top = [cx, HH - 0.03, cz];
-        surfaces.push({ name: `beam${n}a`, kind: 'wall', glass: true, texture: beam, origin: [top[0] - px * r, top[1], top[2] - pz * r], u: [px, 0, pz], v: vv, size: [2 * r, L], normal: [sx, 0, sz], openings: [] });
-        surfaces.push({ name: `beam${n}b`, kind: 'wall', glass: true, texture: beam, origin: [top[0] - sx * r, top[1], top[2] - sz * r], u: [sx, 0, sz], v: vv, size: [2 * r, L], normal: [px, 0, pz], openings: [] });
+        surfaces.push({ name: `beam${n}a`, kind: 'wall', glass: true, batch: 'beam', texture: beam, origin: [top[0] - px * r, top[1], top[2] - pz * r], u: [px, 0, pz], v: vv, size: [2 * r, L], normal: [sx, 0, sz], openings: [] });
+        surfaces.push({ name: `beam${n}b`, kind: 'wall', glass: true, batch: 'beam', texture: beam, origin: [top[0] - sx * r, top[1], top[2] - sz * r], u: [sx, 0, sz], v: vv, size: [2 * r, L], normal: [px, 0, pz], openings: [] });
         n++;
       }
     }
@@ -1629,9 +1629,9 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       runs.splice(1, 1);                                                                       // (the back wall is the portal's: works hang on the other two)
     }
     // the house's outer skin, in small details that read from the plaza: a recessed dark plinth (a shadow gap) at the foot of every outer face and a thin dark line under the top edge
-    { const gap = jpg((() => { const c2 = canvas(4, 16), g2 = c2.getContext('2d'), gr = g2.createLinearGradient(0, 0, 0, 16); gr.addColorStop(0, 'rgba(30,26,22,0.78)'); gr.addColorStop(1, 'rgba(30,26,22,0.55)'); g2.fillStyle = '#d9d5cd'; g2.fillRect(0, 0, 4, 16); g2.fillStyle = gr; g2.fillRect(0, 0, 4, 16); return c2; })(), 0.9);
+    { const gap = (() => { const c2 = canvas(4, 16), g2 = c2.getContext('2d'), gr = g2.createLinearGradient(0, 0, 0, 16); gr.addColorStop(0, 'rgba(30,26,22,0.78)'); gr.addColorStop(1, 'rgba(30,26,22,0.55)'); g2.fillStyle = gr; g2.fillRect(0, 0, 4, 16); return c2.toDataURL('image/png'); })();
       const edge = (nm, p0, p1, nrm, y1, hgt) => { const L2 = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]), ux = (p1[0] - p0[0]) / L2, uz = (p1[1] - p0[1]) / L2;
-        surfaces.push({ name: `r${i}-${nm}`, kind: 'wall', texture: gap, origin: [p0[0] + nrm[0] * 0.012, y1, p0[1] + nrm[1] * 0.012], u: [ux, 0, uz], v: [0, -1, 0], size: [L2, hgt], normal: [nrm[0], 0, nrm[1]], openings: [] }); };
+        surfaces.push({ name: `r${i}-${nm}`, kind: 'wall', glass: true, batch: 'trim', texture: gap, origin: [p0[0] + nrm[0] * 0.012, y1, p0[1] + nrm[1] * 0.012], u: [ux, 0, uz], v: [0, -1, 0], size: [L2, hgt], normal: [nrm[0], 0, nrm[1]], openings: [] }); };
       const nL = [-R[0], -R[1]], nR = [R[0], R[1]], nB = [o[0], o[1]], nF = [-o[0], -o[1]];
       for (const [nm, y1, hgt] of [['gap', 0.16, 0.16], ['top', rh, 0.035]]) {
         edge(nm + 'L', P(A0, VD), P(A0, VD + RD), nL, y1, hgt); edge(nm + 'R', P(A1, VD), P(A1, VD + RD), nR, y1, hgt); edge(nm + 'B', P(A0, VD + RD), P(A1, VD + RD), nB, y1, hgt);
