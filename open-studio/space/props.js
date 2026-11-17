@@ -25,6 +25,9 @@ export async function addProps({ THREE, scene, spec, mark, renderer }) {
     return d;
   };
   const MODELS = {
+    // a museum bench: an oak seat on two cast-concrete slabs (0.45 m high, 2.2 m long)
+    bench(g) { const wood = new THREE.MeshLambertMaterial({ color: 0xb48a5c }), conc = new THREE.MeshLambertMaterial({ color: 0xb9b5ac });
+      add(g, box(2.2, 0.06, 0.46, wood), 0, 0.42, 0); for (const sx of [-0.85, 0.85]) add(g, box(0.1, 0.39, 0.4, conc), sx, 0.195, 0); },
     // Bramante's Tempietto (Rome, 1502): a drum ringed by 16 columns on three steps, a dome and a lantern
     tempietto(g) { for (let i = 0; i < 3; i++) add(g, cyl(0.62 - i * 0.07, 0.66 - i * 0.07, 0.035, 36, stone), 0, 0.0175 + i * 0.035);
       add(g, cyl(0.36, 0.36, 0.34, 32), 0, 0.105 + 0.17); ring(g, 16, 0.5, 0.34, 0.022, 0.105); add(g, cyl(0.54, 0.54, 0.03, 36), 0, 0.46); add(g, cyl(0.38, 0.38, 0.12, 32), 0, 0.535);

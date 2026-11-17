@@ -383,7 +383,6 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     floorMesh = planeMesh(floorS, floorMaterial(floorS.size[0], floorS.size[1]));
     floorMesh.userData.kind = 'floor'; scene.add(floorMesh);
     if (rLow > 0.03) {
-      floorMesh.material.transparent = true;
       const hqPrev = floorMesh.material.onBeforeCompile;
       if (BK) floorMesh.material.customProgramCacheKey = () => 'hq1r' + rNear + '_' + rLow;     // (the values are in the shader's text)
       floorMesh.material.onBeforeCompile = sh => {
@@ -398,12 +397,20 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
           #include <dithering_fragment>`);
       };
       // sharp enough on a phone's screen: a soft reflection reads as smeared colour on the floor
-      const mirrorRes = Math.min(2048, Math.round(Math.max(innerWidth, innerHeight) * Math.min(devicePixelRatio, 2) * 0.6));
+      const addMirror = () => {
+      floorMesh.material.transparent = true;
+      const mirrorRes = Math.min(2048, Math.round(Math.max(innerWidth, innerHeight) * Math.min(devicePixelRatio, 2) * (spec.floorReflectEco ? 0.4 : 0.6)));
       const mirror = new Reflector(new THREE.PlaneGeometry(R.x1 - R.x0, R.z1 - R.z0), { textureWidth: mirrorRes, textureHeight: mirrorRes, color: 0xffffff, clipBias: 0.003 });
       mirror.material.fragmentShader = mirror.material.fragmentShader.replace('blendOverlay( base.rgb, color )', 'base.rgb * color');
       mirror.userData.kind = 'mirror'; mirror.rotation.x = -Math.PI / 2; mirror.position.set((R.x0 + R.x1) / 2, -0.002, (R.z0 + R.z1) / 2); scene.add(mirror);
       const draw = mirror.onBeforeRender;
-      mirror.onBeforeRender = (...a) => { floorMesh.visible = false; draw.apply(mirror, a); floorMesh.visible = true; };
+      // eco: a still camera keeps the last reflection, a moving one redraws it every third frame, at 0.4 of the screen (the reflection of a honed floor never shows the lag): a third of the cost on a phone
+      let lastKey = '', frame = 0;
+      mirror.onBeforeRender = (...a) => {
+        if (spec.floorReflectEco) { const cam = a[2], key = cam.matrixWorld.elements.join(',') + cam.fov; if (key === lastKey && frame > 0) return; lastKey = key; if (++frame % 3 !== 1 && frame > 3) return; }
+        floorMesh.visible = false; draw.apply(mirror, a); floorMesh.visible = true; };
+      };
+      if (spec.floorReflectEco) setTimeout(addMirror, 3500); else addMirror();   // (eco: after the first frames, so opening and the first taps never wait for the second pass)
     }
   }
 

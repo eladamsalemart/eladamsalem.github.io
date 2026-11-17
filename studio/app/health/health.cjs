@@ -33,9 +33,19 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
     geolocation: { latitude: 32.0590, longitude: 34.7700 }, permissions: ['geolocation'], locale: 'en-GB',
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' };
 
+  // Pages the owner hid from the app on purpose (control room, Exhibitions tab: table app_hidden, keys "ex:<slug>") answer "does not
+  // exist" to every visitor by design, so they are not tested, and the report says so (a hidden page that still opened would be the bug).
+  let hidden = new Set();
+  try {
+    const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'app.js'), 'utf8'), DBU = (src.match(/const DB = '([^']+)'/) || [])[1], KEY = (src.match(/(sb_publishable_[A-Za-z0-9_-]+)/) || [])[1];
+    const r = await fetch(DBU + 'app_hidden?select=key', { headers: { apikey: KEY } }); if (r.ok) hidden = new Set((await r.json()).map(x => x.key));
+  } catch {}
+  const hiddenPage = hash => { const m = /^#\/exhibition\/([^/?]+)/.exec(hash); return m && hidden.has('ex:' + m[1]) ? m[1] : ''; };
+
   // HEALTH_ONLY=<regex>: only the pages and rooms whose name matches (to prove a check on one page, quickly)
   const only = process.env.HEALTH_ONLY ? new RegExp(process.env.HEALTH_ONLY, 'i') : null;
   for (const [name, hash, as] of PAGES.filter(([n]) => !only || only.test(n))) {
+    if (hiddenPage(hash)) { note(name, `hidden from the app by the owner (${hiddenPage(hash)}): not tested`); continue; }
     const ctx = await b.newContext(phone), p = await ctx.newPage(), errs = [], bad = [];
     // (the "Get Open Studio" install card is closed, as a visitor does once: it would sit over the page's lower controls)
     await ctx.addInitScript(() => { try { localStorage.setItem('os-install-dismissed', '1'); } catch {} });
