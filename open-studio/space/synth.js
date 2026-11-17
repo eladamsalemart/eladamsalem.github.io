@@ -1445,15 +1445,24 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       gr.addColorStop(0, rgba(r.colour, 0.34)); gr.addColorStop(1, rgba(r.colour, 0)); y.fillStyle = gr; y.fillRect(px - rad, pz - rad, 2 * rad, 2 * rad); }
     if (env.day > 0.12) {
       const sx = -Math.cos(sunA), sz = -Math.sin(sunA), shift = HH / Math.tan(sunEl), ang = Math.atan2(sz, sx), a = 0.27 * env.day;
-      y.save(); y.globalCompositeOperation = 'lighter';
+      const pl = canvas(fw, fh), py = pl.getContext('2d'); py.globalCompositeOperation = 'lighter';
       for (let i = 0; i < HX / 4; i++) for (let j = 0; j < HZ / 4; j++) {
         const big = (i + j) % 2 === 0, r = (big ? 1.05 : 0.6) * 2.1, cx = (2 + i * 4 + sx * shift) * FP, cz = (2 + j * 4 + sz * shift) * FP;
         if (cx < -r * FP * 2 || cz < -r * FP * 2 || cx > fw + r * FP * 2 || cz > fh + r * FP * 2) continue;
-        y.save(); y.translate(cx, cz); y.rotate(ang); y.scale(1 / Math.sqrt(Math.sin(sunEl)), 1);
-        const gr = y.createRadialGradient(0, 0, 0, 0, 0, r * FP); gr.addColorStop(0, `rgba(255,246,226,${a})`); gr.addColorStop(0.45, `rgba(255,244,222,${a * 0.55})`); gr.addColorStop(1, 'rgba(255,240,215,0)');
-        y.fillStyle = gr; y.fillRect(-r * FP, -r * FP, 2 * r * FP, 2 * r * FP); y.restore();
+        py.save(); py.translate(cx, cz); py.rotate(ang); py.scale(1 / Math.sqrt(Math.sin(sunEl)), 1);
+        const gr = py.createRadialGradient(0, 0, 0, 0, 0, r * FP); gr.addColorStop(0, `rgba(255,246,226,${a})`); gr.addColorStop(0.45, `rgba(255,244,222,${a * 0.55})`); gr.addColorStop(1, 'rgba(255,240,215,0)');
+        py.fillStyle = gr; py.fillRect(-r * FP, -r * FP, 2 * r * FP, 2 * r * FP); py.restore();
       }
-      y.restore();
+      // what stands in the sun's way keeps the light off the floor behind it: each house, pier and stand throws a soft shadow along the slant, cut out of the pools (the roof only lets the sun in through its openings, so the shadow shows only where there is light)
+      { py.globalCompositeOperation = 'destination-out';
+        const hull = pts => { pts = pts.slice().sort((p1, p2) => p1[0] - p2[0] || p1[1] - p2[1]); const cr = (o, p1, p2) => (p1[0] - o[0]) * (p2[1] - o[1]) - (p1[1] - o[1]) * (p2[0] - o[0]), lo = [], up = [];
+          for (const q of pts) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); } for (const q of pts.slice().reverse()) { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); } return lo.slice(0, -1).concat(up.slice(0, -1)); };
+        const cast = (pts, h) => { const d = h / Math.tan(sunEl), all = [...pts, ...pts.map(q => [q[0] + sx * d, q[1] + sz * d])], H = hull(all), mx = H.reduce((t, q) => t + q[0], 0) / H.length, mz = H.reduce((t, q) => t + q[1], 0) / H.length;
+          for (let k = 6; k >= 0; k--) { const g = k * 0.16; py.fillStyle = `rgba(0,0,0,${k === 0 ? 0.55 : 0.12})`; py.beginPath(); H.forEach((q, n) => { const dx = q[0] - mx, dz = q[1] - mz, Ld = Math.hypot(dx, dz) || 1, X = (q[0] + dx / Ld * g) * FP, Z = (q[1] + dz / Ld * g) * FP; n ? py.lineTo(X, Z) : py.moveTo(X, Z); }); py.closePath(); py.fill(); } };
+        for (const { d, k } of houseList) { const [c, o, Rr] = [d.c, d.o, d.r], q = (a, b) => [c[0] + Rr[0] * a + o[0] * b, c[1] + Rr[1] * a + o[1] * b]; cast([q(-4, 0), q(4, 0), q(4, 7.8), q(-4, 7.8)], CL.RH[k % 8]); }
+        for (const [px, pz] of PLAN.piers) cast([[px - 0.7, pz - 0.7], [px + 0.7, pz - 0.7], [px + 0.7, pz + 0.7], [px - 0.7, pz + 0.7]], HH);
+        for (const st of PLAN.stands) { const a2 = st.rot * Math.PI / 180, c2 = [Math.cos(a2), Math.sin(a2)], n2 = [-c2[1], c2[0]], hh = st.len / 2; cast([[st.x - c2[0] * hh - n2[0] * 0.1, st.z - c2[1] * hh - n2[1] * 0.1], [st.x + c2[0] * hh - n2[0] * 0.1, st.z + c2[1] * hh - n2[1] * 0.1], [st.x + c2[0] * hh + n2[0] * 0.1, st.z + c2[1] * hh + n2[1] * 0.1], [st.x - c2[0] * hh + n2[0] * 0.1, st.z - c2[1] * hh + n2[1] * 0.1]], st.h); } }
+      y.save(); y.globalCompositeOperation = 'lighter'; y.drawImage(pl, 0, 0); y.restore();
     }
     lite(y, fw, fh, 0.5);
     rect('hall-floor', 'wall', [0, 0], [HX, HZ], 0.003, true, jpg(c, 0.88));
@@ -1466,6 +1475,22 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       gr.addColorStop(0, night ? 'rgba(74,90,126,1)' : 'rgba(238,246,255,1)'); gr.addColorStop(0.5, night ? 'rgba(70,84,118,0.9)' : 'rgba(236,244,252,0.92)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); y.fillStyle = gr; y.fillRect(cx - r, cz - r, 2 * r, 2 * r);
     }
     rect('hall-roof', 'ceiling', [0, 0], [HX, HZ], HH, false, jpg(c, 0.9));
+    // light shafts: a few of the roof's round openings let down a faint beam of dusty light along the sun's slant (two crossed soft planes each, one shared small texture); only by day
+    if (env.day > 0.12) {
+      const sx = -Math.cos(sunA), sz = -Math.sin(sunA), shift = HH / Math.tan(sunEl), L = Math.hypot(shift, HH), vv = [sx * shift / L, -HH / L, sz * shift / L], px = -sz, pz = sx;
+      const tc = canvas(64, 256), tx = tc.getContext('2d'), a0 = (0.15 + 0.2 * (1 - Math.sin(sunEl))) * Math.min(1, env.day * 1.4);
+      const gx = tx.createLinearGradient(0, 0, 64, 0); gx.addColorStop(0, 'rgba(255,246,226,0)'); gx.addColorStop(0.5, `rgba(255,246,226,${a0.toFixed(3)})`); gx.addColorStop(1, 'rgba(255,246,226,0)'); tx.fillStyle = gx; tx.fillRect(0, 0, 64, 256);
+      tx.globalCompositeOperation = 'destination-in'; const gy = tx.createLinearGradient(0, 0, 0, 256); gy.addColorStop(0, 'rgba(0,0,0,1)'); gy.addColorStop(0.55, 'rgba(0,0,0,0.55)'); gy.addColorStop(1, 'rgba(0,0,0,0)'); tx.fillStyle = gy; tx.fillRect(0, 0, 64, 256);
+      const beam = tc.toDataURL('image/png');
+      let n = 0;
+      for (let i = 0; i < HX / 4; i++) for (let j = 0; j < HZ / 4; j++) {
+        if ((i + j) % 2 !== 0 || (i * 7 + j * 3) % 11 !== 0) continue;
+        const r = 1.05 * 1.5, cx = 2 + i * 4, cz = 2 + j * 4, top = [cx, HH - 0.03, cz];
+        surfaces.push({ name: `beam${n}a`, kind: 'wall', glass: true, texture: beam, origin: [top[0] - px * r, top[1], top[2] - pz * r], u: [px, 0, pz], v: vv, size: [2 * r, L], normal: [sx, 0, sz], openings: [] });
+        surfaces.push({ name: `beam${n}b`, kind: 'wall', glass: true, texture: beam, origin: [top[0] - sx * r, top[1], top[2] - sz * r], u: [sx, 0, sz], v: vv, size: [2 * r, L], normal: [px, 0, pz], openings: [] });
+        n++;
+      }
+    }
   }
   const glassWall = (name, x0, z0, x1, z1, nx, nz, door) => {
     const L = Math.hypot(x1 - x0, z1 - z0), ux = (x1 - x0) / L, uz = (z1 - z0) / L, S = 20, cw = Math.round(L * S), ch = Math.round(HH * S), c = canvas(cw, ch), y = c.getContext('2d');
@@ -1491,12 +1516,32 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   glassWall('glass-n', 0, 0, HX, 0, 0, 1); glassWall('glass-e', HX, 0, HX, HZ, -1, 0); glassWall('glass-w', 0, 0, 0, HZ, 1, 0); glassWall('glass-s', 0, HZ, HX, HZ, 0, -1, PLAN.entrance.at);
   if (PLAN.pool) { const [a0, b0, a1, b1] = PLAN.pool; solids.push([a0, b0, a1, b0], [a1, b0, a1, b1], [a1, b1, a0, b1], [a0, b1, a0, b0]); }                 // (the pool)
   const tints = ['#f4f1ec', '#cfcdc8', '#e8dccb', '#f1efe9', '#c9a690', '#e4e8e2', '#d8d3c8', '#f4f1ec'];     // the houses' walls: white, concrete, sand, ... (their own finish, not one tone)
+  // board-formed concrete for the piers: mottled, vertical board grain, pour joints every 2.4 m, tie holes on a 1.2 m grid, the foot a little dirty (baked once; the six piers share it)
+  const concreteTex = hex => { const cw = 128, ch = 1280, c = canvas(cw, ch), x = c.getContext('2d'); let sd = 11; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    x.fillStyle = hex; x.fillRect(0, 0, cw, ch);
+    for (let k = 0; k < 26; k++) { const cx = r() * cw, cy = r() * ch, rr = 18 + r() * 50, g = x.createRadialGradient(cx, cy, 0, cx, cy, rr), dk = r() < 0.5; g.addColorStop(0, dk ? 'rgba(70,66,60,0.10)' : 'rgba(255,255,255,0.10)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(cx - rr, cy - rr, rr * 2, rr * 2); }
+    for (let k = 0; k < 40; k++) { const bx = Math.round(k * cw / 40); x.fillStyle = `rgba(${r() < 0.5 ? '255,255,255' : '60,56,50'},${(0.025 + r() * 0.04).toFixed(3)})`; x.fillRect(bx, 0, 1 + Math.round(r() * 2), ch); }
+    for (let k = 0; k < 5200; k++) { x.fillStyle = `rgba(${r() < 0.5 ? '255,255,255' : '70,64,58'},${(r() * 0.2).toFixed(3)})`; x.fillRect(r() * cw, r() * ch, 1 + r() * 2, 1 + r() * 2); }
+    for (let k = 1; k < 6; k++) { const jy = Math.round(k * 2.4 * ch / 14); x.fillStyle = 'rgba(48,44,40,0.35)'; x.fillRect(0, jy, cw, 2); x.fillStyle = 'rgba(255,255,255,0.22)'; x.fillRect(0, jy + 2, cw, 1); }
+    for (let k = 0; k < 12; k++) for (const hx of [cw * 0.2, cw * 0.8]) { const hy = (0.6 + k * 1.2) * ch / 14; x.fillStyle = 'rgba(40,36,32,0.5)'; x.beginPath(); x.arc(hx, hy, 3, 0, 7); x.fill(); x.strokeStyle = 'rgba(255,255,255,0.28)'; x.lineWidth = 1; x.beginPath(); x.arc(hx, hy + 0.6, 3.6, 0.2, 2.9); x.stroke(); }
+    const g = x.createLinearGradient(0, ch * 0.88, 0, ch); g.addColorStop(0, 'rgba(70,60,48,0)'); g.addColorStop(1, 'rgba(70,60,48,0.28)'); x.fillStyle = g; x.fillRect(0, ch * 0.88, cw, ch * 0.12);
+    const t = x.createLinearGradient(0, 0, 0, ch * 0.08); t.addColorStop(0, 'rgba(70,64,58,0.2)'); t.addColorStop(1, 'rgba(70,64,58,0)'); x.fillStyle = t; x.fillRect(0, 0, cw, ch * 0.08);
+    return jpg(c, 0.9); };
   const wallTex = (hex, dark) => { const c = canvas(64, 256), x = c.getContext('2d'); x.fillStyle = hex; x.fillRect(0, 0, 64, 256);
     const t = x.createLinearGradient(0, 0, 0, 40); t.addColorStop(0, 'rgba(120,108,92,0.16)'); t.addColorStop(1, 'rgba(120,108,92,0)'); x.fillStyle = t; x.fillRect(0, 0, 64, 40);
     const b = x.createLinearGradient(0, 190, 0, 256); b.addColorStop(0, 'rgba(70,58,44,0)'); b.addColorStop(1, 'rgba(70,58,44,0.2)'); x.fillStyle = b; x.fillRect(0, 190, 64, 66);
     x.fillStyle = 'rgba(255,255,255,0.3)'; x.fillRect(0, 243, 64, 13); x.fillStyle = 'rgba(60,50,40,0.3)'; x.fillRect(0, 242, 64, 1.5); if (dark) noise(x, 64, 256, 500, 0.08); return jpg(c); };
   const floorTex = k => { const P = 64, w = RW * P, h = RD * P, c = canvas(w, h), x = c.getContext('2d');
-    if (k === 0) { x.fillStyle = '#d3bd9a'; x.fillRect(0, 0, w, h); for (let q = 0; q < h; q += 0.18 * P) { x.fillStyle = `rgba(${Math.random() < 0.5 ? '255,255,255' : '90,66,40'},${0.03 + Math.random() * 0.05})`; x.fillRect(0, q, w, 0.18 * P); x.fillStyle = 'rgba(80,60,40,0.14)'; x.fillRect(0, q, w, 1); } }
+    if (k === 0) {                                                  // oak boards: each its own tone, long grain, a few knots, bevelled edges, end joints staggered row by row
+      x.fillStyle = '#cdb68f'; x.fillRect(0, 0, w, h); const pw = 0.16 * P; let row = 0;
+      for (let q = 0; q < h; q += pw, row++) { let px = -((row * 0.37) % 1) * 1.8 * P;
+        while (px < w) { const len = (1.1 + Math.random() * 1.3) * P, tone = Math.random(), r0 = 200 + tone * 26 - 10, g0 = 172 + tone * 24 - 10, b0 = 128 + tone * 20 - 10;
+          x.fillStyle = `rgb(${r0 | 0},${g0 | 0},${b0 | 0})`; x.fillRect(px, q, len, pw);
+          for (let g = 0; g < 7; g++) { x.fillStyle = `rgba(${Math.random() < 0.5 ? '120,86,50' : '255,244,220'},${(0.04 + Math.random() * 0.07).toFixed(3)})`; x.fillRect(px, q + Math.random() * pw, len, 0.6 + Math.random()); }
+          if (Math.random() < 0.12) { const kx = px + Math.random() * len, ky = q + pw * 0.5, kg = x.createRadialGradient(kx, ky, 0, kx, ky, 3.2); kg.addColorStop(0, 'rgba(96,64,34,0.55)'); kg.addColorStop(1, 'rgba(96,64,34,0)'); x.fillStyle = kg; x.fillRect(kx - 4, ky - 4, 8, 8); }
+          x.fillStyle = 'rgba(70,50,30,0.5)'; x.fillRect(px, q, 1, pw); px += len; }
+        x.fillStyle = 'rgba(255,248,230,0.3)'; x.fillRect(0, q, w, 1); x.fillStyle = 'rgba(70,50,30,0.38)'; x.fillRect(0, q + pw - 1.2, w, 1.2); }
+      const sh = x.createLinearGradient(0, 0, w, h); sh.addColorStop(0, 'rgba(255,255,255,0.05)'); sh.addColorStop(1, 'rgba(70,50,30,0.06)'); x.fillStyle = sh; x.fillRect(0, 0, w, h); }
     else if (k === 1) { x.fillStyle = '#a8a6a0'; x.fillRect(0, 0, w, h); noise(x, w, h, 6000, 0.12); x.strokeStyle = 'rgba(60,58,54,0.18)'; for (let q = 0; q <= w; q += 2 * P) { x.beginPath(); x.moveTo(q, 0); x.lineTo(q, h); x.stroke(); } }
     else { x.fillStyle = '#e1d6c2'; x.fillRect(0, 0, w, h); for (let q = 0; q < h; q += 0.3 * P) { x.fillStyle = `rgba(255,255,255,${0.04 + Math.random() * 0.06})`; x.fillRect(0, q, w, 0.3 * P); } }
     const e = 0.5 * P, edge = (ax, ay, bx, by, rx, ry, rw, rh) => { const g = x.createLinearGradient(ax, ay, bx, by); g.addColorStop(0, 'rgba(60,44,28,0.2)'); g.addColorStop(1, 'rgba(60,44,28,0)'); x.fillStyle = g; x.fillRect(rx, ry, rw, rh); };
@@ -1504,7 +1549,8 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   const sky = (() => { const c = canvas(256, 192), x = c.getContext('2d'); x.fillStyle = '#e9e7e1'; x.fillRect(0, 0, 256, 192); x.fillStyle = '#ffffff'; x.fillRect(40, 34, 176, 124);
     const g = x.createRadialGradient(128, 96, 0, 128, 96, 120); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(220,226,230,0.5)'); x.fillStyle = g; x.fillRect(40, 34, 176, 124); return jpg(c); })();
 
-  for (const [x, z] of PLAN.piers) { const t = wallTex(tintHex('#bfbcb5', { tint: env.tint.map(v => Math.pow(v, 0.5)) }), true); for (const [nx, nz] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) wall(`pier${x}-${z}-${nx}${nz}`, x + nx * 0.7, z + nz * 0.7, nx, nz, 1.4, { h: HH, tex: t }); }       // (eight piers carry the roof)
+  const pierTex = concreteTex(tintHex('#bfbcb5', { tint: env.tint.map(v => Math.pow(v, 0.5)) }));
+  for (const [x, z] of PLAN.piers) { const t = pierTex; for (const [nx, nz] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) wall(`pier${x}-${z}-${nx}${nz}`, x + nx * 0.7, z + nz * 0.7, nx, nz, 1.4, { h: HH, tex: t }); }       // (eight piers carry the roof)
   const directory = [];
   const hotspots = [];
   // --- the houses: each as the street builds its room (a porch in the show's colour, three walls to hang on), turned to its own place
@@ -1614,6 +1660,11 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   //     through a wide opening; paintings hang at their real size (the long side as the credits say, the shape from the picture), sculpture and
   //     maquettes stand on plinths (props.js). Its door is in the plaza's south edge, facing south. Data: data/museum/sections.json
   const props = [];
+  // benches around the pool (the Square is a place to sit and look): oak on concrete, props.js; each is a wall to walk round
+  if (PLAN.pool) { const [bx0, bz0, bx1, bz1] = PLAN.pool, mx = (bx0 + bx1) / 2, mz = (bz0 + bz1) / 2;
+    for (const [x, z, rot] of [[mx, bz1 + 2.2, 0], [mx, bz0 - 2.2, 0], [bx0 - 2.2, mz, Math.PI / 2], [bx1 + 2.2, mz, Math.PI / 2]]) {
+      props.push({ kind: 'bench', x, z, rot, h: 0.45, plinth: { w: 0.001, d: 0.001, h: 0 } });
+      const lx = rot ? 0.3 : 1.15, lz = rot ? 1.15 : 0.3; solids.push([x - lx, z - lz, x + lx, z - lz], [x + lx, z - lz, x + lx, z + lz], [x + lx, z + lz, x - lx, z + lz], [x - lx, z + lz, x - lx, z - lz]); } }
   let endZ = 0;
   const placed = (opts.sections || []).map(sec => { const sp = PLAN.spaces.find(q => q.type === 'section' && q.section === sec.id); return sp ? { ...sec, door: { x: sp.door[0], z: sp.door[1], o: sp.dir } } : null; }).filter(Boolean);
   for (const sec of placed) {
@@ -1694,7 +1745,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 190, noSpots: true,
     outdoors: { hour: env.hour, centre: [CX, CZ], lamps: [], treeline: 'data/rooms/outside/treeline.webp', treeRadius: 120, treeHeight: 46 },
     baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: 4 },
-    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], solids, directory, hotspots,
+    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0.2, 0.62], floorReflectEco: true, solids, directory, hotspots,
     stands: stands.map(s => ({ ...s, kind: 'stand', t: STAND.t })), ...(props.length ? { props } : {}),
     start: { pos: PLAN.start.pos, look: PLAN.start.look },
     ...(plinthsOut.length ? { plinths: plinthsOut } : {}),
