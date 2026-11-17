@@ -12,9 +12,13 @@ const DB = (app.match(/const DB = '([^']+)'/) || [])[1], KEY = (app.match(/const
 (async () => {
   const fails = [], notes = [];
   if (!DB || !KEY) { console.log('FAIL museum: the database address or key was not found in app.js'); process.exit(1); }
-  let slots = [];
+  let slots = [], hidden = new Set();
   try { const r = await fetch(DB + 'museum_slots?select=slot,app_slug,content,live&live=eq.true&order=slot', { headers: { apikey: KEY } }); if (!r.ok) throw new Error(r.status); slots = await r.json(); }
   catch (e) { fails.push('the database did not answer for the museum (' + e.message + ')'); }
+  // a slot that points to an exhibition the owner hid from the app (control room: app_hidden, "ex:<slug>") is not shown by design
+  try { const r = await fetch(DB + 'app_hidden?select=key', { headers: { apikey: KEY } }); if (r.ok) hidden = new Set((await r.json()).map(x => x.key)); } catch {}
+  const hid = slots.filter(s => s.app_slug && hidden.has('ex:' + s.app_slug)).map(s => s.app_slug);
+  if (hid.length) { notes.push('hidden by the owner, left out: ' + hid.join(', ')); slots = slots.filter(s => !hid.includes(s.app_slug)); }
   const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
   const p = await (await b.newContext({ ...devices['iPhone 13'] })).newPage();
   const errs = []; p.on('pageerror', e => errs.push(String(e).slice(0, 200)));

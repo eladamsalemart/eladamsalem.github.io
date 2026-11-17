@@ -2,6 +2,10 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-17: two checks counted exhibitions the owner hid on purpose
+
+- Issue #8: Virtual show (celebration-virtual) and Curated show (green-hour) "do not exist", and the museum check saw 5 live slots on the Desk against 4 on Home. Not bugs: the owner hid both exhibitions from the app on 16.11 in the control room (`app_hidden`: `ex:celebration-virtual`, `ex:green-hour`), so they answer "not found" to every visitor, and a Desk slot that points at a hidden show is not shown. The checks did not know about hiding. Fixed narrowly, in both: health.cjs does not test a page the owner hid (it says so in the report), check_museum.cjs leaves a hidden show out of the count (it says so). A hidden show that still opened, or a published one that did not reach Home, still fails: proved with MUSEUM_FAKE=1 (fails) and the live site (now 4 = 4, Home and the other pages green). No improvement tonight (the owner's work of the last days is still settling). Still available: three 0.187, supabase-js 2.119, playwright 1.65.1.
+
 ## 2026-11-16: nothing to do
 
 - No open issues or owner requests. health.cjs, check_home, check_museum (new: Desk's 6 live = Home's 6), check_app, deps.py pass on the live site (Home 17 ms frames). No improvement tonight (maplibre was 11-15; the day's other changes were the owner's: the museum gate on Home, tours sideways, the artist's order of exhibitions). Still available: three 0.187, supabase-js 2.119, playwright 1.65.1.
