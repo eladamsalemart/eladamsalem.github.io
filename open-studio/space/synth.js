@@ -1380,7 +1380,7 @@ export function skyLayout(plan = SKY_PLAN) {
   return planOf(plan).spaces.filter(sp => sp.type === 'house').map((sp, slot) => { const a = sp.dir * Math.PI / 180, o = [Math.cos(a), Math.sin(a)]; return { slot, j: slot % 8, c: sp.door, o, r: [-o[1], o[0]], id: sp.id, no: sp.slot }; });
 }
 export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
-  const PLAN = planOf(opts.plan), { RD, RW, VD, MOUTH, DOOR_H, RIM } = SH, HX = PLAN.hall.w, HZ = PLAN.hall.d, HH = PLAN.hall.h, [CX, CZ] = [HX / 2, HZ / 2], TOT = Math.max(260, HX * 2.6), env = envFor(opts.hour);
+  const PLAN = planOf(opts.plan), { RD, RW, VD, MOUTH, DOOR_H, RIM } = SH, HX = PLAN.hall.w, HZ = PLAN.hall.d, HH = PLAN.hall.h, [CX, CZ] = [HX / 2, HZ / 2], TOT = Math.max(260, HX * 2.6), env = envFor(opts.hour), LIT = [0.97, 0.86, 0.7], tIn = env.tint.map((v, i) => v + (LIT[i] - v) * env.night * 0.8), envIn = { ...env, tint: tIn };      // (tIn: inside the hall by night the warm lamps, not the blue of the dark outside)
   rooms = rooms.slice(0, 64);
   const surfaces = [], solids = [], works = [], plinthsOut = [], flat = new Map();
   const plain = c => { if (!flat.has(c)) { const cv = canvas(4, 4), x = cv.getContext('2d'); x.fillStyle = c; x.fillRect(0, 0, 4, 4); flat.set(c, cv.toDataURL('image/png')); } return flat.get(c); };
@@ -1417,7 +1417,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   const places = skyLayout(PLAN), bySlot = new Map(rooms.map((r, i) => [r.slot ?? i + 1, r])), houseList = places.map((d, k) => ({ d, r: bySlot.get(d.no), k })).filter(q => q.r);      // (a house stands only where its slot holds an exhibition)
   // --- ONE building: a floor of pale terrazzo under one roof of soft light (96 x 72 m, 14 m high), glass all round; outside, a garden seen only through the glass.
   //     The roof's round openings are painted as soft, wide pools of light on the floor (gentle falloff, no hard edges) and slide with the visitor's hour.
-  const lite = (x, w, h, k = 1) => { x.save(); x.globalCompositeOperation = 'multiply'; x.fillStyle = `rgb(${env.tint.map(v => Math.round(255 * Math.min(1, Math.pow(v, k))))})`; x.fillRect(0, 0, w, h); x.restore(); };
+  const lite = (x, w, h, k = 1) => { x.save(); x.globalCompositeOperation = 'multiply'; x.fillStyle = `rgb(${tIn.map(v => Math.round(255 * Math.min(1, Math.pow(v, k))))})`; x.fillRect(0, 0, w, h); x.restore(); };
   const sunA = Math.PI * (env.hour - 6.5) / 11, sunEl = Math.max(30, Math.min(70, 56 * Math.sin(Math.max(0, sunA)))) * Math.PI / 180;      // (a low sun is held at 30 degrees: the pools would leave the floor)
   {
     const g = canvas(256, 256), x = g.getContext('2d'); x.fillStyle = '#9fb27f'; x.fillRect(0, 0, 256, 256);
@@ -1464,12 +1464,17 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
         for (const st of PLAN.stands) { const a2 = st.rot * Math.PI / 180, c2 = [Math.cos(a2), Math.sin(a2)], n2 = [-c2[1], c2[0]], hh = st.len / 2; cast([[st.x - c2[0] * hh - n2[0] * 0.1, st.z - c2[1] * hh - n2[1] * 0.1], [st.x + c2[0] * hh - n2[0] * 0.1, st.z + c2[1] * hh - n2[1] * 0.1], [st.x + c2[0] * hh + n2[0] * 0.1, st.z + c2[1] * hh + n2[1] * 0.1], [st.x - c2[0] * hh + n2[0] * 0.1, st.z - c2[1] * hh + n2[1] * 0.1]], st.h); } }
       y.save(); y.globalCompositeOperation = 'lighter'; y.drawImage(pl, 0, 0); y.restore();
     }
+    if (env.day <= 0.3) {                                           // by night the museum's own lamps: warm round pools on the floor under the roof's openings
+      const k = 1 - env.day / 0.3; y.save(); y.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < HX / 4; i++) for (let j = 0; j < HZ / 4; j++) { const big = (i + j) % 2 === 0, r = (big ? 1.05 : 0.6) * 2.2 * FP, cx = (2 + i * 4) * FP, cz = (2 + j * 4) * FP, g = y.createRadialGradient(cx, cz, 0, cx, cz, r);
+        g.addColorStop(0, `rgba(255,214,160,${(0.2 * k).toFixed(3)})`); g.addColorStop(1, 'rgba(255,214,160,0)'); y.fillStyle = g; y.fillRect(cx - r, cz - r, 2 * r, 2 * r); }
+      y.restore(); }
     lite(y, fw, fh, 0.5);
     rect('hall-floor', 'wall', [0, 0], [HX, HZ], 0.02, true, jpg(c, 0.88));
   }
   {
     const FP = 12, fw = HX * FP, fh = HZ * FP, c = canvas(fw, fh), y = c.getContext('2d'), night = env.day < 0.3;
-    y.fillStyle = night ? '#2b2f38' : '#e2ded4'; y.fillRect(0, 0, fw, fh); noise(y, fw, fh, 9000, 0.07);
+    y.fillStyle = night ? '#4a4846' : '#e2ded4'; y.fillRect(0, 0, fw, fh); noise(y, fw, fh, 9000, 0.07);
     for (let i = 0; i < HX / 4; i++) for (let j = 0; j < HZ / 4; j++) {
       const r = ((i + j) % 2 === 0 ? 1.05 : 0.6) * 1.35 * FP, cx = (2 + i * 4) * FP, cz = (2 + j * 4) * FP, gr = y.createRadialGradient(cx, cz, 0, cx, cz, r);
       gr.addColorStop(0, night ? 'rgba(74,90,126,1)' : 'rgba(238,246,255,1)'); gr.addColorStop(0.5, night ? 'rgba(70,84,118,0.9)' : 'rgba(236,244,252,0.92)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); y.fillStyle = gr; y.fillRect(cx - r, cz - r, 2 * r, 2 * r);
@@ -1549,7 +1554,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   const sky = (() => { const c = canvas(256, 192), x = c.getContext('2d'); x.fillStyle = '#e9e7e1'; x.fillRect(0, 0, 256, 192); x.fillStyle = '#ffffff'; x.fillRect(40, 34, 176, 124);
     const g = x.createRadialGradient(128, 96, 0, 128, 96, 120); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(220,226,230,0.5)'); x.fillStyle = g; x.fillRect(40, 34, 176, 124); return jpg(c); })();
 
-  const pierTex = concreteTex(tintHex('#bfbcb5', { tint: env.tint.map(v => Math.pow(v, 0.5)) }));
+  const pierTex = concreteTex(tintHex('#bfbcb5', { tint: tIn.map(v => Math.pow(v, 0.5)) }));
   for (const [x, z] of PLAN.piers) { const t = pierTex; for (const [nx, nz] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) wall(`pier${x}-${z}-${nx}${nz}`, x + nx * 0.7, z + nz * 0.7, nx, nz, 1.4, { h: HH, tex: t }); }       // (eight piers carry the roof)
   const directory = [];
   const hotspots = [];
@@ -1558,11 +1563,11 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     const { o, c } = d, R = d.r, P = (a, b) => [c[0] + R[0] * a + o[0] * b, c[1] + R[1] * a + o[1] * b];
     const col = r.colour, M2 = MOUTH / 2, A0 = -RW / 2, A1 = RW / 2, rh = CL.RH[i % 8], dark = i % 8 === 1 || i % 8 === 4, fl = i % 3, ft = tints[d.j];
     const roomWall = wallTex(dark ? '#8d8b85' : ft, dark), ceil = i % 2 === 0 ? sky : plain('#f7f4ee');
-    wall(`th${i}l`, ...P(-M2, VD / 2), R[0], R[1], VD, { h: DOOR_H, tex: plain(tintHex(shade(col, 0.8), env)) });
-    wall(`th${i}r`, ...P(M2, VD / 2), -R[0], -R[1], VD, { h: DOOR_H, tex: plain(tintHex(shade(col, 0.92), env)) });
+    wall(`th${i}l`, ...P(-M2, VD / 2), R[0], R[1], VD, { h: DOOR_H, tex: plain(tintHex(shade(col, 0.8), envIn)) });
+    wall(`th${i}r`, ...P(M2, VD / 2), -R[0], -R[1], VD, { h: DOOR_H, tex: plain(tintHex(shade(col, 0.92), envIn)) });
     orect(`th${i}-ceil`, 'ceiling', P, R, o, -M2, M2, 0, VD, DOOR_H, false, plain(shade(col, 0.96)));
     orect(`th${i}-floor`, 'wall', P, R, o, -M2, M2, 0, VD, 0.032, true, plain(shade(col, 0.88)));
-    const rimTex = plain(tintHex(shade(col, 0.7), env));
+    const rimTex = plain(tintHex(shade(col, 0.7), envIn));
     const rim = (nm, a0, a1, y0, y1) => { const q = P(a0, -0.012); surfaces.push({ name: `rim${i}${nm}`, kind: 'wall', texture: rimTex, origin: [q[0], y1, q[1]], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [a1 - a0, y1 - y0], normal: [-o[0], 0, -o[1]], openings: [] }); };
     rim('l', -M2 - RIM, -M2, 0, DOOR_H + RIM); rim('r', M2, M2 + RIM, 0, DOOR_H + RIM); rim('t', -M2 - RIM, M2 + RIM, DOOR_H, DOOR_H + RIM);
     orect(`r${i}-floor`, 'wall', P, R, o, A0, A1, VD, VD + RD, 0.03, true, floorTex(fl));
@@ -1623,6 +1628,14 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       hotspots.push({ id: r.slug + '-portal', title: r.title, kind: 'portal', direct: true, origin: o0, u, v: [0, -1, 0], size: [PW, PH], normal: nrm, enter: r.enter });
       runs.splice(1, 1);                                                                       // (the back wall is the portal's: works hang on the other two)
     }
+    // the house's outer skin, in small details that read from the plaza: a recessed dark plinth (a shadow gap) at the foot of every outer face and a thin dark line under the top edge
+    { const gap = jpg((() => { const c2 = canvas(4, 16), g2 = c2.getContext('2d'), gr = g2.createLinearGradient(0, 0, 0, 16); gr.addColorStop(0, 'rgba(30,26,22,0.78)'); gr.addColorStop(1, 'rgba(30,26,22,0.55)'); g2.fillStyle = '#d9d5cd'; g2.fillRect(0, 0, 4, 16); g2.fillStyle = gr; g2.fillRect(0, 0, 4, 16); return c2; })(), 0.9);
+      const edge = (nm, p0, p1, nrm, y1, hgt) => { const L2 = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]), ux = (p1[0] - p0[0]) / L2, uz = (p1[1] - p0[1]) / L2;
+        surfaces.push({ name: `r${i}-${nm}`, kind: 'wall', texture: gap, origin: [p0[0] + nrm[0] * 0.012, y1, p0[1] + nrm[1] * 0.012], u: [ux, 0, uz], v: [0, -1, 0], size: [L2, hgt], normal: [nrm[0], 0, nrm[1]], openings: [] }); };
+      const nL = [-R[0], -R[1]], nR = [R[0], R[1]], nB = [o[0], o[1]], nF = [-o[0], -o[1]];
+      for (const [nm, y1, hgt] of [['gap', 0.16, 0.16], ['top', rh, 0.035]]) {
+        edge(nm + 'L', P(A0, VD), P(A0, VD + RD), nL, y1, hgt); edge(nm + 'R', P(A1, VD), P(A1, VD + RD), nR, y1, hgt); edge(nm + 'B', P(A0, VD + RD), P(A1, VD + RD), nB, y1, hgt);
+        edge(nm + 'F1', P(A0, VD), P(-M2, VD), nF, y1, hgt); edge(nm + 'F2', P(M2, VD), P(A1, VD), nF, y1, hgt); } }
     const sized = await Promise.all(autoW.map(async work => { const s = await sizeOf({ ...work, image: thumbOf(work) }, src), k = Math.min(1, 140 / Math.max(s.w, s.h)); return { work, w: s.w * k, h: s.h * k }; }));
     const GAP = 0.5, MG = 0.7, bucket = runs.map(() => []);
     let ri = 0;
@@ -1642,7 +1655,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   // --- on the plaza: three freestanding walls at their own angles, the first work of each exhibition on their faces (the name beside it);
   //     and the exhibitions' objects (up to three) on plinths
   const stands = PLAN.stands.map(q => ({ ...q }));
-  const faces = standWalls(stands), face = (() => { const c = canvas(256, 256), x = c.getContext('2d'); x.fillStyle = tintHex('#f6f4ef', { tint: env.tint.map(v => Math.pow(v, 0.55)) }); x.fillRect(0, 0, 256, 256);
+  const faces = standWalls(stands), face = (() => { const c = canvas(256, 256), x = c.getContext('2d'); x.fillStyle = tintHex('#f6f4ef', { tint: tIn.map(v => Math.pow(v, 0.55)) }); x.fillRect(0, 0, 256, 256);
     const b = x.createLinearGradient(0, 200, 0, 256); b.addColorStop(0, 'rgba(70,58,44,0)'); b.addColorStop(1, 'rgba(70,58,44,0.16)'); x.fillStyle = b; x.fillRect(0, 200, 256, 56); return jpg(c); })();
   for (const f of faces) surfaces.push({ name: f.name, kind: 'wall', stand: f.stand, texture: face, origin: f.origin, u: f.u, v: [0, -1, 0], size: [f.len, f.h], normal: f.normal, openings: [] });
   for (const s of stands) { const a = s.rot * Math.PI / 180; solids.push([s.x - Math.cos(a) * s.len / 2, s.z - Math.sin(a) * s.len / 2, s.x + Math.cos(a) * s.len / 2, s.z + Math.sin(a) * s.len / 2]); }
@@ -1669,7 +1682,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   const placed = (opts.sections || []).map(sec => { const sp = PLAN.spaces.find(q => q.type === 'section' && q.section === sec.id); return sp ? { ...sec, door: { x: sp.door[0], z: sp.door[1], o: sp.dir } } : null; }).filter(Boolean);
   for (const sec of placed) {
     const dx = sec.door.x ?? CX, dz = sec.door.z ?? CZ + 12, o = sec.door.o || [0, 1], R = [-o[1], o[0]], P = (a, b) => [dx + R[0] * a + o[0] * b, dz + R[1] * a + o[1] * b];
-    const cr = sec.credits || {}, bays = sec.bays, stoneTex = plain(tintHex('#c9bba3', env));
+    const cr = sec.credits || {}, bays = sec.bays, stoneTex = plain(tintHex('#c9bba3', envIn));
     directory.push({ title: sec.title, kind: 'history', note: 'the wing: ' + (sec.years || ''), at: P(0, -5.0), look: P(0, 8) });
     // what the walker's frame means for a wall facing +o (u runs to -a) or -o (u runs to +a): the position along the wall of the point a
     const along = (plus, aC, len, a) => plus ? (aC + len / 2) - a : a - (aC - len / 2);
