@@ -378,6 +378,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (withLight && lights[i]) { m.lightMap = lights[i]; m.lightMapIntensity = Math.PI * (floorS.lightScale || 1); }
     return m;
   }
+  let mirrorCtl = null;                                   // the floor's mirror, when there is one: the quality ladder switches it off before a phone has to stutter
   if (floorS) {
     const [rNear, rLow] = spec.floorReflect || [0, 0];
     floorMesh = planeMesh(floorS, floorMaterial(floorS.size[0], floorS.size[1]));
@@ -402,6 +403,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const mirrorRes = Math.min(2048, Math.round(Math.max(innerWidth, innerHeight) * Math.min(devicePixelRatio, 2) * (spec.floorReflectEco ? 0.4 : 0.6)));
       const mirror = new Reflector(new THREE.PlaneGeometry(R.x1 - R.x0, R.z1 - R.z0), { textureWidth: mirrorRes, textureHeight: mirrorRes, color: 0xffffff, clipBias: 0.003 });
       mirror.material.fragmentShader = mirror.material.fragmentShader.replace('blendOverlay( base.rgb, color )', 'base.rgb * color');
+      mirrorCtl = { isOn: true, set(v) { this.isOn = v; mirror.visible = v; floorMesh.material.transparent = v; dirty = true; } };
       mirror.userData.kind = 'mirror'; mirror.rotation.x = -Math.PI / 2; mirror.position.set((R.x0 + R.x1) / 2, -0.002, (R.z0 + R.z1) / 2); scene.add(mirror);
       const draw = mirror.onBeforeRender;
       // eco: a still camera keeps the last reflection, a moving one redraws it every third frame, at 0.4 of the screen (the reflection of a honed floor never shows the lag): a third of the cost on a phone
@@ -1261,7 +1263,9 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (frameTimes.length === 40 && now > nextAdapt) {
       const avg = frameTimes.reduce((a, b) => a + b) / 40, pr = renderer.getPixelRatio();
       if (avg > 0.028 && pr > 1) { renderer.setPixelRatio(Math.max(1, pr - 0.25)); resize(); nextAdapt = now + 1500; frameTimes.length = 0; }
+      else if (avg > 0.028 && pr <= 1 && mirrorCtl && mirrorCtl.isOn) { mirrorCtl.set(false); nextAdapt = now + 4000; frameTimes.length = 0; }      // (already at the lowest resolution: the reflection goes next)
       else if (avg < 0.014 && pr < maxRatio) { renderer.setPixelRatio(Math.min(maxRatio, pr + 0.25)); resize(); nextAdapt = now + 4000; frameTimes.length = 0; }
+      else if (avg < 0.012 && pr >= maxRatio && mirrorCtl && !mirrorCtl.isOn) { mirrorCtl.set(true); nextAdapt = now + 8000; frameTimes.length = 0; }
     }
     if (mode === 'walk' && now > nextFocus) { focus(); nextFocus = now + 200; }
     if (ibrChoose && now > nextChoose) { ibrChoose(pos, new THREE.Vector3().subVectors(look, pos).normalize()); nextChoose = now + 700; }
@@ -1340,6 +1344,9 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     works() { return pieces.map(p => { const m = p.mesh.material, mats = [].concat(m), f = mats.find(x => x.emissiveMap) || mats[0]; const t = f && f.emissiveMap; let vis = true; for (let o = p.mesh; o; o = o.parent) vis = vis && o.visible; return { title: p.w.title, image: t && t.image ? [t.image.width, t.image.height] : [0, 0], visible: vis, inScene: !!p.mesh.parent && !!p.mesh.parent.parent }; }); },
     // stand somewhere and look at something, as a visitor walking would (the room keeps running: for testing
     // what a phone does as one walks, unlike shot() below)
+    meshes: () => { const o = []; scene.traverse(m => { if (m.isMesh) o.push([m.userData.kind || m.name || m.type, +m.position.y.toFixed(3), m.visible, m.renderOrder, !!(m.material && m.material.transparent), m.material && m.material.depthTest !== false]); }); return o; },
+    setVisible: (kind, v) => { scene.traverse(m => { if (m.userData && m.userData.kind === kind) m.visible = !!v; }); dirty = true; },
+    eco: () => ({ pixelRatio: renderer.getPixelRatio(), mirror: mirrorCtl ? mirrorCtl.isOn : null }), setMirror: v => { if (mirrorCtl) mirrorCtl.set(!!v); },
     where() { return { pos: pos.toArray(), look: look.toArray(), fov: camera.fov }; },
     place(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },
     // the images the room holds in the graphics memory, in MB (what a phone has to find room for)

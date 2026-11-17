@@ -1142,7 +1142,7 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
     for (let i = 0; i < 5200; i++) { const t = Math.random(); x.fillStyle = t < 0.5 ? 'rgba(255,255,230,0.12)' : t < 0.85 ? 'rgba(60,90,40,0.14)' : 'rgba(140,120,70,0.14)'; x.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 3, 1 + Math.random() * 2); }
     const lite = (x, w, h) => { x.save(); x.globalCompositeOperation = 'multiply'; x.fillStyle = `rgb(${env.tint.map(v => Math.round(255 * v))})`; x.fillRect(0, 0, w, h); x.restore(); };
     lite(x, 256, 256);
-    surfaces.push({ name: 'floor', kind: 'floor', texture: jpg(g, 0.9), tileXY: [4, 4], origin: [CX - TOT / 2, 0, CZ - TOT / 2], u: [1, 0, 0], v: [0, 0, 1], size: [TOT, TOT], normal: [0, 1, 0], openings: [] });
+    surfaces.push({ name: 'floor', kind: 'floor', texture: jpg(g, 0.9), tileXY: [4, 4], origin: [CX - TOT / 2, -0.05, CZ - TOT / 2], u: [1, 0, 0], v: [0, 0, 1], size: [TOT, TOT], normal: [0, 1, 0], openings: [] });
     const PZ = CL.PLAZA, FP = 36, fw = Math.round(2 * PZ * FP), c = canvas(fw, fw), y = c.getContext('2d');
     y.fillStyle = '#d9d5cc'; y.fillRect(0, 0, fw, fw);
     const day = y.createRadialGradient(fw / 2, fw / 2, 0, fw / 2, fw / 2, fw * 0.62); day.addColorStop(0, 'rgba(255,255,255,0.32)'); day.addColorStop(1, 'rgba(90,76,60,0.14)'); y.fillStyle = day; y.fillRect(0, 0, fw, fw);
@@ -1423,7 +1423,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     const g = canvas(256, 256), x = g.getContext('2d'); x.fillStyle = '#9fb27f'; x.fillRect(0, 0, 256, 256);
     for (let i = 0; i < 5200; i++) { const t = Math.random(); x.fillStyle = t < 0.5 ? 'rgba(255,255,230,0.12)' : t < 0.85 ? 'rgba(60,90,40,0.14)' : 'rgba(140,120,70,0.14)'; x.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 3, 1 + Math.random() * 2); }
     lite(x, 256, 256);
-    surfaces.push({ name: 'floor', kind: 'floor', texture: jpg(g, 0.9), tileXY: [4, 4], origin: [CX - TOT / 2, 0, CZ - TOT / 2], u: [1, 0, 0], v: [0, 0, 1], size: [TOT, TOT], normal: [0, 1, 0], openings: [] });
+    surfaces.push({ name: 'floor', kind: 'floor', texture: jpg(g, 0.9), tileXY: [4, 4], origin: [CX - TOT / 2, -0.05, CZ - TOT / 2], u: [1, 0, 0], v: [0, 0, 1], size: [TOT, TOT], normal: [0, 1, 0], openings: [] });
   }
   {
     const FP = 16, fw = HX * FP, fh = HZ * FP, c = canvas(fw, fh), y = c.getContext('2d');
@@ -1745,7 +1745,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 190, noSpots: true,
     outdoors: { hour: env.hour, centre: [CX, CZ], lamps: [], treeline: 'data/rooms/outside/treeline.webp', treeRadius: 120, treeHeight: 46 },
     baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: 4 },
-    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0.2, 0.62], floorReflectEco: true, solids, directory, hotspots,
+    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], solids, directory, hotspots,
     stands: stands.map(s => ({ ...s, kind: 'stand', t: STAND.t })), ...(props.length ? { props } : {}),
     start: { pos: PLAN.start.pos, look: PLAN.start.look },
     ...(plinthsOut.length ? { plinths: plinthsOut } : {}),
