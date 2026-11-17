@@ -1,12 +1,12 @@
 {
- "updated": "2026-11-16",
+ "updated": "2026-11-17",
  "sources": [
   {
    "source": "haifa-museum",
    "place": "haifa-museum-of-art",
    "url": "https://www.hma.org.il/",
    "status": "ok",
-   "shows": 5,
+   "shows": 6,
    "events": 1
   },
   {
@@ -239,7 +239,7 @@
    "url": "https://www.bac.org.il",
    "auto": true,
    "status": "ok",
-   "shows": 1,
+   "shows": 2,
    "events": 0
   },
   {
@@ -247,8 +247,8 @@
    "place": "beit-benyamini",
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -283,8 +283,8 @@
    "place": "benyamini-contemporary-ceramics-center",
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -401,7 +401,7 @@
    "url": "https://hansen.co.il/",
    "auto": true,
    "status": "ok",
-   "shows": 5,
+   "shows": 6,
    "events": 0
   },
   {
@@ -463,7 +463,7 @@
    "place": "janco-dada-museum",
    "url": "https://www.jancodada.co.il/en/",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -518,7 +518,7 @@
    "url": "https://www.hms.org.il/",
    "auto": true,
    "status": "ok",
-   "shows": 6,
+   "shows": 7,
    "events": 0
   },
   {
@@ -697,8 +697,8 @@
    "place": "the-edmond-de-rothschild-center",
    "url": "http://edrcenter.com/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 2,
    "events": 0
   },
   {
@@ -742,8 +742,8 @@
    "place": "wikidata-Q135407831",
    "url": "https://tivon-lib.co.il/gallery/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -778,7 +778,7 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 46,
+   "messages": 58,
    "matched": 4,
    "unmatched": 3,
    "shows": 0,
@@ -787,9 +787,9 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 8,
-   "seconds": 606,
-   "status": "TimeoutError: timed out"
+   "calls": 68,
+   "seconds": 2592,
+   "status": "ok"
   },
   {
    "source": "makore",
