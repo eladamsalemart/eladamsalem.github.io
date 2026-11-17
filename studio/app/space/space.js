@@ -241,7 +241,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   function addOutside() {
     if (!glassWalls.size) return;
     const walls = surfaces.filter(s => glassWalls.has(s.name));
-    const cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2, RAD = Math.min(40, camera.far - 3), CAM = 1.6, GROUND = -0.02;
+    const cx = (R.x0 + R.x1) / 2, cz = (R.z0 + R.z1) / 2, RAD = Math.min(40, camera.far - 3), CAM = 1.6, GROUND = spec.outdoors ? -0.12 : -0.02;
     const RG = Math.max(8, Math.max(R.x1 - R.x0, R.z1 - R.z0) / 2 + 3.5);     // (how far the paving runs before the flower beds, from the room's middle)
     const UC = 0.55, V0 = 0.20, V1 = 0.96;                       // (the panorama's column that faces the first glass wall; the rows kept)
     const first = V(walls[0].normal).negate(), yaw = Math.atan2(first.x, -first.z);
