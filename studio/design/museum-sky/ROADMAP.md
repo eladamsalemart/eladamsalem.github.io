@@ -23,7 +23,7 @@ Source of the plan: `studio/design/museum-directions/research/04*` (top path: Bl
 9. [ ] **Blender-baked shell (lightmaps)** for the building: one GLB with UV2 lightmap per hour state (day / golden / night), loaded by a new `shell.js`. Needs Blender (see below).
 10. [ ] **Performance ladder**: portal culling per house, texture streaming, stillness render (higher quality when standing), measured on a real iPhone.
 11. [ ] **People and life** (wow): a few distant silhouettes walking, birds outside, water ripple in the pool, tree sway.
-12. [ ] **Real photographic frames/labels/benches/plinths**: modelled museum furniture with PBR.
+12. [x] (17.11, part: four oak-and-concrete benches round the pool, solid to walk round; open: frames, labels, plinth detail) **Real photographic frames/labels/benches/plinths**: modelled museum furniture with PBR.
 13. [ ] **Artist's original spaces as first-class**: repeat the Ritual method for the next artist exhibition (see "Adding an artist's original exhibition" below).
 
 ## Adding an artist's original exhibition (a recurring job, owner 16.11)
