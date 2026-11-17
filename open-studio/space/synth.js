@@ -1660,6 +1660,11 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   //     through a wide opening; paintings hang at their real size (the long side as the credits say, the shape from the picture), sculpture and
   //     maquettes stand on plinths (props.js). Its door is in the plaza's south edge, facing south. Data: data/museum/sections.json
   const props = [];
+  // benches around the pool (the Square is a place to sit and look): oak on concrete, props.js; each is a wall to walk round
+  if (PLAN.pool) { const [bx0, bz0, bx1, bz1] = PLAN.pool, mx = (bx0 + bx1) / 2, mz = (bz0 + bz1) / 2;
+    for (const [x, z, rot] of [[mx, bz1 + 2.2, 0], [mx, bz0 - 2.2, 0], [bx0 - 2.2, mz, Math.PI / 2], [bx1 + 2.2, mz, Math.PI / 2]]) {
+      props.push({ kind: 'bench', x, z, rot, h: 0.45, plinth: { w: 0.001, d: 0.001, h: 0 } });
+      const lx = rot ? 0.3 : 1.15, lz = rot ? 1.15 : 0.3; solids.push([x - lx, z - lz, x + lx, z - lz], [x + lx, z - lz, x + lx, z + lz], [x + lx, z + lz, x - lx, z + lz], [x - lx, z + lz, x - lx, z - lz]); } }
   let endZ = 0;
   const placed = (opts.sections || []).map(sec => { const sp = PLAN.spaces.find(q => q.type === 'section' && q.section === sec.id); return sp ? { ...sec, door: { x: sp.door[0], z: sp.door[1], o: sp.dir } } : null; }).filter(Boolean);
   for (const sec of placed) {
