@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-17",
+ "updated": "2026-11-18",
  "sources": [
   {
    "source": "haifa-museum",
@@ -418,8 +418,8 @@
    "place": "helena-rubinstein-pavilion",
    "url": "https://www.tamuseum.org.il/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -778,7 +778,7 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 58,
+   "messages": 60,
    "matched": 4,
    "unmatched": 3,
    "shows": 0,
@@ -787,8 +787,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 68,
-   "seconds": 2592,
+   "calls": 13,
+   "seconds": 422,
    "status": "ok"
   },
   {
@@ -796,7 +796,7 @@
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 18
+   "events": 17
   }
  ]
 }
