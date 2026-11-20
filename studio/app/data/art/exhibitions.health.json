@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19",
+ "updated": "2026-11-20",
  "sources": [
   {
    "source": "haifa-museum",
@@ -49,7 +49,7 @@
    "url": "https://www.cca.org.il/exhibitions-hebrew",
    "read": "browser",
    "status": "ok",
-   "shows": 8,
+   "shows": 10,
    "events": 0
   },
   {
@@ -319,7 +319,7 @@
    "place": "chelouche-gallery",
    "url": "https://chelouchegallery.com/",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: Error",
    "shows": 0,
    "events": 0
   },
@@ -328,7 +328,7 @@
    "place": "chelouche-gallery-2",
    "url": "https://chelouchegallery.com/",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: Error",
    "shows": 0,
    "events": 0
   },
@@ -355,7 +355,7 @@
    "place": "galeryah-periskop",
    "url": "https://www.periscopedesigngallery.com/",
    "auto": true,
-   "status": "unreachable: Error",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -401,7 +401,7 @@
    "url": "https://hansen.co.il/",
    "auto": true,
    "status": "ok",
-   "shows": 6,
+   "shows": 5,
    "events": 0
   },
   {
@@ -418,8 +418,8 @@
    "place": "helena-rubinstein-pavilion",
    "url": "https://www.tamuseum.org.il/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -526,8 +526,8 @@
    "place": "maya-gallery",
    "url": "https://www.mayagallerytlv.com/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -535,8 +535,8 @@
    "place": "meyerhoff-art-education-center",
    "url": "http://www.tamuseum.org.il/master/he/education-lobby",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -553,7 +553,7 @@
    "place": "municipal-art-gallery-rishon-lezion",
    "url": "https://bl-gallery.co.il/",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: Error",
    "shows": 0,
    "events": 0
   },
@@ -652,7 +652,7 @@
    "place": "rishon-lezion-municipal-art-gallery",
    "url": "https://bl-gallery.co.il/",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: Error",
    "shows": 0,
    "events": 0
   },
@@ -778,7 +778,7 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 62,
+   "messages": 63,
    "matched": 4,
    "unmatched": 3,
    "shows": 0,
@@ -787,8 +787,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 29,
-   "seconds": 2034,
+   "calls": 15,
+   "seconds": 952,
    "status": "ok"
   },
   {
@@ -796,7 +796,7 @@
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 13
+   "events": 9
   }
  ]
 }
