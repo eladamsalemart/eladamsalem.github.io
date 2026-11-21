@@ -48,6 +48,16 @@ At the end of the last run of the night (or when you stop for the budget) write 
 - 21.11: the standing mandate as a whole: keep improving realism of the museum and the exhibition spaces in code, looks, design and textures, with the Blender path-traced reference as the quality target.
 - 21.11 (open from earlier): add real artists' exhibitions with their original spaces whenever one exists (Ritual is done; method in ROADMAP).
 
+## 7b. Planned nights (21.11; a plan, not a promise: the budget gate decides; re-order when Elad says so)
+1. ROADMAP 9, part 1: author the hall in Blender from the plan (walls, ceiling, details, UV2), bake day light (AO + sun + sky) to lightmaps, export one GLB; measure size and memory.
+2. ROADMAP 9, part 2: `shell.js`: load the GLB behind `?shell` next to the current building, compare with the reference render, keep the old path as fallback.
+3. ROADMAP 9, part 3: three baked states (day, golden hour, night) and the blend by hour; remove what the shell replaces (floor/sun-pool painting) only when the shell is equal or better on a phone.
+4. ROADMAP 1 + 6 leftovers: foot-of-wall shadows inside houses and under plinths; plaster and pale/concrete house floors with detail maps.
+5. ROADMAP 7: ceiling coffers, door frames with depth, mullions as geometry (only if the shell did not already give them).
+6. ROADMAP 11: eco mode (15 fps, only while the plaza is on screen), then pool ripple, tree sway, distant figures.
+7. ROADMAP 5, 8, 12 leftovers: dust motes and glow, warm light bleeding out of the doorways, frames, labels, plinth detail.
+Whenever a night is cheap or a step is blocked, take a leftover from the list above. ROADMAP 13 and the real-iPhone measurement wait for Elad (a next exhibition to add; his phone).
+
 ## 8. What this needs from Elad
 - The computer on and not asleep during the night (scheduled tasks run only while the Claude app is open; a missed one runs at the next launch). Windows: Settings > Power: never sleep while plugged in.
 - Scheduled runs should not stop at permission prompts: the permission mode of the task sessions must allow git, node, python, ffmpeg and blender without asking (the same as the app-health runs).
