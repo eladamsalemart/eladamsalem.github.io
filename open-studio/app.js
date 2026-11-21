@@ -1052,8 +1052,17 @@ function fillRealShows(box, art) {
   const rows = art.shows.map(x => ({ x, p: art.places.get(x.place) })).filter(r => r.p && r.x.title && r.x.end && ms(r.x.end) >= t0);
   const now = rows.filter(r => !r.x.start || ms(r.x.start) <= t0 + DAY).sort((a, b) => ms(a.x.end) - ms(b.x.end));
   const soon = rows.filter(r => r.x.start && ms(r.x.start) > t0 + DAY && ms(r.x.start) < t0 + 45 * DAY).sort((a, b) => ms(a.x.start) - ms(b.x.start));
-  const card = ({ x, p }) => `<a class="nx-rs" href="${esc(x.url || p.website || '#/map')}" target="_blank" rel="noopener"><b dir="auto">${esc(x.title)}</b>
-    <span>${esc(p.name)}${p.city ? ` · ${esc(p.city)}` : ''}</span><span class="nx-when">${x.start ? `${fmt(x.start)} – ` : 'until '}${fmt(x.end)}</span></a>`;
+  // the place's own picture: its building's outline from the map (nothing borrowed; a photograph needs a licence), else its initial
+  const thumb = p => {
+    const ring = p.building && p.building.ring; let g = '';
+    if (ring && ring.length > 2) {
+      const xs = ring.map(c => c[0]), ys = ring.map(c => c[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), k = 84 / Math.max((x1 - x0) * Math.cos(y0 * Math.PI / 180), y1 - y0 || 1e-9), cx = 50 - (x1 - x0) * Math.cos(y0 * Math.PI / 180) * k / 2, cy = 50 + (y1 - y0) * k / 2;
+      g = `<polygon points="${ring.map(c => `${(cx + (c[0] - x0) * Math.cos(y0 * Math.PI / 180) * k).toFixed(1)},${(cy - (c[1] - y0) * k).toFixed(1)}`).join(' ')}" fill="currentColor" fill-opacity=".72"/>`;
+    } else g = `<text x="50" y="62" text-anchor="middle" font-size="40" font-family="serif" fill="currentColor" fill-opacity=".6">${esc((p.name || '?').trim().charAt(0).toUpperCase())}</text>`;
+    return `<svg class="nx-rs-i" viewBox="0 0 100 100" aria-hidden="true">${g}</svg>`;
+  };
+  const card = ({ x, p }) => `<a class="nx-rs" href="${esc(x.url || p.website || '#/map')}" target="_blank" rel="noopener">${thumb(p)}<span class="nx-rs-t"><b dir="auto">${esc(x.title)}</b>
+    <span>${esc(p.name)}${p.city ? ` · ${esc(p.city)}` : ''}</span><span class="nx-when">${x.start ? `${fmt(x.start)} – ` : 'until '}${fmt(x.end)}</span></span></a>`;
   const sec = (h, sub, list) => list.length ? `<section class="nx-sec"><div class="nx-sh"><h2>${h}</h2><a class="more" href="#/map">On the map</a></div><p class="m nx-sub">${sub}</p><div class="nx-real">${list.slice(0, 40).map(card).join('')}</div></section>` : '';
   box.innerHTML = sec('On view now', 'Real exhibitions in galleries, museums and art institutions in Israel, as they list them.', now) + sec('Opening soon', 'In the next weeks.', soon);
 }
