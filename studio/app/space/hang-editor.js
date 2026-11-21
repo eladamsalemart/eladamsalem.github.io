@@ -224,7 +224,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     // --- the tools --------------------------------------------------------------------------------------------------------
     // where a new thing goes: a few steps ahead of the artist, or, on the plan, the middle of the room
     const centreAhead = () => plan ? { f: new api.THREE.Vector3(0, 0, 1e-6), p: new api.THREE.Vector3(W / 2, 0, D / 2) } : { f: api.camera.getWorldDirection(new api.THREE.Vector3()), p: api.camera.position };
-    function note(t) { clearTimeout(noteT); pop = ''; ui.pop.hidden = false; ui.pop.innerHTML = `<p class="he-note">${esc(t)}</p>`; noteT = setTimeout(() => { if (!pop) ui.pop.hidden = true; }, 2600); }
+    function note(t) { clearTimeout(noteT); pop = ''; ui.pop.hidden = false; ui.pop.innerHTML = `<p class="he-note" role="status">${esc(t)}</p>`; noteT = setTimeout(() => { if (!pop) ui.pop.hidden = true; }, 2600); }
     async function addWork(id, quiet) {
       const w = byId(id); if (!w) return;
       const pre = clone(st); let turn = null, near = null;
