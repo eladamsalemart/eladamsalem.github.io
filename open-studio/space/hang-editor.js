@@ -18,6 +18,7 @@ const SNAP = 0.06, GAP = 0.15;
 export async function openHangEditor({ design, library, state, src, shape, openSpace, onSave, onExit, add }) {
   const st = { ids: (state.ids || []).slice(), placements: clone(state.placements || {}), plinths: clone(state.plinths || []) };
   const undo = [];
+  let lineScope = 'wall';
   let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, picked = new Set(),      /* (the works chosen in the Add tray: kept while the room is drawn again behind it) */  zoom = { s: 1, tx: 0, ty: 0 }, startAt = null, outerPop = (st.ids.length && !add) || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
   const byId = id => library.find(w => w.id === id);
   const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.colour || '') + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
@@ -268,13 +269,17 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     }
     function pickWork(id) { if (picked.has(id)) picked.delete(id); else picked.add(id); pickSync(); }
     function pickAll() { const ids = [...ui.pop.querySelectorAll('[data-add]')].map(b => b.dataset.add); if (picked.size === ids.length) picked.clear(); else ids.forEach(i => picked.add(i)); pickSync(); }
+    const busyPill = t => { const d = document.createElement('div'); d.className = 'he-busy'; d.setAttribute('role', 'status'); d.innerHTML = '<i></i><span></span>'; d.lastChild.textContent = t; document.body.appendChild(d); return () => d.remove(); };
     async function addPicked() {
       const ids = library.filter(w => picked.has(w.id) && !st.ids.includes(w.id)).map(w => w.id); if (!ids.length) return;
-      const go = ui.pop.querySelector('[data-addgo]'); if (go) { go.disabled = true; go.textContent = 'Adding…'; }
       picked.clear();
-      if (ids.length === 1) return addWork(ids[0]);
-      const pre = clone(st); for (const id of ids) await addWork(id, true);
-      push(pre); save(); sel = null; pop = ''; outerSel = null; outerPop = ''; refresh(); await open();
+      pop = ''; outerPop = ''; refresh();                                       // (the tray closes at once: no grey button that looks stuck)
+      const done = busyPill(`Hanging ${ids.length} ${ids.length === 1 ? 'work' : 'works'}…`);
+      try {
+        if (ids.length === 1) { await addWork(ids[0]); return; }
+        const pre = clone(st); for (const id of ids) await addWork(id, true);
+        push(pre); save(); sel = null; pop = ''; outerSel = null; outerPop = ''; refresh(); await open();
+      } finally { done(); }
     }
     async function removeSel() {
       if (!sel) return; const pre = clone(st);
@@ -352,11 +357,28 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       if (!sel || sel.k !== 'work') return;
       const pre = clone(st), ref = st.placements[sel.id], [, rh] = sizes[sel.id], wl = wallOf(ref.wall);
       const line = mode === 'c' ? ref.y : mode === 't' ? ref.y + rh / 2 : ref.y - rh / 2;
-      for (const id of [sel.id, ...onWall(ref.wall, sel.id)]) {
-        const h = sizes[id][1], y = mode === 'c' ? line : mode === 't' ? line - h / 2 : line + h / 2;
-        putWork(id, wl, st.placements[id].a, Math.max(h / 2 + 0.1, Math.min(wl.size[1] - h / 2 - 0.1, y)));
+      // the laser: one line for the works of this wall, or for every work in the room (walls and standing walls alike)
+      const ids = lineScope === 'room' ? st.ids.filter(id => st.placements[id] && sizes[id]) : [sel.id, ...onWall(ref.wall, sel.id)];
+      for (const id of ids) {
+        const h = sizes[id][1], y = mode === 'c' ? line : mode === 't' ? line - h / 2 : line + h / 2, w = wallOf(st.placements[id].wall);
+        if (w) putWork(id, w, st.placements[id].a, Math.max(h / 2 + 0.1, Math.min(w.size[1] - h / 2 - 0.1, y)));
       }
       push(pre); save(); pop = ''; ui.pop.hidden = true; refresh();
+      note(`${lineScope === 'room' ? 'Every work in the room' : 'This wall'} now hangs on one ${mode === 'c' ? 'centre' : mode === 't' ? 'top' : 'bottom'} line, ${cm(line)} cm high.`);
+    }
+    // where along the wall: in the middle, equal gaps (to the ends and between the works), or a set distance from an end
+    function along(how) {
+      if (!sel || sel.k !== 'work') return;
+      const pre = clone(st), name = st.placements[sel.id].wall, wl = wallOf(name), L = wl.size[0], w = sizes[sel.id][0], y = st.placements[sel.id].y;
+      if (how === 'mid') putWork(sel.id, wl, L / 2, y);
+      else if (how === 'l20' || how === 'r20') { const d = 0.2; putWork(sel.id, wl, how === 'l20' ? d + w / 2 : L - d - w / 2, y); }
+      else {
+        const ids = [sel.id, ...onWall(name, sel.id)].sort((p, q) => st.placements[p].a - st.placements[q].a), total = ids.reduce((t, id) => t + sizes[id][0], 0), gap = (L - total) / (ids.length + 1);
+        if (gap < 0.03) return note('The works do not fit with equal gaps: take one off this wall first.');
+        let x = gap; for (const id of ids) { putWork(id, wl, x + sizes[id][0] / 2, st.placements[id].y); x += sizes[id][0] + gap; }
+        note(`Equal gaps: ${cm(gap)} cm to the ends and between the works.`);
+      }
+      push(pre); save(); if (how !== 'gaps') { pop = ''; ui.pop.hidden = true; } refresh();
     }
     function even() {
       if (!sel || sel.k !== 'work') return;
@@ -565,7 +587,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
           <div class="he-cols"><span>Colour</span>${[['', 'White', '#e9e6df'], ['grey', 'Grey', '#9b9b98'], ['black', 'Black', '#232325'], ['wood', 'Wood', '#b08a5e']].map(([k, n, c]) => `<button type="button" data-col="${k}" aria-label="${n}" aria-pressed="${(stPlinth(sel.id).colour || '') === k}" style="background:${c}"></button>`).join('')}</div>`;
       }
       if (pop === 'plinth') return `<p class="he-h">${sel && sel.k === 'plinth' ? 'Change the plinth’s size' : 'Stand a plinth on the floor'}</p><div class="he-row">${Object.entries(PLINTHS).map(([k, [w, d, h]]) => `<button type="button" data-plinth="${k}"><b>${PNAME[k]}</b><span>${w} × ${d} cm, ${h} high</span></button>`).join('')}</div>`;
-      if (pop === 'line') return `<p class="he-h">Put every work on this wall on the same line as the selected one</p><div class="he-row">${[['c', 'Centre line'], ['t', 'Top line'], ['b', 'Bottom line']].map(([k, n]) => `<button type="button" data-line="${k}"><b>${n}</b></button>`).join('')}</div>`;
+      if (pop === 'line') return `<p class="he-h">Hang to one line, like a laser level</p><div class="he-scope" role="group" aria-label="Which works">${[['wall', 'This wall'], ['room', 'Whole room']].map(([k, n]) => `<button type="button" data-scope="${k}" aria-pressed="${lineScope === k}">${n}</button>`).join('')}</div><div class="he-row">${[['c', 'Centre line'], ['t', 'Top line'], ['b', 'Bottom line']].map(([k, n]) => `<button type="button" data-line="${k}"><b>${n}</b></button>`).join('')}</div><p class="he-h" style="margin-top:12px">Along the wall (selected work)</p><div class="he-row he-row2">${[['mid', 'In the middle'], ['gaps', 'Equal gaps'], ['l20', '20 cm from the left end'], ['r20', '20 cm from the right end']].map(([k, n]) => `<button type="button" data-along="${k}"><b>${n}</b></button>`).join('')}</div>`;
       return '';
     }
     function refresh() {
@@ -592,8 +614,8 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       const box = document.createElement('div'); box.className = 'he';
       box.innerHTML = `<div class="he-bar" role="toolbar" aria-label="Hang the works">
           <button type="button" data-a="add"><b>Add</b><span>work</span></button><button type="button" data-a="plinth"><b>Plinth</b><span>floor</span></button><button type="button" data-a="stand"><b>Wall</b><span>standing</span></button>
-          <button type="button" data-a="line"><b>Line up</b><span>wall</span></button><button type="button" data-a="even"><b>Space</b><span>evenly</span></button><button type="button" data-a="undo"><b>Undo</b><span>last</span></button></div>
-        <div class="hp" hidden><p class="hp-h">Drag a work to a wall. Drag standing walls and plinths, turn a wall by its ends. Then walk in.</p><svg class="hp-svg" aria-label="Plan of the room"></svg><button type="button" class="hp-fit" hidden>Whole room</button><button type="button" class="hp-go">Walk in</button></div>
+          <button type="button" data-a="line"><b>Line up</b><span>laser</span></button><button type="button" data-a="even"><b>Space</b><span>evenly</span></button><button type="button" data-a="undo"><b>Undo</b><span>last</span></button></div>
+        <div class="hp" hidden><p class="hp-h">Drag a work to a wall. Drag standing walls and plinths, turn a wall by its ends. Then walk in.</p><svg class="hp-svg" aria-label="Plan of the room"></svg><button type="button" class="hp-fit" hidden>Whole room</button><div class="hp-zoom"><button type="button" class="hp-zi" aria-label="Zoom in">+</button><button type="button" class="hp-zo" aria-label="Zoom out">−</button></div><button type="button" class="hp-go">Walk in</button></div>
         <button type="button" class="hp-open">Plan</button>
         <div class="he-pop" hidden></div>
         <div class="he-sel" hidden><div class="he-t"></div><div class="he-std" hidden><button type="button" data-st="len:-1" aria-label="Narrower">−</button><button type="button" data-st="len:1" aria-label="Wider">+</button><button type="button" data-st="rot:3" aria-label="Turn 45 degrees">Turn</button></div><button type="button" class="he-more" hidden>Size, colour</button><button type="button" class="he-rm">Remove</button></div>`;
@@ -603,6 +625,8 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       ui.std.onclick = e => { const b = e.target.closest('button'); if (b) { const [k, v] = b.dataset.st.split(':'); editStand(k, +v); } };
       box.querySelector('.hp-go').onclick = () => setPlan(false);
       ui.fit.onclick = () => zoomTo(1, 0, 0); ui.fit.hidden = zoom.s < 1.02;
+      ui.hp.querySelector('.hp-zi').onclick = () => zoomAbout(Math.min(5, zoom.s * 1.5), pv.w / 2, pv.h / 2, pv.w / 2, pv.h / 2);
+      ui.hp.querySelector('.hp-zo').onclick = () => zoomAbout(Math.max(1, zoom.s / 1.5), pv.w / 2, pv.h / 2, pv.w / 2, pv.h / 2);
       ui.svg.addEventListener('wheel', planWheel, { passive: false });
       box.querySelector('.hp-open').onclick = () => setPlan(true);
       const map = api.root.querySelector('.sv-map');      // the small plan by the door opens the large one
@@ -619,7 +643,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         if (b.dataset.st) {
           const [k, v] = b.dataset.st.split(':'), by = +v;
           if (k === 'add') addStand(); else if (k === 'rm') removeSel(); else if (k === 'pw') dimPlinth(0, by * 5); else if (k === 'pd') dimPlinth(1, by * 5); else if (k === 'ph') dimPlinth(2, by * 5); else editStand(k, by);
-        } else if (b.dataset.col != null) colourPlinth(b.dataset.col); else if (b.dataset.addall != null) pickAll(); else if (b.dataset.addgo != null) addPicked(); else if (b.dataset.add) pickWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line);
+        } else if (b.dataset.col != null) colourPlinth(b.dataset.col); else if (b.dataset.addall != null) pickAll(); else if (b.dataset.addgo != null) addPicked(); else if (b.dataset.add) pickWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line); else if (b.dataset.along) along(b.dataset.along); else if (b.dataset.scope) { lineScope = b.dataset.scope; ui.pop.innerHTML = popHtml(); }
       };
       // A finger that went down just before the room was drawn again lifts over this new panel: no click follows,
       // and the tap would be lost. A lift here with no press here and no click after it is taken as the tap.

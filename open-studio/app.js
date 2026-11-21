@@ -173,7 +173,7 @@ const showOf = m => v => {
   const owner = m.artists.find(a => a.uid === v.owner_id);
   const keys = (v.works || []).map(w => (m.works.find(x => (w.id && x.id === w.id) || (w.slug && x.slug === w.slug)) || {}).slug).filter(Boolean);
   const artists = [...new Set(keys.map(k => m.works.find(x => x.slug === k).artist.slug))];
-  return { slug: v.slug || `show-${v.id.slice(0, 8)}`, kind: v.kind, title: v.title, artists: v.kind === 'artist' && owner ? [owner.slug] : artists, curator: v.curator || '',
+  return { id: v.id, slug: v.slug || `show-${v.id.slice(0, 8)}`, kind: v.kind, title: v.title, artists: v.kind === 'artist' && owner ? [owner.slug] : artists, curator: v.curator || '',
     room: v.room, paint: v.paint, centre: v.centre, onview: !!v.on_view, start: v.starts || made.slice(0, 10), end: v.ends || `${+made.slice(0, 4) + 1}${made.slice(4, 10)}`,
     text: v.text ? v.text.split(/\n\s*\n/) : [], works: keys,
     // where the artist hung each work (wall, a, y) and stood the plinths: the room hangs the rest itself
@@ -1276,7 +1276,7 @@ async function enterSpace(slug) {
   const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
   // a virtual room is drawn here, around the show's works, before it opens
   let spec = e.space, made = null;
-  if (e.space.virtual) { made = await (await import('./space/synth.js')).buildRoom({ ...e.space.virtual, works: e.works }, src); spec = made.spec; }
+  if (e.space.virtual) { await freshShow(e); made = await (await import('./space/synth.js')).buildRoom({ ...e.space.virtual, works: e.works }, src); spec = made.spec; }
   openSpaceView = await openSpace({
     spec, works: e.space.virtual ? e.works : M.works, src,
     // leaving the space goes back to where it was entered from, without leaving the space in the history
@@ -1293,6 +1293,18 @@ async function enterSpace(slug) {
 
 // the museum street (space/synth.js buildStreet): one long walk indoors, a room off it for each virtual or online show, each with a
 // threshold in the colour its works suggest (data/virtual.json streetColours, else sampled here) unless the curator chose another (museum_colours)
+// an artist's exhibition is asked for again as it is entered: the phone's last copy of the list may be older than the hang (walls, plinths)
+async function freshShow(e) {
+  const x = e.virtual; if (!x || !x.id) return;
+  try {
+    const r = await fetch(`${DB}virtual_shows?id=eq.${x.id}&select=title,room,paint,centre,works,plinths`, { headers: { apikey: DB_KEY }, signal: AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined });
+    const [v] = r.ok ? await r.json() : []; if (!v) return;
+    const works = (v.works || []).map(w => M.works.find(k => k.id === w.id)).filter(Boolean);
+    const sv = e.space.virtual; Object.assign(sv, { title: v.title, room: v.room, paint: v.paint, centre: v.centre, plinths: v.plinths || [],
+      placements: Object.fromEntries((v.works || []).filter(w => w.id && w.wall).map(w => [w.id, { wall: w.wall, a: w.a, y: w.y }])) });
+    if (works.length) e.works = works;
+  } catch (er) { console.warn('freshShow', er); }
+}
 const streetShows = () => M.exhibitions.filter(e => (e.virtual || e.kind === 'online') && (e.works || []).length >= 3).slice(0, 8);     // (the same rule as synth.streetShows)
 // the museum's history sections (studio/museum-agents/): data/museum/sections.json, each with its credits file; any failure and the museum is built without it
 async function loadSections() {

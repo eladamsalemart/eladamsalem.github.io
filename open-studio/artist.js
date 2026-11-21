@@ -241,8 +241,8 @@ function ovBar(v, title) {
   const hang = (cls, t) => `<button class="btn ${cls}" type="button" id="vxHang">${t}</button>`, walk = (cls, t) => `<button class="btn ${cls}" type="button" id="vxWalk">${t}</button>`;
   if (!S.works.length) return `<a class="btn f" href="#/studio">Add works to your page first</a>${hang('g', 'Walk in')}`;
   if (!hung) return hang('f', 'Place the works on the plan');
-  if (S.cloud && !pub && v.status !== 'pending') return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">${ADMIN ? 'Publish' : v.status === 'changes' ? 'Send again' : 'Send for review'}</button>`;
-  return `${hang('g', 'Rehang')}${walk('f', 'Walk as a visitor')}`;
+  if (S.cloud && !pub && v.status !== 'pending') return `${hang('g', 'Rearrange')}${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">${ADMIN ? 'Publish' : v.status === 'changes' ? 'Send again' : 'Send for review'}</button>`;
+  return `${hang('g', 'Rearrange')}${walk('f', 'Walk as a visitor')}`;
 }
 // an owner of Open Studio (an admin) publishes their own exhibition at once; everyone else sends it for review
 let ADMIN = false, adminAsked = false;
