@@ -920,12 +920,15 @@ function drawScale(w, aspect) {
     if (!best || err < best.err) best = { h, w: wd, err };
   }
   const LINE = 150, M = 40, gap = 55, personW = 60;
-  const floor = Math.max(PERSON, LINE + best.h / 2) + 38, H = floor + 34, Wd = M + best.w + gap + personW + M;
-  const top = floor - LINE - best.h / 2, fx = M + best.w + gap + personW / 2, fs = Math.max(8, H / 26);
-  return `<svg viewBox="0 0 ${Wd} ${H}" role="img" aria-label="${esc(w.title)}, ${best.h} by ${best.w} cm, on a gallery wall beside a ${PERSON} cm person">
+  // a sculpture stands on a plinth (its photo, on the white wall, as tall as it is); a painting hangs on the centre line
+  const sculpt = w.kind === 'object', ph = sculpt ? (best.h > 120 ? 20 : best.h > 70 ? 50 : 90) : 0, bw = sculpt ? Math.max(8, best.h * aspect) : best.w;
+  const floor = Math.max(PERSON, sculpt ? ph + best.h : LINE + best.h / 2) + 38, H = floor + 34, Wd = M + bw + gap + personW + M;
+  const top = sculpt ? floor - ph - best.h : floor - LINE - best.h / 2, fx = M + bw + gap + personW / 2, fs = Math.max(8, H / 26);
+  return `<svg viewBox="0 0 ${Wd} ${H}" role="img" aria-label="${esc(w.title)}, ${best.h} by ${best.w} cm, ${sculpt ? 'on a plinth' : 'on a gallery wall'} beside a ${PERSON} cm person">
     <defs>
       <linearGradient id="scW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbf9"/><stop offset="1" stop-color="#ebe9e3"/></linearGradient>
       <linearGradient id="scF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfcac0"/><stop offset="1" stop-color="#b9b4a9"/></linearGradient>
+      <linearGradient id="scPl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e4e1da"/><stop offset=".5" stop-color="#f4f2ee"/><stop offset="1" stop-color="#e0ddd5"/></linearGradient>
       <linearGradient id="scTr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f3239"/><stop offset=".5" stop-color="#454952"/><stop offset="1" stop-color="#2f3239"/></linearGradient>
       <linearGradient id="scTo" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4b5766"/><stop offset=".5" stop-color="#617083"/><stop offset="1" stop-color="#4b5766"/></linearGradient>
       <linearGradient id="scSl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#46525f"/><stop offset="1" stop-color="#5a6877"/></linearGradient>
@@ -933,7 +936,10 @@ function drawScale(w, aspect) {
     </defs>
     <rect width="${Wd}" height="${floor}" fill="url(#scW)"/>
     <rect y="${floor - 7}" width="${Wd}" height="7" fill="#e4e1da"/><rect y="${floor}" width="${Wd}" height="${H - floor}" fill="url(#scF)"/><rect y="${floor}" width="${Wd}" height="1.2" fill="#000" opacity=".12"/>
-    <image href="${esc(src(w.image))}" x="${M}" y="${top}" width="${best.w}" height="${best.h}" preserveAspectRatio="none" filter="url(#scSh)"/>
+    ${sculpt ? `<rect x="${M - 10}" y="${floor - ph}" width="${bw + 20}" height="${ph}" fill="url(#scPl)" filter="url(#scSh)"/><rect x="${M - 10}" y="${floor - ph}" width="${bw + 20}" height="2.2" fill="#fff" opacity=".7"/>
+    <ellipse cx="${M + bw / 2}" cy="${floor - ph}" rx="${bw * .42}" ry="3" fill="#000" opacity=".22"/>
+    <image href="${esc(src(w.image))}" x="${M}" y="${top}" width="${bw}" height="${best.h}" preserveAspectRatio="xMidYMax meet" style="mix-blend-mode:multiply"/>`
+      : `<image href="${esc(src(w.image))}" x="${M}" y="${top}" width="${best.w}" height="${best.h}" preserveAspectRatio="none" filter="url(#scSh)"/>`}
     <text x="${M}" y="${top - fs * .7}" font-family="IBM Plex Mono, monospace" font-size="${fs}" fill="#2b2b2a" fill-opacity=".75">${best.h} × ${best.w} cm${best.err > 0.06 ? ' · size to confirm' : ''}</text>
     <g transform="translate(${fx} ${floor})">${personSvg()}</g>
     <text x="${fx + 26}" y="${floor - 3}" font-family="IBM Plex Mono, monospace" font-size="${fs}" fill="#2b2b2a" fill-opacity=".6">${PERSON} cm</text>
