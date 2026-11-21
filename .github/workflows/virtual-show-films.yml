@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '17 */2 * * *'
   workflow_dispatch:
+  push:                                   # (a change to this file runs it once on studio: how it is tried)
+    branches: [studio]
+    paths: ['.github/workflows/virtual-show-films.yml']
 
 permissions:
   contents: write
