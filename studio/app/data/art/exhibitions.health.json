@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-20",
+ "updated": "2026-11-21",
  "sources": [
   {
    "source": "haifa-museum",
@@ -49,7 +49,7 @@
    "url": "https://www.cca.org.il/exhibitions-hebrew",
    "read": "browser",
    "status": "ok",
-   "shows": 10,
+   "shows": 8,
    "events": 0
   },
   {
@@ -92,9 +92,9 @@
    "source": "ashdod",
    "place": "ashdod-art-museum",
    "url": "https://www.ashdodartmuseum.org.il/",
-   "read": "browser",
-   "status": "ok",
-   "shows": 3,
+   "browser": "Error",
+   "status": "unreachable",
+   "shows": 0,
    "events": 0
   },
   {
@@ -138,9 +138,8 @@
    "place": "jerusalem-artists-house",
    "url": "https://art.org.il/%d7%aa%d7%a2%d7%a8%d7%95%d7%9b%d7%95%d7%aa-%d7%a8%d7%a6%d7%95%d7%aa/",
    "read": "browser",
-   "via": "wordpress",
    "status": "ok",
-   "shows": 1,
+   "shows": 4,
    "events": 0
   },
   {
@@ -401,7 +400,7 @@
    "url": "https://hansen.co.il/",
    "auto": true,
    "status": "ok",
-   "shows": 5,
+   "shows": 4,
    "events": 0
   },
   {
@@ -526,8 +525,8 @@
    "place": "maya-gallery",
    "url": "https://www.mayagallerytlv.com/",
    "auto": true,
-   "status": "nothing found",
-   "shows": 0,
+   "status": "ok",
+   "shows": 1,
    "events": 0
   },
   {
@@ -778,7 +777,7 @@
    "place": "(many)",
    "url": "mailto:ooopenstudio@gmail.com",
    "status": "ok",
-   "messages": 63,
+   "messages": 64,
    "matched": 4,
    "unmatched": 3,
    "shows": 0,
@@ -787,8 +786,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 15,
-   "seconds": 952,
+   "calls": 11,
+   "seconds": 911,
    "status": "ok"
   },
   {
@@ -796,7 +795,7 @@
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 9
+   "events": 11
   }
  ]
 }
