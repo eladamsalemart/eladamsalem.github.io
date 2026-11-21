@@ -43,7 +43,7 @@ jobs:
               d = pathlib.Path('studio/app/data/spaces') / slug
               prev = (d / 'film.sig').read_text().strip() if (d / 'film.sig').exists() else ''
               if prev != sig or not (d / 'preview.mp4').exists(): todo.append(f'{slug}:{sig}')
-          pathlib.Path('todo.txt').write_text('\n'.join(todo))
+          pathlib.Path('todo.txt').write_text(''.join(t + '\n' for t in todo))      # (each line ends with a newline: read skips a last line without one)
           print(len(rows), 'published,', len(todo), 'to film:', todo)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('n=%d\n' % len(todo))
           EOF
