@@ -45,7 +45,7 @@ async function communityData() {
   const [artists, works, shows, hidden] = await Promise.all([
     q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,hero,hero_pos,link,instagram,cv,exhibitions&status=eq.approved'),
     q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position,kind,category&order=position'),
-    q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,plinths,starts,ends,owner_id,created_at,on_view&status=eq.published'),
+    q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,plinths,starts,ends,owner_id,created_at,on_view,art_ord&status=eq.published'),
     q('app_hidden?select=key'),
   ]);
   return { artists, works, shows, hidden };
@@ -122,6 +122,8 @@ function buildModel(d) {
   if (twin) {
     twin.alias = true;
     const mine = new Set(m.exhibitions.filter(e => e.artist === m.artist).map(e => norm(e.title)));
+    // (the order the artist gave the arches lives on the account's copy: the site's own exhibition takes it)
+    for (const d of m.exhibitions) if (d.artist === twin && d.ord != null) { const k = m.exhibitions.find(e => e.artist === m.artist && norm(e.title) === norm(d.title)); if (k) k.ord = d.ord; }
     m.exhibitions = m.exhibitions.filter(e => !(e.artist === twin && e.kind !== 'online' && mine.has(norm(e.title))));
     for (const e of m.exhibitions) { if (e.artist === twin) e.artist = m.artist; if (e.artists) e.artists = [...new Set(e.artists.map(x => x === twin ? m.artist : x))]; }
   }
@@ -173,7 +175,7 @@ const showOf = m => v => {
   const owner = m.artists.find(a => a.uid === v.owner_id);
   const keys = (v.works || []).map(w => (m.works.find(x => (w.id && x.id === w.id) || (w.slug && x.slug === w.slug)) || {}).slug).filter(Boolean);
   const artists = [...new Set(keys.map(k => m.works.find(x => x.slug === k).artist.slug))];
-  return { id: v.id, slug: v.slug || `show-${v.id.slice(0, 8)}`, kind: v.kind, title: v.title, artists: v.kind === 'artist' && owner ? [owner.slug] : artists, curator: v.curator || '',
+  return { id: v.id, ord: v.art_ord != null ? v.art_ord - 0.5 : undefined, slug: v.slug || `show-${v.id.slice(0, 8)}`, kind: v.kind, title: v.title, artists: v.kind === 'artist' && owner ? [owner.slug] : artists, curator: v.curator || '',
     room: v.room, paint: v.paint, centre: v.centre, onview: !!v.on_view, start: v.starts || made.slice(0, 10), end: v.ends || `${+made.slice(0, 4) + 1}${made.slice(4, 10)}`,
     text: v.text ? v.text.split(/\n\s*\n/) : [], works: keys,
     // where the artist hung each work (wall, a, y) and stood the plinths: the room hangs the rest itself
@@ -199,7 +201,7 @@ function addVirtual(m, v, uniq) {
       slug: uniq(x.slug), title: x.title, year: String(start.getFullYear()), venue: `Open Studio · ${room}`, address: '',
       dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: x.text || [], images: x.cover ? [x.cover] : [works[0].image], city: '', country: '',
       confirmed: true, artist: artists[0], artists, works, maybe: [], kind: 'online', start, end, hours: '', curator: x.curator || '',
-      events: [], virtual: x,
+      events: [], virtual: x, ord: x.ord,
       space: { source: `${room}, a virtual room`, virtual: { title: x.title, room: x.room, paint: x.paint, centre: x.centre, placements: x.placements, plinths: x.plinths } },
     });
   }
