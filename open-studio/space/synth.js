@@ -1427,8 +1427,8 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   }
   {
     const FP = 16, fw = HX * FP, fh = HZ * FP, c = canvas(fw, fh), y = c.getContext('2d');
-    y.fillStyle = '#d8d4ca'; y.fillRect(0, 0, fw, fh);
-    for (let i = 0; i < 42000; i++) { const t = Math.random(); y.fillStyle = t < 0.4 ? 'rgba(255,255,255,0.32)' : t < 0.8 ? 'rgba(80,70,60,0.16)' : 'rgba(190,160,130,0.22)'; y.fillRect(Math.random() * fw, Math.random() * fh, 1 + Math.random() * 2, 1 + Math.random() * 2); }
+    y.fillStyle = '#a9a8a2'; y.fillRect(0, 0, fw, fh);        // (the floor away from the sun is the sky-lit grey of the path-traced reference, studio/design/museum-sky/blender/)
+    for (let i = 0; i < 42000; i++) { const t = Math.random(); y.fillStyle = t < 0.4 ? 'rgba(255,255,255,0.16)' : t < 0.8 ? 'rgba(80,70,60,0.16)' : 'rgba(190,160,130,0.22)'; y.fillRect(Math.random() * fw, Math.random() * fh, 1 + Math.random() * 2, 1 + Math.random() * 2); }
     y.strokeStyle = 'rgba(80,70,60,0.15)'; y.lineWidth = 2; for (let k = 0; k <= HX; k += 4) { y.beginPath(); y.moveTo(k * FP, 0); y.lineTo(k * FP, fh); y.stroke(); } for (let k = 0; k <= HZ; k += 4) { y.beginPath(); y.moveTo(0, k * FP); y.lineTo(fw, k * FP); y.stroke(); }
     if (PLAN.pool) { const [px0, pz0, px1, pz1] = PLAN.pool, pool = y.createLinearGradient(0, pz0 * FP, 0, pz1 * FP); pool.addColorStop(0, '#9db4bb'); pool.addColorStop(1, '#b9cdd1'); y.fillStyle = pool; y.fillRect(px0 * FP, pz0 * FP, (px1 - px0) * FP, (pz1 - pz0) * FP); y.strokeStyle = 'rgba(70,64,56,0.55)'; y.lineWidth = 6; y.strokeRect(px0 * FP, pz0 * FP, (px1 - px0) * FP, (pz1 - pz0) * FP); }
     // contact shadows, painted into the floor: the soft dark that gathers where a wall, a pier or a stand meets the floor (ambient occlusion, baked: it costs nothing while walking)
@@ -1444,13 +1444,13 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     for (const { d, r } of houseList) { const px = (d.c[0] - d.o[0] * 2) * FP, pz = (d.c[1] - d.o[1] * 2) * FP, rad = 4.6 * FP, gr = y.createRadialGradient(px, pz, 0, px, pz, rad);      // each house's colour spills on the floor before its door
       gr.addColorStop(0, rgba(r.colour, 0.34)); gr.addColorStop(1, rgba(r.colour, 0)); y.fillStyle = gr; y.fillRect(px - rad, pz - rad, 2 * rad, 2 * rad); }
     if (env.day > 0.12) {
-      const sx = -Math.cos(sunA), sz = -Math.sin(sunA), shift = HH / Math.tan(sunEl), ang = Math.atan2(sz, sx), a = 0.27 * env.day;
+      const sx = -Math.cos(sunA), sz = -Math.sin(sunA), shift = HH / Math.tan(sunEl), ang = Math.atan2(sz, sx), a = 0.62 * env.day;
       const pl = canvas(fw, fh), py = pl.getContext('2d'); py.globalCompositeOperation = 'lighter';
       for (let i = 0; i < HX / 4; i++) for (let j = 0; j < HZ / 4; j++) {
         const big = (i + j) % 2 === 0, r = (big ? 1.05 : 0.6) * 2.1, cx = (2 + i * 4 + sx * shift) * FP, cz = (2 + j * 4 + sz * shift) * FP;
         if (cx < -r * FP * 2 || cz < -r * FP * 2 || cx > fw + r * FP * 2 || cz > fh + r * FP * 2) continue;
         py.save(); py.translate(cx, cz); py.rotate(ang); py.scale(1 / Math.sqrt(Math.sin(sunEl)), 1);
-        const gr = py.createRadialGradient(0, 0, 0, 0, 0, r * FP); gr.addColorStop(0, `rgba(255,246,226,${a})`); gr.addColorStop(0.45, `rgba(255,244,222,${a * 0.55})`); gr.addColorStop(1, 'rgba(255,240,215,0)');
+        const gr = py.createRadialGradient(0, 0, 0, 0, 0, r * FP); gr.addColorStop(0, `rgba(255,246,226,${a})`); gr.addColorStop(0.6, `rgba(255,244,222,${a * 0.9})`); gr.addColorStop(1, 'rgba(255,240,215,0)');
         py.fillStyle = gr; py.fillRect(-r * FP, -r * FP, 2 * r * FP, 2 * r * FP); py.restore();
       }
       // what stands in the sun's way keeps the light off the floor behind it: each house, pier and stand throws a soft shadow along the slant, cut out of the pools (the roof only lets the sun in through its openings, so the shadow shows only where there is light)
@@ -1474,10 +1474,10 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   }
   {
     const FP = 12, fw = HX * FP, fh = HZ * FP, c = canvas(fw, fh), y = c.getContext('2d'), night = env.day < 0.3;
-    y.fillStyle = night ? '#4a4846' : '#e2ded4'; y.fillRect(0, 0, fw, fh); noise(y, fw, fh, 9000, 0.07);
+    y.fillStyle = night ? '#4a4846' : '#cdc6b6'; y.fillRect(0, 0, fw, fh); noise(y, fw, fh, 9000, 0.07);
     for (let i = 0; i < HX / 4; i++) for (let j = 0; j < HZ / 4; j++) {
       const r = ((i + j) % 2 === 0 ? 1.05 : 0.6) * 1.35 * FP, cx = (2 + i * 4) * FP, cz = (2 + j * 4) * FP, gr = y.createRadialGradient(cx, cz, 0, cx, cz, r);
-      gr.addColorStop(0, night ? 'rgba(74,90,126,1)' : 'rgba(238,246,255,1)'); gr.addColorStop(0.5, night ? 'rgba(70,84,118,0.9)' : 'rgba(236,244,252,0.92)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); y.fillStyle = gr; y.fillRect(cx - r, cz - r, 2 * r, 2 * r);
+      gr.addColorStop(0, night ? 'rgba(74,90,126,1)' : 'rgba(168,204,240,1)'); gr.addColorStop(0.5, night ? 'rgba(70,84,118,0.9)' : 'rgba(170,205,240,0.92)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); y.fillStyle = gr; y.fillRect(cx - r, cz - r, 2 * r, 2 * r);
     }
     rect('hall-roof', 'ceiling', [0, 0], [HX, HZ], HH, false, jpg(c, 0.9));
     // light shafts: a few of the roof's round openings let down a faint beam of dusty light along the sun's slant (two crossed soft planes each, one shared small texture); only by day
@@ -1758,7 +1758,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 190, noSpots: true,
     outdoors: { hour: env.hour, centre: [CX, CZ], lamps: [], treeline: 'data/rooms/outside/treeline.webp', treeRadius: 120, treeHeight: 46 },
     baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: 4 },
-    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], mirrorSurface: { name: 'hall-floor', reflect: [0.16, 0.55], y: 0.01 }, solids, directory, hotspots,
+    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], mirrorSurface: { name: 'hall-floor', reflect: [0.1, 0.4], y: 0.01 }, solids, directory, hotspots,
     stands: stands.map(s => ({ ...s, kind: 'stand', t: STAND.t })), ...(props.length ? { props } : {}),
     start: { pos: PLAN.start.pos, look: PLAN.start.look },
     ...(plinthsOut.length ? { plinths: plinthsOut } : {}),

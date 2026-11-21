@@ -94,6 +94,7 @@ html:has(.adm){background:var(--wall)}body:has(.adm){max-width:none;box-shadow:n
 .ag-m.me{background:var(--ink);color:var(--wall);justify-self:start}.ag-m.ai{background:var(--paper);border:1px solid var(--line);justify-self:end}
 .ag-m.tool{background:none;color:var(--muted);font-size:12px;padding:0 6px;justify-self:end}
 .ag-in{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}.ag-in textarea{font:inherit;font-size:16px;padding:10px 12px;min-height:56px;max-height:30vh;border:1px solid var(--line);border-radius:12px;background:var(--wall);color:var(--ink);resize:vertical}
+.ag-seg{display:flex;gap:6px}.ag-seg button{flex:1;min-height:44px;border:1px solid var(--line);border-radius:12px;background:none;font:600 14px var(--sans);color:inherit;cursor:pointer}.ag-seg button[aria-pressed=true]{background:var(--ink);color:var(--wall);border-color:var(--ink)}
 .ag-st{font-size:13px;color:var(--muted)}.ag-set{display:grid;gap:8px}.ag-set code{direction:ltr;display:block;background:var(--card);padding:8px 10px;border-radius:8px;overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){.ag-log{scroll-behavior:auto}}
 @media(prefers-reduced-motion:reduce){.ax-card{transition:none}}`;
@@ -288,44 +289,77 @@ async function showsTab(c) {
       <div class="list">${rest.map(exRow).join('') || '<p class="m small">אין.</p>'}</div></section></div>`;
 }
 
-// --- the agent: talk to Claude Code, working in this repository, on the owner's own computer (studio/agent/bridge.mjs) ---------
-const BRIDGE = 'http://127.0.0.1:8799';
-const agentTab = () => `<div class="ag"><p class="m">שיחה עם הסוכן של Open Studio: הוא מכיר את האפליקציה, את התוכנית ואת הכוונה, ועובד על הקוד והתוכן. אומרים לו מה לעשות, והוא עושה, ושואל כשמשהו לא ברור. הוא עובד רק כשהמחשב שלך דולק והגשר פועל.</p>
+// --- the agent: two ways, one conversation ----------------------------------------------------------------------------------------
+//   "המחשב שלי": Claude Code on the owner's own computer (studio/agent/bridge.mjs) edits the code and content. From the phone it needs the
+//                address of the computer on a private network (Tailscale: see studio/agent/PHONE.md), saved here.
+//   "ענן":        a function in the cloud (supabase/functions/agent-chat) talks, sharpens, and files a precise request for the developers.
+const BRIDGE = 'http://127.0.0.1:8799', AGENT = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/functions/v1/agent-chat';
+const agentTab = () => `<div class="ag"><p class="m">שיחה עם הסוכן של Open Studio: הוא מכיר את האפליקציה, את החזון ואת הכללים, שואל שאלות ומדייק. בענן הוא מדבר ומגיש בקשה מדויקת למפתחים (עובד גם מהנייד, בלי המחשב). במחשב שלך הוא גם עורך את הקוד והתוכן בעצמו.</p>
+  <div class="ag-seg" role="group" aria-label="איפה הסוכן רץ"><button type="button" data-agm="cloud">ענן</button><button type="button" data-agm="pc">המחשב שלי</button></div>
   <div class="ag-st" id="agSt">בודק חיבור…</div><div class="ag-set" id="agSet" hidden></div>
   <div class="ag-log" id="agLog" aria-live="polite"></div>
   <form class="ag-in" id="agForm" hidden><textarea id="agTxt" rows="2" placeholder="מה לעשות?" aria-label="הודעה לסוכן"></textarea><button class="btn f" type="submit" id="agGo">שלח</button></form></div>`;
-function wireAgent(app) {
+function wireAgent(app, c) {
   const $ = s => app.querySelector(s), st = $('#agSt'), set = $('#agSet'), log = $('#agLog'), form = $('#agForm'), txt = $('#agTxt'), go = $('#agGo');
-  let token = '', session = '';
-  try { token = localStorage.getItem('os-agent-token') || ''; session = sessionStorage.getItem('os-agent-session') || ''; } catch {}
+  const get = k => { try { return localStorage.getItem(k) || ''; } catch { return ''; } }, put = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+  let mode = get('os-agent-mode') || 'cloud', token = get('os-agent-token'), session = '', hist = [];
+  const url = () => (get('os-agent-url') || BRIDGE).replace(/\/+$/, '');
+  try { session = sessionStorage.getItem('os-agent-session') || ''; } catch {}
   const add = (cls, t) => { const d = document.createElement('div'); d.className = 'ag-m ' + cls; d.textContent = t; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; };
   const head = () => ({ authorization: `Bearer ${token}`, 'content-type': 'application/json' });
+  const paint = () => app.querySelectorAll('[data-agm]').forEach(b => b.setAttribute('aria-pressed', b.dataset.agm === mode));
   const check = async () => {
-    let r; try { r = await (await fetch(BRIDGE + '/status', { headers: head() })).json(); } catch { r = null; }
-    form.hidden = true; set.hidden = true;
-    if (!r) { st.textContent = 'הסוכן לא מחובר.'; set.hidden = false; set.innerHTML = '<p class="m">כדי להפעיל אותו: במחשב, פתח את התיקייה <b dir="ltr">Documents\\site-work\\studio\\agent</b> ולחץ פעמיים על <b dir="ltr">start-agent.cmd</b>, ואז לחץ כאן "נסה שוב". (בפעם הראשונה צריך להיכנס ל־Claude Code במחשב: להריץ <code>claude</code> ולכתוב /login.)</p><button class="btn g" type="button" id="agRetry">נסה שוב</button>'; $('#agRetry').onclick = check; return; }
-    if (!r.authed) { st.textContent = 'מחובר לגשר. צריך להדביק את הקוד פעם אחת.'; set.hidden = false; set.innerHTML = '<p class="m">בחלון של הגשר מודפס "Token". העתק אותו והדבק כאן:</p><input class="ax-search" id="agTok" dir="ltr" autocomplete="off" aria-label="הקוד של הגשר"><button class="btn f" type="button" id="agTokGo">שמור</button>'; $('#agTokGo').onclick = () => { token = $('#agTok').value.trim(); try { localStorage.setItem('os-agent-token', token); } catch {} check(); }; return; }
-    st.textContent = r.mock ? 'מחובר (מצב בדיקה).' : 'מחובר.'; form.hidden = false; txt.focus();
+    paint(); form.hidden = true; set.hidden = true; st.textContent = 'בודק חיבור…';
+    if (mode === 'cloud') {                                           // the cloud: a one-line test that the function answers and has its key
+      try {
+        const { data: { session: ss } } = await c.auth.getSession();
+        const r = await fetch(AGENT, { method: 'POST', headers: { Authorization: `Bearer ${ss.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: [] }) });
+        const d = await r.json().catch(() => ({}));
+        if (r.status === 503 || d.error === 'no_key') { st.textContent = 'הסוכן בענן עוד לא מחובר: חסר לו מפתח.'; set.hidden = false; set.innerHTML = '<p class="m">כדי לחבר אותו: ב־GitHub, בהגדרות של המאגר (Settings → Secrets and variables → Actions), ממלאים את הסוד <b dir="ltr">ANTHROPIC_API_KEY</b> במפתח של Anthropic. אחרי זה הוא מחובר לבד, בהרצה הבאה של "Supabase functions". את המפתח לא שולחים בשיחה.</p>'; return; }
+        if (r.status === 404) { st.textContent = 'הסוכן בענן עוד לא הועלה. הוא יעלה עם הפרסום הבא.'; return; }
+        st.textContent = 'מחובר בענן. הוא מדבר, מדייק ומגיש בקשות מדויקות למפתחים.'; form.hidden = false; txt.focus();
+      } catch { st.textContent = 'אין חיבור לענן כרגע.'; }
+      return;
+    }
+    let r; try { r = await (await fetch(url() + '/status', { headers: head() })).json(); } catch { r = null; }
+    if (!r) {
+      st.textContent = 'המחשב לא מחובר.'; set.hidden = false;
+      set.innerHTML = `<p class="m">במחשב: פותחים את התיקייה <b dir="ltr">Documents\\site-work\\studio\\agent</b> ולוחצים פעמיים על <b dir="ltr">start-agent.cmd</b> (בפעם הראשונה צריך להיכנס ל־Claude Code: להריץ <code>claude</code> ולכתוב /login). מהנייד צריך את הכתובת של המחשב ברשת הפרטית (Tailscale), כתובת <b dir="ltr">https://…ts.net</b>: </p><input class="ax-search" id="agUrl" dir="ltr" autocomplete="off" aria-label="כתובת המחשב" placeholder="https://my-pc.tailnet.ts.net" value="${esc(get('os-agent-url'))}"><div class="ax-acts"><button class="btn f" type="button" id="agUrlGo">שמור ונסה שוב</button></div>`;
+      $('#agUrlGo').onclick = () => { put('os-agent-url', $('#agUrl').value.trim()); check(); }; return;
+    }
+    if (!r.authed) { st.textContent = 'מחובר לגשר. צריך להדביק את הקוד פעם אחת.'; set.hidden = false; set.innerHTML = '<p class="m">בחלון של הגשר מודפס "Token". העתק אותו והדבק כאן:</p><input class="ax-search" id="agTok" dir="ltr" autocomplete="off" aria-label="הקוד של הגשר"><button class="btn f" type="button" id="agTokGo">שמור</button>'; $('#agTokGo').onclick = () => { token = $('#agTok').value.trim(); put('os-agent-token', token); check(); }; return; }
+    st.textContent = r.mock ? 'מחובר למחשב (מצב בדיקה).' : 'מחובר למחשב. הוא עורך את הקוד והתוכן בעצמו.'; form.hidden = false; txt.focus();
   };
+  app.querySelectorAll('[data-agm]').forEach(b => b.onclick = () => { mode = b.dataset.agm; put('os-agent-mode', mode); check(); });
   form.onsubmit = async e => {
     e.preventDefault(); const message = txt.value.trim(); if (!message) return;
     txt.value = ''; add('me', message); go.disabled = true; const ai = add('ai', '…'); let text = '';
     try {
-      const res = await fetch(BRIDGE + '/ask', { method: 'POST', headers: head(), body: JSON.stringify({ message, session }) });
-      if (!res.ok) throw new Error(res.status === 401 ? 'הקוד לא נכון' : `שגיאה ${res.status}`);
-      const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '';
-      for (;;) {
-        const { done, value } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true });
-        let i; while ((i = buf.indexOf('\n')) >= 0) {
-          const l = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (!l) continue;
-          let j; try { j = JSON.parse(l); } catch { continue; }
-          if (j.t) { text += j.t; ai.textContent = text; log.scrollTop = log.scrollHeight; }
-          if (j.tool) add('tool', `עובד: ${j.tool}`);
-          if (j.done) { if (j.session) { session = j.session; try { sessionStorage.setItem('os-agent-session', session); } catch {} } if (j.error) add('ai', `לא הצליח: ${j.error}`); }
+      if (mode === 'cloud') {
+        hist.push({ role: 'user', content: message });
+        const { data: { session: ss } } = await c.auth.getSession();
+        const res = await fetch(AGENT, { method: 'POST', headers: { Authorization: `Bearer ${ss.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: hist }) });
+        const d = await res.json().catch(() => ({}));
+        if (!res.ok || d.error) throw new Error(d.error === 'no_key' ? 'חסר מפתח לסוכן בענן' : d.error || `שגיאה ${res.status}`);
+        text = d.reply || ''; ai.textContent = text; hist.push({ role: 'assistant', content: text });
+        (d.filed || []).forEach(t => add('tool', `הוגשה בקשה למפתחים: ${t}`));
+      } else {
+        const res = await fetch(url() + '/ask', { method: 'POST', headers: head(), body: JSON.stringify({ message, session }) });
+        if (!res.ok) throw new Error(res.status === 401 ? 'הקוד לא נכון' : `שגיאה ${res.status}`);
+        const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+        for (;;) {
+          const { done, value } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true });
+          let i; while ((i = buf.indexOf('\n')) >= 0) {
+            const l = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (!l) continue;
+            let j; try { j = JSON.parse(l); } catch { continue; }
+            if (j.t) { text += j.t; ai.textContent = text; log.scrollTop = log.scrollHeight; }
+            if (j.tool) add('tool', `עובד: ${j.tool}`);
+            if (j.done) { if (j.session) { session = j.session; try { sessionStorage.setItem('os-agent-session', session); } catch {} } if (j.error) add('ai', `לא הצליח: ${j.error}`); }
+          }
         }
+        if (!text) ai.remove();
       }
-      if (!text) ai.remove();
-    } catch (er) { ai.textContent = `לא הצליח: ${er.message}`; }
+    } catch (er) { ai.textContent = `לא הצליח: ${er.message}`; if (mode === 'cloud') hist.pop(); }
     go.disabled = false; txt.focus();
   };
   txt.onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) form.requestSubmit(); };
@@ -500,7 +534,7 @@ function wire(app, c, tab) {
     };
     let loaded = false; real.ontoggle = () => { if (real.open && !loaded) { loaded = true; list(); } };
   }
-  if (tab === 'agent') wireAgent(app);
+  if (tab === 'agent') wireAgent(app, c);
   if (tab === 'shows') {
     const apply = () => { M.hidden = HID; M.exhibitions = (M.allExhibitions || M.exhibitions).filter(e => !HID.has('ex:' + e.slug));
       try { const cc = JSON.parse(localStorage.getItem('os-community') || 'null'); if (cc) { cc.hidden = [...HID].map(key => ({ key })); localStorage.setItem('os-community', JSON.stringify(cc)); } } catch {} };

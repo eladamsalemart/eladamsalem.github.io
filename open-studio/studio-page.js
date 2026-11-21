@@ -213,6 +213,8 @@ export function mount(c) {
       draw();
     });
   }
+  const orderList = () => { const re = (S.exhibitions || []).map((e, i) => ({ e, v: false, key: i })), vi = (S.virtual || []).filter(v => v.status === 'published' || v.status === 'pending').map(v => ({ e: v, v: true, key: v.ord == null ? -1 : v.ord - 0.5 }));
+    return [...re, ...vi].sort((a, b) => a.key - b.key || (a.v - b.v)); };
   // virtual exhibitions on the page: who may publish, and the list with its switch
   let admin = null;
   const isAdm = async () => { if (admin !== null) return admin; try { const m = await c.cloud(), s = await m.session(); admin = !!(s && (await s.c.rpc('is_admin')).data); } catch { admin = false; } return admin; };
@@ -273,8 +275,10 @@ export function mount(c) {
     covers.closest('.sec').insertAdjacentHTML('beforeend', '<button type="button" class="ed-sec-add" data-ed="ex-new" style="margin-top:14px">+ Add an exhibition</button>');
     covers.querySelectorAll('a').forEach(x => { x.dataset.slug = x.getAttribute('href').slice(13); });
     // the order of the arches is the artist's: a list under the row, each exhibition moved up or down (first = the first arch)
-    if ((S.exhibitions || []).length > 1) {
-      covers.closest('.sec').insertAdjacentHTML('beforeend', `<div class="ed-order" id="edOrder"><p class="ed-order-h"><b>Order of exhibitions</b><span>The first is the first arch on your page.</span></p><ol>${S.exhibitions.map((e, i) => `<li data-id="${esc(e.id)}"><span class="n">${i + 1}</span><span class="t"><b dir="auto">${esc(e.title || 'Untitled')}</b><small>${esc([e.venue, e.year].filter(Boolean).join(' · '))}</small></span><button type="button" data-mv="-1" aria-label="Move ${esc(e.title || 'this exhibition')} earlier"${i ? '' : ' disabled'}>↑</button><button type="button" data-mv="1" aria-label="Move ${esc(e.title || 'this exhibition')} later"${i < S.exhibitions.length - 1 ? '' : ' disabled'}>↓</button></li>`).join('')}</ol></div>`);
+    // the order of the arches: the real exhibitions and the virtual ones in one list (a virtual one stands after as many real ones as the artist chose)
+    if (orderList().length > 1) {
+      const L = orderList();
+      covers.closest('.sec').insertAdjacentHTML('beforeend', `<div class="ed-order" id="edOrder"><p class="ed-order-h"><b>Order of exhibitions</b><span>The first is the first arch on your page.</span></p><ol>${L.map(({ e, v }, i) => `<li data-id="${esc(e.id)}"><span class="n">${i + 1}</span><span class="t"><b dir="auto">${esc(e.title || 'Untitled')}</b><small>${v ? 'Virtual exhibition' : esc([e.venue, e.year].filter(Boolean).join(' · '))}</small></span><button type="button" data-mv="-1" aria-label="Move ${esc(e.title || 'this exhibition')} earlier"${i ? '' : ' disabled'}>↑</button><button type="button" data-mv="1" aria-label="Move ${esc(e.title || 'this exhibition')} later"${i < L.length - 1 ? '' : ' disabled'}>↓</button></li>`).join('')}</ol></div>`);
     }
     wrap.insertAdjacentHTML('beforeend', `${roomsCard()}<div class="ed-foot"><button type="button" class="more" id="edSo">Sign out</button></div>`);
     wrap.querySelector('#edSo').onclick = () => c.signOut();
@@ -342,12 +346,13 @@ export function mount(c) {
     if (t.closest('[contenteditable]')) return;
     const mv = t.closest('#edOrder [data-mv]');
     if (mv) {
-      e.preventDefault(); const id = mv.closest('li').dataset.id, i = S.exhibitions.findIndex(x => x.id === id), j = i + +mv.dataset.mv;
-      if (i < 0 || j < 0 || j >= S.exhibitions.length) return;
-      const was = S.exhibitions.slice(); [S.exhibitions[i], S.exhibitions[j]] = [S.exhibitions[j], S.exhibitions[i]];
+      e.preventDefault(); const id = mv.closest('li').dataset.id, L = orderList(), i = L.findIndex(x => x.e.id === id), j = i + +mv.dataset.mv;
+      if (i < 0 || j < 0 || j >= L.length) return;
+      const was = S.exhibitions.slice(), wasOrd = (S.virtual || []).map(v => [v, v.ord]); [L[i], L[j]] = [L[j], L[i]];
+      S.exhibitions = L.filter(x => !x.v).map(x => x.e); let nr = 0; for (const x of L) { if (x.v) x.e.ord = nr; else nr++; }
       const y = scrollY; commit(); draw(); scrollTo({ top: y, behavior: 'instant' });
       const li = [...app.querySelectorAll('#edOrder li')].find(x => x.dataset.id === id), again = li && (li.querySelector(`[data-mv="${mv.dataset.mv}"]:not(:disabled)`) || li.querySelector('[data-mv]:not(:disabled)')); if (again) again.focus({ preventScroll: true });
-      toast('Order changed', () => { S.exhibitions = was; commit(); draw(); });
+      toast('Order changed', () => { S.exhibitions = was; wasOrd.forEach(([v, o]) => { v.ord = o; }); commit(); draw(); });
       return;
     }
     const ed = t.closest('[data-ed]'), row = t.closest('a.row[data-slug]'), cv = t.closest('.covers a[data-slug], .walkbox .wc[data-slug]');

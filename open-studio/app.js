@@ -45,7 +45,7 @@ async function communityData() {
   const [artists, works, shows, hidden] = await Promise.all([
     q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,hero,hero_pos,link,instagram,cv,exhibitions&status=eq.approved'),
     q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position,kind,category&order=position'),
-    q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,starts,ends,owner_id,created_at,on_view&status=eq.published'),
+    q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,plinths,starts,ends,owner_id,created_at,on_view,art_ord&status=eq.published'),
     q('app_hidden?select=key'),
   ]);
   return { artists, works, shows, hidden };
@@ -112,7 +112,7 @@ function buildModel(d) {
     live: [], listings: [], places: {} };
   if (d.world) addWorld(m, d.world, uniq, seen);
   if (d.community) addCommunity(m, d.community, uniq, seen);
-  if (d.virtual) { addVirtual(m, d.virtual, uniq); m.virtualColours = d.virtual.streetColours || {}; }
+  if (d.virtual) { addVirtual(m, d.virtual, uniq, true); m.virtualColours = d.virtual.streetColours || {}; }
   if (d.community) addVirtual(m, { shows: d.community.shows.map(showOf(m)) }, uniq);
   // the owner is two artists here: the site's own content (the first) and the account made in the app (the twin, same name). One
   // person is one artist: the twin is an alias (no second entry in any list, its page is the first one's), and an exhibition of
@@ -122,6 +122,8 @@ function buildModel(d) {
   if (twin) {
     twin.alias = true;
     const mine = new Set(m.exhibitions.filter(e => e.artist === m.artist).map(e => norm(e.title)));
+    // (the order the artist gave the arches lives on the account's copy: the site's own exhibition takes it)
+    for (const d of m.exhibitions) if (d.artist === twin && d.ord != null) { const k = m.exhibitions.find(e => e.artist === m.artist && norm(e.title) === norm(d.title)); if (k) k.ord = d.ord; }
     m.exhibitions = m.exhibitions.filter(e => !(e.artist === twin && e.kind !== 'online' && mine.has(norm(e.title))));
     for (const e of m.exhibitions) { if (e.artist === twin) e.artist = m.artist; if (e.artists) e.artists = [...new Set(e.artists.map(x => x === twin ? m.artist : x))]; }
   }
@@ -173,7 +175,7 @@ const showOf = m => v => {
   const owner = m.artists.find(a => a.uid === v.owner_id);
   const keys = (v.works || []).map(w => (m.works.find(x => (w.id && x.id === w.id) || (w.slug && x.slug === w.slug)) || {}).slug).filter(Boolean);
   const artists = [...new Set(keys.map(k => m.works.find(x => x.slug === k).artist.slug))];
-  return { slug: v.slug || `show-${v.id.slice(0, 8)}`, kind: v.kind, title: v.title, artists: v.kind === 'artist' && owner ? [owner.slug] : artists, curator: v.curator || '',
+  return { id: v.id, ord: v.art_ord != null ? v.art_ord - 0.5 : undefined, slug: v.slug || `show-${v.id.slice(0, 8)}`, kind: v.kind, title: v.title, artists: v.kind === 'artist' && owner ? [owner.slug] : artists, curator: v.curator || '',
     room: v.room, paint: v.paint, centre: v.centre, onview: !!v.on_view, start: v.starts || made.slice(0, 10), end: v.ends || `${+made.slice(0, 4) + 1}${made.slice(4, 10)}`,
     text: v.text ? v.text.split(/\n\s*\n/) : [], works: keys,
     // where the artist hung each work (wall, a, y) and stood the plinths: the room hangs the rest itself
@@ -187,7 +189,7 @@ const SPACE_KINDS = { 'white-cube': 'White cube', loft: 'Industrial loft', 'skyl
   studio: 'Artist studio', apartment: "Collector's home", 'black-box': 'Black box', 'glass-pavilion': 'Glass pavilion', japanese: 'Japanese room' };
 const roomTitle = r => ROOM_NAMES[r] || SPACE_KINDS[String(r).replace(/(-[23]r)?$/, '').replace(/-(small|large)$/, '')] || 'A virtual room';
 const bakedRoom = r => !ROOM_NAMES[r] && SPACE_KINDS[String(r).replace(/(-[23]r)?$/, '').replace(/-(small|large)$/, '')] ? r : null;
-function addVirtual(m, v, uniq) {
+function addVirtual(m, v, uniq, demo) {
   for (const x of v.shows || []) {
     const works = x.works.map(s => m.works.find(w => w.slug === s)).filter(Boolean);
     const artists = x.artists.map(s => m.artists.find(a => a.slug === s)).filter(Boolean);
@@ -199,7 +201,7 @@ function addVirtual(m, v, uniq) {
       slug: uniq(x.slug), title: x.title, year: String(start.getFullYear()), venue: `Open Studio · ${room}`, address: '',
       dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: x.text || [], images: x.cover ? [x.cover] : [works[0].image], city: '', country: '',
       confirmed: true, artist: artists[0], artists, works, maybe: [], kind: 'online', start, end, hours: '', curator: x.curator || '',
-      events: [], virtual: x,
+      events: [], virtual: x, ord: x.ord, demo: !!demo,
       space: { source: `${room}, a virtual room`, virtual: { title: x.title, room: x.room, paint: x.paint, centre: x.centre, placements: x.placements, plinths: x.plinths } },
     });
   }
@@ -232,7 +234,7 @@ function addWorld(m, w, uniq, seen) {
     W.set(v.slug, x); m.works.push(x);
   }
   m.works.sort((a, b) => (+b.year || 0) - (+a.year || 0) || a.i - b.i);
-  for (const v of w.shows) {
+  for (const v of []) {                 // (the demo world's invented shows are no longer made: Shows holds real exhibitions only; the owner's word, 21.11)
     const start = inDays(v.start), end = new Date(+inDays(v.end) + DAY - 60000);
     const fmt = t => t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     m.exhibitions.push({
@@ -896,23 +898,53 @@ function work(slug) {
   </div>`;
 }
 
-// "At scale": the work drawn from its recorded size beside a 175 cm figure, on a 145 cm centre line.
+// "At scale": the work on the white wall of a clean gallery, at its recorded size, hung on a 150 cm centre line, with a person standing
+// beside it (never in front of it) to give the size. Everything is drawn in centimetres.
 // The recorded pair is oriented to match the photo, since records mix height × width and width × height.
+const PERSON = 175;
+// a standing person, front view, 175 cm: feet at y = 0, head at y = -175 (x = 0 is the middle)
+const personSvg = () => `<g>
+  <ellipse cx="0" cy="1" rx="30" ry="4.5" fill="#000" opacity=".2"/>
+  <path d="M-14 -92 L-16 -9 L-5 -9 L-2 -88 Z" fill="url(#scTr)"/><path d="M14 -92 L16 -9 L5 -9 L2 -88 Z" fill="url(#scTr)"/>
+  <rect x="-18" y="-96" width="36" height="12" rx="5" fill="#3a3e46"/>
+  <path d="M-17 -9 h13 l1 8 h-17 z" fill="#202124"/><path d="M17 -9 h-13 l-1 8 h17 z" fill="#202124"/>
+  <path d="M-21 -147 C-28 -144 -27 -128 -26 -114 L-24 -90 L-16 -90 L-17 -112 L-15 -128 Z" fill="url(#scSl)"/><path d="M21 -147 C28 -144 27 -128 26 -114 L24 -90 L16 -90 L17 -112 L15 -128 Z" fill="url(#scSl)"/>
+  <ellipse cx="-20" cy="-87" rx="4.2" ry="6" fill="#d9ad88"/><ellipse cx="20" cy="-87" rx="4.2" ry="6" fill="#d9ad88"/>
+  <path d="M-20 -148 C-12 -153 12 -153 20 -148 L17 -96 L-17 -96 Z" fill="url(#scTo)"/>
+  <path d="M-4.5 -153 h9 v7 c-2 3 -7 3 -9 0 z" fill="#d9ad88"/>
+  <ellipse cx="0" cy="-163" rx="8.6" ry="11.2" fill="#e2b896"/>
+  <path d="M-8.8 -165 C-9 -176 9 -176 8.8 -165 C6 -170 -6 -170 -8.8 -165 Z" fill="#3a2d26"/>
+</g>`;
 function drawScale(w, aspect) {
   let best = null;
   for (const [a, b] of w.pairs) for (const [h, wd] of [[a, b], [b, a]]) {
     const err = Math.abs((wd / h) / aspect - 1);
     if (!best || err < best.err) best = { h, w: wd, err };
   }
-  const H = 260, floor = H - 8, k = 0.9, cx = 40;
-  const top = floor - 145 * k - best.h * k / 2;
-  const fx = cx + best.w * k + 60, fh = 175 * k, r = 10 * k;
-  return `<svg viewBox="0 0 ${Math.max(fx + 60, 320)} ${H}" role="img" aria-label="${esc(w.title)}, ${best.h} by ${best.w} cm, beside a 175 cm figure">
-    <line x1="0" x2="100%" y1="${floor}" y2="${floor}" stroke="currentColor" stroke-opacity=".5"/>
-    <image href="${esc(src(w.image))}" x="${cx}" y="${top}" width="${best.w * k}" height="${best.h * k}" preserveAspectRatio="none"/>
-    <g fill="currentColor" fill-opacity=".35"><circle cx="${fx}" cy="${floor - fh + r}" r="${r}"/><rect x="${fx - 15 * k}" y="${floor - fh + 2.2 * r}" width="${30 * k}" height="${fh - 2.2 * r}" rx="${13 * k}"/></g>
-    <text x="${cx}" y="${top - 8}" font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor" fill-opacity=".7">${best.h} × ${best.w} cm${best.err > 0.06 ? ' · size to confirm' : ''}</text>
-    <text x="${fx + 18}" y="${floor - 4}" font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor" fill-opacity=".7">175 cm</text>
+  const LINE = 150, M = 40, gap = 55, personW = 60;
+  // a sculpture stands on a plinth (its photo, on the white wall, as tall as it is); a painting hangs on the centre line
+  const sculpt = w.kind === 'object', ph = sculpt ? (best.h > 120 ? 20 : best.h > 70 ? 50 : 90) : 0, bw = sculpt ? Math.max(8, best.h * aspect) : best.w;
+  const floor = Math.max(PERSON, sculpt ? ph + best.h : LINE + best.h / 2) + 38, H = floor + 34, Wd = M + bw + gap + personW + M;
+  const top = sculpt ? floor - ph - best.h : floor - LINE - best.h / 2, fx = M + bw + gap + personW / 2, fs = Math.max(8, H / 26);
+  return `<svg viewBox="0 0 ${Wd} ${H}" role="img" aria-label="${esc(w.title)}, ${best.h} by ${best.w} cm, ${sculpt ? 'on a plinth' : 'on a gallery wall'} beside a ${PERSON} cm person">
+    <defs>
+      <linearGradient id="scW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbf9"/><stop offset="1" stop-color="#ebe9e3"/></linearGradient>
+      <linearGradient id="scF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfcac0"/><stop offset="1" stop-color="#b9b4a9"/></linearGradient>
+      <linearGradient id="scPl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e4e1da"/><stop offset=".5" stop-color="#f4f2ee"/><stop offset="1" stop-color="#e0ddd5"/></linearGradient>
+      <linearGradient id="scTr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f3239"/><stop offset=".5" stop-color="#454952"/><stop offset="1" stop-color="#2f3239"/></linearGradient>
+      <linearGradient id="scTo" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4b5766"/><stop offset=".5" stop-color="#617083"/><stop offset="1" stop-color="#4b5766"/></linearGradient>
+      <linearGradient id="scSl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#46525f"/><stop offset="1" stop-color="#5a6877"/></linearGradient>
+      <filter id="scSh" x="-10%" y="-10%" width="125%" height="125%"><feDropShadow dx="1.6" dy="2.6" stdDeviation="2.4" flood-color="#000" flood-opacity=".28"/></filter>
+    </defs>
+    <rect width="${Wd}" height="${floor}" fill="url(#scW)"/>
+    <rect y="${floor - 7}" width="${Wd}" height="7" fill="#e4e1da"/><rect y="${floor}" width="${Wd}" height="${H - floor}" fill="url(#scF)"/><rect y="${floor}" width="${Wd}" height="1.2" fill="#000" opacity=".12"/>
+    ${sculpt ? `<rect x="${M - 10}" y="${floor - ph}" width="${bw + 20}" height="${ph}" fill="url(#scPl)" filter="url(#scSh)"/><rect x="${M - 10}" y="${floor - ph}" width="${bw + 20}" height="2.2" fill="#fff" opacity=".7"/>
+    <ellipse cx="${M + bw / 2}" cy="${floor - ph}" rx="${bw * .42}" ry="3" fill="#000" opacity=".22"/>
+    <image href="${esc(src(w.image))}" x="${M}" y="${top}" width="${bw}" height="${best.h}" preserveAspectRatio="xMidYMax meet" style="mix-blend-mode:multiply"/>`
+      : `<image href="${esc(src(w.image))}" x="${M}" y="${top}" width="${best.w}" height="${best.h}" preserveAspectRatio="none" filter="url(#scSh)"/>`}
+    <text x="${M}" y="${top - fs * .7}" font-family="IBM Plex Mono, monospace" font-size="${fs}" fill="#2b2b2a" fill-opacity=".75">${best.h} × ${best.w} cm${best.err > 0.06 ? ' · size to confirm' : ''}</text>
+    <g transform="translate(${fx} ${floor})">${personSvg()}</g>
+    <text x="${fx + 26}" y="${floor - 3}" font-family="IBM Plex Mono, monospace" font-size="${fs}" fill="#2b2b2a" fill-opacity=".6">${PERSON} cm</text>
   </svg>`;
 }
 
@@ -1013,11 +1045,32 @@ function artistsPage() {
 
 // --- Shows: "Opening Night" — what's on now, in rooms and online; tonight first ---------------------------
 let showsKind = 'all', showsDay = 0;
+// the art map's exhibitions in real galleries, museums and institutions (data/art, read daily): on now, and opening soon
+function fillRealShows(box, art) {
+  if (!box.isConnected || !art || !art.shows.length) return;
+  const t0 = +today(), ms = d => +new Date(d + 'T00:00'), fmt = d => new Date(d + 'T12:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const rows = art.shows.map(x => ({ x, p: art.places.get(x.place) })).filter(r => r.p && r.x.title && r.x.end && ms(r.x.end) >= t0);
+  const now = rows.filter(r => !r.x.start || ms(r.x.start) <= t0 + DAY).sort((a, b) => ms(a.x.end) - ms(b.x.end));
+  const soon = rows.filter(r => r.x.start && ms(r.x.start) > t0 + DAY && ms(r.x.start) < t0 + 45 * DAY).sort((a, b) => ms(a.x.start) - ms(b.x.start));
+  // the place's own picture: its building's outline from the map (nothing borrowed; a photograph needs a licence), else its initial
+  const thumb = p => {
+    const ring = p.building && p.building.ring; let g = '';
+    if (ring && ring.length > 2) {
+      const xs = ring.map(c => c[0]), ys = ring.map(c => c[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), k = 84 / Math.max((x1 - x0) * Math.cos(y0 * Math.PI / 180), y1 - y0 || 1e-9), cx = 50 - (x1 - x0) * Math.cos(y0 * Math.PI / 180) * k / 2, cy = 50 + (y1 - y0) * k / 2;
+      g = `<polygon points="${ring.map(c => `${(cx + (c[0] - x0) * Math.cos(y0 * Math.PI / 180) * k).toFixed(1)},${(cy - (c[1] - y0) * k).toFixed(1)}`).join(' ')}" fill="currentColor" fill-opacity=".72"/>`;
+    } else g = `<text x="50" y="62" text-anchor="middle" font-size="40" font-family="serif" fill="currentColor" fill-opacity=".6">${esc((p.name || '?').trim().charAt(0).toUpperCase())}</text>`;
+    return `<svg class="nx-rs-i" viewBox="0 0 100 100" aria-hidden="true">${g}</svg>`;
+  };
+  const card = ({ x, p }) => `<a class="nx-rs" href="${esc(x.url || p.website || '#/map')}" target="_blank" rel="noopener">${thumb(p)}<span class="nx-rs-t"><b dir="auto">${esc(x.title)}</b>
+    <span>${esc(p.name)}${p.city ? ` · ${esc(p.city)}` : ''}</span><span class="nx-when">${x.start ? `${fmt(x.start)} – ` : 'until '}${fmt(x.end)}</span></span></a>`;
+  const sec = (h, sub, list) => list.length ? `<section class="nx-sec"><div class="nx-sh"><h2>${h}</h2><a class="more" href="#/map">On the map</a></div><p class="m nx-sub">${sub}</p><div class="nx-real">${list.slice(0, 40).map(card).join('')}</div></section>` : '';
+  box.innerHTML = sec('On view now', 'Real exhibitions in galleries, museums and art institutions in Israel, as they list them.', now) + sec('Opening soon', 'In the next weeks.', soon);
+}
 function showsPage() {
   const pick = e => showsKind === 'all' || (showsKind === 'online' ? e.kind === 'online' : e.kind !== 'online');
-  const all = M.exhibitions.filter(pick);
+  const all = M.exhibitions.filter(e => pick(e) && !e.demo);
   const on = all.filter(isOn), soon = all.filter(e => status(e) === 'soon').sort((a, b) => a.start - b.start);
-  const evs = [...M.exhibitions.filter(pick).flatMap(e => e.events), ...(showsKind === 'online' ? [] : M.listings.flatMap(l => l.events))]
+  const evs = [...M.exhibitions.filter(e => pick(e) && !e.demo).flatMap(e => e.events), ...(showsKind === 'online' ? [] : M.listings.flatMap(l => l.events))]
     .filter(v => +v.at > Date.now() - 3 * 3600000).sort((a, b) => a.at - b.at);
   const tonight = evs.find(v => v.show && dayName(v.at) === 'Tonight') || evs.find(v => v.show);
   const hero = tonight ? tonight.show : on[0];
@@ -1035,12 +1088,13 @@ function showsPage() {
       <span class="nx-ov"><b>${esc(hero.title)}</b><span class="k">${esc(byOf(hero))}${hero.venue && hero.kind !== 'online' ? ` · ${esc(hero.venue)}` : ''}</span>
       <span class="m">${hero.works.length} works · ${esc(hero.kind === 'online' ? 'online' : hero.city)}</span>
       <span class="nx-cta">${hero.kind === 'online' || hero.space ? 'Walk in now' : 'See the show'}</span></span></a>` : ''}
-    <section class="nx-sec"><div class="nx-sh"><h2>This week</h2></div>
+    ${evs.length ? `<section class="nx-sec"><div class="nx-sh"><h2>This week</h2></div>
       <div class="nx-days" role="group" aria-label="Day">${days.map((d, i) => `<button type="button" data-day="${i}" aria-pressed="${i === showsDay}"><span>${i === 0 ? 'Today' : d.toLocaleDateString('en-GB', { weekday: 'short' })}</span><b>${d.getDate()}</b>${evs.some(v => Math.floor((new Date(v.at).setHours(0, 0, 0, 0) - today()) / DAY) === i) ? '<i></i>' : ''}</button>`).join('')}</div>
       <div class="nx-evs">${dayEvs.length ? dayEvs.map(v => v.show
         ? `<a class="nx-ev" href="#/exhibition/${v.show.slug}">${im(v.show.images[0], '', '', '25vw')}<span><span class="nx-when">${lh(hm(v.at))} · ${esc(v.show.kind === 'online' ? 'Online' : v.show.city)}</span><b>${esc(v.show.title)}</b><span class="m">${esc(byOf(v.show))} · ${esc(v.what)}</span></span></a>`
         : `<a class="nx-ev info" href="#/map">${'<span class="ph" aria-hidden="true"></span>'}<span><span class="nx-when">${esc(hm(v.at))} · ${esc(v.listing.city)}</span><b>${esc(v.listing.show)}</b><span class="m">${esc(v.listing.name)} · ${esc(v.what)} · Not on Open Studio</span></span></a>`).join('')
-        : '<p class="m">Nothing that day yet.</p>'}</div></section>
+        : '<p class="m">Nothing that day yet.</p>'}</div></section>` : ''}
+    <div id="nxReal"></div>
     ${rooms.length ? `<section class="nx-sec"><div class="nx-sh"><h2>On view now</h2><a class="more" href="#/map">On the map</a></div><div class="nx-grid">${rooms.map(card).join('')}</div></section>` : ''}
     ${closing.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Last chance</h2></div><div class="nx-grid">${closing.map(card).join('')}</div></section>` : ''}
     ${online.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Online now</h2></div><p class="m nx-sub">Digital exhibitions: no room, open all the time.</p><div class="nx-grid">${online.map(card).join('')}</div></section>` : ''}
@@ -1276,7 +1330,7 @@ async function enterSpace(slug) {
   const openSpace = window.__openSpace || (await import('./space/space.js')).openSpace;
   // a virtual room is drawn here, around the show's works, before it opens
   let spec = e.space, made = null;
-  if (e.space.virtual) { made = await (await import('./space/synth.js')).buildRoom({ ...e.space.virtual, works: e.works }, src); spec = made.spec; }
+  if (e.space.virtual) { await freshShow(e); made = await (await import('./space/synth.js')).buildRoom({ ...e.space.virtual, works: e.works }, src); spec = made.spec; }
   openSpaceView = await openSpace({
     spec, works: e.space.virtual ? e.works : M.works, src,
     // leaving the space goes back to where it was entered from, without leaving the space in the history
@@ -1293,6 +1347,18 @@ async function enterSpace(slug) {
 
 // the museum street (space/synth.js buildStreet): one long walk indoors, a room off it for each virtual or online show, each with a
 // threshold in the colour its works suggest (data/virtual.json streetColours, else sampled here) unless the curator chose another (museum_colours)
+// an artist's exhibition is asked for again as it is entered: the phone's last copy of the list may be older than the hang (walls, plinths)
+async function freshShow(e) {
+  const x = e.virtual; if (!x || !x.id) return;
+  try {
+    const r = await fetch(`${DB}virtual_shows?id=eq.${x.id}&select=title,room,paint,centre,works,plinths`, { headers: { apikey: DB_KEY }, signal: AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined });
+    const [v] = r.ok ? await r.json() : []; if (!v) return;
+    const works = (v.works || []).map(w => M.works.find(k => k.id === w.id)).filter(Boolean);
+    const sv = e.space.virtual; Object.assign(sv, { title: v.title, room: v.room, paint: v.paint, centre: v.centre, plinths: v.plinths || [],
+      placements: Object.fromEntries((v.works || []).filter(w => w.id && w.wall).map(w => [w.id, { wall: w.wall, a: w.a, y: w.y }])) });
+    if (works.length) e.works = works;
+  } catch (er) { console.warn('freshShow', er); }
+}
 const streetShows = () => M.exhibitions.filter(e => (e.virtual || e.kind === 'online') && (e.works || []).length >= 3).slice(0, 8);     // (the same rule as synth.streetShows)
 // the museum's history sections (studio/museum-agents/): data/museum/sections.json, each with its credits file; any failure and the museum is built without it
 async function loadSections() {
@@ -1362,6 +1428,7 @@ function wire() {
   });
   const rerender = () => { const y = scrollY; render(true); scrollTo(0, y); };
   document.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { showsKind = b.dataset.kind; rerender(); });
+  { const nr = document.getElementById('nxReal'); if (nr && showsKind !== 'online') loadArt().then(art => fillRealShows(nr, art)); }
   document.querySelectorAll('[data-day]').forEach(b => b.onclick = () => { showsDay = +b.dataset.day; rerender(); });
   document.querySelectorAll('[data-log]').forEach(b => b.onclick = () => { const [s, i] = b.dataset.log.split(':'); openLog(s, +i); });
   const am = document.querySelector('.am');
