@@ -1,0 +1,87 @@
+# A short film of each artist's published virtual exhibition, for Home's "Walk in now" (the room, turning slowly, as Ritual's).
+# Every two hours (and by hand) it asks the database which exhibitions are published, and makes a film for each one that has none
+# or whose hang changed (studio/app/space/preview.cjs, the same script as the 3D tours). Films go to studio/app/data/spaces/show-<id>/.
+# Scheduled workflows are read from main: this file is on both branches.
+name: Virtual show films
+
+on:
+  schedule:
+    - cron: '17 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: virtual-show-films
+  cancel-in-progress: false
+
+jobs:
+  films:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio
+      - name: Which exhibitions need a film
+        id: todo
+        run: |
+          python3 - <<'EOF'
+          import json, hashlib, pathlib, urllib.request, os
+          URL = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/rest/v1/virtual_shows?status=eq.published&select=id,title,room,paint,centre,works,plinths'
+          KEY = 'sb_publishable_VKboaeE8UE3iwVKhyr4FSA_faDO17fu'        # the public (publishable) key the app itself uses
+          rows = json.load(urllib.request.urlopen(urllib.request.Request(URL, headers={'apikey': KEY})))
+          todo = []
+          for r in rows:
+              slug = 'show-' + r['id'][:8]
+              sig = hashlib.sha256(json.dumps([r['title'], r['room'], r['paint'], r['centre'], r['plinths'],
+                     sorted((str(w.get('id')), str(w.get('wall')), str(w.get('a')), str(w.get('y'))) for w in (r['works'] or []))], sort_keys=True, default=str).encode()).hexdigest()[:16]
+              d = pathlib.Path('studio/app/data/spaces') / slug
+              prev = (d / 'film.sig').read_text().strip() if (d / 'film.sig').exists() else ''
+              if prev != sig or not (d / 'preview.mp4').exists(): todo.append(f'{slug}:{sig}')
+          pathlib.Path('todo.txt').write_text('\n'.join(todo))
+          print(len(rows), 'published,', len(todo), 'to film:', todo)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('n=%d\n' % len(todo))
+          EOF
+      - if: steps.todo.outputs.n != '0'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - if: steps.todo.outputs.n != '0'
+        run: pip install opencv-python-headless==5.0.0.93 numpy==2.5.3
+      - if: steps.todo.outputs.n != '0'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - if: steps.todo.outputs.n != '0'
+        name: A browser
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - if: steps.todo.outputs.n != '0'
+        name: Make the films
+        run: |
+          command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          (python3 -m http.server 8765 >/dev/null 2>&1 &) && sleep 1
+          while IFS=: read -r slug sig; do
+            [ -z "$slug" ] && continue
+            if node studio/app/space/preview.cjs "$slug" http://localhost:8765/studio/app/; then
+              echo "$sig" > "studio/app/data/spaces/$slug/film.sig"
+            else
+              echo "no film for $slug"
+            fi
+          done < todo.txt
+      - if: steps.todo.outputs.n != '0'
+        name: Commit and push to studio
+        run: |
+          git config user.name "virtual-show-films"
+          git config user.email "virtual-show-films@users.noreply.github.com"
+          git add studio/app/data/spaces
+          git diff --cached --quiet && exit 0
+          git commit -m "Studio: films of the artists' virtual exhibitions"
+          for i in 1 2 3; do
+            git pull --no-rebase --no-edit -X ours origin studio && git push origin HEAD:studio && exit 0
+            sleep 5
+          done
+          exit 1
