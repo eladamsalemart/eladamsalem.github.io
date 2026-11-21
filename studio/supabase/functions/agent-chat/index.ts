@@ -1,3 +1,4 @@
+// (the cloud agent; deployed by the "Supabase functions" workflow)
 // Open Studio's agent in the cloud: the owner talks with it in the control room (from the phone too), in Hebrew. It knows the app, its
 // vision and its rules, asks questions and sharpens, and when a change is clear it files it as a precise request (public.change_requests),
 // which the "Owner requests" workflow turns into an issue for the Claude sessions that build. It does not edit code itself.
