@@ -196,6 +196,19 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
     });
     // the plan's zoom buttons (a finger that does not pinch)
     await step('zoom-buttons', 30000, async () => { await p.tap('.hp-zi'); await p.waitForSelector('.hp-fit:not([hidden])', { timeout: 8000 }); await p.tap('.hp-fit'); await p.waitForSelector('.hp-fit[hidden]', { state: 'attached', timeout: 8000 }); });
+    // Arrange: the laser line (drawn across the walls, a height of one's own) and the tools that hang to it
+    await step('arrange', 150000, async () => {
+      { const m = await mid('.hp-svg [data-k="work"]'); await p.mouse.click(m[0], m[1]); } await p.waitForTimeout(300); await p.tap('.hp-go'); await p.waitForFunction(() => document.querySelector('.hp').hidden, null, { timeout: 90000 });
+      await p.waitForFunction(() => { const b = document.querySelector('[data-a=line]'); return b && !b.disabled; }, null, { timeout: 60000 });
+      await p.tap('[data-a=line]'); await p.waitForSelector('.he-laser', { timeout: 10000 });
+      await p.tap('[data-las=tog]'); await p.tap('[data-las="5"]');
+      const n = await p.evaluate(() => { let c = 0; window.__he.api.scene.traverse(o => { if (o.material && o.material.color && o.material.color.getHex() === 0x35ff6b) c++; }); return c; });
+      if (n < 4) throw new Error('the laser line was not drawn (' + n + ' strips)');
+      await p.tap('[data-lline="c"]'); await p.waitForSelector('.he-note', { timeout: 8000 });
+      await p.tap('[data-a=line]'); await p.waitForSelector('[data-tab="gaps"]', { timeout: 8000 }); await p.tap('[data-tab="gaps"]'); await p.waitForSelector('[data-gap="0.2"]', { timeout: 8000 }); await p.tap('[data-gap="0.2"]');
+      await p.waitForSelector('.he-nudge:not([hidden])', { timeout: 5000 }); await p.tap('[data-nudge="r"]');
+      await shot('arrange');
+    });
   }
 
   await b.close();
