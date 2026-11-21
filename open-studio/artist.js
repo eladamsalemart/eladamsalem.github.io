@@ -208,7 +208,7 @@ function ovSizes(room) {
   const base = baseOf(room), r = ROOMS[base], list = (kindsOf(r.kind)[r.kind] || []).slice().sort(([, a], [, b]) => SIZE_ORDER.indexOf(a.variant) - SIZE_ORDER.indexOf(b.variant));
   const rows = [1, 2, 3].map(n => [n, n === 1 ? base : `${base}-${n}r`]).filter(([, sl]) => ROOMS[sl]);
   return `<div class="ov-seg" role="group" aria-label="Size">${list.map(([slug, x]) => `<button type="button" data-size="${esc(slug)}" aria-pressed="${base === slug}"><b>${esc(x.sizeName)}</b><span>${esc(dims(x.size))}</span></button>`).join('')}</div>
-    ${rows.length > 1 ? `<div class="ov-row"><span id="ovRowsL">Rooms in a row</span><div class="ov-seg ov-n" role="group" aria-labelledby="ovRowsL">${rows.map(([n, sl]) => `<button type="button" data-rooms="${esc(sl)}" aria-pressed="${room === sl}" aria-label="${n} ${n === 1 ? 'room' : 'rooms in a row'}"><b>${n}</b></button>`).join('')}</div></div>` : ''}`;
+    ${rows.length > 1 ? `<div class="ov-row"><span id="ovRowsL">Rooms joined in a row <small style="color:var(--muted)">(a longer exhibition)</small></span><div class="ov-seg ov-n" role="group" aria-labelledby="ovRowsL">${rows.map(([n, sl]) => `<button type="button" data-rooms="${esc(sl)}" aria-pressed="${room === sl}" aria-label="${n} ${n === 1 ? 'room' : 'rooms in a row'}"><b>${n}</b></button>`).join('')}</div></div>` : ''}`;
 }
 function spacePicker(v) {
   const cur = bakedRoom(v.room), kinds = kindsOf(cur ? ROOMS[cur].kind : ''), kind = cur ? ROOMS[cur].kind : Object.keys(kinds)[0], room = cur || firstOf(kinds[kind]), r = ROOMS[baseOf(room)];
