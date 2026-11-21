@@ -213,8 +213,7 @@ export function mount(c) {
       draw();
     });
   }
-  const orderList = () => { const re = (S.exhibitions || []).map((e, i) => ({ e, v: false, key: i })), vi = (S.virtual || []).filter(v => v.status === 'published' || v.status === 'pending').map(v => ({ e: v, v: true, key: v.ord == null ? -1 : v.ord - 0.5 }));
-    return [...re, ...vi].sort((a, b) => a.key - b.key || (a.v - b.v)); };
+  const orderList = () => (S.exhibitions || []).map(e => ({ e, v: false }));      // (the real exhibitions only: a virtual one is not among the arches of real places)
   // virtual exhibitions on the page: who may publish, and the list with its switch
   let admin = null;
   const isAdm = async () => { if (admin !== null) return admin; try { const m = await c.cloud(), s = await m.session(); admin = !!(s && (await s.c.rpc('is_admin')).data); } catch { admin = false; } return admin; };
