@@ -112,7 +112,7 @@ function buildModel(d) {
     live: [], listings: [], places: {} };
   if (d.world) addWorld(m, d.world, uniq, seen);
   if (d.community) addCommunity(m, d.community, uniq, seen);
-  if (d.virtual) { addVirtual(m, d.virtual, uniq); m.virtualColours = d.virtual.streetColours || {}; }
+  if (d.virtual) { addVirtual(m, d.virtual, uniq, true); m.virtualColours = d.virtual.streetColours || {}; }
   if (d.community) addVirtual(m, { shows: d.community.shows.map(showOf(m)) }, uniq);
   // the owner is two artists here: the site's own content (the first) and the account made in the app (the twin, same name). One
   // person is one artist: the twin is an alias (no second entry in any list, its page is the first one's), and an exhibition of
@@ -189,7 +189,7 @@ const SPACE_KINDS = { 'white-cube': 'White cube', loft: 'Industrial loft', 'skyl
   studio: 'Artist studio', apartment: "Collector's home", 'black-box': 'Black box', 'glass-pavilion': 'Glass pavilion', japanese: 'Japanese room' };
 const roomTitle = r => ROOM_NAMES[r] || SPACE_KINDS[String(r).replace(/(-[23]r)?$/, '').replace(/-(small|large)$/, '')] || 'A virtual room';
 const bakedRoom = r => !ROOM_NAMES[r] && SPACE_KINDS[String(r).replace(/(-[23]r)?$/, '').replace(/-(small|large)$/, '')] ? r : null;
-function addVirtual(m, v, uniq) {
+function addVirtual(m, v, uniq, demo) {
   for (const x of v.shows || []) {
     const works = x.works.map(s => m.works.find(w => w.slug === s)).filter(Boolean);
     const artists = x.artists.map(s => m.artists.find(a => a.slug === s)).filter(Boolean);
@@ -201,7 +201,7 @@ function addVirtual(m, v, uniq) {
       slug: uniq(x.slug), title: x.title, year: String(start.getFullYear()), venue: `Open Studio · ${room}`, address: '',
       dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: x.text || [], images: x.cover ? [x.cover] : [works[0].image], city: '', country: '',
       confirmed: true, artist: artists[0], artists, works, maybe: [], kind: 'online', start, end, hours: '', curator: x.curator || '',
-      events: [], virtual: x, ord: x.ord,
+      events: [], virtual: x, ord: x.ord, demo: !!demo,
       space: { source: `${room}, a virtual room`, virtual: { title: x.title, room: x.room, paint: x.paint, centre: x.centre, placements: x.placements, plinths: x.plinths } },
     });
   }
@@ -234,7 +234,7 @@ function addWorld(m, w, uniq, seen) {
     W.set(v.slug, x); m.works.push(x);
   }
   m.works.sort((a, b) => (+b.year || 0) - (+a.year || 0) || a.i - b.i);
-  for (const v of w.shows) {
+  for (const v of []) {                 // (the demo world's invented shows are no longer made: Shows holds real exhibitions only; the owner's word, 21.11)
     const start = inDays(v.start), end = new Date(+inDays(v.end) + DAY - 60000);
     const fmt = t => t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     m.exhibitions.push({
@@ -1045,11 +1045,23 @@ function artistsPage() {
 
 // --- Shows: "Opening Night" — what's on now, in rooms and online; tonight first ---------------------------
 let showsKind = 'all', showsDay = 0;
+// the art map's exhibitions in real galleries, museums and institutions (data/art, read daily): on now, and opening soon
+function fillRealShows(box, art) {
+  if (!box.isConnected || !art || !art.shows.length) return;
+  const t0 = +today(), ms = d => +new Date(d + 'T00:00'), fmt = d => new Date(d + 'T12:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const rows = art.shows.map(x => ({ x, p: art.places.get(x.place) })).filter(r => r.p && r.x.title && r.x.end && ms(r.x.end) >= t0);
+  const now = rows.filter(r => !r.x.start || ms(r.x.start) <= t0 + DAY).sort((a, b) => ms(a.x.end) - ms(b.x.end));
+  const soon = rows.filter(r => r.x.start && ms(r.x.start) > t0 + DAY && ms(r.x.start) < t0 + 45 * DAY).sort((a, b) => ms(a.x.start) - ms(b.x.start));
+  const card = ({ x, p }) => `<a class="nx-rs" href="${esc(x.url || p.website || '#/map')}" target="_blank" rel="noopener"><b dir="auto">${esc(x.title)}</b>
+    <span>${esc(p.name)}${p.city ? ` · ${esc(p.city)}` : ''}</span><span class="nx-when">${x.start ? `${fmt(x.start)} – ` : 'until '}${fmt(x.end)}</span></a>`;
+  const sec = (h, sub, list) => list.length ? `<section class="nx-sec"><div class="nx-sh"><h2>${h}</h2><a class="more" href="#/map">On the map</a></div><p class="m nx-sub">${sub}</p><div class="nx-real">${list.slice(0, 40).map(card).join('')}</div></section>` : '';
+  box.innerHTML = sec('On view now', 'Real exhibitions in galleries, museums and art institutions in Israel, as they list them.', now) + sec('Opening soon', 'In the next weeks.', soon);
+}
 function showsPage() {
   const pick = e => showsKind === 'all' || (showsKind === 'online' ? e.kind === 'online' : e.kind !== 'online');
-  const all = M.exhibitions.filter(pick);
+  const all = M.exhibitions.filter(e => pick(e) && !e.demo);
   const on = all.filter(isOn), soon = all.filter(e => status(e) === 'soon').sort((a, b) => a.start - b.start);
-  const evs = [...M.exhibitions.filter(pick).flatMap(e => e.events), ...(showsKind === 'online' ? [] : M.listings.flatMap(l => l.events))]
+  const evs = [...M.exhibitions.filter(e => pick(e) && !e.demo).flatMap(e => e.events), ...(showsKind === 'online' ? [] : M.listings.flatMap(l => l.events))]
     .filter(v => +v.at > Date.now() - 3 * 3600000).sort((a, b) => a.at - b.at);
   const tonight = evs.find(v => v.show && dayName(v.at) === 'Tonight') || evs.find(v => v.show);
   const hero = tonight ? tonight.show : on[0];
@@ -1067,12 +1079,13 @@ function showsPage() {
       <span class="nx-ov"><b>${esc(hero.title)}</b><span class="k">${esc(byOf(hero))}${hero.venue && hero.kind !== 'online' ? ` · ${esc(hero.venue)}` : ''}</span>
       <span class="m">${hero.works.length} works · ${esc(hero.kind === 'online' ? 'online' : hero.city)}</span>
       <span class="nx-cta">${hero.kind === 'online' || hero.space ? 'Walk in now' : 'See the show'}</span></span></a>` : ''}
-    <section class="nx-sec"><div class="nx-sh"><h2>This week</h2></div>
+    ${evs.length ? `<section class="nx-sec"><div class="nx-sh"><h2>This week</h2></div>
       <div class="nx-days" role="group" aria-label="Day">${days.map((d, i) => `<button type="button" data-day="${i}" aria-pressed="${i === showsDay}"><span>${i === 0 ? 'Today' : d.toLocaleDateString('en-GB', { weekday: 'short' })}</span><b>${d.getDate()}</b>${evs.some(v => Math.floor((new Date(v.at).setHours(0, 0, 0, 0) - today()) / DAY) === i) ? '<i></i>' : ''}</button>`).join('')}</div>
       <div class="nx-evs">${dayEvs.length ? dayEvs.map(v => v.show
         ? `<a class="nx-ev" href="#/exhibition/${v.show.slug}">${im(v.show.images[0], '', '', '25vw')}<span><span class="nx-when">${lh(hm(v.at))} · ${esc(v.show.kind === 'online' ? 'Online' : v.show.city)}</span><b>${esc(v.show.title)}</b><span class="m">${esc(byOf(v.show))} · ${esc(v.what)}</span></span></a>`
         : `<a class="nx-ev info" href="#/map">${'<span class="ph" aria-hidden="true"></span>'}<span><span class="nx-when">${esc(hm(v.at))} · ${esc(v.listing.city)}</span><b>${esc(v.listing.show)}</b><span class="m">${esc(v.listing.name)} · ${esc(v.what)} · Not on Open Studio</span></span></a>`).join('')
-        : '<p class="m">Nothing that day yet.</p>'}</div></section>
+        : '<p class="m">Nothing that day yet.</p>'}</div></section>` : ''}
+    <div id="nxReal"></div>
     ${rooms.length ? `<section class="nx-sec"><div class="nx-sh"><h2>On view now</h2><a class="more" href="#/map">On the map</a></div><div class="nx-grid">${rooms.map(card).join('')}</div></section>` : ''}
     ${closing.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Last chance</h2></div><div class="nx-grid">${closing.map(card).join('')}</div></section>` : ''}
     ${online.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Online now</h2></div><p class="m nx-sub">Digital exhibitions: no room, open all the time.</p><div class="nx-grid">${online.map(card).join('')}</div></section>` : ''}
@@ -1406,6 +1419,7 @@ function wire() {
   });
   const rerender = () => { const y = scrollY; render(true); scrollTo(0, y); };
   document.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { showsKind = b.dataset.kind; rerender(); });
+  { const nr = document.getElementById('nxReal'); if (nr && showsKind !== 'online') loadArt().then(art => fillRealShows(nr, art)); }
   document.querySelectorAll('[data-day]').forEach(b => b.onclick = () => { showsDay = +b.dataset.day; rerender(); });
   document.querySelectorAll('[data-log]').forEach(b => b.onclick = () => { const [s, i] = b.dataset.log.split(':'); openLog(s, +i); });
   const am = document.querySelector('.am');
