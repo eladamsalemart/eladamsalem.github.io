@@ -1197,6 +1197,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const onKey = e => {
     const k = e.key.toLowerCase();
     if (k === 'escape') return close();
+    if (k === 'shift') { keys.add('shift'); return; }
     if (mode !== 'walk' && (k === 'arrowright' || k === 'arrowleft')) { idx += k === 'arrowright' ? 1 : -1; show(); return; }
     if (['w', 'a', 's', 'd', 'q', 'e', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) {
       e.preventDefault(); keys.add(k); walkTo = null; dropHint();
@@ -1270,11 +1271,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       if (Math.abs(f) > 0.05 || Math.abs(s) > 0.05) {
         if (mode !== 'walk') { setMode('walk'); show(); }
         const was = tPos.clone();
-        tPos.addScaledVector(fwd, f * WALK * dt).addScaledVector(sideV, s * WALK * dt); tPos.y = EYE;
+        // the museum is big: a joystick pushed far (or Shift) runs; the tour rooms keep the stroll
+        const mag = Math.min(1, Math.hypot(joy.x, joy.y)), run = spec.outdoors ? 1 + 1.6 * mag * mag + (keys.has('shift') ? 1.2 : 0) : 1, sp = WALK * run;
+        tPos.addScaledVector(fwd, f * sp * dt).addScaledVector(sideV, s * sp * dt); tPos.y = EYE;
         tPos.copy(clampStand(tPos, was));
       } else if (walkTo) {
         const d = new THREE.Vector3().subVectors(walkTo, tPos), n = d.length();
-        if (n < 0.02) walkTo = null; else tPos.addScaledVector(d, Math.min(1, WALK * 1.7 * dt / n));
+        if (n < 0.02) walkTo = null; else tPos.addScaledVector(d, Math.min(1, WALK * (spec.outdoors ? 3.2 : 1.7) * dt / n));
       }
       tLook.set(tPos.x - Math.sin(yaw) * Math.cos(pitch), tPos.y + Math.sin(pitch), tPos.z - Math.cos(yaw) * Math.cos(pitch));
     }

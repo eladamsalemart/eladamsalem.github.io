@@ -27,7 +27,7 @@ Source of the plan: `studio/design/museum-directions/research/04*` (top path: Bl
 13. [ ] **Artist's original spaces as first-class**: repeat the Ritual method for the next artist exhibition (see "Adding an artist's original exhibition" below).
 
 ## Added by Elad, 21.11
-14. [ ] **Walking speed**: the hall (96 x 72 m) is too slow to cross. Faster walk in the museum (run mode / joystick curve / quicker tap-to-walk over distance), keep collisions; measure the time from the entrance to the far house (target under 25 s at a comfortable pace).
+14. [x] **Walking speed**: the hall (96 x 72 m) is too slow to cross. Faster walk in the museum (run mode / joystick curve / quicker tap-to-walk over distance), keep collisions; measure the time from the entrance to the far house (target under 25 s at a comfortable pace).
 15. [ ] **Walls, realistic thickness**: reveals at doors and openings, wall-top caps, window/opening depths, corners; today a wall is a plane.
 16. [ ] **Textures of walls and floors**: plaster, concrete, terrazzo, oak and the house floors: more detail, variation, normal-like shading baked in; bigger and cleaner than 64x256 strips.
 17. [ ] **Sculptures and architectural models**: higher resolution (textures, smooth normals, proper materials) for the Renaissance GLBs and maquettes, with a distance LOD so phones stay fast (three models are ~100k triangles each now).
