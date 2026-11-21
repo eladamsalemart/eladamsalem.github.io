@@ -1110,7 +1110,7 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
   const wall = (name, cx, cz, nx, nz, len, o = {}) => {
     const ux = nz, uz = -nx, x = cx - ux * len / 2, z = cz - uz * len / 2, holes = o.holes || [], h = o.h || 3.8;
     surfaces.push({ name, kind: 'wall', texture: o.tex, origin: [x, h, z], u: [ux, 0, uz], v: [0, -1, 0], size: [len, h], normal: [nx, 0, nz],
-      openings: holes.map(([a, b, sill, top]) => ({ from: a, to: b, height: top || DOOR_H, sill: sill || 0, arch: false, depth: 0.1, through: true, bare: true })) });
+      openings: holes.map(([a, b, sill, top]) => ({ from: a, to: b, height: top || DOOR_H, sill: sill || 0, arch: false, depth: 0.25, through: true, bare: true })) });
     if (o.noSolid) return { n: [nx, nz], len, at: s => [x + ux * s, z + uz * s] };
     let a = 0; for (const [f, t] of [...holes.filter(q => !q[2]), [len, len]].sort((p, q) => p[0] - q[0])) { if (f > a + 0.01) solids.push([x + ux * a, z + uz * a, x + ux * f, z + uz * f]); a = Math.max(a, t); }
     for (const q of holes.filter(q => q[2])) solids.push([x + ux * q[0], z + uz * q[0], x + ux * q[1], z + uz * q[1]]);       // (a window is not a way through)
