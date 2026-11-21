@@ -435,7 +435,7 @@ function walkRow(list, label) {
     return `<li><div class="wc${e.space ? ' has-room' : ''}" data-slug="${esc(e.slug)}" data-space="${esc(sk)}">
       <div class="wc-arch">${first ? `<img class="wc-poster" src="${esc(first)}" data-alt="${esc(alt)}" alt="" loading="lazy" onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt='';this.closest('.wc').classList.add('nofilm')}">` : alt ? `<img class="wc-poster" src="${esc(alt)}" alt="" loading="lazy">` : ''}
         ${pill}
-        <div class="wc-cap"><a class="wc-t" href="#/exhibition/${esc(e.slug)}"><b${heb(e.title)}>${esc(e.title)}</b></a><span>${esc([byOf(e), e.city].filter(Boolean).join(' · '))}</span></div>
+        <div class="wc-cap"><span class="wc-kind ${e.kind === 'online' ? 'virt' : 'real'}">${e.kind === 'online' ? 'Virtual exhibition' : 'Real exhibition'}</span><a class="wc-t" href="#/exhibition/${esc(e.slug)}"><b${heb(e.title)}>${esc(e.title)}</b></a><span>${esc([byOf(e), e.city].filter(Boolean).join(' · '))}</span></div>
       </div>
       ${e.space ? `<a class="step" href="#/exhibition/${esc(e.slug)}/space">Step inside</a>` : ''}</div></li>`;
   };
@@ -615,13 +615,16 @@ async function liveSlots() {
 function museumRooms(slots) {
   const shows = streetShows();
   return slots.map(s => {
-    const c = s.content, e = s.app_slug && shows.find(x => x.slug === s.app_slug);
+    const c = s.content, e = s.app_slug && slotShow(s.app_slug, shows);
     if (!c && !e) return null;
     const ws = c ? (c.works || []) : e.works, slug = e ? e.slug : 'slot-' + s.slot, w = ws.find(x => x.thumb || x.image);
     return { slug, slot: s, show: e, content: c, title: c ? c.title : e.title, works: ws, colour: s.colour || (M.virtualColours || {})[slug] || '',
       img: w ? (w.thumb || M.thumbs[w.image] || src(w.image)) : e && e.images[0] ? pic(e.images[0]) : '' };
   }).filter(Boolean);
 }
+// a Desk room may name any exhibition the app knows (a real one with a photographed or drawn space, an artist's virtual show), not only the street's eight: it hangs its works and its arch walks into its own space
+const slotShow = (slug, shows) => shows.find(x => x.slug === slug) || M.exhibitions.find(x => x.slug === slug && (x.works || []).length && (x.space || x.virtual));
+const enterOf = e => ({ hash: `#/exhibition/${e.slug}/space`, image: `data/spaces/${Object.keys(M.spaces || {}).find(k => M.spaces[k] === e.space) || e.slug}/preview.jpg`, label: 'Walk into the original space' });
 const MU_CSS = `<style id="hsMuCss">
 .hs-mu .mu-in{position:relative;display:block;text-decoration:none;color:inherit}
 .hs-mu .mu-gate{position:relative;display:block;aspect-ratio:6/5;overflow:hidden;border-radius:190px 190px 16px 18px / 170px 170px 18px 16px;background:#f6f3ec;box-shadow:0 0 0 1px color-mix(in srgb,var(--hs-pencil) 34%,transparent),0 18px 34px -26px var(--hs-shade)}
@@ -796,13 +799,13 @@ function artistPage(slug) {
   let a = M.artists.find(x => x.slug === slug);
   if (a && a.alias) a = M.artist;
   if (!a) return notFound();
-  const shows = showsOf(a), works = worksOf(a), live = shows.find(e => status(e) !== 'past'), last = shows[0];
+  const shows = showsOf(a), works = worksOf(a);
+  const real = shows.filter(e => e.kind !== 'online'), virt = shows.filter(e => e.kind === 'online');       // (real: held in a place; virtual: exists only here)
+  const live = real.find(e => status(e) !== 'past'), last = real[0] || shows[0];
   const posts = M.live.filter(p => p.artist === a).sort((x, y) => y.at - x.at);
   const followed = following().includes(a.slug), own = a === M.artist;
   const hero = a.hero || (last && last.images[0]) || (works[0] && works[0].image);
-  const now = shows.find(e => e.virtual && e.virtual.onview && e.space);
   return `
-  ${now ? onViewBlock(now) : ''}
   <section class="hero" ${own && a.community ? 'data-hero' : ''}>${im(hero, last ? `Installation view, ${last.title}` : a.name, `loading="eager"${a.heroPos ? ` style="object-position:${esc(a.heroPos)}"` : ''}`, '100vw')}
     <div class="ov gut"><div class="wrap"><h1>${esc(a.name)}</h1><div class="k">${esc(a.label)}</div></div></div></section>
   <div class="wrap gut">
@@ -821,9 +824,13 @@ function artistPage(slug) {
     <section class="sec" id="works"><div class="sec-h"><h2>Recent works</h2><span class="more">${works.length}</span></div>
       <div class="list">${works.slice(0, 5).map(workRow).join('')}</div>
       ${works.length > 5 ? worksMore(works.slice(5)) : ''}</section>
-    ${shows.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">${shows.length}</span></div>
-      <div class="walkbox">${walkRow(showOrder(shows), `${a.name}: exhibitions`)}</div>
-      ${shows.length > 2 ? showsByYear(shows) : ''}</section>` : ''}
+    ${real.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">${real.length}</span></div>
+      <p class="m nx-sub">Held in real places.</p>
+      <div class="walkbox">${walkRow(showOrder(real), `${a.name}: exhibitions`)}</div>
+      ${real.length > 2 ? showsByYear(real) : ''}</section>` : ''}
+    ${virt.length ? `<section class="sec ex-virt"><div class="sec-h"><h2>Virtual exhibitions</h2><span class="more">${virt.length}</span></div>
+      <p class="m nx-sub">Exist only in Open Studio: you walk through them on your phone.</p>
+      <div class="walkbox virtrow">${walkRow(showOrder(virt), `${a.name}: virtual exhibitions`)}</div></section>` : ''}
     ${own && M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
       <div class="covers">${M.objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
     ${!own && objectsOf(a).length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
@@ -1422,10 +1429,10 @@ async function enterStreet() {
   let rooms;
   if (slots.length) {
     rooms = (await Promise.all(slots.map(async s => {
-      const c = s.content, e = s.app_slug && shows.find(x => x.slug === s.app_slug);
+      const c = s.content, e = s.app_slug && slotShow(s.app_slug, shows);
       if (!c && !e) return null;
       const ws = c ? (c.works || []) : e.works, slug = e ? e.slug : 'slot-' + s.slot;
-      return { slug, slot: s.slot, title: c ? c.title : e.title, works: ws, text: c ? c.text : (e && e.text), sub: !c && e ? [e.venue, e.dates || e.year].filter(Boolean).join(' · ') : '', curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
+      return { slug, slot: s.slot, title: c ? c.title : e.title, works: ws, text: c ? c.text : (e && e.text), sub: !c && e ? [e.venue, e.dates || e.year].filter(Boolean).join(' · ') : '', enter: !c && e && e.space && (e.space.virtual || !shows.includes(e)) ? enterOf(e) : undefined, curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
         colour: s.colour || over[slug] || set[slug] || await synth.suggestColour(ws.map(thumb), src, synth.slugHue(slug)) };
     }))).filter(Boolean);
   }
