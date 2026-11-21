@@ -504,8 +504,8 @@ function home() {
 
 // the art map's places and shows, read once and kept (Home's far stars and "near you" use them)
 let artData = null;
-const loadArt = () => artData || (artData = Promise.all(['places', 'exhibitions'].map(n => fetch(`data/art/${n}.json`).then(r => r.ok ? r.json() : null).catch(() => null)))
-  .then(([pl, ex]) => ({ places: new Map((pl && pl.places || []).map(p => [p.id, p])), shows: ex && ex.shows || [] })));
+const loadArt = () => artData || (artData = Promise.all(['places', 'exhibitions', 'places.hours'].map(n => fetch(`data/art/${n}.json`).then(r => r.ok ? r.json() : null).catch(() => null)))
+  .then(([pl, ex, hh]) => ({ places: new Map((pl && pl.places || []).map(p => [p.id, p])), shows: ex && ex.shows || [], events: ex && ex.events || [], hours: hh && hh.hours || {} })));
 const km = (a, b) => { const r = Math.PI / 180, x = (b[1] - a[1]) * r * Math.cos((a[0] + b[0]) / 2 * r), y = (b[0] - a[0]) * r; return Math.hypot(x, y) * 6371; };
 const far = d => d < 1.6 ? `${Math.max(1, Math.round(d * 1.3 / 4.8 * 60))} min walk` : `${d.toFixed(1)} km`;
 // shows on today at the places nearest you, one a place
@@ -1045,6 +1045,44 @@ function artistsPage() {
 
 // --- Shows: "Opening Night" — what's on now, in rooms and online; tonight first ---------------------------
 let showsKind = 'all', showsDay = 0;
+// opening hours as OpenStreetMap writes them ("Su off; Mo-We 10:00-15:00; Th 10:00-19:00"): what a given weekday (0 = Sunday) says, or null when it does not say
+const WD = ['su', 'mo', 'tu', 'we', 'th', 'fr', 'sa'];
+function hoursOn(oh, wd) {
+  const t = String(oh || '').toLowerCase().replace(/;/g, ' ').replace(/\s+/g, ' '); let hit = null;
+  const re = /((?:su|mo|tu|we|th|fr|sa|ph)(?:\s*[-,]\s*(?:su|mo|tu|we|th|fr|sa|ph))*)\s+(off|closed|\d{1,2}(?::\d\d)?\s*-\s*\d{1,2}(?::\d\d)?(?:\s*,\s*\d{1,2}(?::\d\d)?\s*-\s*\d{1,2}(?::\d\d)?)*)/g;
+  for (let m; (m = re.exec(t));) {
+    const days = new Set();
+    for (const part of m[1].split(',')) {
+      const [a, b] = part.split('-').map(x => x.trim());
+      if (a === 'ph' || b === 'ph') continue;
+      if (b) { for (let i = WD.indexOf(a), n = 0; n < 7; i = (i + 1) % 7, n++) { days.add(i); if (WD[i] === b) break; } } else days.add(WD.indexOf(a));
+    }
+    if (days.has(wd)) hit = /off|closed/.test(m[2]) ? [] : m[2].split(',').map(r => r.trim().replace(/\b(\d{1,2})(?=\s*-|$)/g, h => (h.length < 2 ? '0' : '') + h).replace(/(^|-)(\d{2})(?!:)/g, '$1$2:00'));
+  }
+  return hit;
+}
+// "This week", day by day: what opens, what closes, the events, and where the opening hours are known who is open and who is closed
+function dayView(box, art, d0) {
+  const day = new Date(+d0 + showsDay * DAY), iso = new Date(day.getTime() - day.getTimezoneOffset() * 60000).toISOString().slice(0, 10), wd = day.getDay();
+  const days = Array.from({ length: 7 }, (_, i) => new Date(+d0 + i * DAY));
+  const nm = id => (art.places.get(id) || {}).name || id, city = id => (art.places.get(id) || {}).city || '';
+  const ev = art.events.filter(e => e.date === iso).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+  const opens = art.shows.filter(x => x.start === iso && art.places.has(x.place)), closes = art.shows.filter(x => x.end === iso && art.places.has(x.place));
+  const known = Object.entries(art.hours).map(([id, h]) => [id, hoursOn(h.oh, wd)]).filter(([id, r]) => r && art.places.has(id));
+  const open = known.filter(([, r]) => r.length), shut = known.filter(([, r]) => !r.length);
+  const link = (u, p) => esc(u || (art.places.get(p) || {}).website || '#/map');
+  const row = (a, b, c) => `<a class="nx-rd" href="${a}" target="_blank" rel="noopener"><b dir="auto">${b}</b><span>${c}</span></a>`;
+  const list = (h, rows) => rows.length ? `<h3 class="nx-dh">${h}</h3><div class="nx-real">${rows.join('')}</div>` : '';
+  box.innerHTML = `<section class="nx-sec"><div class="nx-sh"><h2>This week</h2></div>
+    <div class="nx-days" role="group" aria-label="Day">${days.map((d, i) => `<button type="button" data-day="${i}" aria-pressed="${i === showsDay}"><span>${i === 0 ? 'Today' : d.toLocaleDateString('en-GB', { weekday: 'short' })}</span><b>${d.getDate()}</b></button>`).join('')}</div>
+    ${list('Events', ev.map(e => row(link(e.url, e.place), esc(e.title), `${e.time ? esc(e.time) + ' · ' : ''}${esc(nm(e.place))}${city(e.place) ? ' · ' + esc(city(e.place)) : ''}`)))}
+    ${list('Opens', opens.map(x => row(link(x.url, x.place), esc(x.title), `${esc(nm(x.place))} · opens`)))}
+    ${list('Closes', closes.map(x => row(link(x.url, x.place), esc(x.title), `${esc(nm(x.place))} · last day`)))}
+    ${list('Open', open.map(([id, r]) => row(link('', id), esc(nm(id)), `${esc(r.join(', '))}${city(id) ? ' · ' + esc(city(id)) : ''}`)))}
+    ${list('Closed', shut.map(([id]) => row(link('', id), esc(nm(id)), `closed${city(id) ? ' · ' + esc(city(id)) : ''}`)))}
+    <p class="m nx-sub">Opening hours are known for ${Object.keys(art.hours).length} of ${art.places.size} places (from OpenStreetMap); for the others, open the place's page.</p></section>`;
+  box.querySelectorAll('[data-day]').forEach(b => b.onclick = () => { showsDay = +b.dataset.day; dayView(box, art, d0); });
+}
 // the art map's exhibitions in real galleries, museums and institutions (data/art, read daily): on now, and opening soon
 function fillRealShows(box, art) {
   if (!box.isConnected || !art || !art.shows.length) return;
@@ -1064,7 +1102,9 @@ function fillRealShows(box, art) {
   const card = ({ x, p }) => `<a class="nx-rs" href="${esc(x.url || p.website || '#/map')}" target="_blank" rel="noopener">${thumb(p)}<span class="nx-rs-t"><b dir="auto">${esc(x.title)}</b>
     <span>${esc(p.name)}${p.city ? ` · ${esc(p.city)}` : ''}</span><span class="nx-when">${x.start ? `${fmt(x.start)} – ` : 'until '}${fmt(x.end)}</span></span></a>`;
   const sec = (h, sub, list) => list.length ? `<section class="nx-sec"><div class="nx-sh"><h2>${h}</h2><a class="more" href="#/map">On the map</a></div><p class="m nx-sub">${sub}</p><div class="nx-real">${list.slice(0, 40).map(card).join('')}</div></section>` : '';
-  box.innerHTML = sec('On view now', 'Real exhibitions in galleries, museums and art institutions in Israel, as they list them.', now) + sec('Opening soon', 'In the next weeks.', soon);
+  const dv = document.createElement('div'); box.innerHTML = ''; box.appendChild(dv); dayView(dv, art, new Date(+today()));
+  const rest = document.createElement('div'); box.appendChild(rest);
+  rest.innerHTML = sec('On view now', 'Real exhibitions in galleries, museums and art institutions in Israel, as they list them.', now) + sec('Opening soon', 'In the next weeks.', soon);
 }
 function showsPage() {
   const pick = e => showsKind === 'all' || (showsKind === 'online' ? e.kind === 'online' : e.kind !== 'online');
