@@ -346,6 +346,16 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const rev = new THREE.Mesh(geo, [new THREE.MeshBasicMaterial({ visible: false }), side]);
       rev.applyMatrix4(basis); rev.position.copy(bottom); rev.userData.kind = 'reveal'; scene.add(rev);
     }
+    if (o.bare && o.through && depth >= 0.15) {   // a bare doorway/window in a thick wall: jambs, head and sill, so the wall has a real depth
+      const y0 = o.sill || 0, y1 = o.height, P = (u, y, d) => bottom.clone().addScaledVector(U, u).addScaledVector(N, -d).setY(y);
+      const quad = (A, B, C, D) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([A, B, C, A, C, D].flatMap(q => [q.x, q.y, q.z]), 3)); return g; };
+      const mat = (c) => room(new THREE.MeshBasicMaterial({ color: c, toneMapped: false, side: THREE.DoubleSide }));
+      const add = (g, c) => { const m = new THREE.Mesh(g, mat(c)); m.userData.kind = 'reveal'; scene.add(m); };
+      add(quad(P(o.from, y0, 0), P(o.from, y1, 0), P(o.from, y1, depth), P(o.from, y0, depth)), '#cfcbc4');   // left jamb (a little in shade)
+      add(quad(P(o.to, y0, 0), P(o.to, y1, 0), P(o.to, y1, depth), P(o.to, y0, depth)), '#e2dfd9');
+      add(quad(P(o.from, y1, 0), P(o.to, y1, 0), P(o.to, y1, depth), P(o.from, y1, depth)), '#bdb9b2');         // head (darker, faces down)
+      if (y0 > 0) add(quad(P(o.from, y0, 0), P(o.to, y0, 0), P(o.to, y0, depth), P(o.from, y0, depth)), '#f0eee9');   // sill
+    }
     if (o.through) return;                    // (a doorway between two rooms: the other room is really there)
     if (o.view && !shots.length) {          // (with the photos projected, the room beyond shows as they saw it)
       // what the photos show through the opening, just behind it: the room beyond as it really is
