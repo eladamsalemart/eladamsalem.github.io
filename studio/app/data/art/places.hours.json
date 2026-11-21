@@ -1,0 +1,42 @@
+{
+ "updated": "2026-11-21",
+ "source": "OpenStreetMap opening_hours (ODbL), read with Overpass; only places that have the tag",
+ "hours": {
+  "museum-for-islamic-art-2": {
+   "oh": "Su off; Mo-We 10:00-15:00; Th 10:00-19:00; Fr,Sa 10:00-14:00",
+   "osm": "node/1731465814"
+  },
+  "bauhaus-center-tel-aviv": {
+   "oh": "Su-Th 10:00-19:30",
+   "osm": "node/2079211884"
+  },
+  "chelouche-gallery": {
+   "oh": "mo-thu 11-18 fri-sat 11-14",
+   "osm": "node/2508732685"
+  },
+  "janco-dada-museum": {
+   "oh": "Mo-Sa 11:00-14:00",
+   "osm": "node/3071435099"
+  },
+  "kubia": {
+   "oh": "Su-We 11:30-23:30; Th 11:30-01:30; Fr 11:30-17:00; Sa 21:00-01:30",
+   "osm": "node/6800194999"
+  },
+  "israel-museum": {
+   "oh": "Mo,We-Th,Su,PH 10:00-17:00; Tu 16:00-21:00; Fr 10:00-14:00; Sa 10:30-16:00",
+   "osm": "way/44307909"
+  },
+  "yaacov-agam-museum-of-art": {
+   "oh": "Mo-We 10:00-14:30; Th 16:00-20:00; Fr-Sa 10:00-14:30",
+   "osm": "way/253399356"
+  },
+  "mishkan-museum-of-art-ein-harod": {
+   "oh": "Mo-Th 09:00-16:00; Fr 10:00-14:00; Sa 10:00-15:00",
+   "osm": "way/961825936"
+  },
+  "rockefeller-museum": {
+   "oh": "Mo,We,Th,Su 10:00-15:00; Sa 10:00-14:00; Tu,Fr,PH -1 day off",
+   "osm": "relation/5582006"
+  }
+ }
+}
