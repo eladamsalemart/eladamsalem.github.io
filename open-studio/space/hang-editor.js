@@ -18,7 +18,7 @@ const SNAP = 0.06, GAP = 0.15;
 export async function openHangEditor({ design, library, state, src, shape, openSpace, onSave, onExit, add }) {
   const st = { ids: (state.ids || []).slice(), placements: clone(state.placements || {}), plinths: clone(state.plinths || []) };
   const undo = [];
-  let lineScope = 'wall';
+  let arrTab = 'height', lineScope = 'wall', laser = { on: false, h: 1.5 };      // (the laser line: on or off, and its height in metres)
   let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, picked = new Set(),      /* (the works chosen in the Add tray: kept while the room is drawn again behind it) */  zoom = { s: 1, tx: 0, ty: 0 }, startAt = null, outerPop = (st.ids.length && !add) || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
   const byId = id => library.find(w => w.id === id);
   const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.colour || '') + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
@@ -353,10 +353,10 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       }
       soon(pre); drawPlan();
     }
-    function lineUp(mode) {
+    function lineUp(mode, fixed) {
       if (!sel || sel.k !== 'work') return;
       const pre = clone(st), ref = st.placements[sel.id], [, rh] = sizes[sel.id], wl = wallOf(ref.wall);
-      const line = mode === 'c' ? ref.y : mode === 't' ? ref.y + rh / 2 : ref.y - rh / 2;
+      const line = fixed != null ? fixed : mode === 'c' ? ref.y : mode === 't' ? ref.y + rh / 2 : ref.y - rh / 2;
       // the laser: one line for the works of this wall, or for every work in the room (walls and standing walls alike)
       const ids = lineScope === 'room' ? st.ids.filter(id => st.placements[id] && sizes[id]) : [sel.id, ...onWall(ref.wall, sel.id)];
       for (const id of ids) {
@@ -371,6 +371,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       if (!sel || sel.k !== 'work') return;
       const pre = clone(st), name = st.placements[sel.id].wall, wl = wallOf(name), L = wl.size[0], w = sizes[sel.id][0], y = st.placements[sel.id].y;
       if (how === 'mid') putWork(sel.id, wl, L / 2, y);
+      else if (how === 'spread') { pre.__skip = true; return even(); }
       else if (how === 'l20' || how === 'r20') { const d = 0.2; putWork(sel.id, wl, how === 'l20' ? d + w / 2 : L - d - w / 2, y); }
       else {
         const ids = [sel.id, ...onWall(name, sel.id)].sort((p, q) => st.placements[p].a - st.placements[q].a), total = ids.reduce((t, id) => t + sizes[id][0], 0), gap = (L - total) / (ids.length + 1);
@@ -379,6 +380,54 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         note(`Equal gaps: ${cm(gap)} cm to the ends and between the works.`);
       }
       push(pre); save(); if (how !== 'gaps') { pop = ''; ui.pop.hidden = true; } refresh();
+    }
+    // a fixed gap between the works of this wall, the group in the middle of the wall
+    function spaceWith(gap) {
+      if (!sel || sel.k !== 'work') return;
+      const name = st.placements[sel.id].wall, wl = wallOf(name), L = wl.size[0];
+      const ids = [sel.id, ...onWall(name, sel.id)].sort((p, q) => st.placements[p].a - st.placements[q].a);
+      if (ids.length < 2) return note('Spacing needs two or more works on the same wall.');
+      const total = ids.reduce((t, id) => t + sizes[id][0], 0), span = total + gap * (ids.length - 1);
+      if (span > L - 0.1) return note('That gap does not fit on this wall.');
+      const pre = clone(st); let x = (L - span) / 2;
+      for (const id of ids) { putWork(id, wl, x + sizes[id][0] / 2, st.placements[id].y); x += sizes[id][0] + gap; }
+      push(pre); save(); refresh(); note(`${cm(gap)} cm between the works, the group in the middle of the wall.`);
+    }
+    // five centimetres at a time
+    function nudge(k) {
+      if (!sel || sel.k !== 'work') return;
+      const p = st.placements[sel.id], wl = wallOf(p.wall), [sw, sh] = sizes[sel.id], d = 0.05, pre = clone(st);
+      const a = k === 'l' ? p.a - d : k === 'r' ? p.a + d : p.a, y = k === 'u' ? p.y + d : k === 'd' ? p.y - d : p.y;
+      putWork(sel.id, wl, Math.max(sw / 2 + 0.05, Math.min(wl.size[0] - sw / 2 - 0.05, a)), Math.max(sh / 2 + 0.1, Math.min(wl.size[1] - sh / 2 - 0.1, y)));
+      soon(pre); refresh();
+    }
+    // the laser line: a green line at one height across every wall and standing wall of the room
+    let laserG = null;
+    function drawLaser() {
+      const T = api.THREE;
+      if (laserG) { api.scene.remove(laserG); laserG.traverse(o => { if (o.geometry) o.geometry.dispose(); }); laserG = null; }
+      if (laser.on) {
+        laserG = new T.Group();
+        const core = new T.MeshBasicMaterial({ color: 0x35ff6b, transparent: true, opacity: 0.95, toneMapped: false, depthWrite: false });
+        const halo = new T.MeshBasicMaterial({ color: 0x35ff6b, transparent: true, opacity: 0.22, toneMapped: false, depthWrite: false });
+        for (const sf of api.surfaces.filter(x => x.kind === 'wall' && x.size && x.origin && x.u && x.normal)) {
+          const O = V(sf.origin), U = V(sf.u).normalize(), N = V(sf.normal).normalize(), L = sf.size[0], m4 = new T.Matrix4().makeBasis(U, new T.Vector3(0, 1, 0), N);
+          for (const [mat, hgt] of [[halo, 0.07], [core, 0.018]]) {
+            const mesh = new T.Mesh(new T.PlaneGeometry(L, hgt), mat); mesh.renderOrder = 997;
+            mesh.quaternion.setFromRotationMatrix(m4); mesh.position.copy(O).addScaledVector(U, L / 2).addScaledVector(N, 0.014).setY(laser.h); laserG.add(mesh);
+          }
+        }
+        api.scene.add(laserG);
+      }
+      api.dirty();
+    }
+    function laserAct(k) {
+      if (k === 'tog') laser.on = !laser.on;
+      else if (k === 'sel') { if (sel && sel.k === 'work' && st.placements[sel.id]) laser.h = st.placements[sel.id].y; }
+      else if (/^p\d+$/.test(k)) laser.h = +k.slice(1) / 100;
+      else if (!isNaN(+k)) laser.h = Math.max(0.3, Math.min(3.5, +(laser.h + +k / 100).toFixed(2)));
+      if (k !== 'tog' && !laser.on) laser.on = true;                       // (setting a height shows the line)
+      drawLaser(); if (pop === 'line') ui.pop.innerHTML = popHtml();
     }
     function even() {
       if (!sel || sel.k !== 'work') return;
@@ -550,7 +599,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     }
     function setPlan(on) {
       plan = on; outerPlan = on; if (!on) pop = ''; ui.hp.hidden = !on; api.root.classList.toggle('planning', on);
-      ui.bar.querySelector('[data-a=line]').hidden = on; ui.bar.querySelector('[data-a=even]').hidden = on;
+      ui.bar.querySelector('[data-a=line]').hidden = on;
       if (!on && sel) {                                       // walking in: stand in front of what was chosen on the plan
         if (sel.k === 'work' && st.placements[sel.id] && wallOf(st.placements[sel.id].wall) && sizes[sel.id]) {
           const pl = st.placements[sel.id], wl = wallOf(pl.wall), to = V(wl.origin).addScaledVector(V(wl.u), pl.a).setY(pl.y);
@@ -587,19 +636,30 @@ export async function openHangEditor({ design, library, state, src, shape, openS
           <div class="he-cols"><span>Colour</span>${[['', 'White', '#e9e6df'], ['grey', 'Grey', '#9b9b98'], ['black', 'Black', '#232325'], ['wood', 'Wood', '#b08a5e']].map(([k, n, c]) => `<button type="button" data-col="${k}" aria-label="${n}" aria-pressed="${(stPlinth(sel.id).colour || '') === k}" style="background:${c}"></button>`).join('')}</div>`;
       }
       if (pop === 'plinth') return `<p class="he-h">${sel && sel.k === 'plinth' ? 'Change the plinth’s size' : 'Stand a plinth on the floor'}</p><div class="he-row">${Object.entries(PLINTHS).map(([k, [w, d, h]]) => `<button type="button" data-plinth="${k}"><b>${PNAME[k]}</b><span>${w} × ${d} cm, ${h} high</span></button>`).join('')}</div>`;
-      if (pop === 'line') return `<p class="he-h">Hang to one line, like a laser level</p><div class="he-scope" role="group" aria-label="Which works">${[['wall', 'This wall'], ['room', 'Whole room']].map(([k, n]) => `<button type="button" data-scope="${k}" aria-pressed="${lineScope === k}">${n}</button>`).join('')}</div><div class="he-row">${[['c', 'Centre line'], ['t', 'Top line'], ['b', 'Bottom line']].map(([k, n]) => `<button type="button" data-line="${k}"><b>${n}</b></button>`).join('')}</div><p class="he-h" style="margin-top:12px">Along the wall (selected work)</p><div class="he-row he-row2">${[['mid', 'In the middle'], ['gaps', 'Equal gaps'], ['l20', '20 cm from the left end'], ['r20', '20 cm from the right end']].map(([k, n]) => `<button type="button" data-along="${k}"><b>${n}</b></button>`).join('')}</div>`;
+      if (pop === 'line') {
+        const ch = (list, attr, cls = '') => `<div class="he-row ${cls}">${list.map(([k, n]) => `<button type="button" ${attr}="${k}"><b>${n}</b></button>`).join('')}</div>`;
+        const tabs = `<div class="he-scope he-tabs" role="tablist" aria-label="Arrange">${[['height', 'Height line'], ['along', 'Position'], ['gaps', 'Gaps']].map(([k, n]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${arrTab === k}" aria-pressed="${arrTab === k}">${n}</button>`).join('')}</div>`;
+        if (arrTab === 'along') return `${tabs}<p class="he-h">Place the selected work along its wall</p>${ch([['mid', 'In the middle'], ['gaps', 'Equal gaps, ends too'], ['l20', '20 cm from the left end'], ['r20', '20 cm from the right end']], 'data-along', 'he-row2')}`;
+        if (arrTab === 'gaps') return `${tabs}<p class="he-h">A fixed gap between the works of this wall (the group stays in the middle)</p>${ch([['0.1', '10 cm'], ['0.2', '20 cm'], ['0.3', '30 cm'], ['0.5', '50 cm']], 'data-gap', 'he-row4')}${ch([['spread', 'Spread evenly between the outer works']], 'data-along', 'he-row1')}`;
+        return `${tabs}<div class="he-laser"><button type="button" class="he-sw" data-las="tog" aria-pressed="${laser.on}"><i></i>Laser ${laser.on ? 'on' : 'off'}</button>
+            <div class="he-las-step"><button type="button" data-las="-5" aria-label="5 cm lower">−5</button><button type="button" data-las="-1" aria-label="1 cm lower">−1</button><output aria-live="polite"><b>${Math.round(laser.h * 100)}</b> cm</output><button type="button" data-las="1" aria-label="1 cm higher">+1</button><button type="button" data-las="5" aria-label="5 cm higher">+5</button></div></div>
+          ${ch([['p140', '140'], ['p150', '150'], ['p160', '160'], ['sel', 'Selected work']], 'data-las', 'he-row4')}
+          <div class="he-scope" role="group" aria-label="Which works" style="margin-top:10px">${[['wall', 'This wall'], ['room', 'Whole room']].map(([k, n]) => `<button type="button" data-scope="${k}" aria-pressed="${lineScope === k}">${n}</button>`).join('')}</div>
+          ${ch([['c', 'Centre on the line'], ['t', 'Top on the line'], ['b', 'Bottom on the line']], 'data-lline')}
+          <p class="he-h" style="margin-top:10px">Or like the selected work</p>${ch([['c', 'Centre'], ['t', 'Top'], ['b', 'Bottom']], 'data-line')}`;
+      }
       return '';
     }
     function refresh() {
       if (!ui) return;
       const work = sel && sel.k === 'work';
-      ui.bar.querySelector('[data-a=line]').disabled = !work; ui.bar.querySelector('[data-a=even]').disabled = !work; ui.bar.querySelector('[data-a=undo]').disabled = !undo.length;
+      ui.bar.querySelector('[data-a=line]').disabled = !work; ui.bar.querySelector('[data-a=undo]').disabled = !undo.length;
       ui.bar.querySelectorAll('[data-a=add],[data-a=plinth],[data-a=stand],[data-a=line]').forEach(b => b.setAttribute('aria-pressed', String(pop === b.dataset.a)));
-      ui.pop.classList.toggle('he-full', pop === 'add');                  // (choosing works: the tray fills the screen under the bar)
+      ui.pop.classList.toggle('he-full', pop === 'add'); ui.pop.classList.toggle('he-tall', pop === 'line');                  // (choosing works: the tray fills the screen under the bar)
       if (pop) { ui.pop.hidden = false; ui.pop.innerHTML = popHtml(); } else if (!noteT || ui.pop.querySelector('.he-note') == null) ui.pop.hidden = true;
       drawPlan(); ui.std.hidden = !(plan && sel && sel.k === 'stand'); ui.more.hidden = !(sel && sel.k === 'plinth');
       if (!sel || (sel.k === 'stand' && !plan)) { ui.sel.hidden = true; return; }      // (in the room a standing wall's panel has its own Remove)
-      ui.sel.hidden = false;
+      ui.sel.hidden = false; ui.nudge.hidden = !work;
       if (work) {
         const w = byId(sel.id), p = st.placements[sel.id], [sw, sh] = sizes[sel.id];
         ui.sel.querySelector('.he-t').innerHTML = `<b>${esc(w ? w.title : '')}</b><span>${cm(sw)} × ${cm(sh)} cm</span><span>${cm(p.a - sw / 2)} cm from the left · ${cm(p.y)} cm high</span>`;
@@ -615,14 +675,16 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       const box = document.createElement('div'); box.className = 'he';
       box.innerHTML = `<div class="he-bar" role="toolbar" aria-label="Hang the works">
           <button type="button" data-a="add"><b>Add</b><span>work</span></button><button type="button" data-a="plinth"><b>Plinth</b><span>floor</span></button><button type="button" data-a="stand"><b>Wall</b><span>standing</span></button>
-          <button type="button" data-a="line"><b>Line up</b><span>laser</span></button><button type="button" data-a="even"><b>Space</b><span>evenly</span></button><button type="button" data-a="undo"><b>Undo</b><span>last</span></button></div>
+          <button type="button" data-a="line"><b>Arrange</b><span>line · gaps</span></button><button type="button" data-a="undo"><b>Undo</b><span>last</span></button></div>
         <div class="hp" hidden><p class="hp-h">Drag a work to a wall. Drag standing walls and plinths, turn a wall by its ends. Then walk in.</p><svg class="hp-svg" aria-label="Plan of the room"></svg><button type="button" class="hp-fit" hidden>Whole room</button><div class="hp-zoom"><button type="button" class="hp-zi" aria-label="Zoom in">+</button><button type="button" class="hp-zo" aria-label="Zoom out">−</button></div><button type="button" class="hp-go">Walk in</button></div>
         <button type="button" class="hp-open">Plan</button>
         <div class="he-pop" hidden></div>
-        <div class="he-sel" hidden><div class="he-t"></div><div class="he-std" hidden><button type="button" data-st="len:-1" aria-label="Narrower">−</button><button type="button" data-st="len:1" aria-label="Wider">+</button><button type="button" data-st="rot:3" aria-label="Turn 45 degrees">Turn</button></div><button type="button" class="he-more" hidden>Size, colour</button><button type="button" class="he-rm">Remove</button></div>`;
+        <div class="he-sel" hidden><div class="he-t"></div><div class="he-nudge" hidden role="group" aria-label="Nudge the work by 5 cm"><button type="button" data-nudge="l" aria-label="5 cm left">◀</button><button type="button" data-nudge="r" aria-label="5 cm right">▶</button><button type="button" data-nudge="u" aria-label="5 cm up">▲</button><button type="button" data-nudge="d" aria-label="5 cm down">▼</button></div><div class="he-std" hidden><button type="button" data-st="len:-1" aria-label="Narrower">−</button><button type="button" data-st="len:1" aria-label="Wider">+</button><button type="button" data-st="rot:3" aria-label="Turn 45 degrees">Turn</button></div><button type="button" class="he-more" hidden>Size, colour</button><button type="button" class="he-rm">Remove</button></div>`;
       api.root.append(box);
-      ui = { bar: box.querySelector('.he-bar'), pop: box.querySelector('.he-pop'), sel: box.querySelector('.he-sel'), hp: box.querySelector('.hp'), svg: box.querySelector('.hp-svg'), fit: box.querySelector('.hp-fit'), std: box.querySelector('.he-std'), more: box.querySelector('.he-more') };
+      ui = { bar: box.querySelector('.he-bar'), pop: box.querySelector('.he-pop'), sel: box.querySelector('.he-sel'), hp: box.querySelector('.hp'), svg: box.querySelector('.hp-svg'), fit: box.querySelector('.hp-fit'), std: box.querySelector('.he-std'), more: box.querySelector('.he-more'), nudge: box.querySelector('.he-nudge') };
       ui.more.onclick = () => { pop = pop === 'plinth' ? '' : 'plinth'; refresh(); };
+      drawLaser();
+      ui.nudge.onclick = e => { const b = e.target.closest('button'); if (b) nudge(b.dataset.nudge); };
       ui.std.onclick = e => { const b = e.target.closest('button'); if (b) { const [k, v] = b.dataset.st.split(':'); editStand(k, +v); } };
       box.querySelector('.hp-go').onclick = () => setPlan(false);
       ui.fit.onclick = () => zoomTo(1, 0, 0); ui.fit.hidden = zoom.s < 1.02;
@@ -644,7 +706,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         if (b.dataset.st) {
           const [k, v] = b.dataset.st.split(':'), by = +v;
           if (k === 'add') addStand(); else if (k === 'rm') removeSel(); else if (k === 'pw') dimPlinth(0, by * 5); else if (k === 'pd') dimPlinth(1, by * 5); else if (k === 'ph') dimPlinth(2, by * 5); else editStand(k, by);
-        } else if (b.dataset.col != null) colourPlinth(b.dataset.col); else if (b.dataset.addall != null) pickAll(); else if (b.dataset.addgo != null) addPicked(); else if (b.dataset.add) pickWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line); else if (b.dataset.along) along(b.dataset.along); else if (b.dataset.scope) { lineScope = b.dataset.scope; ui.pop.innerHTML = popHtml(); }
+        } else if (b.dataset.col != null) colourPlinth(b.dataset.col); else if (b.dataset.addall != null) pickAll(); else if (b.dataset.addgo != null) addPicked(); else if (b.dataset.add) pickWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line); else if (b.dataset.along) along(b.dataset.along); else if (b.dataset.scope) { lineScope = b.dataset.scope; ui.pop.innerHTML = popHtml(); } else if (b.dataset.tab) { arrTab = b.dataset.tab; ui.pop.innerHTML = popHtml(); } else if (b.dataset.las) laserAct(b.dataset.las); else if (b.dataset.lline) lineUp(b.dataset.lline, laser.h); else if (b.dataset.gap) spaceWith(+b.dataset.gap);
       };
       // A finger that went down just before the room was drawn again lifts over this new panel: no click follows,
       // and the tap would be lost. A lift here with no press here and no click after it is taken as the tap.
