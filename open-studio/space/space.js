@@ -233,10 +233,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       dirty = true;
     }, 3500);
   }
+  const batches = {};                       // small translucent surfaces that share one picture (the houses' trim, the light shafts) are drawn as ONE mesh each: a phone pays per draw call
   surfaces.forEach((s, i) => {
     if (glassWalls.has(s.name)) return;
     if (s.kind === 'reveal') { const r = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide }))); r.userData.kind = 'reveal'; scene.add(r); return; }
-    if (s.glass) { const gm = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }), s.openings || [], 0); gm.renderOrder = 4; gm.userData.kind = 'glass'; scene.add(gm); return; }      // (a glass wall: its mullions and a faint sheen, you see through the rest)
+    if (s.glass) { const gm = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }), s.openings || [], 0); gm.renderOrder = 4; gm.userData.kind = 'glass'; if (s.batch) { (batches[s.batch] = batches[s.batch] || { mat: gm.material, geos: [] }).geos.push(gm.geometry); return; } scene.add(gm); return; }      // (a glass wall: its mullions and a faint sheen, you see through the rest)
     if (s.kind === 'wall' || s.kind === 'ceiling') {
       const masks = s.kind === 'wall' ? ((spec.blocks || {})[s.name] || []) : [];
       const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks, '', s.stand ? 0.3 : 1), s.openings || [], s.kind === 'wall' && !s.stand ? 0.03 : 0);
@@ -245,6 +246,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       for (const o of s.openings || []) addOpening(s, o);
     }
   });
+  if (Object.keys(batches).length) {
+    const { mergeGeometries } = await import('three/addons/utils/BufferGeometryUtils.js');
+    for (const b of Object.values(batches)) { const g = mergeGeometries(b.geos, false); if (!g) continue; const bm = new THREE.Mesh(g, b.mat); bm.renderOrder = 4; bm.userData.kind = 'glass'; scene.add(bm); b.geos.forEach(x => x.dispose()); }
+  }
 
   // window plates: each window (or glass wall) of a baked room photographed again, alone, at several times the wall's
   // resolution (the outside is what a phone magnifies most); laid over the same place in the wall's picture
@@ -1378,6 +1383,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     // what a phone does as one walks, unlike shot() below)
     meshes: () => { const o = []; scene.traverse(m => { if (m.isMesh) o.push([m.userData.kind || m.name || m.type, +m.position.y.toFixed(3), m.visible, m.renderOrder, !!(m.material && m.material.transparent), m.material && m.material.depthTest !== false]); }); return o; },
     setVisible: (kind, v) => { scene.traverse(m => { if (m.userData && m.userData.kind === kind) m.visible = !!v; }); dirty = true; },
+    stats: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, textures: renderer.info.memory.textures, geometries: renderer.info.memory.geometries, programs: (renderer.info.programs || []).length }),
     eco: () => ({ pixelRatio: renderer.getPixelRatio(), mirror: hallMirrorCtl ? hallMirrorCtl.isOn : mirrorCtl ? mirrorCtl.isOn : null }), setMirror: v => { if (hallMirrorCtl) hallMirrorCtl.set(!!v); else if (mirrorCtl) mirrorCtl.set(!!v); },
     where() { return { pos: pos.toArray(), look: look.toArray(), fov: camera.fov }; },
     place(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },
