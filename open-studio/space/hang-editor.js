@@ -595,6 +595,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       const work = sel && sel.k === 'work';
       ui.bar.querySelector('[data-a=line]').disabled = !work; ui.bar.querySelector('[data-a=even]').disabled = !work; ui.bar.querySelector('[data-a=undo]').disabled = !undo.length;
       ui.bar.querySelectorAll('[data-a=add],[data-a=plinth],[data-a=stand],[data-a=line]').forEach(b => b.setAttribute('aria-pressed', String(pop === b.dataset.a)));
+      ui.pop.classList.toggle('he-full', pop === 'add');                  // (choosing works: the tray fills the screen under the bar)
       if (pop) { ui.pop.hidden = false; ui.pop.innerHTML = popHtml(); } else if (!noteT || ui.pop.querySelector('.he-note') == null) ui.pop.hidden = true;
       drawPlan(); ui.std.hidden = !(plan && sel && sel.k === 'stand'); ui.more.hidden = !(sel && sel.k === 'plinth');
       if (!sel || (sel.k === 'stand' && !plan)) { ui.sel.hidden = true; return; }      // (in the room a standing wall's panel has its own Remove)
