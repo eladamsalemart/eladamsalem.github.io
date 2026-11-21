@@ -957,6 +957,7 @@ export async function studio(hash, app, go, M, tools) {
     try { S = await cloud.load(); if (S) S.uid = u.id; } catch (e) { console.error(e); S = null; }
     if (!S) { app.innerHTML = setup(u); wire(app, go); return; }
   } else if (!(u && u.role === 'artist')) load();
+  if (S && S.cloud && !previewing()) { try { cloud = cloud || await import('./studio-cloud.js'); await cloud.syncStatus(S); } catch (e) { console.warn('status', e); } }
   const m = hash.replace(/^#\/studio\/?/, '');
   let html;
   // your page is your studio: the old Works, Profile and Preview screens are the page itself, in edit or view mode

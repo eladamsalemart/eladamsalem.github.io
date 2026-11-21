@@ -45,7 +45,7 @@ async function communityData() {
   const [artists, works, shows, hidden] = await Promise.all([
     q('artists?select=id,slug,name,discipline,city,country,statement,bio,photo,hero,hero_pos,link,instagram,cv,exhibitions&status=eq.approved'),
     q('works?select=id,artist_id,title,year,medium,width,height,depth,image,thumb,position,kind,category&order=position'),
-    q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,starts,ends,owner_id,created_at,on_view&status=eq.published'),
+    q('virtual_shows?select=id,kind,slug,title,room,paint,centre,text,curator,works,plinths,starts,ends,owner_id,created_at,on_view&status=eq.published'),
     q('app_hidden?select=key'),
   ]);
   return { artists, works, shows, hidden };
