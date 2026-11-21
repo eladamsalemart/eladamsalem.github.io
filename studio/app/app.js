@@ -896,23 +896,47 @@ function work(slug) {
   </div>`;
 }
 
-// "At scale": the work drawn from its recorded size beside a 175 cm figure, on a 145 cm centre line.
+// "At scale": the work on the white wall of a clean gallery, at its recorded size, hung on a 150 cm centre line, with a person standing
+// beside it (never in front of it) to give the size. Everything is drawn in centimetres.
 // The recorded pair is oriented to match the photo, since records mix height × width and width × height.
+const PERSON = 175;
+// a standing person, front view, 175 cm: feet at y = 0, head at y = -175 (x = 0 is the middle)
+const personSvg = () => `<g>
+  <ellipse cx="0" cy="1" rx="30" ry="4.5" fill="#000" opacity=".2"/>
+  <path d="M-14 -92 L-16 -9 L-5 -9 L-2 -88 Z" fill="url(#scTr)"/><path d="M14 -92 L16 -9 L5 -9 L2 -88 Z" fill="url(#scTr)"/>
+  <rect x="-18" y="-96" width="36" height="12" rx="5" fill="#3a3e46"/>
+  <path d="M-17 -9 h13 l1 8 h-17 z" fill="#202124"/><path d="M17 -9 h-13 l-1 8 h17 z" fill="#202124"/>
+  <path d="M-21 -147 C-28 -144 -27 -128 -26 -114 L-24 -90 L-16 -90 L-17 -112 L-15 -128 Z" fill="url(#scSl)"/><path d="M21 -147 C28 -144 27 -128 26 -114 L24 -90 L16 -90 L17 -112 L15 -128 Z" fill="url(#scSl)"/>
+  <ellipse cx="-20" cy="-87" rx="4.2" ry="6" fill="#d9ad88"/><ellipse cx="20" cy="-87" rx="4.2" ry="6" fill="#d9ad88"/>
+  <path d="M-20 -148 C-12 -153 12 -153 20 -148 L17 -96 L-17 -96 Z" fill="url(#scTo)"/>
+  <path d="M-4.5 -153 h9 v7 c-2 3 -7 3 -9 0 z" fill="#d9ad88"/>
+  <ellipse cx="0" cy="-163" rx="8.6" ry="11.2" fill="#e2b896"/>
+  <path d="M-8.8 -165 C-9 -176 9 -176 8.8 -165 C6 -170 -6 -170 -8.8 -165 Z" fill="#3a2d26"/>
+</g>`;
 function drawScale(w, aspect) {
   let best = null;
   for (const [a, b] of w.pairs) for (const [h, wd] of [[a, b], [b, a]]) {
     const err = Math.abs((wd / h) / aspect - 1);
     if (!best || err < best.err) best = { h, w: wd, err };
   }
-  const H = 260, floor = H - 8, k = 0.9, cx = 40;
-  const top = floor - 145 * k - best.h * k / 2;
-  const fx = cx + best.w * k + 60, fh = 175 * k, r = 10 * k;
-  return `<svg viewBox="0 0 ${Math.max(fx + 60, 320)} ${H}" role="img" aria-label="${esc(w.title)}, ${best.h} by ${best.w} cm, beside a 175 cm figure">
-    <line x1="0" x2="100%" y1="${floor}" y2="${floor}" stroke="currentColor" stroke-opacity=".5"/>
-    <image href="${esc(src(w.image))}" x="${cx}" y="${top}" width="${best.w * k}" height="${best.h * k}" preserveAspectRatio="none"/>
-    <g fill="currentColor" fill-opacity=".35"><circle cx="${fx}" cy="${floor - fh + r}" r="${r}"/><rect x="${fx - 15 * k}" y="${floor - fh + 2.2 * r}" width="${30 * k}" height="${fh - 2.2 * r}" rx="${13 * k}"/></g>
-    <text x="${cx}" y="${top - 8}" font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor" fill-opacity=".7">${best.h} × ${best.w} cm${best.err > 0.06 ? ' · size to confirm' : ''}</text>
-    <text x="${fx + 18}" y="${floor - 4}" font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor" fill-opacity=".7">175 cm</text>
+  const LINE = 150, M = 40, gap = 55, personW = 60;
+  const floor = Math.max(PERSON, LINE + best.h / 2) + 38, H = floor + 34, Wd = M + best.w + gap + personW + M;
+  const top = floor - LINE - best.h / 2, fx = M + best.w + gap + personW / 2, fs = Math.max(8, H / 26);
+  return `<svg viewBox="0 0 ${Wd} ${H}" role="img" aria-label="${esc(w.title)}, ${best.h} by ${best.w} cm, on a gallery wall beside a ${PERSON} cm person">
+    <defs>
+      <linearGradient id="scW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbf9"/><stop offset="1" stop-color="#ebe9e3"/></linearGradient>
+      <linearGradient id="scF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfcac0"/><stop offset="1" stop-color="#b9b4a9"/></linearGradient>
+      <linearGradient id="scTr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f3239"/><stop offset=".5" stop-color="#454952"/><stop offset="1" stop-color="#2f3239"/></linearGradient>
+      <linearGradient id="scTo" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4b5766"/><stop offset=".5" stop-color="#617083"/><stop offset="1" stop-color="#4b5766"/></linearGradient>
+      <linearGradient id="scSl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#46525f"/><stop offset="1" stop-color="#5a6877"/></linearGradient>
+      <filter id="scSh" x="-10%" y="-10%" width="125%" height="125%"><feDropShadow dx="1.6" dy="2.6" stdDeviation="2.4" flood-color="#000" flood-opacity=".28"/></filter>
+    </defs>
+    <rect width="${Wd}" height="${floor}" fill="url(#scW)"/>
+    <rect y="${floor - 7}" width="${Wd}" height="7" fill="#e4e1da"/><rect y="${floor}" width="${Wd}" height="${H - floor}" fill="url(#scF)"/><rect y="${floor}" width="${Wd}" height="1.2" fill="#000" opacity=".12"/>
+    <image href="${esc(src(w.image))}" x="${M}" y="${top}" width="${best.w}" height="${best.h}" preserveAspectRatio="none" filter="url(#scSh)"/>
+    <text x="${M}" y="${top - fs * .7}" font-family="IBM Plex Mono, monospace" font-size="${fs}" fill="#2b2b2a" fill-opacity=".75">${best.h} × ${best.w} cm${best.err > 0.06 ? ' · size to confirm' : ''}</text>
+    <g transform="translate(${fx} ${floor})">${personSvg()}</g>
+    <text x="${fx + 26}" y="${floor - 3}" font-family="IBM Plex Mono, monospace" font-size="${fs}" fill="#2b2b2a" fill-opacity=".6">${PERSON} cm</text>
   </svg>`;
 }
 
