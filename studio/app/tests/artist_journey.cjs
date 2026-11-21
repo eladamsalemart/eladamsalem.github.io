@@ -194,6 +194,8 @@ const KINDS = process.env.JOURNEY_KINDS, SLOW = +process.env.JOURNEY_SLOW || 0;
       await p.waitForFunction(n => document.querySelectorAll('.hp-svg [data-k="work"]').length >= n, had + left, { timeout: 90000 }); await shot('hang-all');
       if (left < 2) throw new Error('fewer than two works were waiting');
     });
+    // the plan's zoom buttons (a finger that does not pinch)
+    await step('zoom-buttons', 30000, async () => { await p.tap('.hp-zi'); await p.waitForSelector('.hp-fit:not([hidden])', { timeout: 8000 }); await p.tap('.hp-fit'); await p.waitForSelector('.hp-fit[hidden]', { state: 'attached', timeout: 8000 }); });
   }
 
   await b.close();
