@@ -715,6 +715,13 @@
    "column_default": null
   },
   {
+   "table_name": "virtual_shows",
+   "column_name": "art_ord",
+   "data_type": "integer",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
    "table_name": "works",
    "column_name": "id",
    "data_type": "uuid",
