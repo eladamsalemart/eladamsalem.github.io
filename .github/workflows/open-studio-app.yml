@@ -12,7 +12,7 @@ on:
       - 'studio/desk/**'
       - '!studio/app/space/pipeline/**'
   workflow_run:
-    workflows: [Studio spaces, Studio rooms, "Art map: exhibitions", "Art map: places"]
+    workflows: [Studio spaces, Studio rooms, "Virtual show films", "Art map: exhibitions", "Art map: places"]
     types: [completed]
   workflow_dispatch:
 
