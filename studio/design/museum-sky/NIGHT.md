@@ -46,9 +46,11 @@ At the end of the last run of the night (or when you stop for the budget) write 
 
 ## 7. QUEUE (Elad's additions: add a line "date, what, who said it"; remove when done and move to ROADMAP "Done")
 - 21.11: the standing mandate as a whole: keep improving realism of the museum and the exhibition spaces in code, looks, design and textures, with the Blender path-traced reference as the quality target.
+- 21.11 (Elad): (a) WALKING SPEED is too slow for a hall this big: first thing, cheap: raise it for the museum (a run mode, a faster joystick curve, a tap-to-walk that is quicker over long distances; `WALK` in space.js; keep the tour rooms as they are), check on a phone-size view and that nobody walks through walls. (b) Walls: real thickness (reveals at doors, window and opening depths, wall-top caps), realistic walls. (c) Better textures for walls and floor (plaster, concrete, terrazzo, oak: detail, normal-like shading, variation). (d) Higher resolution for the sculptures and the architectural models (the Renaissance wing's GLBs and maquettes: textures, smooth normals, LOD so phones stay fast). (e) In general a more realistic feel in every area. Roadmap items 14-18 carry these.
 - 21.11 (open from earlier): add real artists' exhibitions with their original spaces whenever one exists (Ritual is done; method in ROADMAP).
 
 ## 7b. Planned nights (21.11; a plan, not a promise: the budget gate decides; re-order when Elad says so)
+0. FIRST (cheap, tonight if the budget allows): ROADMAP 14, walking speed. Then 15-18 are slotted in after night 3, alternating with the Blender steps (a night on 15 or 16, a night on the Blender shell).
 1. ROADMAP 9, part 1: author the hall in Blender from the plan (walls, ceiling, details, UV2), bake day light (AO + sun + sky) to lightmaps, export one GLB; measure size and memory.
 2. ROADMAP 9, part 2: `shell.js`: load the GLB behind `?shell` next to the current building, compare with the reference render, keep the old path as fallback.
 3. ROADMAP 9, part 3: three baked states (day, golden hour, night) and the blend by hour; remove what the shell replaces (floor/sun-pool painting) only when the shell is equal or better on a phone.

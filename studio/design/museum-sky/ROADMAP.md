@@ -26,6 +26,13 @@ Source of the plan: `studio/design/museum-directions/research/04*` (top path: Bl
 12. [x] (17.11, part: four oak-and-concrete benches round the pool, solid to walk round; open: frames, labels, plinth detail) **Real photographic frames/labels/benches/plinths**: modelled museum furniture with PBR.
 13. [ ] **Artist's original spaces as first-class**: repeat the Ritual method for the next artist exhibition (see "Adding an artist's original exhibition" below).
 
+## Added by Elad, 21.11
+14. [ ] **Walking speed**: the hall (96 x 72 m) is too slow to cross. Faster walk in the museum (run mode / joystick curve / quicker tap-to-walk over distance), keep collisions; measure the time from the entrance to the far house (target under 25 s at a comfortable pace).
+15. [ ] **Walls, realistic thickness**: reveals at doors and openings, wall-top caps, window/opening depths, corners; today a wall is a plane.
+16. [ ] **Textures of walls and floors**: plaster, concrete, terrazzo, oak and the house floors: more detail, variation, normal-like shading baked in; bigger and cleaner than 64x256 strips.
+17. [ ] **Sculptures and architectural models**: higher resolution (textures, smooth normals, proper materials) for the Renaissance GLBs and maquettes, with a distance LOD so phones stay fast (three models are ~100k triangles each now).
+18. [ ] **Overall realism pass**: in every area, found by comparing the app with `blender/hall_reference.py` renders; each finding becomes an item here.
+
 ## Adding an artist's original exhibition (a recurring job, owner 16.11)
 1. The exhibition has a tour (`data/spaces/<slug>.json`, built by "Studio spaces") and a text (`content/exhibitions.json`, in the source language; English too when there is).
 2. Add a house to the plan (`SKY_PLAN.spaces` in `synth.js`, or the Desk's `museum_plan`): `{ id, type: 'house', slot: 5x, tour: '<slug>', door: [x, z], dir }` at a free place (check overlap against houses, wing, pool, piers: `scratchpad/lay3.js` method).
