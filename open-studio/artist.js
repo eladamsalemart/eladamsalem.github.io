@@ -208,7 +208,7 @@ function ovSizes(room) {
   const base = baseOf(room), r = ROOMS[base], list = (kindsOf(r.kind)[r.kind] || []).slice().sort(([, a], [, b]) => SIZE_ORDER.indexOf(a.variant) - SIZE_ORDER.indexOf(b.variant));
   const rows = [1, 2, 3].map(n => [n, n === 1 ? base : `${base}-${n}r`]).filter(([, sl]) => ROOMS[sl]);
   return `<div class="ov-seg" role="group" aria-label="Size">${list.map(([slug, x]) => `<button type="button" data-size="${esc(slug)}" aria-pressed="${base === slug}"><b>${esc(x.sizeName)}</b><span>${esc(dims(x.size))}</span></button>`).join('')}</div>
-    ${rows.length > 1 ? `<div class="ov-row"><span id="ovRowsL">Rooms in a row</span><div class="ov-seg ov-n" role="group" aria-labelledby="ovRowsL">${rows.map(([n, sl]) => `<button type="button" data-rooms="${esc(sl)}" aria-pressed="${room === sl}" aria-label="${n} ${n === 1 ? 'room' : 'rooms in a row'}"><b>${n}</b></button>`).join('')}</div></div>` : ''}`;
+    ${rows.length > 1 ? `<div class="ov-row"><span id="ovRowsL">Rooms joined in a row <small style="color:var(--muted)">(a longer exhibition)</small></span><div class="ov-seg ov-n" role="group" aria-labelledby="ovRowsL">${rows.map(([n, sl]) => `<button type="button" data-rooms="${esc(sl)}" aria-pressed="${room === sl}" aria-label="${n} ${n === 1 ? 'room' : 'rooms in a row'}"><b>${n}</b></button>`).join('')}</div></div>` : ''}`;
 }
 function spacePicker(v) {
   const cur = bakedRoom(v.room), kinds = kindsOf(cur ? ROOMS[cur].kind : ''), kind = cur ? ROOMS[cur].kind : Object.keys(kinds)[0], room = cur || firstOf(kinds[kind]), r = ROOMS[baseOf(room)];
@@ -241,8 +241,8 @@ function ovBar(v, title) {
   const hang = (cls, t) => `<button class="btn ${cls}" type="button" id="vxHang">${t}</button>`, walk = (cls, t) => `<button class="btn ${cls}" type="button" id="vxWalk">${t}</button>`;
   if (!S.works.length) return `<a class="btn f" href="#/studio">Add works to your page first</a>${hang('g', 'Walk in')}`;
   if (!hung) return hang('f', 'Place the works on the plan');
-  if (S.cloud && !pub && v.status !== 'pending') return `${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">${ADMIN ? 'Publish' : v.status === 'changes' ? 'Send again' : 'Send for review'}</button>`;
-  return `${hang('g', 'Rehang')}${walk('f', 'Walk as a visitor')}`;
+  if (S.cloud && !pub && v.status !== 'pending') return `${hang('g', 'Rearrange')}${walk('g', 'Walk it')}<button class="btn f" type="button" id="vxPub">${ADMIN ? 'Publish' : v.status === 'changes' ? 'Send again' : 'Send for review'}</button>`;
+  return `${hang('g', 'Rearrange')}${walk('f', 'Walk as a visitor')}`;
 }
 // an owner of Open Studio (an admin) publishes their own exhibition at once; everyone else sends it for review
 let ADMIN = false, adminAsked = false;
@@ -957,6 +957,7 @@ export async function studio(hash, app, go, M, tools) {
     try { S = await cloud.load(); if (S) S.uid = u.id; } catch (e) { console.error(e); S = null; }
     if (!S) { app.innerHTML = setup(u); wire(app, go); return; }
   } else if (!(u && u.role === 'artist')) load();
+  if (S && S.cloud && !previewing()) { try { cloud = cloud || await import('./studio-cloud.js'); await cloud.syncStatus(S); } catch (e) { console.warn('status', e); } }
   const m = hash.replace(/^#\/studio\/?/, '');
   let html;
   // your page is your studio: the old Works, Profile and Preview screens are the page itself, in edit or view mode

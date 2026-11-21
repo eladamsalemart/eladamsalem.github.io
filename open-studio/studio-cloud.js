@@ -15,7 +15,7 @@ export async function session() {
 
 const rowToWork = r => ({ id: r.id, title: r.title, year: r.year || '', medium: r.medium || '', width: r.width ?? '', height: r.height ?? '', depth: r.depth ?? '', kind: r.kind || 'work', category: r.category || '',
   image: r.image, thumb: r.thumb || r.image, source: r.source || '', framed: 'no', check: { W: 2000, H: 2000, long: 2000, mean: 120, clipped: 0, sharp: 0.5, backdrop: false } });
-const rowToShow = r => ({ id: r.id, title: r.title, room: r.room, paint: r.paint || '', centre: r.centre, text: r.text || '', status: r.status, note: r.note || '', slug: r.slug, onview: !!r.on_view,
+const rowToShow = r => ({ id: r.id, title: r.title, room: r.room, paint: r.paint || '', centre: r.centre, text: r.text || '', status: r.status, note: r.note || '', slug: r.slug, onview: !!r.on_view, ord: r.art_ord ?? null,
   works: (r.works || []).map(w => w.id), plinths: r.plinths || [],
   placements: Object.fromEntries((r.works || []).filter(w => w.id && w.wall).map(w => [w.id, { wall: w.wall, a: w.a, y: w.y }])) });
 
@@ -136,8 +136,11 @@ async function push(S) {
     const works = v.works.map(id => S.works.find(w => w.id === id)).filter(Boolean)
       .map(w => ({ id: w.id, title: w.title, image: w.image, thumb: w.thumb, width: +w.width || null, height: +w.height || null, depth: +w.depth || null, year: w.year, medium: w.medium, kind: w.kind === 'object' ? 'object' : 'work',
         ...((v.placements || {})[w.id] || {}) }));
-    const { error } = await c.from('virtual_shows').upsert({ id: v.id, owner_id: user.id, kind: 'artist', title: v.title || 'Untitled', room: v.room, paint: v.paint || null,
-      centre: +v.centre || 150, text: v.text || null, works, plinths: v.plinths || [], status: ['published', 'pending', 'changes'].includes(v.status) ? v.status : 'draft', slug: v.slug || null, on_view: !!v.onview });
+    const row = { id: v.id, owner_id: user.id, kind: 'artist', title: v.title || 'Untitled', room: v.room, paint: v.paint || null,
+      centre: +v.centre || 150, text: v.text || null, works, plinths: v.plinths || [], slug: v.slug || null, on_view: !!v.onview, art_ord: v.ord ?? null };
+    // (the status goes only when the artist changed it: an old page must never write back "pending" over an approval)
+    if (!prev || prev.status !== v.status) row.status = ['published', 'pending', 'changes'].includes(v.status) ? v.status : 'draft';
+    const { error } = await c.from('virtual_shows').upsert(row);
     if (error) throw error;
     // (read back: what Home and Shows show is this row, so it must be what the artist made)
     const { data: back } = await c.from('virtual_shows').select('title,room,works,plinths').eq('id', v.id).maybeSingle();
@@ -148,6 +151,19 @@ async function push(S) {
   const goneV = (was.virtual || []).filter(v => !(S.virtual || []).some(x => x.id === v.id)).map(v => v.id);
   if (goneV.length) { const { error } = await c.from('virtual_shows').delete().in('id', goneV); if (error) throw error; }
   last = JSON.stringify(S);
+}
+
+// the real status of each exhibition (the owner approves it while the artist's page is open), without touching anything else
+export async function syncStatus(S) {
+  const s = await session(); if (!s) return;
+  const { data } = await s.c.from('virtual_shows').select('id,status,note').eq('owner_id', s.user.id).eq('kind', 'artist');
+  const by = new Map((data || []).map(r => [r.id, r])), was = last ? JSON.parse(last) : null;
+  for (const v of S.virtual || []) {
+    const r = by.get(v.id); if (!r) continue;
+    v.status = r.status; v.note = r.note || '';
+    const p = was && (was.virtual || []).find(x => x.id === v.id); if (p) { p.status = r.status; p.note = r.note || ''; }
+  }
+  if (was) last = JSON.stringify(was);
 }
 
 // --- material for a walkable tour only (more photos, a walk-through video): kept private, never on the page -----------
