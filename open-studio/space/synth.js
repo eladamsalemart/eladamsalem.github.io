@@ -505,16 +505,46 @@ function drawWorkLight(R) {
 const FLAT = /oil|acrylic|canvas|paint|gouache|tempera|watercolou?r|pastel|print|drawing|ink|photograph|collage|etching|lithograph/i;
 export const isObject = w => w.kind === 'object' || /sculpt|object|ceramic|installation/i.test(w.category || '') || (+w.depth > 0 && !FLAT.test(w.medium || ''))
   || (!w.category && !FLAT.test(w.medium || '') && /ceramic|clay|porcelain|bronze|sculpt|marble|plaster|terracotta|stoneware/i.test(w.medium || ''));
-// The exhibition's own words on a wall of its room, as gallery wall text is set: a plain sans (IBM Plex Sans; IBM Plex Sans Hebrew for
-// Hebrew), left-aligned and ragged (right-aligned in Hebrew), at most about 50 characters a line, sentence case, dark on a matte pale panel,
-// type large enough to read from two or three feet (the Wellcome Collection's exhibition-text rules are the model: left aligned, 55
-// characters at most, leading larger than the x-height, plain matte ground). The title, the artist, then the artist's words.
-async function introSurface(design, walls, placed, keep, R) {
-  if (design.editing) return null;
+// The exhibition's own words on a wall, set as gallery wall text is (IBM Plex Sans, ragged, about 50 characters a line, dark on a matte
+// pale panel). The wall text is the artist's to place, like a work: its placement, under WALL_TEXT, also holds its look (w in metres,
+// font, ink, bg, or bg 'none' for the letters straight on the wall). A show whose artist never placed it keeps the old way: the first
+// free wall, 2.3 m wide.
+export const WALL_TEXT = 'wall-text';
+export const TEXT_FONTS = { sans: ['Sans', '"IBM Plex Sans"', '"IBM Plex Sans Hebrew"'], serif: ['Serif', '"Fraunces"', '"IBM Plex Sans Hebrew"'], hand: ['Hand', '"Waiting for the Sunrise"', '"IBM Plex Sans Hebrew"'], mono: ['Mono', '"IBM Plex Mono"', '"IBM Plex Sans Hebrew"'] };
+export async function wallTextImage(design, lab = {}, under) {
   const words = Array.isArray(design.text) ? design.text.join('\n\n') : String(design.text || '');
-  const he = /[\u0590-\u05ff]/.test(`${design.title}${words}${design.by || ''}`);
-  try { await Promise.all(['300 58px "IBM Plex Sans"', '400 27px "IBM Plex Sans"', '500 17px "IBM Plex Mono"', '300 58px "IBM Plex Sans Hebrew"', '400 27px "IBM Plex Sans Hebrew"'].map(f => document.fonts.load(f, he ? 'אבג' : 'Abc'))); } catch { /* the page's own fonts */ }
-  const PW = 2.3, PH = 1.55, K = 400, pad = 56, c = canvas(PW * K, PH * K), x = c.getContext('2d'), W = c.width, H = c.height;
+  const he = /[\u0590-\u05ff]/.test(`${design.title}${words}${design.by || ''}`), F = TEXT_FONTS[lab.font] || TEXT_FONTS.sans, hand = lab.font === 'hand';
+  const fam = (he ? [F[2], F[1]] : [F[1], F[2]]).join(',') + (lab.font === 'serif' ? ',serif' : ',sans-serif');
+  const tw = hand ? 400 : 300, tf = hand ? 70 : 58, bf = hand ? 33 : 27, LH = hand ? 44 : 39;
+  try { await Promise.all([`${tw} ${tf}px ${fam}`, `400 ${bf}px ${fam}`, '500 17px "IBM Plex Mono"'].map(f => document.fonts.load(f, he ? 'אבג' : 'Abc'))); } catch { /* the page's own fonts */ }
+  const W = 920, Hmax = 1400, pad = 56, c = canvas(W, Hmax), x = c.getContext('2d'), maxW = W - 2 * pad;
+  const ink = lab.ink || '#1e1c18', bg = lab.bg === 'none' ? (under || null) : (lab.bg || '#f6f5f1');
+  if (bg) { x.fillStyle = bg; x.fillRect(0, 0, W, Hmax); }
+  x.direction = he ? 'rtl' : 'ltr'; x.textAlign = he ? 'right' : 'left'; x.textBaseline = 'alphabetic';
+  const X = he ? W - pad : pad;
+  const wrap = (txt, font) => { x.font = font; const out = []; let line = ''; for (const wd of String(txt).split(/\s+/).filter(Boolean)) { const t = line ? line + ' ' + wd : wd; if (x.measureText(t).width > maxW && line) { out.push(line); line = wd; } else line = t; } if (line) out.push(line); return out; };
+  let y = pad + 12;
+  x.fillStyle = ink; x.globalAlpha = 0.6; x.font = '500 17px "IBM Plex Mono",monospace'; x.fillText(`MY OPEN STUDIO${design.by ? '  ·  ' + String(design.by).toUpperCase() : ''}`, X, y);
+  x.globalAlpha = 1; y += 20;
+  const tl = wrap(String(design.title || 'MY OPEN STUDIO').slice(0, 80), `${tw} ${tf}px ${fam}`).slice(0, 2); y += tf - 2; tl.forEach((ln, i) => { x.font = `${tw} ${tf}px ${fam}`; x.fillText(ln, X, y + i * (tf + 6)); }); y += (tl.length - 1) * (tf + 6) + 26;
+  x.globalAlpha = 0.3; x.fillRect(he ? W - pad - 84 : pad, y, 84, 2); x.globalAlpha = 0.88; y += 40;
+  outer: for (const para of words.split(/\n+/).map(t => t.trim()).filter(Boolean)) {
+    for (const ln of wrap(para, `400 ${bf}px ${fam}`)) { if (y > Hmax - pad + 6) { x.fillText('…', X, y); break outer; } x.font = `400 ${bf}px ${fam}`; x.fillText(ln, X, y); y += LH; }
+    y += 14;
+  }
+  x.globalAlpha = 1;
+  const hh = Math.min(Hmax, Math.max(300, Math.round(y + pad - 28))), c2 = canvas(W, hh); c2.getContext('2d').drawImage(c, 0, 0, W, hh, 0, 0, W, hh);       // (as tall as its words)
+  const wm = Math.min(4, Math.max(0.4, +lab.w || 1.5));
+  return { canvas: c2, wm, hm: wm * hh / W };
+}
+// the panel on a wall, its middle at a (along the wall) and y (high): a plain surface or, with no ground, the letters alone
+async function textSurface(t, wl, a, y, clear, keep) {
+  const N = wl.normal, off = 0.014, a0 = a - t.wm / 2;
+  return { name: 'intro', kind: 'wall', ...(clear ? { glass: true } : {}), texture: await keep(t.canvas, clear), origin: [wl.origin[0] + wl.u[0] * a0 + N[0] * off, y + t.hm / 2, wl.origin[2] + wl.u[2] * a0 + N[2] * off], u: wl.u, v: [0, -1, 0], size: [t.wm, t.hm], normal: N, openings: [] };
+}
+async function introSurface(design, walls, placed, keep, R) {
+  if (design.editing || !design.title) return null;
+  const t = await wallTextImage(design, { w: 2.3 }), PW = t.wm;
   // where: the first wall that has room for it beside the works (the left wall first, where a visitor comes in)
   let pick = null;
   for (const name of ['wall-x0', 'wall-z0', 'wall-x1', 'wall-z1']) {
@@ -524,29 +554,21 @@ async function introSurface(design, walls, placed, keep, R) {
     if (pick) break;
   }
   if (!pick) return null;
-  x.fillStyle = '#f6f5f1'; x.fillRect(0, 0, W, H);
-  x.direction = he ? 'rtl' : 'ltr'; x.textAlign = he ? 'right' : 'left'; x.textBaseline = 'alphabetic';
-  const X = he ? W - pad : pad, fam = he ? '"IBM Plex Sans Hebrew","IBM Plex Sans",sans-serif' : '"IBM Plex Sans","IBM Plex Sans Hebrew",sans-serif', maxW = W - 2 * pad;
-  const wrap = (txt, font) => { x.font = font; const out = []; let line = ''; for (const wd of String(txt).split(/\s+/).filter(Boolean)) { const t = line ? line + ' ' + wd : wd; if (x.measureText(t).width > maxW && line) { out.push(line); line = wd; } else line = t; } if (line) out.push(line); return out; };
-  let y = pad + 12;
-  x.fillStyle = '#857f70'; x.font = '500 17px "IBM Plex Mono",monospace'; x.fillText(design.by ? String(design.by).toUpperCase() : 'A VIRTUAL EXHIBITION', X, y);
-  y += 20; x.fillStyle = '#1e1c18';
-  const tl = wrap('MY OPEN STUDIO', `300 58px ${fam}`).slice(0, 2); y += 56; tl.forEach((ln, i) => { x.font = `300 58px ${fam}`; x.fillText(ln, X, y + i * 64); }); y += (tl.length - 1) * 64 + 26;
-  x.fillStyle = '#c9c4b5'; x.fillRect(he ? W - pad - 84 : pad, y, 84, 2); y += 40;
-  x.fillStyle = '#35322b'; const LH = 39;
-  outer: for (const para of words.split(/\n+/).map(t => t.trim()).filter(Boolean)) {
-    for (const ln of wrap(para, `400 27px ${fam}`)) { if (y > H - pad + 6) { x.fillText('…', X, y); break outer; } x.font = `400 27px ${fam}`; x.fillText(ln, X, y); y += LH; }
-    y += 14;
-  }
-  const hh = Math.min(H, Math.max(300, Math.round(y + pad - 28))), c2 = canvas(W, hh); c2.getContext('2d').drawImage(c, 0, 0, W, hh, 0, 0, W, hh);       // (as tall as its words)
-  const { wl, a0 } = pick, N = wl.normal, off = 0.014, top = Math.min(2.55, (R.h || 3.2) - 0.5);
-  return { name: 'intro', kind: 'wall', texture: await keep(c2), origin: [wl.origin[0] + wl.u[0] * a0 + N[0] * off, top, wl.origin[2] + wl.u[2] * a0 + N[2] * off], u: wl.u, v: [0, -1, 0], size: [PW, hh / K], normal: N, openings: [] };
+  const top = Math.min(2.55, (R.h || 3.2) - 0.5);
+  return textSurface(t, pick.wl, pick.a0 + PW / 2, top - t.hm / 2, false, keep);
 }
 export async function buildRoom(design, src) {
-  const pl = design.placements || {};
-  const wallWorks = design.works.filter(w => !isObject(w)), objects = design.works.filter(isObject);
+  const pl = design.placements || {}, lab = pl[WALL_TEXT] || {};
+  const wallWorks = design.works.filter(w => !isObject(w) && w.id !== WALL_TEXT), objects = design.works.filter(isObject);
   const sized = await Promise.all(wallWorks.map(async w => ({ work: w, ...(await sizeOf(w, src)), wall: w.wall, at: w.id ? pl[w.id] : null })));
+  // the wall text, where the artist placed it (or, in the editor, wherever it goes first): hung like a work, drawn as a panel
+  const textOn = design.editing ? design.works.some(w => w.id === WALL_TEXT) : !!(lab.wall && !lab.off);
+  const paint0 = (PAINTS[design.paint] || PAINTS[ROOMS[design.room].paint])[1];
+  const tImg = textOn ? await wallTextImage(design, lab, design.editing ? paint0 : null) : null;
+  if (tImg) sized.push({ work: { id: WALL_TEXT, title: 'Wall text', kind: 'wall-text' }, w: tImg.wm * 100, h: tImg.hm * 100, aspect: tImg.wm / tImg.hm, at: lab.wall ? lab : null });
   const { R, walls, placed, left, stands } = hang(design, sized);
+  const tAt = placed.findIndex(p => p.work.id === WALL_TEXT), tPlace = tAt >= 0 ? placed[tAt] : null;
+  if (tPlace && !design.editing) placed.splice(tAt, 1);
   // plinths: those the artist set, and one in the middle of the room for each object not yet on one
   const plinths = (design.plinths || []).filter(p => !p.kind && (PLINTHS[p.size] || p.dims)).map(p => ({ ...p }));
   const free = objects.filter(o => !plinths.some(p => p.work === o.id));
@@ -559,7 +581,7 @@ export async function buildRoom(design, src) {
   const keep = async (c, png) => { const u = await (png ? urlPng(c) : url(c)); urls.push(u); return u; };
   const surfaces = [];
   for (const wl of walls) {
-    const on = placed.filter(p => p.wall === wl);
+    const on = placed.filter(p => p.wall === wl && p.work.id !== WALL_TEXT);
     if (wl.stand) {     // a freestanding wall's face: white paint, lit like the room, drawn here
       surfaces.push({ name: wl.name, kind: 'wall', stand: wl.stand, texture: await keep(drawStandFace(R, wl, on, !!design.editing)),
         origin: wl.origin, u: wl.u, v: [0, -1, 0], size: [wl.len, wl.h], normal: wl.normal, openings: [] });
@@ -586,15 +608,16 @@ export async function buildRoom(design, src) {
     });
     surfaces.push({ name: 'ceiling', kind: 'ceiling', texture: await keep(drawCeiling(R, placed, paint)), origin: [0, R.h, R.d], u: [1, 0, 0], v: [0, 0, -1], size: [R.w, R.d], normal: [0, -1, 0], openings: [] });
   }
-  { const it = await introSurface(design, walls, placed, keep, R); if (it) surfaces.push(it); }
+  { const it = tPlace ? (design.editing ? null : await textSurface(tImg, tPlace.wall, tPlace.a, tPlace.y, lab.bg === 'none', keep)) : lab.off ? null : await introSurface(design, walls, placed, keep, R); if (it) surfaces.push(it); }
   const plaster = canvas(512, 512), pc = plaster.getContext('2d');
   pc.fillStyle = paint; pc.fillRect(0, 0, 512, 512); texture(pc, 512, 512, seed + 9, 0.05, 0.03);
   pc.fillStyle = 'rgba(0,0,0,.12)'; pc.fillRect(0, 0, 512, 512);
   const workLight = await keep(drawWorkLight(R), true);
+  const textUrl = tImg && design.editing ? await keep(tImg.canvas) : null;
   const works = placed.map(p => {
     const [ox, , oz] = p.wall.origin, [ux, , uz] = p.wall.u, N = p.wall.normal, off = DEPTH + 0.004;
     return {
-      id: p.work.id, work: p.work.title, image: p.work.image, imageSmall: p.work.imageSmall, size: [p.w, p.h], measured: [p.w, p.h],
+      id: p.work.id, work: p.work.title, image: p.work.id === WALL_TEXT ? textUrl : p.work.image, imageSmall: p.work.imageSmall, size: [p.w, p.h], measured: [p.w, p.h],
       centre: [ox + ux * p.a + N[0] * off, p.y, oz + uz * p.a + N[2] * off], axes: [p.wall.u, [0, 1, 0], N], depth: DEPTH,
       light: workLight, lightScale: 1, ...(p.guessed ? { guessed: true } : {}),
     };
@@ -615,7 +638,7 @@ export async function buildRoom(design, src) {
     ...(R.kind === 'glass-pavilion' && !(R.cells > 1) ? { start: { pos: [R.w - 1.2, R.d - 0.9], look: [R.w * 0.3, 0.5] } } : {}),
   };
   const placements = {};
-  for (const p of placed) if (p.work.id) placements[p.work.id] = { wall: p.wall.name, a: +p.a.toFixed(3), y: +p.y.toFixed(3) };
+  for (const p of placed) if (p.work.id) placements[p.work.id] = { ...(p.work.id === WALL_TEXT ? lab : {}), wall: p.wall.name, a: +p.a.toFixed(3), y: +p.y.toFixed(3) };
   return { spec, placements, plinths: [...plinths.map(({ id, x, z, size, dims, work, colour }) => ({ id, x: +x.toFixed(3), z: +z.toFixed(3), size, ...(dims ? { dims: plinthDims({ dims }) } : {}), ...(colour ? { colour } : {}), work: work || null })),
       ...stands.map(({ id, x, z, len, rot }) => ({ id, kind: 'stand', x, z, len, rot })), ...((design.plinths || []).some(p => p && p.kind === 'no-stands') ? [{ id: 'no-stands', kind: 'no-stands' }] : [])], left: left.map(x => x.work), revoke: () => urls.forEach(u => URL.revokeObjectURL(u)) };
 }
@@ -1362,6 +1385,8 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
   const lamps = [70, 110, ...Array.from({ length: 7 }, (_, k) => 135 + 19.3 + k * 38.6)].map(a => [CX + 9.5 * Math.cos(a * Math.PI / 180), CZ + 9.5 * Math.sin(a * Math.PI / 180)]);
   const spec = {
     version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 150, noSpots: true, sky: ['#9fbfd9', '#e9eef0'],
+    slow: PLAN.spaces.map(sp => { const o = sp.type === 'house' ? [Math.cos(sp.dir * Math.PI / 180), Math.sin(sp.dir * Math.PI / 180)] : sp.dir, R = [-o[1], o[0]], [l0, l1, d0, d1] = sp.type === 'house' ? [-4.6, 4.6, -0.8, 8.4] : [-5.5, 11.5, -0.5, 41.5];       // where the visitor is inside an exhibition: the walk slows to a stroll (the hall itself is run across)
+      return [[l0, d0], [l1, d0], [l1, d1], [l0, d1]].map(([a, d]) => [+(sp.door[0] + R[0] * a + o[0] * d).toFixed(2), +(sp.door[1] + R[1] * a + o[1] * d).toFixed(2)]); }),
     outdoors: { hour: env.hour, centre: [CX, CZ], lamps, treeline: 'data/rooms/outside/treeline.webp', treeRadius: 70, treeHeight: 30 },
     baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: 4 },
     room: { x0: 22, x1: TOT - 22, z0: 22, z1: Math.max(TOT - 22, endZ), height: 6 }, surfaces, works, views: [], floorReflect: [0, 0], solids,
@@ -1416,6 +1441,25 @@ export function planOf(p) {
 }
 export function skyLayout(plan = SKY_PLAN) {
   return planOf(plan).spaces.filter(sp => sp.type === 'house').map((sp, slot) => { const a = sp.dir * Math.PI / 180, o = [Math.cos(a), Math.sin(a)]; return { slot, j: slot % 8, c: sp.door, o, r: [-o[1], o[0]], id: sp.id, no: sp.slot }; });
+}
+// the text of an exhibition as paragraphs: its own, or (a show with none) its title, artist and dates
+const textOf = r => { const t = (Array.isArray(r.text) ? r.text : String(r.text || '').split(/\n+/)).map(x => String(x).trim()).filter(Boolean); if (t.length) return t;
+  const by = [...new Set((r.works || []).map(w => w.artist && (w.artist.name || w.artist)).filter(a => a && typeof a === 'string'))].slice(0, 3).join(', ');
+  return [r.title, by, r.sub].filter(Boolean); };
+// the space an exhibition was designed in, as a room description in its own coordinates: built from its design, or read from the photographed tour
+async function originalSpec(o, src) {
+  const fix = (v, b) => typeof v === 'string' ? (/^data\//.test(v) ? b + v : v) : Array.isArray(v) ? v.map(x => fix(x, b)) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fix(x, b)])) : v;
+  let sp;
+  if (o.design) { const m = await buildRoom(o.design, src); sp = o.base ? fix(m.spec, o.base) : m.spec; }
+  else { sp = JSON.parse(JSON.stringify(o.spec || await (await fetch(o.tour)).json())); if (o.base) sp = fix(sp, o.base); }
+  // a phone holds the whole museum in its memory: the room's big pictures (walls, floor, ceiling) are brought down to what a phone shows
+  const small = new Map(), shrink = (u, cap, png) => typeof u !== 'string' || !u ? Promise.resolve(u) : (small.get(u + cap) || (small.set(u + cap, new Promise(res => { const im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = () => { const k = Math.min(1, cap / Math.max(im.naturalWidth, im.naturalHeight)); if (k >= 0.99) return res(u); const c = canvas(im.naturalWidth * k, im.naturalHeight * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res(png ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.86)); };
+    im.onerror = () => res(u); im.src = u; })), small.get(u + cap)));
+  await Promise.all((sp.surfaces || []).map(async s => { if (s.texture) s.texture = await shrink(s.texture, 1024); if (s.light) s.light = await shrink(s.light, 512, true); }));
+  await Promise.all((sp.works || []).map(async w => { if (w.imageSmall) w.imageSmall = await shrink(w.imageSmall, 640); if (w.light) w.light = await shrink(w.light, 256, true); }));
+  if (sp.plaster) sp.plaster = await shrink(sp.plaster, 512);
+  return sp;
 }
 export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   const PLAN = planOf(opts.plan), { RD, RW, VD, MOUTH, DOOR_H, RIM } = SH, HX = PLAN.hall.w, HZ = PLAN.hall.d, HH = PLAN.hall.h, [CX, CZ] = [HX / 2, HZ / 2], TOT = Math.max(260, HX * 2.6), env = envFor(opts.hour), LIT = [0.97, 0.86, 0.7], tIn = env.tint.map((v, i) => v + (LIT[i] - v) * env.night * 0.8), envIn = { ...env, tint: tIn };      // (tIn: inside the hall by night the warm lamps, not the blue of the dark outside)
@@ -1597,10 +1641,68 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   const directory = [];
   const hotspots = [];
   // --- the houses: each as the street builds its room (a porch in the show's colour, three walls to hang on), turned to its own place
+  const extraStands = [];
+  // --- a pavilion that holds an exhibition designed before (r.original): the exhibition's OWN space is built in place inside a real
+  //     building (plaster skin, a door with depth, the text beside it); stepping through the door is stepping into the original design.
+  //     r.original = { design } (an artist's virtual room, built by buildRoom) | { spec } or { tour: url } (a photographed real space), base: path prefix for data/ files
+  const buildOriginal = async (i, d, r, ft, col) => {
+    const sp = await originalSpec(r.original, src), rm = sp.room, H = rm.height || 3.6, { o, c, r: R } = d, T = 0.22, DW = 1.9;
+    const virt = !!sp.surfaces.find(s => s.name === 'wall-x1' && (s.openings || []).length);
+    // the door wall of the original and where its door is (local x/z), then the frame: local inward direction -> the pavilion's `o`
+    let n, dc, dw = DW, dh = 2.7;
+    if (virt) { const s = sp.surfaces.find(q => q.name === 'wall-x1'), op = s.openings[0]; n = [-1, 0]; dc = [rm.x1, s.origin[2] + (op.from + op.to) / 2]; dw = op.to - op.from; dh = op.height || dh; }
+    else {
+      const s = sp.surfaces.find(q => q.kind === 'wall' && Math.abs(q.normal[2] - 1) < 0.01 && q.u[0] > 0.99);
+      n = [0, 1]; dc = [(rm.x0 + rm.x1) / 2, rm.z0];
+      if (s) { const a = dc[0] - s.origin[0]; (s.openings = s.openings || []).push({ from: a - DW / 2, to: a + DW / 2, height: dh, arch: false, depth: 0.2, through: true, bare: true }); }
+    }
+    const tt = [-n[1], n[0]], Dp = [c[0] + o[0] * 0.25, c[1] + o[1] * 0.25];                 // (the door wall of the room stands 0.25 m behind the door line; the skin is in front of it)
+    const W = (x, z) => { const px = x - dc[0], pz = z - dc[1], a = px * n[0] + pz * n[1], b = px * tt[0] + pz * tt[1]; return [Dp[0] + o[0] * a + R[0] * b, Dp[1] + o[1] * a + R[1] * b]; };
+    const V = v => { const a = v[0] * n[0] + v[2] * n[1], b = v[0] * tt[0] + v[2] * tt[1]; return [o[0] * a + R[0] * b, v[1], o[1] * a + R[1] * b]; };
+    const pre = `o${i}-`, ang = Math.atan2(V([1, 0, 0])[2], V([1, 0, 0])[0]) * 180 / Math.PI, swap = Math.abs(V([1, 0, 0])[2]) > 0.7;
+    for (const s of sp.surfaces) {
+      const q = { ...s, name: pre + s.name, normal: V(s.normal), u: V(s.u), v: V(s.v) }, p = W(s.origin[0], s.origin[2]); q.origin = [p[0], s.origin[1], p[1]];
+      if (s.kind === 'floor') { q.kind = 'wall'; q.origin[1] = 0.03; delete q.tileXY; }
+      surfaces.push(q);
+    }
+    for (const w of sp.works || []) { const p = W(w.centre[0], w.centre[2]); works.push({ ...w, centre: [p[0], w.centre[1], p[1]], axes: w.axes.map(V) }); }
+    for (const p of sp.plinths || []) { const q = W(p.x, p.z); plinthsOut.push({ ...p, id: pre + p.id, x: q[0], z: q[1], size: swap && Array.isArray(p.size) ? [p.size[1], p.size[0], p.size[2]] : p.size }); }
+    for (const s of sp.stands || []) { const q = W(s.x, s.z); extraStands.push({ ...s, id: pre + s.id, x: q[0], z: q[1], rot: s.rot + ang }); }
+    for (const [ax, az, bx, bz] of sp.solids || []) { const a = W(ax, az), b = W(bx, bz); solids.push([a[0], a[1], b[0], b[1]]); }
+    // the room's four walls as solids (a gap at the door) and its plaster skin 0.22 m outside them, with the same opening
+    const x0 = rm.x0, x1 = rm.x1, z0 = rm.z0, z1 = rm.z1, sides = [[[x0, z0], [x1, z0], [0, -1]], [[x1, z0], [x1, z1], [1, 0]], [[x1, z1], [x0, z1], [0, 1]], [[x0, z1], [x0, z0], [-1, 0]]];
+    const skin = wallTex(ft, false);
+    sides.forEach(([a, b, out], k) => {
+      const A = W(a[0], a[1]), B = W(b[0], b[1]), L = Math.hypot(B[0] - A[0], B[1] - A[1]), ux = (B[0] - A[0]) / L, uz = (B[1] - A[1]) / L;
+      const isDoor = Math.abs(out[0] * n[0] + out[1] * n[1] + 1) < 0.01, nv = V([out[0], 0, out[1]]);
+      let holes = [];
+      if (isDoor) { const Dw = W(dc[0], dc[1]), s = (Dw[0] - A[0]) * ux + (Dw[1] - A[1]) * uz; holes = [[s - dw / 2 + T, s + dw / 2 + T, 0, dh]]; }
+      let at = 0; for (const [f, t] of [...holes.map(h => [h[0], h[1]]), [L, L]].sort((p, q) => p[0] - q[0])) { if (f > at + 0.01) solids.push([A[0] + ux * at, A[1] + uz * at, A[0] + ux * f, A[1] + uz * f]); at = Math.max(at, t); }
+      wall(`${pre}skin${k}`, (A[0] + B[0]) / 2 + nv[0] * T, (A[1] + B[1]) / 2 + nv[2] * T, nv[0], nv[2], L + 2 * T, { h: H, tex: skin, holes, noSolid: true });
+    });
+    // a recessed shadow gap at the foot and a dark line under the top, like every house
+    directory.push({ title: r.title, kind: 'room', note: `${(sp.works || []).length} works`, at: [c[0] - o[0] * 5.4, c[1] - o[1] * 5.4], look: Dp });
+    // its text beside the door, on the skin
+    const paras = textOf(r), he = /[֐-׿]/.test(paras.join('')), cv = canvas(640, 860), x = cv.getContext('2d');
+    x.fillStyle = 'rgba(250,248,244,1)'; x.fillRect(0, 0, 640, 860); x.strokeStyle = col; x.lineWidth = 8; x.strokeRect(4, 4, 632, 852);
+    x.fillStyle = 'rgba(40,36,30,0.94)'; x.textBaseline = 'top'; x.direction = he ? 'rtl' : 'ltr'; x.textAlign = he ? 'right' : 'left'; const X0 = he ? 600 : 40;
+    let fs = 62; x.font = `italic 600 ${fs}px Georgia, serif`; while (x.measureText(r.title).width > 560 && fs > 28) { fs -= 2; x.font = `italic 600 ${fs}px Georgia, serif`; }
+    x.fillText(r.title, X0, 40); let yy = 40 + fs + 22;
+    const sub = r.curator ? 'Curated by ' + r.curator : r.sub; if (sub) { x.font = '400 28px Georgia, serif'; x.fillStyle = 'rgba(40,36,30,0.6)'; x.fillText(String(sub).slice(0, 44), X0, yy); yy += 48; }
+    x.fillStyle = 'rgba(40,36,30,0.92)'; x.font = '400 34px Georgia, serif';
+    const lines = []; let ln = ''; for (const w of paras.join(' ').split(/\s+/)) { const t = ln ? ln + ' ' + w : w; if (x.measureText(t).width > 560) { lines.push(ln); ln = w; } else ln = t; }
+    if (ln) lines.push(ln); const room = Math.floor((790 - yy) / 44); lines.slice(0, room).forEach((l, k) => x.fillText(k === room - 1 && lines.length > room ? l + ' …' : l, X0, yy + k * 44));
+    x.font = '600 26px system-ui, sans-serif'; x.fillStyle = col; x.textAlign = 'center'; x.direction = 'ltr'; x.fillText(he ? 'Tap to read · לחצו לקריאה' : 'Tap to read', 320, 812);
+    const pw = 1.3, ph = pw * 860 / 640, side = dw / 2 + 0.35 + pw / 2, q = [c[0] + R[0] * side - o[0] * 0.01, c[1] + R[1] * side - o[1] * 0.01];
+    const o0 = [q[0] - R[0] * pw / 2, 0.9 + ph, q[1] - R[1] * pw / 2], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
+    surfaces.push({ name: `${pre}text`, kind: 'wall', texture: jpg(cv, 0.92), origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, openings: [] });
+    hotspots.push({ id: r.slug, title: r.title, sub: r.curator ? 'Curated by ' + r.curator : (r.sub || ''), text: paras, lang: he ? 'he' : 'en', kind: 'text', origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, enter: null });
+  };
   for (const { d, r, k: i } of houseList) {
     const { o, c } = d, R = d.r, P = (a, b) => [c[0] + R[0] * a + o[0] * b, c[1] + R[1] * a + o[1] * b];
     const col = r.colour, M2 = MOUTH / 2, A0 = -RW / 2, A1 = RW / 2, rh = CL.RH[i % 8], dark = i % 8 === 1 || i % 8 === 4, fl = i % 3, ft = tints[d.j];
     const roomWall = wallTex(dark ? '#8d8b85' : ft, dark), ceil = i % 2 === 0 ? sky : plain('#f7f4ee');
+    if (r.original) { await buildOriginal(i, d, r, ft, col); continue; }
     wall(`th${i}l`, ...P(-M2, VD / 2), R[0], R[1], VD, { h: DOOR_H, tex: plain(tintHex(shade(col, 0.8), envIn)) });
     wall(`th${i}r`, ...P(M2, VD / 2), -R[0], -R[1], VD, { h: DOOR_H, tex: plain(tintHex(shade(col, 0.92), envIn)) });
     orect(`th${i}-ceil`, 'ceiling', P, R, o, -M2, M2, 0, VD, DOOR_H, false, plain(shade(col, 0.96)));
@@ -1631,7 +1733,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       plinthsOut.push({ id: `${i}-${p.id}`, x: q[0], z: q[1], size: PLINTHS[key], key, work: p.work || null, obj: ob ? { id: ob.id, title: ob.title, image: ob.image, w: ob.w, h: ob.h } : null });
     }
     // its text: a plate on the OUTSIDE wall, beside the way in; tapped like a work, it opens to be read (spec.hotspots), in the language it was written in
-    { const paras = (Array.isArray(r.text) ? r.text : String(r.text || '').split(/\n+/)).map(t => String(t).trim()).filter(Boolean);
+    { const paras = textOf(r);
       if (paras.length) {
         const he = /[֐-׿]/.test(paras.join('')), cv = canvas(560, 760), x = cv.getContext('2d');
         x.fillStyle = 'rgba(250,248,244,1)'; x.fillRect(0, 0, 560, 760); x.strokeStyle = col; x.lineWidth = 6; x.strokeRect(3, 3, 554, 754);
@@ -1794,10 +1896,10 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   directory.unshift({ title: 'The Square', kind: 'place', note: 'the heart of the museum', at: PLAN.start.pos, look: PLAN.start.look });
   const spec = {
     version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 190, noSpots: true,
-    outdoors: { hour: env.hour, centre: [CX, CZ], lamps: [], treeline: 'data/rooms/outside/treeline.webp', treeRadius: 120, treeHeight: 46 },
+    outdoors: { hour: env.hour, centre: [CX, CZ], lamps: [], treeline: 'data/rooms/outside/treeline.webp', treeRadius: 120, treeHeight: 46, tropics: 'data/rooms/outside/tropics.webp', hall: [HX, HZ], entrance: PLAN.entrance.at },
     baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: 4 },
     room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], mirrorSurface: { name: 'hall-floor', reflect: [0.1, 0.4], y: 0.01 }, solids, directory, hotspots,
-    stands: stands.map(s => ({ ...s, kind: 'stand', t: STAND.t })), ...(props.length ? { props } : {}),
+    stands: [...stands.map(s => ({ ...s, kind: 'stand', t: STAND.t })), ...extraStands.map(s => ({ ...s, kind: 'stand', t: STAND.t }))], ...(props.length ? { props } : {}),
     start: { pos: PLAN.start.pos, look: PLAN.start.look },
     ...(plinthsOut.length ? { plinths: plinthsOut } : {}),
   };

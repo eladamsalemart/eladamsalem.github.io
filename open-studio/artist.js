@@ -342,12 +342,16 @@ const shapeWork = w => ({ id: w.id, kind: SCULPT.test(w.category || '') || (+w.d
   year: w.year, medium: w.medium, artist: { name: S.artist.name } });
 // the hang editor: inside the walkable room the artist adds, removes and places the works and plinths
 async function hangIn(v, done, add) {
-  const [{ openHangEditor }, { openSpace }] = await Promise.all([import('./space/hang-editor.js'), import('./space/space.js')]);
+  const [{ openHangEditor }, { openSpace }, { wallTextImage, WALL_TEXT }] = await Promise.all([import('./space/hang-editor.js'), import('./space/space.js'), synth()]);
+  // the wall text (the exhibition's name, the artist, their words) is placed like a work; its look is kept with its place
+  const design = { title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre || 150, text: v.text || '', by: S.artist.name || '' };
+  const lab = (v.placements || {})[WALL_TEXT] || {}, ti = await wallTextImage(design, lab), turl = ti.canvas.toDataURL('image/png');
+  const text = { id: WALL_TEXT, kind: 'wall-text', title: 'Wall text', image: turl, thumb: turl, width: Math.round(ti.wm * 100), height: Math.round(ti.hm * 100), pairs: [[Math.round(ti.hm * 100), Math.round(ti.wm * 100)]] };
   await openHangEditor({
-    design: { title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre || 150 },
-    library: S.works.map(w => ({ ...shapeWork(w), thumb: srcOf(w.thumb || w.image) })), state: { ids: v.works, placements: v.placements, plinths: v.plinths },
+    design,
+    library: [...S.works.map(w => ({ ...shapeWork(w), thumb: srcOf(w.thumb || w.image) })), text], state: { ids: lab.off ? v.works : [...v.works, WALL_TEXT], placements: v.placements, plinths: v.plinths },
     src: u => u, shape: w => w, openSpace, add,
-    onSave: s => { v.works = s.ids; v.placements = s.placements; v.plinths = s.plinths; save(); },
+    onSave: s => { v.works = s.ids.filter(i => i !== WALL_TEXT); v.placements = s.placements; if (!s.ids.includes(WALL_TEXT)) v.placements[WALL_TEXT] = { off: true }; v.plinths = s.plinths; save(); },
     onExit: done,
   });
 }

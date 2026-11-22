@@ -36,8 +36,9 @@ const slugify = s => String(s).toLowerCase().normalize('NFKD').replace(/[^\w\s-]
 const getj = (u, d) => fetch(u).then(r => r.ok ? r.json() : d).catch(() => d);
 // the app's real exhibitions that have a 3D space of their own (data/spaces/<slug>.json), by the slug the app gives them
 const REAL = ['ritual', 'nature-of-man', 'bfa-graduate-exhibition'];
-export const realShows = () => getj(APP + 'data/spaces/index.json', {}).then(idx => Promise.all(REAL.map(async slug => { const j = await getj(APP + `data/spaces/${slug}.json`, null); return j ? { slug, title: j.title || slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), cover: idx[slug] ? abs(`data/spaces/${slug}/preview.jpg`) : '', n: (j.works || []).length || 0, kind: 'real', works: [] } : null; }))).then(l => l.filter(Boolean));
-export const virtShows = rows => (rows || []).filter(x => x.status === 'published').map(x => { const w = (x.works || []).find(y => y && (y.thumb || y.image)); return { slug: 'show-' + String(x.id).slice(0, 8), title: x.title || 'Untitled', cover: w ? abs(w.thumb || w.image) : '', n: (x.works || []).length, kind: 'virt', works: [] }; });
+export const realShows = () => getj(APP + 'data/spaces/index.json', {}).then(idx => Promise.all(REAL.map(async slug => { const j = await getj(APP + `data/spaces/${slug}.json`, null); return j ? { slug, title: j.title || slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), cover: idx[slug] ? abs(`data/spaces/${slug}/preview.jpg`) : '', n: (j.works || []).length || 0, kind: 'real', original: { tour: APP + `data/spaces/${slug}.json`, base: APP }, works: (j.works || []).filter(w => w.imageSmall || w.image).map(w => ({ id: slugify(w.work || 'work'), title: w.work || '', image: abs(w.imageSmall || w.image), thumb: abs(w.imageSmall || w.image), width: w.size ? w.size[1] : null, height: w.size ? w.size[0] : null, artist: { name: '' } })) } : null; }))).then(l => l.filter(Boolean));
+const vw = x => (x.works || []).filter(y => y && (y.thumb || y.image)).map(y => ({ ...y, id: y.id, title: y.title || '', image: abs(y.image || y.thumb), thumb: abs(y.thumb || y.image), artist: { name: y.artist || '' } }));
+export const virtShows = rows => (rows || []).filter(x => x.status === 'published').map(x => { const w = (x.works || []).find(y => y && (y.thumb || y.image)); return { slug: 'show-' + String(x.id).slice(0, 8), title: x.title || 'Untitled', cover: w ? abs(w.thumb || w.image) : '', n: (x.works || []).length, kind: 'virt', works: vw(x), original: x.room ? { design: { title: x.title || 'Untitled', room: x.room, paint: x.paint, centre: x.centre, plinths: x.plinths || [], text: Array.isArray(x.text) ? x.text.join(' ') : (x.text || ''), placements: Object.fromEntries((x.works || []).filter(w => w && w.id && w.wall).map(w => [w.id, { wall: w.wall, a: w.a, y: w.y }])), works: vw(x) }, base: APP } : undefined }; });
 export const appShows = () => APPSH || (APPSH = Promise.all([getj(APP + 'data/virtual.json', {}), getj(APP + 'data/demo/world.json', {}), getj('/content/works.json', [])]).then(([v, w, site]) => {
   const cols = v.streetColours || {}, W = new Map(), A = new Map((w.artists || []).map(a => [a.slug, a.name]));
   for (const x of site || []) { const k = slugify(`${x.title}-${x.year}`); if (!W.has(k)) W.set(k, { id: k, title: (x.title || 'Untitled').trim(), year: String(x.year || ''), medium: x.tech || '', image: x.image, thumb: x.image, artist: { name: 'Elad Amsalem' } }); }
@@ -59,9 +60,9 @@ export function roomOf(E, colour) {
   return { slug: E.id || 'draft', title: E.title || 'Untitled', curator: E.curator, text: E.text, plinths: E.plinths || [], objects, labels: true, colour: colour || '#8a8a8a',
     works: E.works.filter(w => w.s != null && w.kind !== 'object' && w.image).map(w => ({ ...w, image: abs(w.image), thumb: abs(w.thumb || w.image), artist: { name: w.artist || '' } })) };
 }
-export async function walkStreet(rooms, focus, viewerCss, synth) {
+export async function walkStreet(rooms, focus, viewerCss, synth, more = {}) {
   const [SY, { openSpace }] = await Promise.all([synth(), import(APP + 'space/space.js'), viewerCss()]);
-  const made = await (SY.buildSky || SY.buildStreet)(rooms, u => u, w => w.thumb || w.image, focus >= 0 ? { focus } : {});      // (the preview is the museum as visitors get it: one building, eight houses)
+  const made = await (SY.buildSky || SY.buildStreet)(rooms, u => u, w => w.thumb || w.image, { ...more, ...(focus >= 0 ? { focus } : {}) });      // (the preview is the museum as visitors get it: one building, eight houses)
   if (made.spec.outdoors && /^data[/]/.test(made.spec.outdoors.treeline || '')) made.spec.outdoors.treeline = APP + made.spec.outdoors.treeline;
   const works = rooms.flatMap(r => r.works);
   window.__spaceView = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => { window.__spaceView = null; } });
@@ -108,7 +109,7 @@ export async function home(ctx) {
     if (sat(F, rectPts(P.entrance.at[0] - 2, d - 9, P.entrance.at[1] + 2, d))) return 'חוסם את הכניסה';
     if (sat(F, rectPts(P.start.pos[0] - 3, P.start.pos[1] - 3, P.start.pos[0] + 3, P.start.pos[1] + 3))) return 'על נקודת ההגעה';
     return null; };
-  const nameOf = sp => sp.name ? sp.name : sp.type === 'section' ? (secOf(sp) ? secOf(sp).title : 'אגף היסטוריה') : sp.tour ? `חלל מקורי: ${sp.tour}` : sp.slot > 8 ? `בית נוסף ${sp.slot}` : `בית ${sp.slot}`;
+  const nameOf = sp => sp.name ? sp.name : sp.type === 'section' ? (secOf(sp) ? secOf(sp).title : 'אגף היסטוריה') : sp.tour ? `חלל מקורי: ${sp.tour}` : `ביתן ${sp.slot}`;
   const baseOf = () => JSON.parse(JSON.stringify(SYm.planOf(null)));
   const writePlan = async next => { await api.savePlan(next); PLAN = next; };
   const saveSpaces = async (label, edit, keep) => {                              // edit(spaces) -> the new list; the plan keeps its own history (buttons and Ctrl+Z when the plan is in use)
@@ -120,58 +121,135 @@ export async function home(ctx) {
   const turnOf = sp => sp.type === 'house' ? { ...sp, dir: ((sp.dir || 0) + 90) % 360 } : { ...sp, dir: [-sp.dir[1], sp.dir[0]] };
   const extraSlots = () => { const P = planNow(); return P ? P.spaces.filter(sp => sp.type === 'house' && !sp.tour && sp.slot > 8).map(sp => sp.slot) : []; };
   const inPlan = x => { const P = planNow(); return !!P && P.spaces.some(s => s.type === 'section' && s.section === x.id); };
-  const baseBlock = () => {
+  // ==== the page: the building's plan on top (draw and arrange the spaces), the curator's wall below (what hangs where, the themed wings, the exhibitions to hang) ====
+  const housesOfPlan = () => { const P = planNow(); return P ? P.spaces.filter(sp => sp.type === 'house') : []; };
+  const spOfSlot = k => housesOfPlan().find(sp => sp.slot === k && !sp.tour);
+  const isTour = sp => sp && sp.type === 'house' && sp.tour;
+  const DIRN = d => ({ 0: 'מזרח', 90: 'דרום', 180: 'מערב', 270: 'צפון' })[((Math.round((d || 0) / 90) * 90) % 360 + 360) % 360];
+  const svgPlan = () => {
     const P = planNow(); if (!P) return '';
     const W = P.hall.w, D = P.hall.d;
+    const grid = []; for (let x = 8; x < W; x += 8) grid.push(`<line x1="${x}" y1="0" x2="${x}" y2="${D}"/>`); for (let z = 8; z < D; z += 8) grid.push(`<line x1="0" y1="${z}" x2="${W}" y2="${z}"/>`);
     const shapes = P.spaces.map(sp => { const F = footOf(sp), pts = F.map(q => q.map(v => v.toFixed(1)).join(',')).join(' '), cx = F.reduce((t, q) => t + q[0], 0) / 4, cz = F.reduce((t, q) => t + q[1], 0) / 4, on = sp.id === selSp;
-      return `<g class="b-g${on ? ' on' : ''}" data-id="${esc(sp.id)}" tabindex="0" role="button" aria-label="${esc(nameOf(sp))}" aria-pressed="${on}"><polygon points="${pts}" class="${sp.type === 'house' ? (sp.tour ? 'b-r' : 'b-h') : 'b-s'}"/><text x="${cx.toFixed(1)}" y="${(cz + 1.1).toFixed(1)}" class="${sp.type === 'house' ? 'b-n' : 'b-t'}">${esc(sp.type === 'section' ? (sp.name || (secOf(sp) || {}).title || 'אגף היסטוריה') : sp.name ? sp.name : sp.tour ? 'חלל מקורי' : sp.slot)}</text></g>`; }).join('');
-    const pool = P.pool ? `<rect x="${P.pool[0]}" y="${P.pool[1]}" width="${P.pool[2] - P.pool[0]}" height="${P.pool[3] - P.pool[1]}" class="b-p"/>` : '';
+      const r = sp.type === 'house' && !sp.tour ? SL.get(sp.slot) : null, full = r && (r.exhibition_id || r.app_slug), c = r ? colourOf(r) : null;
+      const cls = sp.type === 'section' ? 'b-s' : sp.tour ? 'b-r' : full ? 'b-h' : 'b-h b-e';
+      const label = sp.type === 'section' ? (sp.name || (secOf(sp) || {}).title || 'אגף') : sp.name || (sp.tour ? (appOf(sp.tour) || { title: sp.tour }).title : String(sp.slot));
+      const rot = sp.type === 'section' && Math.abs(sp.dir[1]) > Math.abs(sp.dir[0]) ? ` transform="rotate(-90 ${cx.toFixed(1)} ${cz.toFixed(1)})"` : '';
+      return `<g class="b-g${on ? ' on' : ''}" data-id="${esc(sp.id)}" tabindex="0" role="button" aria-label="${esc(nameOf(sp))}" aria-pressed="${on}"><polygon points="${pts}" class="${cls}"/>${c && full ? `<polygon points="${F.slice(0, 2).map(q => q.map(v => v.toFixed(1)).join(',')).join(' ')}" class="b-door" style="stroke:${esc(c)}"/>` : ''}<text x="${cx.toFixed(1)}" y="${(cz + 1).toFixed(1)}" class="${sp.type === 'section' ? 'b-t' : sp.tour ? 'b-tr' : 'b-n'}"${rot}>${esc(label)}</text></g>`; }).join('');
+    const pool = P.pool ? `<rect x="${P.pool[0]}" y="${P.pool[1]}" width="${P.pool[2] - P.pool[0]}" height="${P.pool[3] - P.pool[1]}" rx="1" class="b-p"/>` : '';
     const piers = P.piers.map(([x, z]) => `<rect x="${x - 0.7}" y="${z - 0.7}" width="1.4" height="1.4" class="b-pier"/>`).join('');
-    const sel = P.spaces.find(s => s.id === selSp);
-    return `<section class="mp-base"><div class="tray-h"><h2>תוכנית הבניין</h2><span class="muted small">בניין אחד: ${W} × ${D} מ׳, גג אחד, זכוכית מסביב. ${P.spaces.length} מרחבים. לחיצה על מרחב בוחרת אותו.</span></div>
-      ${placing ? `<div class="mp-place" role="status"><b>${esc(placing.label)}</b> · לחץ על התוכנית היכן תהיה הדלת (החדר נמשך לכיוון ${esc(placing.dirName)}). <span id="mp-why" class="muted"></span> <button type="button" class="btn" id="mp-cancel">ביטול <kbd>Esc</kbd></button></div>` : ''}
-      <svg viewBox="-2 -2 ${W + 4} ${D + 4}" class="mp-svg${placing ? ' placing' : ''}" id="mp-svg" role="img" aria-label="תוכנית הבניין" dir="ltr"><rect x="0" y="0" width="${W}" height="${D}" class="b-hall"/>${pool}${piers}${shapes}<g id="mp-ghost"></g></svg>
-      <div class="mp-acts"><button type="button" class="btn p" id="mp-add">הוסף מרחב</button>
-      <button type="button" class="btn" id="mp-move" ${sel ? '' : 'disabled'}>הזז</button><button type="button" class="btn" id="mp-rot" ${sel ? '' : 'disabled'}>סובב 90°</button><button type="button" class="btn" id="mp-ren" ${sel ? '' : 'disabled'}>שנה שם</button>
-      ${sel && sel.type === 'section' ? '<button type="button" class="btn" id="mp-walk">היכנס לאגף (תלת־ממד)</button>' : ''}
-      <button type="button" class="btn" id="mp-undo" ${pHist.length ? '' : 'disabled'}>בטל</button><button type="button" class="btn" id="mp-redo" ${pFut.length ? '' : 'disabled'}>שחזר</button>
-      <button type="button" class="btn" id="mp-del" ${sel ? '' : 'disabled'}>${sel ? 'הסר: ' + esc(nameOf(sel)) : 'הסר מרחב'}</button>
-      <span class="muted small">${sel ? (sel.type === 'house' && !sel.tour && sel.slot <= 8 ? 'התערוכה שבבית נשארת בחדר שלה כאן, אבל המבקרים לא יראו אותה עד שהבית יוחזר.' : 'ההסרה רק מוחקת את המרחב מהבניין. אפשר לבטל מיד, ואפשר להוסיף שוב.') : 'בחר מרחב בתוכנית כדי להסיר אותו, או הוסף חדש.'}</span></div></section>
-      <dialog id="mp-dlg" class="dlg"><form method="dialog" id="mp-f"><h2>הוספת מרחב</h2>
-        <label class="field">סוג<select id="mp-type"><option value="house">ביתן לתערוכה (תערוכה מהשולחן, עם מספר חדר חדש)</option>${SECS.filter(x => !planNow() || !planNow().spaces.some(s => s.section === x.id)).map(x => `<option value="sec:${esc(x.id)}">אגף נושא: ${esc(x.title)} (שחזור)</option>`).join('')}<option value="tour">תערוכה של אמן עם החלל המקורי שלה (קשת אל הסיור)</option></select></label>
-        <label class="field" id="mp-slugw" hidden>שם התערוכה בקישור (למשל ritual)<input id="mp-slug" type="text" dir="ltr" placeholder="ritual"></label>
-        <label class="field">החדר נמשך לכיוון (הדלת פונה אל הכיכר)<select id="mp-dir"><option value="0">מזרח (ימינה בתוכנית)</option><option value="90">דרום (למטה)</option><option value="180">מערב (שמאלה)</option><option value="270">צפון (למעלה)</option></select></label>
-        <p class="muted small" id="mp-err" style="color:#a03020"></p>
-        <div class="dlg-b"><button class="btn" value="x">ביטול</button><button class="btn p" id="mp-go" value="go">המשך: בחירת מקום</button></div></form></dialog>`;
+    const ent = `<rect x="${P.entrance.at[0]}" y="${D - 0.6}" width="${P.entrance.at[1] - P.entrance.at[0]}" height="1.2" class="b-ent"/><text x="${(P.entrance.at[0] + P.entrance.at[1]) / 2}" y="${D - 1.6}" class="b-et">כניסה</text>`;
+    return `<svg viewBox="-2 -2 ${W + 4} ${D + 4}" class="mp-svg${placing ? ' placing' : ''}" id="mp-svg" role="group" aria-label="תוכנית הבניין: ${P.spaces.length} מרחבים" dir="ltr"><rect x="0" y="0" width="${W}" height="${D}" class="b-hall"/><g class="b-grid">${grid.join('')}</g>${pool}${piers}${ent}${shapes}<g id="mp-ghost"></g></svg>`;
   };
+  const studio = () => {
+    const P = planNow(); if (!P) return '';
+    const nH = P.spaces.filter(s => s.type === 'house').length, nW = P.spaces.filter(s => s.type === 'section').length, sp = P.spaces.find(s => s.id === selSp);
+    return `<section class="mx-studio" aria-label="תוכנית הבניין">
+      <div class="mx-bar"><div class="mx-t"><h2>תוכנית הבניין</h2><span>${P.hall.w} × ${P.hall.d} מ׳ · ${nH} ביתנים · ${nW} אגפי נושא</span></div><span class="grow"></span>
+        <div class="mx-tools" role="toolbar" aria-label="כלי התוכנית"><button type="button" class="tb" id="mp-add">＋ ביתן</button><button type="button" class="tb" id="mp-addw" ${SECS.some(x => !inPlan(x)) ? '' : 'disabled'}>＋ אגף נושא</button><i class="sep"></i>
+          <button type="button" class="tb ic" id="mp-undo" title="בטל שינוי בתוכנית (Ctrl+Z)" aria-label="בטל" ${pHist.length ? '' : 'disabled'}>↶</button><button type="button" class="tb ic" id="mp-redo" title="שחזר (Ctrl+Shift+Z)" aria-label="שחזר" ${pFut.length ? '' : 'disabled'}>↷</button><i class="sep"></i>
+          <button type="button" class="tb ic" id="mu-help" title="קיצורי מקשים (?)" aria-label="קיצורי מקשים">?</button><button type="button" class="btn p" id="walk-all">היכנס למוזיאון ↗</button></div></div>
+      ${placing ? `<div class="mp-place" role="status"><b>${esc(placing.label)}</b><span>לחץ על התוכנית היכן תהיה הדלת${placing.move ? '' : ` (החדר נמשך לכיוון ${esc(placing.dirName)})`}.</span><span id="mp-why" class="muted"></span><span class="grow"></span><button type="button" class="btn" id="mp-cancel">ביטול <kbd>Esc</kbd></button></div>` : ''}
+      <div class="mx-grid"><div class="mx-canvas" id="mx-canvas">
+          <div class="mx-legend" aria-hidden="true"><span><i class="lg-h"></i>ביתן</span><span><i class="lg-e"></i>ביתן ריק</span><span><i class="lg-r"></i>חלל מקורי</span><span><i class="lg-s"></i>אגף נושא</span></div>
+          ${svgPlan()}
+          ${sp && !placing ? `<div class="mx-float" id="mx-float" role="toolbar" aria-label="פעולות על ${esc(nameOf(sp))}"><b>${esc(nameOf(sp))}</b><button type="button" id="mp-move">הזז</button><button type="button" id="mp-rot">סובב 90°</button><button type="button" id="mp-ren">שם</button>${sp.type === 'section' || isTour(sp) ? '<button type="button" id="mp-walk">היכנס ↗</button>' : ''}<button type="button" class="d" id="mp-del">הסר</button></div>` : ''}
+          <p class="mx-hint">${placing ? '' : sp ? 'Esc מבטל את הבחירה' : 'לחץ על ביתן או אגף כדי לבחור אותו · גרור תערוכה מהמגש אל ביתן'}</p>
+        </div>
+        <aside class="ip" id="ip" aria-label="פרטי המרחב">${panel()}</aside></div>
+      <dialog id="mp-dlg" class="dlg"><form method="dialog" id="mp-f"><h2>ביתן חדש</h2>
+        <label class="field">סוג<select id="mp-type"><option value="house">ביתן לתערוכה (מספר חדר חדש)</option><option value="tour">תערוכה של אמן עם החלל המקורי שלה</option>${SECS.filter(x => !inPlan(x)).map(x => `<option value="sec:${esc(x.id)}">אגף נושא: ${esc(x.title)}</option>`).join('')}</select></label>
+        <label class="field" id="mp-slugw" hidden>שם התערוכה בקישור (למשל ritual)<input id="mp-slug" type="text" dir="ltr" placeholder="ritual"></label>
+        <label class="field">הביתן נמשך לכיוון (הדלת פונה אל הכיכר)<select id="mp-dir"><option value="0">מזרח (ימינה)</option><option value="90">דרום (למטה)</option><option value="180">מערב (שמאלה)</option><option value="270">צפון (למעלה)</option></select></label>
+        <p class="muted small" id="mp-err" style="color:#a03020"></p>
+        <div class="dlg-b"><button class="btn" value="x">ביטול</button><button class="btn p" id="mp-go" value="go">המשך: בחירת מקום</button></div></form></dialog></section>`;
+  };
+  // the side panel follows the selection: a pavilion's exhibition, an original space, or a themed wing
+  const panel = () => {
+    const sp = planNow() && planNow().spaces.find(s => s.id === selSp);
+    if (sp && sp.type === 'section') { const sec = secOf(sp) || {}, bays = (sec.bays || []).length, works = (sec.bays || []).reduce((t, b) => t + (b.works || []).length, 0);
+      return `<div class="ip-h"><div><span class="kind wing">אגף נושא · ${esc(sec.years || '')}</span><h2 dir="auto">${esc(nameOf(sp))}</h2></div><span class="chip ok">בבניין</span></div>
+        <p class="muted">${bays} מפרצים · ${works} עבודות. התוכן נבנה על ידי סוכן האוצר; כאן מחליטים אם האגף בבניין, איפה ולאיזה כיוון.</p>
+        <div class="ip-acts"><button type="button" class="btn p wide" id="pn-walk">היכנס לאגף ↗</button><button type="button" class="btn wide" id="pn-move">הזז בתוכנית</button><button type="button" class="btn wide" id="pn-rot">סובב 90°</button><button type="button" class="btn q d wide" id="pn-del">הוצא מהבניין</button></div>`; }
+    if (isTour(sp)) { const a = appOf(sp.tour) || { title: sp.tour };
+      return `<div class="ip-h"><div><span class="kind">חלל מקורי · ביתן ${sp.slot}</span><h2 dir="auto">${esc(nameOf(sp))}</h2></div><span class="chip ok">בבניין</span></div>
+        ${a.cover ? `<div class="pn-im" style="background-image:url('${esc(a.cover)}')"></div>` : ''}<p class="muted">${esc(a.title)}: המבקר נכנס דרך הקשת אל החלל שבו התערוכה הוצגה באמת.</p>
+        <div class="ip-acts"><button type="button" class="btn p wide" id="pn-walkall">צפה במוזיאון ↗</button><button type="button" class="btn wide" id="pn-move">הזז בתוכנית</button><button type="button" class="btn wide" id="pn-rot">סובב 90°</button><button type="button" class="btn q d wide" id="pn-del">הוצא מהבניין</button></div>`; }
+    return inspector();
+  };
+  const wingCard = x => { const on = inPlan(x), sp = on && planNow().spaces.find(s => s.type === 'section' && s.section === x.id), bays = (x.bays || []).length;
+    return `<div class="wc${on ? ' on' : ''}${sp && sp.id === selSp ? ' sel' : ''}" data-sec="${esc(x.id)}"><div class="wc-k">אגף נושא${x.years ? ' · ' + esc(x.years) : ''}</div><b dir="auto">${esc(x.title)}</b>
+      <div class="wc-bays" aria-hidden="true">${Array.from({ length: Math.max(1, bays) }, () => '<i></i>').join('')}</div>
+      <div class="wc-row"><label class="wc-sw"><button type="button" class="sw" role="switch" aria-checked="${on}" data-wing="${esc(x.id)}" aria-label="${esc(x.title)} בבניין"><i></i></button><span>${on ? 'בבניין' : 'לא בבניין'}</span></label><span class="grow"></span>
+        ${on ? `<button type="button" class="btn sm" data-sw="${esc(x.id)}">היכנס ↗</button><button type="button" class="btn sm" data-sp="${esc(x.id)}">בתוכנית</button>` : ''}</div></div>`; };
+  const tourCard = sp => { const a = appOf(sp.tour) || { title: sp.tour };
+    return `<div class="rt${sp.id === selSp ? ' sel' : ''}" data-tour="${esc(sp.id)}" tabindex="0" role="button" aria-label="חלל מקורי: ${esc(a.title)}"><div class="rm-im" style="${a.cover ? `background-image:url('${esc(a.cover)}')` : ''}"><span class="rm-n">↗</span><span class="rm-st live">חלל מקורי</span></div><div class="rm-tx"><b dir="auto">${esc(a.title)}</b><span>ביתן ${sp.slot} · קשת אל החלל</span></div></div>`; };
+  const TF = [['all', 'הכל'], ['mine', 'שלי'], ['real', 'אמיתיות'], ['virt', 'של אמנים'], ['demo', 'דמו']];
+  let trayF = sessionStorage.getItem('mu-tray') || 'all';
+  const trayCards = () => {
+    const xc = a => `<div class="tc app" draggable="true" data-drag="app:${esc(a.slug)}" title="גרור אל ביתן"><div class="tc-im" style="${a.cover ? `background-image:url('${esc(a.cover)}')` : ''}"><span class="tc-k ${a.kind}">${a.kind === 'real' ? 'אמיתית' : 'של אמן'}</span></div><b dir="auto">${esc(a.title)}</b><span>${a.n ? a.n + ' עבודות' : ''}</span></div>`;
+    const dc = a => `<div class="tc app" draggable="true" data-drag="app:${esc(a.slug)}" title="תערוכת דמו (בדויה): אפשר לשבץ, לא לערוך כאן"><div class="tc-im" style="${a.cover ? `background-image:url('${esc(a.cover)}')` : ''}"><span class="tc-k demo">דמו</span></div><b dir="auto">${esc(a.title)}</b><span>${a.n} עבודות</span></div>`;
+    const L = { mine: EX.map(exCard), real: real.map(xc), virt: virt.map(xc), demo: apps.map(dc) };
+    const out = trayF === 'all' ? [...L.mine, ...L.real, ...L.virt, ...L.demo] : L[trayF] || [];
+    return out.join('') || '<p class="muted">אין כאן תערוכות.</p>';
+  };
+  const wall = () => {
+    const live = [...SL.values()].filter(s => s.live).length, P = planNow(), slots = [...new Set([1, 2, 3, 4, 5, 6, 7, 8, ...extraSlots()])], empty = slots.filter(k => { const r = SL.get(k); return !r || !(r.exhibition_id || r.app_slug); }).length;
+    const tours = P ? P.spaces.filter(isTour) : [], nW = P ? P.spaces.filter(s => s.type === 'section').length : 0;
+    return `<section class="mx-wall" aria-label="קיר האוצר">
+      <div class="wall-h"><div><h2>קיר האוצר</h2><p>מה תלוי בכל ביתן, אילו אגפים בבניין, ומה אפשר לתלות.</p></div><div class="wall-stats"><div><b>${live}</b><span>מוצגות</span></div><div><b>${empty}</b><span>ביתנים ריקים</span></div><div><b>${nW}</b><span>אגפי נושא</span></div></div></div>
+      <div class="wall-s"><h3>ביתנים <small>גרור ביתן על ביתן כדי להחליף · גרור תערוכה מהמגש אל ביתן</small></h3>
+        <div class="wall-g">${slots.map(room).join('')}${tours.map(tourCard).join('')}</div></div>
+      <div class="wall-s"><h3>אגפי נושא <small>אגפי המוזיאון עצמו (היסטוריה: רנסנס, בארוק…), נבנים על ידי סוכן האוצר · מתג מכניס או מוציא מהבניין</small></h3>
+        <div class="wing-g">${SECS.map(wingCard).join('') || '<p class="muted">עוד אין אגפי נושא.</p>'}</div></div>
+      <section class="tray"><div class="tray-h"><h3>מגש התערוכות</h3><div class="chips" role="tablist" aria-label="סינון">${TF.map(([k, t]) => `<button type="button" class="chip-f" role="tab" aria-selected="${trayF === k}" data-tf="${k}">${t}</button>`).join('')}</div><span class="grow"></span><a class="btn p" href="#/museum/ex/new">תערוכה חדשה <kbd>N</kbd></a></div>
+        <div class="tray-g" id="tray-g">${trayCards()}</div></section></section>`;
+  };
+  // a themed wing in or out of the building: in at its own place when it is free, else the owner picks a place on the plan
+  const wingIn = id => { const sec = SECS.find(x => x.id === id), B = SYm.planOf(null).spaces.find(x => x.section === id), d0 = sec && sec.door ? { door: [sec.door.x, sec.door.z], dir: sec.door.o } : null;
+    const sp = { id, type: 'section', section: id, door: (B || d0 || { door: [14, 47] }).door, dir: (B || d0 || { dir: [0, -1] }).dir }, P = planNow();
+    if (!whyNot(sp, P)) return saveSpaces(`${sec ? sec.title : id} נכנס לבניין`, L => [...L, sp]);
+    placing = { sp, label: `${sec ? sec.title : id}: המקום המקורי תפוס`, dirName: '' }; selSp = null; draw(true); $('#mx-canvas').scrollIntoView({ block: 'start', behavior: 'smooth' }); };
+  const wingOut = id => { const sp = planNow().spaces.find(s => s.type === 'section' && s.section === id); if (!sp) return; if (selSp === sp.id) selSp = null; saveSpaces(`${nameOf(sp)} יצא מהבניין`, L => L.filter(s => s.id !== sp.id)); };
+  const pickSp = id => { selSp = selSp === id ? null : id; const sp = selSp && planNow().spaces.find(s => s.id === selSp); if (sp && sp.type === 'house' && !sp.tour) sel = sp.slot; draw(true); };
+  function placeFloat() {                                                        // the floating tools sit just above the selected space
+    const f = $('#mx-float'), g = selSp && $(`.b-g[data-id="${CSS.escape(selSp)}"]`), cv = $('#mx-canvas'); if (!f || !g || !cv) return;
+    const b = g.getBoundingClientRect(), c = cv.getBoundingClientRect(), fw = f.offsetWidth, fh = f.offsetHeight;
+    let x = b.left + b.width / 2 - c.left - fw / 2, y = b.top - c.top - fh - 10; if (y < 8) y = b.bottom - c.top + 10;
+    f.style.left = Math.max(8, Math.min(c.width - fw - 8, x)) + 'px'; f.style.top = y + 'px'; }
   function wireBase() {
     const svg = $('#mp-svg'); if (!svg) return;
     const pt = e => { const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse()); return [Math.round(p.x), Math.round(p.y)]; };
-    $$('.b-g').forEach(g => { const pick = () => { selSp = selSp === g.dataset.id ? null : g.dataset.id; draw(true); }; g.onclick = ev => { if (placing) return; ev.stopPropagation(); pick(); }; g.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } }; });
-    const del = $('#mp-del'); if (del) del.onclick = () => { const sp = planNow().spaces.find(s => s.id === selSp); if (!sp) return; selSp = null; saveSpaces(`${nameOf(sp)} הוסר מהבניין`, L => L.filter(s => s.id !== sp.id)); };
+    $$('.b-g').forEach(g => { g.onclick = ev => { if (placing) return; ev.stopPropagation(); pickSp(g.dataset.id); }; g.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pickSp(g.dataset.id); } }; });
+    svg.addEventListener('click', () => { if (!placing && selSp) { selSp = null; draw(true); } });
+    placeFloat();
+    const cur = () => planNow().spaces.find(s => s.id === selSp);
+    const del = () => { const sp = cur(); if (!sp) return; selSp = null; saveSpaces(`${nameOf(sp)} הוצא מהבניין`, L => L.filter(s => s.id !== sp.id)); };
+    const move = () => { const sp = cur(); if (sp) { placing = { sp, label: `הזזת ${nameOf(sp)}`, dirName: '', move: true }; draw(true); } };
+    const rot = () => { const P = planNow(), sp = cur(); if (!sp) return; const t = turnOf(sp), why = whyNot(t, P); if (why) return toast('אי אפשר לסובב: ' + why); saveSpaces(`${nameOf(sp)} סובב`, L => L.map(x => x.id === sp.id ? t : x), true); };
+    const ren = () => { const sp = cur(); if (!sp) return; const v = prompt('שם המרחב (ריק = השם הרגיל)', sp.name || ''); if (v === null) return; saveSpaces('השם עודכן', L => L.map(x => { if (x.id !== sp.id) return x; const y = { ...x }; if (v.trim()) y.name = v.trim().slice(0, 40); else delete y.name; return y; }), true); };
+    const on = (id, f) => { const e = $(id); if (e) e.onclick = f; };
+    on('#mp-del', del); on('#pn-del', del); on('#mp-move', move); on('#pn-move', move); on('#mp-rot', rot); on('#pn-rot', rot); on('#mp-ren', ren);
+    on('#mp-walk', () => { const sp = cur(); if (sp && sp.type === 'section') walkWing(sp); else walk(true); }); on('#pn-walk', () => walkWing(cur())); on('#pn-walkall', () => walk(true));
+    on('#mp-undo', () => planStep(pHist, pFut)); on('#mp-redo', () => planStep(pFut, pHist));
     const dlg = $('#mp-dlg'), type = $('#mp-type'), slugw = $('#mp-slugw');
-    $('#mp-add').onclick = () => { $('#mp-err').textContent = ''; slugw.hidden = type.value !== 'tour'; dlg.showModal(); };
-    const mv = $('#mp-move'); if (mv) mv.onclick = () => { const sp = planNow().spaces.find(x => x.id === selSp); if (sp) { placing = { sp, label: `הזזת ${nameOf(sp)}`, dirName: 'כמו שהוא', move: true }; draw(true); } };
-    const rt = $('#mp-rot'); if (rt) rt.onclick = () => { const P = planNow(), sp = P.spaces.find(x => x.id === selSp); if (!sp) return; const t = turnOf(sp), why = whyNot(t, P); if (why) return toast('אי אפשר לסובב: ' + why); saveSpaces(`${nameOf(sp)} סובב`, L => L.map(x => x.id === sp.id ? t : x), true); };
-    const rn = $('#mp-ren'); if (rn) rn.onclick = () => { const sp = planNow().spaces.find(x => x.id === selSp); if (!sp) return; const v = prompt('שם המרחב (ריק = השם הרגיל)', sp.name || ''); if (v === null) return; saveSpaces('שם המרחב עודכן', L => L.map(x => { if (x.id !== sp.id) return x; const y = { ...x }; if (v.trim()) y.name = v.trim().slice(0, 40); else delete y.name; return y; }), true); };
-    const un = $('#mp-undo'), re = $('#mp-redo'); if (un) un.onclick = () => planStep(pHist, pFut); if (re) re.onclick = () => planStep(pFut, pHist);
-    const wk = $('#mp-walk'); if (wk) wk.onclick = () => walkWing(planNow().spaces.find(x => x.id === selSp));
+    on('#mp-add', () => { $('#mp-err').textContent = ''; type.value = 'house'; slugw.hidden = true; dlg.showModal(); });
+    on('#mp-addw', () => { const x = SECS.find(y => !inPlan(y)); if (x) wingIn(x.id); });
     type.onchange = () => { slugw.hidden = type.value !== 'tour'; };
-    $('#mp-go').onclick = async ev => { ev.preventDefault(); const P = planNow(), err = $('#mp-err'), dir = +$('#mp-dir').value, dirName = { 0: 'מזרח', 90: 'דרום', 180: 'מערב', 270: 'צפון' }[dir];
+    $('#mp-go').onclick = async ev => { ev.preventDefault(); const P = planNow(), err = $('#mp-err'), dir = +$('#mp-dir').value;
       const used = new Set(P.spaces.map(s => s.slot).filter(Boolean)); let sp, label;
       if (type.value === 'tour') { const slug = $('#mp-slug').value.trim().toLowerCase(); if (!/^[a-z0-9-]{2,60}$/.test(slug)) { err.textContent = 'כתוב את שם התערוכה באנגלית, כמו ritual'; return; }
         if (P.spaces.some(s => s.tour === slug)) { err.textContent = 'התערוכה הזאת כבר בבניין'; return; }
-        const ok = await fetch(APP + `data/spaces/${slug}.json`).then(r => r.ok).catch(() => false); if (!ok) { err.textContent = 'לתערוכה הזאת אין עדיין חלל מצולם באפליקציה (data/spaces/' + slug + '.json)'; return; }
+        const ok = await fetch(APP + `data/spaces/${slug}.json`).then(r => r.ok).catch(() => false); if (!ok) { err.textContent = 'לתערוכה הזאת אין עדיין חלל באפליקציה (data/spaces/' + slug + '.json)'; return; }
         let n = 50; while (used.has(n)) n++; sp = { id: slug, type: 'house', slot: n, tour: slug, dir }; label = `חלל מקורי: ${slug}`; }
-      else if (type.value.startsWith('sec:')) { const id = type.value.slice(4), sec = SECS.find(x => x.id === id), B = SYm.planOf(null).spaces.find(x => x.section === id);
-        const d0 = sec && sec.door ? { door: [sec.door.x, sec.door.z], dir: sec.door.o } : null; sp = { id, type: 'section', section: id, door: (B || d0 || { door: [14, 47] }).door, dir: (B || d0 || { dir: [0, -1] }).dir }; label = `אגף ${sec ? sec.title : id}`; }
-      else { let n = 9; while (used.has(n)) n++; if (n > 48) { err.textContent = 'אין עוד מקום למספרי חדרים'; return; } sp = { id: 'house-' + n, type: 'house', slot: n, dir }; label = `בית ${n}`; }
-      placing = { sp, label, dirName: sp.type === 'section' ? 'הכיוון המקורי' : dirName }; dlg.close(); selSp = null; draw(true); };
-    const cancel = $('#mp-cancel'); if (cancel) cancel.onclick = () => { placing = null; draw(true); };
+      else if (type.value.startsWith('sec:')) { dlg.close(); return wingIn(type.value.slice(4)); }
+      else { let n = 9; while (used.has(n)) n++; if (n > 48) { err.textContent = 'אין עוד מקום למספרי חדרים'; return; } sp = { id: 'house-' + n, type: 'house', slot: n, dir }; label = `ביתן ${n}`; }
+      placing = { sp, label, dirName: DIRN(dir) }; dlg.close(); selSp = null; draw(true); };
+    on('#mp-cancel', () => { placing = null; draw(true); });
     if (placing) {
       const ghostOf = e => { const sp = { ...placing.sp, door: pt(e) }; return { sp, why: whyNot(sp, planNow()) }; };
-      svg.onpointermove = e => { const { sp, why } = ghostOf(e); $('#mp-ghost').innerHTML = `<polygon points="${footOf(sp).map(q => q.join(',')).join(' ')}" class="${why ? 'b-bad' : 'b-ok'}"/>`; $('#mp-why').textContent = why || (placing.move ? `אפשר: הדלת מ־(${placing.sp.door[0]}, ${placing.sp.door[1]}) אל (${sp.door[0]}, ${sp.door[1]})` : 'אפשר'); };
-      svg.onclick = e => { const { sp, why } = ghostOf(e); if (why) { toast('אי אפשר כאן: ' + why); return; } const mv = placing.move; placing = null; if (mv) saveSpaces(`${nameOf(sp)} הוזז`, L => L.map(x => x.id === sp.id ? sp : x), true); else saveSpaces(`${nameOf(sp)} נוסף לבניין`, L => [...L, sp]); };
+      svg.onpointermove = e => { const { sp, why } = ghostOf(e); $('#mp-ghost').innerHTML = `<polygon points="${footOf(sp).map(q => q.join(',')).join(' ')}" class="${why ? 'b-bad' : 'b-ok'}"/>`; $('#mp-why').textContent = why ? 'לא כאן: ' + why : (placing.move ? `אפשר: הדלת מ־(${placing.sp.door[0]}, ${placing.sp.door[1]}) אל (${sp.door[0]}, ${sp.door[1]})` : 'אפשר'); };
+      svg.onclick = e => { e.stopPropagation(); const { sp, why } = ghostOf(e); if (why) { toast('אי אפשר כאן: ' + why); return; } const mv = placing.move; placing = null; if (mv) saveSpaces(`${nameOf(sp)} הוזז`, L => L.map(x => x.id === sp.id ? sp : x), true); else saveSpaces(`${nameOf(sp)} נוסף לבניין`, L => [...L, sp]); };
     }
   }
 
@@ -214,10 +292,10 @@ export async function home(ctx) {
   // ---- drawing ---------------------------------------------------------------------------------------------------------
   const room = k => {
     const r = SL.get(k), st = stateOf(r), img = cover(r), c = colourOf(r);
-    return `<div class="rm ${r && (r.exhibition_id || r.app_slug) ? '' : 'empty'} s-${st.k}" data-k="${k}" tabindex="0" role="button" aria-pressed="${k === sel}" draggable="true" aria-label="חדר ${k}: ${esc(title(r) || 'ריק')}" style="--door:${c || '#cfc8b8'}">
+    return `<div class="rm ${r && (r.exhibition_id || r.app_slug) ? '' : 'empty'} s-${st.k}" data-k="${k}" tabindex="0" role="button" aria-pressed="${k === sel && (!selSp || (spOfSlot(k) || {}).id === selSp)}" draggable="true" aria-label="ביתן ${k}: ${esc(title(r) || 'ריק')}" style="--door:${c || '#cfc8b8'}">
       <span class="rm-n">${k}</span>${st.k !== 'empty' ? `<span class="rm-st ${st.k}">${esc(st.t)}</span>` : ''}
       ${r && (r.exhibition_id || r.app_slug) ? `<div class="rm-im" style="${img ? `background-image:url('${esc(img)}')` : ''}"></div><div class="rm-tx"><b dir="auto">${esc(title(r))}</b>${r.from_date || r.to_date ? `<span>${dshort(r.from_date) || '…'} – ${dshort(r.to_date) || '…'}</span>` : ''}${dirtyOf(r) ? '<em>יש שינויים שלא פורסמו</em>' : ''}</div>`
-        : '<div class="rm-em"><b>+</b><span>גרור לכאן תערוכה</span></div>'}
+        : '<div class="rm-em"><b>+</b><span>ביתן ריק</span><span class="small">גרור לכאן תערוכה</span></div>'}
       <i class="rm-door"></i></div>`;
   };
   const exCard = e => { const w = (e.works || []).find(x => x.thumb || x.image), at = [...SL.values()].filter(s => s.exhibition_id === e.id).map(s => s.slot);
@@ -227,8 +305,8 @@ export async function home(ctx) {
 
   function inspector() {
     const r = SL.get(sel), st = stateOf(r), has = r && (r.exhibition_id || r.app_slug), c = colourOf(r), isApp = r && r.app_slug, dirty = dirtyOf(r);
-    return `<div class="ip-h"><div><span class="kind">חדר ${sel} · ${sel > 8 ? 'בית נוסף' : sel <= 4 ? 'צד צפון' : sel <= 6 ? 'צד מזרח' : 'צד דרום'}</span><h2 dir="auto">${esc(title(r) || 'חדר ריק')}</h2></div>${st.k !== 'empty' ? `<span class="chip ${st.k === 'live' ? 'ok' : st.k === 'draft' ? '' : 'warn'}">${esc(st.t)}</span>` : ''}</div>
-    <label class="field">התערוכה בחדר<select id="ip-ex"><option value="">— ריק —</option>
+    return `<div class="ip-h"><div><span class="kind">ביתן ${sel}${spOfSlot(sel) ? ' · פונה ' + DIRN((spOfSlot(sel).dir + 180) % 360) : ''}</span><h2 dir="auto">${esc(title(r) || 'ביתן ריק')}</h2></div>${st.k !== 'empty' ? `<span class="chip ${st.k === 'live' ? 'ok' : st.k === 'draft' ? '' : 'warn'}">${esc(st.t)}</span>` : ''}</div>
+    <label class="field">התערוכה בביתן<select id="ip-ex"><option value="">— ריק —</option>
       <optgroup label="התערוכות שלי">${EX.map(e => `<option value="ex:${e.id}" ${r && r.exhibition_id === e.id ? 'selected' : ''}>${esc(e.title)}</option>`).join('')}</optgroup>
       ${real.length ? `<optgroup label="תערוכות אמיתיות">${real.map(a => `<option value="app:${esc(a.slug)}" ${r && r.app_slug === a.slug ? 'selected' : ''}>${esc(a.title)}</option>`).join('')}</optgroup>` : ''}
       ${virt.length ? `<optgroup label="תערוכות וירטואליות של אמנים">${virt.map(a => `<option value="app:${esc(a.slug)}" ${r && r.app_slug === a.slug ? 'selected' : ''}>${esc(a.title)}</option>`).join('')}</optgroup>` : ''}
@@ -240,26 +318,20 @@ export async function home(ctx) {
     <p class="muted small" style="margin:-6px 0 0">בלי תאריכים: פתוחה תמיד כשהיא מוצגת.</p>
     <div class="field">צבע הסף בכניסה<div class="sw-row"><button type="button" class="stl-b sug" id="ip-auto" data-c="" style="background:${r.colour ? '#fff' : c || '#cfc8b8'}" title="אוטומטי, לפי העבודות" aria-label="צבע אוטומטי"></button>${PRESETS.map(p => `<button type="button" class="stl-b ${r.colour === p ? 'on' : ''}" data-c="${p}" style="background:${p}" aria-label="${p}"></button>`).join('')}<label class="stl-c" title="צבע אחר"><input type="color" id="ip-col" value="${r.colour || c || '#808080'}"></label></div>
       <span class="muted small">${r.colour ? 'נבחר ידנית' : 'אוטומטי, מהצבעים של העבודות'}</span></div>
-    <div class="ip-acts">${isApp ? '<p class="muted small">' + (extras.some(x => x.slug === r.app_slug) ? 'תערוכה אמיתית של האפליקציה: המבקר נכנס אליה דרך הקשת שבחדר, אל החלל שלה. העבודות נערכות מחוץ לשולחן.' : 'תערוכת דמו (בדויה): אפשר לשבץ, לתזמן ולצבוע, אבל העבודות נערכות מחוץ לשולחן.') + '</p>' : '<a class="btn p wide" href="#/museum/ex/' + r.exhibition_id + '">ערוך את התערוכה <kbd>Enter</kbd></a>'}<button type="button" class="btn wide" id="ip-walk">צפה בחדר <kbd>W</kbd></button>
-      <button type="button" class="btn q d wide" id="ip-clear">פנה את החדר <kbd>Del</kbd></button></div>` : '<p class="muted">גרור תערוכה מהמגש אל החדר, או בחר אותה כאן.</p>'}`;
+    <div class="ip-acts">${isApp ? '<p class="muted small">' + (extras.some(x => x.slug === r.app_slug) ? 'תערוכה אמיתית של האפליקציה: המבקר נכנס אליה דרך הקשת שבחדר, אל החלל שלה. העבודות נערכות מחוץ לשולחן.' : 'תערוכת דמו (בדויה): אפשר לשבץ, לתזמן ולצבוע, אבל העבודות נערכות מחוץ לשולחן.') + '</p>' : '<a class="btn p wide" href="#/museum/ex/' + r.exhibition_id + '">ערוך את התערוכה <kbd>Enter</kbd></a>'}<button type="button" class="btn wide" id="ip-walk">צפה בביתן <kbd>W</kbd></button>
+      <button type="button" class="btn q d wide" id="ip-clear">פנה את הביתן <kbd>Del</kbd></button></div>` : '<p class="muted">בחר תערוכה כאן, או גרור אותה מהמגש שבקיר האוצר אל הביתן.</p>'}`;
   }
   function draw(keepIns) {
     sessionStorage.setItem('mu-sel', sel);
     const live = [...SL.values()].filter(s => s.live).length;
-    page('museum', 'המוזיאון', `הבניין קבוע: שמונה בתים סביב הכיכר. כאן מחליטים איזו תערוכה תלויה בכל בית, מתי, ובאיזה צבע · ${live} מוצגות`, `
-    ${live ? '' : `<div class="soon" style="margin-bottom:16px">כרגע המוזיאון רץ אוטומטית על התערוכות המובנות. ברגע שחדר אחד מוצג כאן, המוזיאון מציג רק את החדרים שהגדרת. <button type="button" class="btn" id="adopt" style="margin-inline-start:10px;min-height:38px">התחל מהרחוב הנוכחי</button></div>`}
-    <div class="mu"><div class="mu-main"><div class="mp" dir="ltr"><span class="mp-ent">כניסה ←</span><button type="button" class="ib mp-help" id="mu-help" title="קיצורי מקשים (?)" aria-label="קיצורי מקשים">?</button>
-      <div class="mp-row">${[1, 3, 5, 7].map(room).join('')}</div><div class="mp-st" aria-hidden="true"><span>הכיכר</span></div><div class="mp-row">${[2, 4, 6, 8].map(room).join('')}</div>${extraSlots().length ? `<div class="mp-more"><span class="muted small">בתים נוספים</span><div class="mp-row">${extraSlots().map(room).join('')}</div></div>` : ''}</div>
-      ${baseBlock()}<section class="tray"><div class="tray-h"><h2>תערוכות ביתנים</h2><span class="muted small">התערוכות שלי, תערוכות אמיתיות ותערוכות אמנים, בביתנים הממוספרים · גרור אל חדר · לחיצה פותחת לעריכה</span><span class="grow"></span><button class="btn" id="walk-all">צפה ברחוב כולו</button><a class="btn p" href="#/museum/ex/new">תערוכה חדשה <kbd>N</kbd></a></div>
-        <div class="tray-g">${EX.map(exCard).join('')}${EX.length ? '' : '<p class="muted">עוד אין תערוכות. התחל בתערוכה חדשה.</p>'}</div>
-        ${extras.length ? `<details class="tray-a"><summary>תערוכות אמיתיות ווירטואליות של אמנים (${extras.length})</summary><div class="tray-g">${extras.map(a => `<div class="tc app" draggable="true" data-drag="app:${esc(a.slug)}" title="${a.kind === 'real' ? 'תערוכה אמיתית עם חלל משלה' : 'תערוכה וירטואלית של אמן'}: גרור אל חדר"><div class="tc-im" style="${a.cover ? `background-image:url('${esc(a.cover)}')` : ''}"></div><b dir="auto">${esc(a.title)}</b><span>${a.kind === 'real' ? 'אמיתית' : 'וירטואלית'}${a.n ? ' · ' + a.n + ' עבודות' : ''}</span></div>`).join('')}</div></details>` : ''}
-        ${apps.length ? `<details class="tray-a"><summary>תערוכות דמו (בדויות) (${apps.length})</summary><div class="tray-g">${apps.map(appCard).join('')}</div></details>` : ''}</section>
-      <section class="tray tray-themed"><div class="tray-h"><h2>תערוכות נושא של האפליקציה</h2><span class="muted small">אגפי המוזיאון עצמו (היסטוריה: רנסנס, בארוק…), נבנים על ידי סוכן האוצר · כחול מקווקו בתוכנית</span><span class="grow"></span><button class="btn p" id="th-add" ${SECS.some(x => !inPlan(x)) ? '' : 'disabled'}>הוסף אגף נושא</button></div>
-        <div class="tray-g">${SECS.map(x => `<div class="tc th" data-sec="${esc(x.id)}"><div class="tc-im" style="background:#e8eef5"></div><b dir="auto">${esc(x.title)}</b><span>${esc(x.years || '')} · ${inPlan(x) ? 'בבניין' : 'לא בבניין'}</span><span class="th-b">${inPlan(x) ? '<button type="button" class="btn" data-sw="' + esc(x.id) + '">היכנס</button><button type="button" class="btn" data-sp="' + esc(x.id) + '">בחר בתוכנית</button>' : '<button type="button" class="btn p" data-sr="' + esc(x.id) + '">החזר לבניין</button>'}</span></div>`).join('') || '<p class="muted">אין אגפי נושא עדיין.</p>'}</div></section></div>
-      <aside class="ip" id="ip" aria-label="פרטי החדר">${inspector()}</aside></div>`);
+    page('museum', 'המוזיאון', `תחת שמיים אחד · ${live} מוצגות למבקרים`, `
+    ${live ? '' : `<div class="soon" style="margin-bottom:16px">כרגע המוזיאון רץ אוטומטית על התערוכות המובנות. ברגע שביתן אחד מוצג כאן, המוזיאון מציג רק את מה שהגדרת. <button type="button" class="btn" id="adopt" style="margin-inline-start:10px;min-height:38px">התחל מהמצב הנוכחי</button></div>`}
+    <div class="mx">${studio()}${wall()}</div>`);
     $('main').classList.add('wide'); wire(); [...SL.values()].forEach(auto);
   }
-  function select(k) { sel = k; sessionStorage.setItem('mu-sel', k); $$('.rm').forEach(e => e.setAttribute('aria-pressed', +e.dataset.k === k)); $('#ip').innerHTML = inspector(); wireIp(); auto(SL.get(k)); }
+  function select(k) { sel = k; const sp = spOfSlot(k); selSp = sp ? sp.id : null; draw(true); auto(SL.get(k)); }
+  const secsFor = async list => Promise.all(list.map(async sec => { const credits = {}; for (const c of await getj(APP + sec.folder + '/credits.json', [])) credits[c.slug] = { ...c, image: APP + `${sec.folder}/works/${c.slug}.jpg`, thumb: APP + `${sec.folder}/works/${c.slug}-s.jpg` };
+    return { ...JSON.parse(JSON.stringify(sec), (k, v) => typeof v === 'string' && /^data[/]museum[/]/.test(v) ? APP + v : v), credits }; }));
   async function walkWing(sp) {
     if (!sp) return; const SY = await ctx.synth(), sec = secOf(sp); if (!sec) return toast('אין נתונים לאגף הזה');
     toast('בונה את האגף…');
@@ -277,10 +349,14 @@ export async function home(ctx) {
     for (let k = 1; k <= 64; k++) { const r = SL.get(k); if (!r || !(all || k === sel)) continue;
       const e = r.exhibition_id && exOf(r.exhibition_id), a = r.app_slug && appOf(r.app_slug); let room = null;
       if (e) { if (!r.colour && !AUTO[e.id]) await auto(r); room = roomOf({ ...e, id: e.id }, colourOf(r) || '#8a8a8a'); }
-      else if (a && a.works.length) room = { slug: a.slug, title: a.title, works: a.works, colour: colourOf(r) || await SY.suggestColour(a.works.slice(0, 4).map(w => w.thumb), u => u, SY.slugHue(a.slug)) };
-      if (!room) continue; if (k === sel) focus = rooms.length; rooms.push(room); }
+      else if (a && a.works.length) room = { slug: a.slug, title: a.title, works: a.works, original: a.original, colour: colourOf(r) || await SY.suggestColour(a.works.slice(0, 4).map(w => w.thumb), u => u, SY.slugHue(a.slug)) };
+      if (!room) continue; room.slot = k; if (k === sel) focus = rooms.length; rooms.push(room); }
+    const P = planNow();
+    if (all && P) for (const sp of P.spaces) { if (sp.type !== 'house' || !sp.tour || rooms.some(r => r.slot === sp.slot)) continue;
+      const a = appOf(sp.tour); if (!a || !a.works.length) continue;
+      rooms.push({ slug: a.slug, slot: sp.slot, title: a.title, works: a.works, original: a.original, colour: await SY.suggestColour(a.works.slice(0, 4).map(w => w.thumb), u => u, SY.slugHue(a.slug)) }); }
     if (!rooms.length) return toast(all ? 'אין עדיין תערוכות בחדרים' : 'בחדר הזה אין תערוכה לצפות בה');
-    toast(all ? 'בונה את המוזיאון…' : 'בונה את הבית…'); try { await walkStreet(rooms, all ? -1 : focus, ctx.viewerCss, ctx.synth); } catch (e) { fail(e); }
+    toast(all ? 'בונה את המוזיאון…' : 'בונה את הבית…'); try { await walkStreet(rooms, all ? -1 : (SY.skyLayout ? Math.max(0, SY.skyLayout(PLAN).findIndex(d => d.no === sel)) : focus), ctx.viewerCss, ctx.synth, { plan: PLAN, sections: all && P ? await secsFor(SECS.filter(x => P.spaces.some(q => q.type === 'section' && q.section === x.id))) : [] }); } catch (e) { fail(e); }
   }
   function wireIp() {
     const r = SL.get(sel), on = (id, ev, f) => { const e = $(id); if (e) e[ev] = f; };
@@ -297,23 +373,28 @@ export async function home(ctx) {
     wireIp(); wireBase();
     $$('.rm').forEach(e => {
       e.onclick = () => select(+e.dataset.k); e.ondblclick = () => { const r = SL.get(+e.dataset.k); if (r && r.exhibition_id) location.hash = '#/museum/ex/' + r.exhibition_id; };
+      e.onkeydown = ev => { if (ev.key === 'Enter' && ev.target === e) { ev.stopPropagation(); select(+e.dataset.k); } };
       e.ondragstart = ev => { ev.dataTransfer.setData('text/plain', 'room:' + e.dataset.k); ev.dataTransfer.effectAllowed = 'move'; };
       e.ondragover = ev => { ev.preventDefault(); e.classList.add('over'); }; e.ondragleave = () => e.classList.remove('over');
       e.ondrop = ev => { ev.preventDefault(); e.classList.remove('over'); const [t, id] = ev.dataTransfer.getData('text/plain').split(/:(.*)/s), k = +e.dataset.k; sel = k;
         if (t === 'room') swap(+id, k); else if (t === 'ex' || t === 'app') place(k, `${t}:${id}`); };
     });
-    $$('[data-drag]').forEach(e => { e.ondragstart = ev => { ev.dataTransfer.setData('text/plain', e.dataset.drag); ev.dataTransfer.effectAllowed = 'copy'; }; });
-    $$('[data-sw]').forEach(b => { b.onclick = () => walkWing(planNow().spaces.find(s => s.section === b.dataset.sw)); });
-    $$('[data-sp]').forEach(b => { b.onclick = () => { selSp = planNow().spaces.find(s => s.section === b.dataset.sp).id; draw(true); $('#mp-svg').scrollIntoView({ block: 'center' }); }; });
-    $$('[data-sr],#th-add').forEach(b => { b.onclick = () => { const id = b.dataset.sr || (SECS.find(x => !inPlan(x)) || {}).id; if (!id) return; $('#mp-type').value = 'sec:' + id; $('#mp-go').click(); $('#mp-svg').scrollIntoView({ block: 'center' }); }; });
-    const ad = $('#adopt'); if (ad) ad.onclick = async () => {                      // start from what the street shows now: the app's six rooms, as they are
-      const L = apps.slice(0, SLOTS); try { await commit('הרחוב הנוכחי', L.map((a, i) => [i + 1, { ...blank, app_slug: a.slug, live: true }])); draw(); toast('הרחוב הנוכחי הועתק לחדרים', () => restore(undo, redo)); } catch (e) { fail(e); } };
+    $$('.rt').forEach(e => { e.onclick = () => pickSp(e.dataset.tour); e.onkeydown = ev => { if (ev.key === 'Enter') pickSp(e.dataset.tour); }; });
+    const dragWire = e => { e.ondragstart = ev => { ev.dataTransfer.setData('text/plain', e.dataset.drag); ev.dataTransfer.effectAllowed = 'copy'; }; };
+    $$('[data-drag]').forEach(dragWire);
+    $$('[data-wing]').forEach(b => { b.onclick = () => b.getAttribute('aria-checked') === 'true' ? wingOut(b.dataset.wing) : wingIn(b.dataset.wing); });
+    $$('[data-sw]').forEach(b => { b.onclick = () => walkWing(planNow().spaces.find(s => s.type === 'section' && s.section === b.dataset.sw)); });
+    $$('[data-sp]').forEach(b => { b.onclick = () => { const sp = planNow().spaces.find(s => s.type === 'section' && s.section === b.dataset.sp); if (!sp) return; selSp = sp.id; draw(true); $('#mx-canvas').scrollIntoView({ block: 'start', behavior: 'smooth' }); }; });
+    $$('[data-tf]').forEach(b => { b.onclick = () => { trayF = b.dataset.tf; sessionStorage.setItem('mu-tray', trayF); $$('[data-tf]').forEach(x => x.setAttribute('aria-selected', x === b)); $('#tray-g').innerHTML = trayCards(); $$('#tray-g [data-drag]').forEach(dragWire); }; });
+    const ad = $('#adopt'); if (ad) ad.onclick = async () => {                      // start from what the museum shows now: the app's rooms, as they are
+      const L = apps.slice(0, SLOTS); try { await commit('המצב הנוכחי', L.map((a, i) => [i + 1, { ...blank, app_slug: a.slug, live: true }])); draw(); toast('המצב הנוכחי הועתק לביתנים', () => restore(undo, redo)); } catch (e) { fail(e); } };
     $('#walk-all').onclick = () => walk(true); $('#mu-help').onclick = help;
   }
   const help = () => helpDlg('קיצורי מקשים · המוזיאון', [['← → ↑ ↓', 'מעבר בין חדרים'], ['1 – 8', 'בחירת חדר'], ['Enter', 'עריכת התערוכה שבחדר'], ['P', 'הצג או הסתר למבקרים'], ['W', 'צפייה בחדר בתלת־ממד'], ['Shift + W', 'צפייה ברחוב כולו'], ['Del', 'פינוי החדר'], ['Ctrl + Z', 'ביטול'], ['Ctrl + Shift + Z', 'שחזור'], ['N', 'תערוכה חדשה']]);
   keys(e => {
     const el = e.target; if (el && el.closest && el.closest('input,textarea,select,dialog') || e.metaKey && e.key !== 'z') return;
     if (e.key === 'Escape' && placing) { placing = null; return draw(true); }
+    if (e.key === 'Escape' && selSp) { selSp = null; return draw(true); }
     if (e.key === '?') return help();
     const k = e.key, z = (e.ctrlKey || e.metaKey) && k.toLowerCase() === 'z';
     if (z) { e.preventDefault(); const a = e.shiftKey ? redo : undo; return !a.length && (pHist.length || pFut.length) ? (e.shiftKey ? planStep(pFut, pHist) : planStep(pHist, pFut)) : e.shiftKey ? restore(redo, undo) : restore(undo, redo); }
@@ -329,5 +410,6 @@ export async function home(ctx) {
     else if ((k === 'Delete' || k === 'Backspace') && r) act(`חדר ${sel} פונה`, [[sel, null]]);
     else if (k === 'n' || k === 'N') location.hash = '#/museum/ex/new';
   });
+  selSp = (spOfSlot(sel) || {}).id || null;
   draw();
 }
