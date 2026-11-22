@@ -10,6 +10,7 @@ export const KINDS = {
   'artist-run': { label: 'Artist-run', one: 'Artist-run space', c: '#1C9C86' },
   academy: { label: 'Art schools', one: 'Art school gallery', c: '#7B52D6' },
   centre: { label: 'Art centres', one: 'Art centre', c: '#D8578F' },
+  studio: { label: 'Open studios', one: 'Open studio', c: '#2F9E72' },
 };
 const TILES = 'https://tiles.openfreemap.org/planet';
 const GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
@@ -222,6 +223,23 @@ function joinShows(places, d, M) {
       places.push(p); byId.set(p.id, p);
     }
     p.shows.push({ title: e.title, artists: (e.artists || [e.artist]).filter(Boolean).map(a => a.name), start: e.start, end: e.end, href: `#/exhibition/${e.slug}`, os: true, space: !!e.space });
+  }
+  // Open studios: an artist's virtual exhibition (MY OPEN STUDIO) stands where the artist lives, so artists can be found by place. The place is
+  // their city (the mean of the art places there, or a short list of villages); a short offset keeps two studios in one city apart.
+  {
+    const cities = new Map();
+    for (const q of places) if (q.city && q.at) { const k = q.city.trim().toLowerCase(), v = cities.get(k) || [0, 0, 0]; cities.set(k, [v[0] + q.at[0], v[1] + q.at[1], v[2] + 1]); }
+    const VILLAGES = { 'hof hacarmel': [32.64, 34.95], 'megadim': [32.64, 34.95], 'moshav megadim': [32.64, 34.95], 'ein hod': [32.70, 34.99], 'zichron yaakov': [32.57, 34.95] };
+    const hash = t => [...String(t)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 7);
+    for (const e of (M.exhibitions || []).filter(x => !x.demo && x.kind === 'online' && x.space)) {
+      const a = (e.artists || [e.artist]).filter(Boolean)[0]; if (!a) continue;
+      const k = String(a.city || '').trim().toLowerCase().replace(/,.*$/, ''), v = cities.get(k), base = VILLAGES[k] || (v ? [v[0] / v[2], v[1] / v[2]] : null);
+      if (!base) continue;
+      const h = hash(a.slug || a.name), at = [base[0] + ((h % 61) - 30) * 0.0002, base[1] + (((h >> 8) % 61) - 30) * 0.0002];
+      places.push({ id: `studio-${a.slug}`, name: `${a.name}'s open studio`, name_he: '', kind: 'studio', tier: 'curated', city: a.city || '', at, building: null, events: [],
+        shows: [{ title: 'MY OPEN STUDIO', artists: [a.name], start: null, end: null, href: `#/exhibition/${e.slug}/space`, os: true, space: true }] });
+      byId.set(`studio-${a.slug}`, places[places.length - 1]);
+    }
   }
   for (const p of places) {
     p.on = p.shows.filter(s => (!s.start || +s.start <= now) && (!s.end || +s.end + DAY > now));

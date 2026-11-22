@@ -35,7 +35,7 @@ function freshCommunity(d) {
     if (now === was) return;
     M = buildModel({ ...d, community: c });
     // (the page being read isn't pulled from under the reader: only a list that can show the new ones is redrawn)
-    if (/^#?\/?$|^#\/(artists|shows|search)$|^#\/(artist|exhibition)\//.test(location.hash || '#/') && !openSpaceView) render();
+    if (/^#?\/?$|^#\/(artists|shows|search|map)$|^#\/(artist|exhibition)\//.test(location.hash || '#/') && !openSpaceView) render();
   }).catch(e => console.warn('community', e));
 }
 const DB = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/rest/v1/', DB_KEY = 'sb_publishable_VKboaeE8UE3iwVKhyr4FSA_faDO17fu';
@@ -435,7 +435,7 @@ function walkRow(list, label) {
     return `<li><div class="wc${e.space ? ' has-room' : ''}" data-slug="${esc(e.slug)}" data-space="${esc(sk)}">
       <div class="wc-arch">${first ? `<img class="wc-poster" src="${esc(first)}" data-alt="${esc(alt)}" alt="" loading="lazy" onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt='';this.closest('.wc').classList.add('nofilm')}">` : alt ? `<img class="wc-poster" src="${esc(alt)}" alt="" loading="lazy">` : ''}
         ${pill}
-        <div class="wc-cap"><span class="wc-kind ${e.kind === 'online' ? 'virt' : 'real'}">${e.kind === 'online' ? 'Virtual exhibition' : 'Real exhibition'}</span><a class="wc-t" href="#/exhibition/${esc(e.slug)}"><b${heb(e.title)}>${esc(e.title)}</b></a><span>${esc([byOf(e), e.city].filter(Boolean).join(' · '))}</span></div>
+        <div class="wc-cap"><a class="wc-t" href="#/exhibition/${esc(e.slug)}"><b${heb(e.title)}>${esc(e.title)}</b></a><span>${esc([byOf(e), e.city].filter(Boolean).join(' · '))}</span>${e.kind !== 'online' && e.venue ? `<span class="wc-venue">${esc(String(e.venue).split(' — ')[0])}</span>` : ''}</div>
       </div>
       ${e.space ? `<a class="step" href="#/exhibition/${esc(e.slug)}/space">Step inside</a>` : ''}</div></li>`;
   };
@@ -523,8 +523,9 @@ function home() {
       <p class="hand mos-tag">come and meet our artists through their open studios</p>
       <ul class="mos-row">${openStudios.map(e => `<li class="mos-w">${roundWin(e)}<b class="hand">${esc(byOf(e))}</b></li>`).join('')}</ul></section>` : ''}
     ${walkReal.length ? `<section class="hs-sec hs-walk" aria-labelledby="hsLive">
-      <div class="hs-h"><h2 id="hsLive">Walk in now</h2><span class="hand side">you can walk in from here</span></div>
-      ${walkRow(walkReal, 'Exhibitions you can walk into')}</section>` : ''}
+      <div class="hs-h"><h2 id="hsLive">Real exhibitions, virtual tours</h2></div>
+      <p class="hand hs-sub">walk through shows that hung in real galleries and spaces</p>
+      ${walkRow(walkReal, 'Real exhibitions you can walk through')}</section>` : ''}
     <section class="hs-sec hs-new" id="hsNew" aria-labelledby="hsNewH" hidden></section>
     ${mine.length ? `<section class="hs-sec" aria-labelledby="hsArtists">
       <div class="hs-h"><h2 id="hsArtists">Your artists</h2><a class="hs-more" href="#/artists">All</a></div>
@@ -1150,7 +1151,7 @@ function fillRealShows(box, art) {
   rest.innerHTML = sec('On view now', 'Real exhibitions in galleries, museums and art institutions in Israel, as they list them.', now) + sec('Opening soon', 'In the next weeks.', soon);
 }
 function showsPage() {
-  const pick = e => showsKind === 'all' || (showsKind === 'online' ? e.kind === 'online' : e.kind !== 'online');
+  const pick = e => e.kind !== 'online';                     // (Shows holds real exhibitions only)
   const all = M.exhibitions.filter(e => pick(e) && !e.demo);
   const on = all.filter(isOn), soon = all.filter(e => status(e) === 'soon').sort((a, b) => a.start - b.start);
   const evs = [...M.exhibitions.filter(e => pick(e) && !e.demo).flatMap(e => e.events), ...(showsKind === 'online' ? [] : M.listings.flatMap(l => l.events))]
@@ -1165,7 +1166,7 @@ function showsPage() {
   const card = e => `<a class="nx-show" href="#/exhibition/${e.slug}">${im(e.images[0], '', '', '45vw')}<i class="badge ${e.kind === 'online' ? 'virt' : 'real'}">${e.kind === 'online' ? 'Virtual' : 'Real'}</i>
     <b>${esc(e.title)}</b><span>${esc(byOf(e))}</span><span class="nx-when">${status(e) !== 'past' ? lh(when(e)) : esc(when(e))}${e.city ? ` · ${esc(e.city)}` : ''}</span></a>`;
   return `<div class="wrap gut nx">
-    <div class="nx-h"><h1>Shows</h1><div class="seg" role="group" aria-label="Which shows">${[['all', 'All'], ['rooms', 'Real'], ['online', 'Virtual']].map(([k, t]) => `<button type="button" data-kind="${k}" aria-pressed="${showsKind === k}">${t}</button>`).join('')}</div></div>
+    <div class="nx-h"><h1>Shows</h1></div>
     ${hero ? `<a class="nx-hero" href="#/exhibition/${hero.slug}">${im(hero.images[0], `${hero.title}`, 'loading="eager"', '100vw')}
       <span class="nx-live"><i></i>${lh(tonight && tonight.show === hero ? `${tonight.what} ${dayName(tonight.at) === 'Tonight' ? 'tonight' : dayName(tonight.at).toLowerCase()} · ${hm(tonight.at)}` : when(hero))}</span>
       <span class="nx-ov"><b>${esc(hero.title)}</b><span class="k">${esc(byOf(hero))}${hero.venue && hero.kind !== 'online' ? ` · ${esc(hero.venue)}` : ''}</span>
