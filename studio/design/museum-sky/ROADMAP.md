@@ -48,3 +48,5 @@ Source of the plan: `studio/design/museum-directions/research/04*` (top path: Bl
 - 16.11: items "Done" above; roadmap written.
 - 17.11: BUG FOUND AND FIXED: on desktops (device scale 1) the hall floor showed as a green lawn (translucent lawn over the terrazzo); step 3 reopened (see item).
 - 16.11: steps 2, 3, 5, 8 (part) done; see items. Step 1 (floor contact shadows in `buildSky`, painted before the sun pools; no runtime cost; memory unchanged at 433 MB estimate).
+
+19. (Elad 22.11, FIRST) Realistic, tropical OUTSIDE: plants, trees, lawn, ground and the view through the glass look about 15% real; aim 100%. Tropical mood (palms, banana/monstera, ferns, vines, humid warm light, haze, wet stone). Foliage as atlas cards / instancing, measure on a phone. Open.

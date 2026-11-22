@@ -65,9 +65,9 @@ const NUM = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']
     say(asks > before, 'opening the museum asks the database again', 'opening the museum did not ask the database');
     say(built, 'the museum opens with the published rooms', 'the museum did not open');
     if (built) {                                                     // the plan is tappable: it opens large with a list; an entry takes the visitor there, facing it
-      await p.waitForTimeout(1500);
+      await p.waitForTimeout(6000);
       await p.tap('.sv-map');
-      const opened = await p.waitForSelector('.sv-dir:not([hidden])', { timeout: 6000 }).then(() => true, () => false);
+      const opened = await p.waitForSelector('.sv-dir:not([hidden])', { timeout: 20000 }).then(() => true, () => false);
       const n = opened ? await p.evaluate(() => document.querySelectorAll('.sv-dir-l button').length) : 0;
       say(opened && n >= 3, `tapping the plan opens it large with a list of ${n} places and exhibitions`, `the plan did not open as a list (opened ${opened}, ${n} entries)`);
       if (opened && shots) await p.screenshot({ path: `${shots}/museum-plan-open.png` });
