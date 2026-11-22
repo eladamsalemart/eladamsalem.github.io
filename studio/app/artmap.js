@@ -10,6 +10,7 @@ export const KINDS = {
   'artist-run': { label: 'Artist-run', one: 'Artist-run space', c: '#1C9C86' },
   academy: { label: 'Art schools', one: 'Art school gallery', c: '#7B52D6' },
   centre: { label: 'Art centres', one: 'Art centre', c: '#D8578F' },
+  studio: { label: 'Open studios', one: 'Open studio', c: '#2F9E72' },
 };
 const TILES = 'https://tiles.openfreemap.org/planet';
 const GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
@@ -223,6 +224,23 @@ function joinShows(places, d, M) {
     }
     p.shows.push({ title: e.title, artists: (e.artists || [e.artist]).filter(Boolean).map(a => a.name), start: e.start, end: e.end, href: `#/exhibition/${e.slug}`, os: true, space: !!e.space });
   }
+  // Open studios: an artist's virtual exhibition (MY OPEN STUDIO) stands where the artist lives, so artists can be found by place. The place is
+  // their city (the mean of the art places there, or a short list of villages); a short offset keeps two studios in one city apart.
+  {
+    const cities = new Map();
+    for (const q of places) if (q.city && q.at) { const k = q.city.trim().toLowerCase(), v = cities.get(k) || [0, 0, 0]; cities.set(k, [v[0] + q.at[0], v[1] + q.at[1], v[2] + 1]); }
+    const VILLAGES = { 'hof hacarmel': [32.64, 34.95], 'megadim': [32.64, 34.95], 'moshav megadim': [32.64, 34.95], 'ein hod': [32.70, 34.99], 'zichron yaakov': [32.57, 34.95] };
+    const hash = t => [...String(t)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 7);
+    for (const e of (M.exhibitions || []).filter(x => !x.demo && x.kind === 'online' && x.space)) {
+      const a = (e.artists || [e.artist]).filter(Boolean)[0]; if (!a) continue;
+      const k = String(a.city || '').trim().toLowerCase().replace(/,.*$/, ''), v = cities.get(k), base = VILLAGES[k] || (v ? [v[0] / v[2], v[1] / v[2]] : null);
+      if (!base) continue;
+      const h = hash(a.slug || a.name), at = [base[0] + ((h % 61) - 30) * 0.0002, base[1] + (((h >> 8) % 61) - 30) * 0.0002];
+      places.push({ id: `studio-${a.slug}`, name: `${a.name}'s open studio`, name_he: '', kind: 'studio', tier: 'curated', city: a.city || '', at, building: null, events: [], film: e.slug,
+        shows: [{ title: 'MY OPEN STUDIO', artists: [a.name], start: null, end: null, href: `#/exhibition/${e.slug}/space`, os: true, space: true }] });
+      byId.set(`studio-${a.slug}`, places[places.length - 1]);
+    }
+  }
   for (const p of places) {
     p.on = p.shows.filter(s => (!s.start || +s.start <= now) && (!s.end || +s.end + DAY > now));
     p.next = p.shows.filter(s => s.start && +s.start > now).sort((a, b) => a.start - b.start);
@@ -426,9 +444,9 @@ export async function mountArtMap(root, ctx) {
   }
 
   // --- the map ---
-  let map = null;
+  let map = null, GL = null;
   try {
-    const gl = await loadLib();
+    const gl = await loadLib(); GL = gl;
     if (!gl.supported || gl.supported({ failIfMajorPerformanceCaveat: false }) !== false) {
       const start = sel ? sel.at : district(me.at);
       map = new gl.Map({ container: mapEl, style: style(), center: [start[1], start[0]], zoom: sel ? 16.4 : 15.1,
@@ -442,7 +460,19 @@ export async function mountArtMap(root, ctx) {
   } catch (e) { console.warn('art map: no 3D map', e); }
   if (!map) mapEl.innerHTML = '<p class="am-nomap">The 3D map needs WebGL, which this browser has turned off. The places are all listed below.</p>';
 
+  // an open studio, seen close: its round window rises over the place, and a tap steps into the virtual exhibition
+  if (map && GL) {
+    const wins = places.filter(p => p.kind === 'studio' && p.film).map(p => {
+      const el = document.createElement('a'); el.className = 'am-win'; el.href = p.shows[0].href; el.setAttribute('aria-label', `${p.name}: step into it`);
+      el.innerHTML = `<span class="am-win-c"><img src="data/spaces/${esc(p.film)}/preview.jpg" alt=""></span><b>Step in</b>`;
+      new GL.Marker({ element: el, anchor: 'bottom', offset: [0, -26] }).setLngLat([p.at[1], p.at[0]]).addTo(map);
+      return el;
+    });
+    map.__win = () => { const z = map.getZoom(); wins.forEach(el => el.classList.toggle('on', z >= 15.4 && kinds.has('studio'))); };
+    map.on('zoom', map.__win); map.__win();
+  }
   const refresh = () => {
+    if (map && map.__win) map.__win();
     if (!map || !map.getSource('art')) return;
     const [a, b] = geo(places, kinds);
     map.getSource('art').setData(a); map.getSource('artpt').setData(b);
