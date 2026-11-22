@@ -529,9 +529,9 @@ async function introSurface(design, walls, placed, keep, R) {
   const X = he ? W - pad : pad, fam = he ? '"IBM Plex Sans Hebrew","IBM Plex Sans",sans-serif' : '"IBM Plex Sans","IBM Plex Sans Hebrew",sans-serif', maxW = W - 2 * pad;
   const wrap = (txt, font) => { x.font = font; const out = []; let line = ''; for (const wd of String(txt).split(/\s+/).filter(Boolean)) { const t = line ? line + ' ' + wd : wd; if (x.measureText(t).width > maxW && line) { out.push(line); line = wd; } else line = t; } if (line) out.push(line); return out; };
   let y = pad + 12;
-  x.fillStyle = '#857f70'; x.font = '500 17px "IBM Plex Mono",monospace'; x.fillText(design.by ? String(design.by).toUpperCase() : 'A VIRTUAL EXHIBITION', X, y);
+  x.fillStyle = '#857f70'; x.font = '500 17px "IBM Plex Mono",monospace'; x.fillText(`MY OPEN STUDIO${design.by ? '  ·  ' + String(design.by).toUpperCase() : ''}`, X, y);
   y += 20; x.fillStyle = '#1e1c18';
-  const tl = wrap('MY OPEN STUDIO', `300 58px ${fam}`).slice(0, 2); y += 56; tl.forEach((ln, i) => { x.font = `300 58px ${fam}`; x.fillText(ln, X, y + i * 64); }); y += (tl.length - 1) * 64 + 26;
+  const tl = wrap(String(design.title || 'MY OPEN STUDIO').slice(0, 80), `300 58px ${fam}`).slice(0, 2); y += 56; tl.forEach((ln, i) => { x.font = `300 58px ${fam}`; x.fillText(ln, X, y + i * 64); }); y += (tl.length - 1) * 64 + 26;
   x.fillStyle = '#c9c4b5'; x.fillRect(he ? W - pad - 84 : pad, y, 84, 2); y += 40;
   x.fillStyle = '#35322b'; const LH = 39;
   outer: for (const para of words.split(/\n+/).map(t => t.trim()).filter(Boolean)) {
@@ -1362,6 +1362,8 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
   const lamps = [70, 110, ...Array.from({ length: 7 }, (_, k) => 135 + 19.3 + k * 38.6)].map(a => [CX + 9.5 * Math.cos(a * Math.PI / 180), CZ + 9.5 * Math.sin(a * Math.PI / 180)]);
   const spec = {
     version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 150, noSpots: true, sky: ['#9fbfd9', '#e9eef0'],
+    slow: PLAN.spaces.map(sp => { const o = sp.type === 'house' ? [Math.cos(sp.dir * Math.PI / 180), Math.sin(sp.dir * Math.PI / 180)] : sp.dir, R = [-o[1], o[0]], [l0, l1, d0, d1] = sp.type === 'house' ? [-4.6, 4.6, -0.8, 8.4] : [-5.5, 11.5, -0.5, 41.5];       // where the visitor is inside an exhibition: the walk slows to a stroll (the hall itself is run across)
+      return [[l0, d0], [l1, d0], [l1, d1], [l0, d1]].map(([a, d]) => [+(sp.door[0] + R[0] * a + o[0] * d).toFixed(2), +(sp.door[1] + R[1] * a + o[1] * d).toFixed(2)]); }),
     outdoors: { hour: env.hour, centre: [CX, CZ], lamps, treeline: 'data/rooms/outside/treeline.webp', treeRadius: 70, treeHeight: 30 },
     baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: 4 },
     room: { x0: 22, x1: TOT - 22, z0: 22, z1: Math.max(TOT - 22, endZ), height: 6 }, surfaces, works, views: [], floorReflect: [0, 0], solids,
