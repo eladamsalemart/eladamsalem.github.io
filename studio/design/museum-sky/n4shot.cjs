@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
   const p = await c.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => /DBG/.test(m.text()) && console.log(m.text().slice(0,300))); p.on('console', m => m.type() === 'error' && errs.push(m.text().slice(0, 200))); p.on('response', r => r.status() >= 400 && errs.push(r.status() + ' ' + r.url().slice(-80)));
   await p.route(/museum_plan/, async r => { let pl = null; try { const j = await (await r.fetch()).json(); pl = j[0] && j[0].plan; } catch {} if (!pl) pl = { spaces: [{ id: 'h1', type: 'house', slot: 1, door: [41, 21], dir: 270 }, { id: 'renaissance', type: 'section', section: 'renaissance', door: [14, 47], dir: [0, -1] }] };
     const sp = (pl.spaces || []).filter(x => !['ritual', 'v1', 'v2'].includes(x.id)); sp.push({ id: 'ritual', type: 'house', slot: 57, tour: 'ritual', door: [79, 60], dir: 0 }, { id: 'v1', type: 'house', slot: 58, tour: 'show-805a6c3b', door: [86, 10], dir: 180 });
-    r.fulfill({ json: [{ plan: { ...pl, spaces: sp } }] }); });
+    r.fulfill({ json: [{ plan: { ...pl, spaces: sp, ...(process.env.PLANX ? JSON.parse(process.env.PLANX) : {}) } }] }); });
   await p.goto(base + '?guest#/museum');
   await p.waitForFunction(() => window.__spaceView && document.querySelector('canvas'), null, { timeout: 240000, polling: 200 });
   await p.waitForTimeout(8000);

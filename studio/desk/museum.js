@@ -85,7 +85,7 @@ export async function home(ctx) {
   const hasLive = rows => [...SL.values()].some(s => s.live);
   const SYm = await ctx.synth().catch(() => null);
   // ---- the building's plan (stage 2): spaces are added, removed and placed here; the description is written to the table museum_plan and the app builds whatever is valid ----
-  let PLAN = await api.plan().catch(() => null), selSp = null, placing = null;
+  let PLAN = await api.plan().catch(() => null), selSp = null, placing = null, selIt = null, bigBoard = false;      // selIt: a coulisse ('st:<id>') or a pedestal ('ob:<n>') chosen on the plan; bigBoard: the plan fills the screen
   const SECS = await getj(APP + 'data/museum/sections.json', {}).then(j => (j.sections || []).filter(x => !x.hidden)).catch(() => []);       // the museum's own themed sections (History: Renaissance, ...), built by the curator agent
   const pHist = [], pFut = [];                                                    // the plan's own undo / redo (descriptions)
   const secOf = sp => sp && sp.type === 'section' ? SECS.find(x => x.id === sp.section) : null;
@@ -117,8 +117,33 @@ export async function home(ctx) {
     try { await writePlan(next); pHist.push(prev || baseOf()); pFut.length = 0; if (pHist.length > 40) pHist.shift(); if (!keep) selSp = null; draw(true); toast(label, () => planStep(pHist, pFut)); } catch (e) { fail(e); } };
   const planStep = async (from, to) => {                                         // undo (from = pHist) or redo (from = pFut)
     const prev = from.pop(); if (!prev) return toast('אין מה לבטל בתוכנית');
-    try { to.push(PLAN || baseOf()); await writePlan(prev); selSp = null; draw(true); toast(from === pHist ? 'בוטל שינוי בתוכנית' : 'שוחזר שינוי בתוכנית'); } catch (e) { from.push(prev); to.pop(); fail(e); } };
+    try { to.push(PLAN || baseOf()); await writePlan(prev); selSp = null; selIt = null; draw(true); toast(from === pHist ? 'בוטל שינוי בתוכנית' : 'שוחזר שינוי בתוכנית'); } catch (e) { from.push(prev); to.pop(); fail(e); } };
   const turnOf = sp => sp.type === 'house' ? { ...sp, dir: ((sp.dir || 0) + 90) % 360 } : { ...sp, dir: [-sp.dir[1], sp.dir[0]] };
+  // ---- the hall's own furniture, drawn and arranged on the plan: coulisses (freestanding walls: x, z, length, angle, height; the works of an exhibition on their faces) and pedestals ([x, z, size, exhibition])
+  const PED = { s: 0.3, m: 0.4, l: 0.6 }, PEDN = { s: 'קטן', m: 'בינוני', l: 'גדול' };
+  const snap = v => Math.round(v * 4) / 4;
+  const itemOf = (P, id) => { if (!id) return null; if (id.startsWith('st:')) { const q = P.stands.find(x => x.id === id.slice(3)); return q ? { kind: 'st', q } : null; } const k = +id.slice(3), q = P.objects[k]; return q ? { kind: 'ob', k, q } : null; };
+  const itemFoot = (kind, q) => { if (kind === 'ob') { const h = Math.max(0.5, (PED[q[2]] || 0.4) / 2 + 0.3); return rectPts(q[0] - h, q[1] - h, q[0] + h, q[1] + h); }
+    const a = rad(q.rot), c = [Math.cos(a), Math.sin(a)], n = [-c[1], c[0]], h = q.len / 2, w = 0.6;
+    return [[q.x - c[0] * h - n[0] * w, q.z - c[1] * h - n[1] * w], [q.x + c[0] * h - n[0] * w, q.z + c[1] * h - n[1] * w], [q.x + c[0] * h + n[0] * w, q.z + c[1] * h + n[1] * w], [q.x - c[0] * h + n[0] * w, q.z - c[1] * h + n[1] * w]]; };
+  const itemWhy = (P, kind, q) => {                                              // null when the place is free (hall edge, pavilions, pool, piers, the way in and the arrival point stay clear)
+    const F = itemFoot(kind, q), { w, d } = P.hall;
+    if (F.some(([x, z]) => x < 0.3 || z < 0.3 || x > w - 0.3 || z > d - 0.3)) return 'חורג מהבניין';
+    for (const o of P.spaces) if (sat(F, footOf(o, 0.2))) return 'על ' + nameOf(o);
+    if (P.pool && sat(F, rectPts(P.pool[0] - 0.5, P.pool[1] - 0.5, P.pool[2] + 0.5, P.pool[3] + 0.5))) return 'על הבריכה';
+    for (const [x, z] of P.piers) if (sat(F, rectPts(x - 1, z - 1, x + 1, z + 1))) return 'על עמוד';
+    if (sat(F, rectPts(P.entrance.at[0] - 1.5, d - 8, P.entrance.at[1] + 1.5, d))) return 'חוסם את הכניסה';
+    if (sat(F, rectPts(P.start.pos[0] - 1.5, P.start.pos[1] - 1.5, P.start.pos[0] + 1.5, P.start.pos[1] + 1.5))) return 'על נקודת ההגעה';
+    return null; };
+  const savePlan = async (label, mut, keep) => {                                 // mut(copy of the plan) changes stands / objects; own history, like the spaces
+    const P = planNow(), prev = PLAN, next = JSON.parse(JSON.stringify(P)); mut(next);
+    try { await writePlan(next); pHist.push(prev || baseOf()); pFut.length = 0; if (pHist.length > 40) pHist.shift(); if (!keep) selIt = null; draw(true); toast(label, () => planStep(pHist, pFut)); } catch (e) { fail(e); } };
+  const freeSpot = (P, kind, mk) => { const cx = P.hall.w / 2, cz = P.hall.d / 2;
+    for (let r = 0; r < 40; r += 2) for (let a = 0; a < 360; a += 30) { const q = mk(snap(cx + Math.cos(rad(a)) * r), snap(cz + Math.sin(rad(a)) * r)); if (!itemWhy(P, kind, q) && (kind !== 'st' || (!itemWhy(P, kind, { ...q, len: 7 }) && !itemWhy(P, kind, { ...q, len: 7, rot: 90 })))) return q; } return mk(snap(cx), snap(cz)); };      // (a coulisse needs room to be made longer and turned)
+  const showsInUse = () => { const P = planNow(), out = [], seen = new Set(), add = (v, t) => { if (v && !seen.has(v)) { seen.add(v); out.push([v, t || v]); } };
+    for (const r of SL.values()) { if (r.exhibition_id) add(r.exhibition_id, (exOf(r.exhibition_id) || {}).title); else if (r.app_slug) add(r.app_slug, (appOf(r.app_slug) || {}).title); }
+    for (const sp of P.spaces) if (sp.tour) add(sp.tour, (appOf(sp.tour) || {}).title); return out; };
+  const showSel = (id, cur, none) => `<select id="${id}"><option value="">לפי הסדר (אוטומטי)</option>${none ? `<option value="none"${cur === 'none' ? ' selected' : ''}>${none}</option>` : ''}${showsInUse().map(([v, t]) => `<option value="${esc(v)}"${cur === v ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select>`;
   const extraSlots = () => { const P = planNow(); return P ? P.spaces.filter(sp => sp.type === 'house' && !sp.tour && sp.slot > 8).map(sp => sp.slot) : []; };
   const inPlan = x => { const P = planNow(); return !!P && P.spaces.some(s => s.type === 'section' && s.section === x.id); };
   // ==== the page: the building's plan on top (draw and arrange the spaces), the curator's wall below (what hangs where, the themed wings, the exhibitions to hang) ====
@@ -138,23 +163,28 @@ export async function home(ctx) {
       return `<g class="b-g${on ? ' on' : ''}" data-id="${esc(sp.id)}" tabindex="0" role="button" aria-label="${esc(nameOf(sp))}" aria-pressed="${on}"><polygon points="${pts}" class="${cls}"/>${c && full ? `<polygon points="${F.slice(0, 2).map(q => q.map(v => v.toFixed(1)).join(',')).join(' ')}" class="b-door" style="stroke:${esc(c)}"/>` : ''}<text x="${cx.toFixed(1)}" y="${(cz + 1).toFixed(1)}" class="${sp.type === 'section' ? 'b-t' : sp.tour ? 'b-tr' : 'b-n'}"${rot}>${esc(label)}</text></g>`; }).join('');
     const pool = P.pool ? `<rect x="${P.pool[0]}" y="${P.pool[1]}" width="${P.pool[2] - P.pool[0]}" height="${P.pool[3] - P.pool[1]}" rx="1" class="b-p"/>` : '';
     const piers = P.piers.map(([x, z]) => `<rect x="${x - 0.7}" y="${z - 0.7}" width="1.4" height="1.4" class="b-pier"/>`).join('');
+    const items = P.stands.map(q => { const on = selIt === 'st:' + q.id, nm = q.show && q.show !== 'none' ? (showsInUse().find(x => x[0] === q.show) || [0, ''])[1] : '';
+        return `<g class="b-it b-st${on ? ' on' : ''}" data-it="st:${esc(q.id)}" transform="translate(${q.x} ${q.z}) rotate(${q.rot})" tabindex="0" role="button" aria-label="קולישה, אורך ${q.len} מ׳"><rect x="${-q.len / 2 - 0.3}" y="-1.1" width="${q.len + 0.6}" height="2.2" class="b-hit"/><rect x="${-q.len / 2}" y="-0.25" width="${q.len}" height="0.5" class="b-stb"/>${on ? `<circle cx="${q.len / 2}" cy="0" r="0.5" class="b-knob" data-knob="1"/>` : ''}${nm ? `<text x="0" y="-0.7" class="b-itt" transform="rotate(${-q.rot})">${esc(nm.slice(0, 16))}</text>` : ''}</g>`; }).join('')
+      + P.objects.map((q, k) => { const w = Math.max(0.8, PED[q[2]] || 0.4) , on = selIt === 'ob:' + k;
+        return `<g class="b-it b-pd${on ? ' on' : ''}" data-it="ob:${k}" transform="translate(${q[0]} ${q[1]})" tabindex="0" role="button" aria-label="פדסטל ${PEDN[q[2]] || 'בינוני'}"><rect x="-1" y="-1" width="2" height="2" class="b-hit"/><rect x="${-w / 2}" y="${-w / 2}" width="${w}" height="${w}" class="b-pdb"/>${q[3] === 'none' ? '' : '<circle r="0.18" class="b-pdd"/>'}</g>`; }).join('');
     const ent = `<rect x="${P.entrance.at[0]}" y="${D - 0.6}" width="${P.entrance.at[1] - P.entrance.at[0]}" height="1.2" class="b-ent"/><text x="${(P.entrance.at[0] + P.entrance.at[1]) / 2}" y="${D - 1.6}" class="b-et">כניסה</text>`;
-    return `<svg viewBox="-2 -2 ${W + 4} ${D + 4}" class="mp-svg${placing ? ' placing' : ''}" id="mp-svg" role="group" aria-label="תוכנית הבניין: ${P.spaces.length} מרחבים" dir="ltr"><rect x="0" y="0" width="${W}" height="${D}" class="b-hall"/><g class="b-grid">${grid.join('')}</g>${pool}${piers}${ent}${shapes}<g id="mp-ghost"></g></svg>`;
+    return `<svg viewBox="-2 -2 ${W + 4} ${D + 4}" class="mp-svg${placing ? ' placing' : ''}" id="mp-svg" role="group" aria-label="תוכנית הבניין: ${P.spaces.length} מרחבים" dir="ltr"><rect x="0" y="0" width="${W}" height="${D}" class="b-hall"/><g class="b-grid">${grid.join('')}</g>${pool}${piers}${ent}${shapes}${items}<g id="mp-ghost"></g></svg>`;
   };
   const studio = () => {
     const P = planNow(); if (!P) return '';
-    const nH = P.spaces.filter(s => s.type === 'house').length, nW = P.spaces.filter(s => s.type === 'section').length, sp = P.spaces.find(s => s.id === selSp);
-    return `<section class="mx-studio" aria-label="תוכנית הבניין">
-      <div class="mx-bar"><div class="mx-t"><h2>תוכנית הבניין</h2><span>${P.hall.w} × ${P.hall.d} מ׳ · ${nH} ביתנים · ${nW} אגפי נושא</span></div><span class="grow"></span>
-        <div class="mx-tools" role="toolbar" aria-label="כלי התוכנית"><button type="button" class="tb" id="mp-add">＋ ביתן</button><button type="button" class="tb" id="mp-addw" ${SECS.some(x => !inPlan(x)) ? '' : 'disabled'}>＋ אגף נושא</button><i class="sep"></i>
+    const nH = P.spaces.filter(s => s.type === 'house').length, nW = P.spaces.filter(s => s.type === 'section').length, sp = P.spaces.find(s => s.id === selSp), it = itemOf(P, selIt);
+    return `<section class="mx-studio${bigBoard ? ' full' : ''}" aria-label="תוכנית הבניין">
+      <div class="mx-bar"><div class="mx-t"><h2>תוכנית הבניין</h2><span>${P.hall.w} × ${P.hall.d} מ׳ · ${nH} ביתנים · ${nW} אגפי נושא · ${P.stands.length} קוליסות · ${P.objects.length} פדסטלים</span></div><span class="grow"></span>
+        <div class="mx-tools" role="toolbar" aria-label="כלי התוכנית"><button type="button" class="tb" id="mp-add">＋ ביתן</button><button type="button" class="tb" id="it-addst" title="קיר חופשי באמצע האולם, עם יצירות על שני צדדיו">＋ קולישה</button><button type="button" class="tb" id="it-addpd" title="בסיס לפסל או לעבודה בודדת">＋ פדסטל</button><button type="button" class="tb" id="mp-addw" ${SECS.some(x => !inPlan(x)) ? '' : 'disabled'}>＋ אגף נושא</button><i class="sep"></i>
           <button type="button" class="tb ic" id="mp-undo" title="בטל שינוי בתוכנית (Ctrl+Z)" aria-label="בטל" ${pHist.length ? '' : 'disabled'}>↶</button><button type="button" class="tb ic" id="mp-redo" title="שחזר (Ctrl+Shift+Z)" aria-label="שחזר" ${pFut.length ? '' : 'disabled'}>↷</button><i class="sep"></i>
-          <button type="button" class="tb ic" id="mu-help" title="קיצורי מקשים (?)" aria-label="קיצורי מקשים">?</button><button type="button" class="btn p" id="walk-all">היכנס למוזיאון ↗</button></div></div>
+          <button type="button" class="tb" id="mp-full" aria-pressed="${bigBoard}" title="פתח את הלוח על כל המסך">${bigBoard ? '✕ סגור מסך מלא' : '⛶ לוח גדול'}</button><button type="button" class="tb ic" id="mu-help" title="קיצורי מקשים (?)" aria-label="קיצורי מקשים">?</button><button type="button" class="btn p" id="walk-all">היכנס למוזיאון ↗</button></div></div>
       ${placing ? `<div class="mp-place" role="status"><b>${esc(placing.label)}</b><span>לחץ על התוכנית היכן תהיה הדלת${placing.move ? '' : ` (החדר נמשך לכיוון ${esc(placing.dirName)})`}.</span><span id="mp-why" class="muted"></span><span class="grow"></span><button type="button" class="btn" id="mp-cancel">ביטול <kbd>Esc</kbd></button></div>` : ''}
       <div class="mx-grid"><div class="mx-canvas" id="mx-canvas">
-          <div class="mx-legend" aria-hidden="true"><span><i class="lg-h"></i>ביתן</span><span><i class="lg-e"></i>ביתן ריק</span><span><i class="lg-r"></i>חלל מקורי</span><span><i class="lg-s"></i>אגף נושא</span></div>
+          <div class="mx-legend" aria-hidden="true"><span><i class="lg-h"></i>ביתן</span><span><i class="lg-e"></i>ביתן ריק</span><span><i class="lg-r"></i>חלל מקורי</span><span><i class="lg-s"></i>אגף נושא</span><span><i class="lg-k"></i>קולישה</span><span><i class="lg-d"></i>פדסטל</span></div>
           ${svgPlan()}
-          ${sp && !placing ? `<div class="mx-float" id="mx-float" role="toolbar" aria-label="פעולות על ${esc(nameOf(sp))}"><b>${esc(nameOf(sp))}</b><button type="button" id="mp-move">הזז</button><button type="button" id="mp-rot">סובב 90°</button><button type="button" id="mp-ren">שם</button>${sp.type === 'section' || isTour(sp) ? '<button type="button" id="mp-walk">היכנס ↗</button>' : ''}<button type="button" class="d" id="mp-del">הסר</button></div>` : ''}
-          <p class="mx-hint">${placing ? '' : sp ? 'Esc מבטל את הבחירה' : 'לחץ על ביתן או אגף כדי לבחור אותו · גרור תערוכה מהמגש אל ביתן'}</p>
+          ${it && !placing ? `<div class="mx-float" id="mx-float" role="toolbar" aria-label="פעולות על ${it.kind === 'st' ? 'הקולישה' : 'הפדסטל'}"><b>${it.kind === 'st' ? 'קולישה' : 'פדסטל ' + (PEDN[it.q[2]] || 'בינוני')}</b>${it.kind === 'st' ? '<button type="button" id="it-r15">סובב 15°</button>' : '<button type="button" id="it-sz">גודל</button>'}<button type="button" id="it-dup">שכפל</button><button type="button" class="d" id="it-del">הסר</button></div>` : ''}
+          ${sp && !placing && !it ? `<div class="mx-float" id="mx-float" role="toolbar" aria-label="פעולות על ${esc(nameOf(sp))}"><b>${esc(nameOf(sp))}</b><button type="button" id="mp-move">הזז</button><button type="button" id="mp-rot">סובב 90°</button><button type="button" id="mp-ren">שם</button>${sp.type === 'section' || isTour(sp) ? '<button type="button" id="mp-walk">היכנס ↗</button>' : ''}<button type="button" class="d" id="mp-del">הסר</button></div>` : ''}
+          <p class="mx-hint">${placing ? '' : sp ? 'Esc מבטל את הבחירה' : 'לחץ על ביתן, אגף, קולישה או פדסטל כדי לבחור · גרור קולישה או פדסטל כדי להזיז · גרור תערוכה מהמגש אל ביתן'}</p>
         </div>
         <aside class="ip" id="ip" aria-label="פרטי המרחב">${panel()}</aside></div>
       <dialog id="mp-dlg" class="dlg"><form method="dialog" id="mp-f"><h2>ביתן חדש</h2>
@@ -166,7 +196,8 @@ export async function home(ctx) {
   };
   // the side panel follows the selection: a pavilion's exhibition, an original space, or a themed wing
   const panel = () => {
-    const sp = planNow() && planNow().spaces.find(s => s.id === selSp);
+    const sp = planNow() && planNow().spaces.find(s => s.id === selSp), it = planNow() && itemOf(planNow(), selIt);
+    if (it) return itemPanel(it);
     if (sp && sp.type === 'section') { const sec = secOf(sp) || {}, bays = (sec.bays || []).length, works = (sec.bays || []).reduce((t, b) => t + (b.works || []).length, 0);
       return `<div class="ip-h"><div><span class="kind wing">אגף נושא · ${esc(sec.years || '')}</span><h2 dir="auto">${esc(nameOf(sp))}</h2></div><span class="chip ok">בבניין</span></div>
         <p class="muted">${bays} מפרצים · ${works} עבודות. התוכן נבנה על ידי סוכן האוצר; כאן מחליטים אם האגף בבניין, איפה ולאיזה כיוון.</p>
@@ -177,6 +208,20 @@ export async function home(ctx) {
         <div class="ip-acts"><button type="button" class="btn p wide" id="pn-walkall">צפה במוזיאון ↗</button><button type="button" class="btn wide" id="pn-move">הזז בתוכנית</button><button type="button" class="btn wide" id="pn-rot">סובב 90°</button><button type="button" class="btn q d wide" id="pn-del">הוצא מהבניין</button></div>`; }
     return inspector();
   };
+  const itemPanel = it => { const q = it.q, num = (id, lab, v, min, max, st) => `<label class="field">${lab}<input type="number" id="${id}" value="${v}" min="${min}" max="${max}" step="${st}" dir="ltr"></label>`;
+    if (it.kind === 'st') return `<div class="ip-h"><div><span class="kind">קולישה</span><h2>קיר חופשי</h2></div></div>
+        <p class="muted">קיר שעומד באולם, ולמבקר מותר להקיף אותו. על שני צדדיו תלויות יצירות.</p>
+        <div class="two-f">${num('it-x', 'מיקום לרוחב (מ׳)', q.x, 0, 220, 0.25)}${num('it-z', 'מיקום לעומק (מ׳)', q.z, 0, 220, 0.25)}</div>
+        <div class="two-f">${num('it-len', 'אורך (מ׳)', q.len, 1, 12, 0.25)}${num('it-h', 'גובה (מ׳)', q.h, 2, 6, 0.1)}</div>
+        ${num('it-rot', 'זווית (מעלות)', q.rot, -180, 180, 5)}
+        <label class="field">מה תלוי עליו${showSel('it-show', q.show, 'ריקה, בלי יצירות')}</label>
+        <div class="ip-acts"><button type="button" class="btn wide" id="it-r15">סובב 15°</button><button type="button" class="btn wide" id="it-r90">סובב 90°</button><button type="button" class="btn wide" id="it-dup">שכפל</button><button type="button" class="btn q d wide" id="it-del">הסר מהאולם</button></div>`;
+    return `<div class="ip-h"><div><span class="kind">פדסטל</span><h2>בסיס ליצירה בודדת</h2></div></div>
+      <p class="muted">עליו עומד חפץ או פסל מתערוכה. בחר איזו תערוכה, או השאר לפי הסדר.</p>
+      <div class="two-f">${num('it-x', 'מיקום לרוחב (מ׳)', q[0], 0, 220, 0.25)}${num('it-z', 'מיקום לעומק (מ׳)', q[1], 0, 220, 0.25)}</div>
+      <label class="field">גודל<select id="it-size">${Object.keys(PED).map(k => `<option value="${k}"${(q[2] || 'm') === k ? ' selected' : ''}>${PEDN[k]} (${Math.round(PED[k] * 100)} ס״מ)</option>`).join('')}</select></label>
+      <label class="field">מה עומד עליו${showSel('it-show', q[3], 'ריק, בלי יצירה')}</label>
+      <div class="ip-acts"><button type="button" class="btn wide" id="it-dup">שכפל</button><button type="button" class="btn q d wide" id="it-del">הסר מהאולם</button></div>`; };
   const wingCard = x => { const on = inPlan(x), sp = on && planNow().spaces.find(s => s.type === 'section' && s.section === x.id), bays = (x.bays || []).length;
     return `<div class="wc${on ? ' on' : ''}${sp && sp.id === selSp ? ' sel' : ''}" data-sec="${esc(x.id)}"><div class="wc-k">אגף נושא${x.years ? ' · ' + esc(x.years) : ''}</div><b dir="auto">${esc(x.title)}</b>
       <div class="wc-bays" aria-hidden="true">${Array.from({ length: Math.max(1, bays) }, () => '<i></i>').join('')}</div>
@@ -211,9 +256,9 @@ export async function home(ctx) {
     if (!whyNot(sp, P)) return saveSpaces(`${sec ? sec.title : id} נכנס לבניין`, L => [...L, sp]);
     placing = { sp, label: `${sec ? sec.title : id}: המקום המקורי תפוס`, dirName: '' }; selSp = null; draw(true); $('#mx-canvas').scrollIntoView({ block: 'start', behavior: 'smooth' }); };
   const wingOut = id => { const sp = planNow().spaces.find(s => s.type === 'section' && s.section === id); if (!sp) return; if (selSp === sp.id) selSp = null; saveSpaces(`${nameOf(sp)} יצא מהבניין`, L => L.filter(s => s.id !== sp.id)); };
-  const pickSp = id => { selSp = selSp === id ? null : id; const sp = selSp && planNow().spaces.find(s => s.id === selSp); if (sp && sp.type === 'house' && !sp.tour) sel = sp.slot; draw(true); };
+  const pickSp = id => { selIt = null; selSp = selSp === id ? null : id; const sp = selSp && planNow().spaces.find(s => s.id === selSp); if (sp && sp.type === 'house' && !sp.tour) sel = sp.slot; draw(true); };
   function placeFloat() {                                                        // the floating tools sit just above the selected space
-    const f = $('#mx-float'), g = selSp && $(`.b-g[data-id="${CSS.escape(selSp)}"]`), cv = $('#mx-canvas'); if (!f || !g || !cv) return;
+    const f = $('#mx-float'), g = selIt ? $('.b-it.on') : selSp && $(`.b-g[data-id="${CSS.escape(selSp)}"]`), cv = $('#mx-canvas'); if (!f || !g || !cv) return;
     const b = g.getBoundingClientRect(), c = cv.getBoundingClientRect(), fw = f.offsetWidth, fh = f.offsetHeight;
     let x = b.left + b.width / 2 - c.left - fw / 2, y = b.top - c.top - fh - 10; if (y < 8) y = b.bottom - c.top + 10;
     f.style.left = Math.max(8, Math.min(c.width - fw - 8, x)) + 'px'; f.style.top = y + 'px'; }
@@ -221,8 +266,56 @@ export async function home(ctx) {
     const svg = $('#mp-svg'); if (!svg) return;
     const pt = e => { const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse()); return [Math.round(p.x), Math.round(p.y)]; };
     $$('.b-g').forEach(g => { g.onclick = ev => { if (placing) return; ev.stopPropagation(); pickSp(g.dataset.id); }; g.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pickSp(g.dataset.id); } }; });
-    svg.addEventListener('click', () => { if (!placing && selSp) { selSp = null; draw(true); } });
+    svg.addEventListener('click', () => { if (!placing && (selSp || selIt)) { selSp = null; selIt = null; draw(true); } });
     placeFloat();
+    // the hall's coulisses and pedestals: pick, drag (snaps to a quarter metre), turn by the knob, edit by number
+    const cur2 = () => itemOf(planNow(), selIt);
+    const svgPt = e => { const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse()); return [p.x, p.y]; };
+    const mkOf = (it, x, z) => it.kind === 'st' ? { ...it.q, x, z } : [x, z, ...it.q.slice(2)];
+    $$('.b-it').forEach(g => {
+      const id = g.dataset.it;
+      g.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ev.stopPropagation(); selIt = selIt === id ? null : id; selSp = null; draw(true); } };
+      g.onclick = ev => ev.stopPropagation();
+      g.onpointerdown = ev => { if (placing || ev.button) return; ev.stopPropagation(); ev.preventDefault();
+        const it = itemOf(planNow(), id); if (!it) return; const knob = ev.target.dataset && ev.target.dataset.knob, p0 = svgPt(ev), a0 = it.kind === 'st' ? [it.q.x, it.q.z] : [it.q[0], it.q[1]]; let moved = false, now = a0, rot = it.kind === 'st' ? it.q.rot : 0;
+        g.setPointerCapture(ev.pointerId);
+        g.onpointermove = e => { const p = svgPt(e);
+          if (knob && it.kind === 'st') { let r = Math.atan2(p[1] - a0[1], p[0] - a0[0]) * 180 / Math.PI; r = e.shiftKey ? r : Math.round(r / 5) * 5; rot = r; moved = true; g.setAttribute('transform', `translate(${a0[0]} ${a0[1]}) rotate(${rot})`); return; }
+          const dx = p[0] - p0[0], dz = p[1] - p0[1]; if (!moved && Math.hypot(dx, dz) < 0.3) return; moved = true; now = [snap(a0[0] + dx), snap(a0[1] + dz)];
+          g.setAttribute('transform', `translate(${now[0]} ${now[1]})${it.kind === 'st' ? ` rotate(${it.q.rot})` : ''}`); };
+        g.onpointerup = e => { g.onpointermove = g.onpointerup = null; try { g.releasePointerCapture(e.pointerId); } catch {}
+          if (!moved) { selIt = selIt === id ? null : id; selSp = null; draw(true); return; }
+          const P = planNow(), nq = knob && it.kind === 'st' ? { ...it.q, rot: Math.round(rot) } : mkOf(it, ...now), why = itemWhy(P, it.kind, nq);
+          if (why) { toast('אי אפשר כאן: ' + why); draw(true); return; }
+          selIt = id; savePlan(it.kind === 'st' ? 'הקולישה הוזזה' : 'הפדסטל הוזז', N => { if (it.kind === 'st') N.stands = N.stands.map(x => x.id === it.q.id ? nq : x); else N.objects[it.k] = nq; }, true); }; };
+    });
+    const edit = (label, f) => { const it = cur2(); if (!it) return Promise.resolve(); const nq = f(it); const why = itemWhy(planNow(), it.kind, nq); if (why) { toast('אי אפשר: ' + why); draw(true); return Promise.resolve(); }
+      return savePlan(label, N => { if (it.kind === 'st') N.stands = N.stands.map(x => x.id === it.q.id ? nq : x); else N.objects[it.k] = nq; }, true); };
+    const nv = (id, d) => { const e = $(id), v = e ? parseFloat(e.value) : NaN; return isFinite(v) ? v : d; };
+    const bind = (id, f) => { const e = $(id); if (e) e.onchange = () => f(e.value); };
+    bind('#it-x', v => edit('הוזז', it => it.kind === 'st' ? { ...it.q, x: snap(nv('#it-x', it.q.x)) } : [snap(nv('#it-x', it.q[0])), it.q[1], ...it.q.slice(2)]));
+    bind('#it-z', v => edit('הוזז', it => it.kind === 'st' ? { ...it.q, z: snap(nv('#it-z', it.q.z)) } : [it.q[0], snap(nv('#it-z', it.q[1])), ...it.q.slice(2)]));
+    bind('#it-len', v => edit('האורך עודכן', it => ({ ...it.q, len: Math.min(12, Math.max(1, nv('#it-len', it.q.len))) })));
+    bind('#it-h', v => edit('הגובה עודכן', it => ({ ...it.q, h: Math.min(6, Math.max(2, nv('#it-h', it.q.h))) })));
+    bind('#it-rot', v => edit('הזווית עודכנה', it => ({ ...it.q, rot: Math.round(Math.min(180, Math.max(-180, nv('#it-rot', it.q.rot)))) })));
+    bind('#it-size', v => edit('הגודל עודכן', it => [it.q[0], it.q[1], v, ...(it.q[3] ? [it.q[3]] : [])]));
+    bind('#it-show', v => edit('התוכן עודכן', it => { if (it.kind === 'st') { const y = { ...it.q }; if (v) y.show = v; else delete y.show; return y; } return v ? [it.q[0], it.q[1], it.q[2] || 'm', v] : [it.q[0], it.q[1], it.q[2] || 'm']; }));
+    const turn = d => edit('הקולישה סובבה', it => ({ ...it.q, rot: ((Math.round(it.q.rot + d) + 540) % 360) - 180 }));
+    const onI = (id, f) => $$(`[id="${id.slice(1)}"]`).forEach(e => { e.onclick = ev => { ev.stopPropagation(); f(); }; });      // (the floating tools and the side panel carry the same buttons)
+    onI('#it-r15', () => turn(15)); onI('#it-r90', () => turn(90));
+    onI('#it-sz', () => edit('הגודל עודכן', it => { const ks = Object.keys(PED), n = ks[(ks.indexOf(it.q[2] || 'm') + 1) % ks.length]; return [it.q[0], it.q[1], n, ...(it.q[3] ? [it.q[3]] : [])]; }));
+    onI('#it-del', () => { const it = cur2(); if (!it) return; selIt = null; savePlan(it.kind === 'st' ? 'הקולישה הוסרה' : 'הפדסטל הוסר', N => { if (it.kind === 'st') N.stands = N.stands.filter(x => x.id !== it.q.id); else N.objects.splice(it.k, 1); }); });
+    onI('#it-dup', () => { const it = cur2(); if (!it) return; const P = planNow(), mk = (x, z) => it.kind === 'st' ? { ...it.q, id: 'st-' + Date.now().toString(36), x, z } : [x, z, ...it.q.slice(2)];
+      const at = it.kind === 'st' ? [it.q.x, it.q.z] : [it.q[0], it.q[1]]; let q = null;
+      for (const [dx, dz] of [[2, 0], [-2, 0], [0, 2], [0, -2], [3, 3], [-3, -3], [4, 0], [0, 4]]) { const t = mk(snap(at[0] + dx), snap(at[1] + dz)); if (!itemWhy(P, it.kind, t)) { q = t; break; } }
+      if (!q) return toast('אין מקום פנוי ליד'); const n = it.kind === 'st' ? 'st:' + q.id : 'ob:' + P.objects.length;
+      selIt = n; savePlan('שוכפל', N => { if (it.kind === 'st') N.stands.push(q); else N.objects.push(q); }, true); });
+    const addItem = kind => { const P = planNow(); if ((kind === 'st' ? P.stands : P.objects).length >= 24) return toast('אפשר עד 24');
+      const q = freeSpot(P, kind, (x, z) => kind === 'st' ? { id: 'st-' + Date.now().toString(36), x, z, len: 4, rot: 0, h: 3.2 } : [x, z, 'm']);
+      selSp = null; selIt = kind === 'st' ? 'st:' + q.id : 'ob:' + P.objects.length; savePlan(kind === 'st' ? 'קולישה נוספה' : 'פדסטל נוסף', N => { if (kind === 'st') N.stands.push(q); else N.objects.push(q); }, true); };
+    const on0 = (id, f) => { const e = $(id); if (e) e.onclick = f; };
+    on0('#it-addst', () => addItem('st')); on0('#it-addpd', () => addItem('ob'));
+    on0('#mp-full', () => { bigBoard = !bigBoard; document.body.classList.toggle('mx-big', bigBoard); draw(true); });
     const cur = () => planNow().spaces.find(s => s.id === selSp);
     const del = () => { const sp = cur(); if (!sp) return; selSp = null; saveSpaces(`${nameOf(sp)} הוצא מהבניין`, L => L.filter(s => s.id !== sp.id)); };
     const move = () => { const sp = cur(); if (sp) { placing = { sp, label: `הזזת ${nameOf(sp)}`, dirName: '', move: true }; draw(true); } };
@@ -394,7 +487,10 @@ export async function home(ctx) {
   keys(e => {
     const el = e.target; if (el && el.closest && el.closest('input,textarea,select,dialog') || e.metaKey && e.key !== 'z') return;
     if (e.key === 'Escape' && placing) { placing = null; return draw(true); }
+    if (e.key === 'Escape' && selIt) { selIt = null; return draw(true); }
     if (e.key === 'Escape' && selSp) { selSp = null; return draw(true); }
+    if (e.key === 'Escape' && bigBoard) { bigBoard = false; document.body.classList.remove('mx-big'); return draw(true); }
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selIt) { e.preventDefault(); const d = $('#it-del'); return d && d.click(); }
     if (e.key === '?') return help();
     const k = e.key, z = (e.ctrlKey || e.metaKey) && k.toLowerCase() === 'z';
     if (z) { e.preventDefault(); const a = e.shiftKey ? redo : undo; return !a.length && (pHist.length || pFut.length) ? (e.shiftKey ? planStep(pFut, pHist) : planStep(pHist, pFut)) : e.shiftKey ? restore(redo, undo) : restore(undo, redo); }
