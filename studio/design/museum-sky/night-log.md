@@ -2,6 +2,8 @@
 
 (הסיכום של הלילה האחרון נכתב בראש הקובץ, עד 6 שורות, בעברית. מתחתיו שורה לכל פריט: תאריך, מה, commit, מה נבדק.)
 
+**לילה 23.11 (משמרת 7, 01:24):** פריט 21 (טקסט לכל תערוכה) נסגר: כל 7 לוחות הטקסט החיים (Ritual, My Open Studio, הכניסה לאגף הרנסנס וארבעת חדריו) נלחצו כטלפון 390x844 והקורא נפתח עם הכותרת הנכונה; תמונה נבדקה: קריא. נוספה בדיקה קבועה `studio/app/tests/museum_plates.cjs`. museum_live 12/12. לא נבדק: תערוכת דמו שהוצבה מהדסק (מכוסה בקוד: כותרת/אמן כשאין טקסט), אייפון אמיתי, האתר החי. הערה: בטקסט של Ritual כתוב "exhivition" (שגיאת כתיב בתוכן שלך, לא נגעתי). דרוש מאלעד: כלום.
+
 **לילה 23.11 (משמרת 6, 00:23):** (1) זיכרון עם שני הביתנים המקוריים החיים (Ritual והתערוכה הווירטואלית): בטלפון 378-381 (מתחת ל-460), במחשב בסקייל 1 כ-500 (חד יותר בכוונה, לבקשתך). הנקודה הפתוחה נסגרה. (2) פריט 21: לאגף הרנסנס נוסף לוח טקסט בחוץ, מימין לדלת (כותרת, שנים, החדרים), ולוח הטקסט של כל חדר באגף נפתח עכשיו לקריאה בלחיצה. נבדק: museum_live 12/12, צילום טלפון 390x844 בסקייל 2 ובסקייל 1, draw calls 35. לא נבדק: הלחיצה עצמה על הלוח, אייפון אמיתי, האתר החי. פתוח: חפיפות לחדרים גדולים, לוחות לתערוכות הדמו. דרוש מאלעד: כלום.
 
 **22.11 (בקשת אלעד, ישירות):** Ritual נכנסים אליו דרך הקשת האמיתית שלו (לא דרך חור שנעשה בקיר), הקירות חדים כמו במקור (במחשב 2048 פיקסל, בטלפון 1024) והרצפה נפרשת כמו במקור במקום אריח אחד מתוח. הטקסט תמיד מחוץ לביתן, מימין לכניסה. בלוח התוכנית בדסק: ＋ קולישה, ＋ פדסטל, גרירה, זווית, אורך, גובה, גודל, איזו תערוכה תלויה או עומדת, שכפול, הסרה, ביטול, וכפתור "לוח גדול" למסך מלא (עד 24 מכל סוג). בדיקות: desk/tests/board.cjs 15/15. לא נבדק: iPhone, האתר החי.
@@ -25,3 +27,4 @@
 - 22.11 night (outside session): ROADMAP 17 part: Renaissance sculptures in distance levels (12k/40k via blender/sculpture_lod.py, 100k near, phones keep 12k+40k), marble shaded per vertex, grain texture and cap/skirt on plinths (props.js). Viewed on a phone 390x844 DPR 2; museum_live 12/12. Not checked: real iPhone, maquette geometry detail, DPR 1.
 - 22.11 23:24 (n5): exited without work: another session was editing synth.js/desk live (changes 23:19-23:22, commits 23:18). Budget at start: weekly 39%, 5h 47%. The next hourly run will continue.
 - 23.11 00:23 (n6): memory with 2 live originals: phone 378, DPR1 497. ROADMAP 21 part: wing entrance text plate + bay plates as reader hotspots (synth.js). museum_live 12/12; phone DPR 2+1 viewed.
+- 23.11 01:24 (n7): ROADMAP 21 closed: all 7 live text plates open the reader when tapped as a phone (new tests/museum_plates.cjs, inspect.hot()). museum_live 12/12; phone shot viewed. Budget at start: weekly 40%, 5h 57%.

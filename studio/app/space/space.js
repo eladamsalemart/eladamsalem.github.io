@@ -1406,6 +1406,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     works() { return pieces.map(p => { const m = p.mesh.material, mats = [].concat(m), f = mats.find(x => x.emissiveMap) || mats[0]; const t = f && f.emissiveMap; let vis = true; for (let o = p.mesh; o; o = o.parent) vis = vis && o.visible; return { title: p.w.title, image: t && t.image ? [t.image.width, t.image.height] : [0, 0], visible: vis, inScene: !!p.mesh.parent && !!p.mesh.parent.parent }; }); },
     // stand somewhere and look at something, as a visitor walking would (the room keeps running: for testing
     // what a phone does as one walks, unlike shot() below)
+    hot: () => HOT.map(h => [h.spec.id, String(h.spec.title || '').slice(0, 40), h.spec.kind || '', (h.spec.text || []).length, (h.spec.origin || []).map(v => +(+v).toFixed(1)), h.spec.u, h.spec.v, h.spec.size, h.spec.normal]),
     meshes: () => { const o = []; scene.traverse(m => { if (m.isMesh) o.push([m.userData.kind || m.name || m.type, +m.position.y.toFixed(3), m.visible, m.renderOrder, !!(m.material && m.material.transparent), m.material && m.material.depthTest !== false]); }); return o; },
     setVisible: (kind, v) => { scene.traverse(m => { if (m.userData && m.userData.kind === kind) m.visible = !!v; }); dirty = true; },
     stats: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, textures: renderer.info.memory.textures, geometries: renderer.info.memory.geometries, programs: (renderer.info.programs || []).length }),
