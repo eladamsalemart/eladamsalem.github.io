@@ -505,6 +505,43 @@ function drawWorkLight(R) {
 const FLAT = /oil|acrylic|canvas|paint|gouache|tempera|watercolou?r|pastel|print|drawing|ink|photograph|collage|etching|lithograph/i;
 export const isObject = w => w.kind === 'object' || /sculpt|object|ceramic|installation/i.test(w.category || '') || (+w.depth > 0 && !FLAT.test(w.medium || ''))
   || (!w.category && !FLAT.test(w.medium || '') && /ceramic|clay|porcelain|bronze|sculpt|marble|plaster|terracotta|stoneware/i.test(w.medium || ''));
+// The exhibition's own words on a wall of its room, as gallery wall text is set: a plain sans (IBM Plex Sans; IBM Plex Sans Hebrew for
+// Hebrew), left-aligned and ragged (right-aligned in Hebrew), at most about 50 characters a line, sentence case, dark on a matte pale panel,
+// type large enough to read from two or three feet (the Wellcome Collection's exhibition-text rules are the model: left aligned, 55
+// characters at most, leading larger than the x-height, plain matte ground). The title, the artist, then the artist's words.
+async function introSurface(design, walls, placed, keep, R) {
+  if (design.editing) return null;
+  const words = Array.isArray(design.text) ? design.text.join('\n\n') : String(design.text || '');
+  const he = /[\u0590-\u05ff]/.test(`${design.title}${words}${design.by || ''}`);
+  try { await Promise.all(['300 58px "IBM Plex Sans"', '400 27px "IBM Plex Sans"', '500 17px "IBM Plex Mono"', '300 58px "IBM Plex Sans Hebrew"', '400 27px "IBM Plex Sans Hebrew"'].map(f => document.fonts.load(f, he ? 'אבג' : 'Abc'))); } catch { /* the page's own fonts */ }
+  const PW = 2.3, PH = 1.55, K = 400, pad = 56, c = canvas(PW * K, PH * K), x = c.getContext('2d'), W = c.width, H = c.height;
+  // where: the first wall that has room for it beside the works (the left wall first, where a visitor comes in)
+  let pick = null;
+  for (const name of ['wall-x0', 'wall-z0', 'wall-x1', 'wall-z1']) {
+    const wl = walls.find(w => w.name === name && !w.stand && (w.len || 0) >= PW + 1.1); if (!wl) continue;
+    const used = placed.filter(q => q.wall === wl).map(q => [q.a - q.w / 200 - 0.35, q.a + q.w / 200 + 0.35]);
+    for (let a0 = 0.6; a0 + PW <= wl.len - 0.5; a0 += 0.2) if (!used.some(([s0, e0]) => a0 < e0 && a0 + PW > s0)) { pick = { wl, a0 }; break; }
+    if (pick) break;
+  }
+  if (!pick) return null;
+  x.fillStyle = '#f6f5f1'; x.fillRect(0, 0, W, H);
+  x.direction = he ? 'rtl' : 'ltr'; x.textAlign = he ? 'right' : 'left'; x.textBaseline = 'alphabetic';
+  const X = he ? W - pad : pad, fam = he ? '"IBM Plex Sans Hebrew","IBM Plex Sans",sans-serif' : '"IBM Plex Sans","IBM Plex Sans Hebrew",sans-serif', maxW = W - 2 * pad;
+  const wrap = (txt, font) => { x.font = font; const out = []; let line = ''; for (const wd of String(txt).split(/\s+/).filter(Boolean)) { const t = line ? line + ' ' + wd : wd; if (x.measureText(t).width > maxW && line) { out.push(line); line = wd; } else line = t; } if (line) out.push(line); return out; };
+  let y = pad + 12;
+  x.fillStyle = '#857f70'; x.font = '500 17px "IBM Plex Mono",monospace'; x.fillText(design.by ? String(design.by).toUpperCase() : 'A VIRTUAL EXHIBITION', X, y);
+  y += 20; x.fillStyle = '#1e1c18';
+  const tl = wrap('MY OPEN STUDIO', `300 58px ${fam}`).slice(0, 2); y += 56; tl.forEach((ln, i) => { x.font = `300 58px ${fam}`; x.fillText(ln, X, y + i * 64); }); y += (tl.length - 1) * 64 + 26;
+  x.fillStyle = '#c9c4b5'; x.fillRect(he ? W - pad - 84 : pad, y, 84, 2); y += 40;
+  x.fillStyle = '#35322b'; const LH = 39;
+  outer: for (const para of words.split(/\n+/).map(t => t.trim()).filter(Boolean)) {
+    for (const ln of wrap(para, `400 27px ${fam}`)) { if (y > H - pad + 6) { x.fillText('…', X, y); break outer; } x.font = `400 27px ${fam}`; x.fillText(ln, X, y); y += LH; }
+    y += 14;
+  }
+  const hh = Math.min(H, Math.max(300, Math.round(y + pad - 28))), c2 = canvas(W, hh); c2.getContext('2d').drawImage(c, 0, 0, W, hh, 0, 0, W, hh);       // (as tall as its words)
+  const { wl, a0 } = pick, N = wl.normal, off = 0.014, top = Math.min(2.55, (R.h || 3.2) - 0.5);
+  return { name: 'intro', kind: 'wall', texture: await keep(c2), origin: [wl.origin[0] + wl.u[0] * a0 + N[0] * off, top, wl.origin[2] + wl.u[2] * a0 + N[2] * off], u: wl.u, v: [0, -1, 0], size: [PW, hh / K], normal: N, openings: [] };
+}
 export async function buildRoom(design, src) {
   const pl = design.placements || {};
   const wallWorks = design.works.filter(w => !isObject(w)), objects = design.works.filter(isObject);
@@ -549,6 +586,7 @@ export async function buildRoom(design, src) {
     });
     surfaces.push({ name: 'ceiling', kind: 'ceiling', texture: await keep(drawCeiling(R, placed, paint)), origin: [0, R.h, R.d], u: [1, 0, 0], v: [0, 0, -1], size: [R.w, R.d], normal: [0, -1, 0], openings: [] });
   }
+  { const it = await introSurface(design, walls, placed, keep, R); if (it) surfaces.push(it); }
   const plaster = canvas(512, 512), pc = plaster.getContext('2d');
   pc.fillStyle = paint; pc.fillRect(0, 0, 512, 512); texture(pc, 512, 512, seed + 9, 0.05, 0.03);
   pc.fillStyle = 'rgba(0,0,0,.12)'; pc.fillRect(0, 0, 512, 512);
