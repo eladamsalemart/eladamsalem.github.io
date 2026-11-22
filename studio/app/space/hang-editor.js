@@ -5,7 +5,7 @@
 // plinths { id, x, z, size: 's' | 'm' | 'l', work }.
 // Works with touch and mouse: one finger drags a work or a plinth, a drag on the empty wall looks around, two fingers
 // pinch to zoom (all the viewer's own).
-import { buildRoom, sizeOf, PLINTHS, PLINTH_LIMITS, plinthDims, STAND, isStand } from './synth.js';
+import { buildRoom, sizeOf, PLINTHS, PLINTH_LIMITS, plinthDims, STAND, isStand, WALL_TEXT, TEXT_FONTS } from './synth.js';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -19,7 +19,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
   const st = { ids: (state.ids || []).slice(), placements: clone(state.placements || {}), plinths: clone(state.plinths || []) };
   const undo = [];
   let arrTab = 'height', lineScope = 'wall', laser = { on: false, h: 1.5 };      // (the laser line: on or off, and its height in metres)
-  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, picked = new Set(),      /* (the works chosen in the Add tray: kept while the room is drawn again behind it) */  zoom = { s: 1, tx: 0, ty: 0 }, startAt = null, outerPop = (st.ids.length && !add) || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
+  let view = null, made = null, pose = null, ctl = null, outerSel = null, outerPlan = true, picked = new Set(),      /* (the works chosen in the Add tray: kept while the room is drawn again behind it) */  zoom = { s: 1, tx: 0, ty: 0 }, startAt = null, outerPop = (st.ids.some(i => i !== WALL_TEXT) && !add) || !library.length ? '' : 'add';   // an empty room opens on the artist's works: the first tap hangs one
   const byId = id => library.find(w => w.id === id);
   const sig = o => o.ids.join() + '|' + o.plinths.map(p => p.id + p.work + p.size + (p.colour || '') + (p.dims || '') + (p.kind || '') + (p.len || '') + (p.rot || '') + (isStand(p) ? p.x + ',' + p.z : '')).join();
   const save = () => onSave(clone(st));
@@ -175,9 +175,9 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     }
 
     // --- moving ---------------------------------------------------------------------------------------------------------
-    function putWork(id, wl, a, y) { const p = pieceOf(id); if (p) api.movePiece(p, wl, a, y); st.placements[id] = { wall: wl.name, a: +a.toFixed(3), y: +y.toFixed(3) }; }
+    function putWork(id, wl, a, y) { const p = pieceOf(id); if (p) api.movePiece(p, wl, a, y); st.placements[id] = { ...(id === WALL_TEXT ? st.placements[id] || {} : {}), wall: wl.name, a: +a.toFixed(3), y: +y.toFixed(3) }; }
     function putPlinth(id, x, z) { const q = stPlinth(id); q.x = +x.toFixed(3); q.z = +z.toFixed(3); const b = plinthOf(id); if (b) api.movePlinth(b, x, z); }
-    function select(s) { sel = s; if (s && s.k === 'stand' && !plan) pop = 'stand'; else if (pop === 'stand' || pop === 'plinth') pop = ''; if (s && api.root.querySelector('.sv-hint')) api.root.querySelector('.sv-hint').style.opacity = 0; mark(); refresh(); }
+    function select(s) { sel = s; if (s && s.k === 'stand' && !plan) pop = 'stand'; else if (pop === 'stand' || pop === 'plinth' || pop === 'text') pop = ''; if (s && api.root.querySelector('.sv-hint')) api.root.querySelector('.sv-hint').style.opacity = 0; mark(); refresh(); }
 
     function pointer(type, e) {
       if (type === 'down') {
@@ -224,6 +224,10 @@ export async function openHangEditor({ design, library, state, src, shape, openS
     // --- the tools --------------------------------------------------------------------------------------------------------
     // where a new thing goes: a few steps ahead of the artist, or, on the plan, the middle of the room
     const centreAhead = () => plan ? { f: new api.THREE.Vector3(0, 0, 1e-6), p: new api.THREE.Vector3(W / 2, 0, D / 2) } : { f: api.camera.getWorldDirection(new api.THREE.Vector3()), p: api.camera.position };
+    function styleText(patch) {
+      const t = st.placements[WALL_TEXT]; if (!t) return;
+      const pre = clone(st); Object.assign(t, patch); push(pre); save(); refresh(); open();
+    }
     function note(t) { clearTimeout(noteT); pop = ''; ui.pop.hidden = false; ui.pop.innerHTML = `<p class="he-note" role="status">${esc(t)}</p>`; noteT = setTimeout(() => { if (!pop) ui.pop.hidden = true; }, 2600); }
     async function addWork(id, quiet) {
       const w = byId(id); if (!w) return;
@@ -358,7 +362,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       const pre = clone(st), ref = st.placements[sel.id], [, rh] = sizes[sel.id], wl = wallOf(ref.wall);
       const line = fixed != null ? fixed : mode === 'c' ? ref.y : mode === 't' ? ref.y + rh / 2 : ref.y - rh / 2;
       // the laser: one line for the works of this wall, or for every work in the room (walls and standing walls alike)
-      const ids = lineScope === 'room' ? st.ids.filter(id => st.placements[id] && sizes[id]) : [sel.id, ...onWall(ref.wall, sel.id)];
+      const ids = lineScope === 'room' ? st.ids.filter(id => id !== WALL_TEXT && st.placements[id] && sizes[id]) : [sel.id, ...onWall(ref.wall, sel.id)];
       for (const id of ids) {
         const h = sizes[id][1], y = mode === 'c' ? line : mode === 't' ? line - h / 2 : line + h / 2, w = wallOf(st.placements[id].wall);
         if (w) putWork(id, w, st.placements[id].a, Math.max(h / 2 + 0.1, Math.min(w.size[1] - h / 2 - 0.1, y)));
@@ -630,6 +634,14 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         return `<div class="he-steps">${step('Width', q.len.toFixed(2) + ' m', 'len')}${step('Angle', Math.round(q.rot) + '°', 'rot')}${step('Move sideways', '25 cm', 'side', '←', '→')}${step('Move away', '25 cm', 'away', '↓', '↑')}</div>
           <div class="he-acts"><button type="button" data-st="here:1">Bring it here</button><button type="button" data-st="add:1">Another wall</button><button type="button" class="he-del" data-st="rm:1">Remove</button></div>`;
       }
+      if (pop === 'text' && sel && sel.id === WALL_TEXT && st.placements[WALL_TEXT]) {
+        const t = st.placements[WALL_TEXT], ink = t.ink || '#1e1c18', bg = t.bg || '#f6f5f1';
+        const sw = (attr, list, cur) => list.map(([k, n, c]) => `<button type="button" ${attr}="${k}" aria-label="${n}" aria-pressed="${cur === k}" style="background:${c}"></button>`).join('');
+        return `<div class="he-steps">${step('Width', Math.round((+t.w || 1.5) * 100) + ' cm', 'tw')}</div>
+          <div class="he-scope he-fonts" role="group" aria-label="Font">${Object.entries(TEXT_FONTS).map(([k, [n, f]]) => `<button type="button" data-tfont="${k}" aria-pressed="${(t.font || 'sans') === k}" style="font-family:${f.replace(/"/g, "'")}">${n}</button>`).join('')}</div>
+          <div class="he-cols"><span>Text</span>${sw('data-tink', [['#1e1c18', 'Black', '#1e1c18'], ['#4a463d', 'Graphite', '#4a463d'], ['#ffffff', 'White', '#ffffff'], ['#2f6e52', 'Green', '#2f6e52'], ['#8a2f2a', 'Red', '#8a2f2a']], ink)}<label class="he-pick" aria-label="Any text colour"><input type="color" data-tinkc value="${ink}"></label></div>
+          <div class="he-cols"><span>Ground</span><button type="button" data-tbg="none" aria-label="Clear: the letters on the wall" aria-pressed="${bg === 'none'}" class="he-clear"></button>${sw('data-tbg', [['#f6f5f1', 'Paper', '#f6f5f1'], ['#ffffff', 'White', '#ffffff'], ['#1e1c18', 'Black', '#1e1c18'], ['#d9cfbd', 'Sand', '#d9cfbd']], bg)}<label class="he-pick" aria-label="Any ground colour"><input type="color" data-tbgc value="${bg === 'none' ? '#f6f5f1' : bg}"></label></div>`;
+      }
       if (pop === 'plinth' && sel && sel.k === 'plinth' && stPlinth(sel.id)) {
         const d = plinthDims(stPlinth(sel.id));
         return `<div class="he-steps">${step('Width', d[0] + ' cm', 'pw')}${step('Length', d[1] + ' cm', 'pd')}${step('Height', d[2] + ' cm', 'ph')}<div class="he-step he-pre"><span>Made sizes</span>${Object.keys(PLINTHS).map(k => `<button type="button" data-plinth="${k}" aria-label="${PNAME[k]}: ${PLINTHS[k].join(' × ')} cm">${k.toUpperCase()}</button>`).join('')}</div></div>
@@ -657,7 +669,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       ui.bar.querySelectorAll('[data-a=add],[data-a=plinth],[data-a=stand],[data-a=line]').forEach(b => b.setAttribute('aria-pressed', String(pop === b.dataset.a)));
       ui.pop.classList.toggle('he-full', pop === 'add'); ui.pop.classList.toggle('he-tall', pop === 'line');                  // (choosing works: the tray fills the screen under the bar)
       if (pop) { ui.pop.hidden = false; ui.pop.innerHTML = popHtml(); } else if (!noteT || ui.pop.querySelector('.he-note') == null) ui.pop.hidden = true;
-      drawPlan(); ui.std.hidden = !(plan && sel && sel.k === 'stand'); ui.more.hidden = !(sel && sel.k === 'plinth');
+      drawPlan(); ui.std.hidden = !(plan && sel && sel.k === 'stand'); const isText = !!(sel && sel.k === 'work' && sel.id === WALL_TEXT); ui.more.hidden = !(sel && (sel.k === 'plinth' || isText)); ui.more.textContent = isText ? 'Size, font, colour' : 'Size, colour';
       if (!sel || (sel.k === 'stand' && !plan)) { ui.sel.hidden = true; return; }      // (in the room a standing wall's panel has its own Remove)
       ui.sel.hidden = false; ui.nudge.hidden = !work;
       if (work) {
@@ -682,7 +694,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
         <div class="he-sel" hidden><div class="he-t"></div><div class="he-nudge" hidden role="group" aria-label="Nudge the work by 5 cm"><button type="button" data-nudge="l" aria-label="5 cm left">◀</button><button type="button" data-nudge="r" aria-label="5 cm right">▶</button><button type="button" data-nudge="u" aria-label="5 cm up">▲</button><button type="button" data-nudge="d" aria-label="5 cm down">▼</button></div><div class="he-std" hidden><button type="button" data-st="len:-1" aria-label="Narrower">−</button><button type="button" data-st="len:1" aria-label="Wider">+</button><button type="button" data-st="rot:3" aria-label="Turn 45 degrees">Turn</button></div><button type="button" class="he-more" hidden>Size, colour</button><button type="button" class="he-rm">Remove</button></div>`;
       api.root.append(box);
       ui = { bar: box.querySelector('.he-bar'), pop: box.querySelector('.he-pop'), sel: box.querySelector('.he-sel'), hp: box.querySelector('.hp'), svg: box.querySelector('.hp-svg'), fit: box.querySelector('.hp-fit'), std: box.querySelector('.he-std'), more: box.querySelector('.he-more'), nudge: box.querySelector('.he-nudge') };
-      ui.more.onclick = () => { pop = pop === 'plinth' ? '' : 'plinth'; refresh(); };
+      ui.more.onclick = () => { const k = sel && sel.id === WALL_TEXT ? 'text' : 'plinth'; pop = pop === k ? '' : k; refresh(); };
       drawLaser();
       ui.nudge.onclick = e => { const b = e.target.closest('button'); if (b) nudge(b.dataset.nudge); };
       ui.std.onclick = e => { const b = e.target.closest('button'); if (b) { const [k, v] = b.dataset.st.split(':'); editStand(k, +v); } };
@@ -705,8 +717,8 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       const popTap = b => {
         if (b.dataset.st) {
           const [k, v] = b.dataset.st.split(':'), by = +v;
-          if (k === 'add') addStand(); else if (k === 'rm') removeSel(); else if (k === 'pw') dimPlinth(0, by * 5); else if (k === 'pd') dimPlinth(1, by * 5); else if (k === 'ph') dimPlinth(2, by * 5); else editStand(k, by);
-        } else if (b.dataset.col != null) colourPlinth(b.dataset.col); else if (b.dataset.addall != null) pickAll(); else if (b.dataset.addgo != null) addPicked(); else if (b.dataset.add) pickWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line); else if (b.dataset.along) along(b.dataset.along); else if (b.dataset.scope) { lineScope = b.dataset.scope; ui.pop.innerHTML = popHtml(); } else if (b.dataset.tab) { arrTab = b.dataset.tab; ui.pop.innerHTML = popHtml(); } else if (b.dataset.las) laserAct(b.dataset.las); else if (b.dataset.lline) lineUp(b.dataset.lline, laser.h); else if (b.dataset.gap) spaceWith(+b.dataset.gap);
+          if (k === 'tw') styleText({ w: Math.min(4, Math.max(0.4, +((+(st.placements[WALL_TEXT] || {}).w || 1.5) + by * 0.1).toFixed(2))) }); else if (k === 'add') addStand(); else if (k === 'rm') removeSel(); else if (k === 'pw') dimPlinth(0, by * 5); else if (k === 'pd') dimPlinth(1, by * 5); else if (k === 'ph') dimPlinth(2, by * 5); else editStand(k, by);
+        } else if (b.dataset.tfont) styleText({ font: b.dataset.tfont }); else if (b.dataset.tink) styleText({ ink: b.dataset.tink }); else if (b.dataset.tbg) styleText({ bg: b.dataset.tbg }); else if (b.dataset.col != null) colourPlinth(b.dataset.col); else if (b.dataset.addall != null) pickAll(); else if (b.dataset.addgo != null) addPicked(); else if (b.dataset.add) pickWork(b.dataset.add); else if (b.dataset.plinth) sizePlinth(b.dataset.plinth); else if (b.dataset.line) lineUp(b.dataset.line); else if (b.dataset.along) along(b.dataset.along); else if (b.dataset.scope) { lineScope = b.dataset.scope; ui.pop.innerHTML = popHtml(); } else if (b.dataset.tab) { arrTab = b.dataset.tab; ui.pop.innerHTML = popHtml(); } else if (b.dataset.las) laserAct(b.dataset.las); else if (b.dataset.lline) lineUp(b.dataset.lline, laser.h); else if (b.dataset.gap) spaceWith(+b.dataset.gap);
       };
       // A finger that went down just before the room was drawn again lifts over this new panel: no click follows,
       // and the tap would be lost. A lift here with no press here and no click after it is taken as the tap.
@@ -716,6 +728,7 @@ export async function openHangEditor({ design, library, state, src, shape, openS
       ui.pop.addEventListener('pointerup', e => { const b = e.target.closest('button'), was = popDown, t = performance.now(); popDown = false; if (was || !b || b.disabled) return;
         setTimeout(() => { if (popClick < t && b.isConnected) popTap(b); }, 90); });
       ui.sel.querySelector('.he-rm').onclick = removeSel;
+      ui.pop.addEventListener('change', e => { const i = e.target; if (i.dataset.tinkc != null) styleText({ ink: i.value }); else if (i.dataset.tbgc != null) styleText({ bg: i.value }); });
       if (!startAt) startAt = api.pose().at;      // (where a visitor's walk begins: marked on the plan)
       if (pose) api.setPose(pose.at, pose.to);
       // what was moved on the plan while this room was being drawn: its works and plinths go where the plan has them
