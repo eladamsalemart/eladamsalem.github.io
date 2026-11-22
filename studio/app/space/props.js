@@ -8,8 +8,27 @@ export async function addProps({ THREE, scene, spec, mark, renderer }) {
   const list = spec.props || []; if (!list.length) return;
   scene.add(new THREE.HemisphereLight(0xfff6ea, 0x8a8478, 1.5));
   const sun = new THREE.DirectionalLight(0xffffff, 1.9); sun.position.set(6, 12, 5); scene.add(sun);
-  const stone = new THREE.MeshLambertMaterial({ color: 0xe8e2d4 }), warm = new THREE.MeshLambertMaterial({ color: 0xc9744c }), plinthMat = new THREE.MeshLambertMaterial({ color: 0xf1eee6 });
-  const marble = new THREE.MeshLambertMaterial({ color: 0xece7dc });
+  // a fine grain for the plaster and stone of plinths and maquettes (one small picture, shared)
+  const grain = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); x.fillStyle = '#e9e9e9'; x.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 5200; i++) { const v = 190 + Math.random() * 65; x.fillStyle = `rgba(${v},${v},${v - 4},0.35)`; x.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 2.2, 1 + Math.random() * 2.2); }
+    for (let i = 0; i < 24; i++) { const px = Math.random() * 256, py = Math.random() * 256, r = 20 + Math.random() * 50, g = x.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, 'rgba(120,110,95,0.07)'); g.addColorStop(1, 'rgba(120,110,95,0)'); x.fillStyle = g; x.fillRect(px - r, py - r, 2 * r, 2 * r); }
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; })();
+  const stone = new THREE.MeshLambertMaterial({ color: 0xe8e2d4, map: grain }), warm = new THREE.MeshLambertMaterial({ color: 0xc9744c, map: grain }), plinthMat = new THREE.MeshLambertMaterial({ color: 0xf1eee6, map: grain });
+  const marble = new THREE.MeshLambertMaterial({ color: 0xffffff, vertexColors: true, emissive: 0x2a2620 });
+  // marble by vertex: a warm white with soft grey veins (noise in the model's own space) and a darker underside; smooth normals from the shared vertices
+  const hsh = (x, y, z) => { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); };
+  const vn = (x, y, z) => { const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), fx = x - ix, fy = y - iy, fz = z - iz, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz), L = (a, b, t) => a + (b - a) * t;
+    return L(L(L(hsh(ix, iy, iz), hsh(ix + 1, iy, iz), u), L(hsh(ix, iy + 1, iz), hsh(ix + 1, iy + 1, iz), u), v), L(L(hsh(ix, iy, iz + 1), hsh(ix + 1, iy, iz + 1), u), L(hsh(ix, iy + 1, iz + 1), hsh(ix + 1, iy + 1, iz + 1), u), v), w); };
+  const marbleShade = geo => {
+    if (!geo.attributes.normal) geo.computeVertexNormals();
+    const P = geo.attributes.position, N = geo.attributes.normal, col = new Float32Array(P.count * 3); geo.computeBoundingBox(); const sz = geo.boundingBox.getSize(new THREE.Vector3()), k = 6 / Math.max(sz.x, sz.y, sz.z, 1e-3);
+    for (let i = 0; i < P.count; i++) {
+      const x = P.getX(i) * k, y = P.getY(i) * k, z = P.getZ(i) * k, w = vn(x * 1.3, y * 1.3, z * 1.3) * 3.2 + vn(x * 4, y * 4, z * 4) * 0.5, vein = Math.pow(1 - Math.abs(Math.sin((x + y * 0.6 + w) * 2.2)), 14), grain = vn(x * 14, y * 14, z * 14) - 0.5;
+      const lit = 0.8 + 0.2 * (N.getY(i) * 0.5 + 0.5), t = (0.93 - vein * 0.16 + grain * 0.06) * lit;
+      col[i * 3] = t * 0.96; col[i * 3 + 1] = t * 0.935; col[i * 3 + 2] = t * 0.9;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  };
   const cyl = (rt, rb, h, n = 24, m = stone) => new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, n), m);
   const box = (w, h, d, m = stone) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
   const add = (g, o, x = 0, y = 0, z = 0) => { o.position.set(x, y, z); g.add(o); return o; };
@@ -50,15 +69,22 @@ export async function addProps({ THREE, scene, spec, mark, renderer }) {
   for (const p of list) {
     const pl = p.plinth || { w: 0.6, d: 0.6, h: 1.0 }, root = new THREE.Group(); root.position.set(p.x, p.y || 0, p.z); root.rotation.y = p.rot || 0; scene.add(root);
     const body = new THREE.Mesh(new THREE.BoxGeometry(pl.w, pl.h, pl.d), plinthMat); body.position.y = pl.h / 2; root.add(body);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(pl.w + 0.07, 0.045, pl.d + 0.07), plinthMat); cap.position.y = pl.h - 0.0225; root.add(cap);      // (a slab on top and a skirt below: a plinth, not a box)
+    const skirt = new THREE.Mesh(new THREE.BoxGeometry(pl.w + 0.05, 0.07, pl.d + 0.05), plinthMat); skirt.position.y = 0.035; root.add(skirt);
     if (p.label) { const pt = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.12), new THREE.MeshBasicMaterial({ map: plateTex(p.label), toneMapped: false })); pt.position.set(pl.w / 2 - 0.2, pl.h * 0.78, pl.d / 2 + 0.004); root.add(pt); }
     const holder = new THREE.Group(); holder.position.y = pl.h; root.add(holder);
     if (MODELS[p.kind]) { const m = new THREE.Group(); MODELS[p.kind](m); const bb = new THREE.Box3().setFromObject(m), s = (p.h || 0.5) / Math.max(bb.max.y - bb.min.y, 0.01); m.scale.setScalar(s); holder.add(m); }
     else if (p.kind === 'glb' && p.url && loader) {
-      loader.loadAsync(p.url).then(gltf => {
-        const m = gltf.scene; m.traverse(o => { if (o.isMesh) { o.geometry.computeVertexNormals(); o.material = marble; o.castShadow = false; } });
-        const bb = new THREE.Box3().setFromObject(m), s = (p.h || 1.6) / Math.max(bb.max.y - bb.min.y, 0.01), c = bb.getCenter(new THREE.Vector3());
-        m.scale.setScalar(s); m.position.set(-c.x * s, -bb.min.y * s, -c.z * s); holder.add(m); mark();
-      }).catch(e => console.warn('model', p.url, e));
+      // a sculpture in distance levels (12k, 40k, 100k faces: blender/sculpture_lod.py): the small one at once, the finer ones as they arrive;
+      // a phone keeps to 12k + 40k. All levels share one fit, so they swap in place; the marble is shaded per vertex (veins, a darker underside).
+      const lvUrl = k => p.url.replace('-100k.glb', `-${k}k.glb`), coarse = matchMedia('(pointer: coarse)').matches, lod = new THREE.LOD(); holder.add(lod);
+      let fit = null; const near = (p.h || 1.6) * 1.4;
+      const take = (k, dist) => loader.loadAsync(k === 100 ? p.url : lvUrl(k)).then(gltf => {
+        const m = gltf.scene; m.traverse(o => { if (o.isMesh) { marbleShade(o.geometry); o.material = marble; o.castShadow = false; } });
+        if (!fit) { const bb = new THREE.Box3().setFromObject(m), s = (p.h || 1.6) / Math.max(bb.max.y - bb.min.y, 0.01), c = bb.getCenter(new THREE.Vector3()); fit = { s, x: -c.x * s, y: -bb.min.y * s, z: -c.z * s }; }
+        m.scale.setScalar(fit.s); m.position.set(fit.x, fit.y, fit.z); lod.addLevel(m, dist); mark();
+      }).catch(e => { if (k === 12) console.warn('model', p.url, e); });
+      take(12, 0).then(() => { setTimeout(() => take(40, near * 2.2), 600); if (!coarse) setTimeout(() => take(100, near * 0.9), 2500); });
     }
   }
   mark();
