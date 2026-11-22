@@ -564,7 +564,7 @@ export async function buildRoom(design, src) {
   // the wall text, where the artist placed it (or, in the editor, wherever it goes first): hung like a work, drawn as a panel
   const textOn = design.editing ? design.works.some(w => w.id === WALL_TEXT) : !!(lab.wall && !lab.off);
   const paint0 = (PAINTS[design.paint] || PAINTS[ROOMS[design.room].paint])[1];
-  const tImg = textOn ? await wallTextImage(design, lab, design.editing ? paint0 : null) : null;
+  const tImg = textOn ? await wallTextImage(design, lab) : null;
   if (tImg) sized.push({ work: { id: WALL_TEXT, title: 'Wall text', kind: 'wall-text' }, w: tImg.wm * 100, h: tImg.hm * 100, aspect: tImg.wm / tImg.hm, at: lab.wall ? lab : null });
   const { R, walls, placed, left, stands } = hang(design, sized);
   const tAt = placed.findIndex(p => p.work.id === WALL_TEXT), tPlace = tAt >= 0 ? placed[tAt] : null;
@@ -613,12 +613,12 @@ export async function buildRoom(design, src) {
   pc.fillStyle = paint; pc.fillRect(0, 0, 512, 512); texture(pc, 512, 512, seed + 9, 0.05, 0.03);
   pc.fillStyle = 'rgba(0,0,0,.12)'; pc.fillRect(0, 0, 512, 512);
   const workLight = await keep(drawWorkLight(R), true);
-  const textUrl = tImg && design.editing ? await keep(tImg.canvas) : null;
+  const textUrl = tImg && design.editing ? await keep(tImg.canvas, true) : null;
   const works = placed.map(p => {
-    const [ox, , oz] = p.wall.origin, [ux, , uz] = p.wall.u, N = p.wall.normal, off = DEPTH + 0.004;
+    const flat = p.work.id === WALL_TEXT, [ox, , oz] = p.wall.origin, [ux, , uz] = p.wall.u, N = p.wall.normal, off = flat ? 0.006 : DEPTH + 0.004;
     return {
       id: p.work.id, work: p.work.title, image: p.work.id === WALL_TEXT ? textUrl : p.work.image, imageSmall: p.work.imageSmall, size: [p.w, p.h], measured: [p.w, p.h],
-      centre: [ox + ux * p.a + N[0] * off, p.y, oz + uz * p.a + N[2] * off], axes: [p.wall.u, [0, 1, 0], N], depth: DEPTH,
+      centre: [ox + ux * p.a + N[0] * off, p.y, oz + uz * p.a + N[2] * off], axes: [p.wall.u, [0, 1, 0], N], depth: flat ? 0.002 : DEPTH, ...(flat ? { flat: true } : {}),
       light: workLight, lightScale: 1, ...(p.guessed ? { guessed: true } : {}),
     };
   });
