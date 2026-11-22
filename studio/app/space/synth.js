@@ -1819,7 +1819,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   directory.unshift({ title: 'The Square', kind: 'place', note: 'the heart of the museum', at: PLAN.start.pos, look: PLAN.start.look });
   const spec = {
     version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 190, noSpots: true,
-    outdoors: { hour: env.hour, centre: [CX, CZ], lamps: [], treeline: 'data/rooms/outside/treeline.webp', treeRadius: 120, treeHeight: 46 },
+    outdoors: { hour: env.hour, centre: [CX, CZ], lamps: [], treeline: 'data/rooms/outside/treeline.webp', treeRadius: 120, treeHeight: 46, tropics: 'data/rooms/outside/tropics.webp', hall: [HX, HZ], entrance: PLAN.entrance.at },
     baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: 4 },
     room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], mirrorSurface: { name: 'hall-floor', reflect: [0.1, 0.4], y: 0.01 }, solids, directory, hotspots,
     stands: stands.map(s => ({ ...s, kind: 'stand', t: STAND.t })), ...(props.length ? { props } : {}),
