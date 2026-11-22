@@ -435,7 +435,7 @@ function walkRow(list, label) {
     return `<li><div class="wc${e.space ? ' has-room' : ''}" data-slug="${esc(e.slug)}" data-space="${esc(sk)}">
       <div class="wc-arch">${first ? `<img class="wc-poster" src="${esc(first)}" data-alt="${esc(alt)}" alt="" loading="lazy" onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt='';this.closest('.wc').classList.add('nofilm')}">` : alt ? `<img class="wc-poster" src="${esc(alt)}" alt="" loading="lazy">` : ''}
         ${pill}
-        <div class="wc-cap"><a class="wc-t" href="#/exhibition/${esc(e.slug)}"><b${heb(e.title)}>${esc(e.title)}</b></a><span>${esc([byOf(e), e.city].filter(Boolean).join(' · '))}</span></div>
+        <div class="wc-cap"><span class="wc-kind ${e.kind === 'online' ? 'virt' : 'real'}">${e.kind === 'online' ? 'Virtual exhibition' : 'Real exhibition'}</span><a class="wc-t" href="#/exhibition/${esc(e.slug)}"><b${heb(e.title)}>${esc(e.title)}</b></a><span>${esc([byOf(e), e.city].filter(Boolean).join(' · '))}</span></div>
       </div>
       ${e.space ? `<a class="step" href="#/exhibition/${esc(e.slug)}/space">Step inside</a>` : ''}</div></li>`;
   };
@@ -504,8 +504,8 @@ function home() {
 
 // the art map's places and shows, read once and kept (Home's far stars and "near you" use them)
 let artData = null;
-const loadArt = () => artData || (artData = Promise.all(['places', 'exhibitions'].map(n => fetch(`data/art/${n}.json`).then(r => r.ok ? r.json() : null).catch(() => null)))
-  .then(([pl, ex]) => ({ places: new Map((pl && pl.places || []).map(p => [p.id, p])), shows: ex && ex.shows || [] })));
+const loadArt = () => artData || (artData = Promise.all(['places', 'exhibitions', 'places.hours'].map(n => fetch(`data/art/${n}.json`).then(r => r.ok ? r.json() : null).catch(() => null)))
+  .then(([pl, ex, hh]) => ({ places: new Map((pl && pl.places || []).map(p => [p.id, p])), shows: ex && ex.shows || [], events: ex && ex.events || [], hours: hh && hh.hours || {} })));
 const km = (a, b) => { const r = Math.PI / 180, x = (b[1] - a[1]) * r * Math.cos((a[0] + b[0]) / 2 * r), y = (b[0] - a[0]) * r; return Math.hypot(x, y) * 6371; };
 const far = d => d < 1.6 ? `${Math.max(1, Math.round(d * 1.3 / 4.8 * 60))} min walk` : `${d.toFixed(1)} km`;
 // shows on today at the places nearest you, one a place
@@ -615,13 +615,16 @@ async function liveSlots() {
 function museumRooms(slots) {
   const shows = streetShows();
   return slots.map(s => {
-    const c = s.content, e = s.app_slug && shows.find(x => x.slug === s.app_slug);
+    const c = s.content, e = s.app_slug && slotShow(s.app_slug, shows);
     if (!c && !e) return null;
     const ws = c ? (c.works || []) : e.works, slug = e ? e.slug : 'slot-' + s.slot, w = ws.find(x => x.thumb || x.image);
     return { slug, slot: s, show: e, content: c, title: c ? c.title : e.title, works: ws, colour: s.colour || (M.virtualColours || {})[slug] || '',
       img: w ? (w.thumb || M.thumbs[w.image] || src(w.image)) : e && e.images[0] ? pic(e.images[0]) : '' };
   }).filter(Boolean);
 }
+// a Desk room may name any exhibition the app knows (a real one with a photographed or drawn space, an artist's virtual show), not only the street's eight: it hangs its works and its arch walks into its own space
+const slotShow = (slug, shows) => shows.find(x => x.slug === slug) || M.exhibitions.find(x => x.slug === slug && (x.works || []).length && (x.space || x.virtual));
+const enterOf = e => ({ hash: `#/exhibition/${e.slug}/space`, image: `data/spaces/${Object.keys(M.spaces || {}).find(k => M.spaces[k] === e.space) || e.slug}/preview.jpg`, label: 'Walk into the original space' });
 const MU_CSS = `<style id="hsMuCss">
 .hs-mu .mu-in{position:relative;display:block;text-decoration:none;color:inherit}
 .hs-mu .mu-gate{position:relative;display:block;aspect-ratio:6/5;overflow:hidden;border-radius:190px 190px 16px 18px / 170px 170px 18px 16px;background:#f6f3ec;box-shadow:0 0 0 1px color-mix(in srgb,var(--hs-pencil) 34%,transparent),0 18px 34px -26px var(--hs-shade)}
@@ -796,13 +799,13 @@ function artistPage(slug) {
   let a = M.artists.find(x => x.slug === slug);
   if (a && a.alias) a = M.artist;
   if (!a) return notFound();
-  const shows = showsOf(a), works = worksOf(a), live = shows.find(e => status(e) !== 'past'), last = shows[0];
+  const shows = showsOf(a), works = worksOf(a);
+  const real = shows.filter(e => e.kind !== 'online'), virt = shows.filter(e => e.kind === 'online');       // (real: held in a place; virtual: exists only here)
+  const live = real.find(e => status(e) !== 'past'), last = real[0] || shows[0];
   const posts = M.live.filter(p => p.artist === a).sort((x, y) => y.at - x.at);
   const followed = following().includes(a.slug), own = a === M.artist;
   const hero = a.hero || (last && last.images[0]) || (works[0] && works[0].image);
-  const now = shows.find(e => e.virtual && e.virtual.onview && e.space);
   return `
-  ${now ? onViewBlock(now) : ''}
   <section class="hero" ${own && a.community ? 'data-hero' : ''}>${im(hero, last ? `Installation view, ${last.title}` : a.name, `loading="eager"${a.heroPos ? ` style="object-position:${esc(a.heroPos)}"` : ''}`, '100vw')}
     <div class="ov gut"><div class="wrap"><h1>${esc(a.name)}</h1><div class="k">${esc(a.label)}</div></div></div></section>
   <div class="wrap gut">
@@ -821,9 +824,13 @@ function artistPage(slug) {
     <section class="sec" id="works"><div class="sec-h"><h2>Recent works</h2><span class="more">${works.length}</span></div>
       <div class="list">${works.slice(0, 5).map(workRow).join('')}</div>
       ${works.length > 5 ? worksMore(works.slice(5)) : ''}</section>
-    ${shows.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">${shows.length}</span></div>
-      <div class="walkbox">${walkRow(showOrder(shows), `${a.name}: exhibitions`)}</div>
-      ${shows.length > 2 ? showsByYear(shows) : ''}</section>` : ''}
+    ${real.length ? `<section class="sec"><div class="sec-h"><h2>Exhibitions</h2><span class="more">${real.length}</span></div>
+      <p class="m nx-sub">Held in real places.</p>
+      <div class="walkbox">${walkRow(showOrder(real), `${a.name}: exhibitions`)}</div>
+      ${real.length > 2 ? showsByYear(real) : ''}</section>` : ''}
+    ${virt.length ? `<section class="sec ex-virt"><div class="sec-h"><h2>Virtual exhibitions</h2><span class="more">${virt.length}</span></div>
+      <p class="m nx-sub">Exist only in Open Studio: you walk through them on your phone.</p>
+      <div class="walkbox virtrow">${walkRow(showOrder(virt), `${a.name}: virtual exhibitions`)}</div></section>` : ''}
     ${own && M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
       <div class="covers">${M.objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
     ${!own && objectsOf(a).length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
@@ -1045,6 +1052,44 @@ function artistsPage() {
 
 // --- Shows: "Opening Night" — what's on now, in rooms and online; tonight first ---------------------------
 let showsKind = 'all', showsDay = 0;
+// opening hours as OpenStreetMap writes them ("Su off; Mo-We 10:00-15:00; Th 10:00-19:00"): what a given weekday (0 = Sunday) says, or null when it does not say
+const WD = ['su', 'mo', 'tu', 'we', 'th', 'fr', 'sa'];
+function hoursOn(oh, wd) {
+  const t = String(oh || '').toLowerCase().replace(/;/g, ' ').replace(/\s+/g, ' '); let hit = null;
+  const re = /((?:su|mo|tu|we|th|fr|sa|ph)(?:\s*[-,]\s*(?:su|mo|tu|we|th|fr|sa|ph))*)\s+(off|closed|\d{1,2}(?::\d\d)?\s*-\s*\d{1,2}(?::\d\d)?(?:\s*,\s*\d{1,2}(?::\d\d)?\s*-\s*\d{1,2}(?::\d\d)?)*)/g;
+  for (let m; (m = re.exec(t));) {
+    const days = new Set();
+    for (const part of m[1].split(',')) {
+      const [a, b] = part.split('-').map(x => x.trim());
+      if (a === 'ph' || b === 'ph') continue;
+      if (b) { for (let i = WD.indexOf(a), n = 0; n < 7; i = (i + 1) % 7, n++) { days.add(i); if (WD[i] === b) break; } } else days.add(WD.indexOf(a));
+    }
+    if (days.has(wd)) hit = /off|closed/.test(m[2]) ? [] : m[2].split(',').map(r => r.trim().replace(/\b(\d{1,2})(?=\s*-|$)/g, h => (h.length < 2 ? '0' : '') + h).replace(/(^|-)(\d{2})(?!:)/g, '$1$2:00'));
+  }
+  return hit;
+}
+// "This week", day by day: what opens, what closes, the events, and where the opening hours are known who is open and who is closed
+function dayView(box, art, d0) {
+  const day = new Date(+d0 + showsDay * DAY), iso = new Date(day.getTime() - day.getTimezoneOffset() * 60000).toISOString().slice(0, 10), wd = day.getDay();
+  const days = Array.from({ length: 7 }, (_, i) => new Date(+d0 + i * DAY));
+  const nm = id => (art.places.get(id) || {}).name || id, city = id => (art.places.get(id) || {}).city || '';
+  const ev = art.events.filter(e => e.date === iso).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+  const opens = art.shows.filter(x => x.start === iso && art.places.has(x.place)), closes = art.shows.filter(x => x.end === iso && art.places.has(x.place));
+  const known = Object.entries(art.hours).map(([id, h]) => [id, hoursOn(h.oh, wd)]).filter(([id, r]) => r && art.places.has(id));
+  const open = known.filter(([, r]) => r.length), shut = known.filter(([, r]) => !r.length);
+  const link = (u, p) => esc(u || (art.places.get(p) || {}).website || '#/map');
+  const row = (a, b, c) => `<a class="nx-rd" href="${a}" target="_blank" rel="noopener"><b dir="auto">${b}</b><span>${c}</span></a>`;
+  const list = (h, rows) => rows.length ? `<h3 class="nx-dh">${h}</h3><div class="nx-real">${rows.join('')}</div>` : '';
+  box.innerHTML = `<section class="nx-sec"><div class="nx-sh"><h2>This week</h2></div>
+    <div class="nx-days" role="group" aria-label="Day">${days.map((d, i) => `<button type="button" data-day="${i}" aria-pressed="${i === showsDay}"><span>${i === 0 ? 'Today' : d.toLocaleDateString('en-GB', { weekday: 'short' })}</span><b>${d.getDate()}</b></button>`).join('')}</div>
+    ${list('Events', ev.map(e => row(link(e.url, e.place), esc(e.title), `${e.time ? esc(e.time) + ' · ' : ''}${esc(nm(e.place))}${city(e.place) ? ' · ' + esc(city(e.place)) : ''}`)))}
+    ${list('Opens', opens.map(x => row(link(x.url, x.place), esc(x.title), `${esc(nm(x.place))} · opens`)))}
+    ${list('Closes', closes.map(x => row(link(x.url, x.place), esc(x.title), `${esc(nm(x.place))} · last day`)))}
+    ${list('Open', open.map(([id, r]) => row(link('', id), esc(nm(id)), `${esc(r.join(', '))}${city(id) ? ' · ' + esc(city(id)) : ''}`)))}
+    ${list('Closed', shut.map(([id]) => row(link('', id), esc(nm(id)), `closed${city(id) ? ' · ' + esc(city(id)) : ''}`)))}
+    <p class="m nx-sub">Opening hours are known for ${Object.keys(art.hours).length} of ${art.places.size} places (from OpenStreetMap); for the others, open the place's page.</p></section>`;
+  box.querySelectorAll('[data-day]').forEach(b => b.onclick = () => { showsDay = +b.dataset.day; dayView(box, art, d0); });
+}
 // the art map's exhibitions in real galleries, museums and institutions (data/art, read daily): on now, and opening soon
 function fillRealShows(box, art) {
   if (!box.isConnected || !art || !art.shows.length) return;
@@ -1064,7 +1109,9 @@ function fillRealShows(box, art) {
   const card = ({ x, p }) => `<a class="nx-rs" href="${esc(x.url || p.website || '#/map')}" target="_blank" rel="noopener">${thumb(p)}<span class="nx-rs-t"><b dir="auto">${esc(x.title)}</b>
     <span>${esc(p.name)}${p.city ? ` · ${esc(p.city)}` : ''}</span><span class="nx-when">${x.start ? `${fmt(x.start)} – ` : 'until '}${fmt(x.end)}</span></span></a>`;
   const sec = (h, sub, list) => list.length ? `<section class="nx-sec"><div class="nx-sh"><h2>${h}</h2><a class="more" href="#/map">On the map</a></div><p class="m nx-sub">${sub}</p><div class="nx-real">${list.slice(0, 40).map(card).join('')}</div></section>` : '';
-  box.innerHTML = sec('On view now', 'Real exhibitions in galleries, museums and art institutions in Israel, as they list them.', now) + sec('Opening soon', 'In the next weeks.', soon);
+  const dv = document.createElement('div'); box.innerHTML = ''; box.appendChild(dv); dayView(dv, art, new Date(+today()));
+  const rest = document.createElement('div'); box.appendChild(rest);
+  rest.innerHTML = sec('On view now', 'Real exhibitions in galleries, museums and art institutions in Israel, as they list them.', now) + sec('Opening soon', 'In the next weeks.', soon);
 }
 function showsPage() {
   const pick = e => showsKind === 'all' || (showsKind === 'online' ? e.kind === 'online' : e.kind !== 'online');
@@ -1079,10 +1126,10 @@ function showsPage() {
   const closing = on.filter(e => e.kind !== 'online' && e.end - Date.now() < 7 * DAY && e !== hero);
   const rooms = on.filter(e => e.kind !== 'online' && e !== hero && !closing.includes(e)), online = on.filter(e => e.kind === 'online' && e !== hero);
   const walk = M.exhibitions.filter(e => e.space && pick(e));
-  const card = e => `<a class="nx-show" href="#/exhibition/${e.slug}">${im(e.images[0], '', '', '45vw')}${e.kind === 'online' ? '<i class="badge">Online</i>' : ''}
+  const card = e => `<a class="nx-show" href="#/exhibition/${e.slug}">${im(e.images[0], '', '', '45vw')}<i class="badge ${e.kind === 'online' ? 'virt' : 'real'}">${e.kind === 'online' ? 'Virtual' : 'Real'}</i>
     <b>${esc(e.title)}</b><span>${esc(byOf(e))}</span><span class="nx-when">${status(e) !== 'past' ? lh(when(e)) : esc(when(e))}${e.city ? ` · ${esc(e.city)}` : ''}</span></a>`;
   return `<div class="wrap gut nx">
-    <div class="nx-h"><h1>Shows</h1><div class="seg" role="group" aria-label="Which shows">${[['all', 'All'], ['rooms', 'In a room'], ['online', 'Online']].map(([k, t]) => `<button type="button" data-kind="${k}" aria-pressed="${showsKind === k}">${t}</button>`).join('')}</div></div>
+    <div class="nx-h"><h1>Shows</h1><div class="seg" role="group" aria-label="Which shows">${[['all', 'All'], ['rooms', 'Real'], ['online', 'Virtual']].map(([k, t]) => `<button type="button" data-kind="${k}" aria-pressed="${showsKind === k}">${t}</button>`).join('')}</div></div>
     ${hero ? `<a class="nx-hero" href="#/exhibition/${hero.slug}">${im(hero.images[0], `${hero.title}`, 'loading="eager"', '100vw')}
       <span class="nx-live"><i></i>${lh(tonight && tonight.show === hero ? `${tonight.what} ${dayName(tonight.at) === 'Tonight' ? 'tonight' : dayName(tonight.at).toLowerCase()} · ${hm(tonight.at)}` : when(hero))}</span>
       <span class="nx-ov"><b>${esc(hero.title)}</b><span class="k">${esc(byOf(hero))}${hero.venue && hero.kind !== 'online' ? ` · ${esc(hero.venue)}` : ''}</span>
@@ -1097,7 +1144,7 @@ function showsPage() {
     <div id="nxReal"></div>
     ${rooms.length ? `<section class="nx-sec"><div class="nx-sh"><h2>On view now</h2><a class="more" href="#/map">On the map</a></div><div class="nx-grid">${rooms.map(card).join('')}</div></section>` : ''}
     ${closing.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Last chance</h2></div><div class="nx-grid">${closing.map(card).join('')}</div></section>` : ''}
-    ${online.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Online now</h2></div><p class="m nx-sub">Digital exhibitions: no room, open all the time.</p><div class="nx-grid">${online.map(card).join('')}</div></section>` : ''}
+    ${online.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Virtual exhibitions</h2></div><p class="m nx-sub">Exist only in Open Studio: no place to visit, open all the time.</p><div class="nx-grid">${online.map(card).join('')}</div></section>` : ''}
     ${streetShows().length >= 2 ? `<a class="nx-street" href="#/museum"><b>The Museum Street</b><span>One long walk, ${streetShows().length} exhibitions off it. Each door has the colour of its show.</span><i aria-hidden="true">Walk in →</i></a>` : ''}
     ${walk.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Walk-throughs</h2><span class="more">3D</span></div><p class="m nx-sub">Real shows, kept as rooms you can walk through after they close.</p><div class="nx-rail">${walk.map(e => `<a href="#/exhibition/${e.slug}/space">${im(e.images[0], '', '', '70vw')}<i class="badge">3D</i><b>${esc(e.title)}${e.city ? ` — ${esc(e.city)}` : ''}</b></a>`).join('')}</div></section>` : ''}
     ${soon.length ? `<section class="nx-sec"><div class="nx-sh"><h2>Coming up</h2></div><div class="nx-grid">${soon.map(card).join('')}</div></section>` : ''}
@@ -1382,10 +1429,10 @@ async function enterStreet() {
   let rooms;
   if (slots.length) {
     rooms = (await Promise.all(slots.map(async s => {
-      const c = s.content, e = s.app_slug && shows.find(x => x.slug === s.app_slug);
+      const c = s.content, e = s.app_slug && slotShow(s.app_slug, shows);
       if (!c && !e) return null;
       const ws = c ? (c.works || []) : e.works, slug = e ? e.slug : 'slot-' + s.slot;
-      return { slug, slot: s.slot, title: c ? c.title : e.title, works: ws, text: c ? c.text : (e && e.text), sub: !c && e ? [e.venue, e.dates || e.year].filter(Boolean).join(' · ') : '', curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
+      return { slug, slot: s.slot, title: c ? c.title : e.title, works: ws, text: c ? c.text : (e && e.text), sub: !c && e ? [e.venue, e.dates || e.year].filter(Boolean).join(' · ') : '', enter: !c && e && e.space && (e.space.virtual || !shows.includes(e)) ? enterOf(e) : undefined, curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
         colour: s.colour || over[slug] || set[slug] || await synth.suggestColour(ws.map(thumb), src, synth.slugHue(slug)) };
     }))).filter(Boolean);
   }

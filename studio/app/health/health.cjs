@@ -40,6 +40,15 @@ const benign = (url, err) => /ERR_ABORTED/.test(err || '') && (/\.(mp4|webm)(\?|
     const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'app.js'), 'utf8'), DBU = (src.match(/const DB = '([^']+)'/) || [])[1], KEY = (src.match(/(sb_publishable_[A-Za-z0-9_-]+)/) || [])[1];
     const r = await fetch(DBU + 'app_hidden?select=key', { headers: { apikey: KEY } }); if (r.ok) hidden = new Set((await r.json()).map(x => x.key));
   } catch {}
+  // "Show on now" is whichever real exhibition the Shows page lists first (the invented demo shows are gone, and real ones end): read it
+  // from the page as a visitor would, so the check never points at a show that has closed or been removed
+  try {
+    const c0 = await b.newContext(phone), p0 = await c0.newPage();
+    await p0.goto(base + '?guest#/shows', { waitUntil: 'domcontentloaded' }); await p0.waitForTimeout(5000);
+    const href = await p0.evaluate(() => { const a = [...document.querySelectorAll('a[href^="#/exhibition/"]')].find(x => !/\/space$/.test(x.getAttribute('href'))); return a && a.getAttribute('href'); });
+    await c0.close();
+    const row = PAGES.find(x => x[0] === 'Show on now'); if (row && href) row[1] = href; else if (row) note('Show on now', 'the Shows page listed no exhibition to open');
+  } catch {}
   const hiddenPage = hash => { const m = /^#\/exhibition\/([^/?]+)/.exec(hash); return m && hidden.has('ex:' + m[1]) ? m[1] : ''; };
 
   // HEALTH_ONLY=<regex>: only the pages and rooms whose name matches (to prove a check on one page, quickly)

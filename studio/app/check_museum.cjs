@@ -52,7 +52,7 @@ const DB = (app.match(/const DB = '([^']+)'/) || [])[1], KEY = (app.match(/const
       if (await p.evaluate(() => { const m = document.querySelector('.hs-mu'); return m && !m.hidden; })) fails.push('nothing is live on the Desk, yet Home shows a museum');
       notes.push('nothing is live on the Desk: the street falls back to the app\'s own shows');
     }
-  } catch (e) { fails.push('Home\'s museum did not appear (' + String(e).slice(0, 120) + ')'); }
+  } catch (e) { fails.push(`Home's museum did not appear although ${slots.length} exhibitions are live on the Desk (${slots.map(s => s.app_slug || 'slot-' + s.slot).join(', ')}): a slot shows only if the exhibition it names exists in the app (${String(e).slice(0, 60)})`); }
   // walk in
   try {
     await p.evaluate(() => { location.hash = '#/museum'; });

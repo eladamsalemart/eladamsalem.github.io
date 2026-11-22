@@ -2,6 +2,14 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-22: Home's museum has disappeared (needs the owner); two checks follow the app; maplibre-gl 6.19.0
+
+- Four nights queued (19-22.11), one run covers them. Issue #8 (standing report) says: Show on now "does not exist", and the museum check cannot find Home's museum.
+- **Needs the owner:** on the live Home the museum section is hidden. The Desk has 4 live slots (paintings-for-the-future, seen-from-within, a-room-of-her-own, colour-without-a-subject; green-hour is hidden by him), but none of these exhibitions exists in the app any more (the invented ones were removed from Shows on 16.11, "only real exhibitions"), and a Desk slot shows only if the exhibition it names exists. So `drawMuseum` has nothing and hides the whole tile. The museum itself still opens (`#/museum`, 35 works). A data matter on the Desk (not touched: slots are his): point the slots at real exhibitions, or the museum's own (a slot with its own content), and the tile returns. check_museum.cjs says this plainly now (it caught it, the old message only said "did not appear").
+- Show on now: the page pointed at `orchards-in-bloom`, one of the invented demo shows now gone. health.cjs takes the first real exhibition from the Shows page instead (as a visitor would), so it never points at one that closed. Proved: the page check had caught the missing page; now green.
+- Improvement (last one 11-15): maplibre-gl 6.18.0 -> 6.19.0, vendored (module and worker; CSS identical). Local: map pages, tiles, Latin and Hebrew letters pass.
+- Home's room film reads "nullxnull" in check_home (another session replaced the room film with the museum's): it passes; worth a look when that work settles. Still available: three 0.187, supabase-js 2.119.2, playwright 1.65.1.
+
 ## 2026-11-17: two checks counted exhibitions the owner hid on purpose
 
 - Issue #8: Virtual show (celebration-virtual) and Curated show (green-hour) "do not exist", and the museum check saw 5 live slots on the Desk against 4 on Home. Not bugs: the owner hid both exhibitions from the app on 16.11 in the control room (`app_hidden`: `ex:celebration-virtual`, `ex:green-hour`), so they answer "not found" to every visitor, and a Desk slot that points at a hidden show is not shown. The checks did not know about hiding. Fixed narrowly, in both: health.cjs does not test a page the owner hid (it says so in the report), check_museum.cjs leaves a hidden show out of the count (it says so). A hidden show that still opened, or a published one that did not reach Home, still fails: proved with MUSEUM_FAKE=1 (fails) and the live site (now 4 = 4, Home and the other pages green). No improvement tonight (the owner's work of the last days is still settling). Still available: three 0.187, supabase-js 2.119, playwright 1.65.1.
