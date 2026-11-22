@@ -1879,6 +1879,19 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
         x.font = '400 46px Georgia, serif'; x.fillStyle = 'rgba(40,36,30,0.62)'; x.fillText(sec.years || '', 512, 200);
         const q = P(oc, -0.06), th = Math.min(0.9, h - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
         surfaces.push({ name: `${sec.id}-title`, kind: 'wall', texture: jpg(cv, 0.92), origin: [q[0] - R[0] * 1.8, y1, q[1] - R[1] * 1.8], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [3.6, th], normal: [-o[0], 0, -o[1]], openings: [] });
+        // the wing's text at its entrance, beside the door (every exhibition has its text at the way in): what it is and what its rooms are
+        { const paras = [[sec.title, sec.years].filter(Boolean).join(', ') + '.', ...(sec.before && sec.after ? [`From the ${sec.before} to the ${sec.after}.`] : []), `${bays.length} rooms: ` + bays.map(q => q.title).join('; ') + '.'];
+          const pw = 1.1, ph = pw * 860 / 640, cv2 = canvas(640, 860), x2 = cv2.getContext('2d');
+          x2.fillStyle = 'rgba(250,248,244,1)'; x2.fillRect(0, 0, 640, 860); x2.strokeStyle = '#8a7a62'; x2.lineWidth = 8; x2.strokeRect(4, 4, 632, 852);
+          x2.fillStyle = 'rgba(40,36,30,0.94)'; x2.textBaseline = 'top'; let f2 = 62; x2.font = `italic 600 ${f2}px Georgia, serif`; while (x2.measureText(sec.title).width > 560 && f2 > 28) { f2 -= 2; x2.font = `italic 600 ${f2}px Georgia, serif`; }
+          x2.fillText(sec.title, 40, 40); let yy = 40 + f2 + 22; if (sec.years) { x2.font = '400 28px Georgia, serif'; x2.fillStyle = 'rgba(40,36,30,0.6)'; x2.fillText(sec.years, 40, yy); yy += 48; }
+          x2.fillStyle = 'rgba(40,36,30,0.92)'; x2.font = '400 34px Georgia, serif';
+          const lines = []; for (const para of paras.slice(1)) { let ln = ''; for (const w of para.split(/\s+/)) { const t = ln ? ln + ' ' + w : w; if (x2.measureText(t).width > 560) { lines.push(ln); ln = w; } else ln = t; } if (ln) lines.push(ln); lines.push(''); }
+          const room = Math.floor((790 - yy) / 44); lines.slice(0, room).forEach((l, k) => x2.fillText(l, 40, yy + k * 44));
+          x2.font = '600 26px system-ui, sans-serif'; x2.fillStyle = '#8a7a62'; x2.textAlign = 'center'; x2.fillText('Tap to read', 320, 812);
+          const side = dw / 2 + 0.35 + pw / 2, qq = P(oc + side - pw / 2, -0.07), o0 = [qq[0], 0.9 + ph, qq[1]], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
+          surfaces.push({ name: `${sec.id}-intro`, kind: 'wall', texture: jpg(cv2, 0.92), origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, openings: [] });
+          hotspots.push({ id: `${sec.id}-intro`, title: sec.title, sub: sec.years || '', text: paras, lang: 'en', kind: 'text', origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, enter: null }); }
       }
       if (next) {
         const A0 = Math.min(aL, next.aL), A1 = Math.max(aR, next.aR), aC = (A0 + A1) / 2, w = A1 - A0, lo = Math.max(aL, next.aL), hi = Math.min(aR, next.aR), oc = (lo + hi) / 2, dw = Math.min(bay.open || 5, hi - lo - 1.6);
@@ -1900,7 +1913,8 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
         x.font = '400 20px Georgia, serif'; x.fillStyle = 'rgba(40,36,30,0.55)'; x.fillText(bay.years || '', 30, 78); x.fillStyle = 'rgba(40,36,30,0.9)';
         (String(bay.text || '').match(/.{1,46}(\s|$)/g) || []).slice(0, 10).forEach((ln, k) => x.fillText(ln.trim(), 30, 122 + k * 32));
         const c = left.at(Math.min(1.9, len / 2)), n = left.n, u = [n[1], 0, -n[0]];
-        surfaces.push({ name: `${sec.id}${i}-text`, kind: 'wall', texture: jpg(cv, 0.92), origin: [c[0] + n[0] * 0.012 - u[0] * 0.8, 2.5, c[1] + n[1] * 0.012 - u[2] * 0.8], u, v: [0, -1, 0], size: [1.6, 1.3], normal: [n[0], 0, n[1]], openings: [] }); }
+        surfaces.push({ name: `${sec.id}${i}-text`, kind: 'wall', texture: jpg(cv, 0.92), origin: [c[0] + n[0] * 0.012 - u[0] * 0.8, 2.5, c[1] + n[1] * 0.012 - u[2] * 0.8], u, v: [0, -1, 0], size: [1.6, 1.3], normal: [n[0], 0, n[1]], openings: [] });
+        hotspots.push({ id: `${sec.id}${i}-text`, title: bay.title, sub: bay.years || '', text: [String(bay.text || bay.title)], lang: 'en', kind: 'text', origin: [c[0] + n[0] * 0.012 - u[0] * 0.8, 2.5, c[1] + n[1] * 0.012 - u[2] * 0.8], u, v: [0, -1, 0], size: [1.6, 1.3], normal: [n[0], 0, n[1]], enter: null }); }
       // paintings: along the left wall (from the way in) and the right wall, at their real size
       const runs = [{ w: left, from: 3.6 }, { w: right, from: 0.6 }], ws = (bay.works || []).map(s => cr[s]).filter(Boolean);
       const sized = [];
