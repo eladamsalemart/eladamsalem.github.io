@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desk Museum Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Hebrew:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Heebo:wght@400;500;600;700&family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#ecebe7;--ink:#1d1c1a;--mute:#6f6b63}
+*{box-sizing:border-box}.btn,.f,.chip{white-space:nowrap}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 'Heebo',system-ui,sans-serif}
+header.top{position:sticky;top:0;z-index:5;background:#ecebe7ee;backdrop-filter:blur(8px);border-bottom:1px solid #d6d3cc;padding:14px 24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+header.top h1{font:700 20px 'Frank Ruhl Libre',serif;margin:0}header.top p{margin:0;color:var(--mute);font-size:14px}
+.pick{display:flex;gap:6px;margin-inline-start:auto}.pick button{font:600 14px 'Heebo';border:1px solid #c9c5bc;background:#fff;border-radius:999px;padding:8px 16px;cursor:pointer;min-height:40px}
+.pick button[aria-pressed=true]{background:#1d1c1a;color:#fff;border-color:#1d1c1a}
+main{padding:22px 24px 60px;max-width:1500px;margin:0 auto}
+.stage{width:100%;overflow:hidden;border-radius:14px;box-shadow:0 30px 60px -30px rgba(0,0,0,.35),0 0 0 1px rgba(0,0,0,.08)}
+.frame{width:1440px;height:880px;transform-origin:top right;position:relative;overflow:hidden}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:22px}
+.notes section{background:#fff;border-radius:12px;padding:16px 18px;border:1px solid #dcd8d0}.notes h3{margin:0 0 6px;font:700 15px 'Heebo'}.notes ul{margin:0;padding-inline-start:18px}.notes li{margin:3px 0}
+.notes .sw{display:inline-block;width:18px;height:18px;border-radius:5px;vertical-align:-4px;margin-inline-end:4px;border:1px solid rgba(0,0,0,.12)}
+.opt[hidden]{display:none}.lead{font:500 17px/1.55 'Heebo';max-width:900px;margin:0 0 16px}
+.lead b{font-weight:700}
+
+/* ============ A: drafting table ============ */
+.A{--a-bg:#f6f5f2;--a-line:#e3e0d9;--a-ink:#1f1e1b;--a-mute:#77736a;--a-blue:#2f5bea;--a-terra:#b4552d;--a-green:#2e8b57;background:var(--a-bg);font:13px/1.45 'IBM Plex Sans Hebrew',sans-serif;color:var(--a-ink)}
+.A .bar{height:52px;background:#fff;border-bottom:1px solid var(--a-line);display:flex;align-items:center;gap:14px;padding:0 16px}
+.A .logo{font-weight:600;font-size:14px}.A .crumb{color:var(--a-mute)}.A .crumb b{color:var(--a-ink);font-weight:500}
+.A .seg{display:flex;background:#f0eee9;border-radius:8px;padding:3px;margin-inline-start:24px}.A .seg span{padding:6px 14px;border-radius:6px;color:var(--a-mute);font-weight:500}.A .seg .on{background:#fff;color:var(--a-ink);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.A .grow{flex:1}.A .ib{width:32px;height:32px;border-radius:7px;display:grid;place-items:center;color:var(--a-mute);border:1px solid transparent}.A .ib:hover{background:#f0eee9}
+.A .pend{color:var(--a-terra);font-weight:500}.A .btn{height:34px;padding:0 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-weight:500;border:1px solid var(--a-line);background:#fff}.A .btn.p{background:var(--a-ink);color:#fff;border-color:var(--a-ink)}
+.A .body{display:grid;grid-template-columns:52px 1fr 330px;height:calc(100% - 52px - 168px)}
+.A .rail{background:#fff;border-inline-end:1px solid var(--a-line);display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0}
+.A .rail .ib.on{background:#e9eefc;color:var(--a-blue)}.A .rail hr{width:24px;border:0;border-top:1px solid var(--a-line);margin:4px 0}
+.A .canvas{position:relative;background-image:radial-gradient(#d9d6ce 1px,transparent 1px);background-size:16px 16px}
+.A .canvas svg{position:absolute;inset:24px 30px 24px 30px;width:calc(100% - 60px);height:calc(100% - 48px)}
+.A .float{position:absolute;display:flex;gap:2px;background:var(--a-ink);color:#fff;border-radius:9px;padding:4px;box-shadow:0 8px 20px -6px rgba(0,0,0,.4)}
+.A .float span{padding:6px 10px;border-radius:6px;font-weight:500}.A .float span:hover{background:#ffffff22}.A .float .d{color:#ff9b85}
+.A .zoom{position:absolute;bottom:14px;left:14px;background:#fff;border:1px solid var(--a-line);border-radius:8px;display:flex;align-items:center;font-family:'IBM Plex Mono';font-size:12px}.A .zoom span{padding:6px 10px}
+.A .legend{position:absolute;top:14px;right:14px;background:#ffffffe6;border:1px solid var(--a-line);border-radius:8px;padding:8px 10px;display:grid;gap:4px;font-size:12px;color:var(--a-mute)}
+.A .legend i{display:inline-block;width:12px;height:9px;border-radius:2px;margin-inline-end:6px;vertical-align:-1px}
+.A .insp{background:#fff;border-inline-start:1px solid var(--a-line);display:flex;flex-direction:column}
+.A .insp .h{padding:14px 16px 0}.A .kind{font-size:11px;color:var(--a-terra);font-weight:600;letter-spacing:.02em}.A .insp h2{margin:2px 0 10px;font:600 18px 'IBM Plex Sans Hebrew'}
+.A .tabs{display:flex;gap:16px;border-bottom:1px solid var(--a-line);padding:0 16px}.A .tabs span{padding:8px 0;color:var(--a-mute);font-weight:500}.A .tabs .on{color:var(--a-ink);box-shadow:inset 0 -2px 0 var(--a-ink)}
+.A .sec{padding:14px 16px;display:grid;gap:12px}.A .lab{font-size:11px;color:var(--a-mute);font-weight:500;margin-bottom:4px}
+.A .excard{display:flex;gap:10px;align-items:center;border:1px solid var(--a-line);border-radius:10px;padding:8px}.A .excard .im{width:56px;height:56px;border-radius:7px;background-size:cover;background-position:center}
+.A .excard b{display:block;font-weight:600}.A .excard small{color:var(--a-mute)}.A .excard .ch{margin-inline-start:auto;color:var(--a-blue);font-weight:500}
+.A .row{display:flex;align-items:center;justify-content:space-between}.A .tg{width:36px;height:20px;border-radius:99px;background:var(--a-green);position:relative}.A .tg::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+.A .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}.A .inp{height:34px;border:1px solid var(--a-line);border-radius:8px;display:flex;align-items:center;padding:0 10px;color:var(--a-mute)}
+.A .sws{display:flex;gap:6px}.A .sws i{width:22px;height:22px;border-radius:6px}.A .sws .on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--a-ink)}
+.A .insp .ft{margin-top:auto;padding:12px 16px;border-top:1px solid var(--a-line);display:flex;gap:8px}.A .insp .ft .btn{flex:1;justify-content:center}.A .btn.q{color:#b0391f}
+.A .lib{position:absolute;bottom:0;left:0;right:0;height:168px;background:#fff;border-top:1px solid var(--a-line);padding:10px 16px}
+.A .lib .lh{display:flex;align-items:center;gap:10px;margin-bottom:10px}.A .lib .lh b{font-weight:600}
+.A .chip{padding:4px 10px;border-radius:99px;background:#f0eee9;color:var(--a-mute);font-weight:500;font-size:12px}.A .chip.on{background:var(--a-ink);color:#fff}
+.A .cards{display:flex;gap:10px}.A .card{width:150px;flex:none}.A .card .im{height:78px;border-radius:8px;background-size:cover;background-position:center;position:relative}
+.A .card b{display:block;font-weight:500;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.A .card small{color:var(--a-mute)}
+.A .tag{position:absolute;top:6px;right:6px;background:#ffffffe8;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:500}
+
+/* ============ B: ledger ============ */
+.B{--b-bg:#fbfaf7;--b-side:#f3f1ec;--b-line:#e8e4dc;--b-ink:#23211d;--b-mute:#7a756b;--b-acc:#23211d;background:var(--b-bg);font:14px/1.5 'Heebo',sans-serif;color:var(--b-ink);display:grid;grid-template-columns:232px 1fr 400px}
+.B .side{background:var(--b-side);border-inline-end:1px solid var(--b-line);padding:18px 12px;display:flex;flex-direction:column;gap:2px}
+.B .brand{font:700 17px 'Frank Ruhl Libre',serif;padding:0 10px 16px}.B .nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:#4d4941}
+.B .nav.on{background:#fff;color:var(--b-ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.06)}.B .nav .n{margin-inline-start:auto;font-size:12px;color:var(--b-mute)}
+.B .side .lbl{font-size:12px;color:var(--b-mute);padding:16px 10px 4px}
+.B .main{padding:26px 30px;overflow:hidden}.B h1{font:700 32px 'Frank Ruhl Libre',serif;margin:0}.B .sub{color:var(--b-mute);margin:2px 0 18px}
+.B .tabs{display:flex;gap:22px;border-bottom:1px solid var(--b-line)}.B .tabs span{padding:10px 0;color:var(--b-mute);font-weight:500}.B .tabs .on{color:var(--b-ink);box-shadow:inset 0 -2px 0 var(--b-ink)}.B .tabs i{font-style:normal;background:#efece6;border-radius:99px;padding:0 7px;font-size:12px;margin-inline-start:6px}
+.B .tools{display:flex;gap:8px;align-items:center;margin:16px 0 8px}.B .search{flex:0 0 260px;height:38px;border:1px solid var(--b-line);border-radius:9px;background:#fff;display:flex;align-items:center;padding:0 12px;color:var(--b-mute)}
+.B .f{height:32px;padding:0 12px;border-radius:99px;border:1px solid var(--b-line);background:#fff;display:inline-flex;align-items:center;color:#4d4941;font-size:13px}.B .f.on{background:var(--b-ink);color:#fff;border-color:var(--b-ink)}
+.B .grow{flex:1}.B .btn{height:38px;padding:0 16px;border-radius:9px;display:inline-flex;align-items:center;gap:6px;font-weight:600;border:1px solid var(--b-line);background:#fff}.B .btn.p{background:var(--b-ink);color:#fff;border-color:var(--b-ink)}
+.B table{width:100%;border-collapse:collapse}.B th{font-size:12px;color:var(--b-mute);font-weight:500;text-align:right;padding:8px 10px;border-bottom:1px solid var(--b-line)}
+.B td{padding:9px 10px;border-bottom:1px solid var(--b-line);vertical-align:middle}.B tr.on td{background:#f4f1ea}.B tr.on td:first-child{box-shadow:inset -3px 0 0 var(--b-ink)}
+.B .no{font:600 13px 'Heebo';color:var(--b-mute);width:34px}.B .ex{display:flex;align-items:center;gap:10px}.B .ex .im{width:40px;height:40px;border-radius:6px;background-size:cover;background-position:center;flex:none}
+.B .ex b{font-weight:600}.B .ex small{display:block;color:var(--b-mute);font-size:12px}.B .empty{color:#a39e93}
+.B .kd{font-size:12px;border-radius:5px;padding:2px 7px;background:#efece6;color:#5b564c}.B .kd.real{background:#e8efe6;color:#3b6b3a}.B .kd.virt{background:#e9eaf5;color:#45498c}.B .kd.demo{background:#f4ece0;color:#8a6a3a}
+.B .st{display:inline-flex;align-items:center;gap:6px}.B .st::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}.B .live{color:#2f7d4f}.B .draft{color:#8b867c}.B .soon{color:#b7791f}
+.B .dot{width:16px;height:16px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.1)}
+.B .sheet{background:#fff;border-inline-start:1px solid var(--b-line);padding:20px 22px;display:flex;flex-direction:column;gap:16px}
+.B .sheet .top{display:flex;align-items:center;gap:8px;color:var(--b-mute);font-size:13px}.B .sheet h2{font:700 24px 'Frank Ruhl Libre',serif;margin:0}
+.B .hero{height:150px;border-radius:10px;background-size:cover;background-position:center}
+.B .kv{display:grid;grid-template-columns:110px 1fr;gap:10px 12px;align-items:center;font-size:14px}.B .kv dt{color:var(--b-mute)}.B .kv dd{margin:0}
+.B .tg{width:38px;height:22px;border-radius:99px;background:#2f7d4f;position:relative;display:inline-block;vertical-align:middle}.B .tg::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff}
+.B .mini{border:1px solid var(--b-line);border-radius:10px;padding:8px;background:#fbfaf7}.B .mini svg{width:100%;height:150px;display:block}
+.B .sheet .ft{margin-top:auto;display:flex;gap:8px}.B .sheet .ft .btn{flex:1;justify-content:center}
+
+/* ============ C: curator's wall ============ */
+.C{--c-bg:#151412;--c-card:#1f1e1b;--c-line:#2e2c28;--c-ink:#efe9de;--c-mute:#9a9385;--c-amber:#e3a857;--c-blue:#7aa2ff;background:var(--c-bg);color:var(--c-ink);font:14px/1.5 'Assistant',sans-serif;padding:0}
+.C .bar{height:60px;display:flex;align-items:center;gap:18px;padding:0 28px;border-bottom:1px solid var(--c-line)}
+.C .brand{font:700 18px 'Frank Ruhl Libre',serif}.C .nav{display:flex;gap:4px}.C .nav span{padding:6px 12px;border-radius:8px;color:var(--c-mute);font-weight:600}.C .nav .on{color:var(--c-ink);background:#2a2925}
+.C .grow{flex:1}.C .btn{height:38px;padding:0 16px;border-radius:10px;display:inline-flex;align-items:center;gap:8px;font-weight:700;border:1px solid var(--c-line);color:var(--c-ink);background:transparent}.C .btn.p{background:var(--c-amber);color:#1a1307;border-color:var(--c-amber)}
+.C .wrap{padding:22px 28px}
+.C .hero{height:200px;border-radius:16px;position:relative;overflow:hidden;background:#2a2925 center/cover;display:flex;align-items:flex-end;padding:22px 24px}
+.C .hero::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(15,14,12,.85),rgba(15,14,12,.1) 70%)}
+.C .hero > *{position:relative}.C .hero h1{font:700 38px/1.1 'Frank Ruhl Libre',serif;margin:0}.C .hero p{margin:4px 0 0;color:#d8d1c3}
+.C .stats{display:flex;gap:26px;margin-inline-start:auto;align-items:flex-end}.C .stats div{text-align:center}.C .stats b{display:block;font:700 28px 'Frank Ruhl Libre',serif}.C .stats span{font-size:13px;color:#cfc7b8}
+.C .hero .acts{display:flex;gap:8px;margin-inline-start:28px}
+.C h2{font:700 20px 'Frank Ruhl Libre',serif;margin:22px 0 4px;display:flex;align-items:center;gap:10px}.C h2 small{font:400 14px 'Assistant';color:var(--c-mute)}
+.C h2 .lk{margin-inline-start:auto;font:600 14px 'Assistant';color:var(--c-amber)}
+.C .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:10px}
+.C .pc{background:var(--c-card);border-radius:14px;overflow:hidden;border:1px solid var(--c-line);position:relative}
+.C .pc .im{height:128px;background:#2a2925 center/cover;position:relative}.C .pc .num{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;background:#151412cc;display:grid;place-items:center;font:700 14px 'Frank Ruhl Libre'}
+.C .pc .st{position:absolute;top:10px;left:10px;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;background:#0d2b1bcc;color:#7fe0a5}.C .pc .st.d{background:#2a2925cc;color:#cfc7b8}
+.C .pc .tx{padding:10px 12px 12px}.C .pc b{display:block;font:700 16px 'Frank Ruhl Libre',serif}.C .pc small{color:var(--c-mute)}
+.C .pc .thr{position:absolute;bottom:0;left:0;right:0;height:3px}
+.C .pc.hov .over{position:absolute;inset:0 0 auto 0;height:128px;background:#151412b8;display:flex;gap:6px;align-items:center;justify-content:center}
+.C .pc .over span{background:#efe9de;color:#151412;font-weight:700;border-radius:8px;padding:6px 10px;font-size:13px}
+.C .pc.em{border:1.5px dashed #4a463f;background:transparent;display:grid;place-items:center;min-height:186px;color:var(--c-mute);text-align:center}.C .pc.em b{color:var(--c-ink);font:700 15px 'Assistant'}
+.C .wing{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px;margin-top:10px}
+.C .wc{border-radius:14px;border:1px solid #2f3a57;background:linear-gradient(135deg,#1b2131,#1f1e1b);padding:16px 18px;position:relative;min-height:140px}
+.C .wc .k{color:var(--c-blue);font-weight:700;font-size:12px;letter-spacing:.04em}.C .wc b{display:block;font:700 22px 'Frank Ruhl Libre',serif;margin:2px 0}
+.C .wc .bays{display:flex;gap:4px;margin:12px 0}.C .wc .bays i{flex:1;height:26px;border-radius:4px;border:1px dashed #5f7fd0;background:#7aa2ff1a}
+.C .wc .row{display:flex;gap:8px}.C .wc .row span{font-weight:700;font-size:13px;padding:5px 10px;border-radius:8px;border:1px solid #3a4560;color:#cbd6f5}
+.C .wc.add{border-style:dashed;display:grid;place-items:center;color:var(--c-mute);background:transparent}
+.C .plan{position:absolute;left:28px;bottom:20px;width:270px;background:#1f1e1b;border:1px solid var(--c-line);border-radius:12px;padding:10px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><h1>המוזיאון ב־Desk: שלושה עיצובים</h1><p>אותו תוכן ואותן פעולות (חדרים, תערוכות, תוכנית הבניין, אגפי נושא), שלוש דרכים שונות לסדר אותם.</p></div>
+  <div class="pick" role="tablist">
+    <button aria-pressed="true" data-o="A">א׳ · שולחן שרטוט</button>
+    <button aria-pressed="false" data-o="B">ב׳ · פנקס</button>
+    <button aria-pressed="false" data-o="C">ג׳ · קיר האוצר</button>
+  </div>
+</header>
+<main>
+
+<!-- ================= A ================= -->
+<div class="opt" data-o="A">
+<p class="lead"><b>א׳ · שולחן שרטוט.</b> כמו Figma או תוכנה של אדריכל. התוכנית של הבניין היא הדף כולו. לוחצים על מרחב, ומעליו מופיע סרגל קטן עם הפעולות שלו. בצד פאנל אחד עם הפרטים, ולמטה מגש התערוכות שגוררים ממנו אל החדרים.</p>
+<div class="stage"><div class="frame A">
+  <div class="bar">
+    <span class="logo">Open Studio · Desk</span><span class="crumb">המוזיאון / <b>תוכנית</b></span>
+    <div class="seg"><span class="on">תוכנית</span><span>רשימה</span><span>תלת־ממד</span></div>
+    <span class="grow"></span>
+    <span class="ib" title="בטל">↶</span><span class="ib" title="שחזר">↷</span>
+    <span class="pend">● 3 שינויים לא פורסמו</span><span class="btn">מה ישתנה</span><span class="btn p">פרסם למבקרים</span>
+  </div>
+  <div class="body">
+    <div class="rail">
+      <span class="ib on" title="בחירה">➤</span><span class="ib" title="הזזה">✥</span><span class="ib" title="סיבוב">⟳</span><hr>
+      <span class="ib" title="ביתן חדש">▢</span><span class="ib" title="אגף נושא">▭</span><span class="ib" title="מדידה">↔</span><hr><span class="ib" title="שכבות">≡</span>
+    </div>
+    <div class="canvas">
+      <div class="legend"><span><i style="background:#e9dccb;border:1px solid #b4552d"></i>ביתנים (ממוספרים)</span><span><i style="background:#e6ecfb;border:1px dashed #2f5bea"></i>אגפי נושא</span><span><i style="background:#cfe0e4"></i>בריכה · ▪ עמודים</span></div>
+      <svg id="planA" dir="ltr"></svg>
+      <div class="float" style="top:300px;left:430px"><span>הזז</span><span>סובב 90°</span><span>שנה שם</span><span>היכנס ↗</span><span class="d">הסר</span></div>
+      <div class="zoom"><span>−</span><span>100%</span><span>+</span><span>⤢</span></div>
+    </div>
+    <aside class="insp">
+      <div class="h"><div class="kind">ביתן 2 · צד צפון</div><h2>Ritual</h2></div>
+      <div class="tabs"><span class="on">תערוכה</span><span>זמנים</span><span>מראה</span></div>
+      <div class="sec">
+        <div><div class="lab">התערוכה בביתן</div><div class="excard"><div class="im" style="background-image:url(../../app/data/spaces/ritual/preview.jpg)"></div><div><b>Ritual</b><small>תערוכה אמיתית · 10 עבודות</small></div><span class="ch">החלף</span></div></div>
+        <div class="row"><div><b style="font-weight:600">מוצג למבקרים</b><div style="color:#77736a;font-size:12px">פורסם 21.11.2026</div></div><span class="tg"></span></div>
+        <div><div class="lab">תאריכים</div><div class="two"><span class="inp">מ־ 22.11.2026</span><span class="inp">עד · תמיד</span></div></div>
+        <div><div class="lab">צבע הסף</div><div class="sws"><i style="background:linear-gradient(135deg,#d9c2a0,#8d6b4a)" class="on"></i><i style="background:#e3351c"></i><i style="background:#e3981c"></i><i style="background:#6cc424"></i><i style="background:#1c67e3"></i><i style="background:#7a2be3"></i><i style="border:1px dashed #aaa"></i></div></div>
+      </div>
+      <div class="ft"><span class="btn">צפה בתלת־ממד</span><span class="btn">ערוך</span><span class="btn q">פנה</span></div>
+    </aside>
+  </div>
+  <div class="lib">
+    <div class="lh"><b>מגש התערוכות</b><span class="chip on">הכל 14</span><span class="chip">שלי 3</span><span class="chip">אמיתיות 3</span><span class="chip">של אמנים 2</span><span class="chip">דמו 6</span><span class="grow"></span><span style="color:#77736a">גרור אל ביתן בתוכנית</span><span class="btn">+ תערוכה חדשה</span></div>
+    <div class="cards" id="cardsA"></div>
+  </div>
+</div></div>
+<div class="notes">
+  <section><h3>איפה הפעולות</h3><ul><li>למעלה: מצב תצוגה, ביטול ושחזור, "פרסם" אחד לכל השינויים</li><li>על המרחב שנבחר: הזז, סובב, שם, היכנס, הסר</li><li>בצד: הפרטים בשלוש לשוניות</li><li>למטה: התערוכות, גוררים אל התוכנית</li></ul></section>
+  <section><h3>גופנים וצבעים</h3><ul><li>IBM Plex Sans Hebrew בגודל 13–14, ומספרים ב־Plex Mono</li><li><span class="sw" style="background:#f6f5f2"></span>רקע נייר <span class="sw" style="background:#1f1e1b"></span>דיו <span class="sw" style="background:#b4552d"></span>ביתנים <span class="sw" style="background:#2f5bea"></span>אגפים <span class="sw" style="background:#2e8b57"></span>מוצג</li></ul></section>
+  <section><h3>בעד ונגד</h3><ul><li>+ מרגיש כמו לתכנן בניין אמיתי, הכי "מקצועי"</li><li>+ הכל במסך אחד, בלי לגלול</li><li>− צפוף יותר, ולוקח רגע ללמוד</li><li>מאמץ: גבוה (4–6 ימים)</li></ul></section>
+</div>
+</div>
+
+<!-- ================= B ================= -->
+<div class="opt" data-o="B" hidden>
+<p class="lead"><b>ב׳ · פנקס.</b> כמו Linear או Notion: שקט ומסודר. כל ביתן הוא שורה בטבלה, עם התערוכה, הסוג, המצב, התאריכים והצבע. לחיצה על שורה פותחת גיליון בצד, ובו כל העריכה ומפה קטנה שמראה איפה הביתן בבניין. את תוכנית הבניין עורכים בלשונית נפרדת.</p>
+<div class="stage"><div class="frame B">
+  <nav class="side">
+    <div class="brand">Open Studio</div>
+    <span class="nav">⌂ בית</span><span class="nav">✦ אמנים<span class="n">12</span></span><span class="nav">▤ תערוכות</span><span class="nav on">◫ המוזיאון</span><span class="nav">✉ בקשות<span class="n">3</span></span><span class="nav">♥ בריאות</span>
+    <div class="lbl">המוזיאון</div><span class="nav">ביתנים</span><span class="nav">אגפי נושא</span><span class="nav">תוכנית הבניין</span><span class="nav">תערוכות שלי</span>
+  </nav>
+  <div class="main">
+    <h1>המוזיאון</h1><div class="sub">"תחת שמיים אחד" · 7 מוצגות כעת · 2 ביתנים ריקים · אגף נושא אחד</div>
+    <div class="tabs"><span class="on">ביתנים<i>9</i></span><span>אגפי נושא<i>1</i></span><span>תוכנית הבניין</span><span>תערוכות שלי<i>3</i></span></div>
+    <div class="tools"><span class="search">⌕ חיפוש תערוכה או ביתן</span><span class="f on">הכל</span><span class="f">מוצגות</span><span class="f">לא מוצגות</span><span class="f">ריקים</span><span class="grow"></span><span class="btn">⤢ צפה במוזיאון</span><span class="btn p">+ ביתן</span></div>
+    <table><thead><tr><th>#</th><th>תערוכה</th><th>סוג</th><th>מצב</th><th>תאריכים</th><th>סף</th><th></th></tr></thead><tbody id="rowsB"></tbody></table>
+  </div>
+  <aside class="sheet">
+    <div class="top">ביתן 2 · צד צפון<span class="grow" style="flex:1"></span>✕</div>
+    <h2>Ritual</h2>
+    <div class="hero" style="background-image:url(../../app/data/spaces/ritual/preview.jpg)"></div>
+    <dl class="kv">
+      <dt>תערוכה</dt><dd><b>Ritual</b> · אמיתית · <a style="color:#23211d">החלף</a></dd>
+      <dt>מוצג למבקרים</dt><dd><span class="tg"></span></dd>
+      <dt>תאריכים</dt><dd>22.11.2026 – תמיד</dd>
+      <dt>צבע הסף</dt><dd><span class="dot" style="background:#a88457"></span> אוטומטי, מהעבודות</dd>
+    </dl>
+    <div class="mini"><svg id="planB" dir="ltr"></svg></div>
+    <div class="ft"><span class="btn">צפה</span><span class="btn">ערוך</span><span class="btn" style="color:#b0391f">פנה</span></div>
+  </aside>
+</div></div>
+<div class="notes">
+  <section><h3>איפה הפעולות</h3><ul><li>בצד: הניווט של כל לוח הבקרה, והמוזיאון הוא פריט אחד בו</li><li>למעלה: לשוניות (ביתנים, אגפים, תוכנית), חיפוש ומסננים</li><li>כפתור ראשי אחד בכל מסך ("+ ביתן")</li><li>הגיליון בצד: כל העריכה של מה שנבחר</li></ul></section>
+  <section><h3>גופנים וצבעים</h3><ul><li>Heebo 14 לטקסט, Frank Ruhl Libre לכותרות</li><li><span class="sw" style="background:#fbfaf7"></span>לבן חם <span class="sw" style="background:#f3f1ec"></span>צד <span class="sw" style="background:#23211d"></span>דיו <span class="sw" style="background:#2f7d4f"></span>מוצג <span class="sw" style="background:#b7791f"></span>מתוזמן</li></ul></section>
+  <section><h3>בעד ונגד</h3><ul><li>+ הכי נקי ונוח לעבודה יומיומית, ונראה כמו מוצר בוגר</li><li>+ אותו דפוס אפשר להחיל על כל לוח הבקרה (אמנים, תערוכות)</li><li>− התוכנית פחות במרכז, מסתכלים עליה רק כשצריך</li><li>מאמץ: נמוך עד בינוני (2–3 ימים)</li></ul></section>
+</div>
+</div>
+
+<!-- ================= C ================= -->
+<div class="opt" data-o="C" hidden>
+<p class="lead"><b>ג׳ · קיר האוצר.</b> כמו Artsy או אפליקציה של גלריה: חזותי וכהה, והעבודות במרכז. כל ביתן הוא כרטיס גדול עם תמונה, מספר וצבע הסף, ובריחוף מופיעות הפעולות. אגפי הנושא נמצאים בשורה נפרדת בכחול. את התוכנית פותחים ב"מצב בנייה" על כל המסך.</p>
+<div class="stage"><div class="frame C">
+  <div class="bar"><span class="brand">Open Studio</span><div class="nav"><span>בית</span><span>אמנים</span><span>תערוכות</span><span class="on">המוזיאון</span><span>בקשות</span></div><span class="grow"></span><span class="btn">↶ בטל</span><span class="btn">מצב בנייה ⌗</span><span class="btn p">פרסם 3 שינויים</span></div>
+  <div class="wrap">
+    <div class="hero" style="background-image:url(../../app/data/spaces/ritual/preview.jpg);background-position:center 40%">
+      <div><h1>תחת שמיים אחד</h1><p>בניין אחד, 96 × 72 מ׳ · מה שהמבקרים רואים עכשיו</p></div>
+      <div class="stats"><div><b>7</b><span>מוצגות</span></div><div><b>2</b><span>ריקים</span></div><div><b>1</b><span>אגף נושא</span></div></div>
+      <div class="acts"><span class="btn" style="background:#efe9de;color:#151412;border-color:#efe9de">היכנס למוזיאון ↗</span></div>
+    </div>
+    <h2>ביתנים <small>תערוכות אמיתיות, של אמנים ושלי · גרור כדי להחליף מקום</small><span class="lk">+ שבץ תערוכה</span></h2>
+    <div class="grid" id="gridC"></div>
+    <h2>אגפי נושא <small>אגפי המוזיאון עצמו, נבנים על ידי סוכן האוצר</small><span class="lk">+ אגף נושא</span></h2>
+    <div class="wing">
+      <div class="wc"><div class="k">אגף היסטוריה · מוצג</div><b>The Renaissance</b><span style="color:#9a9385">c. 1300 – 1600 · 4 מפרצים · 24 עבודות · 3 פסלים</span><div class="bays"><i></i><i></i><i></i><i></i></div><div class="row"><span>היכנס ↗</span><span>ערוך מפרצים</span><span>מקום בתוכנית</span></div></div>
+      <div class="wc add"><div><b style="font:700 16px Assistant;color:#cbd6f5">+ The Baroque</b>מוכן מסוכן האוצר, לא בבניין</div></div>
+      <div class="wc add"><div><b style="font:700 16px Assistant;color:#cbd6f5">+ Impressionism</b>בהכנה</div></div>
+    </div>
+  </div>
+</div></div>
+<div class="notes">
+  <section><h3>איפה הפעולות</h3><ul><li>על הכרטיס, בריחוף: החלף, תזמן, צפה, פנה</li><li>למעלה: ביטול, "מצב בנייה" (התוכנית על כל המסך), ו"פרסם"</li><li>שני מדורים ברורים: ביתנים ואגפי נושא</li><li>פרטים מלאים בחלון שנפתח מהכרטיס</li></ul></section>
+  <section><h3>גופנים וצבעים</h3><ul><li>Assistant לטקסט, Frank Ruhl Libre לכותרות</li><li><span class="sw" style="background:#151412"></span>פחם <span class="sw" style="background:#1f1e1b"></span>כרטיס <span class="sw" style="background:#efe9de"></span>נייר <span class="sw" style="background:#e3a857"></span>ענבר <span class="sw" style="background:#7aa2ff"></span>אגפים</li></ul></section>
+  <section><h3>בעד ונגד</h3><ul><li>+ הכי יפה ו"אמנותי", ורואים מיד מה תלוי איפה</li><li>+ מתאים למבקרים שיראו את המוזיאון כמו שהמבקר רואה</li><li>− פחות צפוף, וגוללים יותר; התוכנית בשלב נפרד</li><li>מאמץ: בינוני (3–4 ימים)</li></ul></section>
+</div>
+</div>
+</main>
+<script>
+// the real plan of the museum (museum_plan, 22.11): houses by door and direction, the History wing, pool and piers
+const SP = [[1,270,[41,17]],[2,273,[52,18.5]],[3,268,[31,19.5]],[4,272,[63,20.5]],[5,2,[78,26]],[6,-3,[77.5,44]],[7,92,[32,53]],[8,88,[64,54.5]],[57,0,[45,56]]];
+const PIERS = [[29,26],[70,24],[29,48],[70,48],[48,26],[48,48]];
+const foot = (door, o, l0, l1, d0, d1) => { const R = [-o[1], o[0]], c = (a, b) => [door[0] + R[0] * a + o[0] * b, door[1] + R[1] * a + o[1] * b]; return [c(l0, d0), c(l1, d0), c(l1, d1), c(l0, d1)]; };
+const rad = d => d * Math.PI / 180;
+function plan(svg, st) {
+  const s = [];
+  s.push(`<rect x="0" y="0" width="96" height="72" fill="${st.hall}" stroke="${st.hallS}" stroke-width=".5"/>`);
+  if (st.grid) for (let x = 8; x < 96; x += 8) s.push(`<line x1="${x}" y1="0" x2="${x}" y2="72" stroke="${st.grid}" stroke-width=".12"/>`), x < 72 && s.push(`<line x1="0" y1="${x}" x2="96" y2="${x}" stroke="${st.grid}" stroke-width=".12"/>`);
+  s.push(`<rect x="40" y="30" width="20" height="8" rx="1" fill="${st.pool}"/>`);
+  PIERS.forEach(([x, z]) => s.push(`<rect x="${x - .7}" y="${z - .7}" width="1.4" height="1.4" fill="${st.pier}"/>`));
+  s.push(`<rect x="43" y="71.4" width="10" height="1.2" fill="${st.ent}"/><text x="48" y="70.2" font-size="1.8" text-anchor="middle" fill="${st.txt}" font-family="Heebo">כניסה</text>`);
+  const W = foot([9, 53], [0, -1], -5, 11, 0, 41);
+  s.push(`<polygon points="${W.map(p => p.join(',')).join(' ')}" fill="${st.wing}" stroke="${st.wingS}" stroke-width=".4" stroke-dasharray="1.4 .9"/>`);
+  for (let i = 1; i < 4; i++) { const a = foot([9, 53], [0, -1], -5, 11, i * 10.25, i * 10.25); s.push(`<line x1="${a[0][0]}" y1="${a[0][1]}" x2="${a[1][0]}" y2="${a[1][1]}" stroke="${st.wingS}" stroke-width=".2" stroke-dasharray=".8 .6"/>`); }
+  s.push(`<text x="12" y="31" font-size="2.2" text-anchor="middle" fill="${st.wingS}" font-family="Heebo" font-weight="600" transform="rotate(-90 12 31)">The Renaissance · אגף היסטוריה</text>`);
+  SP.forEach(([n, dir, door]) => {
+    const F = foot(door, [Math.cos(rad(dir)), Math.sin(rad(dir))], -4.1, 4.1, -.3, 7.9), cx = F.reduce((t, p) => t + p[0], 0) / 4, cz = F.reduce((t, p) => t + p[1], 0) / 4, on = n === st.sel, empty = n === 1 || n === 7 || n === 8;
+    s.push(`<polygon points="${F.map(p => p.join(',')).join(' ')}" fill="${on ? st.selF : empty ? st.emptyF : st.house}" stroke="${on ? st.selS : st.houseS}" stroke-width="${on ? .7 : .35}" ${empty ? 'stroke-dasharray="1 .7"' : ''}/>`);
+    s.push(`<text x="${cx}" y="${cz + 1.1}" font-size="${n > 9 ? 2.4 : 3.2}" text-anchor="middle" font-weight="700" fill="${on ? st.selS : st.num}" font-family="${st.font}">${n > 9 ? 'Ritual ↗' : n}</text>`);
+    if (on && st.handles) F.forEach(p => s.push(`<rect x="${p[0] - .6}" y="${p[1] - .6}" width="1.2" height="1.2" fill="#fff" stroke="${st.selS}" stroke-width=".25"/>`));
+  });
+  svg.setAttribute('viewBox', '-3 -3 102 78'); svg.innerHTML = s.join('');
+}
+plan(document.getElementById('planA'), { hall: '#fbfaf8', hallS: '#8d8a82', grid: '#e7e4dd', pool: '#cfe0e4', pier: '#9b978e', ent: '#2e8b57', txt: '#77736a', wing: '#e6ecfb', wingS: '#2f5bea', house: '#e9dccb', houseS: '#b4552d', emptyF: '#f7f3ec', selF: '#fde9df', selS: '#1f1e1b', num: '#8a4b2c', font: 'IBM Plex Mono', sel: 2, handles: true });
+plan(document.getElementById('planB'), { hall: '#fff', hallS: '#c9c4b9', pool: '#dbe7ea', pier: '#bdb8ad', ent: '#2f7d4f', txt: '#7a756b', wing: '#eef1fa', wingS: '#5b6fb5', house: '#efe9df', houseS: '#c9bda8', emptyF: '#faf8f4', selF: '#23211d', selS: '#23211d', num: '#9a8f7c', font: 'Heebo', sel: 2 });
+// the exhibitions (the real list on the Desk today)
+const IMG = { ritual: '../../app/data/spaces/ritual/preview.jpg', nature: '../../app/data/spaces/ritual/inspection.jpg' };
+const G = (a, b) => `linear-gradient(135deg,${a},${b})`;
+const ROOMS = [
+  { n: 1, t: '', k: '', s: '' },
+  { n: 2, t: 'Ritual', k: 'real', s: 'live', im: `url(${IMG.ritual})`, c: '#a88457' },
+  { n: 3, t: 'Paintings for the Future', k: 'demo', s: 'live', im: G('#c9b08a', '#6d5a43'), c: '#e3981c' },
+  { n: 4, t: 'Seen from Within', k: 'demo', s: 'live', im: G('#9fb4c4', '#43566a'), c: '#1c67e3' },
+  { n: 5, t: 'A Room of Her Own', k: 'demo', s: 'live', im: G('#d8a7a0', '#7a4a45'), c: '#e31c9a' },
+  { n: 6, t: 'Colour Without a Subject', k: 'demo', s: 'soon', im: G('#e2d27a', '#8a6f2a'), c: '#e3ca1c' },
+  { n: 7, t: '', k: '', s: '' },
+  { n: 8, t: 'Nature of Man', k: 'real', s: 'draft', im: `url(${IMG.nature})`, c: '#6cc424' },
+  { n: 9, t: 'Nana · Small Weather', k: 'virt', s: 'live', im: G('#b8c9a8', '#4d5f3f'), c: '#7a2be3' },
+];
+const KD = { real: 'אמיתית', virt: 'של אמן · וירטואלית', mine: 'שלי', demo: 'דמו' }, ST = { live: 'מוצג', draft: 'לא מוצג', soon: 'מתוזמן · 1.12' };
+document.getElementById('rowsB').innerHTML = ROOMS.map(r => `<tr class="${r.n === 2 ? 'on' : ''}"><td class="no">${r.n}</td><td>${r.t ? `<div class="ex"><span class="im" style="background-image:${r.im}"></span><div><b>${r.t}</b><small>${r.k === 'real' ? '10 עבודות · חלל מקורי' : r.k === 'virt' ? 'תערוכה של אמן' : '8 עבודות'}</small></div></div>` : '<span class="empty">— ריק · גרור או בחר תערוכה</span>'}</td><td>${r.k ? `<span class="kd ${r.k}">${KD[r.k]}</span>` : ''}</td><td>${r.s ? `<span class="st ${r.s}">${ST[r.s]}</span>` : ''}</td><td style="color:#7a756b">${r.s === 'soon' ? '1.12 – 31.1' : r.t ? 'תמיד' : ''}</td><td>${r.c ? `<span class="dot" style="background:${r.c}"></span>` : ''}</td><td style="color:#a39e93">⋯</td></tr>`).join('');
+const LIB = [['Ritual', 'אמיתית', `url(${IMG.ritual})`], ['Nature of Man', 'אמיתית', `url(${IMG.nature})`], ['BFA Graduate', 'אמיתית', G('#cfc9bd', '#6f6a60')], ['Small Weather', 'של אמן', G('#b8c9a8', '#4d5f3f')], ['Quiet Rooms', 'שלי', G('#d9d2c3', '#8d8576')], ['Night Studies', 'שלי · טיוטה', G('#3d3a46', '#15141a')], ['Celebration', 'דמו', G('#e7c07a', '#a0612d')], ['The Green Hour', 'דמו', G('#a9c49a', '#3e5a35')]];
+document.getElementById('cardsA').innerHTML = LIB.map(([t, k, im]) => `<div class="card"><div class="im" style="background-image:${im}"><span class="tag">${k}</span></div><b>${t}</b><small>${k === 'אמיתית' ? 'ביתן 2' : 'לא משובץ'}</small></div>`).join('');
+document.getElementById('gridC').innerHTML = ROOMS.map((r, i) => r.t ? `<div class="pc ${i === 1 ? 'hov' : ''}"><div class="im" style="background-image:${r.im}"><span class="num">${r.n}</span><span class="st ${r.s === 'live' ? '' : 'd'}">${ST[r.s]}</span></div>${i === 1 ? '<div class="over"><span>החלף</span><span>תזמן</span><span>צפה ↗</span></div>' : ''}<div class="tx"><b>${r.t}</b><small>${KD[r.k]}</small></div><i class="thr" style="background:${r.c}"></i></div>` : `<div class="pc em"><div><b>ביתן ${r.n} ריק</b><br>+ שבץ תערוכה</div></div>`).join('') + '<div class="pc em"><div><b>+ ביתן חדש</b><br>בחר מקום בתוכנית</div></div>';
+// fit the 1440 frames to the screen
+function fit() { document.querySelectorAll('.opt:not([hidden]) .stage').forEach(st => { const f = st.querySelector('.frame'), k = Math.min(1, st.clientWidth / 1440); f.style.transform = `scale(${k})`; st.style.height = 880 * k + 'px'; }); }
+document.querySelectorAll('.pick button').forEach(b => b.onclick = () => { document.querySelectorAll('.pick button').forEach(x => x.setAttribute('aria-pressed', x === b)); document.querySelectorAll('.opt').forEach(o => o.hidden = o.dataset.o !== b.dataset.o); fit(); });
+addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>
