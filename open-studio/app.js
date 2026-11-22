@@ -202,7 +202,7 @@ function addVirtual(m, v, uniq, demo) {
       dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: x.text || [], images: x.cover ? [x.cover] : [works[0].image], city: '', country: '',
       confirmed: true, artist: artists[0], artists, works, maybe: [], kind: 'online', start, end, hours: '', curator: x.curator || '',
       events: [], virtual: x, ord: x.ord, demo: !!demo,
-      space: { source: `${room}, a virtual room`, virtual: { title: x.title, room: x.room, paint: x.paint, centre: x.centre, placements: x.placements, plinths: x.plinths } },
+      space: { source: `${room}, a virtual room`, virtual: { title: x.title, room: x.room, paint: x.paint, centre: x.centre, placements: x.placements, plinths: x.plinths, text: Array.isArray(x.text) ? x.text.join('\n\n') : (x.text || ''), by: artists[0] ? artists[0].name : '' } },
     });
   }
 }
@@ -466,6 +466,38 @@ function wireWalk(root) {
   cards.forEach(c => io.observe(c));
 }
 
+// MY OPEN STUDIO: an artist's virtual exhibition seen through a round window (a circle: an opening into a room that exists only here).
+// The same name on every artist's page and on Home; the film of the room turns slowly inside the circle.
+const mosKey = e => e.space ? (Object.keys(M.spaces || {}).find(k => M.spaces[k] === e.space) || e.slug) : e.slug;
+function roundWin(e, big) {
+  const k = mosKey(e), alt = e.images[0] ? src(e.images[0]) : '';
+  return `<a class="mos-circ${big ? ' big' : ''}" href="#/exhibition/${esc(e.slug)}/space" data-space="${esc(k)}" aria-label="My Open Studio, a virtual exhibition by ${esc(byOf(e))}: step through the round window"><span class="mos-ring" aria-hidden="true"></span><span class="mos-disc"><img src="data/spaces/${esc(k)}/preview.jpg" data-alt="${esc(alt)}" alt="" loading="lazy" onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt=''}"></span></a>`;
+}
+function openStudioBlock(list) {
+  const e = list[0];
+  return `<section class="sec mos" aria-labelledby="mosH"><p class="lh mos-tag">come in, this is where I work</p><h2 id="mosH" class="lh mos-title">MY OPEN STUDIO</h2>
+    ${roundWin(e, true)}
+    <div class="mos-cap"><span class="mos-by">A virtual exhibition by ${esc(byOf(e))}</span><span>${e.works.length} works · open all night</span><a class="btn f mos-go" href="#/exhibition/${esc(e.slug)}/space">Step through</a></div>
+    ${list.length > 1 ? `<ul class="mos-more">${list.slice(1).map(x => `<li>${roundWin(x)}</li>`).join('')}</ul>` : ''}</section>`;
+}
+// the film inside each circle: made when it is mostly on screen, played only while it is
+function wireRound(root) {
+  const discs = [...root.querySelectorAll('.mos-circ')]; if (!discs.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const io = new IntersectionObserver(es => {
+    for (const en of es) {
+      const c = en.target; if (!c.isConnected) { io.unobserve(c); continue; }
+      let v = c.querySelector('video');
+      if (!en.isIntersecting) { if (v) v.pause(); continue; }
+      if (!v) {
+        const k = esc(c.dataset.space), d = c.querySelector('.mos-disc');
+        d.insertAdjacentHTML('beforeend', `<video muted loop playsinline preload="auto" poster="data/spaces/${k}/preview.jpg" aria-hidden="true"><source src="data/spaces/${k}/preview.hevc.mp4" type='video/mp4; codecs="hvc1"'><source src="data/spaces/${k}/preview.webm" type='video/webm'><source src="data/spaces/${k}/preview.mp4" type='video/mp4'></video>`);
+        v = d.lastElementChild; [...v.querySelectorAll('source')].pop().addEventListener('error', () => v.remove());
+      }
+      v.play().catch(() => {});
+    }
+  }, { threshold: .6 });
+  discs.forEach(c => io.observe(c));
+}
 function home() {
   const me = signedIn();
   // what you can walk into now: the running shows with a room (tours, artists' On View, the demo's virtual shows); else the rooms there are
@@ -475,6 +507,7 @@ function home() {
   const mine = following().map(s => M.artists.find(a => a.slug === s)).filter(Boolean);
   const theirs = [...new Set(mine.flatMap(a => showsOf(a).filter(e => status(e) !== 'past')))].sort((a, b) => a.start - b.start).slice(0, 6);
   const d0 = new Date(), day = `${d0.toLocaleDateString('en-GB', { weekday: 'short' })} ${d0.getDate()} ${d0.toLocaleDateString('en-GB', { month: 'short' })}`;
+  const openStudios = walk.filter(e => e.kind === 'online'), walkReal = walk.filter(e => e.kind !== 'online');
   return `<div class="hs">
     <section class="hs-hero" aria-label="Your art world">
       <div class="hs-top"><span class="brand-h">${LOGO}</span><span class="hs-day">${esc(day)}</span>${me ? `<a class="me" href="#/account" aria-label="Your account">${esc((me.name || me.email || '?')[0].toUpperCase())}</a>` : ''}</div>
@@ -485,9 +518,13 @@ function home() {
       <button type="button" class="sky-down"><span class="hand">your artists, shows and what’s near</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10l6 6 6-6"/></svg></button>
     </section>
     <section class="hs-sec hs-mu" id="hsMuseum" aria-labelledby="hsMuH" hidden></section>
-    ${walk.length ? `<section class="hs-sec hs-walk" aria-labelledby="hsLive">
+    ${openStudios.length ? `<section class="hs-sec hs-mos" aria-labelledby="hsMos">
+      <div class="hs-h"><h2 id="hsMos" class="mos-title hand">MY OPEN STUDIO</h2></div>
+      <p class="hand mos-tag">come and meet our artists through their open studios</p>
+      <ul class="mos-row">${openStudios.map(e => `<li class="mos-w">${roundWin(e)}<b class="hand">${esc(byOf(e))}</b></li>`).join('')}</ul></section>` : ''}
+    ${walkReal.length ? `<section class="hs-sec hs-walk" aria-labelledby="hsLive">
       <div class="hs-h"><h2 id="hsLive">Walk in now</h2><span class="hand side">you can walk in from here</span></div>
-      ${walkRow(walk, 'Exhibitions you can walk into')}</section>` : ''}
+      ${walkRow(walkReal, 'Exhibitions you can walk into')}</section>` : ''}
     <section class="hs-sec hs-new" id="hsNew" aria-labelledby="hsNewH" hidden></section>
     ${mine.length ? `<section class="hs-sec" aria-labelledby="hsArtists">
       <div class="hs-h"><h2 id="hsArtists">Your artists</h2><a class="hs-more" href="#/artists">All</a></div>
@@ -591,7 +628,7 @@ async function mountHome(root) {
     for (let i = 1; i < more.length; i++) if (seeded(i * 7) > .45) tie.push([more[i - 1].id, more[i].id, 'maybe']);
     S.add(more, tie);
   });
-  wireWalk(root);
+  wireWalk(root); wireRound(root);
   fillNear(root.querySelector('#hsNear'));
 }
 
@@ -811,6 +848,7 @@ function artistPage(slug) {
   <div class="wrap gut">
     <div class="btns" style="padding-block:18px 0"><button type="button" class="btn ${followed ? 'g' : 'f'}" data-follow="${esc(a.slug)}" aria-pressed="${followed}">${followed ? 'Following' : 'Follow'}</button>${own ? '<a class="btn g" href="#/about">About & CV</a>' : a.bio || a.portrait || (a.cv && a.cv.length) ? `<a class="btn g" href="#/artist/${esc(a.slug)}/about">About & CV</a>` : ''}</div>
     <p class="statement">${esc(curly(a.statement))}</p>
+    ${virt.length ? openStudioBlock(virt) : ''}
     ${a.demo ? '<p class="note" style="margin-top:14px">A real artist from art history, shown to see Open Studio full: the works are in the public domain (images from Wikimedia Commons). Most of the galleries and shows they appear in here are made up; the exhibitions of history (the Impressionists in 1874, the Armory Show) are real.</p>' : ''}
     ${posts.length ? `<section class="sec" style="margin-top:28px"><div class="sec-h"><h2>Live from the studio</h2><span class="more">${posts.length} new</span></div>
       <div class="studio-log">${posts.map((p, i) => `<button type="button" class="log" data-log="${esc(a.slug)}:${i}">
@@ -828,9 +866,7 @@ function artistPage(slug) {
       <p class="m nx-sub">Held in real places.</p>
       <div class="walkbox">${walkRow(showOrder(real), `${a.name}: exhibitions`)}</div>
       ${real.length > 2 ? showsByYear(real) : ''}</section>` : ''}
-    ${virt.length ? `<section class="sec ex-virt"><div class="sec-h"><h2>Virtual exhibitions</h2><span class="more">${virt.length}</span></div>
-      <p class="m nx-sub">Exist only in Open Studio: you walk through them on your phone.</p>
-      <div class="walkbox virtrow">${walkRow(showOrder(virt), `${a.name}: virtual exhibitions`)}</div></section>` : ''}
+
     ${own && M.objects.length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
       <div class="covers">${M.objects.map(o => `<a href="#/object/${o.slug}">${im(o.images[0], '')}<div><b>${esc(o.title)}</b><div class="m">${esc(o.meta)}</div></div></a>`).join('')}</div></section>` : ''}
     ${!own && objectsOf(a).length ? `<section class="sec"><div class="sec-h"><h2>Objects</h2></div>
@@ -1482,7 +1518,7 @@ function wire() {
   if (am) openArtMap(am);
   const hs = app.querySelector('.hs');
   if (hs) mountHome(hs).catch(e => console.error('home:', e));
-  app.querySelectorAll('.walkbox').forEach(wireWalk);     // the artist page's Exhibitions (the same row as Home's Walk in now)
+  app.querySelectorAll('.walkbox').forEach(wireWalk); wireRound(app);     // the artist page's Exhibitions (the same row as Home's Walk in now)
   // a list that opens five more at a time
   document.querySelectorAll('[data-more]').forEach(b => b.onclick = () => {
     const rest = [...b.parentNode.querySelectorAll('[data-more-list] > [hidden]')];
