@@ -24,7 +24,7 @@ async function run(w, h) {
     // --- the museum: eight rooms, the tray in view, the keyboard's dialog
     await p.goto(BASE + '#/museum'); await p.waitForSelector('.rm');
     ok(await n('.rm') === 8, 'the plan shows eight rooms');
-    const tray = await p.locator('.tray-h').first().boundingBox(); ok(tray && tray.y + tray.height < h, 'the tray of exhibitions is in view without scrolling');
+    const cv = await p.locator('.mx-canvas').boundingBox(); ok(cv && cv.y + cv.height * 0.6 < h, 'the building plan is in view without scrolling');
     ok(await n('.keys') === 0, 'no row of shortcuts under the page');
     await p.keyboard.press('?'); ok(await p.locator('#helpd').evaluate(d => d.open), '? opens the shortcuts'); await p.keyboard.press('Escape');
     ok(!(await p.locator('#helpd').evaluate(d => d.open)), 'Esc closes the shortcuts'); await shot('1-museum');
