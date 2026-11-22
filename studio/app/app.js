@@ -662,6 +662,7 @@ function museumRooms(slots) {
 }
 // a Desk room may name any exhibition the app knows (a real one with a photographed or drawn space, an artist's virtual show), not only the street's eight: it hangs its works and its arch walks into its own space
 const slotShow = (slug, shows) => shows.find(x => x.slug === slug) || M.exhibitions.find(x => x.slug === slug && (x.works || []).length && (x.space || x.virtual));
+const originalOf = e => e.space.virtual ? { design: { ...e.space.virtual, works: e.works } } : { spec: e.space };
 const enterOf = e => ({ hash: `#/exhibition/${e.slug}/space`, image: `data/spaces/${Object.keys(M.spaces || {}).find(k => M.spaces[k] === e.space) || e.slug}/preview.jpg`, label: 'Walk into the original space' });
 const MU_CSS = `<style id="hsMuCss">
 .hs-mu .mu-in{position:relative;display:block;text-decoration:none;color:inherit}
@@ -1469,7 +1470,7 @@ async function enterStreet() {
       const c = s.content, e = s.app_slug && slotShow(s.app_slug, shows);
       if (!c && !e) return null;
       const ws = c ? (c.works || []) : e.works, slug = e ? e.slug : 'slot-' + s.slot;
-      return { slug, slot: s.slot, title: c ? c.title : e.title, works: ws, text: c ? c.text : (e && e.text), sub: !c && e ? [e.venue, e.dates || e.year].filter(Boolean).join(' · ') : '', enter: !c && e && e.space && (e.space.virtual || !shows.includes(e)) ? enterOf(e) : undefined, curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
+      return { slug, slot: s.slot, title: c ? c.title : e.title, works: ws, text: c ? c.text : (e && e.text), sub: !c && e ? [e.venue, e.dates || e.year].filter(Boolean).join(' · ') : '', original: !c && e && e.space && (e.space.virtual || !shows.includes(e)) ? originalOf(e) : undefined, curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
         colour: s.colour || over[slug] || set[slug] || await synth.suggestColour(ws.map(thumb), src, synth.slugHue(slug)) };
     }))).filter(Boolean);
   }
@@ -1484,7 +1485,7 @@ async function enterStreet() {
     const e = sp.type === 'house' && sp.tour && M.exhibitions.find(x => x.slug === sp.tour && x.space);
     if (!e || rooms.some(r => r.slot === sp.slot)) continue;
     rooms.push({ slug: e.slug, slot: sp.slot, title: e.title, works: e.works, text: e.text, sub: [e.venue, e.dates || e.year].filter(Boolean).join(' · '), colour: await synth.suggestColour(e.works.map(thumb), src, synth.slugHue(e.slug)),
-      enter: { hash: `#/exhibition/${e.slug}/space`, image: `data/spaces/${Object.keys(M.spaces || {}).find(k => M.spaces[k] === e.space) || e.slug}/preview.jpg`, label: 'Walk into the original space' } });
+      original: originalOf(e) });
   }
   const qs = new URLSearchParams(location.search), sections = qs.has('street') || qs.has('hall') ? [] : await loadSections(), plan = await get('museum_plan?select=plan&key=eq.main').then(r => (r[0] && r[0].plan) || null).catch(() => null), made = await (qs.has('street') ? synth.buildStreet : qs.has('hall') ? synth.buildHall : qs.has('cluster') ? synth.buildCluster : synth.buildSky)(rooms, src, thumb, { sections, plan });   // (the open museum of houses is the museum, 16.11; ?street and ?hall keep the older plans)
   if (location.hash !== '#/museum') return;                       // (left while it was being built)
