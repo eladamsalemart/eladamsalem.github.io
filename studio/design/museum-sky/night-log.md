@@ -15,3 +15,4 @@
 - 21.11: ROADMAP 14 walking speed (space.js: run curve, Shift, faster tap-walk, museum only). museum_live 12/12.
 - 22.11: ROADMAP 15 part: reveals for bare openings (0.25 m). museum_live 12/12; no visual check yet.
 - 22.11: ROADMAP 15 part: wall-top caps on partitions. museum_live 12/12; no visual check yet.
+- 22.11 night (outside session): ROADMAP 19 tropical outside: instanced palm/banana/monstera/fern/heliconia/shrub/vine cards from a Blender-made atlas (tropics.webp), wet-stone terrace, painted lawn+beds, haze (studio/app/space/tropics.js). Phone 390x844 DPR 2 and 1, 14:00 and 21:00 viewed; museum_live 12/12; start view calls<=53, memory 341. Not checked: real iPhone, glass whitening band at the lawn.

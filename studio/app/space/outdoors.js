@@ -28,7 +28,7 @@ export async function addOutdoors({ THREE, scene, spec, loadTex, mark, renderer 
   // --- the sky: one equirectangular picture, drawn for this hour (gradient, sun's glow, clouds by day; moon and stars by night)
   {
     const W = 2048, H = 1024, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
-    const zen = mix([6, 9, 24], [64, 116, 184], env.day), hor = mix([22, 30, 54], [188, 214, 236], env.day);
+    const zen = mix([6, 9, 24], [64, 116, 184], env.day), hor = mix([22, 30, 54], [206, 222, 224], env.day);
     const dusk = mix(zen, [48, 62, 112], env.warm * 0.6), dawn = mix(hor, [250, 160, 104], env.warm * 0.85);
     const g = x.createLinearGradient(0, 0, 0, H / 2); g.addColorStop(0, `rgb(${zen.map(Math.round)})`); g.addColorStop(0.55, `rgb(${dusk.map(Math.round)})`); g.addColorStop(1, `rgb(${dawn.map(Math.round)})`);
     x.fillStyle = g; x.fillRect(0, 0, W, H / 2); x.fillStyle = `rgb(${dawn.map(v => Math.round(v * 0.92))})`; x.fillRect(0, H / 2, W, H / 2);
@@ -52,6 +52,11 @@ export async function addOutdoors({ THREE, scene, spec, loadTex, mark, renderer 
       x.restore();
     }
     const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; scene.background = t;
+  }
+  // --- the tropical garden (ROADMAP 19): terrace, lawn, beds, instanced palms/bananas/ferns/vines; haze in the sky's own horizon colour
+  if (o.tropics) {
+    const hor = mix([22, 30, 54], [206, 222, 224], env.day), hz = mix(hor, [250, 160, 104], env.warm * 0.85);
+    import('./tropics.js').then(m => m.addTropics({ THREE, scene, o, env, hazeRGB: hz.map(v => v * 0.97), loadTex, mark, phone: matchMedia('(pointer: coarse)').matches })).catch(e => console.warn('tropics', e));
   }
   // --- the tree line: a great ring of the panorama's real foliage (the sky cut out of it), darker and bluer at night, warm at sunset
   if (o.treeline) loadTex(o.treeline).then(tx => {
