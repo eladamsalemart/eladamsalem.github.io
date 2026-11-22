@@ -5,7 +5,7 @@ the virtual exhibition spaces, everything defined in `ROADMAP.md` and in the que
 from him the shift picks its own next step (rules below). If the daily quota runs out, the shift teaches itself to come back (the retry rule). It must spend as few tokens as it can, because Elad
 runs out of his weekly quota around Wednesday and has other work in the same quota. Efficient and professional, not busy.
 
-Run by the scheduled task `museum-night-shift` (local time 22:11, 01:11, 04:11). Each run is a fresh session with no memory: this file and `ROADMAP.md` are its memory. Reply and log in Hebrew; code, commits and app text stay English.
+Run by the scheduled task `museum-night-shift` (local time every hour at :11 from 22:11 to 07:11; a run exits at once when the heartbeat is fresh, so each hour is a cheap check and a dead run is resumed within the hour). Each run is a fresh session with no memory: this file and `ROADMAP.md` are its memory. Reply and log in Hebrew; code, commits and app text stay English.
 
 ## 1. Start of every run (spend almost nothing if there is nothing to do)
 1. Read `night-state.json` (next to this file). `heartbeat` newer than 45 minutes: another run is working, EXIT at once. Outside 22:00-08:00 local time: EXIT (unless Elad is talking to you).
@@ -38,7 +38,7 @@ Run by the scheduled task `museum-night-shift` (local time 22:11, 01:11, 04:11).
 
 ## 5. The retry rule (when the quota ends or a run dies)
 - If the 5-hour window is above 95% or a tool says the limit is reached: create a ONE-TIME scheduled task (`create_scheduled_task`, `fireAt` = the window's `resetsAt` + 3 minutes, only if that is before 08:00 local) named `museum-night-resume-<date>` with the same prompt as `museum-night-shift`, then write `"done": true` and stop.
-- The three nightly triggers also act as a safety net: a later trigger sees a stale heartbeat and continues.
+- The hourly triggers (22:11-07:11) also act as a safety net (Elad 22.11: every night, teach yourself to come back after the quota resets while he sleeps): a later trigger sees a stale heartbeat and continues.
 - Never use a poll or a sleep to wait for a reset.
 
 ## 6. Morning note
