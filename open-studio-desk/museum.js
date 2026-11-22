@@ -36,7 +36,7 @@ const slugify = s => String(s).toLowerCase().normalize('NFKD').replace(/[^\w\s-]
 const getj = (u, d) => fetch(u).then(r => r.ok ? r.json() : d).catch(() => d);
 // the app's real exhibitions that have a 3D space of their own (data/spaces/<slug>.json), by the slug the app gives them
 const REAL = ['ritual', 'nature-of-man', 'bfa-graduate-exhibition'];
-export const realShows = () => getj(APP + 'data/spaces/index.json', {}).then(idx => Promise.all(REAL.map(async slug => { const j = await getj(APP + `data/spaces/${slug}.json`, null); return j ? { slug, title: j.title || slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), cover: idx[slug] ? abs(`data/spaces/${slug}/preview.jpg`) : '', n: (j.works || []).length || 0, kind: 'real', works: [] } : null; }))).then(l => l.filter(Boolean));
+export const realShows = () => getj(APP + 'data/spaces/index.json', {}).then(idx => Promise.all(REAL.map(async slug => { const j = await getj(APP + `data/spaces/${slug}.json`, null); return j ? { slug, title: j.title || slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), cover: idx[slug] ? abs(`data/spaces/${slug}/preview.jpg`) : '', n: (j.works || []).length || 0, kind: 'real', works: (j.works || []).filter(w => w.imageSmall || w.image).map(w => ({ id: slugify(w.work || 'work'), title: w.work || '', image: abs(w.imageSmall || w.image), thumb: abs(w.imageSmall || w.image), width: w.size ? w.size[1] : null, height: w.size ? w.size[0] : null, artist: { name: '' } })) } : null; }))).then(l => l.filter(Boolean));
 export const virtShows = rows => (rows || []).filter(x => x.status === 'published').map(x => { const w = (x.works || []).find(y => y && (y.thumb || y.image)); return { slug: 'show-' + String(x.id).slice(0, 8), title: x.title || 'Untitled', cover: w ? abs(w.thumb || w.image) : '', n: (x.works || []).length, kind: 'virt', works: [] }; });
 export const appShows = () => APPSH || (APPSH = Promise.all([getj(APP + 'data/virtual.json', {}), getj(APP + 'data/demo/world.json', {}), getj('/content/works.json', [])]).then(([v, w, site]) => {
   const cols = v.streetColours || {}, W = new Map(), A = new Map((w.artists || []).map(a => [a.slug, a.name]));
@@ -59,9 +59,9 @@ export function roomOf(E, colour) {
   return { slug: E.id || 'draft', title: E.title || 'Untitled', curator: E.curator, text: E.text, plinths: E.plinths || [], objects, labels: true, colour: colour || '#8a8a8a',
     works: E.works.filter(w => w.s != null && w.kind !== 'object' && w.image).map(w => ({ ...w, image: abs(w.image), thumb: abs(w.thumb || w.image), artist: { name: w.artist || '' } })) };
 }
-export async function walkStreet(rooms, focus, viewerCss, synth) {
+export async function walkStreet(rooms, focus, viewerCss, synth, more = {}) {
   const [SY, { openSpace }] = await Promise.all([synth(), import(APP + 'space/space.js'), viewerCss()]);
-  const made = await (SY.buildSky || SY.buildStreet)(rooms, u => u, w => w.thumb || w.image, focus >= 0 ? { focus } : {});      // (the preview is the museum as visitors get it: one building, eight houses)
+  const made = await (SY.buildSky || SY.buildStreet)(rooms, u => u, w => w.thumb || w.image, { ...more, ...(focus >= 0 ? { focus } : {}) });      // (the preview is the museum as visitors get it: one building, eight houses)
   if (made.spec.outdoors && /^data[/]/.test(made.spec.outdoors.treeline || '')) made.spec.outdoors.treeline = APP + made.spec.outdoors.treeline;
   const works = rooms.flatMap(r => r.works);
   window.__spaceView = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => { window.__spaceView = null; } });
@@ -260,6 +260,8 @@ export async function home(ctx) {
     $('main').classList.add('wide'); wire(); [...SL.values()].forEach(auto);
   }
   function select(k) { sel = k; sessionStorage.setItem('mu-sel', k); $$('.rm').forEach(e => e.setAttribute('aria-pressed', +e.dataset.k === k)); $('#ip').innerHTML = inspector(); wireIp(); auto(SL.get(k)); }
+  const secsFor = async list => Promise.all(list.map(async sec => { const credits = {}; for (const c of await getj(APP + sec.folder + '/credits.json', [])) credits[c.slug] = { ...c, image: APP + `${sec.folder}/works/${c.slug}.jpg`, thumb: APP + `${sec.folder}/works/${c.slug}-s.jpg` };
+    return { ...JSON.parse(JSON.stringify(sec), (k, v) => typeof v === 'string' && /^data[/]museum[/]/.test(v) ? APP + v : v), credits }; }));
   async function walkWing(sp) {
     if (!sp) return; const SY = await ctx.synth(), sec = secOf(sp); if (!sec) return toast('אין נתונים לאגף הזה');
     toast('בונה את האגף…');
@@ -278,9 +280,13 @@ export async function home(ctx) {
       const e = r.exhibition_id && exOf(r.exhibition_id), a = r.app_slug && appOf(r.app_slug); let room = null;
       if (e) { if (!r.colour && !AUTO[e.id]) await auto(r); room = roomOf({ ...e, id: e.id }, colourOf(r) || '#8a8a8a'); }
       else if (a && a.works.length) room = { slug: a.slug, title: a.title, works: a.works, colour: colourOf(r) || await SY.suggestColour(a.works.slice(0, 4).map(w => w.thumb), u => u, SY.slugHue(a.slug)) };
-      if (!room) continue; if (k === sel) focus = rooms.length; rooms.push(room); }
+      if (!room) continue; room.slot = k; if (k === sel) focus = rooms.length; rooms.push(room); }
+    const P = planNow();
+    if (all && P) for (const sp of P.spaces) { if (sp.type !== 'house' || !sp.tour || rooms.some(r => r.slot === sp.slot)) continue;
+      const a = appOf(sp.tour); if (!a || !a.works.length) continue;
+      rooms.push({ slug: a.slug, slot: sp.slot, title: a.title, works: a.works, colour: await SY.suggestColour(a.works.slice(0, 4).map(w => w.thumb), u => u, SY.slugHue(a.slug)) }); }
     if (!rooms.length) return toast(all ? 'אין עדיין תערוכות בחדרים' : 'בחדר הזה אין תערוכה לצפות בה');
-    toast(all ? 'בונה את המוזיאון…' : 'בונה את הבית…'); try { await walkStreet(rooms, all ? -1 : focus, ctx.viewerCss, ctx.synth); } catch (e) { fail(e); }
+    toast(all ? 'בונה את המוזיאון…' : 'בונה את הבית…'); try { await walkStreet(rooms, all ? -1 : (SY.skyLayout ? Math.max(0, SY.skyLayout(PLAN).findIndex(d => d.no === sel)) : focus), ctx.viewerCss, ctx.synth, { plan: PLAN, sections: all && P ? await secsFor(SECS.filter(x => P.spaces.some(q => q.type === 'section' && q.section === x.id))) : [] }); } catch (e) { fail(e); }
   }
   function wireIp() {
     const r = SL.get(sel), on = (id, ev, f) => { const e = $(id); if (e) e[ev] = f; };
