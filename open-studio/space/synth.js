@@ -505,16 +505,46 @@ function drawWorkLight(R) {
 const FLAT = /oil|acrylic|canvas|paint|gouache|tempera|watercolou?r|pastel|print|drawing|ink|photograph|collage|etching|lithograph/i;
 export const isObject = w => w.kind === 'object' || /sculpt|object|ceramic|installation/i.test(w.category || '') || (+w.depth > 0 && !FLAT.test(w.medium || ''))
   || (!w.category && !FLAT.test(w.medium || '') && /ceramic|clay|porcelain|bronze|sculpt|marble|plaster|terracotta|stoneware/i.test(w.medium || ''));
-// The exhibition's own words on a wall of its room, as gallery wall text is set: a plain sans (IBM Plex Sans; IBM Plex Sans Hebrew for
-// Hebrew), left-aligned and ragged (right-aligned in Hebrew), at most about 50 characters a line, sentence case, dark on a matte pale panel,
-// type large enough to read from two or three feet (the Wellcome Collection's exhibition-text rules are the model: left aligned, 55
-// characters at most, leading larger than the x-height, plain matte ground). The title, the artist, then the artist's words.
-async function introSurface(design, walls, placed, keep, R) {
-  if (design.editing) return null;
+// The exhibition's own words on a wall, set as gallery wall text is (IBM Plex Sans, ragged, about 50 characters a line, dark on a matte
+// pale panel). The wall text is the artist's to place, like a work: its placement, under WALL_TEXT, also holds its look (w in metres,
+// font, ink, bg, or bg 'none' for the letters straight on the wall). A show whose artist never placed it keeps the old way: the first
+// free wall, 2.3 m wide.
+export const WALL_TEXT = 'wall-text';
+export const TEXT_FONTS = { sans: ['Sans', '"IBM Plex Sans"', '"IBM Plex Sans Hebrew"'], serif: ['Serif', '"Fraunces"', '"IBM Plex Sans Hebrew"'], hand: ['Hand', '"Waiting for the Sunrise"', '"IBM Plex Sans Hebrew"'], mono: ['Mono', '"IBM Plex Mono"', '"IBM Plex Sans Hebrew"'] };
+export async function wallTextImage(design, lab = {}, under) {
   const words = Array.isArray(design.text) ? design.text.join('\n\n') : String(design.text || '');
-  const he = /[\u0590-\u05ff]/.test(`${design.title}${words}${design.by || ''}`);
-  try { await Promise.all(['300 58px "IBM Plex Sans"', '400 27px "IBM Plex Sans"', '500 17px "IBM Plex Mono"', '300 58px "IBM Plex Sans Hebrew"', '400 27px "IBM Plex Sans Hebrew"'].map(f => document.fonts.load(f, he ? 'אבג' : 'Abc'))); } catch { /* the page's own fonts */ }
-  const PW = 2.3, PH = 1.55, K = 400, pad = 56, c = canvas(PW * K, PH * K), x = c.getContext('2d'), W = c.width, H = c.height;
+  const he = /[\u0590-\u05ff]/.test(`${design.title}${words}${design.by || ''}`), F = TEXT_FONTS[lab.font] || TEXT_FONTS.sans, hand = lab.font === 'hand';
+  const fam = (he ? [F[2], F[1]] : [F[1], F[2]]).join(',') + (lab.font === 'serif' ? ',serif' : ',sans-serif');
+  const tw = hand ? 400 : 300, tf = hand ? 70 : 58, bf = hand ? 33 : 27, LH = hand ? 44 : 39;
+  try { await Promise.all([`${tw} ${tf}px ${fam}`, `400 ${bf}px ${fam}`, '500 17px "IBM Plex Mono"'].map(f => document.fonts.load(f, he ? 'אבג' : 'Abc'))); } catch { /* the page's own fonts */ }
+  const W = 920, Hmax = 1400, pad = 56, c = canvas(W, Hmax), x = c.getContext('2d'), maxW = W - 2 * pad;
+  const ink = lab.ink || '#1e1c18', bg = lab.bg === 'none' ? (under || null) : (lab.bg || '#f6f5f1');
+  if (bg) { x.fillStyle = bg; x.fillRect(0, 0, W, Hmax); }
+  x.direction = he ? 'rtl' : 'ltr'; x.textAlign = he ? 'right' : 'left'; x.textBaseline = 'alphabetic';
+  const X = he ? W - pad : pad;
+  const wrap = (txt, font) => { x.font = font; const out = []; let line = ''; for (const wd of String(txt).split(/\s+/).filter(Boolean)) { const t = line ? line + ' ' + wd : wd; if (x.measureText(t).width > maxW && line) { out.push(line); line = wd; } else line = t; } if (line) out.push(line); return out; };
+  let y = pad + 12;
+  x.fillStyle = ink; x.globalAlpha = 0.6; x.font = '500 17px "IBM Plex Mono",monospace'; x.fillText(`MY OPEN STUDIO${design.by ? '  ·  ' + String(design.by).toUpperCase() : ''}`, X, y);
+  x.globalAlpha = 1; y += 20;
+  const tl = wrap(String(design.title || 'MY OPEN STUDIO').slice(0, 80), `${tw} ${tf}px ${fam}`).slice(0, 2); y += tf - 2; tl.forEach((ln, i) => { x.font = `${tw} ${tf}px ${fam}`; x.fillText(ln, X, y + i * (tf + 6)); }); y += (tl.length - 1) * (tf + 6) + 26;
+  x.globalAlpha = 0.3; x.fillRect(he ? W - pad - 84 : pad, y, 84, 2); x.globalAlpha = 0.88; y += 40;
+  outer: for (const para of words.split(/\n+/).map(t => t.trim()).filter(Boolean)) {
+    for (const ln of wrap(para, `400 ${bf}px ${fam}`)) { if (y > Hmax - pad + 6) { x.fillText('…', X, y); break outer; } x.font = `400 ${bf}px ${fam}`; x.fillText(ln, X, y); y += LH; }
+    y += 14;
+  }
+  x.globalAlpha = 1;
+  const hh = Math.min(Hmax, Math.max(300, Math.round(y + pad - 28))), c2 = canvas(W, hh); c2.getContext('2d').drawImage(c, 0, 0, W, hh, 0, 0, W, hh);       // (as tall as its words)
+  const wm = Math.min(4, Math.max(0.4, +lab.w || 1.5));
+  return { canvas: c2, wm, hm: wm * hh / W };
+}
+// the panel on a wall, its middle at a (along the wall) and y (high): a plain surface or, with no ground, the letters alone
+async function textSurface(t, wl, a, y, clear, keep) {
+  const N = wl.normal, off = 0.014, a0 = a - t.wm / 2;
+  return { name: 'intro', kind: 'wall', ...(clear ? { glass: true } : {}), texture: await keep(t.canvas, clear), origin: [wl.origin[0] + wl.u[0] * a0 + N[0] * off, y + t.hm / 2, wl.origin[2] + wl.u[2] * a0 + N[2] * off], u: wl.u, v: [0, -1, 0], size: [t.wm, t.hm], normal: N, openings: [] };
+}
+async function introSurface(design, walls, placed, keep, R) {
+  if (design.editing || !design.title) return null;
+  const t = await wallTextImage(design, { w: 2.3 }), PW = t.wm;
   // where: the first wall that has room for it beside the works (the left wall first, where a visitor comes in)
   let pick = null;
   for (const name of ['wall-x0', 'wall-z0', 'wall-x1', 'wall-z1']) {
@@ -524,29 +554,21 @@ async function introSurface(design, walls, placed, keep, R) {
     if (pick) break;
   }
   if (!pick) return null;
-  x.fillStyle = '#f6f5f1'; x.fillRect(0, 0, W, H);
-  x.direction = he ? 'rtl' : 'ltr'; x.textAlign = he ? 'right' : 'left'; x.textBaseline = 'alphabetic';
-  const X = he ? W - pad : pad, fam = he ? '"IBM Plex Sans Hebrew","IBM Plex Sans",sans-serif' : '"IBM Plex Sans","IBM Plex Sans Hebrew",sans-serif', maxW = W - 2 * pad;
-  const wrap = (txt, font) => { x.font = font; const out = []; let line = ''; for (const wd of String(txt).split(/\s+/).filter(Boolean)) { const t = line ? line + ' ' + wd : wd; if (x.measureText(t).width > maxW && line) { out.push(line); line = wd; } else line = t; } if (line) out.push(line); return out; };
-  let y = pad + 12;
-  x.fillStyle = '#857f70'; x.font = '500 17px "IBM Plex Mono",monospace'; x.fillText(`MY OPEN STUDIO${design.by ? '  ·  ' + String(design.by).toUpperCase() : ''}`, X, y);
-  y += 20; x.fillStyle = '#1e1c18';
-  const tl = wrap(String(design.title || 'MY OPEN STUDIO').slice(0, 80), `300 58px ${fam}`).slice(0, 2); y += 56; tl.forEach((ln, i) => { x.font = `300 58px ${fam}`; x.fillText(ln, X, y + i * 64); }); y += (tl.length - 1) * 64 + 26;
-  x.fillStyle = '#c9c4b5'; x.fillRect(he ? W - pad - 84 : pad, y, 84, 2); y += 40;
-  x.fillStyle = '#35322b'; const LH = 39;
-  outer: for (const para of words.split(/\n+/).map(t => t.trim()).filter(Boolean)) {
-    for (const ln of wrap(para, `400 27px ${fam}`)) { if (y > H - pad + 6) { x.fillText('…', X, y); break outer; } x.font = `400 27px ${fam}`; x.fillText(ln, X, y); y += LH; }
-    y += 14;
-  }
-  const hh = Math.min(H, Math.max(300, Math.round(y + pad - 28))), c2 = canvas(W, hh); c2.getContext('2d').drawImage(c, 0, 0, W, hh, 0, 0, W, hh);       // (as tall as its words)
-  const { wl, a0 } = pick, N = wl.normal, off = 0.014, top = Math.min(2.55, (R.h || 3.2) - 0.5);
-  return { name: 'intro', kind: 'wall', texture: await keep(c2), origin: [wl.origin[0] + wl.u[0] * a0 + N[0] * off, top, wl.origin[2] + wl.u[2] * a0 + N[2] * off], u: wl.u, v: [0, -1, 0], size: [PW, hh / K], normal: N, openings: [] };
+  const top = Math.min(2.55, (R.h || 3.2) - 0.5);
+  return textSurface(t, pick.wl, pick.a0 + PW / 2, top - t.hm / 2, false, keep);
 }
 export async function buildRoom(design, src) {
-  const pl = design.placements || {};
-  const wallWorks = design.works.filter(w => !isObject(w)), objects = design.works.filter(isObject);
+  const pl = design.placements || {}, lab = pl[WALL_TEXT] || {};
+  const wallWorks = design.works.filter(w => !isObject(w) && w.id !== WALL_TEXT), objects = design.works.filter(isObject);
   const sized = await Promise.all(wallWorks.map(async w => ({ work: w, ...(await sizeOf(w, src)), wall: w.wall, at: w.id ? pl[w.id] : null })));
+  // the wall text, where the artist placed it (or, in the editor, wherever it goes first): hung like a work, drawn as a panel
+  const textOn = design.editing ? design.works.some(w => w.id === WALL_TEXT) : !!(lab.wall && !lab.off);
+  const paint0 = (PAINTS[design.paint] || PAINTS[ROOMS[design.room].paint])[1];
+  const tImg = textOn ? await wallTextImage(design, lab, design.editing ? paint0 : null) : null;
+  if (tImg) sized.push({ work: { id: WALL_TEXT, title: 'Wall text', kind: 'wall-text' }, w: tImg.wm * 100, h: tImg.hm * 100, aspect: tImg.wm / tImg.hm, at: lab.wall ? lab : null });
   const { R, walls, placed, left, stands } = hang(design, sized);
+  const tAt = placed.findIndex(p => p.work.id === WALL_TEXT), tPlace = tAt >= 0 ? placed[tAt] : null;
+  if (tPlace && !design.editing) placed.splice(tAt, 1);
   // plinths: those the artist set, and one in the middle of the room for each object not yet on one
   const plinths = (design.plinths || []).filter(p => !p.kind && (PLINTHS[p.size] || p.dims)).map(p => ({ ...p }));
   const free = objects.filter(o => !plinths.some(p => p.work === o.id));
@@ -559,7 +581,7 @@ export async function buildRoom(design, src) {
   const keep = async (c, png) => { const u = await (png ? urlPng(c) : url(c)); urls.push(u); return u; };
   const surfaces = [];
   for (const wl of walls) {
-    const on = placed.filter(p => p.wall === wl);
+    const on = placed.filter(p => p.wall === wl && p.work.id !== WALL_TEXT);
     if (wl.stand) {     // a freestanding wall's face: white paint, lit like the room, drawn here
       surfaces.push({ name: wl.name, kind: 'wall', stand: wl.stand, texture: await keep(drawStandFace(R, wl, on, !!design.editing)),
         origin: wl.origin, u: wl.u, v: [0, -1, 0], size: [wl.len, wl.h], normal: wl.normal, openings: [] });
@@ -586,15 +608,16 @@ export async function buildRoom(design, src) {
     });
     surfaces.push({ name: 'ceiling', kind: 'ceiling', texture: await keep(drawCeiling(R, placed, paint)), origin: [0, R.h, R.d], u: [1, 0, 0], v: [0, 0, -1], size: [R.w, R.d], normal: [0, -1, 0], openings: [] });
   }
-  { const it = await introSurface(design, walls, placed, keep, R); if (it) surfaces.push(it); }
+  { const it = tPlace ? (design.editing ? null : await textSurface(tImg, tPlace.wall, tPlace.a, tPlace.y, lab.bg === 'none', keep)) : lab.off ? null : await introSurface(design, walls, placed, keep, R); if (it) surfaces.push(it); }
   const plaster = canvas(512, 512), pc = plaster.getContext('2d');
   pc.fillStyle = paint; pc.fillRect(0, 0, 512, 512); texture(pc, 512, 512, seed + 9, 0.05, 0.03);
   pc.fillStyle = 'rgba(0,0,0,.12)'; pc.fillRect(0, 0, 512, 512);
   const workLight = await keep(drawWorkLight(R), true);
+  const textUrl = tImg && design.editing ? await keep(tImg.canvas) : null;
   const works = placed.map(p => {
     const [ox, , oz] = p.wall.origin, [ux, , uz] = p.wall.u, N = p.wall.normal, off = DEPTH + 0.004;
     return {
-      id: p.work.id, work: p.work.title, image: p.work.image, imageSmall: p.work.imageSmall, size: [p.w, p.h], measured: [p.w, p.h],
+      id: p.work.id, work: p.work.title, image: p.work.id === WALL_TEXT ? textUrl : p.work.image, imageSmall: p.work.imageSmall, size: [p.w, p.h], measured: [p.w, p.h],
       centre: [ox + ux * p.a + N[0] * off, p.y, oz + uz * p.a + N[2] * off], axes: [p.wall.u, [0, 1, 0], N], depth: DEPTH,
       light: workLight, lightScale: 1, ...(p.guessed ? { guessed: true } : {}),
     };
@@ -615,7 +638,7 @@ export async function buildRoom(design, src) {
     ...(R.kind === 'glass-pavilion' && !(R.cells > 1) ? { start: { pos: [R.w - 1.2, R.d - 0.9], look: [R.w * 0.3, 0.5] } } : {}),
   };
   const placements = {};
-  for (const p of placed) if (p.work.id) placements[p.work.id] = { wall: p.wall.name, a: +p.a.toFixed(3), y: +p.y.toFixed(3) };
+  for (const p of placed) if (p.work.id) placements[p.work.id] = { ...(p.work.id === WALL_TEXT ? lab : {}), wall: p.wall.name, a: +p.a.toFixed(3), y: +p.y.toFixed(3) };
   return { spec, placements, plinths: [...plinths.map(({ id, x, z, size, dims, work, colour }) => ({ id, x: +x.toFixed(3), z: +z.toFixed(3), size, ...(dims ? { dims: plinthDims({ dims }) } : {}), ...(colour ? { colour } : {}), work: work || null })),
       ...stands.map(({ id, x, z, len, rot }) => ({ id, kind: 'stand', x, z, len, rot })), ...((design.plinths || []).some(p => p && p.kind === 'no-stands') ? [{ id: 'no-stands', kind: 'no-stands' }] : [])], left: left.map(x => x.work), revoke: () => urls.forEach(u => URL.revokeObjectURL(u)) };
 }
