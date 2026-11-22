@@ -1,6 +1,6 @@
 /* Open Studio Desk: a calm, light control room for a computer or an iPad on its side (1180 and wider). Large type, 44px targets. */
 :root{color-scheme:light;--bg:#F6F4EE;--card:#FFFFFF;--soft:#EDE9DF;--ink:#1D1C19;--muted:#5C574D;--line:#D9D3C4;--accent:#2F6B4F;--accent-ink:#fff;--warn:#9A4A12;--bad:#A3341A;--ok:#256445;
-  --wall:#EFE9DD;--paper:#F6F1E7;--dot:#2F6B4F;--rule:#1B1A17;--stage:#E8E1D3;--shade:rgba(20,18,14,.72);--mono:"IBM Plex Mono",monospace;--sans:"IBM Plex Sans Hebrew","IBM Plex Sans","Helvetica Neue",Arial,sans-serif;--serif:"Fraunces","Times New Roman",serif;--r:14px}
+  --wall:#EFE9DD;--paper:#F6F1E7;--dot:#2F6B4F;--rule:#1B1A17;--stage:#E8E1D3;--shade:rgba(20,18,14,.72);--mono:"IBM Plex Mono",monospace;--sans:"IBM Plex Sans Hebrew","IBM Plex Sans","Helvetica Neue",Arial,sans-serif;--serif:"Fraunces","Frank Ruhl Libre","Times New Roman",serif;--r:14px}
 *{box-sizing:border-box}[hidden]{display:none!important}
 html{font-size:18px}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.5 var(--sans);-webkit-font-smoothing:antialiased}
