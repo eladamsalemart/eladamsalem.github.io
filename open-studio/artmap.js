@@ -10,6 +10,7 @@ export const KINDS = {
   'artist-run': { label: 'Artist-run', one: 'Artist-run space', c: '#1C9C86' },
   academy: { label: 'Art schools', one: 'Art school gallery', c: '#7B52D6' },
   centre: { label: 'Art centres', one: 'Art centre', c: '#D8578F' },
+  studio: { label: 'Open studios', one: 'Open studio', c: '#2F9E72' },
 };
 const TILES = 'https://tiles.openfreemap.org/planet';
 const GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
@@ -223,6 +224,23 @@ function joinShows(places, d, M) {
     }
     p.shows.push({ title: e.title, artists: (e.artists || [e.artist]).filter(Boolean).map(a => a.name), start: e.start, end: e.end, href: `#/exhibition/${e.slug}`, os: true, space: !!e.space });
   }
+  // Open studios: an artist's virtual exhibition (MY OPEN STUDIO) stands where the artist lives, so artists can be found by place. The place is
+  // their city (the mean of the art places there, or a short list of villages); a short offset keeps two studios in one city apart.
+  {
+    const cities = new Map();
+    for (const q of places) if (q.city && q.at) { const k = q.city.trim().toLowerCase(), v = cities.get(k) || [0, 0, 0]; cities.set(k, [v[0] + q.at[0], v[1] + q.at[1], v[2] + 1]); }
+    const VILLAGES = { 'hof hacarmel': [32.64, 34.95], 'megadim': [32.64, 34.95], 'moshav megadim': [32.64, 34.95], 'ein hod': [32.70, 34.99], 'zichron yaakov': [32.57, 34.95] };
+    const hash = t => [...String(t)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 7);
+    for (const e of (M.exhibitions || []).filter(x => !x.demo && x.kind === 'online' && x.space)) {
+      const a = (e.artists || [e.artist]).filter(Boolean)[0]; if (!a) continue;
+      const k = String(a.city || '').trim().toLowerCase().replace(/,.*$/, ''), v = cities.get(k), base = VILLAGES[k] || (v ? [v[0] / v[2], v[1] / v[2]] : null);
+      if (!base) continue;
+      const h = hash(a.slug || a.name), at = [base[0] + ((h % 61) - 30) * 0.0002, base[1] + (((h >> 8) % 61) - 30) * 0.0002];
+      places.push({ id: `studio-${a.slug}`, name: `${a.name}'s open studio`, name_he: '', kind: 'studio', tier: 'curated', city: a.city || '', at, building: null, events: [], film: e.slug, artist: { slug: a.slug, name: a.name, discipline: a.discipline || '', city: a.city || '' },
+        shows: [{ title: 'MY OPEN STUDIO', artists: [a.name], start: null, end: null, href: `#/exhibition/${e.slug}/space`, os: true, space: true }] });
+      byId.set(`studio-${a.slug}`, places[places.length - 1]);
+    }
+  }
   for (const p of places) {
     p.on = p.shows.filter(s => (!s.start || +s.start <= now) && (!s.end || +s.end + DAY > now));
     p.next = p.shows.filter(s => s.start && +s.start > now).sort((a, b) => a.start - b.start);
@@ -353,6 +371,14 @@ export async function mountArtMap(root, ctx) {
 
   function card(p) {
     const c = KINDS[p.kind].c, dist = km(me.at, p.at);
+    if (p.kind === 'studio') {
+      const a = p.artist || {};
+      return `<article class="am-card am-studio" style="--c:${c}">
+      <div class="am-card-top"><span class="am-kind"><i></i>Open studio</span><button type="button" class="am-x" aria-label="Close">×</button></div>
+      <h2 dir="auto">${esc(a.name || p.name)}</h2><p class="am-m">${esc([a.discipline, a.city].filter(Boolean).join(' · '))}</p>
+      <div class="am-actions">${a.slug ? `<a href="#/artist/${esc(a.slug)}">Artist page</a>` : ''}<button type="button" class="am-follow" aria-pressed="${follow.has(p.id)}">${follow.has(p.id) ? 'Following' : 'Follow'}</button></div>
+      <div class="am-links"><button type="button" class="am-share">${'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/></svg>'}<span>Share</span></button></div></article>`;
+    }
     const evOf = s => p.soonEvents.filter(e => s.title.length > 2 && e.title.includes(s.title.replace(/^["“]|["”]$/g, '')));
     const more = s => {
       const r = runOf(s), evs = evOf(s);
@@ -426,9 +452,9 @@ export async function mountArtMap(root, ctx) {
   }
 
   // --- the map ---
-  let map = null;
+  let map = null, GL = null;
   try {
-    const gl = await loadLib();
+    const gl = await loadLib(); GL = gl;
     if (!gl.supported || gl.supported({ failIfMajorPerformanceCaveat: false }) !== false) {
       const start = sel ? sel.at : district(me.at);
       map = new gl.Map({ container: mapEl, style: style(), center: [start[1], start[0]], zoom: sel ? 16.4 : 15.1,
@@ -442,7 +468,38 @@ export async function mountArtMap(root, ctx) {
   } catch (e) { console.warn('art map: no 3D map', e); }
   if (!map) mapEl.innerHTML = '<p class="am-nomap">The 3D map needs WebGL, which this browser has turned off. The places are all listed below.</p>';
 
+  // An open studio is not a gallery: from afar a small crystal orb floats over the place, turning its colours slowly; a tap on it comes
+  // close. Close, the orb gives way to the round window (the same as on Home and the artist's page): the room's film inside, the artist's
+  // name and craft arched over it, and a tap steps into the exhibition. Nothing under it: the card below holds the plain details.
+  if (map && GL) {
+    const NEAR = 15.4;
+    const wins = places.filter(p => p.kind === 'studio' && p.film).map((p, i) => {
+      const a = p.artist || {}, top = [a.name, a.discipline].filter(Boolean).join('  ·  ').toUpperCase(), k = esc(p.film);
+      const el = document.createElement('div'); el.className = 'am-os';
+      el.innerHTML = `<button type="button" class="am-orb" aria-label="${esc(a.name || p.name)}: an open studio, come closer"><span class="am-orb-g"><i></i></span><span class="am-orb-s" aria-hidden="true"></span></button>
+        <a class="am-win" href="${esc(p.shows[0].href)}" aria-label="${esc([a.name, a.discipline].filter(Boolean).join(', '))}: step into the open studio">
+          <svg class="am-win-t" viewBox="0 0 200 74" aria-hidden="true"><path id="amw${i}" d="M 18 72 A 86 86 0 0 1 182 72" fill="none"/><text><textPath href="#amw${i}" startOffset="50%" text-anchor="middle">${esc(top)}</textPath></text></svg>
+          <span class="am-win-c"><img src="data/spaces/${k}/preview.jpg" alt=""></span></a>`;
+      el.querySelector('.am-orb').onclick = e => { e.stopPropagation(); choose(p.id); map.flyTo({ center: [p.at[1], p.at[0]], zoom: NEAR + 0.9, duration: 1400 }); };
+      new GL.Marker({ element: el, anchor: 'bottom', offset: [0, -12] }).setLngLat([p.at[1], p.at[0]]).addTo(map);
+      return { el, k };
+    });
+    // the film plays only while the window is open
+    const film = (w, on) => {
+      let v = w.el.querySelector('video');
+      if (!on) { if (v) v.pause(); return; }
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!v) {
+        w.el.querySelector('.am-win-c').insertAdjacentHTML('beforeend', `<video muted loop playsinline preload="auto" poster="data/spaces/${w.k}/preview.jpg" aria-hidden="true"><source src="data/spaces/${w.k}/preview.hevc.mp4" type='video/mp4; codecs="hvc1"'><source src="data/spaces/${w.k}/preview.webm" type='video/webm'><source src="data/spaces/${w.k}/preview.mp4" type='video/mp4'></video>`);
+        v = w.el.querySelector('video'); [...v.querySelectorAll('source')].pop().addEventListener('error', () => v.remove());
+      }
+      v.play().catch(() => {});
+    };
+    map.__win = () => { const z = map.getZoom(), show = kinds.has('studio'); wins.forEach(w => { const near = show && z >= NEAR; w.el.classList.toggle('far', show && !near); w.el.classList.toggle('near', near); film(w, near); }); };
+    map.on('zoom', map.__win); map.__win();
+  }
   const refresh = () => {
+    if (map && map.__win) map.__win();
     if (!map || !map.getSource('art')) return;
     const [a, b] = geo(places, kinds);
     map.getSource('art').setData(a); map.getSource('artpt').setData(b);
@@ -461,19 +518,20 @@ export async function mountArtMap(root, ctx) {
       'circle-color': ['get', 'c'], 'circle-blur': 0.9, 'circle-pitch-alignment': 'map',
       'circle-radius': ['interpolate', ['exponential', 1.7], ['zoom'], 8, 4, 12, 12, 15, 52, 18, 190],
       'circle-opacity': ['case', ['get', 'on'], 0.42, 0.18] } }, 'label-water');
-    map.addLayer({ id: 'art-dot', type: 'circle', source: 'artpt', maxzoom: 14.6, paint: {
+    map.addLayer({ id: 'art-dot', type: 'circle', source: 'artpt', maxzoom: 14.6, filter: ['!=', ['get', 'kind'], 'studio'], paint: {
       'circle-color': ['get', 'c'], 'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 2.5, 12, 4.5, 14.5, 6],
       'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 7, 0.6, 13, 1.6],
       'circle-opacity': ['case', ['==', ['get', 'tier'], 'listed'], 0.7, 1], 'circle-stroke-opacity': ['case', ['==', ['get', 'tier'], 'listed'], 0.7, 1] } });
-    map.addLayer({ id: 'art-3d', type: 'fill-extrusion', source: 'art', minzoom: 13.2, paint: {
+    map.addLayer({ id: 'art-3d', type: 'fill-extrusion', source: 'art', minzoom: 13.2, filter: ['!=', ['get', 'kind'], 'studio'], paint: {
       'fill-extrusion-color': ['get', 'c'],
       'fill-extrusion-height': ['get', 'h'],
       'fill-extrusion-base': ['get', 'base'], 'fill-extrusion-opacity': ['interpolate', ['linear'], ['zoom'], 13.2, 0, 14, 0.97], 'fill-extrusion-vertical-gradient': true } });
+    // (an open studio has no dot, block or name on the ground: its orb, then its round window, stand for it)
     // the chosen place: a ring on the ground in its colour
     map.addLayer({ id: 'art-ring', type: 'circle', source: 'artpt', filter: ['==', ['get', 'id'], ''], paint: {
       'circle-pitch-alignment': 'map', 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': ['get', 'c'], 'circle-stroke-width': 3,
       'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 13, 8, 16, 38, 18, 150] } });
-    map.addLayer({ id: 'art-label', type: 'symbol', source: 'artpt', minzoom: 14.2, layout: {
+    map.addLayer({ id: 'art-label', type: 'symbol', source: 'artpt', minzoom: 14.2, filter: ['!=', ['get', 'kind'], 'studio'], layout: {
       'text-field': ['get', 'label'], 'text-font': ['Noto Sans Bold'], 'text-size': 12, 'text-anchor': 'top', 'text-offset': [0, 0.9],
       'text-max-width': 9, 'symbol-sort-key': ['case', ['get', 'on'], 0, 1], 'text-optional': true },
       paint: { 'text-color': '#1B1A17', 'text-halo-color': 'rgba(255,253,248,.95)', 'text-halo-width': 1.8 } });

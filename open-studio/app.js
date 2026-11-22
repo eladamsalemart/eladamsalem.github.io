@@ -35,7 +35,7 @@ function freshCommunity(d) {
     if (now === was) return;
     M = buildModel({ ...d, community: c });
     // (the page being read isn't pulled from under the reader: only a list that can show the new ones is redrawn)
-    if (/^#?\/?$|^#\/(artists|shows|search)$|^#\/(artist|exhibition)\//.test(location.hash || '#/') && !openSpaceView) render();
+    if (/^#?\/?$|^#\/(artists|shows|search|map)$|^#\/(artist|exhibition)\//.test(location.hash || '#/') && !openSpaceView) render();
   }).catch(e => console.warn('community', e));
 }
 const DB = 'https://hlpzqeosdavfuzjgpwhy.supabase.co/rest/v1/', DB_KEY = 'sb_publishable_VKboaeE8UE3iwVKhyr4FSA_faDO17fu';
@@ -198,7 +198,7 @@ function addVirtual(m, v, uniq, demo) {
     const fmt = t => t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     const room = roomTitle(x.room);
     m.exhibitions.push({
-      slug: uniq(x.slug), title: x.title, year: String(start.getFullYear()), venue: `Open Studio · ${room}`, address: '',
+      slug: uniq(x.slug), title: x.id ? 'My Open Studio' : x.title, year: String(start.getFullYear()), venue: `Open Studio · ${room}`,      // (an artist's virtual exhibition is named only on the wall of its own room, in the tour) address: '',
       dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: x.text || [], images: x.cover ? [x.cover] : [works[0].image], city: '', country: '',
       confirmed: true, artist: artists[0], artists, works, maybe: [], kind: 'online', start, end, hours: '', curator: x.curator || '',
       events: [], virtual: x, ord: x.ord, demo: !!demo,
@@ -435,7 +435,7 @@ function walkRow(list, label) {
     return `<li><div class="wc${e.space ? ' has-room' : ''}" data-slug="${esc(e.slug)}" data-space="${esc(sk)}">
       <div class="wc-arch">${first ? `<img class="wc-poster" src="${esc(first)}" data-alt="${esc(alt)}" alt="" loading="lazy" onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt='';this.closest('.wc').classList.add('nofilm')}">` : alt ? `<img class="wc-poster" src="${esc(alt)}" alt="" loading="lazy">` : ''}
         ${pill}
-        <div class="wc-cap"><span class="wc-kind ${e.kind === 'online' ? 'virt' : 'real'}">${e.kind === 'online' ? 'Virtual exhibition' : 'Real exhibition'}</span><a class="wc-t" href="#/exhibition/${esc(e.slug)}"><b${heb(e.title)}>${esc(e.title)}</b></a><span>${esc([byOf(e), e.city].filter(Boolean).join(' · '))}</span></div>
+        <div class="wc-cap"><a class="wc-t" href="#/exhibition/${esc(e.slug)}"><b${heb(e.title)}>${esc(e.title)}</b></a><span>${esc([byOf(e), e.city].filter(Boolean).join(' · '))}</span>${e.kind !== 'online' && e.venue ? `<span class="wc-venue">${esc(String(e.venue).split(' — ')[0])}</span>` : ''}</div>
       </div>
       ${e.space ? `<a class="step" href="#/exhibition/${esc(e.slug)}/space">Step inside</a>` : ''}</div></li>`;
   };
@@ -523,8 +523,9 @@ function home() {
       <p class="hand mos-tag">come and meet our artists through their open studios</p>
       <ul class="mos-row">${openStudios.map(e => `<li class="mos-w">${roundWin(e)}<b class="hand">${esc(byOf(e))}</b></li>`).join('')}</ul></section>` : ''}
     ${walkReal.length ? `<section class="hs-sec hs-walk" aria-labelledby="hsLive">
-      <div class="hs-h"><h2 id="hsLive">Walk in now</h2><span class="hand side">you can walk in from here</span></div>
-      ${walkRow(walkReal, 'Exhibitions you can walk into')}</section>` : ''}
+      <div class="hs-h"><h2 id="hsLive">Real exhibitions, virtual tours</h2></div>
+      <p class="hand hs-sub">walk through shows that hung in real galleries and spaces</p>
+      ${walkRow(walkReal, 'Real exhibitions you can walk through')}</section>` : ''}
     <section class="hs-sec hs-new" id="hsNew" aria-labelledby="hsNewH" hidden></section>
     ${mine.length ? `<section class="hs-sec" aria-labelledby="hsArtists">
       <div class="hs-h"><h2 id="hsArtists">Your artists</h2><a class="hs-more" href="#/artists">All</a></div>
@@ -661,6 +662,7 @@ function museumRooms(slots) {
 }
 // a Desk room may name any exhibition the app knows (a real one with a photographed or drawn space, an artist's virtual show), not only the street's eight: it hangs its works and its arch walks into its own space
 const slotShow = (slug, shows) => shows.find(x => x.slug === slug) || M.exhibitions.find(x => x.slug === slug && (x.works || []).length && (x.space || x.virtual));
+const originalOf = e => e.space.virtual ? { design: { ...e.space.virtual, works: e.works } } : { spec: e.space };
 const enterOf = e => ({ hash: `#/exhibition/${e.slug}/space`, image: `data/spaces/${Object.keys(M.spaces || {}).find(k => M.spaces[k] === e.space) || e.slug}/preview.jpg`, label: 'Walk into the original space' });
 const MU_CSS = `<style id="hsMuCss">
 .hs-mu .mu-in{position:relative;display:block;text-decoration:none;color:inherit}
@@ -1150,7 +1152,7 @@ function fillRealShows(box, art) {
   rest.innerHTML = sec('On view now', 'Real exhibitions in galleries, museums and art institutions in Israel, as they list them.', now) + sec('Opening soon', 'In the next weeks.', soon);
 }
 function showsPage() {
-  const pick = e => showsKind === 'all' || (showsKind === 'online' ? e.kind === 'online' : e.kind !== 'online');
+  const pick = e => e.kind !== 'online';                     // (Shows holds real exhibitions only)
   const all = M.exhibitions.filter(e => pick(e) && !e.demo);
   const on = all.filter(isOn), soon = all.filter(e => status(e) === 'soon').sort((a, b) => a.start - b.start);
   const evs = [...M.exhibitions.filter(e => pick(e) && !e.demo).flatMap(e => e.events), ...(showsKind === 'online' ? [] : M.listings.flatMap(l => l.events))]
@@ -1165,7 +1167,7 @@ function showsPage() {
   const card = e => `<a class="nx-show" href="#/exhibition/${e.slug}">${im(e.images[0], '', '', '45vw')}<i class="badge ${e.kind === 'online' ? 'virt' : 'real'}">${e.kind === 'online' ? 'Virtual' : 'Real'}</i>
     <b>${esc(e.title)}</b><span>${esc(byOf(e))}</span><span class="nx-when">${status(e) !== 'past' ? lh(when(e)) : esc(when(e))}${e.city ? ` · ${esc(e.city)}` : ''}</span></a>`;
   return `<div class="wrap gut nx">
-    <div class="nx-h"><h1>Shows</h1><div class="seg" role="group" aria-label="Which shows">${[['all', 'All'], ['rooms', 'Real'], ['online', 'Virtual']].map(([k, t]) => `<button type="button" data-kind="${k}" aria-pressed="${showsKind === k}">${t}</button>`).join('')}</div></div>
+    <div class="nx-h"><h1>Shows</h1></div>
     ${hero ? `<a class="nx-hero" href="#/exhibition/${hero.slug}">${im(hero.images[0], `${hero.title}`, 'loading="eager"', '100vw')}
       <span class="nx-live"><i></i>${lh(tonight && tonight.show === hero ? `${tonight.what} ${dayName(tonight.at) === 'Tonight' ? 'tonight' : dayName(tonight.at).toLowerCase()} · ${hm(tonight.at)}` : when(hero))}</span>
       <span class="nx-ov"><b>${esc(hero.title)}</b><span class="k">${esc(byOf(hero))}${hero.venue && hero.kind !== 'online' ? ` · ${esc(hero.venue)}` : ''}</span>
@@ -1468,7 +1470,7 @@ async function enterStreet() {
       const c = s.content, e = s.app_slug && slotShow(s.app_slug, shows);
       if (!c && !e) return null;
       const ws = c ? (c.works || []) : e.works, slug = e ? e.slug : 'slot-' + s.slot;
-      return { slug, slot: s.slot, title: c ? c.title : e.title, works: ws, text: c ? c.text : (e && e.text), sub: !c && e ? [e.venue, e.dates || e.year].filter(Boolean).join(' · ') : '', enter: !c && e && e.space && (e.space.virtual || !shows.includes(e)) ? enterOf(e) : undefined, curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
+      return { slug, slot: s.slot, title: c ? c.title : e.title, works: ws, text: c ? c.text : (e && e.text), sub: !c && e ? [e.venue, e.dates || e.year].filter(Boolean).join(' · ') : '', original: !c && e && e.space && (e.space.virtual || !shows.includes(e)) ? originalOf(e) : undefined, curator: c && c.curator, plinths: c && c.plinths, objects: c && c.objects, labels: !!c,
         colour: s.colour || over[slug] || set[slug] || await synth.suggestColour(ws.map(thumb), src, synth.slugHue(slug)) };
     }))).filter(Boolean);
   }
@@ -1483,7 +1485,7 @@ async function enterStreet() {
     const e = sp.type === 'house' && sp.tour && M.exhibitions.find(x => x.slug === sp.tour && x.space);
     if (!e || rooms.some(r => r.slot === sp.slot)) continue;
     rooms.push({ slug: e.slug, slot: sp.slot, title: e.title, works: e.works, text: e.text, sub: [e.venue, e.dates || e.year].filter(Boolean).join(' · '), colour: await synth.suggestColour(e.works.map(thumb), src, synth.slugHue(e.slug)),
-      enter: { hash: `#/exhibition/${e.slug}/space`, image: `data/spaces/${Object.keys(M.spaces || {}).find(k => M.spaces[k] === e.space) || e.slug}/preview.jpg`, label: 'Walk into the original space' } });
+      original: originalOf(e) });
   }
   const qs = new URLSearchParams(location.search), sections = qs.has('street') || qs.has('hall') ? [] : await loadSections(), plan = await get('museum_plan?select=plan&key=eq.main').then(r => (r[0] && r[0].plan) || null).catch(() => null), made = await (qs.has('street') ? synth.buildStreet : qs.has('hall') ? synth.buildHall : qs.has('cluster') ? synth.buildCluster : synth.buildSky)(rooms, src, thumb, { sections, plan });   // (the open museum of houses is the museum, 16.11; ?street and ?hall keep the older plans)
   if (location.hash !== '#/museum') return;                       // (left while it was being built)

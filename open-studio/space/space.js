@@ -9,6 +9,7 @@
 // - a polished floor reflects the room live, more at a low angle than straight down, as stone does.
 // Coordinates are metres, y up, floor at 0.
 
+const inPoly = (P, x, z) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > z) !== (P[j][1] > z) && x < (P[j][0] - P[i][0]) * (z - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; };
 const EYE = 1.6, WALK = 1.9, MARGIN = 0.3;     // WALK: metres a second (was 1.3: too slow in a 24 m hall; a stroll through a gallery)
 
 export async function openSpace({ spec, works, src, onClose, onOpenWork, choose, editor, exitLabel, onHotspot }) {
@@ -906,6 +907,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   clampStand(pos);
   const look = spec.start ? new THREE.Vector3(spec.start.look[0], EYE - 0.1, spec.start.look[1]) : longX ? new THREE.Vector3(cx - end * len, EYE - 0.1, cz) : new THREE.Vector3(cx, EYE - 0.1, cz - end * len);
   const tPos = pos.clone(), tLook = look.clone(), up = new THREE.Vector3(0, 1, 0), tUp = up.clone();
+  const inSlow = p => (spec.slow || []).some(P => inPoly(P, p.x, p.z));          // inside an exhibition room or wing: walk at a stroll, in the hall run
   let tFov = 62, free = true, wide = false;
   const baseFov = () => camera.aspect > 1.3 ? 54 : wide ? 96 : 62;       // (sideways the screen itself is wide: a calmer lens)
   $('.sv-wide').onclick = () => { wide = !wide; $('.sv-wide').setAttribute('aria-pressed', String(wide)); $('.sv-wide').textContent = wide ? '1×' : '0.5×'; if (mode === 'walk') tFov = baseFov(); dirty = true; };
@@ -1288,12 +1290,12 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
         if (mode !== 'walk') { setMode('walk'); show(); }
         const was = tPos.clone();
         // the museum is big: a joystick pushed far (or Shift) runs; the tour rooms keep the stroll
-        const mag = Math.min(1, Math.hypot(joy.x, joy.y)), run = spec.outdoors ? 1 + 1.6 * mag * mag + (keys.has('shift') ? 1.2 : 0) : 1, sp = WALK * run;
+        const mag = Math.min(1, Math.hypot(joy.x, joy.y)), run = spec.outdoors && !inSlow(tPos) ? 1 + 1.6 * mag * mag + (keys.has('shift') ? 1.2 : 0) : 1, sp = WALK * run;
         tPos.addScaledVector(fwd, f * sp * dt).addScaledVector(sideV, s * sp * dt); tPos.y = EYE;
         tPos.copy(clampStand(tPos, was));
       } else if (walkTo) {
         const d = new THREE.Vector3().subVectors(walkTo, tPos), n = d.length();
-        if (n < 0.02) walkTo = null; else tPos.addScaledVector(d, Math.min(1, WALK * (spec.outdoors ? 3.2 : 1.7) * dt / n));
+        if (n < 0.02) walkTo = null; else tPos.addScaledVector(d, Math.min(1, WALK * (spec.outdoors && !inSlow(tPos) ? 3.2 : 1.7) * dt / n));
       }
       tLook.set(tPos.x - Math.sin(yaw) * Math.cos(pitch), tPos.y + Math.sin(pitch), tPos.z - Math.cos(yaw) * Math.cos(pitch));
     }
