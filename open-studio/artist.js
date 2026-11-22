@@ -355,7 +355,7 @@ async function hangIn(v, done, add) {
 async function walkIn(v, edit) {
   const [{ buildRoom }, { openSpace }] = await Promise.all([synth(), import('./space/space.js')]);
   const works = v.works.map(workOf).filter(Boolean).map(shapeWork);
-  const made = await buildRoom({ title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre, works, placements: v.placements, plinths: v.plinths }, u => u);
+  const made = await buildRoom({ title: v.title || 'Untitled', room: v.room, paint: v.paint, centre: v.centre, works, placements: v.placements, plinths: v.plinths, text: v.text || '', by: S.artist.name || '' }, u => u);
   const view = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => made.revoke(), ...(edit ? { choose: { label: 'Rearrange on the plan', onChoose: edit } } : {}) });
   window.__spaceView = view;
 }
