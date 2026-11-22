@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
   const [,, base, out, dpr, ...views] = process.argv;
   const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const c = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: +dpr || 1, isMobile: true, hasTouch: true });
-  const p = await c.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => /DBG/.test(m.text()) && console.log(m.text().slice(0,300))); p.on('console', m => m.type() === 'error' && errs.push(m.text().slice(0, 200)));
+  const p = await c.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => /DBG/.test(m.text()) && console.log(m.text().slice(0,300))); p.on('console', m => m.type() === 'error' && errs.push(m.text().slice(0, 200))); p.on('response', r => r.status() >= 400 && errs.push(r.status() + ' ' + r.url().slice(-80)));
   await p.route(/museum_plan/, async r => { let pl = null; try { const j = await (await r.fetch()).json(); pl = j[0] && j[0].plan; } catch {} if (!pl) pl = { spaces: [{ id: 'h1', type: 'house', slot: 1, door: [41, 21], dir: 270 }, { id: 'renaissance', type: 'section', section: 'renaissance', door: [14, 47], dir: [0, -1] }] };
     const sp = (pl.spaces || []).filter(x => !['ritual', 'v1', 'v2'].includes(x.id)); sp.push({ id: 'ritual', type: 'house', slot: 57, tour: 'ritual', door: [79, 60], dir: 0 }, { id: 'v1', type: 'house', slot: 58, tour: 'show-805a6c3b', door: [86, 10], dir: 180 });
     r.fulfill({ json: [{ plan: { ...pl, spaces: sp } }] }); });

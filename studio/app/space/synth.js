@@ -1456,9 +1456,21 @@ async function originalSpec(o, src) {
   const small = new Map(), shrink = (u, cap, png) => typeof u !== 'string' || !u ? Promise.resolve(u) : (small.get(u + cap) || (small.set(u + cap, new Promise(res => { const im = new Image(); im.crossOrigin = 'anonymous';
     im.onload = () => { const k = Math.min(1, cap / Math.max(im.naturalWidth, im.naturalHeight)); if (k >= 0.99) return res(u); const c = canvas(im.naturalWidth * k, im.naturalHeight * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res(png ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.86)); };
     im.onerror = () => res(u); im.src = u; })), small.get(u + cap)));
-  await Promise.all((sp.surfaces || []).map(async s => { if (s.texture) s.texture = await shrink(s.texture, 1024); if (s.light) s.light = await shrink(s.light, 512, true); }));
-  await Promise.all((sp.works || []).map(async w => { if (w.imageSmall) w.imageSmall = await shrink(w.imageSmall, 640); if (w.light) w.light = await shrink(w.light, 256, true); }));
-  if (sp.plaster) sp.plaster = await shrink(sp.plaster, 512);
+  const K = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 1 : 2;      // (a laptop shows the room as sharp as the original tour; only a phone gets it smaller)
+  await Promise.all((sp.surfaces || []).map(async s => { if (s.texture) s.texture = await shrink(s.texture, 1024 * K); if (s.light) s.light = await shrink(s.light, 512 * K, true); }));
+  await Promise.all((sp.works || []).map(async w => { if (w.imageSmall) w.imageSmall = await shrink(w.imageSmall, 640 * K); if (w.light) w.light = await shrink(w.light, 256 * K, true); }));
+  if (sp.plaster) sp.plaster = await shrink(sp.plaster, 512 * K);
+  // the floor is a small tile repeated over the room: laid out once, whole, so a pavilion's floor (drawn as a plain wall-like surface) is not that one tile stretched
+  const fl = (sp.surfaces || []).find(q => q.kind === 'floor' && typeof q.texture === 'string' && q.size);
+  if (fl) {
+    const im = await new Promise(res => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => res(null); i.src = fl.texture; });
+    const tx = (fl.tileXY || [fl.tile || 1, fl.tile || 1]), [w, d] = fl.size;
+    if (im && w > 0 && d > 0 && tx[0] > 0 && tx[1] > 0 && (w > tx[0] * 1.5 || d > tx[1] * 1.5)) {
+      const ppm = Math.min(80 * K, 2048 / Math.max(w, d)), cv = canvas(Math.round(w * ppm), Math.round(d * ppm)), x = cv.getContext('2d');
+      for (let a = 0; a < w; a += tx[0]) for (let b = 0; b < d; b += tx[1]) x.drawImage(im, a * ppm, b * ppm, tx[0] * ppm + 1, tx[1] * ppm + 1);
+      fl.texture = cv.toDataURL('image/jpeg', 0.9); delete fl.tileXY; fl.tile = Math.max(w, d);
+    }
+  }
   return sp;
 }
 export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
@@ -1651,7 +1663,13 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     // the door wall of the original and where its door is (local x/z), then the frame: local inward direction -> the pavilion's `o`
     let n, dc, dw = DW, dh = 2.7;
     if (virt) { const s = sp.surfaces.find(q => q.name === 'wall-x1'), op = s.openings[0]; n = [-1, 0]; dc = [rm.x1, s.origin[2] + (op.from + op.to) / 2]; dw = op.to - op.from; dh = op.height || dh; }
-    else {
+    // a photographed room that has an arch (or a full-height doorway) of its own: the way in is THROUGH it, never through a picture or a hole made elsewhere
+    const dr = !virt && sp.surfaces.filter(q => q.kind === 'wall').flatMap(q => (q.openings || []).filter(op => !(op.sill > 0.05) && op.height >= 2.1 && op.to - op.from >= 0.9).map(op => ({ s: q, op })))
+      .sort((a, b) => (b.op.arch ? 1 : 0) - (a.op.arch ? 1 : 0) || (b.op.to - b.op.from) - (a.op.to - a.op.from))[0];
+    if (dr) {
+      const { s, op } = dr, m = (op.from + op.to) / 2; n = [s.normal[0], s.normal[2]]; dc = [s.origin[0] + s.u[0] * m, s.origin[2] + s.u[2] * m]; dw = op.to - op.from; dh = op.height;
+      op.through = true; op.depth = 0.2; delete op.view;
+    } else if (!virt) {
       const s = sp.surfaces.find(q => q.kind === 'wall' && Math.abs(q.normal[2] - 1) < 0.01 && q.u[0] > 0.99);
       n = [0, 1]; dc = [(rm.x0 + rm.x1) / 2, rm.z0];
       if (s) { const a = dc[0] - s.origin[0]; (s.openings = s.openings || []).push({ from: a - DW / 2, to: a + DW / 2, height: dh, arch: false, depth: 0.2, through: true, bare: true }); }
@@ -1678,7 +1696,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       let holes = [];
       if (isDoor) { const Dw = W(dc[0], dc[1]), s = (Dw[0] - A[0]) * ux + (Dw[1] - A[1]) * uz; holes = [[s - dw / 2 + T, s + dw / 2 + T, 0, dh]]; }
       let at = 0; for (const [f, t] of [...holes.map(h => [h[0], h[1]]), [L, L]].sort((p, q) => p[0] - q[0])) { if (f > at + 0.01) solids.push([A[0] + ux * at, A[1] + uz * at, A[0] + ux * f, A[1] + uz * f]); at = Math.max(at, t); }
-      wall(`${pre}skin${k}`, (A[0] + B[0]) / 2 + nv[0] * T, (A[1] + B[1]) / 2 + nv[2] * T, nv[0], nv[2], L + 2 * T, { h: H, tex: skin, holes, noSolid: true });
+      wall(`${pre}skin${k}`, (A[0] + B[0]) / 2 + nv[0] * T, (A[1] + B[1]) / 2 + nv[2] * T, nv[0], nv[2], L + 2 * T, { h: H, tex: skin, holes: holes.map(h => [L - h[1], L - h[0], h[2], h[3]]), noSolid: true });
     });
     // a recessed shadow gap at the foot and a dark line under the top, like every house
     directory.push({ title: r.title, kind: 'room', note: `${(sp.works || []).length} works`, at: [c[0] - o[0] * 5.4, c[1] - o[1] * 5.4], look: Dp });
