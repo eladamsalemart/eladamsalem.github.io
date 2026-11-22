@@ -1436,8 +1436,8 @@ export function planOf(p) {
   return { version: 1, hall, entrance: { at: Array.isArray(p.entrance && p.entrance.at) && p.entrance.at.length === 2 ? p.entrance.at : D.entrance.at },
     start: { pos: pt(p.start && p.start.pos, [hall.w / 2, hall.d - 5.5]), look: pt(p.start && p.start.look, [hall.w / 2, hall.d / 2]) },
     pool: p.pool === null ? null : (Array.isArray(p.pool) && p.pool.length === 4 && p.pool.every(v => typeof v === 'number') ? p.pool : D.pool),
-    piers: (Array.isArray(p.piers) ? p.piers : D.piers).filter(q => pt(q)), stands: (Array.isArray(p.stands) ? p.stands : D.stands).filter(q => q && [q.x, q.z, q.len, q.rot, q.h].every(v => typeof v === 'number')).slice(0, 12),
-    objects: (Array.isArray(p.objects) ? p.objects : D.objects).filter(q => pt(q)).slice(0, 12), spaces };
+    piers: (Array.isArray(p.piers) ? p.piers : D.piers).filter(q => pt(q)), stands: (Array.isArray(p.stands) ? p.stands : D.stands).filter(q => q && [q.x, q.z, q.len, q.rot, q.h].every(v => typeof v === 'number' && isFinite(v)) && q.len >= 0.5 && q.len <= 14 && q.h >= 1 && q.h <= 8).slice(0, 24).map((q, i) => ({ ...q, id: typeof q.id === 'string' && q.id ? q.id : 'st-' + i })),
+    objects: (Array.isArray(p.objects) ? p.objects : D.objects).filter(q => Array.isArray(q) && q.length >= 2 && pt(q.slice(0, 2))).slice(0, 24), spaces };      // (a pedestal: [x, z, size 's'|'m'|'l', which exhibition's object it carries: its slug | 'none' | nothing = in turn])
 }
 export function skyLayout(plan = SKY_PLAN) {
   return planOf(plan).spaces.filter(sp => sp.type === 'house').map((sp, slot) => { const a = sp.dir * Math.PI / 180, o = [Math.cos(a), Math.sin(a)]; return { slot, j: slot % 8, c: sp.door, o, r: [-o[1], o[0]], id: sp.id, no: sp.slot }; });
@@ -1818,14 +1818,25 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   for (const f of faces) surfaces.push({ name: f.name, kind: 'wall', stand: f.stand, texture: face, origin: f.origin, u: f.u, v: [0, -1, 0], size: [f.len, f.h], normal: f.normal, openings: [] });
   for (const s of stands) { const a = s.rot * Math.PI / 180; solids.push([s.x - Math.cos(a) * s.len / 2, s.z - Math.sin(a) * s.len / 2, s.x + Math.cos(a) * s.len / 2, s.z + Math.sin(a) * s.len / 2]); }
   const mid = f => [f.origin[0] + f.u[0] * f.len / 2, f.origin[2] + f.u[2] * f.len / 2];
-  const spots = [4, 0, 2, 5, 1, 3, 6, 7, 8, 9, 10, 11].filter(k => k < faces.length).map(k => ({ p: mid(faces[k]), n: [faces[k].normal[0], faces[k].normal[2]], max: 150, y: 1.5 }));
+  // the work on a coulisse: the Desk may name the exhibition whose works hang on it (stand.show: its slug, or 'none' for bare faces); the rest are filled in turn, the first work of each exhibition
+  const roomOfShow = k => rooms.find(r => r.slug === k || r.id === k || r.app === k);
+  const taken = new Set(), pinned = [];
+  stands.forEach((st, si) => { if (!st.show) return; taken.add(2 * si); taken.add(2 * si + 1); const r = st.show === 'none' ? null : roomOfShow(st.show), ws = r ? r.works.filter(w => w.image) : [];
+    [0, 1].forEach(k => { if (ws[k]) pinned.push({ f: faces[2 * si + k], r, w: ws[k] }); }); });
+  const order = [4, 0, 2, 5, 1, 3, 6, 7, 8, 9, 10, 11, ...Array.from({ length: faces.length }, (_, k) => k + 12)];
+  const spots = order.filter(k => k < faces.length && !taken.has(k)).map(k => ({ p: mid(faces[k]), n: [faces[k].normal[0], faces[k].normal[2]], max: 150, y: 1.5 }));
   const heralds = rooms.map(r => ({ r, w: r.works.find(w => w.image) })).filter(q => q.w).slice(0, spots.length);
-  for (const [k, q] of heralds.entries()) {
-    const sp = spots[k], s = await sizeOf({ ...q.w, image: thumbOf(q.w) }, src), f = Math.min(sp.max / Math.max(s.w, s.h), 1.6);
-    hangAt(q.w, s.w * f / 100, s.h * f / 100, sp.p, sp.n, sp.y, { lines: [q.w.title, [q.w.artist && (q.w.artist.name || q.w.artist), q.w.year].filter(Boolean).join(', '), 'In: ' + q.r.title].filter(Boolean) });
-  }
-  const objs = rooms.flatMap(r => Object.values(r.objects || {}).slice(0, 1)).slice(0, PLAN.objects.length), at = PLAN.objects;
-  objs.forEach((ob, k) => plinthsOut.push({ id: 'pl-p' + k, x: at[k][0], z: at[k][1], size: PLINTHS.m, key: 'm', work: ob.id, obj: { id: ob.id, title: ob.title, image: ob.image, w: ob.w, h: ob.h } }));
+  const hang = async (w, r, sp) => { const s = await sizeOf({ ...w, image: thumbOf(w) }, src), f = Math.min(sp.max / Math.max(s.w, s.h), 1.6);
+    hangAt(w, s.w * f / 100, s.h * f / 100, sp.p, sp.n, sp.y, { lines: [w.title, [w.artist && (w.artist.name || w.artist), w.year].filter(Boolean).join(', '), 'In: ' + r.title].filter(Boolean) }); };
+  for (const q of pinned) await hang(q.w, q.r, { p: mid(q.f), n: [q.f.normal[0], q.f.normal[2]], max: 150, y: 1.5 });
+  for (const [k, q] of heralds.entries()) await hang(q.w, q.r, spots[k]);
+  const at = PLAN.objects, usedRoom = new Set(), objOf = r => r && Object.values(r.objects || {})[0];
+  at.forEach(q => { if (q[3] && q[3] !== 'none') usedRoom.add(roomOfShow(q[3])); });
+  at.forEach((q, k) => { let ob = null;
+    if (q[3] === 'none') ob = null; else if (q[3]) ob = objOf(roomOfShow(q[3]));
+    else { const r = rooms.find(r => objOf(r) && !usedRoom.has(r)); if (r) { usedRoom.add(r); ob = objOf(r); } }
+    const key = PLINTHS[q[2]] ? q[2] : 'm';
+    plinthsOut.push({ id: 'pl-p' + k, x: q[0], z: q[1], size: PLINTHS[key], key, work: ob ? ob.id : null, obj: ob ? { id: ob.id, title: ob.title, image: ob.image, w: ob.w, h: ob.h } : null }); });
 
   // --- history sections (wings): data, not the Desk. A section is a chain of bays that widen and rise as you walk, each open to the next
   //     through a wide opening; paintings hang at their real size (the long side as the credits say, the shape from the picture), sculpture and
