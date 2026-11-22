@@ -244,6 +244,12 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       m.userData.kind = s.kind; if (s.stand) m.userData.stand = s.stand; scene.add(m);
       if (spec.mirrorSurface && s.name === spec.mirrorSurface.name) hallMirror(m, s);
       for (const o of s.openings || []) addOpening(s, o);
+      if (/^part-\d+a$/.test(s.name)) {            // wall-top cap of a partition: the 0.3 m between its two faces, so the top edge is a surface, not a gap
+        const Uc = V(s.u), Nc = V(s.normal), Oc = V(s.origin), L = s.size[0], T = 0.3;
+        const P = (u, d) => Oc.clone().addScaledVector(Uc, u).addScaledVector(Nc, -d);
+        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([P(0, 0), P(L, 0), P(L, T), P(0, 0), P(L, T), P(0, T)].flatMap(q => [q.x, q.y + 0.002, q.z]), 3));
+        const cap = new THREE.Mesh(g, room(new THREE.MeshBasicMaterial({ color: '#ebe9e4', toneMapped: false, side: THREE.DoubleSide }))); cap.userData.kind = 'reveal'; scene.add(cap);
+      }
     }
   });
   if (Object.keys(batches).length) {
