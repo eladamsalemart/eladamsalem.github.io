@@ -198,7 +198,7 @@ function addVirtual(m, v, uniq, demo) {
     const fmt = t => t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     const room = roomTitle(x.room);
     m.exhibitions.push({
-      slug: uniq(x.slug), title: x.title, year: String(start.getFullYear()), venue: `Open Studio · ${room}`, address: '',
+      slug: uniq(x.slug), title: x.id ? 'My Open Studio' : x.title, year: String(start.getFullYear()), venue: `Open Studio · ${room}`,      // (an artist's virtual exhibition is named only on the wall of its own room, in the tour) address: '',
       dates: `${fmt(start)} — ${fmt(end)}, ${end.getFullYear()}`, text: x.text || [], images: x.cover ? [x.cover] : [works[0].image], city: '', country: '',
       confirmed: true, artist: artists[0], artists, works, maybe: [], kind: 'online', start, end, hours: '', curator: x.curator || '',
       events: [], virtual: x, ord: x.ord, demo: !!demo,
