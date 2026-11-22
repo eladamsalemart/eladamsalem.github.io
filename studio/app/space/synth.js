@@ -510,7 +510,7 @@ export const isObject = w => w.kind === 'object' || /sculpt|object|ceramic|insta
 // type large enough to read from two or three feet (the Wellcome Collection's exhibition-text rules are the model: left aligned, 55
 // characters at most, leading larger than the x-height, plain matte ground). The title, the artist, then the artist's words.
 async function introSurface(design, walls, placed, keep, R) {
-  if (design.editing || !design.title) return null;
+  if (design.editing) return null;
   const words = Array.isArray(design.text) ? design.text.join('\n\n') : String(design.text || '');
   const he = /[\u0590-\u05ff]/.test(`${design.title}${words}${design.by || ''}`);
   try { await Promise.all(['300 58px "IBM Plex Sans"', '400 27px "IBM Plex Sans"', '500 17px "IBM Plex Mono"', '300 58px "IBM Plex Sans Hebrew"', '400 27px "IBM Plex Sans Hebrew"'].map(f => document.fonts.load(f, he ? 'אבג' : 'Abc'))); } catch { /* the page's own fonts */ }
@@ -529,9 +529,9 @@ async function introSurface(design, walls, placed, keep, R) {
   const X = he ? W - pad : pad, fam = he ? '"IBM Plex Sans Hebrew","IBM Plex Sans",sans-serif' : '"IBM Plex Sans","IBM Plex Sans Hebrew",sans-serif', maxW = W - 2 * pad;
   const wrap = (txt, font) => { x.font = font; const out = []; let line = ''; for (const wd of String(txt).split(/\s+/).filter(Boolean)) { const t = line ? line + ' ' + wd : wd; if (x.measureText(t).width > maxW && line) { out.push(line); line = wd; } else line = t; } if (line) out.push(line); return out; };
   let y = pad + 12;
-  x.fillStyle = '#857f70'; x.font = '500 17px "IBM Plex Mono",monospace'; x.fillText(`MY OPEN STUDIO${design.by ? '  ·  ' + String(design.by).toUpperCase() : ''}`, X, y);
+  x.fillStyle = '#857f70'; x.font = '500 17px "IBM Plex Mono",monospace'; x.fillText(design.by ? String(design.by).toUpperCase() : 'A VIRTUAL EXHIBITION', X, y);
   y += 20; x.fillStyle = '#1e1c18';
-  const tl = wrap(String(design.title).slice(0, 80), `300 58px ${fam}`).slice(0, 2); y += 56; tl.forEach((ln, i) => { x.font = `300 58px ${fam}`; x.fillText(ln, X, y + i * 64); }); y += (tl.length - 1) * 64 + 26;
+  const tl = wrap('MY OPEN STUDIO', `300 58px ${fam}`).slice(0, 2); y += 56; tl.forEach((ln, i) => { x.font = `300 58px ${fam}`; x.fillText(ln, X, y + i * 64); }); y += (tl.length - 1) * 64 + 26;
   x.fillStyle = '#c9c4b5'; x.fillRect(he ? W - pad - 84 : pad, y, 84, 2); y += 40;
   x.fillStyle = '#35322b'; const LH = 39;
   outer: for (const para of words.split(/\n+/).map(t => t.trim()).filter(Boolean)) {

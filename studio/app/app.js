@@ -471,14 +471,14 @@ function wireWalk(root) {
 const mosKey = e => e.space ? (Object.keys(M.spaces || {}).find(k => M.spaces[k] === e.space) || e.slug) : e.slug;
 function roundWin(e, big) {
   const k = mosKey(e), alt = e.images[0] ? src(e.images[0]) : '';
-  return `<a class="mos-circ${big ? ' big' : ''}" href="#/exhibition/${esc(e.slug)}/space" data-space="${esc(k)}" aria-label="${esc(e.title)}, a virtual exhibition by ${esc(byOf(e))}: step through the round window"><span class="mos-ring" aria-hidden="true"></span><span class="mos-disc"><img src="data/spaces/${esc(k)}/preview.jpg" data-alt="${esc(alt)}" alt="" loading="lazy" onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt=''}"></span></a>`;
+  return `<a class="mos-circ${big ? ' big' : ''}" href="#/exhibition/${esc(e.slug)}/space" data-space="${esc(k)}" aria-label="My Open Studio, a virtual exhibition by ${esc(byOf(e))}: step through the round window"><span class="mos-ring" aria-hidden="true"></span><span class="mos-disc"><img src="data/spaces/${esc(k)}/preview.jpg" data-alt="${esc(alt)}" alt="" loading="lazy" onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt=''}"></span></a>`;
 }
 function openStudioBlock(list) {
   const e = list[0];
   return `<section class="sec mos" aria-labelledby="mosH"><p class="lh mos-tag">come in, this is where I work</p><h2 id="mosH" class="lh mos-title">MY OPEN STUDIO</h2>
     ${roundWin(e, true)}
-    <div class="mos-cap"><b${heb(e.title)}>${esc(e.title)}</b><span>${e.works.length} works · open all night</span><a class="btn f mos-go" href="#/exhibition/${esc(e.slug)}/space">Step through</a></div>
-    ${list.length > 1 ? `<ul class="mos-more">${list.slice(1).map(x => `<li>${roundWin(x)}<b${heb(x.title)}>${esc(x.title)}</b></li>`).join('')}</ul>` : ''}</section>`;
+    <div class="mos-cap"><span class="mos-by">A virtual exhibition by ${esc(byOf(e))}</span><span>${e.works.length} works · open all night</span><a class="btn f mos-go" href="#/exhibition/${esc(e.slug)}/space">Step through</a></div>
+    ${list.length > 1 ? `<ul class="mos-more">${list.slice(1).map(x => `<li>${roundWin(x)}</li>`).join('')}</ul>` : ''}</section>`;
 }
 // the film inside each circle: made when it is mostly on screen, played only while it is
 function wireRound(root) {
@@ -521,7 +521,7 @@ function home() {
     ${openStudios.length ? `<section class="hs-sec hs-mos" aria-labelledby="hsMos">
       <div class="hs-h"><h2 id="hsMos" class="mos-title hand">MY OPEN STUDIO</h2></div>
       <p class="hand mos-tag">come and meet our artists through their open studios</p>
-      <ul class="mos-row">${openStudios.map(e => `<li class="mos-w">${roundWin(e)}<b${heb(e.title)}>${esc(e.title)}</b><span>${esc(byOf(e))}</span></li>`).join('')}</ul></section>` : ''}
+      <ul class="mos-row">${openStudios.map(e => `<li class="mos-w">${roundWin(e)}<b class="hand">${esc(byOf(e))}</b></li>`).join('')}</ul></section>` : ''}
     ${walkReal.length ? `<section class="hs-sec hs-walk" aria-labelledby="hsLive">
       <div class="hs-h"><h2 id="hsLive">Walk in now</h2><span class="hand side">you can walk in from here</span></div>
       ${walkRow(walkReal, 'Exhibitions you can walk into')}</section>` : ''}
