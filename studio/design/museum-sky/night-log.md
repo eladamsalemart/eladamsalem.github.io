@@ -2,6 +2,8 @@
 
 (הסיכום של הלילה האחרון נכתב בראש הקובץ, עד 6 שורות, בעברית. מתחתיו שורה לכל פריט: תאריך, מה, commit, מה נבדק.)
 
+**יום 23.11 (עבודת יום, ביקשת):** הנוף הטרופי (פריט 19) קיבל תבליט קרקע (גבעות ושקעים, אור שמש נמוך אפוי), בריכה עם גדות, נופרים ובוץ, והצמחים עומדים על הקרקע (commit 1114af9, tropics.js). נבדק: צילום טלפון 390x844, בלי שגיאות, זיכרון 608 (ללא שינוי), משולשים 6.4K→19.5K. לא נבדק: אייפון אמיתי, האתר החי. פתוח: עלים קרובים נראים גסים (כרטיסי אטלס; דורש רינדור אטלס חדש בבלנדר), רוח, מים משקפים.
+
 **לילה 23.11 (משמרת 9, 05:23) — סיכום הלילה:** הלילה בוצעו: טקסט לכל ביתן וכנף (פריט 21, נסגר), רצפת טרצו עם שבבים בגודל אמיתי (59e32ff), ועכשיו טיח סיד על הקירות החיצוניים של הביתנים המקוריים (Ritual והתערוכה הווירטואלית) במקום לוח צבוע חלק (603941b). נבדק: museum_live 12/12, צילום טלפון 390x844 בסקייל 2 ובסקייל 1, 14:00. אולי הגרעין מעט חזק מקרוב בסקייל 2: אם כן, תגיד "יותר עדין".
 לא נבדק: אייפון אמיתי, האתר החי. הערה: עם התוכנית הכפויה של סקריפט הצילום (n4shot) הזיכרון מוערך 609 גם בלי השינוי (מעל 460); לבדוק בלילה הבא אם זה מה-merge של היום או מהסקריפט.
 פתוח: קירות חוץ של בתי הדסק (צריכים פני חוץ נפרדים), אבן המרפסת בחוץ, רצפות הבתים. תקציב: שבועי 39%→43%, הלילה נעצר. דרוש מאלעד: כלום.
@@ -36,3 +38,4 @@
 - 23.11 01:24 (n7): ROADMAP 21 closed: all 7 live text plates open the reader when tapped as a phone (new tests/museum_plates.cjs, inspect.hot()). museum_live 12/12; phone shot viewed. Budget at start: weekly 40%, 5h 57%.
 - 23.11 03:23 (n8): ROADMAP 16 part: terrazzo chip detail tile on the hall floor (59e32ff). museum_live 12/12; phone DPR 2+1 viewed; calls 30, memory 381. Budget at start: weekly 40%, 5h 1%.
 - 23.11 05:23 (n9): ROADMAP 16 part: lime plaster detail on original pavilions' outer skin (603941b). museum_live 12/12; phone DPR 2+1 viewed; calls 144, memory 609 with n4shot's forced plan, same without the change. Budget: weekly 42->43%, 5h 16%.
+- 23.11 06:23 (n10): exited without work: the night was already stopped by the budget gate (weekly 39% at the start -> 43% now, the next item would pass +5). Morning note above stands.
