@@ -1,6 +1,6 @@
 # The museum's night shift (owner's standing order, 21.11.2026)
 
-**First, every run: read `studio/QUALITY.md`** (the owner's standard, 23.11). Nothing reaches the owner or `studio` until it passes its "Before calling anything done" list. When he corrects something new, add it there as a rule.
+**First, every run: read `studio/QUALITY.md` and `studio/GROWTH.md`** (the owner's standard, 23.11). Nothing reaches the owner or `studio` until it passes its "Before calling anything done" list. When he corrects something new, add it there as a rule.
 
 **What Elad asked for:** every night from 22:00 to 08:00 (Israel time) the museum technology keeps improving by itself, as long as the app is in development: code, looks, design, textures,
 the virtual exhibition spaces, everything defined in `ROADMAP.md` and in the queue below. A new definition from Elad is added to the QUEUE and gets worked on the same night. With no new word

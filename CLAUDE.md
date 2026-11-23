@@ -1,7 +1,9 @@
 # Working on Open Studio
 
-**Read `studio/QUALITY.md` first, every session.** It holds the owner's standard and the lessons learned. When the
-owner corrects something a professional would have done unasked, add the lesson there as a rule.
+**Read `studio/QUALITY.md` and `studio/GROWTH.md` first, every session.** QUALITY holds the owner's standard and
+what went wrong. GROWTH holds what went right, the app's stages, and the map of how its parts connect: which change
+must be checked where. When the owner corrects something, add a rule to QUALITY. When he approves something, a stage
+turns, or a new link between parts appears, add a line to GROWTH.
 
 **Sessions (23.11).** Every Open Studio session is filed under the sidebar folder "Open studio". The owner's main
 session leads: it hands out the parallel work, checks what comes back, and reports to the owner. Any new Open Studio
