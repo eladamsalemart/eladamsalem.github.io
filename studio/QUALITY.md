@@ -31,6 +31,8 @@ place or photo: textures (concrete, plaster, wood, floor), light, sky, plants, r
 and "flat" are the worst words. Raise the bar yourself. A room, a show or an outside joins the museum only at the
 best level already reached anywhere in the app, never below it. (Concrete, 3.11. Flat nature, 8.11. "15%, aim for
 100", 16.11. Ritual unlike its original, 22.11.)
+Sharpness is measured, not guessed: pixels per metre on a wall against the room's own tour. (Ritual in the museum,
+23.11: a phone cut its 14 m walls to 73 px/m against the tour's 200. Walls now keep 2048 px.)
 
 **Physically possible and finished (7 times).** It must work as a real building would:
 - Pedestals only indoors. Plants on the ground. Works on walls. Signs on posts or walls.
@@ -38,6 +40,8 @@ best level already reached anywhere in the app, never below it. (Concrete, 3.11.
   opening is blocked or strange: it leads somewhere, or a wall closes it and looks built.
 - Wall text sits flush on the wall, inside its bounds, and is seen correct from an angle. "Clear" means really
   clear: letters on the wall, no sheet, no thickness.
+- An opening made walkable keeps the wall's real thickness: its sides end flush with the outer wall, never
+  sticking out of it or leaving a gap. Look at every opening from outside, at an angle.
 - Nothing cut off. Panels that need room open full screen. The camera never jumps by itself.
 (Pedestals outdoors, 9.11 and 10.11. Text half in the air, 21.11 and 23.11. Entry through a painting, then a blocked
 arch, 22.11 and 23.11.)
