@@ -1755,6 +1755,9 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     orect(`r${i}-ceil`, 'ceiling', P, R, o, A0, A1, VD, VD + RD, rh, false, ceil);
     wall(`r${i}-front`, ...P(0, VD), o[0], o[1], RW, { holes: [[A1 - M2, A1 + M2]], h: rh, tex: roomWall });
     const runs = [wall(`r${i}-left`, ...P(A0, VD + RD / 2), R[0], R[1], RD, { h: rh, tex: roomWall }), wall(`r${i}-back`, ...P(0, VD + RD), -o[0], -o[1], RW, { h: rh, tex: roomWall }), wall(`r${i}-right`, ...P(A1, VD + RD / 2), -R[0], -R[1], RD, { h: rh, tex: roomWall })];
+    // its own outer skin (a hair outside each face): the lime plaster's true grain on the walls the plaza sees, as the pavilions have; the gallery side keeps its painted wall
+    { const skinX = wallTex(ft, false), sk = (nm, a, b, nx, nz, len, holes) => { wall(`r${i}-${nm}`, ...P(a, b), nx, nz, len, { h: rh, tex: skinX, holes, noSolid: true }); surfaces[surfaces.length - 1].detail = { texture: PLASTER_TILE, m: 1.6, k: 2.2 }; };
+      sk('skinL', A0 - 0.006, VD + RD / 2, -R[0], -R[1], RD); sk('skinR', A1 + 0.006, VD + RD / 2, R[0], R[1], RD); sk('skinB', 0, VD + RD + 0.006, o[0], o[1], RW); sk('skinF', 0, VD - 0.006, -o[0], -o[1], RW, [[A1 - M2, A1 + M2]]); }
     // its title, above the way in, on the face that looks at the plaza
     { const cv = canvas(1024, 256), x = cv.getContext('2d'); x.fillStyle = dark ? '#8d8b85' : ft; x.fillRect(0, 0, 1024, 256);
       x.fillStyle = dark ? 'rgba(250,248,244,0.95)' : 'rgba(40,36,30,0.88)'; x.textAlign = 'center'; x.textBaseline = 'middle'; let fs = 120, t = r.title; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(t).width > 940 && fs > 24) { fs -= 4; x.font = `500 ${fs}px Georgia, serif`; }
