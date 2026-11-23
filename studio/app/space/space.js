@@ -245,7 +245,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const batches = {};                       // small translucent surfaces that share one picture (the houses' trim, the light shafts) are drawn as ONE mesh each: a phone pays per draw call
   surfaces.forEach((s, i) => {
     if (glassWalls.has(s.name)) return;
-    if (s.kind === 'reveal') { const r = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide }))); r.userData.kind = 'reveal'; scene.add(r); return; }
+    if (s.kind === 'reveal') { const r = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: s.cull ? THREE.FrontSide : THREE.DoubleSide }))); r.userData.kind = 'reveal'; scene.add(r); return; }
     if (s.glass) { const gm = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }), s.openings || [], 0); gm.renderOrder = 4; gm.userData.kind = 'glass'; if (s.batch) { (batches[s.batch] = batches[s.batch] || { mat: gm.material, geos: [] }).geos.push(gm.geometry); return; } scene.add(gm); return; }      // (a glass wall: its mullions and a faint sheen, you see through the rest)
     if (s.kind === 'wall' || s.kind === 'ceiling') {
       const masks = s.kind === 'wall' ? ((spec.blocks || {})[s.name] || []) : [];
