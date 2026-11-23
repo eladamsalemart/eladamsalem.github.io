@@ -1,5 +1,8 @@
 # Working on Open Studio
 
+**Read `studio/QUALITY.md` first, every session.** It holds the owner's standard and the lessons learned. When the
+owner corrects something a professional would have done unasked, add the lesson there as a rule.
+
 - Reply and summarise to the owner in Hebrew. App content stays in English.
 - Studio lives on the `studio` branch; the app is published from it ("Open Studio app" workflow), and every
   exhibition's 3D tour is rebuilt and inspected on the server ("Studio spaces" workflow) whenever its
