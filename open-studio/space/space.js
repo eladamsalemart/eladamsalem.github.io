@@ -1427,6 +1427,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     eco: () => ({ pixelRatio: renderer.getPixelRatio(), mirror: hallMirrorCtl ? hallMirrorCtl.isOn : mirrorCtl ? mirrorCtl.isOn : null }), setMirror: v => { if (hallMirrorCtl) hallMirrorCtl.set(!!v); else if (mirrorCtl) mirrorCtl.set(!!v); },
     where() { return { pos: pos.toArray(), look: look.toArray(), fov: camera.fov }; },
     place(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },
+    texList() { const seen = new Map(); scene.traverse(o => { const ms = o.material ? [].concat(o.material) : []; for (const m of ms) { const ks = ['map', 'emissiveMap', 'normalMap', 'lightMap'].map(k => [k, m[k]]); if (m.uniforms) for (const [k, u] of Object.entries(m.uniforms)) ks.push([k, u && u.value]); for (const [k, t] of ks) { if (!t || !t.isTexture || !t.image || seen.has(t)) continue; const w = t.image.width || 0, h = t.image.height || 0; seen.set(t, [Math.round(w * h * 4 * 1.34 / 1048576 * 10) / 10, w, h, k, o.userData.kind || o.name || o.type, String(t.image.currentSrc || t.image.src || t.image.constructor.name).slice(0, 70)]); } } }); return [...seen.values()].sort((a, b) => b[0] - a[0]); },
     // the images the room holds in the graphics memory, in MB (what a phone has to find room for)
     memory() {
       const seen = new Set(); let b = 0;
@@ -1434,6 +1435,12 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       scene.traverse(o => { const ms = o.material ? [].concat(o.material) : []; for (const m of ms) { for (const k of ['map', 'emissiveMap', 'normalMap', 'lightMap']) add(m[k]); if (m.uniforms) for (const u of Object.values(m.uniforms)) [].concat(u.value).forEach(v => v && v.isTexture && add(v)); } });
       renderer.info && scene.traverse(o => { if (o.isReflector && o.getRenderTarget) { const rt = o.getRenderTarget(); b += rt.width * rt.height * 4; } });
       return Math.round(b / 1048576);
+    },
+    textures(top = 25) {      // the texture memory by picture, biggest first: [mesh name, kind, w, h, MB] (what memory() adds up)
+      const seen = new Set(), rows = [];
+      scene.traverse(o => { const ms = o.material ? [].concat(o.material) : []; for (const m of ms) for (const k of ['map', 'emissiveMap', 'normalMap', 'lightMap']) { const t = m[k]; if (!t || seen.has(t) || !t.image) continue; seen.add(t);
+        const w = t.image.width || 0, h = t.image.height || 0; rows.push([o.name || o.userData.name || o.userData.kind || '?', k, w, h, +(w * h * 4 * (t.generateMipmaps === false ? 1 : 1.34) / 1048576).toFixed(1)]); } });
+      return rows.sort((a, b) => b[4] - a[4]).slice(0, top);
     },
     // lens: a photo's own camera (view.project); leaveOut: { photo, cover } to check the room against it
     shot(at, to, fov = 60, upv = [0, 1, 0], ids = false, lens = null, leaveOut = null) {      // ids: false, true, or 'height'
