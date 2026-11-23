@@ -702,6 +702,25 @@ const SH = { H: 5.0, RH: 3.8, W: 7, RD: 6, RW: 8, VD: 1.8, PITCH: 10, MOUTH: 3.2
 const shade = (hex, k) => '#' + [1, 3, 5].map(i => hex2(parseInt(hex.slice(i, i + 2), 16) * k)).join('');
 const rgba = (hex, a) => `rgba(${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)},${a})`;
 const jpg = (c, q = 0.92) => c.toDataURL('image/jpeg', q);
+// terrazzo up close, as a grey tile that repeats without a seam (mean 128: it only lightens and darkens the floor's own colour):
+// marble chips of 2-14 mm in white, grey and near-black set in a fine cement, a soft cloud of polishing, a few pores.
+// 512 px over 0.8 m (1.6 mm a pixel); one picture for the whole hall, drawn once
+let terrazzoTile = null;
+function terrazzoDetail() {
+  if (terrazzoTile) return terrazzoTile;
+  const N = 512, r = rng(77), c = canvas(N, N), x = c.getContext('2d');
+  x.fillStyle = 'rgb(126,126,126)'; x.fillRect(0, 0, N, N);
+  x.globalAlpha = 0.5; x.drawImage(noiseCanvas(N, 4, 78, 3, 0.25), 0, 0); x.globalAlpha = 1;
+  const chip = (cx, cy, s, v, a) => { const k = 5 + Math.floor(r() * 3), rot = r() * 7; x.fillStyle = `rgba(${v},${v},${v},${a})`; x.beginPath();
+    for (let i = 0; i < k; i++) { const t = rot + i / k * Math.PI * 2, rr = s * (0.55 + r() * 0.45); x.lineTo(cx + Math.cos(t) * rr, cy + Math.sin(t) * rr * (0.7 + r() * 0.3)); } x.closePath(); x.fill(); };
+  const put = (s, v, a) => { const cx = r() * N, cy = r() * N; for (const dx of [-N, 0, N]) for (const dy of [-N, 0, N]) if (cx + dx > -s - 2 && cx + dx < N + s + 2 && cy + dy > -s - 2 && cy + dy < N + s + 2) chip(cx + dx, cy + dy, s, v, a); };
+  for (let i = 0; i < 2600; i++) put(0.6 + r() * 1.4, r() < 0.5 ? 150 : 108, 0.55);                 // sand of the cement
+  for (let i = 0; i < 520; i++) { const t = r(); put(1.5 + r() * 3.5, t < 0.6 ? 168 + r() * 20 : t < 0.88 ? 100 + r() * 14 : 70, 0.9); }      // small chips
+  for (let i = 0; i < 70; i++) { const t = r(); put(4 + r() * 4.5, t < 0.65 ? 172 + r() * 14 : t < 0.9 ? 104 : 74, 0.95); }                  // big chips
+  for (let i = 0; i < 160; i++) put(0.6 + r() * 0.7, 60, 0.6);                                        // pores
+  terrazzoTile = c.toDataURL('image/jpeg', 0.86);
+  return terrazzoTile;
+}
 
 // rooms: [{ slug, title, colour: '#rrggbb', works: [work as the app has it: title, image, pairs] }]
 export async function buildStreet(rooms, src, thumbOf = w => w.image, opts = {}) {
@@ -1565,6 +1584,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       y.restore(); }
     lite(y, fw, fh, 0.5);
     rect('hall-floor', 'wall', [0, 0], [HX, HZ], 0.02, true, jpg(c, 0.88));
+    surfaces[surfaces.length - 1].detail = { texture: terrazzoDetail(), m: 0.8, k: 3.5 };      // (the painted floor is 16 px a metre: up close its chips are this tile, at their true size)
   }
   {
     const FP = 12, fw = HX * FP, fh = HZ * FP, c = canvas(fw, fh), y = c.getContext('2d'), night = env.day < 0.3;
