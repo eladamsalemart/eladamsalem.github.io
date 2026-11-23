@@ -31,6 +31,9 @@ place or photo: textures (concrete, plaster, wood, floor), light, sky, plants, r
 and "flat" are the worst words. Raise the bar yourself. A room, a show or an outside joins the museum only at the
 best level already reached anywhere in the app, never below it. (Concrete, 3.11. Flat nature, 8.11. "15%, aim for
 100", 16.11. Ritual unlike its original, 22.11.)
+Memory is saved where the visitor isn't looking, never where they are: far things are held small and come back at
+full sharpness as the visitor nears them; measure the start view AND the inside of the newest room. (23.11: artists'
+~2000 px uploads held in full on a phone filled 438 of 643 MB; now 768 px from afar, full up close: 386 MB.)
 Sharpness is measured, not guessed: pixels per metre on a wall against the room's own tour. (Ritual in the museum,
 23.11: a phone cut its 14 m walls to 73 px/m against the tour's 200. Walls now keep 2048 px.)
 
