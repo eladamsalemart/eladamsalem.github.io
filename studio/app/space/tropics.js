@@ -156,7 +156,11 @@ void main() {
   }
 
   // --- the plants: instanced cards cut from the atlas
-  const atlas = await loadTex(o.tropics); if (!atlas) { mark(); return; }
+  let atlas = await loadTex(o.tropics); if (!atlas) { mark(); return; }
+  if (phone && atlas.image && atlas.image.width > 1024) {      // the far cards live in the haze: half resolution on a phone saves 12 MB (the single leaves near the glass keep full detail)
+    const half = canvas(atlas.image.width >> 1, atlas.image.height >> 1), hx = half.getContext('2d'); hx.drawImage(atlas.image, 0, 0, half.width, half.height);
+    const old = atlas; atlas = new THREE.CanvasTexture(half); atlas.colorSpace = old.colorSpace; old.dispose();
+  }
   atlas.anisotropy = phone ? 2 : 4; atlas.generateMipmaps = true; atlas.minFilter = THREE.LinearMipmapLinearFilter; atlas.needsUpdate = true;
   const KINDS = {     // cell, size S (m) and the cell's centre height zc, vertical planes, the instances' [count]
     palmA: { cell: 0, S: 8.6, zc: 0.9, planes: 2 }, palmB: { cell: 1, S: 8.6, zc: 0.9, planes: 2 }, palmAb: { cell: 8, S: 8.8, flat: true }, palmBb: { cell: 11, S: 8.8, flat: true },
@@ -224,6 +228,7 @@ void main() {
   };
   const pc = phone ? 0.75 : 1;
   scatter(['fern', 'fern2'], Math.round(170 * pc), 3.2, 26, 0.30, { seed: 1, s0: 1.0, s1: 1.9 });
+  scatter(['fern', 'fern2', 'monstera', 'shrub'], Math.round(120 * pc), 4.4, 11, 0.12, { seed: 9, s0: 0.9, s1: 1.6 });   // a planted verge right behind the terrace (no bare lawn against the glass)
   scatter(['monstera'], Math.round(110 * pc), 3.4, 30, 0.32, { seed: 2, s0: 1.0, s1: 1.8 });
   scatter(['heli'], Math.round(50 * pc), 3.6, 40, 0.36, { seed: 3, s0: 1.0, s1: 1.8 });
   scatter(['shrub'], Math.round(130 * pc), 3.2, 55, 0.36, { seed: 4, s0: 1.2, s1: 2.4 });
