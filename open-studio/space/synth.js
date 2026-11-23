@@ -706,6 +706,8 @@ const jpg = (c, q = 0.92) => c.toDataURL('image/jpeg', q);
 // marble chips of 2-14 mm in white, grey and near-black set in a fine cement, a soft cloud of polishing, a few pores.
 // 512 px over 0.8 m (1.6 mm a pixel); one picture for the whole hall, drawn once
 let terrazzoTile = null;
+// the pavilions' outer skin: Poly Haven's CC0 plaster as a grey detail tile (space/rooms/detail_tiles.py), laid at its true scale
+const PLASTER_TILE = new URL('../data/rooms/detail/plaster.jpg', import.meta.url).href;
 function terrazzoDetail() {
   if (terrazzoTile) return terrazzoTile;
   const N = 512, r = rng(77), c = canvas(N, N), x = c.getContext('2d');
@@ -1717,6 +1719,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       if (isDoor) { const Dw = W(dc[0], dc[1]), s = (Dw[0] - A[0]) * ux + (Dw[1] - A[1]) * uz; holes = [[s - dw / 2 + T, s + dw / 2 + T, 0, dh]]; }
       let at = 0; for (const [f, t] of [...holes.map(h => [h[0], h[1]]), [L, L]].sort((p, q) => p[0] - q[0])) { if (f > at + 0.01) solids.push([A[0] + ux * at, A[1] + uz * at, A[0] + ux * f, A[1] + uz * f]); at = Math.max(at, t); }
       wall(`${pre}skin${k}`, (A[0] + B[0]) / 2 + nv[0] * T, (A[1] + B[1]) / 2 + nv[2] * T, nv[0], nv[2], L + 2 * T, { h: H, tex: skin, holes: holes.map(h => [L - h[1], L - h[0], h[2], h[3]]), noSolid: true });
+      surfaces[surfaces.length - 1].detail = { texture: PLASTER_TILE, m: 1.6, k: 2.2 };      // (outside only: lime plaster at its true grain, not the gallery's painted wall)
     });
     // a recessed shadow gap at the foot and a dark line under the top, like every house
     directory.push({ title: r.title, kind: 'room', note: `${(sp.works || []).length} works`, at: [c[0] - o[0] * 5.4, c[1] - o[1] * 5.4], look: Dp });
