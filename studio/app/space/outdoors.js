@@ -59,7 +59,7 @@ export async function addOutdoors({ THREE, scene, spec, loadTex, mark, renderer 
     import('./tropics.js').then(m => m.addTropics({ THREE, scene, o, env, hazeRGB: hz.map(v => v * 0.97), loadTex, mark, phone: matchMedia('(pointer: coarse)').matches })).catch(e => console.warn('tropics', e));
   }
   // --- the tree line: a great ring of the panorama's real foliage (the sky cut out of it), darker and bluer at night, warm at sunset
-  if (o.treeline) loadTex(o.treeline).then(tx => {
+  if (o.treeline && !o.tropics) loadTex(o.treeline).then(tx => {
     if (!tx) return;
     tx.wrapS = THREE.RepeatWrapping; tx.repeat.x = -1; tx.offset.x = 0.12; tx.anisotropy = aniso; tx.needsUpdate = true;
     const Rr = o.treeRadius || 70, Hh = o.treeHeight || 30;

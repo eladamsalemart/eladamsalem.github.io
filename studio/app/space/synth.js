@@ -1481,19 +1481,13 @@ async function originalSpec(o, src) {
   const K = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 1 : 2;      // (a laptop shows the room as sharp as the original tour; only a phone gets it smaller)
   // the walls at the room's own tour level on a phone too: 1024 left a 14 m wall at 73 px/m, the tour has 200 (the owner, 23.11)
   await Promise.all((sp.surfaces || []).map(async s => { if (s.texture) s.texture = await shrink(s.texture, 2048); if (s.light) s.light = await shrink(s.light, 512 * K, true); }));
-  await Promise.all((sp.works || []).map(async w => { if (w.imageSmall) w.imageSmall = await shrink(w.imageSmall, 640 * K); if (w.light) w.light = await shrink(w.light, 256 * K, true); }));
+  // the works' first images as the room's own tour has them (1024 px; 640 on a phone made Ritual's paintings softer in the museum than in its tour)
+  await Promise.all((sp.works || []).map(async w => { if (w.imageSmall) w.imageSmall = await shrink(w.imageSmall, 1024); if (w.light) w.light = await shrink(w.light, 256 * K, true); }));
   if (sp.plaster) sp.plaster = await shrink(sp.plaster, 512 * K);
-  // the floor is a small tile repeated over the room: laid out once, whole, so a pavilion's floor (drawn as a plain wall-like surface) is not that one tile stretched
+  // the floor is a small tile repeated over the room, as in the room's own tour (333 px a metre for Ritual's terrazzo): repeated, never baked into
+  // one picture (baked at 80 px/m on a phone it read blurred and flat next to the tour; the owner, 24.11)
   const fl = (sp.surfaces || []).find(q => q.kind === 'floor' && typeof q.texture === 'string' && q.size);
-  if (fl) {
-    const im = await new Promise(res => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => res(null); i.src = fl.texture; });
-    const tx = (fl.tileXY || [fl.tile || 1, fl.tile || 1]), [w, d] = fl.size;
-    if (im && w > 0 && d > 0 && tx[0] > 0 && tx[1] > 0 && (w > tx[0] * 1.5 || d > tx[1] * 1.5)) {
-      const ppm = Math.min(80 * K, 2048 / Math.max(w, d)), cv = canvas(Math.round(w * ppm), Math.round(d * ppm)), x = cv.getContext('2d');
-      for (let a = 0; a < w; a += tx[0]) for (let b = 0; b < d; b += tx[1]) x.drawImage(im, a * ppm, b * ppm, tx[0] * ppm + 1, tx[1] * ppm + 1);
-      fl.texture = cv.toDataURL('image/jpeg', 0.9); delete fl.tileXY; fl.tile = Math.max(w, d);
-    }
-  }
+  if (fl) { const tx = fl.tileXY || [fl.tile || 1, fl.tile || 1], [w, d] = fl.size; if (tx[0] > 0 && tx[1] > 0 && (w > tx[0] * 1.5 || d > tx[1] * 1.5)) { fl.repeat = [w / tx[0], d / tx[1]]; delete fl.tileXY; } }
   return sp;
 }
 export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
