@@ -634,7 +634,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     // until one arrives the canvas shows a plain tone (and keeps trying in the background)
     const [got, light] = await Promise.all([loadRetry([first, first === h.image ? h.imageSmall : h.image]), loadTex(h.light, false)]);
     // memory is saved where the visitor isn't looking, never where they are: on a phone a work that came without a small copy (an artist's
-    // upload, ~2000 px) is held at 768 px from afar, and its full image comes back as the visitor nears it (pendingFull), freed again as they leave
+    // upload, ~2000 px) is held at 768 px from afar, and its full image comes back as the visitor nears it (pendingFull), freed again as they leave (memory is saved where the visitor is not looking, never where they are)
     const big = PHONE && got && Math.max(got.image.naturalWidth || got.image.width || 0, got.image.naturalHeight || got.image.height || 0) > 1024;
     const tex = big ? fit(got, 768) : got || plainTex();
     if (!got) failed.push(h.work);
