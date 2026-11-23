@@ -245,7 +245,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const batches = {};                       // small translucent surfaces that share one picture (the houses' trim, the light shafts) are drawn as ONE mesh each: a phone pays per draw call
   surfaces.forEach((s, i) => {
     if (glassWalls.has(s.name)) return;
-    if (s.kind === 'reveal') { const r = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: THREE.DoubleSide }))); r.userData.kind = 'reveal'; scene.add(r); return; }
+    if (s.kind === 'reveal') { const r = planeMesh(s, room(new THREE.MeshBasicMaterial({ map: texs[i], toneMapped: false, side: s.cull ? THREE.FrontSide : THREE.DoubleSide }))); r.userData.kind = 'reveal'; scene.add(r); return; }
     if (s.glass) { const gm = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }), s.openings || [], 0); gm.renderOrder = 4; gm.userData.kind = 'glass'; if (s.batch) { (batches[s.batch] = batches[s.batch] || { mat: gm.material, geos: [] }).geos.push(gm.geometry); return; } scene.add(gm); return; }      // (a glass wall: its mullions and a faint sheen, you see through the rest)
     if (s.kind === 'wall' || s.kind === 'ceiling') {
       const masks = s.kind === 'wall' ? ((spec.blocks || {})[s.name] || []) : [];
@@ -253,6 +253,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       m.userData.kind = s.kind; if (s.stand) m.userData.stand = s.stand; scene.add(m);
       if (spec.mirrorSurface && s.name === spec.mirrorSurface.name) hallMirror(m, s);
       for (const o of s.openings || []) addOpening(s, o);
+      if (s.stand && s.capT && /-a$/.test(s.name)) {   // a coulisse is a board, not two sheets: a solid core a hair inside its two faces shows its top and both ends
+        const Uc = V(s.u), Nc = V(s.normal), Oc = V(s.origin), t = s.capT, L = s.size[0], h = s.size[1];
+        const core = new THREE.Mesh(new THREE.BoxGeometry(L, h, t - 0.006), room(new THREE.MeshBasicMaterial({ color: '#ebe9e4', toneMapped: false })));
+        core.position.copy(Oc).addScaledVector(Nc, -t / 2).addScaledVector(Uc, L / 2); core.position.y = Oc.y - h / 2; core.rotation.y = Math.atan2(-Uc.z, Uc.x); core.userData.kind = 'reveal'; scene.add(core);
+      }
       if (/^part-\d+a$/.test(s.name)) {            // wall-top cap of a partition: the 0.3 m between its two faces, so the top edge is a surface, not a gap
         const Uc = V(s.u), Nc = V(s.normal), Oc = V(s.origin), L = s.size[0], T = 0.3;
         const P = (u, d) => Oc.clone().addScaledVector(Uc, u).addScaledVector(Nc, -d);
