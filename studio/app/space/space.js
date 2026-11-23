@@ -253,6 +253,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       m.userData.kind = s.kind; if (s.stand) m.userData.stand = s.stand; scene.add(m);
       if (spec.mirrorSurface && s.name === spec.mirrorSurface.name) hallMirror(m, s);
       for (const o of s.openings || []) addOpening(s, o);
+      if (s.stand && s.capT && /-a$/.test(s.name)) {   // a coulisse is a board, not two sheets: a solid core a hair inside its two faces shows its top and both ends
+        const Uc = V(s.u), Nc = V(s.normal), Oc = V(s.origin), t = s.capT, L = s.size[0], h = s.size[1];
+        const core = new THREE.Mesh(new THREE.BoxGeometry(L, h, t - 0.006), room(new THREE.MeshBasicMaterial({ color: '#ebe9e4', toneMapped: false })));
+        core.position.copy(Oc).addScaledVector(Nc, -t / 2).addScaledVector(Uc, L / 2); core.position.y = Oc.y - h / 2; core.rotation.y = Math.atan2(-Uc.z, Uc.x); core.userData.kind = 'reveal'; scene.add(core);
+      }
       if (/^part-\d+a$/.test(s.name)) {            // wall-top cap of a partition: the 0.3 m between its two faces, so the top edge is a surface, not a gap
         const Uc = V(s.u), Nc = V(s.normal), Oc = V(s.origin), L = s.size[0], T = 0.3;
         const P = (u, d) => Oc.clone().addScaledVector(Uc, u).addScaledVector(Nc, -d);
@@ -628,7 +633,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     // a work is never left out of the room: a failed download is tried again, then the other size, and
     // until one arrives the canvas shows a plain tone (and keeps trying in the background)
     const [got, light] = await Promise.all([loadRetry([first, first === h.image ? h.imageSmall : h.image]), loadTex(h.light, false)]);
-    const tex = got || plainTex();
+    // memory is saved where the visitor isn't looking, never where they are: on a phone a work that came without a small copy (an artist's
+    // upload, ~2000 px) is held at 768 px from afar, and its full image comes back as the visitor nears it (pendingFull), freed again as they leave
+    const big = PHONE && got && Math.max(got.image.naturalWidth || got.image.width || 0, got.image.naturalHeight || got.image.height || 0) > 1024;
+    const tex = big ? fit(got, 768) : got || plainTex();
     if (!got) failed.push(h.work);
     tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
     const wM = h.measured[0] / 100, hM = h.measured[1] / 100, dM = h.depth || 0.035;
@@ -668,7 +676,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     // artist's full-resolution upload, when there is one, only up close
     // (only for the few works nearest the visitor at a time: a phone has room for a handful of full images,
     // not for every work's; walking away, a work goes back to its light image)
-    const full = !got ? first : h.imageFull || (first !== h.image ? h.image : null);
+    const full = !got ? first : h.imageFull || (first !== h.image || big ? h.image : null);
     const reach = h.imageFull ? Math.max(1.6, 1.2 * Math.max(wM, hM)) : Math.max(5, 3 * Math.max(wM, hM));
     const back = sideMat('#4a4640'), none = new THREE.MeshBasicMaterial({ visible: false });
     // a work cut out of its backdrop: its body is the solid rectangle (core), and the front shows only the
@@ -1429,6 +1437,12 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       scene.traverse(o => { const ms = o.material ? [].concat(o.material) : []; for (const m of ms) { for (const k of ['map', 'emissiveMap', 'normalMap', 'lightMap']) add(m[k]); if (m.uniforms) for (const u of Object.values(m.uniforms)) [].concat(u.value).forEach(v => v && v.isTexture && add(v)); } });
       renderer.info && scene.traverse(o => { if (o.isReflector && o.getRenderTarget) { const rt = o.getRenderTarget(); b += rt.width * rt.height * 4; } });
       return Math.round(b / 1048576);
+    },
+    textures(top = 25) {      // the texture memory by picture, biggest first: [mesh name, kind, w, h, MB] (what memory() adds up)
+      const seen = new Set(), rows = [];
+      scene.traverse(o => { const ms = o.material ? [].concat(o.material) : []; for (const m of ms) for (const k of ['map', 'emissiveMap', 'normalMap', 'lightMap']) { const t = m[k]; if (!t || seen.has(t) || !t.image) continue; seen.add(t);
+        const w = t.image.width || 0, h = t.image.height || 0; rows.push([o.name || o.userData.name || o.userData.kind || '?', k, w, h, +(w * h * 4 * (t.generateMipmaps === false ? 1 : 1.34) / 1048576).toFixed(1)]); } });
+      return rows.sort((a, b) => b[4] - a[4]).slice(0, top);
     },
     // lens: a photo's own camera (view.project); leaveOut: { photo, cover } to check the room against it
     shot(at, to, fov = 60, upv = [0, 1, 0], ids = false, lens = null, leaveOut = null) {      // ids: false, true, or 'height'
