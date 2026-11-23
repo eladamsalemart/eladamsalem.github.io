@@ -42,3 +42,5 @@
 - 23.11 05:23 (n9): ROADMAP 16 part: lime plaster detail on original pavilions' outer skin (603941b). museum_live 12/12; phone DPR 2+1 viewed; calls 144, memory 609 with n4shot's forced plan, same without the change. Budget: weekly 42->43%, 5h 16%.
 - 23.11 06:23 (n10): exited without work: the night was already stopped by the budget gate (weekly 39% at the start -> 43% now, the next item would pass +5). Morning note above stands.
 - [ROADMAP 19 המשך] עלים אמיתיים מקרוב: אטלס עלים חדש (מונסטרה עם חורים וחריצים, בננה קרועה, כפות דקל, שרך, עלי לב) עם עורקים; הצמחים הקרובים לזכוכית בנויים מעלים בודדים כפופים ומתנדנדים ברוח; הבריכה משקפת את השמיים של השעה (פרנל, אדוות, קו עצים). 33-35 קריאות ציור, זיכרון 412 (תקרה 460).
+- 23.11 07:23 (n11): exited without work: budget gate (weekly 39% at the night start -> 45% now, over +5). Morning note above stands.
+- 23.11 18:30 (n12, manual, Elad: night until 07:00, no quota gate): coulisses are plastered boards (a56b941); the Ritual jamb artefact was fixed by the main museum session (c9719b0). Tropics belongs to museum-outside.
