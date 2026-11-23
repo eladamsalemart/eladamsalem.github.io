@@ -2,6 +2,13 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-23: a new control under 44 px; Show on now more patient
+
+- Issue #8 (standing report): Artist (Elad): "Step through" (`.sec.mos .mos-go`, the artist page's virtual-exhibition card, new) was 101x30, missed by a finger. Added to the invisible touch-area lists in index.html. Proved: with the fix health.cjs passes on that page locally, without it fails with the same message.
+- Show on now: the first run after yesterday's change could not find a show on the Shows page in 5 s and fell back to the removed demo show. health.cjs now waits up to 25 s for a real exhibition and, if there is none, leaves the page out and says so (it never tests a page that cannot exist).
+- Museum, still the owner's: the Desk now has 6 live slots, Home shows 2 (ritual and show-805a6c3b exist in the app); the other four (paintings-for-the-future, seen-from-within, a-room-of-her-own, colour-without-a-subject) name exhibitions the app no longer has. Left as it is: the slots are his.
+- maplibre-gl 6.19.0 is live (checked). No improvement tonight (one was made yesterday). Still available: three 0.187, supabase-js 2.119.2, playwright 1.65.1.
+
 ## 2026-11-22: Home's museum has disappeared (needs the owner); two checks follow the app; maplibre-gl 6.19.0
 
 - Four nights queued (19-22.11), one run covers them. Issue #8 (standing report) says: Show on now "does not exist", and the museum check cannot find Home's museum.
