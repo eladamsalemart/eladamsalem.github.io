@@ -45,3 +45,4 @@
 - 23.11 07:23 (n11): exited without work: budget gate (weekly 39% at the night start -> 45% now, over +5). Morning note above stands.
 - 23.11 18:30 (n12, manual, Elad: night until 07:00, no quota gate): coulisses are plastered boards (a56b941); the Ritual jamb artefact was fixed by the main museum session (c9719b0). Tropics belongs to museum-outside.
 - [ROADMAP 19 המשך 2] שוליים נטועים מיד אחרי המרפסת (אין עוד דשא חשוף ליד הזכוכית); בטלפון אטלס הכרטיסים הרחוקים בחצי רזולוציה כדי להישאר מתחת לתקרת הזיכרון (455 מול 460, אחרי המיזוג של שאר המשמרת). קריאות ציור 105-183.
+- [ROADMAP 19 המשך 3] ערפל קרקע רך מעל הבריכה והשקעים (יותר בשקיעה ובלילה), נע קלות ברוח; 15 יריעות בקריאת ציור אחת. תחנת התחלה בטלפון: קריאות 33, זיכרון 455; עם התוכנית הכפויה של n4shot: זיכרון 683 (תמונות הביתנים, לא הטרופיים: כ-45MB).

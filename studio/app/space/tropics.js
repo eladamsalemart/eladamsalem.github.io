@@ -277,6 +277,17 @@ void main() {
     const mat = hazy(new THREE.MeshBasicMaterial({ map: t, color: tint, toneMapped: false }));
     instanced(geo, mat, barkL.map(b => [b[0], b[1], b[2], b[3], b[4], 1, 1, 1, b[5]]), (dm, b) => { dm.position.set(b[0], Hs(b[0], b[1]) - 0.15, b[1]); dm.rotation.set(b[8], 0, -b[4]); dm.scale.set(b[3], b[2], b[3]); });
   }
+  // ground mist: soft low sheets over the pond and the hollows (more of it at dawn, dusk and night), drifting a little in the wind
+  {
+    const c = canvas(128, 128), y = c.getContext('2d'), gr = y.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); y.fillStyle = gr; y.fillRect(0, 0, 128, 128);
+    const mt = new THREE.CanvasTexture(c); mt.colorSpace = THREE.SRGBColorSpace;
+    const g = new THREE.PlaneGeometry(1, 1); g.rotateX(-Math.PI / 2); g.setAttribute('aBend', new THREE.Float32BufferAttribute(new Float32Array(4).fill(0.25), 1));
+    const rows = []; for (let i = 0; i < 6; i++) rows.push([POND.x + (r() - 0.5) * POND.rx * 1.6, 0.35 + r() * 0.5, POND.z + (r() - 0.5) * POND.rz * 1.6, 14 + r() * 12]);
+    for (let n = 0, t = 0; n < 9 && t < 200; t++) { const pp = pick(8, 70); if (!pp || clearPath(pp[0], pp[1])) continue; const hh = Hs(pp[0], pp[1]); if (hh > 0.6) continue; rows.push([pp[0], hh + 0.4 + r() * 0.5, pp[1], 16 + r() * 16]); n++; }
+    const mm = hazy(new THREE.MeshBasicMaterial({ map: mt, color: new THREE.Color(...hazeRGB.map(v => v / 255)), transparent: true, opacity: clamp(0.22 + env.warm * 0.25 + env.night * 0.15, 0, 0.55), depthWrite: false, toneMapped: false }), { wind: true });
+    const im = new THREE.InstancedMesh(g, mm, rows.length); rows.forEach((rw, i) => { dummy.position.set(rw[0], rw[1], rw[2]); dummy.rotation.set(0, r() * 6.28, 0); dummy.scale.set(rw[3], 1, rw[3] * 0.7); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); });
+    im.frustumCulled = false; im.renderOrder = 3; im.userData.kind = 'outside'; scene.add(im);
+  }
   { const tg = new THREE.BufferGeometry(); tg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(9), 3)); const tick = new THREE.Mesh(tg, new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false })); tick.frustumCulled = false; tick.onBeforeRender = () => { uT.value = performance.now() / 1000; }; scene.add(tick); }   // the wind's clock
   mark();
 }
