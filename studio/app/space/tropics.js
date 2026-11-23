@@ -31,16 +31,20 @@ export async function addTropics({ THREE, scene, o, env, hazeRGB, loadTex, mark,
   float fl = sin(uTime * 1.7 + ph) * 0.7 + sin(uTime * 3.3 + ph * 1.9 + position.x * 3.0) * 0.3;
   transformed.y += fl * aBend * (0.3 + 0.7 * gust);
   transformed.z += sin(uTime * 2.1 + ph * 1.3) * aBend * 0.5 * (0.3 + 0.7 * gust);
+  float sc0 = length(vec3(instanceMatrix[0][0], instanceMatrix[0][1], instanceMatrix[0][2]));
+  vAO = 0.50 + 0.62 * smoothstep(0.0, 2.6, max(transformed.y, 0.0) * sc0);
 `;
   // --- the haze: every outdoor material mixes toward the sky's horizon colour with distance (and is lifted a little low down)
   const hazy = (mat, opts = {}) => {
     mat.onBeforeCompile = sh => {
       sh.uniforms.uHaze = { value: haze }; sh.uniforms.uNear = { value: opts.near || 28 }; sh.uniforms.uFar = { value: opts.far || 190 };
       if (opts.detail) sh.uniforms.uDetail = { value: opts.detail };
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vDist;\nvarying vec2 vW;')
+      sh.uniforms.uTime = uT;
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vDist;\nvarying vec2 vW;' + (opts.wind ? '\nuniform float uTime; attribute float aBend; varying float vAO;' : ''))
+        .replace('#include <begin_vertex>', '#include <begin_vertex>' + (opts.wind ? (opts.noAO ? WIND.replace(/vAO = .*;/, 'vAO = 1.0;') : WIND) : ''))
         .replace('#include <project_vertex>', '#include <project_vertex>\nvDist = length(mvPosition.xyz);\n#ifdef USE_INSTANCING\n vW = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xz;\n#else\n vW = (modelMatrix * vec4(transformed, 1.0)).xz;\n#endif');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vDist;\nvarying vec2 vW;\nuniform vec3 uHaze; uniform float uNear; uniform float uFar;' + (opts.detail ? '\nuniform sampler2D uDetail;' : ''))
-        .replace('#include <map_fragment>', '#include <map_fragment>' + (opts.detail ? '\n{ float k = clamp(1.0 - vDist / 60.0, 0.0, 1.0); vec3 dd = texture2D(uDetail, vW / 2.4).rgb * 0.5 + texture2D(uDetail, vW / 0.7).rgb * 0.5; diffuseColor.rgb *= mix(vec3(1.0), dd * 1.9, 0.12 + 0.88 * k); }' : ''))
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vDist;\nvarying vec2 vW;\nuniform vec3 uHaze; uniform float uNear; uniform float uFar;' + (opts.detail ? '\nuniform sampler2D uDetail;' : '') + (opts.wind ? '\nvarying float vAO;' : ''))
+        .replace('#include <map_fragment>', '#include <map_fragment>' + (opts.wind ? '\ndiffuseColor.rgb *= vAO;' : '') + (opts.detail ? '\n{ float k = clamp(1.0 - vDist / 60.0, 0.0, 1.0); vec3 dd = texture2D(uDetail, vW / 2.4).rgb * 0.5 + texture2D(uDetail, vW / 0.7).rgb * 0.5; diffuseColor.rgb *= mix(vec3(1.0), dd * 1.9, 0.12 + 0.88 * k); }' : ''))
         .replace('#include <dithering_fragment>', 'float hz = smoothstep(uNear, uFar, vDist) * 0.88;\ngl_FragColor.rgb = mix(gl_FragColor.rgb, uHaze, hz);\n#include <dithering_fragment>');
     };
     mat.customProgramCacheKey = () => 'haze' + (opts.detail ? 'd' : '') + (opts.wind ? 'w' : '');
@@ -175,7 +179,7 @@ void main() {
     if (K.flat) add(0, true); else for (let i = 0; i < K.planes; i++) add(i * Math.PI / K.planes, false);
     const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); geo.setAttribute('aBend', new THREE.Float32BufferAttribute(B, 1)); geo.setIndex(I); return geo;
   };
-  const leafMat = hazy(new THREE.MeshBasicMaterial({ map: atlas, alphaTest: 0.42, side: THREE.DoubleSide, color: tint, toneMapped: false }), { wind: true });
+  const leafMat = hazy(new THREE.MeshBasicMaterial({ map: atlas, alphaTest: 0.42, side: THREE.DoubleSide, color: tint, toneMapped: false }), { wind: true, near: 48 });
   // --- single leaves for the plants nearest the glass: one real leaf (blender/leaf_atlas.py: veins, holes, tears, leaflets) bent along a curve and instanced; they sway in the wind
   const lat = await loadTex(o.tropics.replace('tropics.webp', 'leaves.webp'));
   const LEAVES = {    // atlas rect [x, y, w, h] in px (2048 square), dir: 'h' leaf grows to the right, 'v' upward; blade L x Wd (m), petiole P, angles (rad) of the petiole a0 and the blade's start a1 (it droops by `droop` more),
@@ -261,7 +265,7 @@ void main() {
   const instanced = (geo, mat, rows, place) => { const im = new THREE.InstancedMesh(geo, mat, rows.length); rows.forEach((rw, i) => { place(dummy, rw); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); col.setRGB(rw[5] ?? 1, rw[6] ?? 1, rw[7] ?? 1); im.setColorAt(i, col); }); im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; im.frustumCulled = false; im.userData.kind = 'outside'; scene.add(im); return im; };
   if (lat) {
     lat.anisotropy = phone ? 4 : 8; lat.generateMipmaps = true; lat.minFilter = THREE.LinearMipmapLinearFilter; lat.needsUpdate = true;
-    const lm = hazy(new THREE.MeshBasicMaterial({ map: lat, alphaTest: 0.4, side: THREE.DoubleSide, color: tint, toneMapped: false }), { wind: true });
+    const lm = hazy(new THREE.MeshBasicMaterial({ map: lat, alphaTest: 0.4, side: THREE.DoubleSide, color: tint, toneMapped: false }), { wind: true, near: 48 });
     for (const k in LEAVES) { const rows = leafLists[k]; if (!rows.length) continue;
       const im = instanced(leafGeo(k), lm, rows, (dm, rw) => { dm.position.set(rw[0], rw[1], rw[2]); dm.rotation.order = 'YZX'; dm.rotation.set(rw[9], rw[4], rw[8]); dm.scale.setScalar(rw[3]); }); im.userData.leaves = rows.length; }
   }
@@ -277,6 +281,28 @@ void main() {
     const mat = hazy(new THREE.MeshBasicMaterial({ map: t, color: tint, toneMapped: false }));
     instanced(geo, mat, barkL.map(b => [b[0], b[1], b[2], b[3], b[4], 1, 1, 1, b[5]]), (dm, b) => { dm.position.set(b[0], Hs(b[0], b[1]) - 0.15, b[1]); dm.rotation.set(b[8], 0, -b[4]); dm.scale.set(b[3], b[2], b[3]); });
   }
+  // --- the forest beyond the garden: canopy trees (blender/tree_atlas.py) as crossed alpha cards in rings 45-150 m out; the haze takes them back layer by layer (the photo ring behind is only the far backdrop)
+  {
+    const tt = await loadTex(o.tropics.replace('tropics.webp', 'trees.webp'));
+    if (tt) {
+      tt.anisotropy = 4; tt.generateMipmaps = true; tt.minFilter = THREE.LinearMipmapLinearFilter; tt.needsUpdate = true;
+      const fm = hazy(new THREE.MeshBasicMaterial({ map: tt, alphaTest: 0.42, side: THREE.DoubleSide, color: tint, toneMapped: false }), { wind: true, near: 36, far: 230 });
+      const tgeo = k => {
+        const u0 = (k % 2) * 0.5 + 0.002, u1 = u0 + 0.496, v1 = 1 - Math.floor(k / 2) * 0.5 - 0.002, v0 = v1 - 0.496, P = [], U = [], I = [], B = [];
+        for (let i = 0; i < 3; i++) { const a = i * Math.PI / 3, c = Math.cos(a) / 2, s = Math.sin(a) / 2, n = P.length / 3;
+          P.push(-c, 0, -s, c, 0, s, c, 1, s, -c, 1, -s); U.push(u0, v0, u1, v0, u1, v1, u0, v1); B.push(0, 0, 0.5, 0.5); I.push(n, n + 1, n + 2, n, n + 2, n + 3); }
+        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); g.setAttribute('aBend', new THREE.Float32BufferAttribute(B, 1)); g.setIndex(I); return g;
+      };
+      const rowsT = [[], [], [], []], NT = Math.round(300 * (phone ? 0.7 : 1));
+      for (let n = 0, t = 0; n < NT && t < NT * 30; t++) {
+        const a = r() * 6.2832, rr = 46 + Math.pow(r(), 0.8) * 100, px = CX + Math.cos(a) * rr * 1.25, pz = CZ + Math.sin(a) * rr; if (dist(px, pz) < 24 || clearPath(px, pz) || pondQ(px, pz) < 1.9 || Math.abs(px - CX) > 140 || Math.abs(pz - CZ) > 140) continue;
+        if (fbm(px / 40 + 60, pz / 40) < 0.33) continue;
+        const k = r() < 0.17 ? 3 : Math.floor(r() * 3), S = 17 + r() * 15 + rr * 0.05, g = 0.82 + r() * 0.28;
+        rowsT[k].push([px, Hs(px, pz) - 0.3, pz, S * (r() < 0.5 ? -1 : 1), r() * 6.28, k === 3 ? 1 : g, k === 3 ? 1 : g * (0.96 + r() * 0.08), k === 3 ? 1 : g * 0.92]); n++;
+      }
+      rowsT.forEach((rows, k) => { if (rows.length) instanced(tgeo(k), fm, rows, (dm, rw) => { dm.position.set(rw[0], rw[1], rw[2]); dm.rotation.set(0, rw[4], 0); dm.scale.set(rw[3], Math.abs(rw[3]), Math.abs(rw[3])); }); });
+    }
+  }
   // ground mist: soft low sheets over the pond and the hollows (more of it at dawn, dusk and night), drifting a little in the wind
   {
     const c = canvas(128, 128), y = c.getContext('2d'), gr = y.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); y.fillStyle = gr; y.fillRect(0, 0, 128, 128);
@@ -284,7 +310,7 @@ void main() {
     const g = new THREE.PlaneGeometry(1, 1); g.rotateX(-Math.PI / 2); g.setAttribute('aBend', new THREE.Float32BufferAttribute(new Float32Array(4).fill(0.25), 1));
     const rows = []; for (let i = 0; i < 6; i++) rows.push([POND.x + (r() - 0.5) * POND.rx * 1.6, 0.35 + r() * 0.5, POND.z + (r() - 0.5) * POND.rz * 1.6, 14 + r() * 12]);
     for (let n = 0, t = 0; n < 9 && t < 200; t++) { const pp = pick(8, 70); if (!pp || clearPath(pp[0], pp[1])) continue; const hh = Hs(pp[0], pp[1]); if (hh > 0.6) continue; rows.push([pp[0], hh + 0.4 + r() * 0.5, pp[1], 16 + r() * 16]); n++; }
-    const mm = hazy(new THREE.MeshBasicMaterial({ map: mt, color: new THREE.Color(...hazeRGB.map(v => v / 255)), transparent: true, opacity: clamp(0.22 + env.warm * 0.25 + env.night * 0.15, 0, 0.55), depthWrite: false, toneMapped: false }), { wind: true });
+    const mm = hazy(new THREE.MeshBasicMaterial({ map: mt, color: new THREE.Color(...hazeRGB.map(v => v / 255)), transparent: true, opacity: clamp(0.22 + env.warm * 0.25 + env.night * 0.15, 0, 0.55), depthWrite: false, toneMapped: false }), { wind: true, noAO: true });
     const im = new THREE.InstancedMesh(g, mm, rows.length); rows.forEach((rw, i) => { dummy.position.set(rw[0], rw[1], rw[2]); dummy.rotation.set(0, r() * 6.28, 0); dummy.scale.set(rw[3], 1, rw[3] * 0.7); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); });
     im.frustumCulled = false; im.renderOrder = 3; im.userData.kind = 'outside'; scene.add(im);
   }
