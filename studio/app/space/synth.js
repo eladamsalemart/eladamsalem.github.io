@@ -1782,7 +1782,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     wall(`r${i}-front`, ...P(0, VD), o[0], o[1], RW, { holes: [[A1 - M2, A1 + M2]], h: rh, tex: roomWall });
     const runs = [wall(`r${i}-left`, ...P(A0, VD + RD / 2), R[0], R[1], RD, { h: rh, tex: roomWall }), wall(`r${i}-back`, ...P(0, VD + RD), -o[0], -o[1], RW, { h: rh, tex: roomWall }), wall(`r${i}-right`, ...P(A1, VD + RD / 2), -R[0], -R[1], RD, { h: rh, tex: roomWall })];
     // its own outer skin (a hair outside each face): the lime plaster's true grain on the walls the plaza sees, as the pavilions have; the gallery side keeps its painted wall
-    { const skinX = wallTex(ft, false), sk = (nm, a, b, nx, nz, len, holes) => { wall(`r${i}-${nm}`, ...P(a, b), nx, nz, len, { h: rh, tex: skinX, holes, noSolid: true }); surfaces[surfaces.length - 1].detail = { texture: PLASTER_TILE, m: 1.6, k: 2.2 }; };
+    { const skinX = wallTex(ft, false), sk = (nm, a, b, nx, nz, len, holes) => { wall(`r${i}-${nm}`, ...P(a, b), nx, nz, len, { h: rh, tex: skinX, holes, noSolid: true }); surfaces[surfaces.length - 1].detail = { texture: PLASTER_TILE, m: 1.6, k: 3.4 }; };
       sk('skinL', A0 - 0.006, VD + RD / 2, -R[0], -R[1], RD); sk('skinR', A1 + 0.006, VD + RD / 2, R[0], R[1], RD); sk('skinB', 0, VD + RD + 0.006, o[0], o[1], RW); sk('skinF', 0, VD - 0.006, -o[0], -o[1], RW, [[A1 - M2, A1 + M2]]); }
     // its title, above the way in, on the face that looks at the plaza
     { const cv = canvas(1024, 256), x = cv.getContext('2d'); x.fillStyle = dark ? '#8d8b85' : ft; x.fillRect(0, 0, 1024, 256);
@@ -1867,7 +1867,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   const stands = PLAN.stands.map(q => ({ ...q }));
   const faces = standWalls(stands), face = (() => { const c = canvas(256, 256), x = c.getContext('2d'); x.fillStyle = tintHex('#f6f4ef', { tint: tIn.map(v => Math.pow(v, 0.55)) }); x.fillRect(0, 0, 256, 256);
     const b = x.createLinearGradient(0, 200, 0, 256); b.addColorStop(0, 'rgba(70,58,44,0)'); b.addColorStop(1, 'rgba(70,58,44,0.16)'); x.fillStyle = b; x.fillRect(0, 200, 256, 56); return jpg(c); })();
-  for (const f of faces) surfaces.push({ name: f.name, kind: 'wall', stand: f.stand, texture: face, origin: f.origin, u: f.u, v: [0, -1, 0], size: [f.len, f.h], normal: f.normal, openings: [], detail: { texture: PLASTER_TILE, m: 1.6, k: 1.4 }, capT: STAND.t });
+  for (const f of faces) surfaces.push({ name: f.name, kind: 'wall', stand: f.stand, texture: face, origin: f.origin, u: f.u, v: [0, -1, 0], size: [f.len, f.h], normal: f.normal, openings: [], detail: { texture: PLASTER_TILE, m: 1.6, k: 2.6 }, capT: STAND.t });
   for (const s of stands) { const a = s.rot * Math.PI / 180; solids.push([s.x - Math.cos(a) * s.len / 2, s.z - Math.sin(a) * s.len / 2, s.x + Math.cos(a) * s.len / 2, s.z + Math.sin(a) * s.len / 2]); }
   const mid = f => [f.origin[0] + f.u[0] * f.len / 2, f.origin[2] + f.u[2] * f.len / 2];
   // the work on a coulisse: the Desk may name the exhibition whose works hang on it (stand.show: its slug, or 'none' for bare faces); the rest are filled in turn, the first work of each exhibition
