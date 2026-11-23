@@ -1427,7 +1427,6 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     eco: () => ({ pixelRatio: renderer.getPixelRatio(), mirror: hallMirrorCtl ? hallMirrorCtl.isOn : mirrorCtl ? mirrorCtl.isOn : null }), setMirror: v => { if (hallMirrorCtl) hallMirrorCtl.set(!!v); else if (mirrorCtl) mirrorCtl.set(!!v); },
     where() { return { pos: pos.toArray(), look: look.toArray(), fov: camera.fov }; },
     place(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },
-    texList() { const seen = new Map(); scene.traverse(o => { const ms = o.material ? [].concat(o.material) : []; for (const m of ms) { const ks = ['map', 'emissiveMap', 'normalMap', 'lightMap'].map(k => [k, m[k]]); if (m.uniforms) for (const [k, u] of Object.entries(m.uniforms)) ks.push([k, u && u.value]); for (const [k, t] of ks) { if (!t || !t.isTexture || !t.image || seen.has(t)) continue; const w = t.image.width || 0, h = t.image.height || 0; seen.set(t, [Math.round(w * h * 4 * 1.34 / 1048576 * 10) / 10, w, h, k, o.userData.kind || o.name || o.type, String(t.image.currentSrc || t.image.src || t.image.constructor.name).slice(0, 70)]); } } }); return [...seen.values()].sort((a, b) => b[0] - a[0]); },
     // the images the room holds in the graphics memory, in MB (what a phone has to find room for)
     memory() {
       const seen = new Set(); let b = 0;
