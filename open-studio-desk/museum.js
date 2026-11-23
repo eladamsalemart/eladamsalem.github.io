@@ -63,7 +63,7 @@ export function roomOf(E, colour) {
 export async function walkStreet(rooms, focus, viewerCss, synth, more = {}) {
   const [SY, { openSpace }] = await Promise.all([synth(), import(APP + 'space/space.js'), viewerCss()]);
   const made = await (SY.buildSky || SY.buildStreet)(rooms, u => u, w => w.thumb || w.image, { ...more, ...(focus >= 0 ? { focus } : {}) });      // (the preview is the museum as visitors get it: one building, eight houses)
-  if (made.spec.outdoors && /^data[/]/.test(made.spec.outdoors.treeline || '')) made.spec.outdoors.treeline = APP + made.spec.outdoors.treeline;
+  if (made.spec.outdoors) for (const k of ['treeline', 'tropics']) if (/^data[/]/.test(made.spec.outdoors[k] || '')) made.spec.outdoors[k] = APP + made.spec.outdoors[k];
   const works = rooms.flatMap(r => r.works);
   window.__spaceView = await openSpace({ spec: made.spec, works, src: u => u, onClose: () => { window.__spaceView = null; } });
 }
@@ -432,7 +432,7 @@ export async function home(ctx) {
       const credits = {}; for (const c of await getj(APP + sec.folder + '/credits.json', [])) credits[c.slug] = { ...c, image: APP + `${sec.folder}/works/${c.slug}.jpg`, thumb: APP + `${sec.folder}/works/${c.slug}-s.jpg` };
       const [, { openSpace }] = await Promise.all([0, import(APP + 'space/space.js'), ctx.viewerCss()]);
       const made = await SY.buildSky([], u => u, w => w.thumb || w.image, { plan: PLAN, sections: [{ ...JSON.parse(JSON.stringify(sec), (k, v) => typeof v === 'string' && /^data\/museum\//.test(v) ? APP + v : v), credits }] }), [dx, dz] = sp.dir;
-      if (made.spec.outdoors && /^data\//.test(made.spec.outdoors.treeline || '')) made.spec.outdoors.treeline = APP + made.spec.outdoors.treeline;
+      if (made.spec.outdoors) for (const k of ['treeline', 'tropics']) if (/^data[/]/.test(made.spec.outdoors[k] || '')) made.spec.outdoors[k] = APP + made.spec.outdoors[k];
       made.spec.start = { pos: [sp.door[0] + dx * 3, sp.door[1] + dz * 3], look: [sp.door[0] + dx * 14, sp.door[1] + dz * 14] };
       window.__spaceView = await openSpace({ spec: made.spec, works: [], src: u => u, onClose: () => { window.__spaceView = null; } });
     } catch (e) { fail(e); }
