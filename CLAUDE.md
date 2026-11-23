@@ -3,6 +3,10 @@
 **Read `studio/QUALITY.md` first, every session.** It holds the owner's standard and the lessons learned. When the
 owner corrects something a professional would have done unasked, add the lesson there as a rule.
 
+**Sessions (23.11).** Every Open Studio session is filed under the sidebar folder "Open studio". The owner's main
+session leads: it hands out the parallel work, checks what comes back, and reports to the owner. Any new Open Studio
+session goes into that folder.
+
 - Reply and summarise to the owner in Hebrew. App content stays in English.
 - Studio lives on the `studio` branch; the app is published from it ("Open Studio app" workflow), and every
   exhibition's 3D tour is rebuilt and inspected on the server ("Studio spaces" workflow) whenever its
