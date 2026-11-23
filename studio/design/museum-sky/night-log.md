@@ -42,3 +42,4 @@
 - 23.11 05:23 (n9): ROADMAP 16 part: lime plaster detail on original pavilions' outer skin (603941b). museum_live 12/12; phone DPR 2+1 viewed; calls 144, memory 609 with n4shot's forced plan, same without the change. Budget: weekly 42->43%, 5h 16%.
 - 23.11 06:23 (n10): exited without work: the night was already stopped by the budget gate (weekly 39% at the start -> 43% now, the next item would pass +5). Morning note above stands.
 - [ROADMAP 19 המשך] עלים אמיתיים מקרוב: אטלס עלים חדש (מונסטרה עם חורים וחריצים, בננה קרועה, כפות דקל, שרך, עלי לב) עם עורקים; הצמחים הקרובים לזכוכית בנויים מעלים בודדים כפופים ומתנדנדים ברוח; הבריכה משקפת את השמיים של השעה (פרנל, אדוות, קו עצים). 33-35 קריאות ציור, זיכרון 412 (תקרה 460).
+- [ROADMAP 19 המשך 2] שוליים נטועים מיד אחרי המרפסת (אין עוד דשא חשוף ליד הזכוכית); בטלפון אטלס הכרטיסים הרחוקים בחצי רזולוציה כדי להישאר מתחת לתקרת הזיכרון (455 מול 460, אחרי המיזוג של שאר המשמרת). קריאות ציור 105-183.
