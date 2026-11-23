@@ -2,6 +2,10 @@
 
 (הסיכום של הלילה האחרון נכתב בראש הקובץ, עד 6 שורות, בעברית. מתחתיו שורה לכל פריט: תאריך, מה, commit, מה נבדק.)
 
+**לילה 23.11 (משמרת 9, 05:23) — סיכום הלילה:** הלילה בוצעו: טקסט לכל ביתן וכנף (פריט 21, נסגר), רצפת טרצו עם שבבים בגודל אמיתי (59e32ff), ועכשיו טיח סיד על הקירות החיצוניים של הביתנים המקוריים (Ritual והתערוכה הווירטואלית) במקום לוח צבוע חלק (603941b). נבדק: museum_live 12/12, צילום טלפון 390x844 בסקייל 2 ובסקייל 1, 14:00. אולי הגרעין מעט חזק מקרוב בסקייל 2: אם כן, תגיד "יותר עדין".
+לא נבדק: אייפון אמיתי, האתר החי. הערה: עם התוכנית הכפויה של סקריפט הצילום (n4shot) הזיכרון מוערך 609 גם בלי השינוי (מעל 460); לבדוק בלילה הבא אם זה מה-merge של היום או מהסקריפט.
+פתוח: קירות חוץ של בתי הדסק (צריכים פני חוץ נפרדים), אבן המרפסת בחוץ, רצפות הבתים. תקציב: שבועי 39%→43%, הלילה נעצר. דרוש מאלעד: כלום.
+
 **לילה 23.11 (משמרת 8, 03:23):** פריט 16 חלקי: רצפת הטרצו של האולם קיבלה אריח שבבים עדין בגודל האמיתי (0.8 מ'), כך שמקרוב היא נראית כאבן ולא כמריחה (commit 59e32ff). נבדק: museum_live 12/12, צילום טלפון 390x844 בסקייל 2 ובסקייל 1, 14:00; draw calls 28-30, זיכרון 381. לא נבדק: 21:00 (התאורה לא השתנתה), אייפון אמיתי, האתר החי. פתוח: טיח הקירות החיצוניים של הבתים, אבן המרפסת בחוץ, רצפות הבתים. דרוש מאלעד: כלום.
 
 **לילה 23.11 (משמרת 7, 01:24):** פריט 21 (טקסט לכל תערוכה) נסגר: כל 7 לוחות הטקסט החיים (Ritual, My Open Studio, הכניסה לאגף הרנסנס וארבעת חדריו) נלחצו כטלפון 390x844 והקורא נפתח עם הכותרת הנכונה; תמונה נבדקה: קריא. נוספה בדיקה קבועה `studio/app/tests/museum_plates.cjs`. museum_live 12/12. לא נבדק: תערוכת דמו שהוצבה מהדסק (מכוסה בקוד: כותרת/אמן כשאין טקסט), אייפון אמיתי, האתר החי. הערה: בטקסט של Ritual כתוב "exhivition" (שגיאת כתיב בתוכן שלך, לא נגעתי). דרוש מאלעד: כלום.
@@ -31,3 +35,4 @@
 - 23.11 00:23 (n6): memory with 2 live originals: phone 378, DPR1 497. ROADMAP 21 part: wing entrance text plate + bay plates as reader hotspots (synth.js). museum_live 12/12; phone DPR 2+1 viewed.
 - 23.11 01:24 (n7): ROADMAP 21 closed: all 7 live text plates open the reader when tapped as a phone (new tests/museum_plates.cjs, inspect.hot()). museum_live 12/12; phone shot viewed. Budget at start: weekly 40%, 5h 57%.
 - 23.11 03:23 (n8): ROADMAP 16 part: terrazzo chip detail tile on the hall floor (59e32ff). museum_live 12/12; phone DPR 2+1 viewed; calls 30, memory 381. Budget at start: weekly 40%, 5h 1%.
+- 23.11 05:23 (n9): ROADMAP 16 part: lime plaster detail on original pavilions' outer skin (603941b). museum_live 12/12; phone DPR 2+1 viewed; calls 144, memory 609 with n4shot's forced plan, same without the change. Budget: weekly 42->43%, 5h 16%.
