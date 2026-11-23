@@ -633,7 +633,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     // a work is never left out of the room: a failed download is tried again, then the other size, and
     // until one arrives the canvas shows a plain tone (and keeps trying in the background)
     const [got, light] = await Promise.all([loadRetry([first, first === h.image ? h.imageSmall : h.image]), loadTex(h.light, false)]);
-    const tex = got || plainTex();
+    // memory is saved where the visitor isn't looking, never where they are: on a phone a work that came without a small copy (an artist's
+    // upload, ~2000 px) is held at 768 px from afar, and its full image comes back as the visitor nears it (pendingFull), freed again as they leave
+    const big = PHONE && got && Math.max(got.image.naturalWidth || got.image.width || 0, got.image.naturalHeight || got.image.height || 0) > 1024;
+    const tex = big ? fit(got, 768) : got || plainTex();
     if (!got) failed.push(h.work);
     tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
     const wM = h.measured[0] / 100, hM = h.measured[1] / 100, dM = h.depth || 0.035;
@@ -673,7 +676,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     // artist's full-resolution upload, when there is one, only up close
     // (only for the few works nearest the visitor at a time: a phone has room for a handful of full images,
     // not for every work's; walking away, a work goes back to its light image)
-    const full = !got ? first : h.imageFull || (first !== h.image ? h.image : null);
+    const full = !got ? first : h.imageFull || (first !== h.image || big ? h.image : null);
     const reach = h.imageFull ? Math.max(1.6, 1.2 * Math.max(wM, hM)) : Math.max(5, 3 * Math.max(wM, hM));
     const back = sideMat('#4a4640'), none = new THREE.MeshBasicMaterial({ visible: false });
     // a work cut out of its backdrop: its body is the solid rectangle (core), and the front shows only the
@@ -1427,7 +1430,6 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     eco: () => ({ pixelRatio: renderer.getPixelRatio(), mirror: hallMirrorCtl ? hallMirrorCtl.isOn : mirrorCtl ? mirrorCtl.isOn : null }), setMirror: v => { if (hallMirrorCtl) hallMirrorCtl.set(!!v); else if (mirrorCtl) mirrorCtl.set(!!v); },
     where() { return { pos: pos.toArray(), look: look.toArray(), fov: camera.fov }; },
     place(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },
-    texList() { const seen = new Map(); scene.traverse(o => { const ms = o.material ? [].concat(o.material) : []; for (const m of ms) { const ks = ['map', 'emissiveMap', 'normalMap', 'lightMap'].map(k => [k, m[k]]); if (m.uniforms) for (const [k, u] of Object.entries(m.uniforms)) ks.push([k, u && u.value]); for (const [k, t] of ks) { if (!t || !t.isTexture || !t.image || seen.has(t)) continue; const w = t.image.width || 0, h = t.image.height || 0; seen.set(t, [Math.round(w * h * 4 * 1.34 / 1048576 * 10) / 10, w, h, k, o.userData.kind || o.name || o.type, String(t.image.currentSrc || t.image.src || t.image.constructor.name).slice(0, 70)]); } } }); return [...seen.values()].sort((a, b) => b[0] - a[0]); },
     // the images the room holds in the graphics memory, in MB (what a phone has to find room for)
     memory() {
       const seen = new Set(); let b = 0;
