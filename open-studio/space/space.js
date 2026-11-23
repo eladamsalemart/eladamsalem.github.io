@@ -249,45 +249,6 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       dirty = true;
     }, 3500);
   }
-  // the floor of a room joined to a bigger space (an exhibition's original room inside the museum, spec.floorPads): its light as in the room's
-  // own tour (the tile under the room's light map), and its reflection made only while the visitor is in it, faded in, then freed when they leave
-  // (memory is spent where the visitor is, never where they aren't; the lead's review, 24.11)
-  function padFloor(fm, s, i, pad) {
-    if (lights[i]) { fm.material.lightMap = lights[i]; fm.material.lightMapIntensity = Math.PI * (s.lightScale || 1); fm.material.needsUpdate = true; }
-    const [rNear, rLow] = pad.reflect || [0, 0]; if (!(rLow > 0.03)) return;
-    const prev = fm.material.onBeforeCompile, mU = { value: 0 };
-    fm.material.customProgramCacheKey = () => 'pad' + (prev ? 'hq' : '') + rNear + '_' + rLow;
-    fm.material.onBeforeCompile = sh => {
-      if (prev) prev(sh); sh.uniforms.mirrorOn = mU;
-      sh.vertexShader = sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorldP = (modelMatrix * vec4(transformed, 1.0)).xyz;').replace('void main() {', 'varying vec3 vWorldP;\nvoid main() {');
-      sh.fragmentShader = sh.fragmentShader.replace('void main() {', 'uniform float mirrorOn;\nvarying vec3 vWorldP;\nvoid main() {').replace('#include <dithering_fragment>',
-        `float facing = clamp(normalize(cameraPosition - vWorldP).y, 0.0, 1.0);
-         gl_FragColor.a = mix(1.0, 1.0 - mix(${rNear.toFixed(3)}, ${rLow.toFixed(3)}, pow(1.0 - facing, 3.0)), mirrorOn);
-         #include <dithering_fragment>`);
-    };
-    const U = V(s.u), Vd = V(s.v), [su, sv] = s.size, O = V(s.origin), c = O.clone().addScaledVector(U, su / 2).addScaledVector(Vd, sv / 2);
-    const within = m => { const d = pos.clone().sub(c); return Math.abs(d.dot(U)) - su / 2 < m && Math.abs(d.dot(Vd)) - sv / 2 < m; };
-    let mirror = null;
-    const make = () => {
-      const res = Math.min(2048, Math.round(Math.max(innerWidth, innerHeight) * Math.min(devicePixelRatio, 2) * (COARSE ? 0.3 : 0.5)));      // (half the tour's on a phone)
-      mirror = new Reflector(new THREE.PlaneGeometry(su, sv), { textureWidth: res, textureHeight: res, color: 0xffffff, clipBias: 0.003 });
-      mirror.material.fragmentShader = mirror.material.fragmentShader.replace('blendOverlay( base.rgb, color )', 'base.rgb * color');
-      const up = new THREE.Vector3(0, 1, 0), Y = Vd.clone(); if (new THREE.Vector3().crossVectors(U, Y).dot(up) < 0) Y.negate();
-      mirror.matrixAutoUpdate = false; mirror.matrix.makeBasis(U, Y, up).setPosition(c.x, O.y - 0.012, c.z); mirror.userData.kind = 'mirror';
-      const draw = mirror.onBeforeRender; let lastKey = '', frame = 0;
-      mirror.onBeforeRender = (...a) => { const cam = a[2], key = cam.matrixWorld.elements.join(',') + cam.fov; if (key === lastKey && frame > 0) return; lastKey = key; if (++frame % 3 !== 1 && frame > 3) return;
-        fm.visible = false; draw.apply(mirror, a); fm.visible = true; };
-      scene.add(mirror); fm.material.transparent = true; dirty = true;
-    };
-    const free = () => { scene.remove(mirror); mirror.getRenderTarget().dispose(); mirror.geometry.dispose(); mirror.material.dispose(); mirror = null; mU.value = 0; fm.material.transparent = false; dirty = true; };
-    const tick = setInterval(() => {
-      if (!root.isConnected) { clearInterval(tick); if (mirror) free(); return; }
-      try { pos; } catch { return; }                 // (the visitor is placed a little later than the room is built)
-      const inn = within(0.6);
-      if (inn && !mirror) make();
-      if (mirror) { const v = Math.max(0, Math.min(1, mU.value + (inn ? 0.2 : -0.2))); if (v !== mU.value) { mU.value = v; dirty = true; } if (!inn && v === 0 && !within(3)) free(); }
-    }, 100);
-  }
   const batches = {};                       // small translucent surfaces that share one picture (the houses' trim, the light shafts) are drawn as ONE mesh each: a phone pays per draw call
   surfaces.forEach((s, i) => {
     if (glassWalls.has(s.name)) return;
@@ -298,7 +259,6 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks, '', s.stand ? 0.3 : 1, detailOf(s.detail)), s.openings || [], s.kind === 'wall' && !s.stand ? 0.03 : 0);
       m.userData.kind = s.kind; if (s.stand) m.userData.stand = s.stand; scene.add(m);
       if (spec.mirrorSurface && s.name === spec.mirrorSurface.name) hallMirror(m, s);
-      { const pad = (spec.floorPads || []).find(q => q.name === s.name); if (pad) padFloor(m, s, i, pad); }
       for (const o of s.openings || []) addOpening(s, o);
       if (s.stand && s.capT && /-a$/.test(s.name)) {   // a coulisse is a board, not two sheets: a solid core a hair inside its two faces shows its top and both ends
         const Uc = V(s.u), Nc = V(s.normal), Oc = V(s.origin), t = s.capT, L = s.size[0], h = s.size[1];

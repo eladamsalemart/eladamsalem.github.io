@@ -1486,13 +1486,6 @@ async function originalSpec(o, src) {
   if (sp.plaster) sp.plaster = await shrink(sp.plaster, 512 * K);
   // the floor is a small tile repeated over the room, as in the room's own tour (333 px a metre for Ritual's terrazzo): repeated, never baked into
   // one picture (baked at 80 px/m on a phone it read blurred and flat next to the tour; the owner, 24.11)
-  // a sloped ceiling's photo is a flat fill with dark streaks where the capture missed it; the room's own tour hides that under its projected photos,
-  // which the museum doesn't draw: softened here (down to an eighth and back), the tone kept, the streaks gone (the lead's review, 24.11)
-  await Promise.all((sp.surfaces || []).filter(q => q.kind === 'ceiling' && typeof q.texture === 'string' && Math.abs(q.normal[1]) < 0.97).map(q => new Promise(res => {
-    const im = new Image(); im.crossOrigin = 'anonymous'; im.onerror = () => res();
-    im.onload = () => { const w = im.naturalWidth, h = im.naturalHeight, sm = canvas(Math.max(4, w >> 3), Math.max(2, h >> 3)); sm.getContext('2d').drawImage(im, 0, 0, sm.width, sm.height);
-      const c = canvas(w, h), x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(sm, 0, 0, w, h); q.texture = c.toDataURL('image/jpeg', 0.9); res(); };
-    im.src = q.texture; })));
   const fl = (sp.surfaces || []).find(q => q.kind === 'floor' && typeof q.texture === 'string' && q.size);
   if (fl) { const tx = fl.tileXY || [fl.tile || 1, fl.tile || 1], [w, d] = fl.size; if (tx[0] > 0 && tx[1] > 0 && (w > tx[0] * 1.5 || d > tx[1] * 1.5)) { fl.repeat = [w / tx[0], d / tx[1]]; delete fl.tileXY; } }
   return sp;
@@ -1700,7 +1693,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   const pierTex = concreteTex(tintHex('#bfbcb5', { tint: tIn.map(v => Math.pow(v, 0.5)) }));
   for (const [x, z] of PLAN.piers) { const t = pierTex; for (const [nx, nz] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) wall(`pier${x}-${z}-${nx}${nz}`, x + nx * 0.7, z + nz * 0.7, nx, nz, 1.4, { h: HH, tex: t }); }       // (eight piers carry the roof)
   const directory = [];
-  const hotspots = [], floorPads = [];
+  const hotspots = [];
   // --- the houses: each as the street builds its room (a porch in the show's colour, three walls to hang on), turned to its own place
   const extraStands = [];
   // --- a pavilion that holds an exhibition designed before (r.original): the exhibition's OWN space is built in place inside a real
@@ -1738,7 +1731,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     const pre = `o${i}-`, ang = Math.atan2(V([1, 0, 0])[2], V([1, 0, 0])[0]) * 180 / Math.PI, swap = Math.abs(V([1, 0, 0])[2]) > 0.7;
     for (const s of sp.surfaces) {
       const q = { ...s, name: pre + s.name, normal: V(s.normal), u: V(s.u), v: V(s.v) }, p = W(s.origin[0], s.origin[2]); q.origin = [p[0], s.origin[1], p[1]];
-      if (s.kind === 'floor') { q.kind = 'wall'; q.origin[1] = 0.03; delete q.tileXY; floorPads.push({ name: q.name, reflect: sp.floorReflect || [0, 0] }); }      // (its light and its gloss as in the tour: spec.floorPads)
+      if (s.kind === 'floor') { q.kind = 'wall'; q.origin[1] = 0.03; delete q.tileXY; }
       surfaces.push(q);
     }
     for (const w of sp.works || []) { const p = W(w.centre[0], w.centre[2]); works.push({ ...w, centre: [p[0], w.centre[1], p[1]], axes: w.axes.map(V) }); }
@@ -2018,7 +2011,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     version: 2, title: 'The Museum', source: 'Open Studio museum', virtual: true, ordered: true, far: 190, noSpots: true,
     outdoors: { hour: env.hour, centre: [CX, CZ], lamps: [], treeline: 'data/rooms/outside/treeline.webp', treeRadius: 120, treeHeight: 46, tropics: 'data/rooms/outside/tropics.webp', hall: [HX, HZ], entrance: PLAN.entrance.at },
     baked: { kind: 'white-cube', plates: [] }, plinthRoom: { h: 4 },
-    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], mirrorSurface: { name: 'hall-floor', reflect: [0.1, 0.4], y: 0.01 }, floorPads, solids, directory, hotspots,
+    room: { x0: 0, x1: HX, z0: 0, z1: HZ, height: HH }, surfaces, works, views: [], floorReflect: [0, 0], mirrorSurface: { name: 'hall-floor', reflect: [0.1, 0.4], y: 0.01 }, solids, directory, hotspots,
     stands: [...stands.map(s => ({ ...s, kind: 'stand', t: STAND.t })), ...extraStands.map(s => ({ ...s, kind: 'stand', t: STAND.t }))], ...(props.length ? { props } : {}),
     start: { pos: PLAN.start.pos, look: PLAN.start.look },
     ...(plinthsOut.length ? { plinths: plinthsOut } : {}),
