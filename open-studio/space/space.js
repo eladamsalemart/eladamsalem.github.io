@@ -147,7 +147,15 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     }`;
   // kind: 0 walls, 1 floor, 2 ceiling; size: the surface (or its repeating tile) in metres; masks: stretches of a wall
   // along u that show something else (windows: the outside must not get plaster grain)
-  function enhance(mat, tex, kind, size, masks = [], key = '', soft = 1) {      // soft: a freshly painted board (a standing wall) carries less of the old plaster's mottle
+  // a surface may bring its own fine material (spec surface `detail: {texture, m, k}`: a grey tile of m metres, strength k),
+  // e.g. the museum's terrazzo floor, whose painted picture is too coarse up close; one texture per picture, shared
+  const ownDetail = new Map();
+  const detailOf = d => {
+    if (!d || !d.texture) return null;
+    if (!ownDetail.has(d.texture)) { const t = new THREE.TextureLoader().load(d.texture, () => { dirty = true; }); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.NoColorSpace; t.anisotropy = aniso; ownDetail.set(d.texture, t); }
+    return { tex: ownDetail.get(d.texture), m: d.m || 1, k: d.k || 1 };
+  };
+  function enhance(mat, tex, kind, size, masks = [], key = '', soft = 1, own = null) {      // soft: a freshly painted board (a standing wall) carries less of the old plaster's mottle
     if (!BK || !tex || !tex.image) return mat;
     const amp = 1.6 * soft * (DETAIL[BK.kind] || [0.03, 0.03, 0.02])[kind];
     const prev = mat.onBeforeCompile;
@@ -158,8 +166,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       sh.uniforms.hqSize = { value: new THREE.Vector2(size[0] / (tex.repeat ? tex.repeat.x : 1), size[1] / (tex.repeat ? tex.repeat.y : 1)) };
       sh.uniforms.hqAmp = { value: amp };
       sh.uniforms.hqMask = { value: mk }; sh.uniforms.hqSoft = { value: soft };
-      sh.uniforms.hqDetail = detU; sh.uniforms.hqDetM = { value: det ? det[1] : 2 };
-      sh.uniforms.hqDetK = kind === 1 ? { value: 0 } : detK;                          // (walls and ceiling; the floor's boards are in its photograph)
+      sh.uniforms.hqDetail = own ? { value: own.tex } : detU; sh.uniforms.hqDetM = { value: own ? own.m : det ? det[1] : 2 };
+      sh.uniforms.hqDetK = own ? { value: own.k } : kind === 1 ? { value: 0 } : detK;                         // (walls and ceiling; the floor's boards are in its photograph)
       sh.fragmentShader = sh.fragmentShader.replace('void main() {', HQ_FRAG + '\nvoid main() {')
         .replace('#include <map_fragment>', '#ifdef USE_MAP\n vec4 sampledDiffuseColor = hqRead(map, vMapUv);\n diffuseColor *= sampledDiffuseColor;\n diffuseColor.rgb *= hqGrain(vMapUv);\n#endif');
     };
@@ -241,7 +249,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (s.glass) { const gm = planeMesh(s, new THREE.MeshBasicMaterial({ map: texs[i], transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }), s.openings || [], 0); gm.renderOrder = 4; gm.userData.kind = 'glass'; if (s.batch) { (batches[s.batch] = batches[s.batch] || { mat: gm.material, geos: [] }).geos.push(gm.geometry); return; } scene.add(gm); return; }      // (a glass wall: its mullions and a faint sheen, you see through the rest)
     if (s.kind === 'wall' || s.kind === 'ceiling') {
       const masks = s.kind === 'wall' ? ((spec.blocks || {})[s.name] || []) : [];
-      const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks, '', s.stand ? 0.3 : 1), s.openings || [], s.kind === 'wall' && !s.stand ? 0.03 : 0);
+      const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks, '', s.stand ? 0.3 : 1, detailOf(s.detail)), s.openings || [], s.kind === 'wall' && !s.stand ? 0.03 : 0);
       m.userData.kind = s.kind; if (s.stand) m.userData.stand = s.stand; scene.add(m);
       if (spec.mirrorSurface && s.name === spec.mirrorSurface.name) hallMirror(m, s);
       for (const o of s.openings || []) addOpening(s, o);

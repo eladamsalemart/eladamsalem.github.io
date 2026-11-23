@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22",
+ "updated": "2026-11-23",
  "sources": [
   {
    "source": "haifa-museum",
@@ -29,8 +29,8 @@
    "source": "petach-tikva",
    "place": "petach-tikva-museum-of-art",
    "url": "https://www.petachtikvamuseum.com/he/",
-   "read": "browser",
-   "status": "nothing found",
+   "browser": "TimeoutError",
+   "status": "unreachable",
    "shows": 0,
    "events": 0
   },
@@ -40,7 +40,7 @@
    "url": "https://www.artistshouse.org.il/",
    "via": "wordpress",
    "status": "ok",
-   "shows": 7,
+   "shows": 13,
    "events": 0
   },
   {
@@ -92,9 +92,9 @@
    "source": "ashdod",
    "place": "ashdod-art-museum",
    "url": "https://www.ashdodartmuseum.org.il/",
-   "browser": "Error",
-   "status": "unreachable",
-   "shows": 0,
+   "read": "browser",
+   "status": "ok",
+   "shows": 3,
    "events": 0
   },
   {
@@ -543,8 +543,8 @@
    "place": "moby-museums-of-bat-yam",
    "url": "https://moby.org.il/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "unreachable: TimeoutError",
+   "shows": 0,
    "events": 0
   },
   {
@@ -669,7 +669,7 @@
    "place": "rosenfeld-gallery",
    "url": "https://rg.co.il",
    "auto": true,
-   "status": "nothing found",
+   "status": "unreachable: TimeoutError",
    "shows": 0,
    "events": 0
   },
@@ -786,8 +786,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 14,
-   "seconds": 1034,
+   "calls": 22,
+   "seconds": 1973,
    "status": "ok"
   },
   {
@@ -795,7 +795,7 @@
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 12
+   "events": 9
   }
  ]
 }
