@@ -42,6 +42,9 @@ Sharpness is measured, not guessed: pixels per metre on a wall against the room'
   clear: letters on the wall, no sheet, no thickness.
 - An opening made walkable keeps the wall's real thickness: its sides end flush with the outer wall, never
   sticking out of it or leaving a gap. Look at every opening from outside, at an angle.
+- One wall, one thickness: every opening is cut through the whole wall in its real shape (an arch as an arch), with
+  both jambs and a head at that depth. Never a rectangle cut in front of an arch, a missing jamb, or a slab between
+  openings. No visible seams or ghost planes: a texture tile's edge or a stray surface is a bug. (Ritual, 23.11.)
 - Nothing cut off. Panels that need room open full screen. The camera never jumps by itself.
 (Pedestals outdoors, 9.11 and 10.11. Text half in the air, 21.11 and 23.11. Entry through a painting, then a blocked
 arch, 22.11 and 23.11.)
