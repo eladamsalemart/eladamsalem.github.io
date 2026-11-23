@@ -1419,7 +1419,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     failed,                                                  // works whose image never arrived
     ready: () => ibrReady(),                                 // the photos all in place on the room
     // each work as drawn now: its image's size (0: none), and whether it is in the scene and visible
-    works() { return pieces.map(p => { const m = p.mesh.material, mats = [].concat(m), f = mats.find(x => x.emissiveMap) || mats[0]; const t = f && f.emissiveMap; let vis = true; for (let o = p.mesh; o; o = o.parent) vis = vis && o.visible; return { title: p.w.title, image: t && t.image ? [t.image.width, t.image.height] : [0, 0], visible: vis, inScene: !!p.mesh.parent && !!p.mesh.parent.parent }; }); },
+    works() { return pieces.map(p => { const m = p.mesh.material, mats = [].concat(m), f = mats.find(x => x.emissiveMap) || mats[0]; const t = f && f.emissiveMap; let vis = true; for (let o = p.mesh; o; o = o.parent) vis = vis && o.visible; return { title: p.w.title, cm: [p.size.w, p.size.h], image: t && t.image ? [t.image.width, t.image.height] : [0, 0], visible: vis, inScene: !!p.mesh.parent && !!p.mesh.parent.parent }; }); },
     // stand somewhere and look at something, as a visitor walking would (the room keeps running: for testing
     // what a phone does as one walks, unlike shot() below)
     hot: () => HOT.map(h => [h.spec.id, String(h.spec.title || '').slice(0, 40), h.spec.kind || '', (h.spec.text || []).length, (h.spec.origin || []).map(v => +(+v).toFixed(1)), h.spec.u, h.spec.v, h.spec.size, h.spec.normal]),
