@@ -1478,7 +1478,8 @@ async function originalSpec(o, src) {
     im.onload = () => { const k = Math.min(1, cap / Math.max(im.naturalWidth, im.naturalHeight)); if (k >= 0.99) return res(u); const c = canvas(im.naturalWidth * k, im.naturalHeight * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res(png ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.86)); };
     im.onerror = () => res(u); im.src = u; })), small.get(u + cap)));
   const K = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 1 : 2;      // (a laptop shows the room as sharp as the original tour; only a phone gets it smaller)
-  await Promise.all((sp.surfaces || []).map(async s => { if (s.texture) s.texture = await shrink(s.texture, 1024 * K); if (s.light) s.light = await shrink(s.light, 512 * K, true); }));
+  // the walls at the room's own tour level on a phone too: 1024 left a 14 m wall at 73 px/m, the tour has 200 (the owner, 23.11)
+  await Promise.all((sp.surfaces || []).map(async s => { if (s.texture) s.texture = await shrink(s.texture, 2048); if (s.light) s.light = await shrink(s.light, 512 * K, true); }));
   await Promise.all((sp.works || []).map(async w => { if (w.imageSmall) w.imageSmall = await shrink(w.imageSmall, 640 * K); if (w.light) w.light = await shrink(w.light, 256 * K, true); }));
   if (sp.plaster) sp.plaster = await shrink(sp.plaster, 512 * K);
   // the floor is a small tile repeated over the room: laid out once, whole, so a pavilion's floor (drawn as a plain wall-like surface) is not that one tile stretched
@@ -1683,14 +1684,21 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     const sp = await originalSpec(r.original, src), rm = sp.room, H = rm.height || 3.6, { o, c, r: R } = d, T = 0.22, DW = 1.9;
     const virt = !!sp.surfaces.find(s => s.name === 'wall-x1' && (s.openings || []).length);
     // the door wall of the original and where its door is (local x/z), then the frame: local inward direction -> the pavilion's `o`
-    let n, dc, dw = DW, dh = 2.7;
+    let n, dc, dw = DW, dh = 2.7, ways = null, dws = null;          // ways: every opening of the door wall that is a way in (local centre, width, height); dws: the door wall and its openings
     if (virt) { const s = sp.surfaces.find(q => q.name === 'wall-x1'), op = s.openings[0]; n = [-1, 0]; dc = [rm.x1, s.origin[2] + (op.from + op.to) / 2]; dw = op.to - op.from; dh = op.height || dh; }
     // a photographed room that has an arch (or a full-height doorway) of its own: the way in is THROUGH it, never through a picture or a hole made elsewhere
-    const dr = !virt && sp.surfaces.filter(q => q.kind === 'wall').flatMap(q => (q.openings || []).filter(op => !(op.sill > 0.05) && op.height >= 2.1 && op.to - op.from >= 0.9).map(op => ({ s: q, op })))
+    const walkable = op => !(op.sill > 0.05) && op.height >= 2.1 && op.to - op.from >= 0.9;
+    const dr = !virt && sp.surfaces.filter(q => q.kind === 'wall').flatMap(q => (q.openings || []).filter(walkable).map(op => ({ s: q, op })))
       .sort((a, b) => (b.op.arch ? 1 : 0) - (a.op.arch ? 1 : 0) || (b.op.to - b.op.from) - (a.op.to - a.op.from))[0];
     if (dr) {
       const { s, op } = dr, m = (op.from + op.to) / 2; n = [s.normal[0], s.normal[2]]; dc = [s.origin[0] + s.u[0] * m, s.origin[2] + s.u[2] * m]; dw = op.to - op.from; dh = op.height;
-      op.through = true; op.depth = 0.2; delete op.view;
+      // EVERY real opening of that wall is a way out into the museum (the owner, 23.11: Ritual's second arch was left blocked by its photo): none stays a picture of what was behind it
+      ways = s.openings.filter(walkable).map(q => { const mm = (q.from + q.to) / 2; q.through = true; q.depth = T; delete q.view; return { c: [s.origin[0] + s.u[0] * mm, s.origin[2] + s.u[2] * mm], w: q.to - q.from, h: q.height }; });
+      // the photographed sides of an opening (its reveals) reached into the next room; here they end flush with the plaster skin, not sticking out of it
+      s.openings.forEach((q, k) => { if (!q.through) return; const out = [-s.normal[0], -s.normal[1], -s.normal[2]], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        for (const r of sp.surfaces.filter(x => x.kind === 'reveal' && x.name.startsWith(`${s.name}-o${k}-`))) [['u', 0], ['v', 1]].forEach(([ax, i]) => { const d = dot(r[ax], out); if (Math.abs(d) < 0.9 || r.size[i] <= T) return;
+          if (d < 0) r.origin = r.origin.map((v, j) => v - out[j] * (r.size[i] - T)); r.size = r.size.map((v, j) => j === i ? T : v); r.cull = true; }); });
+      dws = { s, ops: s.openings };
     } else if (!virt) {
       const s = sp.surfaces.find(q => q.kind === 'wall' && Math.abs(q.normal[2] - 1) < 0.01 && q.u[0] > 0.99);
       n = [0, 1]; dc = [(rm.x0 + rm.x1) / 2, rm.z0];
@@ -1716,7 +1724,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       const A = W(a[0], a[1]), B = W(b[0], b[1]), L = Math.hypot(B[0] - A[0], B[1] - A[1]), ux = (B[0] - A[0]) / L, uz = (B[1] - A[1]) / L;
       const isDoor = Math.abs(out[0] * n[0] + out[1] * n[1] + 1) < 0.01, nv = V([out[0], 0, out[1]]);
       let holes = [];
-      if (isDoor) { const Dw = W(dc[0], dc[1]), s = (Dw[0] - A[0]) * ux + (Dw[1] - A[1]) * uz; holes = [[s - dw / 2 + T, s + dw / 2 + T, 0, dh]]; }
+      if (isDoor) holes = (ways || [{ c: dc, w: dw, h: dh }]).map(g => { const Dw = W(g.c[0], g.c[1]), s = (Dw[0] - A[0]) * ux + (Dw[1] - A[1]) * uz; return [s - g.w / 2 + T, s + g.w / 2 + T, 0, g.h]; }).sort((p, q) => p[0] - q[0]);
       let at = 0; for (const [f, t] of [...holes.map(h => [h[0], h[1]]), [L, L]].sort((p, q) => p[0] - q[0])) { if (f > at + 0.01) solids.push([A[0] + ux * at, A[1] + uz * at, A[0] + ux * f, A[1] + uz * f]); at = Math.max(at, t); }
       wall(`${pre}skin${k}`, (A[0] + B[0]) / 2 + nv[0] * T, (A[1] + B[1]) / 2 + nv[2] * T, nv[0], nv[2], L + 2 * T, { h: H, tex: skin, holes: holes.map(h => [L - h[1], L - h[0], h[2], h[3]]), noSolid: true });
       surfaces[surfaces.length - 1].detail = { texture: PLASTER_TILE, m: 1.6, k: 2.2 };      // (outside only: lime plaster at its true grain, not the gallery's painted wall)
@@ -1734,7 +1742,19 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     const lines = []; let ln = ''; for (const w of paras.join(' ').split(/\s+/)) { const t = ln ? ln + ' ' + w : w; if (x.measureText(t).width > 560) { lines.push(ln); ln = w; } else ln = t; }
     if (ln) lines.push(ln); const room = Math.floor((790 - yy) / 44); lines.slice(0, room).forEach((l, k) => x.fillText(k === room - 1 && lines.length > room ? l + ' …' : l, X0, yy + k * 44));
     x.font = '600 26px system-ui, sans-serif'; x.fillStyle = col; x.textAlign = 'center'; x.direction = 'ltr'; x.fillText(he ? 'Tap to read · לחצו לקריאה' : 'Tap to read', 320, 812);
-    const pw = 1.3, ph = pw * 860 / 640, side = dw / 2 + 0.35 + pw / 2, q = [c[0] + R[0] * side - o[0] * 0.01, c[1] + R[1] * side - o[1] * 0.01];
+    // where it hangs: flush on the plaster skin of the door wall (the owner, 23.11: it hung half in the air past the wall's end), in a run of solid wall that holds it
+    //   whole with a margin, the run nearest the main way in; never across an opening or past a corner
+    let pw = 1.3; const M = 0.3;
+    const runsOf = () => { if (!dws) return null; const L = dws.s.size[0], cut = dws.ops.map(q => [q.from, q.to]).sort((a, b) => a[0] - b[0]), out = []; let at = 0;
+      for (const [f, t] of [...cut, [L, L]]) { if (f - at > 0) out.push([at, f]); at = Math.max(at, t); } return out; };
+    let sLoc = null; const rs = runsOf();
+    if (rs) { const mid = dr ? (dr.op.from + dr.op.to) / 2 : 0, fit = rs.filter(([a, b]) => b - a >= pw + 2 * M);
+      if (!fit.length) { const best = rs.sort((a, b) => (b[1] - b[0]) - (a[1] - a[0]))[0]; if (best) { pw = Math.max(0.7, best[1] - best[0] - 2 * M); fit.push(best); } }
+      const at = ([a, b]) => Math.min(Math.max(mid, a + M + pw / 2), b - M - pw / 2);
+      const pick = fit.sort((p, q) => Math.abs(at(p) - mid) - Math.abs(at(q) - mid))[0]; if (pick) sLoc = at(pick); }
+    const ph = pw * 860 / 640, side = dw / 2 + 0.35 + pw / 2;
+    const q = sLoc != null ? (() => { const s0 = dws.s, w = W(s0.origin[0] + s0.u[0] * sLoc, s0.origin[2] + s0.u[2] * sLoc); return [w[0] - o[0] * (T + 0.004), w[1] - o[1] * (T + 0.004)]; })()
+      : [c[0] + R[0] * side - o[0] * 0.01, c[1] + R[1] * side - o[1] * 0.01];
     const o0 = [q[0] - R[0] * pw / 2, 0.9 + ph, q[1] - R[1] * pw / 2], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
     surfaces.push({ name: `${pre}text`, kind: 'wall', texture: jpg(cv, 0.92), origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, openings: [] });
     hotspots.push({ id: r.slug, title: r.title, sub: r.curator ? 'Curated by ' + r.curator : (r.sub || ''), text: paras, lang: he ? 'he' : 'en', kind: 'text', origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, enter: null });
