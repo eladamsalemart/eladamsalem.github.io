@@ -680,6 +680,10 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       edges.forEach(e => e.position.set(bx, by, 0));
       g.add(face, body, ...edges); box = face;
       if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges: [] });
+    } else if (h.flat) {        // letters set on the wall (the wall text): a sheet with no body, the wall showing through where it has no ground
+      tex.colorSpace = THREE.SRGBColorSpace;
+      box = new THREE.Mesh(new THREE.PlaneGeometry(wM, hM), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.01, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2 }));
+      box.position.z = dM / 2; box.userData.kind = 'work'; g.add(box);
     } else {
       box = new THREE.Mesh(new THREE.BoxGeometry(wM, hM, dM), [none, none, none, none, front, back]);
       box.userData.kind = 'work';
@@ -689,7 +693,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     }
     const sh = new THREE.Mesh(new THREE.PlaneGeometry(bw + Math.min(0.08, 0.15 * Math.min(bw, bh)), bh + Math.min(0.1, 0.18 * Math.min(bw, bh))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.07, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
     sh.position.set(bx + Math.min(0.012, 0.03 * bw), by - Math.min(0.03, 0.06 * bh), -dM / 2 - 0.002);   // just off the wall, never in it
-    sh.userData.kind = 'shadow'; g.add(sh); scene.add(g); g.updateMatrixWorld(true);
+    sh.userData.kind = 'shadow'; if (!h.flat) g.add(sh); scene.add(g); g.updateMatrixWorld(true);
     // a spot above and in front of the work: it only makes the sheen (the light itself is measured)
     const centre = V(h.centre);
     const spot = new THREE.SpotLight(0xffffff, 3.2, 0, 0.6, 1, 2);

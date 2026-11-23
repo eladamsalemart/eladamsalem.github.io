@@ -564,7 +564,7 @@ export async function buildRoom(design, src) {
   // the wall text, where the artist placed it (or, in the editor, wherever it goes first): hung like a work, drawn as a panel
   const textOn = design.editing ? design.works.some(w => w.id === WALL_TEXT) : !!(lab.wall && !lab.off);
   const paint0 = (PAINTS[design.paint] || PAINTS[ROOMS[design.room].paint])[1];
-  const tImg = textOn ? await wallTextImage(design, lab, design.editing ? paint0 : null) : null;
+  const tImg = textOn ? await wallTextImage(design, lab) : null;
   if (tImg) sized.push({ work: { id: WALL_TEXT, title: 'Wall text', kind: 'wall-text' }, w: tImg.wm * 100, h: tImg.hm * 100, aspect: tImg.wm / tImg.hm, at: lab.wall ? lab : null });
   const { R, walls, placed, left, stands } = hang(design, sized);
   const tAt = placed.findIndex(p => p.work.id === WALL_TEXT), tPlace = tAt >= 0 ? placed[tAt] : null;
@@ -613,12 +613,12 @@ export async function buildRoom(design, src) {
   pc.fillStyle = paint; pc.fillRect(0, 0, 512, 512); texture(pc, 512, 512, seed + 9, 0.05, 0.03);
   pc.fillStyle = 'rgba(0,0,0,.12)'; pc.fillRect(0, 0, 512, 512);
   const workLight = await keep(drawWorkLight(R), true);
-  const textUrl = tImg && design.editing ? await keep(tImg.canvas) : null;
+  const textUrl = tImg && design.editing ? await keep(tImg.canvas, true) : null;
   const works = placed.map(p => {
-    const [ox, , oz] = p.wall.origin, [ux, , uz] = p.wall.u, N = p.wall.normal, off = DEPTH + 0.004;
+    const flat = p.work.id === WALL_TEXT, [ox, , oz] = p.wall.origin, [ux, , uz] = p.wall.u, N = p.wall.normal, off = flat ? 0.006 : DEPTH + 0.004;
     return {
       id: p.work.id, work: p.work.title, image: p.work.id === WALL_TEXT ? textUrl : p.work.image, imageSmall: p.work.imageSmall, size: [p.w, p.h], measured: [p.w, p.h],
-      centre: [ox + ux * p.a + N[0] * off, p.y, oz + uz * p.a + N[2] * off], axes: [p.wall.u, [0, 1, 0], N], depth: DEPTH,
+      centre: [ox + ux * p.a + N[0] * off, p.y, oz + uz * p.a + N[2] * off], axes: [p.wall.u, [0, 1, 0], N], depth: flat ? 0.002 : DEPTH, ...(flat ? { flat: true } : {}),
       light: workLight, lightScale: 1, ...(p.guessed ? { guessed: true } : {}),
     };
   });
@@ -1436,8 +1436,8 @@ export function planOf(p) {
   return { version: 1, hall, entrance: { at: Array.isArray(p.entrance && p.entrance.at) && p.entrance.at.length === 2 ? p.entrance.at : D.entrance.at },
     start: { pos: pt(p.start && p.start.pos, [hall.w / 2, hall.d - 5.5]), look: pt(p.start && p.start.look, [hall.w / 2, hall.d / 2]) },
     pool: p.pool === null ? null : (Array.isArray(p.pool) && p.pool.length === 4 && p.pool.every(v => typeof v === 'number') ? p.pool : D.pool),
-    piers: (Array.isArray(p.piers) ? p.piers : D.piers).filter(q => pt(q)), stands: (Array.isArray(p.stands) ? p.stands : D.stands).filter(q => q && [q.x, q.z, q.len, q.rot, q.h].every(v => typeof v === 'number')).slice(0, 12),
-    objects: (Array.isArray(p.objects) ? p.objects : D.objects).filter(q => pt(q)).slice(0, 12), spaces };
+    piers: (Array.isArray(p.piers) ? p.piers : D.piers).filter(q => pt(q)), stands: (Array.isArray(p.stands) ? p.stands : D.stands).filter(q => q && [q.x, q.z, q.len, q.rot, q.h].every(v => typeof v === 'number' && isFinite(v)) && q.len >= 0.5 && q.len <= 14 && q.h >= 1 && q.h <= 8).slice(0, 24).map((q, i) => ({ ...q, id: typeof q.id === 'string' && q.id ? q.id : 'st-' + i })),
+    objects: (Array.isArray(p.objects) ? p.objects : D.objects).filter(q => Array.isArray(q) && q.length >= 2 && pt(q.slice(0, 2))).slice(0, 24), spaces };      // (a pedestal: [x, z, size 's'|'m'|'l', which exhibition's object it carries: its slug | 'none' | nothing = in turn])
 }
 export function skyLayout(plan = SKY_PLAN) {
   return planOf(plan).spaces.filter(sp => sp.type === 'house').map((sp, slot) => { const a = sp.dir * Math.PI / 180, o = [Math.cos(a), Math.sin(a)]; return { slot, j: slot % 8, c: sp.door, o, r: [-o[1], o[0]], id: sp.id, no: sp.slot }; });
@@ -1456,9 +1456,21 @@ async function originalSpec(o, src) {
   const small = new Map(), shrink = (u, cap, png) => typeof u !== 'string' || !u ? Promise.resolve(u) : (small.get(u + cap) || (small.set(u + cap, new Promise(res => { const im = new Image(); im.crossOrigin = 'anonymous';
     im.onload = () => { const k = Math.min(1, cap / Math.max(im.naturalWidth, im.naturalHeight)); if (k >= 0.99) return res(u); const c = canvas(im.naturalWidth * k, im.naturalHeight * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res(png ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.86)); };
     im.onerror = () => res(u); im.src = u; })), small.get(u + cap)));
-  await Promise.all((sp.surfaces || []).map(async s => { if (s.texture) s.texture = await shrink(s.texture, 1024); if (s.light) s.light = await shrink(s.light, 512, true); }));
-  await Promise.all((sp.works || []).map(async w => { if (w.imageSmall) w.imageSmall = await shrink(w.imageSmall, 640); if (w.light) w.light = await shrink(w.light, 256, true); }));
-  if (sp.plaster) sp.plaster = await shrink(sp.plaster, 512);
+  const K = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 1 : 2;      // (a laptop shows the room as sharp as the original tour; only a phone gets it smaller)
+  await Promise.all((sp.surfaces || []).map(async s => { if (s.texture) s.texture = await shrink(s.texture, 1024 * K); if (s.light) s.light = await shrink(s.light, 512 * K, true); }));
+  await Promise.all((sp.works || []).map(async w => { if (w.imageSmall) w.imageSmall = await shrink(w.imageSmall, 640 * K); if (w.light) w.light = await shrink(w.light, 256 * K, true); }));
+  if (sp.plaster) sp.plaster = await shrink(sp.plaster, 512 * K);
+  // the floor is a small tile repeated over the room: laid out once, whole, so a pavilion's floor (drawn as a plain wall-like surface) is not that one tile stretched
+  const fl = (sp.surfaces || []).find(q => q.kind === 'floor' && typeof q.texture === 'string' && q.size);
+  if (fl) {
+    const im = await new Promise(res => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => res(null); i.src = fl.texture; });
+    const tx = (fl.tileXY || [fl.tile || 1, fl.tile || 1]), [w, d] = fl.size;
+    if (im && w > 0 && d > 0 && tx[0] > 0 && tx[1] > 0 && (w > tx[0] * 1.5 || d > tx[1] * 1.5)) {
+      const ppm = Math.min(80 * K, 2048 / Math.max(w, d)), cv = canvas(Math.round(w * ppm), Math.round(d * ppm)), x = cv.getContext('2d');
+      for (let a = 0; a < w; a += tx[0]) for (let b = 0; b < d; b += tx[1]) x.drawImage(im, a * ppm, b * ppm, tx[0] * ppm + 1, tx[1] * ppm + 1);
+      fl.texture = cv.toDataURL('image/jpeg', 0.9); delete fl.tileXY; fl.tile = Math.max(w, d);
+    }
+  }
   return sp;
 }
 export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
@@ -1651,7 +1663,13 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     // the door wall of the original and where its door is (local x/z), then the frame: local inward direction -> the pavilion's `o`
     let n, dc, dw = DW, dh = 2.7;
     if (virt) { const s = sp.surfaces.find(q => q.name === 'wall-x1'), op = s.openings[0]; n = [-1, 0]; dc = [rm.x1, s.origin[2] + (op.from + op.to) / 2]; dw = op.to - op.from; dh = op.height || dh; }
-    else {
+    // a photographed room that has an arch (or a full-height doorway) of its own: the way in is THROUGH it, never through a picture or a hole made elsewhere
+    const dr = !virt && sp.surfaces.filter(q => q.kind === 'wall').flatMap(q => (q.openings || []).filter(op => !(op.sill > 0.05) && op.height >= 2.1 && op.to - op.from >= 0.9).map(op => ({ s: q, op })))
+      .sort((a, b) => (b.op.arch ? 1 : 0) - (a.op.arch ? 1 : 0) || (b.op.to - b.op.from) - (a.op.to - a.op.from))[0];
+    if (dr) {
+      const { s, op } = dr, m = (op.from + op.to) / 2; n = [s.normal[0], s.normal[2]]; dc = [s.origin[0] + s.u[0] * m, s.origin[2] + s.u[2] * m]; dw = op.to - op.from; dh = op.height;
+      op.through = true; op.depth = 0.2; delete op.view;
+    } else if (!virt) {
       const s = sp.surfaces.find(q => q.kind === 'wall' && Math.abs(q.normal[2] - 1) < 0.01 && q.u[0] > 0.99);
       n = [0, 1]; dc = [(rm.x0 + rm.x1) / 2, rm.z0];
       if (s) { const a = dc[0] - s.origin[0]; (s.openings = s.openings || []).push({ from: a - DW / 2, to: a + DW / 2, height: dh, arch: false, depth: 0.2, through: true, bare: true }); }
@@ -1678,7 +1696,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       let holes = [];
       if (isDoor) { const Dw = W(dc[0], dc[1]), s = (Dw[0] - A[0]) * ux + (Dw[1] - A[1]) * uz; holes = [[s - dw / 2 + T, s + dw / 2 + T, 0, dh]]; }
       let at = 0; for (const [f, t] of [...holes.map(h => [h[0], h[1]]), [L, L]].sort((p, q) => p[0] - q[0])) { if (f > at + 0.01) solids.push([A[0] + ux * at, A[1] + uz * at, A[0] + ux * f, A[1] + uz * f]); at = Math.max(at, t); }
-      wall(`${pre}skin${k}`, (A[0] + B[0]) / 2 + nv[0] * T, (A[1] + B[1]) / 2 + nv[2] * T, nv[0], nv[2], L + 2 * T, { h: H, tex: skin, holes, noSolid: true });
+      wall(`${pre}skin${k}`, (A[0] + B[0]) / 2 + nv[0] * T, (A[1] + B[1]) / 2 + nv[2] * T, nv[0], nv[2], L + 2 * T, { h: H, tex: skin, holes: holes.map(h => [L - h[1], L - h[0], h[2], h[3]]), noSolid: true });
     });
     // a recessed shadow gap at the foot and a dark line under the top, like every house
     directory.push({ title: r.title, kind: 'room', note: `${(sp.works || []).length} works`, at: [c[0] - o[0] * 5.4, c[1] - o[1] * 5.4], look: Dp });
@@ -1800,14 +1818,25 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   for (const f of faces) surfaces.push({ name: f.name, kind: 'wall', stand: f.stand, texture: face, origin: f.origin, u: f.u, v: [0, -1, 0], size: [f.len, f.h], normal: f.normal, openings: [] });
   for (const s of stands) { const a = s.rot * Math.PI / 180; solids.push([s.x - Math.cos(a) * s.len / 2, s.z - Math.sin(a) * s.len / 2, s.x + Math.cos(a) * s.len / 2, s.z + Math.sin(a) * s.len / 2]); }
   const mid = f => [f.origin[0] + f.u[0] * f.len / 2, f.origin[2] + f.u[2] * f.len / 2];
-  const spots = [4, 0, 2, 5, 1, 3, 6, 7, 8, 9, 10, 11].filter(k => k < faces.length).map(k => ({ p: mid(faces[k]), n: [faces[k].normal[0], faces[k].normal[2]], max: 150, y: 1.5 }));
+  // the work on a coulisse: the Desk may name the exhibition whose works hang on it (stand.show: its slug, or 'none' for bare faces); the rest are filled in turn, the first work of each exhibition
+  const roomOfShow = k => rooms.find(r => r.slug === k || r.id === k || r.app === k);
+  const taken = new Set(), pinned = [];
+  stands.forEach((st, si) => { if (!st.show) return; taken.add(2 * si); taken.add(2 * si + 1); const r = st.show === 'none' ? null : roomOfShow(st.show), ws = r ? r.works.filter(w => w.image) : [];
+    [0, 1].forEach(k => { if (ws[k]) pinned.push({ f: faces[2 * si + k], r, w: ws[k] }); }); });
+  const order = [4, 0, 2, 5, 1, 3, 6, 7, 8, 9, 10, 11, ...Array.from({ length: faces.length }, (_, k) => k + 12)];
+  const spots = order.filter(k => k < faces.length && !taken.has(k)).map(k => ({ p: mid(faces[k]), n: [faces[k].normal[0], faces[k].normal[2]], max: 150, y: 1.5 }));
   const heralds = rooms.map(r => ({ r, w: r.works.find(w => w.image) })).filter(q => q.w).slice(0, spots.length);
-  for (const [k, q] of heralds.entries()) {
-    const sp = spots[k], s = await sizeOf({ ...q.w, image: thumbOf(q.w) }, src), f = Math.min(sp.max / Math.max(s.w, s.h), 1.6);
-    hangAt(q.w, s.w * f / 100, s.h * f / 100, sp.p, sp.n, sp.y, { lines: [q.w.title, [q.w.artist && (q.w.artist.name || q.w.artist), q.w.year].filter(Boolean).join(', '), 'In: ' + q.r.title].filter(Boolean) });
-  }
-  const objs = rooms.flatMap(r => Object.values(r.objects || {}).slice(0, 1)).slice(0, PLAN.objects.length), at = PLAN.objects;
-  objs.forEach((ob, k) => plinthsOut.push({ id: 'pl-p' + k, x: at[k][0], z: at[k][1], size: PLINTHS.m, key: 'm', work: ob.id, obj: { id: ob.id, title: ob.title, image: ob.image, w: ob.w, h: ob.h } }));
+  const hang = async (w, r, sp) => { const s = await sizeOf({ ...w, image: thumbOf(w) }, src), f = Math.min(sp.max / Math.max(s.w, s.h), 1.6);
+    hangAt(w, s.w * f / 100, s.h * f / 100, sp.p, sp.n, sp.y, { lines: [w.title, [w.artist && (w.artist.name || w.artist), w.year].filter(Boolean).join(', '), 'In: ' + r.title].filter(Boolean) }); };
+  for (const q of pinned) await hang(q.w, q.r, { p: mid(q.f), n: [q.f.normal[0], q.f.normal[2]], max: 150, y: 1.5 });
+  for (const [k, q] of heralds.entries()) await hang(q.w, q.r, spots[k]);
+  const at = PLAN.objects, usedRoom = new Set(), objOf = r => r && Object.values(r.objects || {})[0];
+  at.forEach(q => { if (q[3] && q[3] !== 'none') usedRoom.add(roomOfShow(q[3])); });
+  at.forEach((q, k) => { let ob = null;
+    if (q[3] === 'none') ob = null; else if (q[3]) ob = objOf(roomOfShow(q[3]));
+    else { const r = rooms.find(r => objOf(r) && !usedRoom.has(r)); if (r) { usedRoom.add(r); ob = objOf(r); } }
+    const key = PLINTHS[q[2]] ? q[2] : 'm';
+    plinthsOut.push({ id: 'pl-p' + k, x: q[0], z: q[1], size: PLINTHS[key], key, work: ob ? ob.id : null, obj: ob ? { id: ob.id, title: ob.title, image: ob.image, w: ob.w, h: ob.h } : null }); });
 
   // --- history sections (wings): data, not the Desk. A section is a chain of bays that widen and rise as you walk, each open to the next
   //     through a wide opening; paintings hang at their real size (the long side as the credits say, the shape from the picture), sculpture and
@@ -1850,6 +1879,19 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
         x.font = '400 46px Georgia, serif'; x.fillStyle = 'rgba(40,36,30,0.62)'; x.fillText(sec.years || '', 512, 200);
         const q = P(oc, -0.06), th = Math.min(0.9, h - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
         surfaces.push({ name: `${sec.id}-title`, kind: 'wall', texture: jpg(cv, 0.92), origin: [q[0] - R[0] * 1.8, y1, q[1] - R[1] * 1.8], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [3.6, th], normal: [-o[0], 0, -o[1]], openings: [] });
+        // the wing's text at its entrance, beside the door (every exhibition has its text at the way in): what it is and what its rooms are
+        { const paras = [[sec.title, sec.years].filter(Boolean).join(', ') + '.', ...(sec.before && sec.after ? [`From the ${sec.before} to the ${sec.after}.`] : []), `${bays.length} rooms: ` + bays.map(q => q.title).join('; ') + '.'];
+          const pw = 1.1, ph = pw * 860 / 640, cv2 = canvas(640, 860), x2 = cv2.getContext('2d');
+          x2.fillStyle = 'rgba(250,248,244,1)'; x2.fillRect(0, 0, 640, 860); x2.strokeStyle = '#8a7a62'; x2.lineWidth = 8; x2.strokeRect(4, 4, 632, 852);
+          x2.fillStyle = 'rgba(40,36,30,0.94)'; x2.textBaseline = 'top'; let f2 = 62; x2.font = `italic 600 ${f2}px Georgia, serif`; while (x2.measureText(sec.title).width > 560 && f2 > 28) { f2 -= 2; x2.font = `italic 600 ${f2}px Georgia, serif`; }
+          x2.fillText(sec.title, 40, 40); let yy = 40 + f2 + 22; if (sec.years) { x2.font = '400 28px Georgia, serif'; x2.fillStyle = 'rgba(40,36,30,0.6)'; x2.fillText(sec.years, 40, yy); yy += 48; }
+          x2.fillStyle = 'rgba(40,36,30,0.92)'; x2.font = '400 34px Georgia, serif';
+          const lines = []; for (const para of paras.slice(1)) { let ln = ''; for (const w of para.split(/\s+/)) { const t = ln ? ln + ' ' + w : w; if (x2.measureText(t).width > 560) { lines.push(ln); ln = w; } else ln = t; } if (ln) lines.push(ln); lines.push(''); }
+          const room = Math.floor((790 - yy) / 44); lines.slice(0, room).forEach((l, k) => x2.fillText(l, 40, yy + k * 44));
+          x2.font = '600 26px system-ui, sans-serif'; x2.fillStyle = '#8a7a62'; x2.textAlign = 'center'; x2.fillText('Tap to read', 320, 812);
+          const side = dw / 2 + 0.35 + pw / 2, qq = P(oc + side - pw / 2, -0.07), o0 = [qq[0], 0.9 + ph, qq[1]], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
+          surfaces.push({ name: `${sec.id}-intro`, kind: 'wall', texture: jpg(cv2, 0.92), origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, openings: [] });
+          hotspots.push({ id: `${sec.id}-intro`, title: sec.title, sub: sec.years || '', text: paras, lang: 'en', kind: 'text', origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, enter: null }); }
       }
       if (next) {
         const A0 = Math.min(aL, next.aL), A1 = Math.max(aR, next.aR), aC = (A0 + A1) / 2, w = A1 - A0, lo = Math.max(aL, next.aL), hi = Math.min(aR, next.aR), oc = (lo + hi) / 2, dw = Math.min(bay.open || 5, hi - lo - 1.6);
@@ -1871,7 +1913,8 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
         x.font = '400 20px Georgia, serif'; x.fillStyle = 'rgba(40,36,30,0.55)'; x.fillText(bay.years || '', 30, 78); x.fillStyle = 'rgba(40,36,30,0.9)';
         (String(bay.text || '').match(/.{1,46}(\s|$)/g) || []).slice(0, 10).forEach((ln, k) => x.fillText(ln.trim(), 30, 122 + k * 32));
         const c = left.at(Math.min(1.9, len / 2)), n = left.n, u = [n[1], 0, -n[0]];
-        surfaces.push({ name: `${sec.id}${i}-text`, kind: 'wall', texture: jpg(cv, 0.92), origin: [c[0] + n[0] * 0.012 - u[0] * 0.8, 2.5, c[1] + n[1] * 0.012 - u[2] * 0.8], u, v: [0, -1, 0], size: [1.6, 1.3], normal: [n[0], 0, n[1]], openings: [] }); }
+        surfaces.push({ name: `${sec.id}${i}-text`, kind: 'wall', texture: jpg(cv, 0.92), origin: [c[0] + n[0] * 0.012 - u[0] * 0.8, 2.5, c[1] + n[1] * 0.012 - u[2] * 0.8], u, v: [0, -1, 0], size: [1.6, 1.3], normal: [n[0], 0, n[1]], openings: [] });
+        hotspots.push({ id: `${sec.id}${i}-text`, title: bay.title, sub: bay.years || '', text: [String(bay.text || bay.title)], lang: 'en', kind: 'text', origin: [c[0] + n[0] * 0.012 - u[0] * 0.8, 2.5, c[1] + n[1] * 0.012 - u[2] * 0.8], u, v: [0, -1, 0], size: [1.6, 1.3], normal: [n[0], 0, n[1]], enter: null }); }
       // paintings: along the left wall (from the way in) and the right wall, at their real size
       const runs = [{ w: left, from: 3.6 }, { w: right, from: 0.6 }], ws = (bay.works || []).map(s => cr[s]).filter(Boolean);
       const sized = [];
