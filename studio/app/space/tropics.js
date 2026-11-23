@@ -94,17 +94,39 @@ export async function addTropics({ THREE, scene, o, env, hazeRGB, loadTex, mark,
   { const pa = gg0.attributes.position; for (let i = 0; i < pa.count; i++) pa.setY(i, Hs(CX + pa.getX(i), CZ + pa.getZ(i))); pa.needsUpdate = true; }
   const ground = new THREE.Mesh(gg0, hazy(new THREE.MeshBasicMaterial({ map: macro, color: tint, toneMapped: false }), { detail }));
   ground.position.set(CX, -0.02, CZ); ground.renderOrder = -6; ground.userData.kind = 'outside'; scene.add(ground);
-  // the pond: dark water with the sky lying on it, lily pads and a few rings; its rim is hidden under the banks
+  // the pond: real reflection of the hour's sky (the sky picture itself, looked up along the mirrored view ray through small moving ripples, mirror-like at a grazing angle and
+  // dark and clear when looked down into), the far tree line and the banks darkening the rim, lily pads and flowers on top, rings where something touched the water
   {
     const c = canvas(512, 512), y = c.getContext('2d'), r = rng(31);
-    const bg = y.createRadialGradient(256, 256, 20, 256, 256, 256); bg.addColorStop(0, '#1f3a36'); bg.addColorStop(0.7, '#24453b'); bg.addColorStop(1, '#34523a'); y.fillStyle = bg; y.fillRect(0, 0, 512, 512);
-    for (let i = 0; i < 26; i++) { const py = r() * 512, px = r() * 512, w = 60 + r() * 180; const lg = y.createLinearGradient(px - w, py, px + w, py); lg.addColorStop(0, 'rgba(190,214,226,0)'); lg.addColorStop(0.5, `rgba(190,214,226,${0.1 + r() * 0.16})`); lg.addColorStop(1, 'rgba(190,214,226,0)'); y.fillStyle = lg; y.fillRect(px - w, py - 2 - r() * 3, 2 * w, 2 + r() * 4); }
     for (let i = 0; i < 46; i++) { const a = r() * 6.28, rr = Math.sqrt(r()) * 215, px = 256 + Math.cos(a) * rr, py = 256 + Math.sin(a) * rr, s = 9 + r() * 15, rot = r() * 6.28;
       y.fillStyle = `rgb(${50 + r() * 24},${96 + r() * 30},${46 + r() * 16})`; y.beginPath(); y.moveTo(px, py); y.arc(px, py, s, rot, rot + 5.5); y.closePath(); y.fill();
       y.strokeStyle = 'rgba(20,40,20,0.5)'; y.lineWidth = 1; y.stroke(); if (r() < 0.2) { y.fillStyle = r() < 0.6 ? '#f1c7d6' : '#fff3e6'; y.beginPath(); y.arc(px + s * 0.2, py - s * 0.1, 2.6, 0, 6.3); y.fill(); } }
-    for (let i = 0; i < 9; i++) { const px = 90 + r() * 330, py = 90 + r() * 330; for (let k = 1; k < 4; k++) { y.strokeStyle = `rgba(210,228,236,${0.22 - k * 0.05})`; y.lineWidth = 1.2; y.beginPath(); y.ellipse(px, py, k * 7, k * 4.5, 0, 0, 6.3); y.stroke(); } }
     const wt = new THREE.CanvasTexture(c); wt.colorSpace = THREE.SRGBColorSpace; wt.anisotropy = 4;
-    const wm = new THREE.Mesh(new THREE.CircleGeometry(1, 56), hazy(new THREE.MeshBasicMaterial({ map: wt, color: tint, toneMapped: false })));
+    const lin = (r, g, b) => new THREE.Color(r / 255, g / 255, b / 255).convertSRGBToLinear();
+    const sky = scene.background && scene.background.isTexture ? scene.background : null;
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { uSky: { value: sky }, uPads: { value: wt }, uTime: uT, uHaze: { value: haze }, uTint: { value: tint.clone().convertSRGBToLinear() }, uDeep: { value: lin(16, 36, 32).multiply(tint) }, uFoliage: { value: lin(30, 52, 34).multiply(tint) } },
+      vertexShader: 'varying vec2 vUv; varying vec3 vWp; varying float vDist;\nvoid main() { vUv = uv; vec4 wp = modelMatrix * vec4(position, 1.0); vWp = wp.xyz; vec4 mv = viewMatrix * wp; vDist = length(mv.xyz); gl_Position = projectionMatrix * mv; }',
+      fragmentShader: `uniform sampler2D uSky; uniform sampler2D uPads; uniform float uTime; uniform vec3 uHaze; uniform vec3 uTint; uniform vec3 uDeep; uniform vec3 uFoliage;
+varying vec2 vUv; varying vec3 vWp; varying float vDist;
+void main() {
+  vec3 V = normalize(vWp - cameraPosition); vec2 p = vWp.xz; float t = uTime;
+  float dx = cos(p.x * 1.7 + p.y * 0.9 + t * 1.3) * 0.35 + cos(p.x * 3.9 - p.y * 2.3 + t * 2.1) * 0.18 + cos(p.x * 0.6 + p.y * 1.4 - t * 0.7) * 0.5 + cos(p.x * 9.0 + p.y * 7.0 + t * 3.0) * 0.06;
+  float dz = cos(p.y * 1.5 - p.x * 0.8 + t * 1.1) * 0.35 + cos(p.y * 4.3 + p.x * 1.9 - t * 1.9) * 0.18 + cos(p.x * 1.1 - p.y * 0.5 + t * 0.6) * 0.5 + cos(p.x * 8.0 - p.y * 8.5 - t * 2.6) * 0.06;
+  vec3 n = normalize(vec3(dx * 0.03, 1.0, dz * 0.03));
+  vec3 R = reflect(V, n); R.y = abs(R.y);
+  float cv = clamp(dot(-V, n), 0.0, 1.0), F = 0.03 + 0.97 * pow(1.0 - cv, 5.0);
+  vec3 sk = texture2D(uSky, vec2(atan(R.z, R.x) / 6.2831853 + 0.5, asin(clamp(R.y, -1.0, 1.0)) / 3.14159265 + 0.5)).rgb;
+  sk = mix(sk, uFoliage * (0.8 + 0.4 * sin(atan(R.z, R.x) * 23.0)), smoothstep(0.26, 0.04, R.y) * 0.72);      // the far tree line lying in the water
+  float rr = length(vUv - 0.5) * 2.0; sk = mix(sk, uFoliage * 0.7, smoothstep(0.66, 1.0, rr) * 0.7);            // the banks
+  vec3 col = mix(uDeep, sk, clamp(F * 0.95 + 0.10, 0.0, 1.0));
+  vec4 pad = texture2D(uPads, vUv); col = mix(col, pad.rgb * uTint, pad.a);
+  gl_FragColor = vec4(col, 1.0);
+  #include <colorspace_fragment>
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, uHaze, smoothstep(28.0, 190.0, vDist) * 0.88);
+}`,
+    });
+    const wm = new THREE.Mesh(new THREE.CircleGeometry(1, 56), mat);
     wm.rotation.x = -Math.PI / 2; wm.scale.set(POND.rx * 1.12, POND.rz * 1.12, 1); wm.position.set(POND.x, 0, POND.z); wm.renderOrder = -5; wm.userData.kind = 'outside'; scene.add(wm);
   }
 
