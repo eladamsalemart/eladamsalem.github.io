@@ -1861,7 +1861,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   const stands = PLAN.stands.map(q => ({ ...q }));
   const faces = standWalls(stands), face = (() => { const c = canvas(256, 256), x = c.getContext('2d'); x.fillStyle = tintHex('#f6f4ef', { tint: tIn.map(v => Math.pow(v, 0.55)) }); x.fillRect(0, 0, 256, 256);
     const b = x.createLinearGradient(0, 200, 0, 256); b.addColorStop(0, 'rgba(70,58,44,0)'); b.addColorStop(1, 'rgba(70,58,44,0.16)'); x.fillStyle = b; x.fillRect(0, 200, 256, 56); return jpg(c); })();
-  for (const f of faces) surfaces.push({ name: f.name, kind: 'wall', stand: f.stand, texture: face, origin: f.origin, u: f.u, v: [0, -1, 0], size: [f.len, f.h], normal: f.normal, openings: [] });
+  for (const f of faces) surfaces.push({ name: f.name, kind: 'wall', stand: f.stand, texture: face, origin: f.origin, u: f.u, v: [0, -1, 0], size: [f.len, f.h], normal: f.normal, openings: [], detail: { texture: PLASTER_TILE, m: 1.6, k: 1.4 }, capT: STAND.t });
   for (const s of stands) { const a = s.rot * Math.PI / 180; solids.push([s.x - Math.cos(a) * s.len / 2, s.z - Math.sin(a) * s.len / 2, s.x + Math.cos(a) * s.len / 2, s.z + Math.sin(a) * s.len / 2]); }
   const mid = f => [f.origin[0] + f.u[0] * f.len / 2, f.origin[2] + f.u[2] * f.len / 2];
   // the work on a coulisse: the Desk may name the exhibition whose works hang on it (stand.show: its slug, or 'none' for bare faces); the rest are filled in turn, the first work of each exhibition

@@ -253,6 +253,11 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       m.userData.kind = s.kind; if (s.stand) m.userData.stand = s.stand; scene.add(m);
       if (spec.mirrorSurface && s.name === spec.mirrorSurface.name) hallMirror(m, s);
       for (const o of s.openings || []) addOpening(s, o);
+      if (s.stand && s.capT && /-a$/.test(s.name)) {   // a coulisse is a board, not two sheets: a solid core a hair inside its two faces shows its top and both ends
+        const Uc = V(s.u), Nc = V(s.normal), Oc = V(s.origin), t = s.capT, L = s.size[0], h = s.size[1];
+        const core = new THREE.Mesh(new THREE.BoxGeometry(L, h, t - 0.006), room(new THREE.MeshBasicMaterial({ color: '#ebe9e4', toneMapped: false })));
+        core.position.copy(Oc).addScaledVector(Nc, -t / 2).addScaledVector(Uc, L / 2); core.position.y = Oc.y - h / 2; core.rotation.y = Math.atan2(-Uc.z, Uc.x); core.userData.kind = 'reveal'; scene.add(core);
+      }
       if (/^part-\d+a$/.test(s.name)) {            // wall-top cap of a partition: the 0.3 m between its two faces, so the top edge is a surface, not a gap
         const Uc = V(s.u), Nc = V(s.normal), Oc = V(s.origin), L = s.size[0], T = 0.3;
         const P = (u, d) => Oc.clone().addScaledVector(Uc, u).addScaledVector(Nc, -d);
