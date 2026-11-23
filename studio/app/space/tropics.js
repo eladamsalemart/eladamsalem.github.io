@@ -34,8 +34,25 @@ export async function addTropics({ THREE, scene, o, env, hazeRGB, loadTex, mark,
     return mat;
   };
 
+  // --- the land: gentle mounds and hollows that grow with the distance from the glass (flat on the terrace and along the path), and a pond
+  // east of the hall in a bowl whose banks rise above the water. H is sampled from one coarse grid (bilinear) by the ground, the plants and the light.
+  const SPAN = 300, GN = 256, GS = SPAN / GN, POND = { x: HX + 27, z: 27, rx: 13, rz: 8.5 };
+  const pondQ = (px, pz) => Math.hypot((px - POND.x) / POND.rx, (pz - POND.z) / POND.rz);
+  const heightRaw = (px, pz) => {
+    const d = dist(px, pz), q = pondQ(px, pz), pw = Math.abs(px - (ent[0] + ent[1]) / 2), flat = pz > HZ ? clamp((pw - 5) / 9, 0, 1) : 1;
+    const m = clamp((fbm(px / 23 + 3, pz / 23 - 8) - 0.40) * 2.2, 0, 1), amp = clamp((d - 7) / 34, 0, 1) * 5.2;
+    const bank = q < 1.3 ? -0.7 + 1.1 * clamp((q - 0.7) / 0.6, 0, 1) : 0.4 * clamp(1 - (q - 1.3) / 1.2, 0, 1);
+    return m * amp * flat * clamp((q - 1.3) / 1.6, 0, 1) + bank;
+  };
+  const HG = new Float32Array((GN + 1) * (GN + 1));
+  for (let j = 0; j <= GN; j++) for (let i = 0; i <= GN; i++) HG[j * (GN + 1) + i] = heightRaw(CX - SPAN / 2 + i * GS, CZ - SPAN / 2 + j * GS);
+  const Hs = (px, pz) => {
+    const u = clamp((px - (CX - SPAN / 2)) / GS, 0, GN - 0.001), v = clamp((pz - (CZ - SPAN / 2)) / GS, 0, GN - 0.001), i = Math.floor(u), j = Math.floor(v), fu = u - i, fv = v - j, W = GN + 1;
+    return HG[j * W + i] * (1 - fu) * (1 - fv) + HG[j * W + i + 1] * fu * (1 - fv) + HG[(j + 1) * W + i] * (1 - fu) * fv + HG[(j + 1) * W + i + 1] * fu * fv;
+  };
+
   // --- the ground: a macro painting (lawn, planted beds, the path from the entrance) under a fine grass detail that is mixed in near the eye
-  const SPAN = 300, MP = 1024, g = canvas(MP, MP), x = g.getContext('2d');
+  const MP = 1024, g = canvas(MP, MP), x = g.getContext('2d');
   {
     const id = x.createImageData(MP, MP), d = id.data, w2c = (i, j) => [CX - SPAN / 2 + (i + 0.5) / MP * SPAN, CZ - SPAN / 2 + (j + 0.5) / MP * SPAN];
     for (let j = 0; j < MP; j++) for (let i = 0; i < MP; i++) {
@@ -46,6 +63,9 @@ export async function addTropics({ THREE, scene, o, env, hazeRGB, loadTex, mark,
       // the path from the way in: pale stone fading into the lawn, 8 m wide
       const pw = Math.abs(wx - (ent[0] + ent[1]) / 2), pk = wz > HZ ? clamp(1 - (pw - 3.6) / 1.4, 0, 1) * clamp(1 - (wz - HZ - 70) / 30, 0, 1) : 0;
       r = r * (1 - pk) + (150 + n2 * 20) * pk; gg = gg * (1 - pk) + (146 + n2 * 20) * pk; b = b * (1 - pk) + (132 + n2 * 20) * pk;
+      // wet mud round the pond, then the light of a low sun on the mounds (a slope facing it is lighter, the lee side darker)
+      const mq = pondQ(wx, wz), mud = clamp((1.6 - mq) / 0.5, 0, 1) * (0.6 + n2 * 0.4); r = r * (1 - mud) + (62 + n2 * 22) * mud; gg = gg * (1 - mud) + (52 + n2 * 18) * mud; b = b * (1 - mud) + (36 + n2 * 10) * mud;
+      const sl = clamp((Hs(wx - 1.6, wz - 1.6) - Hs(wx + 1.6, wz + 1.6)) * 0.2, -0.4, 0.4) + 1; r *= sl; gg *= sl; b *= sl;
       const k = (j * MP + i) * 4; d[k] = r; d[k + 1] = gg; d[k + 2] = b; d[k + 3] = 255;
     }
     x.putImageData(id, 0, 0);
@@ -57,8 +77,23 @@ export async function addTropics({ THREE, scene, o, env, hazeRGB, loadTex, mark,
     for (let i = 0; i < 60; i++) { const px = r() * 256, py = r() * 256, rr = 6 + r() * 14; const gr = dx.createRadialGradient(px, py, 0, px, py, rr); gr.addColorStop(0, 'rgba(50,50,40,0.18)'); gr.addColorStop(1, 'rgba(50,50,40,0)'); dx.fillStyle = gr; dx.fillRect(px - rr, py - rr, 2 * rr, 2 * rr); }
   }
   const detail = new THREE.CanvasTexture(det); detail.wrapS = detail.wrapT = THREE.RepeatWrapping; detail.colorSpace = THREE.SRGBColorSpace; detail.anisotropy = 4;
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(SPAN, SPAN), hazy(new THREE.MeshBasicMaterial({ map: macro, color: tint, toneMapped: false }), { detail }));
-  ground.rotation.x = -Math.PI / 2; ground.position.set(CX, -0.02, CZ); ground.renderOrder = -6; ground.userData.kind = 'outside'; scene.add(ground);
+  const gg0 = new THREE.PlaneGeometry(SPAN, SPAN, phone ? 80 : 112, phone ? 80 : 112); gg0.rotateX(-Math.PI / 2);
+  { const pa = gg0.attributes.position; for (let i = 0; i < pa.count; i++) pa.setY(i, Hs(CX + pa.getX(i), CZ + pa.getZ(i))); pa.needsUpdate = true; }
+  const ground = new THREE.Mesh(gg0, hazy(new THREE.MeshBasicMaterial({ map: macro, color: tint, toneMapped: false }), { detail }));
+  ground.position.set(CX, -0.02, CZ); ground.renderOrder = -6; ground.userData.kind = 'outside'; scene.add(ground);
+  // the pond: dark water with the sky lying on it, lily pads and a few rings; its rim is hidden under the banks
+  {
+    const c = canvas(512, 512), y = c.getContext('2d'), r = rng(31);
+    const bg = y.createRadialGradient(256, 256, 20, 256, 256, 256); bg.addColorStop(0, '#1f3a36'); bg.addColorStop(0.7, '#24453b'); bg.addColorStop(1, '#34523a'); y.fillStyle = bg; y.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 26; i++) { const py = r() * 512, px = r() * 512, w = 60 + r() * 180; const lg = y.createLinearGradient(px - w, py, px + w, py); lg.addColorStop(0, 'rgba(190,214,226,0)'); lg.addColorStop(0.5, `rgba(190,214,226,${0.1 + r() * 0.16})`); lg.addColorStop(1, 'rgba(190,214,226,0)'); y.fillStyle = lg; y.fillRect(px - w, py - 2 - r() * 3, 2 * w, 2 + r() * 4); }
+    for (let i = 0; i < 46; i++) { const a = r() * 6.28, rr = Math.sqrt(r()) * 215, px = 256 + Math.cos(a) * rr, py = 256 + Math.sin(a) * rr, s = 9 + r() * 15, rot = r() * 6.28;
+      y.fillStyle = `rgb(${50 + r() * 24},${96 + r() * 30},${46 + r() * 16})`; y.beginPath(); y.moveTo(px, py); y.arc(px, py, s, rot, rot + 5.5); y.closePath(); y.fill();
+      y.strokeStyle = 'rgba(20,40,20,0.5)'; y.lineWidth = 1; y.stroke(); if (r() < 0.2) { y.fillStyle = r() < 0.6 ? '#f1c7d6' : '#fff3e6'; y.beginPath(); y.arc(px + s * 0.2, py - s * 0.1, 2.6, 0, 6.3); y.fill(); } }
+    for (let i = 0; i < 9; i++) { const px = 90 + r() * 330, py = 90 + r() * 330; for (let k = 1; k < 4; k++) { y.strokeStyle = `rgba(210,228,236,${0.22 - k * 0.05})`; y.lineWidth = 1.2; y.beginPath(); y.ellipse(px, py, k * 7, k * 4.5, 0, 0, 6.3); y.stroke(); } }
+    const wt = new THREE.CanvasTexture(c); wt.colorSpace = THREE.SRGBColorSpace; wt.anisotropy = 4;
+    const wm = new THREE.Mesh(new THREE.CircleGeometry(1, 56), hazy(new THREE.MeshBasicMaterial({ map: wt, color: tint, toneMapped: false })));
+    wm.rotation.x = -Math.PI / 2; wm.scale.set(POND.rx * 1.12, POND.rz * 1.12, 1); wm.position.set(POND.x, 0, POND.z); wm.renderOrder = -5; wm.userData.kind = 'outside'; scene.add(wm);
+  }
 
   // --- the terrace: wet stone slabs all round the glass, 4.2 m wide (dark and glossy, with the sky lying in the shallow puddles), a lip of darker stone at its edge
   {
@@ -110,10 +145,10 @@ export async function addTropics({ THREE, scene, o, env, hazeRGB, loadTex, mark,
   const scatter = (kinds, n, d0, d1, dens, opt = {}) => {
     let placed = 0, tries = 0;
     while (placed < n && tries++ < n * 40) {
-      const pp = pick(d0, d1); if (!pp) continue; const [px, pz] = pp; if (clearPath(px, pz)) continue;
+      const pp = pick(d0, d1); if (!pp) continue; const [px, pz] = pp; if (clearPath(px, pz) || pondQ(px, pz) < 1.35) continue;
       const nz = fbm(px / 11 + opt.seed, pz / 11); if (nz < dens) continue;
       const k = kinds[Math.floor(r() * kinds.length)], sc = (opt.s0 || 0.8) + r() * ((opt.s1 || 1.3) - (opt.s0 || 0.8));
-      lists[k].push([px, 0, pz, sc, r() * Math.PI * 2, 0.85 + r() * 0.3, 0.9 + r() * 0.2, 0.8 + r() * 0.25]); placed++;
+      lists[k].push([px, Hs(px, pz) - 0.05, pz, sc, r() * Math.PI * 2, 0.85 + r() * 0.3, 0.9 + r() * 0.2, 0.8 + r() * 0.25]); placed++;
     }
   };
   const pc = phone ? 0.75 : 1;
@@ -124,18 +159,20 @@ export async function addTropics({ THREE, scene, o, env, hazeRGB, loadTex, mark,
   scatter(['banana', 'banana2'], Math.round(55 * pc), 6, 70, 0.45, { seed: 5, s0: 1.0, s1: 1.7 });
   scatter(['fern', 'monstera', 'shrub'], Math.round(150 * pc), 30, 100, 0.36, { seed: 6, s0: 1.6, s1: 3.0 });
   scatter(['banana', 'banana2', 'heli'], Math.round(60 * pc), 30, 100, 0.4, { seed: 7, s0: 1.3, s1: 2.2 });
+  { for (let n = 0, t = 0; n < Math.round(70 * pc) && t < 900; t++) { const a = r() * 6.28, q = 1.22 + r() * 0.9, px = POND.x + Math.cos(a) * POND.rx * q, pz = POND.z + Math.sin(a) * POND.rz * q; if (clearPath(px, pz) || dist(px, pz) < 3.4) continue;
+      const k = ['fern', 'fern2', 'heli', 'monstera', 'shrub'][Math.floor(r() * 5)]; lists[k].push([px, Hs(px, pz) - 0.05, pz, 0.9 + r() * 1.0, r() * 6.28, 0.85 + r() * 0.3, 0.9 + r() * 0.2, 0.8 + r() * 0.25]); n++; } }
   // palms: trunk + crown (two crossed side cards and one flat card seen from below) + sometimes a curtain of vines
   const palms = []; { let placed = 0, tries = 0; const N = Math.round(62 * pc);
     while (placed < N && tries++ < N * 60) {
-      const near = placed < N * 0.45, pp = pick(near ? 7 : 40, near ? 50 : 112); if (!pp) continue; const [px, pz] = pp; if (clearPath(px, pz)) continue;
+      const near = placed < N * 0.45, pp = pick(near ? 7 : 40, near ? 50 : 112); if (!pp) continue; const [px, pz] = pp; if (clearPath(px, pz) || pondQ(px, pz) < 1.5) continue;
       if (fbm(px / 13 + 20, pz / 13) < 0.4) continue; if (palms.some(q => Math.hypot(q[0] - px, q[1] - pz) < (near ? 5 : 8))) continue;
       const h = (near ? 6 + r() * 8 : 12 + r() * 10), rad = 0.2 + h * 0.012, lx = (r() - 0.5) * 0.14, lz = (r() - 0.5) * 0.14; palms.push([px, pz, h, rad, lx, lz]); placed++;
     } }
   for (const [px, pz, h, rad, lx, lz] of palms) {
     barkL.push([px, pz, h, rad, lx, lz]);
-    const tx = px + lx * h, tz = pz + lz * h, sc = clamp(h / 10, 0.7, 1.5), yaw = r() * 6.28, A = r() < 0.5, col = [0.88 + r() * 0.2, 0.92 + r() * 0.16, 0.8 + r() * 0.2];
-    lists[A ? 'palmA' : 'palmB'].push([tx, h, tz, sc, yaw, ...col]); lists[A ? 'palmAb' : 'palmBb'].push([tx, h - 0.4, tz, sc, yaw, ...col]);
-    if (r() < 0.55) lists.vine.push([tx + (r() - 0.5) * 2.4, h - 4.0 * 1.3 - 0.3, tz + (r() - 0.5) * 2.4, 1.3, r() * 6.28, 0.9, 0.95, 0.85]);
+    const gy = Hs(px, pz), tx = px + lx * h, tz = pz + lz * h, sc = clamp(h / 10, 0.7, 1.5), yaw = r() * 6.28, A = r() < 0.5, col = [0.88 + r() * 0.2, 0.92 + r() * 0.16, 0.8 + r() * 0.2];
+    lists[A ? 'palmA' : 'palmB'].push([tx, h + gy, tz, sc, yaw, ...col]); lists[A ? 'palmAb' : 'palmBb'].push([tx, h + gy - 0.4, tz, sc, yaw, ...col]);
+    if (r() < 0.55) lists.vine.push([tx + (r() - 0.5) * 2.4, h + gy - 4.0 * 1.3 - 0.3, tz + (r() - 0.5) * 2.4, 1.3, r() * 6.28, 0.9, 0.95, 0.85]);
   }
   // a dark soft patch of earth under every plant (the plants stand IN the ground, not on it)
   { const gx = g.getContext('2d'); gx.globalCompositeOperation = 'source-over'; for (const k in KINDS) { if (KINDS[k].flat || k === 'vine') continue; for (const rw of lists[k]) { const px = (rw[0] - (CX - SPAN / 2)) / SPAN * MP, py = (rw[2] - (CZ - SPAN / 2)) / SPAN * MP, rad = Math.max(1.5, KINDS[k].S * rw[3] * 0.3 / SPAN * MP);
@@ -155,7 +192,7 @@ export async function addTropics({ THREE, scene, o, env, hazeRGB, loadTex, mark,
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
     const geo = new THREE.CylinderGeometry(0.62, 1, 1, 8, 1, true); geo.translate(0, 0.5, 0);
     const mat = hazy(new THREE.MeshBasicMaterial({ map: t, color: tint, toneMapped: false }));
-    instanced(geo, mat, barkL.map(b => [b[0], b[1], b[2], b[3], b[4], 1, 1, 1, b[5]]), (dm, b) => { dm.position.set(b[0], 0, b[1]); dm.rotation.set(b[8], 0, -b[4]); dm.scale.set(b[3], b[2], b[3]); });
+    instanced(geo, mat, barkL.map(b => [b[0], b[1], b[2], b[3], b[4], 1, 1, 1, b[5]]), (dm, b) => { dm.position.set(b[0], Hs(b[0], b[1]) - 0.15, b[1]); dm.rotation.set(b[8], 0, -b[4]); dm.scale.set(b[3], b[2], b[3]); });
   }
   mark();
 }
