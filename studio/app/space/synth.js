@@ -708,6 +708,7 @@ const jpg = (c, q = 0.92) => c.toDataURL('image/jpeg', q);
 let terrazzoTile = null;
 // the pavilions' outer skin: Poly Haven's CC0 plaster as a grey detail tile (space/rooms/detail_tiles.py), laid at its true scale
 const PLASTER_TILE = new URL('../data/rooms/detail/plaster.jpg', import.meta.url).href;
+const CONCRETE_TILE = new URL('../data/rooms/detail/concrete.jpg', import.meta.url).href, CLAY_TILE = new URL('../data/rooms/detail/clay.jpg', import.meta.url).href;
 function terrazzoDetail() {
   if (terrazzoTile) return terrazzoTile;
   const N = 512, r = rng(77), c = canvas(N, N), x = c.getContext('2d');
@@ -1693,11 +1694,13 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     if (dr) {
       const { s, op } = dr, m = (op.from + op.to) / 2; n = [s.normal[0], s.normal[2]]; dc = [s.origin[0] + s.u[0] * m, s.origin[2] + s.u[2] * m]; dw = op.to - op.from; dh = op.height;
       // EVERY real opening of that wall is a way out into the museum (the owner, 23.11: Ritual's second arch was left blocked by its photo): none stays a picture of what was behind it
-      ways = s.openings.filter(walkable).map(q => { const mm = (q.from + q.to) / 2; q.through = true; q.depth = T; delete q.view; return { c: [s.origin[0] + s.u[0] * mm, s.origin[2] + s.u[2] * mm], w: q.to - q.from, h: q.height }; });
-      // the photographed sides of an opening (its reveals) reached into the next room; here they end flush with the plaster skin, not sticking out of it
-      s.openings.forEach((q, k) => { if (!q.through) return; const out = [-s.normal[0], -s.normal[1], -s.normal[2]], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-        for (const r of sp.surfaces.filter(x => x.kind === 'reveal' && x.name.startsWith(`${s.name}-o${k}-`))) [['u', 0], ['v', 1]].forEach(([ax, i]) => { const d = dot(r[ax], out); if (Math.abs(d) < 0.9 || r.size[i] <= T) return;
-          if (d < 0) r.origin = r.origin.map((v, j) => v - out[j] * (r.size[i] - T)); r.size = r.size.map((v, j) => j === i ? T : v); r.cull = true; }); });
+      // one wall, one thickness: the room's own wall only marks the openings (no depth of its own, its photographed reveals dropped); the plaster skin
+      //   outside carries the whole thickness, cut to the SAME shapes (the arch as an arch, the doorway as a doorway), so each opening has both jambs
+      //   and its head through the full wall (the lead's review, 23.11: a rectangle cut in front of the arch, a jamb missing, a loose slab between)
+      ways = s.openings.filter(walkable).map(q => { const mm = (q.from + q.to) / 2; q.through = true; q.bare = true; q.depth = 0.01; delete q.view;
+        return { c: [s.origin[0] + s.u[0] * mm, s.origin[2] + s.u[2] * mm], w: q.to - q.from, h: q.height, arch: !!q.arch, rise: q.rise }; });
+      const gone = new Set(s.openings.map((q, k) => q.through ? `${s.name}-o${k}-` : null).filter(Boolean));
+      sp.surfaces = sp.surfaces.filter(x => !(x.kind === 'reveal' && [...gone].some(g => x.name.startsWith(g))));
       dws = { s, ops: s.openings };
     } else if (!virt) {
       const s = sp.surfaces.find(q => q.kind === 'wall' && Math.abs(q.normal[2] - 1) < 0.01 && q.u[0] > 0.99);
@@ -1724,10 +1727,12 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       const A = W(a[0], a[1]), B = W(b[0], b[1]), L = Math.hypot(B[0] - A[0], B[1] - A[1]), ux = (B[0] - A[0]) / L, uz = (B[1] - A[1]) / L;
       const isDoor = Math.abs(out[0] * n[0] + out[1] * n[1] + 1) < 0.01, nv = V([out[0], 0, out[1]]);
       let holes = [];
-      if (isDoor) holes = (ways || [{ c: dc, w: dw, h: dh }]).map(g => { const Dw = W(g.c[0], g.c[1]), s = (Dw[0] - A[0]) * ux + (Dw[1] - A[1]) * uz; return [s - g.w / 2 + T, s + g.w / 2 + T, 0, g.h]; }).sort((p, q) => p[0] - q[0]);
-      let at = 0; for (const [f, t] of [...holes.map(h => [h[0], h[1]]), [L, L]].sort((p, q) => p[0] - q[0])) { if (f > at + 0.01) solids.push([A[0] + ux * at, A[1] + uz * at, A[0] + ux * f, A[1] + uz * f]); at = Math.max(at, t); }
+      let shapes = [];
+      if (isDoor) { shapes = (ways || [{ c: dc, w: dw, h: dh }]).map(g => { const Dw = W(g.c[0], g.c[1]), s = (Dw[0] - A[0]) * ux + (Dw[1] - A[1]) * uz; return { h: [s - g.w / 2 + T, s + g.w / 2 + T, 0, g.h], arch: !!g.arch, rise: g.rise }; }).sort((p, q) => p.h[0] - q.h[0]); holes = shapes.map(x => x.h); }
+      let at = 0; for (const [f, t] of [...holes.map(h => [h[0] - T, h[1] - T]), [L, L]].sort((p, q) => p[0] - q[0])) { if (f > at + 0.01) solids.push([A[0] + ux * at, A[1] + uz * at, A[0] + ux * f, A[1] + uz * f]); at = Math.max(at, t); }
       wall(`${pre}skin${k}`, (A[0] + B[0]) / 2 + nv[0] * T, (A[1] + B[1]) / 2 + nv[2] * T, nv[0], nv[2], L + 2 * T, { h: H, tex: skin, holes: holes.map(h => [L - h[1], L - h[0], h[2], h[3]]), noSolid: true });
-      surfaces[surfaces.length - 1].detail = { texture: PLASTER_TILE, m: 1.6, k: 2.2 };      // (outside only: lime plaster at its true grain, not the gallery's painted wall)
+      // (no plaster-grain layer here: next to the tour's smooth plaster it read noisy, with a seam where its tile repeated; the lead's review, 23.11)
+      if (shapes.length) surfaces[surfaces.length - 1].openings = shapes.map(x => ({ from: L + 2 * T - x.h[1], to: L + 2 * T - x.h[0], height: x.h[3], sill: 0, arch: x.arch, rise: x.rise, depth: T + 0.03, through: true, bare: !x.arch }));
     });
     // a recessed shadow gap at the foot and a dark line under the top, like every house
     directory.push({ title: r.title, kind: 'room', note: `${(sp.works || []).length} works`, at: [c[0] - o[0] * 5.4, c[1] - o[1] * 5.4], look: Dp });
@@ -1772,6 +1777,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     const rim = (nm, a0, a1, y0, y1) => { const q = P(a0, -0.012); surfaces.push({ name: `rim${i}${nm}`, kind: 'wall', texture: rimTex, origin: [q[0], y1, q[1]], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [a1 - a0, y1 - y0], normal: [-o[0], 0, -o[1]], openings: [] }); };
     rim('l', -M2 - RIM, -M2, 0, DOOR_H + RIM); rim('r', M2, M2 + RIM, 0, DOOR_H + RIM); rim('t', -M2 - RIM, M2 + RIM, DOOR_H, DOOR_H + RIM);
     orect(`r${i}-floor`, 'wall', P, R, o, A0, A1, VD, VD + RD, 0.03, true, floorTex(fl));
+    if (fl) surfaces[surfaces.length - 1].detail = { texture: fl === 1 ? CONCRETE_TILE : CLAY_TILE, m: fl === 1 ? 2 : 1.6, k: fl === 1 ? 2.4 : 1.8 };      // (the concrete and the pale plaster floors: the real material's fine grain at its true scale; oak has its boards)
     orect(`r${i}-ceil`, 'ceiling', P, R, o, A0, A1, VD, VD + RD, rh, false, ceil);
     wall(`r${i}-front`, ...P(0, VD), o[0], o[1], RW, { holes: [[A1 - M2, A1 + M2]], h: rh, tex: roomWall });
     const runs = [wall(`r${i}-left`, ...P(A0, VD + RD / 2), R[0], R[1], RD, { h: rh, tex: roomWall }), wall(`r${i}-back`, ...P(0, VD + RD), -o[0], -o[1], RW, { h: rh, tex: roomWall }), wall(`r${i}-right`, ...P(A1, VD + RD / 2), -R[0], -R[1], RD, { h: rh, tex: roomWall })];
