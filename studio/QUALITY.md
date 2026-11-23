@@ -107,3 +107,9 @@ Show works at their real size, lit as in a gallery.
 5. Quality pass: put it beside the best room in the app. If it is worse, it isn't done.
 6. Read your diff for anything removed by accident.
 7. Report in Hebrew what you saw working, with one shot, and say plainly what was not checked.
+
+**A screenshot can lie.** Prove an effect by its mechanism (a tint test, a pixel read, a measured value), not only by one image.
+A test for it must fail before the fix and pass after. (24.11: Ritual's floor reflection was approved on one picture while the
+mirror stood at the origin under the hall floor and drew nothing; the gloss in the picture was the hall's own floor showing
+through. `studio/app/tests/pad_mirror.cjs` now tints the mirror red and reads the floor's pixels.)
+
