@@ -54,6 +54,7 @@ Stop early, without starting new work, if the weekly usage is above 85%. Write w
    request, the transitions between exhibitions. Only after 1–5.
 
 ## LEARNINGS (newest first; keep short, prune what no longer helps)
+- 24.11 run stopped before work: weekly usage 95% (>85%). Nothing measured or changed; queue item 1 is still next. Resumes after the weekly reset (28.11 ~19:00).
 - 24.11 (from the work so far): memory is saved where the visitor isn't looking. Far works are held small and get
   full size on approach, at most 2 at a time. Measure as a real phone: `?inspect` without `&phone=1` turns phone mode
   off and doubles memory. A frame loop that returns early while the visitor stands still blocked the full-size swap
