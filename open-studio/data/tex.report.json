@@ -1,7 +1,7 @@
 {
  "images": 361,
- "listed": 189,
- "made_now": 182,
+ "listed": 146,
+ "made_now": 141,
  "fails": [
   "media/works/img-5877-1780926453069.jpg: 768px uastc: psnr 37.81 dE 0.636 shift 0.089"
  ],
