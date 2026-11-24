@@ -883,6 +883,111 @@
    "column_default": null
   },
   {
+   "table_name": "work_items",
+   "column_name": "id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": "gen_random_uuid()"
+  },
+  {
+   "table_name": "work_items",
+   "column_name": "title",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "work_items",
+   "column_name": "details",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "''::text"
+  },
+  {
+   "table_name": "work_items",
+   "column_name": "priority",
+   "data_type": "integer",
+   "is_nullable": "NO",
+   "column_default": "2"
+  },
+  {
+   "table_name": "work_items",
+   "column_name": "status",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'new'::text"
+  },
+  {
+   "table_name": "work_items",
+   "column_name": "area",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'other'::text"
+  },
+  {
+   "table_name": "work_items",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "work_items",
+   "column_name": "updated_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "work_items",
+   "column_name": "created_by",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'owner'::text"
+  },
+  {
+   "table_name": "work_items",
+   "column_name": "seen_by_lead_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "work_notes",
+   "column_name": "id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": "gen_random_uuid()"
+  },
+  {
+   "table_name": "work_notes",
+   "column_name": "item_id",
+   "data_type": "uuid",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "work_notes",
+   "column_name": "author",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": "'owner'::text"
+  },
+  {
+   "table_name": "work_notes",
+   "column_name": "body",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "work_notes",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
    "table_name": "works",
    "column_name": "id",
    "data_type": "uuid",
@@ -1212,6 +1317,36 @@
    "table": "virtual_shows",
    "conname": "virtual_shows_title_check",
    "def": "CHECK (((length(title) >= 1) AND (length(title) <= 160)))"
+  },
+  {
+   "table": "work_items",
+   "conname": "work_items_area_check",
+   "def": "CHECK ((area = ANY (ARRAY['museum'::text, 'art'::text, 'tours'::text, 'app'::text, 'other'::text])))"
+  },
+  {
+   "table": "work_items",
+   "conname": "work_items_priority_check",
+   "def": "CHECK (((priority >= 1) AND (priority <= 3)))"
+  },
+  {
+   "table": "work_items",
+   "conname": "work_items_status_check",
+   "def": "CHECK ((status = ANY (ARRAY['new'::text, 'planned'::text, 'in_progress'::text, 'done'::text, 'waiting_owner'::text])))"
+  },
+  {
+   "table": "work_items",
+   "conname": "work_items_title_check",
+   "def": "CHECK (((length(title) >= 1) AND (length(title) <= 300)))"
+  },
+  {
+   "table": "work_notes",
+   "conname": "work_notes_author_check",
+   "def": "CHECK ((author = ANY (ARRAY['owner'::text, 'lead'::text])))"
+  },
+  {
+   "table": "work_notes",
+   "conname": "work_notes_body_check",
+   "def": "CHECK (((length(body) >= 1) AND (length(body) <= 5000)))"
   },
   {
    "table": "works",
@@ -1547,6 +1682,22 @@
    "roles": "{anon,authenticated}",
    "qual": "((owner_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_admin() AS is_admin) OR ((status = 'published'::text) AND ((kind = 'curated'::text) OR (EXISTS ( SELECT 1\n   FROM artists a\n  WHERE ((a.id = virtual_shows.owner_id) AND (a.status = 'approved'::text)))))))",
    "with_check": null
+  },
+  {
+   "tablename": "work_items",
+   "policyname": "work_items_admin",
+   "cmd": "ALL",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": "( SELECT is_admin() AS is_admin)"
+  },
+  {
+   "tablename": "work_notes",
+   "policyname": "work_notes_admin",
+   "cmd": "ALL",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": "( SELECT is_admin() AS is_admin)"
   },
   {
    "tablename": "works",
