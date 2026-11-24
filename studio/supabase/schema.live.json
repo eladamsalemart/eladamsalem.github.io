@@ -505,6 +505,167 @@
    "column_default": "now()"
   },
   {
+   "table_name": "phone_vitals",
+   "column_name": "id",
+   "data_type": "bigint",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "NO",
+   "column_default": "now()"
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "visit",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "space",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "device",
+   "data_type": "text",
+   "is_nullable": "NO",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "model",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "browser",
+   "data_type": "text",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "screen_w",
+   "data_type": "smallint",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "screen_h",
+   "data_type": "smallint",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "dpr",
+   "data_type": "real",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "first_frame_ms",
+   "data_type": "integer",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "frame_med_ms",
+   "data_type": "real",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "frame_p95_ms",
+   "data_type": "real",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "frame_worst_ms",
+   "data_type": "real",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "frames",
+   "data_type": "integer",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "heap_mb",
+   "data_type": "integer",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "tex_mb",
+   "data_type": "integer",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "context_lost",
+   "data_type": "boolean",
+   "is_nullable": "NO",
+   "column_default": "false"
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "crashed",
+   "data_type": "boolean",
+   "is_nullable": "NO",
+   "column_default": "false"
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "errors",
+   "data_type": "smallint",
+   "is_nullable": "NO",
+   "column_default": "0"
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "seconds",
+   "data_type": "integer",
+   "is_nullable": "YES",
+   "column_default": null
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "owner",
+   "data_type": "boolean",
+   "is_nullable": "NO",
+   "column_default": "false"
+  },
+  {
+   "table_name": "phone_vitals",
+   "column_name": "test",
+   "data_type": "boolean",
+   "is_nullable": "NO",
+   "column_default": "false"
+  },
+  {
    "table_name": "profiles",
    "column_name": "id",
    "data_type": "uuid",
@@ -913,6 +1074,91 @@
    "def": "CHECK (((slot >= 1) AND (slot <= 64)))"
   },
   {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_browser_check",
+   "def": "CHECK ((length(browser) <= 20))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_device_check",
+   "def": "CHECK ((device = ANY (ARRAY['iphone'::text, 'ipad'::text, 'android'::text, 'desktop'::text, 'other'::text])))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_dpr_check",
+   "def": "CHECK (((dpr >= (0)::double precision) AND (dpr <= (8)::double precision)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_errors_check",
+   "def": "CHECK (((errors >= 0) AND (errors <= 1000)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_first_frame_ms_check",
+   "def": "CHECK (((first_frame_ms >= 0) AND (first_frame_ms <= 600000)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_frame_med_ms_check",
+   "def": "CHECK (((frame_med_ms >= (0)::double precision) AND (frame_med_ms <= (60000)::double precision)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_frame_p95_ms_check",
+   "def": "CHECK (((frame_p95_ms >= (0)::double precision) AND (frame_p95_ms <= (60000)::double precision)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_frame_worst_ms_check",
+   "def": "CHECK (((frame_worst_ms >= (0)::double precision) AND (frame_worst_ms <= (600000)::double precision)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_frames_check",
+   "def": "CHECK (((frames >= 0) AND (frames <= 100000)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_heap_mb_check",
+   "def": "CHECK (((heap_mb >= 0) AND (heap_mb <= 100000)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_model_check",
+   "def": "CHECK ((length(model) <= 60))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_screen_h_check",
+   "def": "CHECK (((screen_h >= 0) AND (screen_h <= 10000)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_screen_w_check",
+   "def": "CHECK (((screen_w >= 0) AND (screen_w <= 10000)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_seconds_check",
+   "def": "CHECK (((seconds >= 0) AND (seconds <= 86400)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_space_check",
+   "def": "CHECK (((length(space) >= 1) AND (length(space) <= 120)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_tex_mb_check",
+   "def": "CHECK (((tex_mb >= 0) AND (tex_mb <= 100000)))"
+  },
+  {
+   "table": "phone_vitals",
+   "conname": "phone_vitals_visit_check",
+   "def": "CHECK (((length(visit) >= 8) AND (length(visit) <= 40)))"
+  },
+  {
    "table": "profiles",
    "conname": "profiles_age_check",
    "def": "CHECK (((age >= 13) AND (age <= 120)))"
@@ -1215,6 +1461,30 @@
    "with_check": null
   },
   {
+   "tablename": "phone_vitals",
+   "policyname": "phone_vitals_admin_delete",
+   "cmd": "DELETE",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": null
+  },
+  {
+   "tablename": "phone_vitals",
+   "policyname": "phone_vitals_admin_read",
+   "cmd": "SELECT",
+   "roles": "{authenticated}",
+   "qual": "( SELECT is_admin() AS is_admin)",
+   "with_check": null
+  },
+  {
+   "tablename": "phone_vitals",
+   "policyname": "phone_vitals_insert",
+   "cmd": "INSERT",
+   "roles": "{anon,authenticated}",
+   "qual": null,
+   "with_check": "true"
+  },
+  {
    "tablename": "profiles",
    "policyname": "A person changes their own profile",
    "cmd": "UPDATE",
@@ -1323,6 +1593,14 @@
   {
    "proname": "is_admin",
    "def": "CREATE OR REPLACE FUNCTION public.is_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$ select exists (select 1 from public.admins where user_id = (select auth.uid())) $function$\n"
+  },
+  {
+   "proname": "log_phone_vitals",
+   "def": "CREATE OR REPLACE FUNCTION public.log_phone_vitals(text)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\ndeclare j jsonb;\nbegin\n  if length($1) > 1024 then return; end if;\n  j := $1::jsonb;\n  insert into public.phone_vitals (visit, space, device, model, browser, screen_w, screen_h, dpr, first_frame_ms, frame_med_ms,\n    frame_p95_ms, frame_worst_ms, frames, heap_mb, tex_mb, context_lost, crashed, errors, seconds, owner, test)\n  values (j->>'id', j->>'space', coalesce(j->>'dev', 'other'), left(j->>'model', 60), left(j->>'br', 20),\n    (j->>'sw')::smallint, (j->>'sh')::smallint, (j->>'dpr')::real, (j->>'ff')::integer, (j->>'med')::real,\n    (j->>'p95')::real, (j->>'worst')::real, (j->>'n')::integer, (j->>'heap')::integer, (j->>'tex')::integer,\n    coalesce((j->>'lost')::boolean, false), coalesce((j->>'crash')::boolean, false), coalesce((j->>'err')::smallint, 0),\n    (j->>'s')::integer, coalesce((j->>'own')::boolean, false), coalesce((j->>'test')::boolean, false));\nend $function$\n"
+  },
+  {
+   "proname": "phone_vitals_summary",
+   "def": "CREATE OR REPLACE FUNCTION public.phone_vitals_summary(hours integer DEFAULT 24, include_tests boolean DEFAULT false)\n RETURNS TABLE(space text, device text, visits integer, tests integer, load_med_ms integer, load_worst_ms integer, frame_med_ms real, frame_worst_ms real, tex_med_mb integer, tex_worst_mb integer, heap_med_mb integer, crashes integer, context_lost integer, flags text[])\n LANGUAGE plpgsql\n STABLE\n SET search_path TO 'public'\nAS $function$\nbegin\n  if current_user in ('anon', 'authenticated') and not public.is_admin() then raise exception 'admins only'; end if;\n  return query\n  with r as (\n    select * from public.phone_vitals v\n    where v.created_at > now() - make_interval(hours => greatest(1, least(hours, 24 * 60))) and (include_tests or not v.test)\n  ), g as (\n    select r.space, r.device, count(*)::int n, count(*) filter (where r.test)::int t,\n      (percentile_disc(0.5) within group (order by r.first_frame_ms))::int ff, max(r.first_frame_ms)::int ffw,\n      (percentile_disc(0.5) within group (order by r.frame_med_ms))::real fm, max(r.frame_worst_ms)::real fw,\n      (percentile_disc(0.5) within group (order by r.tex_mb))::int tm, max(r.tex_mb)::int tw,\n      (percentile_disc(0.5) within group (order by r.heap_mb))::int hm,\n      count(*) filter (where r.crashed)::int c, count(*) filter (where r.context_lost)::int l\n    from r group by r.space, r.device\n  )\n  select g.space, g.device, g.n, g.t, g.ff, g.ffw, g.fm, g.fw, g.tm, g.tw, g.hm, g.c, g.l,\n    array_remove(array[\n      case when g.ff > (case when g.device in ('iphone', 'ipad') then 6000 else 10000 end) then 'load ' || round(g.ff / 1000.0, 1) || ' s' end,\n      case when g.fm > 50 then 'frame ' || round(g.fm::numeric) || ' ms' end,\n      case when g.c > 0 then g.c || ' crashed' end,\n      case when g.l > 0 then g.l || ' context lost' end], null)\n  from g order by (g.c + g.l) desc, g.n desc;\nend $function$\n"
   },
   {
    "proname": "touch_updated_at",
