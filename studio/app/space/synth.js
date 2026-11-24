@@ -1481,7 +1481,7 @@ async function originalSpec(o, src) {
     im.onerror = () => res(u); im.src = u; })), small.get(u + cap)));
   const K = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 1 : 2;      // (a laptop shows the room as sharp as the original tour; only a phone gets it smaller)
   // the walls at the room's own tour level on a phone too: 1024 left a 14 m wall at 73 px/m, the tour has 200 (the owner, 23.11)
-  await Promise.all((sp.surfaces || []).map(async s => { if (s.texture) s.texture = await shrink(s.texture, 2048); if (s.light) s.light = await shrink(s.light, 512 * K, true); }));
+  await Promise.all((sp.surfaces || []).map(async s => { if (s.texture) { s.texture = await shrink(s.texture, 4096); if (s.kind === 'wall') s.maxPx = 4096; } if (s.light) s.light = await shrink(s.light, 512 * K, true); }));
   // the works' first images as the room's own tour has them (1024 px; 640 on a phone made Ritual's paintings softer in the museum than in its tour)
   await Promise.all((sp.works || []).map(async w => { if (w.imageSmall) w.imageSmall = await shrink(w.imageSmall, 1024); if (w.light) w.light = await shrink(w.light, 256 * K, true); }));
   if (sp.plaster) sp.plaster = await shrink(sp.plaster, 512 * K);
