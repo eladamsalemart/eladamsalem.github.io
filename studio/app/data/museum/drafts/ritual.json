@@ -1,0 +1,324 @@
+{
+ "slug": "ritual",
+ "title": "Ritual",
+ "made": "2026-11-24T13:25:02.235Z",
+ "status": "ready",
+ "approved": false,
+ "space": {
+  "id": "ritual",
+  "type": "house",
+  "slot": 57,
+  "tour": "ritual",
+  "door": [
+   28,
+   64.5
+  ],
+  "dir": 90
+ },
+ "gate": {
+  "pass": true,
+  "checks": [
+   {
+    "id": "tour_live",
+    "pass": true,
+    "why": "the tour passed its own build and inspection"
+   },
+   {
+    "id": "real_openings",
+    "pass": true,
+    "why": "2 real opening(s) on wall-z1: arch 3.32 x 2.96 m, doorway 1.44 x 3.03 m"
+   },
+   {
+    "id": "free_place",
+    "pass": true,
+    "why": "door at [28,64.5] facing 90°, every opening linked (walk from the start 24 m, 19 m), no space cut off"
+   },
+   {
+    "id": "jambs",
+    "pass": true,
+    "why": "2 opening(s): full 0.22 m jambs and head, same shape, nothing across the way"
+   },
+   {
+    "id": "text_flush",
+    "pass": true,
+    "why": "the wall text is flush on the door wall, in a solid run, clear of the openings"
+   },
+   {
+    "id": "works",
+    "pass": true,
+    "why": "10 works at their measured size and place"
+   },
+   {
+    "id": "phone_memory",
+    "pass": true,
+    "why": "410 MB at the start view, 411 MB inside the pavilion (budget 460); the museum without this draft: 350 MB, so the pavilion adds 60 MB at the start",
+    "data": {
+     "start": 410,
+     "inside": 411,
+     "without": 350
+    }
+   },
+   {
+    "id": "floor_mirror",
+    "pass": true,
+    "why": "the tour's floor is glossy (reflect 0.293): the museum floor takes the mirror's tint as it should (gain 16.8, mirror o8-floor)",
+    "data": {
+     "gain": 16.8,
+     "reflect": 0.293
+    }
+   },
+   {
+    "id": "px_per_m",
+    "pass": true,
+    "why": "at or above the tour: wall-x0 200/200, wall-x1 200/200, wall-z0 200/200, wall-z1 200/200, floor tile 333/333 px/m (5/5 measured on the GPU, the rest from the built pictures), light maps carried",
+    "data": [
+     {
+      "name": "wall-x0",
+      "tour": 200,
+      "museum": 200,
+      "built": 200,
+      "gpu": true
+     },
+     {
+      "name": "wall-x1",
+      "tour": 200,
+      "museum": 200,
+      "built": 200,
+      "gpu": true
+     },
+     {
+      "name": "wall-z0",
+      "tour": 200,
+      "museum": 200,
+      "built": 200,
+      "gpu": true
+     },
+     {
+      "name": "wall-z1",
+      "tour": 200,
+      "museum": 200,
+      "built": 200,
+      "gpu": true
+     },
+     {
+      "name": "floor tile",
+      "tour": 333,
+      "museum": 333,
+      "built": 333,
+      "gpu": true
+     }
+    ]
+   },
+   {
+    "id": "side_by_side",
+    "pass": true,
+    "why": "3 views saved; every work seen in the tour is seen in the museum, no holes",
+    "data": [
+     {
+      "file": "side-by-side-1-from-the-way-in.jpg",
+      "view": "from-the-way-in",
+      "holes": 0,
+      "worksInTour": 2,
+      "missing": []
+     },
+     {
+      "file": "side-by-side-2-middle-to-the-longest-wall.jpg",
+      "view": "middle-to-the-longest-wall",
+      "holes": 0,
+      "worksInTour": 1,
+      "missing": []
+     },
+     {
+      "file": "side-by-side-3-back-to-the-openings.jpg",
+      "view": "back-to-the-openings",
+      "holes": 0,
+      "worksInTour": 2,
+      "missing": []
+     }
+    ]
+   }
+  ]
+ },
+ "needs": [],
+ "measures": {
+  "room": {
+   "x0": -8.821,
+   "x1": 5.194,
+   "z0": -0.165,
+   "z1": 3.967,
+   "height": 4.16
+  },
+  "openings": [
+   {
+    "wall": "wall-z1",
+    "shape": "arch",
+    "w": 3.32,
+    "h": 2.96,
+    "sill": 0,
+    "walkable": true
+   },
+   {
+    "wall": "wall-z1",
+    "shape": "doorway",
+    "w": 1.44,
+    "h": 3.03,
+    "sill": 0,
+    "walkable": true
+   }
+  ],
+  "walls": [
+   {
+    "name": "wall-x0",
+    "len": 4.1314,
+    "px": 826,
+    "pxm": 199.9322263639444,
+    "light": false
+   },
+   {
+    "name": "wall-x1",
+    "len": 4.1314,
+    "px": 826,
+    "pxm": 199.9322263639444,
+    "light": false
+   },
+   {
+    "name": "wall-z0",
+    "len": 14.015,
+    "px": 2803,
+    "pxm": 200,
+    "light": false
+   },
+   {
+    "name": "wall-z1",
+    "len": 14.015,
+    "px": 2803,
+    "pxm": 200,
+    "light": false
+   }
+  ],
+  "floor": {
+   "texture": "data/spaces/ritual/floor-detail.jpg",
+   "px": [
+    333,
+    333
+   ],
+   "tile": [
+    1,
+    1
+   ],
+   "pxm": 333,
+   "light": true
+  },
+  "works": [
+   {
+    "size": [
+     120,
+     70
+    ]
+   },
+   {
+    "size": [
+     30,
+     30
+    ]
+   },
+   {
+    "size": [
+     30,
+     30
+    ]
+   },
+   {
+    "size": [
+     30,
+     30
+    ]
+   },
+   {
+    "size": [
+     140,
+     170
+    ]
+   },
+   {
+    "size": [
+     70,
+     90
+    ]
+   },
+   {
+    "size": [
+     110,
+     130
+    ]
+   },
+   {
+    "size": [
+     100,
+     140
+    ]
+   },
+   {
+    "size": [
+     90,
+     110
+    ]
+   },
+   {
+    "size": [
+     122.3,
+     142.8
+    ]
+   }
+  ],
+  "floorReflect": [
+   0.065,
+   0.293
+  ]
+ },
+ "views": [
+  {
+   "id": "from-the-way-in",
+   "at": [
+    2.8089000000000004,
+    1.6,
+    3.4665
+   ],
+   "to": [
+    -8.821,
+    1.5,
+    -0.1649999999999998
+   ],
+   "fov": 75
+  },
+  {
+   "id": "middle-to-the-longest-wall",
+   "at": [
+    -1.8135999999999992,
+    1.6,
+    3.3472999999999997
+   ],
+   "to": [
+    -1.8135999999999992,
+    1.6,
+    -0.1649
+   ],
+   "fov": 75
+  },
+  {
+   "id": "back-to-the-openings",
+   "at": [
+    -8.221,
+    1.6,
+    0.23500000000000001
+   ],
+   "to": [
+    2.8089000000000004,
+    1.5,
+    3.9665
+   ],
+   "fov": 75
+  }
+ ],
+ "note": "A draft: nothing of it is live. The Desk adds `space` to museum_plan only when the owner approves."
+}
