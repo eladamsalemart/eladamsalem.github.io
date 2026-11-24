@@ -72,6 +72,12 @@ html:has(.adm){background:var(--wall)}body:has(.adm){max-width:none;box-shadow:n
 .ax-det{padding:4px 2px 16px;display:grid;gap:12px}
 .ax-sec{display:grid;gap:12px;padding-block:6px 26px;align-content:start}.ax-sec h2{font:400 24px var(--serif)}
 .ax-two{display:grid;gap:8px}
+.ax-ph{border-top:1px solid var(--line);margin-top:10px;padding-top:22px}.ax-ph-flags{display:grid;gap:6px}.ax-ph-h{font:400 18px var(--serif);margin-top:8px}
+.ax-ph-t{display:grid;font-size:13px;overflow-x:auto}.ax-ph-t>div{display:grid;grid-template-columns:minmax(150px,2fr) 70px 80px 70px 70px 70px minmax(90px,1fr) 56px;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);align-items:center;min-width:720px}
+.ax-ph-t.w5>div{grid-template-columns:minmax(150px,1.6fr) minmax(110px,1fr) 100px 90px 130px 64px minmax(80px,auto) 70px}
+.ax-ph-t .h span{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted,#777)}.ax-ph-t span{color:var(--muted,#777);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ax-ph-t em{font-style:normal;font-size:11px}
+.ax-ph .st-status.no{background:#F3D9D2;color:#A3341A}.ax-ph .st-status.ok{background:#DCEBDF;color:#256445}.ax-ph-t .bad b,.ax-ph-t .bad span{color:#A3341A}.ax-ph-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#A3341A;margin-inline-end:6px;vertical-align:1px}
+.ax-ph-t .st-flag{margin:0 0 0 4px}
 .ax-health{display:grid;gap:8px}.ax-health .st-status{margin:0}
 .ax-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.ax-sum div{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid}.ax-sum b{font:400 30px/1 var(--serif)}.ax-sum span{font-size:12px;color:var(--muted)}
 .ax-cols{display:grid;gap:10px}.ax-narrow{max-width:760px}
@@ -118,6 +124,7 @@ async function draw(hash, keepScroll) {
   const c = await client();
   const { data: { session } } = await c.auth.getSession();
   const { data: ok } = session ? await c.rpc('is_admin') : { data: false };
+  if (ok) try { localStorage.setItem('os-owner', '1'); } catch {}      // (this browser is the owner's: the app keeps every visit's phone data, app.js osVitals)
   if (!ok) { app.innerHTML = shell('', 'חדר בקרה', `<p class="m">המסך הזה למנהלי Open Studio בלבד. ${session ? '' : '<a href="#/welcome">צריך להתחבר</a> קודם.'}</p>`); return; }
   const m = hash.replace(/^#\/admin\/?/, ''), part = m.split('/')[0];
   const tab = part in TAB_OF ? part : '', nt = TAB_OF[tab];
@@ -393,7 +400,59 @@ function system() {
           <li>בוחרים "Continue with email" ומדביקים: <code id="admAlias" dir="ltr"></code> <button type="button" class="btn g" id="admCopy">העתק</button></li>
           <li>הקוד מגיע ל־<b dir="ltr">ooopenstudio@gmail.com</b>. ממשיכים כמו כל אחד: פרטים, ואז "I make art" או "I love art".</li></ol>
         <p class="m small">כל כתובת עם "+" היא חשבון חדש עם אותה תיבת מייל. כשמסיימים מוחקים אותם כאן, עם כל מה שיצרו.</p>
-        <div id="admTests"><p class="m small">טוען את חשבונות הבדיקה…</p></div></details></section></div></div>`;
+        <div id="admTests"><p class="m small">טוען את חשבונות הבדיקה…</p></div></details></section></div></div>
+    <section class="ax-sec ax-ph"><h2>טלפונים</h2><p class="m small">איך החללים התלת־ממדיים רצים אצל מבקרים אמיתיים, ב־60 הימים האחרונים: כל ביקור שלך ורבע מהשאר. בלי פרטים אישיים.</p><div id="axPhones"><p class="m">טוען…</p></div></section>`;
+}
+
+// --- Phones: real-phone data (public.phone_vitals, sent by app.js osVitals), per space and per kind of device -------------------
+// A red flag when a space crosses a line: an iPhone's first frame over 6 s (10 s on anything else), a median frame over 50 ms,
+// or any crash or lost graphics context.
+const PH_DEV = { iphone: 'אייפון', ipad: 'אייפד', android: 'אנדרואיד', desktop: 'מחשב', other: 'אחר' };
+const PH_LINE = { ff: { iphone: 6000, ipad: 6000 }, ffOther: 10000, med: 50 };
+const phMed = a => { const s = a.filter(v => v != null).sort((x, y) => x - y); return s.length ? s[Math.floor((s.length - 1) / 2)] : null; };
+const phMax = a => { const s = a.filter(v => v != null); return s.length ? Math.max(...s) : null; };
+const phSec = ms => ms == null ? '—' : (ms / 1000).toFixed(1) + ' שנ׳';
+const phMs = ms => ms == null ? '—' : Math.round(ms) + ' מ״ש';
+const phMb = mb => mb == null ? '—' : mb + ' MB';
+function phSpace(k) {
+  if (k === 'museum') return 'המוזיאון';
+  const m = String(k).match(/^(tour|room):(.+)$/); if (!m) return k;
+  const e = ((M && (M.allExhibitions || M.exhibitions)) || []).find(x => x.slug === m[2]);
+  return `${m[1] === 'room' ? 'חדר וירטואלי' : 'סיור'} · ${e ? e.title : m[2]}`;
+}
+async function fillPhones(app, c) {
+  const box = app.querySelector('#axPhones'); if (!box) return;
+  const since = new Date(Date.now() - 60 * 864e5).toISOString();
+  const { data: rows, error } = await c.from('phone_vitals').select('created_at,space,device,model,browser,screen_w,screen_h,dpr,first_frame_ms,frame_med_ms,frame_p95_ms,frame_worst_ms,heap_mb,tex_mb,context_lost,crashed,errors,seconds,owner,test')
+    .gte('created_at', since).order('created_at', { ascending: false }).limit(3000);
+  if (error) { box.innerHTML = `<p class="m">לא נקרא: ${esc(error.message)}</p>`; return; }
+  if (!rows.length) { box.innerHTML = '<p class="m">עוד אין ביקורים. הם יגיעו מהביקור הראשון בסיור או במוזיאון.</p>'; return; }
+  const groups = new Map();
+  for (const r of rows) { const k = r.space + '|' + r.device; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); }
+  const flags = [], lines = [...groups.entries()].map(([k, rs]) => {
+    const [space, device] = k.split('|'), ff = phMed(rs.map(r => r.first_frame_ms)), med = phMed(rs.map(r => r.frame_med_ms)), worst = phMax(rs.map(r => r.frame_worst_ms));
+    const tex = phMed(rs.map(r => r.tex_mb)), heap = phMed(rs.map(r => r.heap_mb)), crash = rs.filter(r => r.crashed).length, lost = rs.filter(r => r.context_lost).length;
+    const line = PH_LINE.ff[device] || PH_LINE.ffOther, why = [];
+    if (ff != null && ff > line) why.push(`טעינה ${phSec(ff)} (הסף ${line / 1000})`);
+    if (med != null && med > PH_LINE.med) why.push(`פריים ${phMs(med)} (הסף ${PH_LINE.med})`);
+    if (crash) why.push(`${crash} קריסות`);
+    if (lost) why.push(`${lost} פעמים הגרפיקה נפלה`);
+    if (why.length) flags.push(`${phSpace(space)}, ${PH_DEV[device] || device}: ${why.join(', ')}`);
+    return { space, device, n: rs.length, ff, med, worst, tex, heap, crash, lost, bad: why.length > 0, tests: rs.filter(r => r.test).length };
+  }).sort((a, b) => (b.bad - a.bad) || (b.n - a.n));
+  const score = r => (r.crashed ? 1e9 : 0) + (r.context_lost ? 1e8 : 0) + (r.first_frame_ms || 0) + 20 * (r.frame_worst_ms || 0);
+  const worst5 = rows.slice().sort((a, b) => score(b) - score(a)).slice(0, 5);
+  const tests = rows.filter(r => r.test).length;
+  box.innerHTML = `${flags.length ? `<div class="ax-ph-flags">${flags.map(f => `<p class="st-status no">${esc(f)}</p>`).join('')}</div>` : '<p class="st-status ok">כל החללים בתוך הספים.</p>'}
+    <div class="ax-ph-t" role="table">
+      <div role="row" class="h"><span>חלל</span><span>מכשיר</span><span>ביקורים</span><span>טעינה</span><span>פריים</span><span>הגרוע</span><span>זיכרון</span><span>קריסות</span></div>
+      ${lines.map(l => `<div role="row" class="${l.bad ? 'bad' : ''}"><b>${l.bad ? '<i class="ax-ph-dot" aria-label="חצה סף"></i>' : ''}${esc(phSpace(l.space))}</b><span>${PH_DEV[l.device] || esc(l.device)}</span><span>${l.n}${l.tests ? ` <em>(${l.tests} בדיקה)</em>` : ''}</span><span>${phSec(l.ff)}</span><span>${phMs(l.med)}</span><span>${phMs(l.worst)}</span><span>${phMb(l.tex)}${l.heap != null ? ` · JS ${l.heap}` : ''}</span><span>${l.crash + l.lost || '—'}</span></div>`).join('')}
+    </div>
+    <h3 class="ax-ph-h">חמשת הביקורים הגרועים</h3>
+    <div class="ax-ph-t w5" role="table">
+      ${worst5.map(r => `<div role="row"><b>${esc(phSpace(r.space))}</b><span dir="ltr">${esc([r.model, r.browser].filter(Boolean).join(' · '))}</span><span dir="ltr">${r.screen_w}×${r.screen_h} @${r.dpr}</span><span>טעינה ${phSec(r.first_frame_ms)}</span><span>פריים ${phMs(r.frame_med_ms)} / ${phMs(r.frame_worst_ms)}</span><span>${phMb(r.tex_mb)}</span><span>${r.crashed ? '<span class="st-flag no">קרס</span>' : r.context_lost ? '<span class="st-flag no">גרפיקה נפלה</span>' : ''}${r.test ? '<span class="st-flag">בדיקה</span>' : ''}${r.owner ? '<span class="st-flag">שלך</span>' : ''}</span><span>${ago(r.created_at)}</span></div>`).join('')}
+    </div>
+    <p class="m small">טעינה: מהכניסה לחלל ועד הפריים הראשון (חציון). פריים: חציון זמן הפריים ב־20 השניות הראשונות; הגרוע: הפריים הארוך ביותר. זיכרון: התמונות בזיכרון הגרפי (חציון), ו־JS כשהדפדפן מדווח. ${rows.length} ביקורים${tests ? `, ${tests} מהם שורות בדיקה` : ''}.</p>`;
 }
 async function fillSystem(app, c) {
   const { issues, runs } = await healthState();
@@ -513,7 +572,7 @@ function wire(app, c, tab) {
     }
   }
   if (tab === 'system') {
-    fillSystem(app, c);
+    fillSystem(app, c); fillPhones(app, c);
     const rq = $('#rqForm');
     rq.onsubmit = async e => { e.preventDefault(); const body = new FormData(rq).get('body').trim(); const { error } = await c.from('change_requests').insert({ body }); if (error) return fail(error); rq.reset(); toast('הבקשה נשלחה'); fillSystem(app, c); };
     const real = $('#axReal'), alias = $('#admAlias');

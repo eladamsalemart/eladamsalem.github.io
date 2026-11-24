@@ -4,6 +4,7 @@
 // The exhibitions themselves are made in exedit.js. Data: museum_exhibitions (drafts, admin only) and museum_slots (what is
 // live: a slot carries a copy of its exhibition, so editing a draft never changes what visitors see until it is published).
 import { api, APP, guest, abs } from './data.js';
+import { mountDrafts } from './drafts.js';
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -419,7 +420,8 @@ export async function home(ctx) {
     const live = [...SL.values()].filter(s => s.live).length;
     page('museum', 'המוזיאון', `תחת שמיים אחד · ${live} מוצגות למבקרים`, `
     ${live ? '' : `<div class="soon" style="margin-bottom:16px">כרגע המוזיאון רץ אוטומטית על התערוכות המובנות. ברגע שביתן אחד מוצג כאן, המוזיאון מציג רק את מה שהגדרת. <button type="button" class="btn" id="adopt" style="margin-inline-start:10px;min-height:38px">התחל מהמצב הנוכחי</button></div>`}
-    <div class="mx">${studio()}${wall()}</div>`);
+    <div class="mx">${studio()}${wall()}</div><section id="mu-drafts" class="drafts" hidden></section>`);
+    { const d = document.getElementById('mu-drafts'); if (d) mountDrafts(d, { api, APP, toast, planOf: (SYm && SYm.planOf) || undefined, onChange: draw }).catch(() => {}); }      // pavilions the importer made from real tours, waiting for the owner
     $('main').classList.add('wide'); wire(); [...SL.values()].forEach(auto);
   }
   function select(k) { sel = k; const sp = spOfSlot(k); selSp = sp ? sp.id : null; draw(true); auto(SL.get(k)); }
