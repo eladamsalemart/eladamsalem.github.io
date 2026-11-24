@@ -20,7 +20,7 @@ export async function addTropics({ THREE, scene, o, env, hazeRGB, loadTex, mark,
   const canvas = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 
   // --- the wind: slow gusts travelling over the garden, a quicker flutter per plant; a vertex moves by aBend (metres, grows toward the tip), up/down and a little sideways
-  const uT = { value: 0 };
+  const uT = { value: 0 }, SUN = new THREE.Vector3(Math.sin(env.az) * Math.cos(env.elev * Math.PI / 180), Math.sin(Math.max(env.elev, 5) * Math.PI / 180), -Math.cos(env.az) * Math.cos(env.elev * Math.PI / 180)).normalize();
   const WIND = `
 #ifdef USE_INSTANCING
   vec3 ip = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
@@ -39,15 +39,15 @@ export async function addTropics({ THREE, scene, o, env, hazeRGB, loadTex, mark,
     mat.onBeforeCompile = sh => {
       sh.uniforms.uHaze = { value: haze }; sh.uniforms.uNear = { value: opts.near || 28 }; sh.uniforms.uFar = { value: opts.far || 190 };
       if (opts.detail) sh.uniforms.uDetail = { value: opts.detail };
-      sh.uniforms.uTime = uT;
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vDist;\nvarying vec2 vW;' + (opts.wind ? '\nuniform float uTime; attribute float aBend; varying float vAO;' : ''))
+      sh.uniforms.uTime = uT; sh.uniforms.uSun = { value: SUN }; sh.uniforms.uSunK = { value: env.day };
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vDist;\nvarying vec2 vW;' + (opts.wind ? '\nuniform float uTime; attribute float aBend; varying float vAO;' : '') + (opts.lit ? '\nvarying vec3 vN;' : ''))
         .replace('#include <begin_vertex>', '#include <begin_vertex>' + (opts.wind ? (opts.noAO ? WIND.replace(/vAO = .*;/, 'vAO = 1.0;') : WIND) : ''))
-        .replace('#include <project_vertex>', '#include <project_vertex>\nvDist = length(mvPosition.xyz);\n#ifdef USE_INSTANCING\n vW = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xz;\n#else\n vW = (modelMatrix * vec4(transformed, 1.0)).xz;\n#endif');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vDist;\nvarying vec2 vW;\nuniform vec3 uHaze; uniform float uNear; uniform float uFar;' + (opts.detail ? '\nuniform sampler2D uDetail;' : '') + (opts.wind ? '\nvarying float vAO;' : ''))
-        .replace('#include <map_fragment>', '#include <map_fragment>' + (opts.wind ? '\ndiffuseColor.rgb *= vAO;' : '') + (opts.detail ? '\n{ float k = clamp(1.0 - vDist / 60.0, 0.0, 1.0); vec3 dd = texture2D(uDetail, vW / 2.4).rgb * 0.5 + texture2D(uDetail, vW / 0.7).rgb * 0.5; diffuseColor.rgb *= mix(vec3(1.0), dd * 1.9, 0.12 + 0.88 * k); }' : ''))
+        .replace('#include <project_vertex>', '#include <project_vertex>' + (opts.lit ? '\n#ifdef USE_INSTANCING\n vN = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * normal);\n#else\n vN = normalize(mat3(modelMatrix) * normal);\n#endif' : '') + '\nvDist = length(mvPosition.xyz);\n#ifdef USE_INSTANCING\n vW = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xz;\n#else\n vW = (modelMatrix * vec4(transformed, 1.0)).xz;\n#endif');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vDist;\nvarying vec2 vW;\nuniform vec3 uHaze; uniform float uNear; uniform float uFar;' + (opts.detail ? '\nuniform sampler2D uDetail;' : '') + (opts.wind ? '\nvarying float vAO;' : '') + (opts.lit ? '\nvarying vec3 vN; uniform vec3 uSun; uniform float uSunK;' : ''))
+        .replace('#include <map_fragment>', '#include <map_fragment>' + (opts.wind ? '\ndiffuseColor.rgb *= vAO;' : '') + (opts.lit ? '\n{ vec3 nn = normalize(vN) * (gl_FrontFacing ? 1.0 : -1.0); float d = dot(nn, uSun); diffuseColor.rgb *= 1.0 + uSunK * (0.62 * max(d, 0.0) - 0.28); diffuseColor.rgb += uSunK * max(-d, 0.0) * vec3(0.05, 0.10, 0.012) * (0.4 + diffuseColor.g); }' : '') + (opts.detail ? '\n{ float k = clamp(1.0 - vDist / 60.0, 0.0, 1.0); vec3 dd = texture2D(uDetail, vW / 2.4).rgb * 0.5 + texture2D(uDetail, vW / 0.7).rgb * 0.5; diffuseColor.rgb *= mix(vec3(1.0), dd * 1.9, 0.12 + 0.88 * k); }' : ''))
         .replace('#include <dithering_fragment>', 'float hz = smoothstep(uNear, uFar, vDist) * 0.88;\ngl_FragColor.rgb = mix(gl_FragColor.rgb, uHaze, hz);\n#include <dithering_fragment>');
     };
-    mat.customProgramCacheKey = () => 'haze' + (opts.detail ? 'd' : '') + (opts.wind ? 'w' : '');
+    mat.customProgramCacheKey = () => 'haze' + (opts.detail ? 'd' : '') + (opts.wind ? 'w' : '') + (opts.lit ? 'l' : '') + (opts.noAO ? 'n' : '');
     return mat;
   };
 
@@ -190,6 +190,8 @@ void main() {
     banana2: { r: [1024, 896, 1024, 384], dir: 'h', L: 2.4, Wd: 0.9, P: 1.1, a0: 1.3, a1: 0.45, droop: 1.1, fold: 0.12, nl: 9, sway: 0.22, tex: [1524, 704] },
     palmA: { r: [0, 1024, 1024, 512], dir: 'h', L: 3.4, Wd: 1.7, P: 0, a0: 0.5, a1: 0.5, droop: 1.3, fold: -0.22, nl: 9, sway: 0.30 },
     palmB: { r: [1024, 1280, 1024, 512], dir: 'h', L: 2.9, Wd: 1.45, P: 0, a0: 0.8, a1: 0.8, droop: 1.0, fold: -0.16, nl: 9, sway: 0.26 },
+    philo: { r: [1536, 0, 512, 512], dir: 'v', L: 0.55, Wd: 0.5, P: 0.35, a0: 1.1, a1: 0.5, droop: 0.6, fold: 0.1, nl: 3, sway: 0.08, tex: [1524, 704] },
+    heli: { r: [1024, 1792, 1024, 256], dir: 'h', L: 1.9, Wd: 0.5, P: 0.7, a0: 1.3, a1: 0.7, droop: 0.9, fold: 0.1, nl: 6, sway: 0.14, tex: [1524, 704] },
     fern: { r: [0, 1536, 1024, 512], dir: 'h', L: 1.7, Wd: 0.85, P: 0, a0: 0.9, a1: 0.9, droop: 1.4, fold: 0.12, nl: 7, sway: 0.10 },
   };
   const leafGeo = k => {
@@ -205,12 +207,12 @@ void main() {
     rings.forEach(([px, py, sa], i) => { const bl = sa - K.P, bend = K.sway * Math.pow(sa / total, 2);
       if (NP && i <= NP) ring(px, py, 0.03, 0, () => tx, bend); else ring(px, py, K.Wd / 2, K.fold, sN => uv(Math.min(1, Math.max(0, bl / K.L)), sN), bend); });
     for (let i = 0; i < rings.length - 1; i++) for (const j of [0, 1]) { const a = i * 3 + j, b = a + 3; I.push(a, a + 1, b, a + 1, b + 1, b); }
-    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); geo.setAttribute('aBend', new THREE.Float32BufferAttribute(B, 1)); geo.setIndex(I); return geo;
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); geo.setAttribute('aBend', new THREE.Float32BufferAttribute(B, 1)); geo.setIndex(I); geo.computeVertexNormals(); return geo;
   };
   const leafLists = {}; for (const k in LEAVES) leafLists[k] = [];
   const NEAR = phone ? 18 : 30;                          // plants closer than this to the glass are built from single leaves
   const clump = (kind, px, py, pz, sc) => {              // a plant from single leaves, round a centre
-    const n = { monstera: 5, elephant: 4, banana: 6, fern: 7 }[kind] + Math.floor(r() * 3), ya = r() * 6.28;
+    const n = { monstera: 5, elephant: 4, banana: 6, fern: 7, philo: 9, heli: 6 }[kind] + Math.floor(r() * 3), ya = r() * 6.28;
     for (let i = 0; i < n; i++) { const k = kind === 'monstera' ? (r() < 0.25 ? 'elephant' : 'monstera') : kind === 'banana' ? (r() < 0.5 ? 'banana' : 'banana2') : kind, yaw = ya + i / n * 6.28 + (r() - 0.5) * 0.7, s2 = sc * (0.8 + r() * 0.5), g = 0.85 + r() * 0.3;
       leafLists[k].push([px + (r() - 0.5) * 0.3 * sc, py, pz + (r() - 0.5) * 0.3 * sc, s2, yaw, g, g * (0.95 + r() * 0.1), g * 0.9, (r() - 0.5) * 0.35, (r() - 0.5) * 0.5]); }
   };
@@ -219,7 +221,7 @@ void main() {
   // placement: clumps by noise; nothing on the terrace or the entrance path; ferns, monstera, ginger and shrubs close to the glass, bananas and palms further out
   const r = rng(2024), clearPath = (px, pz) => pz > HZ && Math.abs(px - (ent[0] + ent[1]) / 2) < 5.6 && pz < HZ + 70;
   const pick = (d0, d1) => { for (let t = 0; t < 60; t++) { const px = -d1 + r() * (HX + 2 * d1), pz = -d1 + r() * (HZ + 2 * d1), d = dist(px, pz); if (d >= d0 && d <= d1) return [px, pz, d]; } return null; };
-  const LEAF_OF = { fern: 'fern', fern2: 'fern', monstera: 'monstera', banana: 'banana', banana2: 'banana' };
+  const LEAF_OF = { fern: 'fern', fern2: 'fern', monstera: 'monstera', banana: 'banana', banana2: 'banana', shrub: 'philo', heli: 'heli' };
   const scatter = (kinds, n, d0, d1, dens, opt = {}) => {
     let placed = 0, tries = 0;
     while (placed < n && tries++ < n * 40) {
@@ -265,7 +267,7 @@ void main() {
   const instanced = (geo, mat, rows, place) => { const im = new THREE.InstancedMesh(geo, mat, rows.length); rows.forEach((rw, i) => { place(dummy, rw); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); col.setRGB(rw[5] ?? 1, rw[6] ?? 1, rw[7] ?? 1); im.setColorAt(i, col); }); im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; im.frustumCulled = false; im.userData.kind = 'outside'; scene.add(im); return im; };
   if (lat) {
     lat.anisotropy = phone ? 4 : 8; lat.generateMipmaps = true; lat.minFilter = THREE.LinearMipmapLinearFilter; lat.needsUpdate = true;
-    const lm = hazy(new THREE.MeshBasicMaterial({ map: lat, alphaTest: 0.4, side: THREE.DoubleSide, color: tint, toneMapped: false }), { wind: true, near: 48 });
+    const lm = hazy(new THREE.MeshBasicMaterial({ map: lat, alphaTest: 0.4, side: THREE.DoubleSide, color: tint, toneMapped: false }), { wind: true, near: 48, lit: true });
     for (const k in LEAVES) { const rows = leafLists[k]; if (!rows.length) continue;
       const im = instanced(leafGeo(k), lm, rows, (dm, rw) => { dm.position.set(rw[0], rw[1], rw[2]); dm.rotation.order = 'YZX'; dm.rotation.set(rw[9], rw[4], rw[8]); dm.scale.setScalar(rw[3]); }); im.userData.leaves = rows.length; }
   }
@@ -297,7 +299,7 @@ void main() {
       for (let n = 0, t = 0; n < NT && t < NT * 30; t++) {
         const a = r() * 6.2832, rr = 46 + Math.pow(r(), 0.8) * 100, px = CX + Math.cos(a) * rr * 1.25, pz = CZ + Math.sin(a) * rr; if (dist(px, pz) < 24 || clearPath(px, pz) || pondQ(px, pz) < 1.9 || Math.abs(px - CX) > 140 || Math.abs(pz - CZ) > 140) continue;
         if (fbm(px / 40 + 60, pz / 40) < 0.33) continue;
-        const k = r() < 0.17 ? 3 : Math.floor(r() * 3), S = 17 + r() * 15 + rr * 0.05, g = 0.82 + r() * 0.28;
+        const k = r() < 0.07 ? 3 : Math.floor(r() * 3), S = 1.6 * (17 + r() * 15 + rr * 0.05), g = 0.82 + r() * 0.28;
         rowsT[k].push([px, Hs(px, pz) - 0.3, pz, S * (r() < 0.5 ? -1 : 1), r() * 6.28, k === 3 ? 1 : g, k === 3 ? 1 : g * (0.96 + r() * 0.08), k === 3 ? 1 : g * 0.92]); n++;
       }
       rowsT.forEach((rows, k) => { if (rows.length) instanced(tgeo(k), fm, rows, (dm, rw) => { dm.position.set(rw[0], rw[1], rw[2]); dm.rotation.set(0, rw[4], 0); dm.scale.set(rw[3], Math.abs(rw[3]), Math.abs(rw[3])); }); });
