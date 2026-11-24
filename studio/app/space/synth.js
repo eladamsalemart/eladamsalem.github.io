@@ -708,7 +708,7 @@ const jpg = (c, q = 0.92) => c.toDataURL('image/jpeg', q);
 let terrazzoTile = null;
 // the pavilions' outer skin: Poly Haven's CC0 plaster as a grey detail tile (space/rooms/detail_tiles.py), laid at its true scale
 const PLASTER_TILE = new URL('../data/rooms/detail/plaster.jpg', import.meta.url).href;
-const CONCRETE_TILE = new URL('../data/rooms/detail/concrete.jpg', import.meta.url).href, CLAY_TILE = new URL('../data/rooms/detail/clay.jpg', import.meta.url).href;
+const PAINTED_TILE = new URL('../data/rooms/detail/painted.jpg', import.meta.url).href, CONCRETE_TILE = new URL('../data/rooms/detail/concrete.jpg', import.meta.url).href, CLAY_TILE = new URL('../data/rooms/detail/clay.jpg', import.meta.url).href;
 function terrazzoDetail() {
   if (terrazzoTile) return terrazzoTile;
   const N = 512, r = rng(77), c = canvas(N, N), x = c.getContext('2d');
@@ -2006,6 +2006,9 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       directory.push({ title: bay.title, kind: 'history', note: bay.years, at: P((bay.aL + bay.aR) / 2, b0 + 2.4), look: P((bay.aL + bay.aR) / 2, b1) });
       sects.push({ i, b0, b1 }); prev = bay; b0 = b1;
     }
+    // the rooms' walls are painted plaster, the outside of the wing is stone: each with its real material's grain at true size (a flat 64 px strip read as cardboard)
+    const own = new RegExp(`^${sec.id}([0-9]+-(l|r|div|divb)|-facade)$`), outer = new RegExp(`^${sec.id}([0-9]+-(sk[lr]|stp[lr])|-facade-sk)$`);
+    for (const q of surfaces) { if (own.test(q.name)) q.detail = { texture: PAINTED_TILE, m: 1.6, k: 1.6 }; else if (outer.test(q.name)) q.detail = { texture: PLASTER_TILE, m: 1.6, k: 2.6 }; }
     endZ = Math.max(endZ, dz + b0 + 4); void prev; void sects;
   }
   directory.unshift({ title: 'The Square', kind: 'place', note: 'the heart of the museum', at: PLAN.start.pos, look: PLAN.start.look });

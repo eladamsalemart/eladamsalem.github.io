@@ -21,7 +21,7 @@ def get(url, tries=4):
                 return r.read()
         except urllib.error.HTTPError as e:
             if e.code in (429, 503) and k < tries - 1:
-                time.sleep(8 * (k + 1)); continue
+                time.sleep(30 * (k + 1)); continue
             raise
         except Exception:
             if k == tries - 1:
@@ -51,7 +51,7 @@ def main():
         if not url:
             continue
         data = None
-        for u in (sized(url, EDGE), url.split('?')[0]):
+        for u in (sized(url, 1920),):      # (Commons serves only its standard thumbnail widths, and limits the originals)
             try:
                 data = get(u); break
             except Exception as e:
@@ -64,7 +64,7 @@ def main():
         im.save(dst, 'JPEG', quality=86, optimize=True, progressive=True)
         done += 1
         print(f"{c['slug']}: {im.size[0]}x{im.size[1]} {dst.stat().st_size // 1024} KB")
-        time.sleep(1.5)
+        time.sleep(6)
     print(f'{done} written, {bad} failed')
 
 
