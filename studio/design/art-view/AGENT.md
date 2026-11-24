@@ -39,6 +39,11 @@ after every run it writes what it learned below, and the next run starts from th
 Stop early, without starting new work, if the weekly usage is above 85%. Write where you stopped.
 
 ## QUEUE (the lead keeps it ordered; add items you discover at the bottom)
+0. [ ] **The way in: first frame on 4G.** Live on a throttled 4G phone (9 Mbps, 150 ms, cold cache) the museum's
+   first frame takes 14.2 s, and before texopt it took 26.4 s (24.11). A visitor gives up long before that. Find what
+   blocks the first frame (scripts, geometry, the first textures, fonts, the sky), and show a real first view fast,
+   then stream the rest. Target: under 5 s on 4G, with nothing visibly worse. Measure it the same way (texopt's 4G
+   setup) before and after, and check the Desk's טלפונים tab for real visits.
 1. [ ] **Hall art at pavilion quality.** Make sure works hung or standing in the museum's own halls and spaces get
    the same near-first full resolution as inside pavilions. Measure px/m at 1 m for 5 hall works against a pavilion
    work. Fix any gap.
