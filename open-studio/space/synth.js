@@ -180,7 +180,9 @@ function edgeShade(ctx, x0, y0, x1, y1, w, h, alpha) {
 
 // --- the size of a work, the right way up --------------------------------------------------------------
 // Records mix height × width and width × height: the pair is turned to match the image.
-const aspectOf = u => new Promise(res => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i.naturalWidth / i.naturalHeight || 1); i.onerror = () => res(null); i.src = u; });
+const known = u => import('./texopt.js').then(m => m.sizeKnown(u)).catch(() => null);      // (the server's measured size: no download of the whole original)
+const aspectOf = async u => { const k = await known(u); return k ? k[0] / k[1] : aspectLoad(u); };
+const aspectLoad = u => new Promise(res => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i.naturalWidth / i.naturalHeight || 1); i.onerror = () => res(null); i.src = u; });
 export async function sizeOf(work, src) {
   const a = await aspectOf(src(work.image));
   const pairs = (work.pairs && work.pairs.length ? work.pairs : work.width && work.height ? [[+work.height, +work.width]] : []).filter(p => p[0] > 0 && p[1] > 0);
@@ -1476,7 +1478,7 @@ async function originalSpec(o, src) {
   if (o.design) { const m = await buildRoom(o.design, src); sp = o.base ? fix(m.spec, o.base) : m.spec; }
   else { sp = JSON.parse(JSON.stringify(o.spec || await (await fetch(o.tour)).json())); if (o.base) sp = fix(sp, o.base); }
   // a phone holds the whole museum in its memory: the room's big pictures (walls, floor, ceiling) are brought down to what a phone shows
-  const small = new Map(), shrink = (u, cap, png) => typeof u !== 'string' || !u ? Promise.resolve(u) : (small.get(u + cap) || (small.set(u + cap, new Promise(res => { const im = new Image(); im.crossOrigin = 'anonymous';
+  const small = new Map(), shrink = async (u, cap, png) => typeof u !== 'string' || !u ? u : ((await known(u)) || [1e9])[0] <= cap && ((await known(u)) || [1e9])[1] <= cap ? u : (small.get(u + cap) || (small.set(u + cap, new Promise(res => { const im = new Image(); im.crossOrigin = 'anonymous';
     im.onload = () => { const k = Math.min(1, cap / Math.max(im.naturalWidth, im.naturalHeight)); if (k >= 0.99) return res(u); const c = canvas(im.naturalWidth * k, im.naturalHeight * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res(png ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.86)); };
     im.onerror = () => res(u); im.src = u; })), small.get(u + cap)));
   const K = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 1 : 2;      // (a laptop shows the room as sharp as the original tour; only a phone gets it smaller)

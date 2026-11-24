@@ -60,11 +60,9 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const camera = new THREE.PerspectiveCamera(60, 1, 0.08, spec.far || 45);
   const rig = new THREE.Group(); rig.add(camera); scene.add(rig);
   const aniso = renderer.capabilities.getMaxAnisotropy();
-  const loader = new THREE.TextureLoader();
-  const loadTex = (url, color = true) => new Promise(res => {
-    if (!url) return res(null);
-    loader.load(src(url), t => { t.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = aniso; res(t); }, undefined, () => res(null));
-  });
+  // the pictures' phone-friendly copies (GPU-compressed KTX2 with mipmaps, 768 px from afar and full near; texopt.js), the original when there are none
+  const opt = await (await import('./texopt.js')).texOpt({ THREE, renderer, src });
+  const loadTex = (url, color = true, edge = 0) => opt.load(url, color, edge);
   const V = a => new THREE.Vector3(...a);
   // soft light for the few modelled surfaces (inside openings); everything else carries the photos' light
   scene.add(new THREE.HemisphereLight(0xffffff, 0xb8aa9a, 1.7));
@@ -76,19 +74,19 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const COARSE = matchMedia('(pointer: coarse)').matches, held = new Map();
   const fit = (t, max) => {
     const im = t && t.image, w = im && (im.naturalWidth || im.width), h = im && (im.naturalHeight || im.height);
-    if (!COARSE || !w || Math.max(w, h) <= max) return t;
+    if (!COARSE || !w || Math.max(w, h) <= max || t.isCompressedTexture) return t;      // (a compressed copy is already the size asked for)
     const k = max / Math.max(w, h), c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
     c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
     const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.anisotropy = t.anisotropy; t.dispose(); return n;
   };
   const shrinkTo = (t, max) => {                  // (a picture held at `max` px across, on any device; the source texture is freed)
     const im = t.image, w = im.naturalWidth || im.width, h = im.naturalHeight || im.height;
-    if (Math.max(w, h) <= max) return t;
+    if (Math.max(w, h) <= max || t.isCompressedTexture) return t;
     const k = max / Math.max(w, h), c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
     c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
     const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.anisotropy = t.anisotropy; t.dispose(); return n;
   };
-  const surfTex = s => { if (!held.has(s.texture)) held.set(s.texture, loadTex(s.texture).then(t => fit(t, s.maxPx || (s.kind === 'wall' ? 2048 : 1536)))); return held.get(s.texture); };
+  const surfTex = s => { if (!held.has(s.texture)) held.set(s.texture, loadTex(s.texture, true, COARSE ? (s.maxPx || (s.kind === 'wall' ? 2048 : 1536)) : 0).then(t => fit(t, s.maxPx || (s.kind === 'wall' ? 2048 : 1536)))); return held.get(s.texture); };
   const texs = await Promise.all(surfaces.map(async s => {
     const t = await surfTex(s);
     if (!t || !s.repeat) return t;
@@ -676,19 +674,23 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     f.front.emissiveMap = t; if (f.front.map) f.front.map = t; f.front.needsUpdate = true; dirty = true;
     for (const e of f.edges || []) e.material.uniforms.img.value = t;
   }
+  // on a phone the room opens on the works near where the visitor starts: one farther than the sharpness tiers serve (TIER_FAR) waits in
+  // its plain tone and streams in after the first frame, nearest first (serveTiers), so a slow connection never holds the room back
+  const startAt = spec.start ? V([spec.start.pos[0], 0, spec.start.pos[1]]) : null;
   await Promise.all((spec.works || []).map(async (h, order) => {
     const w = works.find(x => x.title.toLowerCase() === h.work.toLowerCase()) || { title: h.work, image: h.image, artist: { name: '' }, year: '', medium: '' };
     // a light image first, so the room opens quickly on a phone (the inspection sees the full one at once)
-    const first = !inspecting && h.imageSmall ? h.imageSmall : h.image;
+    const first = !inspecting && (opt.small(h.image) || h.imageSmall) || h.image;      // (its 768 px compressed copy, when the server made one)
     // a work is never left out of the room: a failed download is tried again, then the other size, and
     // until one arrives the canvas shows a plain tone (and keeps trying in the background)
-    const [got, light] = await Promise.all([loadRetry([first, first === h.image ? h.imageSmall : h.image]), loadTex(h.light, false)]);
+    const defer = PHONE && startAt && opt.small(h.image) && Math.hypot(h.centre[0] - startAt.x, h.centre[2] - startAt.z) > TIER_FAR ? h.image : null;
+    const [got, light] = await Promise.all([defer ? null : loadRetry([first, first === h.image ? h.imageSmall : h.image]), loadTex(h.light, false)]);
     // memory is saved where the visitor isn't looking, never where they are: on a phone a work that came without a small copy (an artist's
     // upload, ~2000 px) is held at 768 px from afar, and its full image comes back as the visitor nears it (pendingFull), freed again as they leave (memory is saved where the visitor is not looking, never where they are)
     const big = PHONE && got && Math.max(got.image.naturalWidth || got.image.width || 0, got.image.naturalHeight || got.image.height || 0) > 1024;
     const tex = big ? fit(got, 768) : got || plainTex();
-    if (!got) failed.push(h.work);
-    tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
+    if (!got && !defer) failed.push(h.work);
+    if (!tex.isCompressedTexture) tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;      // (a compressed copy brings its own mipmaps)
     const wM = h.measured[0] / 100, hM = h.measured[1] / 100, dM = h.depth || 0.035;
     const X = V(h.axes[0]), Y = V(h.axes[1]), Z = V(h.axes[2]);
     const g = new THREE.Group();
@@ -698,7 +700,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     g.matrix.makeBasis(X, Y, Z).setPosition(c);
     // front: no diffuse light of its own (that is the measured light), only a faint varnish sheen from the spots
     const front = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: tex, roughness: 0.42, metalness: 0, toneMapped: false });
-    if (got) { front.normalMap = reliefFrom(tex.image); front.normalScale.set(0.2, 0.2); }
+    if (got) { if (!tex.isCompressedTexture) front.normalMap = reliefFrom(tex.image); else opt.relief(h.image, t => { front.normalMap = t; front.needsUpdate = true; dirty = true; }); front.normalScale.set(0.2, 0.2); }      // (a compressed picture can't be read back: its relief was made on the server)
     // up close (more than one screen pixel to each pixel of the image) the image's own detail is brought out
     // a little, as the eye sees paint up close: a gentle sharpening of what is there, nothing added. And the
     // measured light, when there is one.
@@ -726,7 +728,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     // artist's full-resolution upload, when there is one, only up close
     // (only for the few works nearest the visitor at a time: a phone has room for a handful of full images,
     // not for every work's; walking away, a work goes back to its light image)
-    const full = !got ? first : h.imageFull || (first !== h.image || big ? h.image : null);
+    const full = !got && !defer ? first : h.imageFull || (first !== h.image || big ? h.image : null);
     const reach = h.imageFull ? Math.max(1.6, 1.2 * Math.max(wM, hM)) : Math.max(5, 3 * Math.max(wM, hM));
     const back = sideMat('#4a4640'), none = new THREE.MeshBasicMaterial({ visible: false });
     // a work cut out of its backdrop: its body is the solid rectangle (core), and the front shows only the
@@ -745,7 +747,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const edges = canvasEdges(bw, bh, dM, h.sides, null);
       edges.forEach(e => e.position.set(bx, by, 0));
       g.add(face, body, ...edges); box = face;
-      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges: [], title: h.work, mid: h.imageFull && h.image !== h.imageFull && h.image !== first ? h.image : null, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
+      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, defer, first: defer ? first : null, small: tex, edges: [], title: h.work, mid: h.imageFull && h.image !== h.imageFull && h.image !== first ? h.image : null, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
     } else if (h.flat) {        // letters set on the wall (the wall text): a sheet with no body, the wall showing through where it has no ground
       tex.colorSpace = THREE.SRGBColorSpace;
       box = new THREE.Mesh(new THREE.PlaneGeometry(wM, hM), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.01, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2 }));
@@ -755,7 +757,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       box.userData.kind = 'work';
       const edges = canvasEdges(wM, hM, dM, h.sides, tex);
       g.add(box, ...edges);
-      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges, title: h.work, mid: h.imageFull && h.image !== h.imageFull && h.image !== first ? h.image : null, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
+      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, defer, first: defer ? first : null, small: tex, edges, title: h.work, mid: h.imageFull && h.image !== h.imageFull && h.image !== first ? h.image : null, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
     }
     const sh = new THREE.Mesh(new THREE.PlaneGeometry(bw + Math.min(0.08, 0.15 * Math.min(bw, bh)), bh + Math.min(0.1, 0.18 * Math.min(bw, bh))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.07, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
     sh.position.set(bx + Math.min(0.012, 0.03 * bw), by - Math.min(0.03, 0.06 * bh), -dM / 2 - 0.002);   // just off the wall, never in it
@@ -1355,23 +1357,24 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const v = new THREE.Vector3().subVectors(f.centre, pos), d = Math.max(0.5, v.length()), seen = d < 3 || v.dot(dir) / d > 0.25;
       const need = f.span * pxW / (2 * d * tanH) * 1.15;
       f.d = d; f.want = !seen ? 0 : d > TIER_FAR ? 0 : TIERS.find(t => t >= need) || TIERS[TIERS.length - 1];
-      used += f.cur * f.cur * (f.ar || 1) * 4 * 1.34 / 1048576;
+      used += opt.bytes(f.fullTex || f.small) / 1048576;      // (what it really holds: a compressed picture a quarter or less)
     }
     // over the budget, or no longer looked at: the farthest sharp work goes back to its light image
     const back = pendingFull.filter(f => f.fullTex && f.reach < 1e8 && (f.want === 0 || f.want * 1.4 <= f.cur) && f.d > 2).sort((a, z) => z.d - a.d);
     for (const f of back.slice(0, used > TIER_MB ? 3 : 1)) if (used > TIER_MB || f.d > 6) { setFront(f, f.small); f.fullTex.dispose(); f.fullTex = null; f.cur = Math.max(f.small.image.width, f.small.image.height); }
-    const f = loading < LOADS && pendingFull.filter(x => x.full && !x.tries && !x.busy && !x.top && x.want > x.cur * 1.05 && !(x.usedMid && x.want <= 1280) && (x.reach >= 1e8 || x.want > 0)).sort((a, z) => a.d - z.d)[0];
+    const f = loading < LOADS && pendingFull.filter(x => x.full && !x.tries && !x.busy && !x.top && (x.want > x.cur * 1.05 || x.defer) && !(x.usedMid && x.want <= 1280) && (x.reach >= 1e8 || x.want > 0)).sort((a, z) => a.d - z.d)[0];
     if (f) {
       loading++; f.busy = true;
       const srcU = f.mid && !f.usedMid && f.want <= 1280 ? f.mid : f.full;      // (the 1200 px picture serves the middle tiers; the large scan only the sharpest)
-      (f.reach >= 1e8 ? loadRetry([f.full]) : Promise.race([loadTex(srcU), new Promise(r => setTimeout(() => r(null), 9000))])).then(t => {      // (a sharper picture is optional: one try and a time limit, so a missing or slow file never holds the line)
+      (f.reach >= 1e8 ? loadRetry([f.first || f.full]) : Promise.race([loadTex(srcU), new Promise(r => setTimeout(() => r(null), 9000))])).then(t => {      // (a sharper picture is optional: one try and a time limit, so a missing or slow file never holds the line)
         loading--; f.busy = false;
-        if (!t) { f.tries = 1; return; }
-        t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
+        if (!t) { if (srcU === f.full && f.mid) { f.full = f.mid; f.mid = null; } else f.tries = 1; return; }      // (no large scan: the 1200 px picture becomes the best there is)
+        if (!t.isCompressedTexture) t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
+        if (f.defer) { const u = f.defer; f.defer = null; f.first = null; if (t.isCompressedTexture) opt.relief(u, r => { f.front.normalMap = r; f.front.needsUpdate = true; dirty = true; }); else { f.front.normalMap = reliefFrom(t.image); f.front.needsUpdate = true; } f.front.normalScale.set(0.2, 0.2); }      // (a work that waited for the first frame: its relief too)
         if (f.reach >= 1e8) { f.small = t; f.reach = 0; f.cur = Math.max(t.image.width, t.image.height); f.ar = t.image.height / t.image.width; setFront(f, t); return; }     // a work that had only its plain tone
         const nat = Math.max(t.image.naturalWidth || t.image.width, t.image.naturalHeight || t.image.height);
         if (srcU === f.mid) f.usedMid = true; else if (nat <= f.want * 1.05) f.top = true;      // (the largest picture there is: no further upgrade to try)
-        const tex = shrinkTo(t, Math.max(f.want, 1024));
+        const tex = shrinkTo(t, f.want >= 1536 ? TIERS[TIERS.length - 1] : Math.max(f.want, 1024));      // (up close, the sharpest tier: the original at its own size, up to 2048 px)
         if (f.fullTex) f.fullTex.dispose();
         f.fullTex = tex; f.cur = Math.max(tex.image.width, tex.image.height); setFront(f, tex); dirty = true;
       });
@@ -1495,13 +1498,14 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     stats: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, textures: renderer.info.memory.textures, geometries: renderer.info.memory.geometries, programs: (renderer.info.programs || []).length }),
     heavy: () => { const o = []; scene.traverse(m => { if (m.isMesh && m.geometry) { const g = m.geometry, n = (g.index ? g.index.count : g.attributes.position.count) / 3; if (n > 2000) o.push([m.userData.kind || m.name || m.type, Math.round(n), m.visible]); } }); return o.sort((a, b) => b[1] - a[1]).slice(0, 12); },
     pads: () => padList,
+    tiers: () => pendingFull.map(f => [f.title, f.cur, f.want || 0, +(f.d || 0).toFixed(1), !!f.fullTex, f.tries || 0, !!f.top, !!f.busy]),      // (each work's sharpness: title, px held, px wanted, metres away, sharp copy in, failed, largest reached, loading)
     eco: () => ({ pixelRatio: renderer.getPixelRatio(), mirror: hallMirrorCtl ? hallMirrorCtl.isOn : mirrorCtl ? mirrorCtl.isOn : null }), setMirror: v => { if (hallMirrorCtl) hallMirrorCtl.set(!!v); else if (mirrorCtl) mirrorCtl.set(!!v); },
     where() { return { pos: pos.toArray(), look: look.toArray(), fov: camera.fov }; },
     place(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },
     // the images the room holds in the graphics memory, in MB (what a phone has to find room for)
     memory() {
       const seen = new Set(); let b = 0;
-      const add = t => { if (!t || seen.has(t) || !t.image) return; seen.add(t); const w = t.image.width || 0, h = t.image.height || 0; b += w * h * 4 * (t.generateMipmaps === false ? 1 : 1.34); };
+      const add = t => { if (!t || seen.has(t) || !t.image) return; seen.add(t); b += opt.bytes(t); };
       scene.traverse(o => { const ms = o.material ? [].concat(o.material) : []; for (const m of ms) { for (const k of ['map', 'emissiveMap', 'normalMap', 'lightMap']) add(m[k]); if (m.uniforms) for (const u of Object.values(m.uniforms)) [].concat(u.value).forEach(v => v && v.isTexture && add(v)); } });
       renderer.info && scene.traverse(o => { if (o.isReflector && o.getRenderTarget) { const rt = o.getRenderTarget(); b += rt.width * rt.height * 4; } });
       return Math.round(b / 1048576);
@@ -1509,7 +1513,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     textures(top = 25) {      // the texture memory by picture, biggest first: [mesh name, kind, w, h, MB] (what memory() adds up)
       const seen = new Set(), rows = [];
       scene.traverse(o => { const ms = o.material ? [].concat(o.material) : []; for (const m of ms) for (const k of ['map', 'emissiveMap', 'normalMap', 'lightMap']) { const t = m[k]; if (!t || seen.has(t) || !t.image) continue; seen.add(t);
-        const w = t.image.width || 0, h = t.image.height || 0; rows.push([o.name || o.userData.name || o.userData.kind || '?', k, w, h, +(w * h * 4 * (t.generateMipmaps === false ? 1 : 1.34) / 1048576).toFixed(1)]); } });
+        const w = t.image.width || 0, h = t.image.height || 0; rows.push([o.name || o.userData.name || o.userData.kind || '?', k, w, h, +(opt.bytes(t) / 1048576).toFixed(1), t.isCompressedTexture ? 'ktx2' : 'rgba']); } });
       return rows.sort((a, b) => b[4] - a[4]).slice(0, top);
     },
     // lens: a photo's own camera (view.project); leaveOut: { photo, cover } to check the room against it
