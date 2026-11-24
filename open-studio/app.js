@@ -1451,7 +1451,7 @@ async function loadSections() {
     const j = await (await fetch('data/museum/sections.json', { cache: 'no-cache' })).json();
     return await Promise.all((j.sections || []).filter(s => !s.hidden).map(async s => {
       const list = await (await fetch(s.folder + '/credits.json', { cache: 'no-cache' })).json(), credits = {};
-      for (const c of list) credits[c.slug] = { ...c, image: `${s.folder}/works/${c.slug}.jpg`, thumb: `${s.folder}/works/${c.slug}-s.jpg` };
+      for (const c of list) credits[c.slug] = { ...c, image: `${s.folder}/works/${c.slug}.jpg`, thumb: `${s.folder}/works/${c.slug}-s.jpg`, ...(c.xl !== false ? { full: `${s.folder}/works/${c.slug}-xl.jpg` } : {}) };      // (full: a 2400 px scan, for the viewer's sharpest tier)
       return { ...s, credits };
     }));
   } catch (e) { return []; }
@@ -1657,4 +1657,77 @@ if ('serviceWorker' in navigator && !window.STUDIO_DATA && location.protocol ===
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); prompt = e; show(); });
   window.addEventListener('appinstalled', () => document.querySelector('.install')?.remove());
   if (ios) setTimeout(show, 2500);
+})();
+
+// --- Real-phone data (24.11): how the 3D spaces run on visitors' own devices ------------------------------------------
+// One small record (<1 KB) per visit to a space (a tour, a virtual room or the museum), sent once at its end with
+// sendBeacon to public.phone_vitals (studio/supabase/migrations/2026-11-24_phone_vitals.sql); the control room's
+// "Phones" panel (admin.js) reads it. No personal data: a random id for the visit, the device class, the screen, timings
+// and memory; no account, no full user agent. Kept: every visit of the owner (os-owner, set by the control room) and a
+// quarter of the others; never an automated browser unless the address has ?vitals (?vitals=test marks the row a test).
+// The viewer (space.js) calls osVitals.frame(renderer) after each frame it draws; the frame times are this script's own
+// requestAnimationFrame for the first 20 s after the first frame. A visit still open when the page dies (a phone's
+// browser killing the tab for memory) is sent on the next opening, marked crashed.
+(() => {
+  const SEND = DB + 'rpc/log_phone_vitals?apikey=' + DB_KEY, LIVE = 'os-vit-live', SHARE = 0.25, WINDOW = 20000;
+  const qs = new URLSearchParams(location.search), forced = qs.has('vitals'), test = qs.get('vitals') === 'test';
+  const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch {} return null; };
+  const own = ls('os-owner') === '1', keep = forced || (!navigator.webdriver && (own || Math.random() < SHARE));
+  const post = body => { try { if (navigator.sendBeacon && navigator.sendBeacon(SEND, body)) return; } catch {} try { fetch(SEND, { method: 'POST', body, keepalive: true, headers: { 'Content-Type': 'text/plain' } }); } catch {} };
+  // a visit left open by a page that died: send it now, as a crash
+  const was = ls(LIVE); if (was) { ls(LIVE, null); try { const r = JSON.parse(was); r.crash = true; post(JSON.stringify(r)); } catch {} }
+  if (!keep) { window.osVitals = { frame() {} }; return; }
+  const ua = navigator.userAgent, ios = (ua.match(/OS (\d+)_(\d+)/) || []).slice(1, 3).join('.');
+  const dev = /iPhone/.test(ua) ? ['iphone', 'iOS ' + ios] : /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? ['ipad', ios ? 'iPadOS ' + ios : 'iPad']
+    : /Android/.test(ua) ? ['android', ((ua.match(/Android [\d.]+; ([^;)]+)/) || [])[1] || 'Android').replace(/ Build.*/, '')] : /Mobi/.test(ua) ? ['other', 'mobile']
+    : ['desktop', /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : /Linux|CrOS/.test(ua) ? 'Linux' : 'desktop'];
+  const br = /Edg\//.test(ua) ? 'edge' : /SamsungBrowser/.test(ua) ? 'samsung' : /CriOS|Chrome\//.test(ua) ? 'chrome' : /FxiOS|Firefox\//.test(ua) ? 'firefox' : /Safari\//.test(ua) ? 'safari' : 'other';
+  // Android hides the model in its user agent now ("K"): Chrome tells it when asked (the model only, nothing else)
+  if (dev[0] === 'android' && navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) navigator.userAgentData.getHighEntropyValues(['model']).then(h => { if (h.model) dev[1] = h.model; }).catch(() => {});
+  const spaceOf = h => { if (h === '#/museum') return 'museum'; const m = h.match(/^#\/exhibition\/([^/]+)\/space$/); return m ? 'ex:' + m[1].slice(0, 80) : null; };
+  const label = k => { if (!k.startsWith('ex:')) return k; let e = null; try { e = exhibitionOf(decodeURIComponent(k.slice(3))); } catch {} return (e && e.space && e.space.virtual ? 'room:' : 'tour:') + k.slice(3); };      // (a virtual room drawn in the browser, or a photographed tour)
+  const seen = new WeakSet(); let cur = null;
+  const heap = () => performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null;
+  const tex = () => { try { const v = window.__spaceView; return v && v.inspect && v.inspect.memory ? v.inspect.memory() : null; } catch { return null; } };
+  const q = (a, p) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return +s[Math.min(s.length - 1, Math.floor(p * s.length))].toFixed(1); };
+  const record = (r = cur) => JSON.stringify({ id: r.id, space: label(r.space), dev: dev[0], model: dev[1], br, sw: screen.width, sh: screen.height, dpr: +devicePixelRatio.toFixed(2),
+    ff: r.ff, med: q(r.dt, 0.5), p95: q(r.dt, 0.95), worst: r.dt.length ? +Math.max(...r.dt).toFixed(1) : null, n: r.dt.length, heap: r.heap, tex: r.tex,
+    lost: r.lost, err: r.err, s: Math.round((performance.now() - r.t0) / 1000), own, test });
+  const mark = () => { if (cur && !cur.sent) ls(LIVE, record()); };
+  const sample = () => { if (!cur) return; const h = heap(), t = tex(); if (h != null) cur.heap = Math.max(cur.heap || 0, h); if (t != null) cur.tex = Math.max(cur.tex || 0, t); };
+  function finish() {
+    if (!cur || cur.sent) return;
+    if (cur.ff != null && cur.tex == null) sample();
+    cur.sent = true; ls(LIVE, null); post(record()); cur = null;
+  }
+  function begin(space) {
+    finish();
+    cur = { id: (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 36), space, t0: performance.now(), ff: null, dt: [], heap: null, tex: null, lost: false, err: 0, sent: false };
+    mark();
+  }
+  // frame times, for the first 20 s after the first frame (a hidden page doesn't count)
+  function watch(r) {
+    let last = performance.now();
+    const tick = now => {
+      if (cur !== r || r.sent) return;
+      if (document.visibilityState === 'visible') r.dt.push(now - last);
+      last = now;
+      if (now - r.t0 - r.ff < WINDOW) requestAnimationFrame(tick); else { sample(); mark(); }
+    };
+    requestAnimationFrame(tick);
+  }
+  window.osVitals = {
+    frame(renderer) {
+      if (!cur || cur.ff != null || seen.has(renderer)) return;
+      seen.add(renderer);
+      const r = cur; r.ff = Math.round(performance.now() - r.t0);
+      renderer.domElement.addEventListener('webglcontextlost', () => { r.lost = true; if (cur === r) mark(); });
+      mark(); watch(r);
+    },
+  };
+  const route = () => { const s = spaceOf(location.hash); if (s && (!cur || cur.space !== s)) begin(s); else if (!s) finish(); };
+  addEventListener('hashchange', route); route();
+  addEventListener('error', () => { if (cur) cur.err++; }); addEventListener('unhandledrejection', () => { if (cur) cur.err++; });
+  addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') finish(); });
 })();
