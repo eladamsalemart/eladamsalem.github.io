@@ -1,0 +1,86 @@
+# Textures: phone-friendly copies of every picture the 3D viewer loads (studio/app/texopt/texopt.py).
+#   bucket  every hour: artists' new uploads in Supabase storage (works/<uid>/...) get <uid>/opt/<name>.768.ktx2, .<full>.ktx2,
+#           .768.webp and .relief.ktx2, listed in works/opt/manifest.json (the viewer reads it). Originals are never changed.
+#   site    by hand (and weekly): every picture of the site's rooms and works, made into the cache the "Open Studio app"
+#           publish reads, so a publish only makes what is new. Run once with `site` for the library as it is.
+# Read from main (schedule, by hand): a change here goes to both main and studio.
+name: Textures
+
+on:
+  schedule:
+    - cron: '23 * * * *'        # artists' uploads
+    - cron: '41 2 * * 0'        # the site's library (keeps its cache warm)
+  workflow_dispatch:
+    inputs:
+      part:
+        description: 'bucket | site | both'
+        default: both
+      all:
+        description: 'make every bucket copy again (true/false)'
+        default: 'false'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: textures
+  cancel-in-progress: false
+
+jobs:
+  bucket:
+    if: github.event_name != 'schedule' && inputs.part != 'site' || github.event.schedule == '23 * * * *'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio
+          sparse-checkout: studio/app/texopt
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Tools
+        run: |
+          curl -sfL -o /tmp/ktx.deb https://github.com/KhronosGroup/KTX-Software/releases/download/v4.4.2/KTX-Software-4.4.2-Linux-x86_64.deb
+          sudo apt-get install -y -qq /tmp/ktx.deb >/dev/null && ktx --version
+          pip install -q pillow==12.3.0 numpy==2.5.4
+      - name: Artists' uploads
+        env:
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python3 studio/app/texopt/texopt.py bucket --jobs 4 ${{ inputs.all == 'true' && '--all' || '' }}
+
+  site:
+    if: github.event_name != 'schedule' && inputs.part != 'bucket' || github.event.schedule == '41 2 * * 0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          sparse-checkout: media
+      - name: The app from studio
+        run: git fetch -q origin studio && git worktree add -q /tmp/studio origin/studio
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Tools
+        run: |
+          curl -sfL -o /tmp/ktx.deb https://github.com/KhronosGroup/KTX-Software/releases/download/v4.4.2/KTX-Software-4.4.2-Linux-x86_64.deb
+          sudo apt-get install -y -qq /tmp/ktx.deb >/dev/null && ktx --version
+          pip install -q pillow==12.3.0 numpy==2.5.4
+      - uses: actions/cache/restore@v4
+        with:
+          path: /tmp/texcache
+          key: texopt-v7-${{ github.run_id }}
+          restore-keys: texopt-v7-
+      - name: Every picture of the site's rooms and works
+        id: make
+        run: |
+          python3 /tmp/studio/studio/app/texopt/texopt.py site /tmp/studio/studio/app /tmp/texout --media media --cache /tmp/texcache --jobs 4
+          cat /tmp/texout/data/tex.report.json | head -40
+          echo "made=$(python3 -c "import json;print(json.load(open('/tmp/texout/data/tex.report.json'))['made_now'])")" >> "$GITHUB_OUTPUT"
+      - if: steps.make.outputs.made != '0'
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/texcache
+          key: texopt-v7-${{ github.run_id }}

@@ -26,7 +26,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-24.04            # the OS playwright 1.56.1 (the version checked locally) installs on; 26.04 it cannot
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -77,6 +77,29 @@ jobs:
           cp -r /tmp/studio/studio/desk/icons open-studio-desk/
           # a new cache name with every version, so an installed app drops what it kept from the last one
           sed -i "s/const VERSION = '[^']*'/const VERSION = 'open-studio-$(git -C /tmp/studio rev-parse --short HEAD)'/" open-studio/sw.js
+      # the pictures' phone-friendly copies (studio/app/texopt/texopt.py: KTX2 with mipmaps, a work's 768 px copy and relief, a room's
+      # surfaces at a phone's size, a WebP fallback), kept between runs by their content, so a rerun writes the same bytes; new pictures
+      # are made now, inside a time limit (what isn't reached in time loads as the original until the next run or "Textures" makes it)
+      - name: Restore the pictures' copies made before
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/texcache
+          key: texopt-v7-${{ github.run_id }}
+          restore-keys: texopt-v7-
+      - name: Phone-friendly copies of every picture a room loads
+        id: texopt
+        run: |
+          curl -sfL -o /tmp/ktx.deb https://github.com/KhronosGroup/KTX-Software/releases/download/v4.4.2/KTX-Software-4.4.2-Linux-x86_64.deb
+          sudo apt-get install -y -qq /tmp/ktx.deb >/dev/null && ktx --version
+          pip install -q numpy==2.5.4
+          python3 /tmp/studio/studio/app/texopt/texopt.py site /tmp/studio/studio/app open-studio --media media --cache /tmp/texcache --jobs 4 --budget 540
+          echo "made=$(python3 -c "import json;print(json.load(open('open-studio/data/tex.report.json'))['made_now'])")" >> "$GITHUB_OUTPUT"
+      - name: Keep the new copies for the next run
+        if: steps.texopt.outputs.made != '0'
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/texcache
+          key: texopt-v7-${{ github.run_id }}
       - name: Every file the app loads is published (a script left out of the copy above fails here, not on a phone)
         # follows the whole module graph, imports inside imports included (space/outdoors.js -> ./tropics.js was missed on 24.11)
         run: python3 /tmp/studio/studio/app/check_published.py open-studio
