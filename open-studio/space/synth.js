@@ -1481,19 +1481,13 @@ async function originalSpec(o, src) {
   const K = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 1 : 2;      // (a laptop shows the room as sharp as the original tour; only a phone gets it smaller)
   // the walls at the room's own tour level on a phone too: 1024 left a 14 m wall at 73 px/m, the tour has 200 (the owner, 23.11)
   await Promise.all((sp.surfaces || []).map(async s => { if (s.texture) s.texture = await shrink(s.texture, 2048); if (s.light) s.light = await shrink(s.light, 512 * K, true); }));
-  await Promise.all((sp.works || []).map(async w => { if (w.imageSmall) w.imageSmall = await shrink(w.imageSmall, 640 * K); if (w.light) w.light = await shrink(w.light, 256 * K, true); }));
+  // the works' first images as the room's own tour has them (1024 px; 640 on a phone made Ritual's paintings softer in the museum than in its tour)
+  await Promise.all((sp.works || []).map(async w => { if (w.imageSmall) w.imageSmall = await shrink(w.imageSmall, 1024); if (w.light) w.light = await shrink(w.light, 256 * K, true); }));
   if (sp.plaster) sp.plaster = await shrink(sp.plaster, 512 * K);
-  // the floor is a small tile repeated over the room: laid out once, whole, so a pavilion's floor (drawn as a plain wall-like surface) is not that one tile stretched
+  // the floor is a small tile repeated over the room, as in the room's own tour (333 px a metre for Ritual's terrazzo): repeated, never baked into
+  // one picture (baked at 80 px/m on a phone it read blurred and flat next to the tour; the owner, 24.11)
   const fl = (sp.surfaces || []).find(q => q.kind === 'floor' && typeof q.texture === 'string' && q.size);
-  if (fl) {
-    const im = await new Promise(res => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => res(null); i.src = fl.texture; });
-    const tx = (fl.tileXY || [fl.tile || 1, fl.tile || 1]), [w, d] = fl.size;
-    if (im && w > 0 && d > 0 && tx[0] > 0 && tx[1] > 0 && (w > tx[0] * 1.5 || d > tx[1] * 1.5)) {
-      const ppm = Math.min(80 * K, 2048 / Math.max(w, d)), cv = canvas(Math.round(w * ppm), Math.round(d * ppm)), x = cv.getContext('2d');
-      for (let a = 0; a < w; a += tx[0]) for (let b = 0; b < d; b += tx[1]) x.drawImage(im, a * ppm, b * ppm, tx[0] * ppm + 1, tx[1] * ppm + 1);
-      fl.texture = cv.toDataURL('image/jpeg', 0.9); delete fl.tileXY; fl.tile = Math.max(w, d);
-    }
-  }
+  if (fl) { const tx = fl.tileXY || [fl.tile || 1, fl.tile || 1], [w, d] = fl.size; if (tx[0] > 0 && tx[1] > 0 && (w > tx[0] * 1.5 || d > tx[1] * 1.5)) { fl.repeat = [w / tx[0], d / tx[1]]; delete fl.tileXY; } }
   return sp;
 }
 export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
@@ -1547,7 +1541,6 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     y.fillStyle = '#a9a8a2'; y.fillRect(0, 0, fw, fh);        // (the floor away from the sun is the sky-lit grey of the path-traced reference, studio/design/museum-sky/blender/)
     for (let i = 0; i < 42000; i++) { const t = Math.random(); y.fillStyle = t < 0.4 ? 'rgba(255,255,255,0.16)' : t < 0.8 ? 'rgba(80,70,60,0.16)' : 'rgba(190,160,130,0.22)'; y.fillRect(Math.random() * fw, Math.random() * fh, 1 + Math.random() * 2, 1 + Math.random() * 2); }
     y.strokeStyle = 'rgba(80,70,60,0.15)'; y.lineWidth = 2; for (let k = 0; k <= HX; k += 4) { y.beginPath(); y.moveTo(k * FP, 0); y.lineTo(k * FP, fh); y.stroke(); } for (let k = 0; k <= HZ; k += 4) { y.beginPath(); y.moveTo(0, k * FP); y.lineTo(fw, k * FP); y.stroke(); }
-    if (PLAN.pool) { const [px0, pz0, px1, pz1] = PLAN.pool, pool = y.createLinearGradient(0, pz0 * FP, 0, pz1 * FP); pool.addColorStop(0, '#9db4bb'); pool.addColorStop(1, '#b9cdd1'); y.fillStyle = pool; y.fillRect(px0 * FP, pz0 * FP, (px1 - px0) * FP, (pz1 - pz0) * FP); y.strokeStyle = 'rgba(70,64,56,0.55)'; y.lineWidth = 6; y.strokeRect(px0 * FP, pz0 * FP, (px1 - px0) * FP, (pz1 - pz0) * FP); }
     // contact shadows, painted into the floor: the soft dark that gathers where a wall, a pier or a stand meets the floor (ambient occlusion, baked: it costs nothing while walking)
     { const soft = (pts, reach, a) => { const mx = pts.reduce((t, q) => t + q[0], 0) / pts.length, mz = pts.reduce((t, q) => t + q[1], 0) / pts.length;
         for (let s = 14; s >= 1; s--) { const t = reach * s / 14, k = t * 2 / 8, grow = q => { const dx = q[0] - mx, dz = q[1] - mz, L = Math.hypot(dx, dz) || 1; return [q[0] + dx / L * t, q[1] + dz / L * t]; };
@@ -1589,6 +1582,31 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     lite(y, fw, fh, 0.5);
     rect('hall-floor', 'wall', [0, 0], [HX, HZ], 0.02, true, jpg(c, 0.88));
     surfaces[surfaces.length - 1].detail = { texture: terrazzoDetail(), m: 0.8, k: 3.5 };      // (the painted floor is 16 px a metre: up close its chips are this tile, at their true size)
+  }
+  // the pool of the Square, as a basin: a curb of honed dark basalt (0.42 m high, 0.45 m wide at the top), the water a hand below its rim: black-green, with the roof's round
+  // openings lying on it (the sky, by day; the lamps, by night), a darker band of shade under the curb. The walk stays outside it (the pool's solids).
+  if (PLAN.pool) {
+    const [px0, pz0, px1, pz1] = PLAN.pool, RWD = 0.45, RHT = 0.42, WY = 0.3, xi0 = px0 + RWD, zi0 = pz0 + RWD, xi1 = px1 - RWD, zi1 = pz1 - RWD, mxp = (px0 + px1) / 2, mzp = (pz0 + pz1) / 2;
+    const stone = (hex, w, h, grain) => { const c = canvas(w, h), x = c.getContext('2d'); x.fillStyle = tintHex(hex, { tint: tIn.map(v => Math.pow(v, 0.7)) }); x.fillRect(0, 0, w, h); noise(x, w, h, grain, 0.12); return jpg(c, 0.9); };
+    const rimT = stone('#4a4f4c', 256, 64, 900), outT = stone('#3b403d', 256, 64, 700), inT = stone('#242a28', 256, 64, 500);
+    rect('pool-rim-n', 'wall', [px0, pz0], [px1, zi0], RHT, true, rimT); rect('pool-rim-s', 'wall', [px0, zi1], [px1, pz1], RHT, true, rimT);
+    rect('pool-rim-w', 'wall', [px0, zi0], [xi0, zi1], RHT, true, rimT); rect('pool-rim-e', 'wall', [xi1, zi0], [px1, zi1], RHT, true, rimT);
+    for (const [nm, cx, cz, nx, nz, len] of [['n', mxp, pz0, 0, -1, px1 - px0], ['s', mxp, pz1, 0, 1, px1 - px0], ['w', px0, mzp, -1, 0, pz1 - pz0], ['e', px1, mzp, 1, 0, pz1 - pz0]]) wall(`pool-out-${nm}`, cx, cz, nx, nz, len, { h: RHT, tex: outT, noSolid: true });
+    for (const [nm, cx, cz, nx, nz, len] of [['n', mxp, zi0, 0, 1, xi1 - xi0], ['s', mxp, zi1, 0, -1, xi1 - xi0], ['w', xi0, mzp, 1, 0, zi1 - zi0], ['e', xi1, mzp, -1, 0, zi1 - zi0]]) wall(`pool-in-${nm}`, cx, cz, nx, nz, len, { h: RHT, tex: inT, noSolid: true });
+    const W = xi1 - xi0, D = zi1 - zi0, PPM = 54, c = canvas(Math.round(W * PPM), Math.round(D * PPM)), y = c.getContext('2d'), day = env.day;
+    const g = y.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, '#16231f'); g.addColorStop(0.55, '#101b19'); g.addColorStop(1, '#1b2b26'); y.fillStyle = g; y.fillRect(0, 0, c.width, c.height);
+    y.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < HX / 4; i++) for (let j = 0; j < HZ / 4; j++) {          // the roof's openings (the same grid as the pools of sun on the floor), as they lie in dark water
+      const big = (i + j) % 2 === 0, r = (big ? 1.05 : 0.6) * 1.5, cx = (2 + i * 4 - xi0) * PPM, cz = (2 + j * 4 - zi0) * PPM, rr = r * PPM;
+      if (cx < -rr || cz < -rr || cx > c.width + rr || cz > c.height + rr) continue;
+      const gr = y.createRadialGradient(cx, cz, 0, cx, cz, rr * 1.15); const a = 0.2 + 0.6 * day;
+      gr.addColorStop(0, day > 0.3 ? `rgba(150,190,235,${a})` : 'rgba(255,200,140,0.3)'); gr.addColorStop(0.7, day > 0.3 ? `rgba(120,165,215,${a * 0.7})` : 'rgba(255,190,130,0.18)'); gr.addColorStop(1, 'rgba(120,165,215,0)');
+      y.save(); y.translate(cx, cz); y.scale(1, 0.62); y.translate(-cx, -cz); y.fillStyle = gr; y.fillRect(cx - rr * 1.2, cz - rr * 1.2, rr * 2.4, rr * 2.4); y.restore();
+    }
+    y.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 70; i++) { const rx = Math.random() * c.width, rz = Math.random() * c.height, l = 20 + Math.random() * 90; y.fillStyle = `rgba(210,230,240,${0.02 + Math.random() * 0.05})`; y.fillRect(rx - l / 2, rz, l, 1 + Math.random() * 1.2); }     // (a few faint ripple lines)
+    const sh = y.createLinearGradient(0, 0, 0, 26); sh.addColorStop(0, 'rgba(0,0,0,0.55)'); sh.addColorStop(1, 'rgba(0,0,0,0)'); y.fillStyle = sh; y.fillRect(0, 0, c.width, 26);          // (the curb's shade on the water)
+    rect('pool-water', 'wall', [xi0, zi0], [xi1, zi1], WY, true, jpg(c, 0.9));
   }
   {
     const FP = 12, fw = HX * FP, fh = HZ * FP, c = canvas(fw, fh), y = c.getContext('2d'), night = env.day < 0.3;

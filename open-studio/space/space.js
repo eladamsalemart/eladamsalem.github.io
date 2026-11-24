@@ -81,6 +81,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
     const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.anisotropy = t.anisotropy; t.dispose(); return n;
   };
+  const shrinkTo = (t, max) => {                  // (a picture held at `max` px across, on any device; the source texture is freed)
+    const im = t.image, w = im.naturalWidth || im.width, h = im.naturalHeight || im.height;
+    if (Math.max(w, h) <= max) return t;
+    const k = max / Math.max(w, h), c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.anisotropy = t.anisotropy; t.dispose(); return n;
+  };
   const surfTex = s => { if (!held.has(s.texture)) held.set(s.texture, loadTex(s.texture).then(t => fit(t, s.kind === 'wall' ? 2048 : 1536))); return held.get(s.texture); };
   const texs = await Promise.all(surfaces.map(async s => {
     const t = await surfTex(s);
@@ -538,7 +545,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   })();
   // relief from the image itself: brightness changes become tiny slopes that catch the light at an angle
   function reliefFrom(img) {
-    const w = Math.min(1024, img.width), h = Math.round(w * img.height / img.width);
+    const w = Math.min(512, img.width), h = Math.round(w * img.height / img.width);      // (the varnish relief is subtle: 512 px across is enough, and a 1024 px one cost 8 MB a work)
     const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
     x.drawImage(img, 0, 0, w, h);
     const d = x.getImageData(0, 0, w, h), p = d.data, L = new Float32Array(w * h);
@@ -621,7 +628,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   // keeps in it is held to a budget
   const PHONE = matchMedia('(pointer: coarse)').matches && !inspecting;   // (true in the phone pass too)
   const FULL_AT_ONCE = PHONE ? 2 : 4;
-  let upgrading = false, opened = performance.now(), nextFull = 0;
+  const TIERS = [640, 1024, 1536, 2048], TIER_FAR = 16, TIER_MB = PHONE ? 110 : 320, LOADS = PHONE ? 2 : 3;      // (the pictures the works may hold: sizes, how far the eye is served, MB for the sharpened ones)
+  let loading = 0, opened = performance.now(), nextFull = 0;
   function setFront(f, t) {
     f.front.emissiveMap = t; if (f.front.map) f.front.map = t; f.front.needsUpdate = true; dirty = true;
     for (const e of f.edges || []) e.material.uniforms.img.value = t;
@@ -695,7 +703,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const edges = canvasEdges(bw, bh, dM, h.sides, null);
       edges.forEach(e => e.position.set(bx, by, 0));
       g.add(face, body, ...edges); box = face;
-      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges: [] });
+      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges: [], title: h.work, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
     } else if (h.flat) {        // letters set on the wall (the wall text): a sheet with no body, the wall showing through where it has no ground
       tex.colorSpace = THREE.SRGBColorSpace;
       box = new THREE.Mesh(new THREE.PlaneGeometry(wM, hM), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.01, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2 }));
@@ -705,7 +713,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       box.userData.kind = 'work';
       const edges = canvasEdges(wM, hM, dM, h.sides, tex);
       g.add(box, ...edges);
-      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges });
+      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges, title: h.work, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
     }
     const sh = new THREE.Mesh(new THREE.PlaneGeometry(bw + Math.min(0.08, 0.15 * Math.min(bw, bh)), bh + Math.min(0.1, 0.18 * Math.min(bw, bh))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.07, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
     sh.position.set(bx + Math.min(0.012, 0.03 * bw), by - Math.min(0.03, 0.06 * bh), -dM / 2 - 0.002);   // just off the wall, never in it
@@ -1348,25 +1356,33 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (mode === 'walk' && now > nextFocus) { focus(); nextFocus = now + 200; }
     if (ibrChoose && now > nextChoose) { ibrChoose(pos, new THREE.Vector3().subVectors(look, pos).normalize()); nextChoose = now + 700; }
     if (ibrNear) ibrNear(pos, new THREE.Vector3().subVectors(look, pos).normalize());
-    // full images: for the few works nearest the visitor (within reach), one download at a time; a work
-    // left well behind goes back to its light image, so the page never holds every work's full image at once
+    // the sharpness of every work follows what the eye needs: from its real size, its distance and the screen's pixels, the picture it should
+    // hold (640 / 1024 / 1536 / 2048 px across); a better one comes in (one download at a time) for the work the visitor looks at, a worse one
+    // is kept where nobody looks, inside a budget of picture memory (the paintings are the museum's point: memory is spent on them, where the visitor is)
     if (pendingFull.length && now > nextFull) {
-      nextFull = now + 400;
-      const near = pendingFull.map(f => [f, pos.distanceTo(f.centre)]).filter(([f, d]) => d < f.reach).sort((a, b) => a[1] - b[1]).slice(0, FULL_AT_ONCE).map(([f]) => f);
+      nextFull = now + 300;
+      const dir = new THREE.Vector3().subVectors(look, pos).normalize(), tanH = Math.tan(camera.fov * Math.PI / 360) * camera.aspect, pxW = renderer.domElement.width;
+      let used = 0;
       for (const f of pendingFull) {
-        if (f.fullTex && !near.includes(f) && pos.distanceTo(f.centre) > f.reach * 1.3 && f.reach < 1e8) {
-          setFront(f, f.small); f.fullTex.dispose(); f.fullTex = null;
-        }
+        const v = new THREE.Vector3().subVectors(f.centre, pos), d = Math.max(0.5, v.length()), seen = d < 3 || v.dot(dir) / d > 0.25;
+        const need = f.span * pxW / (2 * d * tanH) * 1.15;
+        f.d = d; f.want = !seen ? 0 : d > TIER_FAR ? 0 : TIERS.find(t => t >= need) || TIERS[TIERS.length - 1];
+        used += f.cur * f.cur * (f.ar || 1) * 4 * 1.34 / 1048576;
       }
-      const f = !upgrading && near.find(x => !x.fullTex && !x.tries);
+      // over the budget, or no longer looked at: the farthest sharp work goes back to its light image
+      const back = pendingFull.filter(f => f.fullTex && f.reach < 1e8 && (f.want === 0 || f.want * 1.4 <= f.cur) && f.d > 2).sort((a, z) => z.d - a.d);
+      for (const f of back.slice(0, used > TIER_MB ? 3 : 1)) if (used > TIER_MB || f.d > 6) { setFront(f, f.small); f.fullTex.dispose(); f.fullTex = null; f.cur = Math.max(f.small.image.width, f.small.image.height); }
+      const f = loading < LOADS && pendingFull.filter(x => x.full && !x.tries && !x.busy && x.want > x.cur * 1.05 && (x.reach >= 1e8 || x.want > 0)).sort((a, z) => a.d - z.d)[0];
       if (f) {
-        upgrading = true;
-        loadRetry([f.full]).then(t => {
-          upgrading = false;
+        loading++; f.busy = true;
+        (f.reach >= 1e8 ? loadRetry([f.full]) : Promise.race([loadTex(f.full), new Promise(r => setTimeout(() => r(null), 9000))])).then(t => {      // (a sharper picture is optional: one try and a time limit, so a missing or slow file never holds the line)
+          loading--; f.busy = false;
           if (!t) { f.tries = 1; return; }
           t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
-          if (f.reach >= 1e8) { f.small = t; f.reach = 0; setFront(f, t); return; }     // a work that had only its plain tone
-          f.fullTex = t; setFront(f, t);
+          if (f.reach >= 1e8) { f.small = t; f.reach = 0; f.cur = Math.max(t.image.width, t.image.height); f.ar = t.image.height / t.image.width; setFront(f, t); return; }     // a work that had only its plain tone
+          const tex = shrinkTo(t, Math.max(f.want, 1024));
+          if (f.fullTex) f.fullTex.dispose();
+          f.fullTex = tex; f.cur = Math.max(tex.image.width, tex.image.height); setFront(f, tex); dirty = true;
         });
       }
     }
@@ -1415,11 +1431,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const inspect = {
     pieces: pieces.map(p => ({ title: p.w.title, centre: p.centre.toArray(), facing: p.facing.toArray(), size: p.size, stand: p.stand.toArray(), image: p.h.image, core: p.h.core || null })),
     views, room: R, eye: EYE, start: { pos: pos.toArray(), look: look.toArray() },
+    walkTo(at, to) { goFree(); pos.set(...at); look.set(...to); tPos.copy(pos); tLook.copy(look); dirty = true; },      // stand there, looking there, with the room running (the tiers follow)
+    tiers: () => pendingFull.map(f => ({ title: f.title, cur: f.cur, want: f.want, d: +(f.d || 0).toFixed(1), full: f.full, tries: f.tries || 0 })),
     stand: p => clampStand(V(p)).toArray(),                 // where a visitor can actually stand
     failed,                                                  // works whose image never arrived
     ready: () => ibrReady(),                                 // the photos all in place on the room
     // each work as drawn now: its image's size (0: none), and whether it is in the scene and visible
-    works() { return pieces.map(p => { const m = p.mesh.material, mats = [].concat(m), f = mats.find(x => x.emissiveMap) || mats[0]; const t = f && f.emissiveMap; let vis = true; for (let o = p.mesh; o; o = o.parent) vis = vis && o.visible; return { title: p.w.title, image: t && t.image ? [t.image.width, t.image.height] : [0, 0], visible: vis, inScene: !!p.mesh.parent && !!p.mesh.parent.parent }; }); },
+    works() { return pieces.map(p => { const m = p.mesh.material, mats = [].concat(m), f = mats.find(x => x.emissiveMap) || mats[0]; const t = f && f.emissiveMap; let vis = true; for (let o = p.mesh; o; o = o.parent) vis = vis && o.visible; return { title: p.w.title, cm: [p.size.w, p.size.h], stand: p.stand.toArray(), at: p.centre.toArray(), image: t && t.image ? [t.image.width, t.image.height] : [0, 0], visible: vis, inScene: !!p.mesh.parent && !!p.mesh.parent.parent }; }); },
     // stand somewhere and look at something, as a visitor walking would (the room keeps running: for testing
     // what a phone does as one walks, unlike shot() below)
     hot: () => HOT.map(h => [h.spec.id, String(h.spec.title || '').slice(0, 40), h.spec.kind || '', (h.spec.text || []).length, (h.spec.origin || []).map(v => +(+v).toFixed(1)), h.spec.u, h.spec.v, h.spec.size, h.spec.normal]),
