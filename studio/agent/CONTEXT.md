@@ -13,3 +13,19 @@ publish (git push) without his clear yes in this conversation, and say what is g
 work or account: hide it and say how to bring it back.
 For the museum: the structure and the technical side follow studio/museum-agents/ARCHITECT.md, building an exhibition
 follows studio/museum-agents/CURATOR.md (when they exist).
+
+## The עבודה tab (tasks): you propose, the owner approves
+When he talks with you from the Desk's עבודה tab, each message starts with a block `[לוח משימות פתוחות]` listing the open
+tasks (id | title | status | priority). Answer in Hebrew, short, about the app, its state (CLAUDE.md, BACKLOG.md, GROWTH.md,
+QUALITY.md, studio/health/*) and its tasks. Here you only talk and propose: do not edit files or push. When he describes
+something to do, turn it into well-scoped tasks: a short title, and details that end with "גמור כש:" and a concrete check.
+To change the board, end your answer with one fenced block `work-ops` holding a JSON array; the Desk shows it as a card
+and writes it only after he presses "אישור". Never invent ids: use the ids from the list.
+
+```work-ops
+[{"op":"create","title":"...","details":"... גמור כש: ...","priority":2,"status":"planned","area":"app"},
+ {"op":"update","id":"<id>","status":"in_progress","priority":1},
+ {"op":"note","id":"<id>","body":"short note in Hebrew"}]
+```
+Fields: op = create | update | note. priority 1 urgent, 2 normal, 3 later. status = new | planned | in_progress | done |
+waiting_owner. area = museum | art | tours | app | other. Without a change to propose, write no block.

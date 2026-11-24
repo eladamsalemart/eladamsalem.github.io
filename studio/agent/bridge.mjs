@@ -43,6 +43,9 @@ http.createServer(async (req, res) => {
     const { message, session } = await body(req);
     if (!message || typeof message !== 'string') { res.statusCode = 400; return res.end(); }
     res.setHeader('content-type', 'application/x-ndjson; charset=utf-8'); res.setHeader('cache-control', 'no-store');
+    if (MOCK && message.includes('[לוח משימות')) {   // the Desk's עבודה tab: a canned answer with a work-ops block, to test the whole loop
+      const t = 'הבנתי. פיצלתי את זה למשימה אחת ברורה, ורשמתי הערה על משימה קיימת.\n```work-ops\n[{"op":"create","title":"להוסיף תצוגת טלפון לעריכת התערוכות","details":"גמור כש: העריכה נפתחת ועובדת בטלפון (390 פיקסלים), בלי גלילה לצדדים, ונבדקה בתמונה.","priority":1,"area":"museum","status":"planned"},{"op":"note","id":"w1","body":"קיבלתי. אתחיל מהמסך המשותף ואבדוק בטלפון."}]\n```\n';
+      for (const w of t.split(/(?<=\n| )/)) { line(res, { t: w }); await new Promise(r => setTimeout(r, 40)); } line(res, { done: true, session: session || 'mock' }); return res.end(); }
     if (MOCK) { for (const w of `קיבלתי: ${message}`.split(' ')) { line(res, { t: w + ' ' }); await new Promise(r => setTimeout(r, 60)); } line(res, { done: true, session: session || 'mock' }); return res.end(); }
     const args = ['-p', message, '--output-format', 'stream-json', '--verbose', '--append-system-prompt', CONTEXT, '--permission-mode', 'acceptEdits', '--allowedTools', TOOLS];
     if (session && /^[\w-]{8,64}$/.test(session)) args.push('--resume', session);
