@@ -67,7 +67,7 @@ published, what On View means, and why a tour needs many photos. Two clear paths
 small beats big: when he says "smaller", make it clearly smaller. No clutter. Ask before changing a look.
 
 **English app, Hebrew to him.** The app is English everywhere except the owner's control room. Hebrew elsewhere
-is a bug. Every report to him is in Hebrew.
+is a bug. Every report to him is in Hebrew. That includes choice popups: the question, the header and every option in Hebrew (24.11, a popup went out in English).
 
 **Real content only.** Real artists, works allowed for use, real exhibitions, a real map, real days and hours.
 Never invented ones.
