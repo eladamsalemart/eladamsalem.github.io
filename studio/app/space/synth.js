@@ -1272,7 +1272,7 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
     // its title, above the way in, on the face that looks at the plaza
     { const cv = canvas(1024, 256), x = cv.getContext('2d'); x.fillStyle = dark ? '#8d8b85' : ft; x.fillRect(0, 0, 1024, 256);
       x.fillStyle = dark ? 'rgba(250,248,244,0.95)' : 'rgba(40,36,30,0.88)'; x.textAlign = 'center'; x.textBaseline = 'middle'; let fs = 120, t = r.title; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(t).width > 940 && fs > 24) { fs -= 4; x.font = `500 ${fs}px Georgia, serif`; }
-      x.fillText(t, 512, 108); x.fillStyle = col; x.fillRect(512 - 90, 190, 180, 8); const q = P(0, VD - 0.05), th = Math.min(0.8, rh - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
+      x.fillText(t, 512, 108); x.fillStyle = col; x.fillRect(512 - 90, 190, 180, 8); const q = P(0, VD - 0.01), th = Math.min(0.8, rh - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
       surfaces.push({ name: `r${i}-title`, kind: 'wall', texture: jpg(cv, 0.92), origin: [q[0] - R[0] * 1.8, y1, q[1] - R[1] * 1.8], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [3.6, th], normal: [-o[0], 0, -o[1]], openings: [] }); }
     const put = (work, wm, hm, run, ac, y) => hangAt(work, wm, hm, run.at(ac), run.n, y, r.labels ? { side: ac + wm / 2 + 0.55 > run.len ? -1 : 1,
       lines: [work.title, [work.artist && (work.artist.name || work.artist), work.year].filter(Boolean).join(', '), work.medium || '', work.note || ''].filter(Boolean) } : null);
@@ -1360,7 +1360,7 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
         const cv = canvas(1024, 256), x = cv.getContext('2d'); x.fillStyle = tintHex('#c9bba3', { tint: [1, 1, 1] }); x.fillRect(0, 0, 1024, 256); x.fillStyle = 'rgba(40,36,30,0.9)'; x.textAlign = 'center'; x.textBaseline = 'middle';
         let fs = 120, t = sec.title; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(t).width > 940 && fs > 24) { fs -= 4; x.font = `500 ${fs}px Georgia, serif`; } x.fillText(t, 512, 100);
         x.font = '400 46px Georgia, serif'; x.fillStyle = 'rgba(40,36,30,0.62)'; x.fillText(sec.years || '', 512, 200);
-        const q = P(oc, -0.33), th = Math.min(0.9, h - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
+        const q = P(oc, -0.31), th = Math.min(0.9, h - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
         surfaces.push({ name: `${sec.id}-title`, kind: 'wall', texture: jpg(cv, 0.92), origin: [q[0] - R[0] * 1.8, y1, q[1] - R[1] * 1.8], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [3.6, th], normal: [-o[0], 0, -o[1]], openings: [] });
       }
       if (next) {
@@ -1778,7 +1778,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       const pick = fit.sort((p, q) => Math.abs(at(p) - mid) - Math.abs(at(q) - mid))[0]; if (pick) sLoc = at(pick); }
     const ph = pw * 860 / 640, side = dw / 2 + 0.35 + pw / 2;
     const q = sLoc != null ? (() => { const s0 = dws.s, w = W(s0.origin[0] + s0.u[0] * sLoc, s0.origin[2] + s0.u[2] * sLoc); return [w[0] - o[0] * (T + 0.004), w[1] - o[1] * (T + 0.004)]; })()
-      : [c[0] + R[0] * side - o[0] * 0.01, c[1] + R[1] * side - o[1] * 0.01];
+      : [c[0] + R[0] * side + o[0] * (0.25 - T - 0.004), c[1] + R[1] * side + o[1] * (0.25 - T - 0.004)];      // (on the skin: the door wall stands 0.25 behind the door line, the skin T in front of it)
     const o0 = [q[0] - R[0] * pw / 2, 0.9 + ph, q[1] - R[1] * pw / 2], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
     surfaces.push({ name: `${pre}text`, kind: 'wall', texture: jpg(cv, 0.92), origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, openings: [] });
     hotspots.push({ id: r.slug, title: r.title, sub: r.curator ? 'Curated by ' + r.curator : (r.sub || ''), text: paras, lang: he ? 'he' : 'en', kind: 'text', origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, enter: null });
@@ -1806,7 +1806,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
     // its title, above the way in, on the face that looks at the plaza
     { const cv = canvas(1024, 256), x = cv.getContext('2d'); x.fillStyle = dark ? '#8d8b85' : ft; x.fillRect(0, 0, 1024, 256);
       x.fillStyle = dark ? 'rgba(250,248,244,0.95)' : 'rgba(40,36,30,0.88)'; x.textAlign = 'center'; x.textBaseline = 'middle'; let fs = 120, t = r.title; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(t).width > 940 && fs > 24) { fs -= 4; x.font = `500 ${fs}px Georgia, serif`; }
-      x.fillText(t, 512, 108); x.fillStyle = col; x.fillRect(512 - 90, 190, 180, 8); const q = P(0, VD - 0.05), th = Math.min(0.8, rh - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
+      x.fillText(t, 512, 108); x.fillStyle = col; x.fillRect(512 - 90, 190, 180, 8); const q = P(0, VD - 0.01), th = Math.min(0.8, rh - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
       surfaces.push({ name: `r${i}-title`, kind: 'wall', texture: jpg(cv, 0.92), origin: [q[0] - R[0] * 1.8, y1, q[1] - R[1] * 1.8], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [3.6, th], normal: [-o[0], 0, -o[1]], openings: [] }); }
     directory.push({ title: r.title, kind: 'room', note: `${r.works.length} works`, at: P(0, -5.4), look: P(0, VD + 3.5) });
     const put = (work, wm, hm, run, ac, y) => hangAt(work, wm, hm, run.at(ac), run.n, y, r.labels ? { side: ac + wm / 2 + 0.55 > run.len ? -1 : 1,
@@ -1836,7 +1836,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
         if (ln) lines.push(ln); const room = Math.floor((680 - yy) / 38);
         lines.slice(0, room).forEach((l, k) => x.fillText(k === room - 1 && lines.length > room ? l + ' …' : l, X0, yy + k * 38));
         x.font = '600 22px system-ui, sans-serif'; x.fillStyle = col; x.textAlign = 'center'; x.direction = 'ltr'; x.fillText(he ? 'Tap to read · לחצו לקריאה' : 'Tap to read', 280, 702);
-        const q = P(2.45, VD - 0.04), pw = 1.4, ph = pw * 760 / 560, o0 = [q[0], 0.95 + ph, q[1]], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
+        const q = P(2.45, VD - 0.01), pw = 1.4, ph = pw * 760 / 560, o0 = [q[0], 0.95 + ph, q[1]], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
         surfaces.push({ name: `r${i}-text`, kind: 'wall', texture: jpg(cv, 0.92), origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, openings: [] });
         hotspots.push({ id: r.slug, title: r.title, sub: r.curator ? 'Curated by ' + r.curator : (r.sub || ''), text: paras, lang: he ? 'he' : 'en', kind: 'text', origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, enter: r.enter || null });
       } }
@@ -1948,7 +1948,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
         const cv = canvas(1024, 256), x = cv.getContext('2d'); x.fillStyle = tintHex('#c9bba3', { tint: [1, 1, 1] }); x.fillRect(0, 0, 1024, 256); x.fillStyle = 'rgba(40,36,30,0.9)'; x.textAlign = 'center'; x.textBaseline = 'middle';
         let fs = 120, t = sec.title; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(t).width > 940 && fs > 24) { fs -= 4; x.font = `500 ${fs}px Georgia, serif`; } x.fillText(t, 512, 100);
         x.font = '400 46px Georgia, serif'; x.fillStyle = 'rgba(40,36,30,0.62)'; x.fillText(sec.years || '', 512, 200);
-        const q = P(oc, -0.33), th = Math.min(0.9, h - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
+        const q = P(oc, -0.31), th = Math.min(0.9, h - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
         surfaces.push({ name: `${sec.id}-title`, kind: 'wall', texture: jpg(cv, 0.92), origin: [q[0] - R[0] * 1.8, y1, q[1] - R[1] * 1.8], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [3.6, th], normal: [-o[0], 0, -o[1]], openings: [] });
         // the wing's text at its entrance, beside the door (every exhibition has its text at the way in): what it is and what its rooms are
         { const paras = [[sec.title, sec.years].filter(Boolean).join(', ') + '.', ...(sec.before && sec.after ? [`From the ${sec.before} to the ${sec.after}.`] : []), `${bays.length} rooms: ` + bays.map(q => q.title).join('; ') + '.'];
@@ -1960,7 +1960,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
           const lines = []; for (const para of paras.slice(1)) { let ln = ''; for (const w of para.split(/\s+/)) { const t = ln ? ln + ' ' + w : w; if (x2.measureText(t).width > 560) { lines.push(ln); ln = w; } else ln = t; } if (ln) lines.push(ln); lines.push(''); }
           const room = Math.floor((790 - yy) / 44); lines.slice(0, room).forEach((l, k) => x2.fillText(l, 40, yy + k * 44));
           x2.font = '600 26px system-ui, sans-serif'; x2.fillStyle = '#8a7a62'; x2.textAlign = 'center'; x2.fillText('Tap to read', 320, 812);
-          const side = dw / 2 + 0.35 + pw / 2, qq = P(oc + side - pw / 2, -0.34), o0 = [qq[0], 0.9 + ph, qq[1]], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
+          const side = dw / 2 + 0.35 + pw / 2, qq = P(oc + side - pw / 2, -0.31), o0 = [qq[0], 0.9 + ph, qq[1]], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
           surfaces.push({ name: `${sec.id}-intro`, kind: 'wall', texture: jpg(cv2, 0.92), origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, openings: [] });
           hotspots.push({ id: `${sec.id}-intro`, title: sec.title, sub: sec.years || '', text: paras, lang: 'en', kind: 'text', origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, enter: null }); }
       }
