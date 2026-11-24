@@ -1,0 +1,21 @@
+{
+  "about": "What each Open Studio session and helper is doing, for the Desk's \"עבודה\" tab. Each session updates its own line (state: working | waiting | done | paused; needs_owner: true when it waits on the owner) and sets updated (ISO time). Keep it short: one line per task.",
+  "updated": "2026-11-24T10:30:00Z",
+  "tasks": [
+    { "task": "Lead: hands out the work, checks results, reports to the owner", "session": "STUDIO OPEN SYUDIO NEW", "id": "local_8035a88b-5588-4df6-8a40-145e26faae89", "state": "working", "updated": "2026-11-24T08:24:55Z", "needs_owner": false },
+    { "task": "Real-phone data: measurements from visitors' devices, the Desk's טלפונים tab, the 24 h summary", "session": "phone-data", "id": "local_cfa1eda7-c487-474a-bf7c-88a947bf1e9c", "state": "working", "updated": "2026-11-24T10:30:00Z", "needs_owner": false },
+    { "task": "Visitor robot: walks the app as a phone every night, the Desk's בדיקות לילה tab", "session": "visitor-robot", "id": "local_55d76d08-aab8-46f1-9293-da72b96d297b", "state": "working", "updated": "2026-11-24T08:29:17Z", "needs_owner": false },
+    { "task": "Texture optimizer: KTX2 and small copies, less memory on phones", "session": "texture-opt", "id": "local_b7e8294b-2f9c-48b2-a1c5-10e5a10037bc", "state": "working", "updated": "2026-11-24T08:27:17Z", "needs_owner": false },
+    { "task": "Museum: entry from Home, live publish, the new architecture", "session": "museum", "id": "local_7581ff38-4efa-4225-ad5b-02368d7bd5eb", "state": "working", "updated": "2026-11-24T08:25:41Z", "needs_owner": false },
+    { "task": "Museum outside: the tropical garden and sculpture detail", "session": "museum-outside", "id": "local_6c01740f-914d-442e-be45-87adb807abc4", "state": "paused", "updated": "2026-11-23T22:09:30Z", "needs_owner": false },
+    { "task": "Exhibition importer: a tour becomes a pavilion in the museum", "session": "importer", "id": "local_9b322672-b345-44bf-8432-4fac39bb3061", "state": "paused", "updated": "2026-11-24T06:34:26Z", "needs_owner": false },
+    { "task": "ANTHROPIC_API_KEY in GitHub secrets, claude /login and start-agent.cmd on the computer, Tailscale for the phone (the cloud agent)", "session": "backlog", "state": "waiting", "updated": "2026-11-21T00:00:00Z", "needs_owner": true },
+    { "task": "Decision: the real-world-first direction on Home and Shows (ESSENCE.md)", "session": "backlog", "state": "waiting", "updated": "2026-11-21T00:00:00Z", "needs_owner": true },
+    { "task": "Sign up by hand to the 13 newsletters behind a CAPTCHA (newsletters.json)", "session": "backlog", "state": "waiting", "updated": "2026-11-21T00:00:00Z", "needs_owner": true },
+    { "task": "Stage A: exhibition design screens, accessibility and simplicity", "session": "backlog", "state": "working", "updated": "2026-11-21T00:00:00Z", "needs_owner": false },
+    { "task": "Stage B: bring work in on one screen, and a progress strip for the artist's journey", "session": "backlog", "state": "paused", "updated": "2026-11-21T00:00:00Z", "needs_owner": false },
+    { "task": "Stage C: real exhibitions first on Home and Shows", "session": "backlog", "state": "paused", "updated": "2026-11-21T00:00:00Z", "needs_owner": false },
+    { "task": "Stage E: not checked anywhere yet: signing in by emailed link, \"ask for changes\" in the control room", "session": "backlog", "state": "paused", "updated": "2026-11-21T00:00:00Z", "needs_owner": false },
+    { "task": "Review chain for exhibitions, control room tabs, one Elad Amsalem, the Edit page, the hang editor, At scale, Home films", "session": "backlog", "state": "done", "updated": "2026-11-21T00:00:00Z", "needs_owner": false }
+  ]
+}
