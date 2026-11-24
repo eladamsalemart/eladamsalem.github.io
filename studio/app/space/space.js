@@ -745,7 +745,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const edges = canvasEdges(bw, bh, dM, h.sides, null);
       edges.forEach(e => e.position.set(bx, by, 0));
       g.add(face, body, ...edges); box = face;
-      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges: [], title: h.work, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
+      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges: [], title: h.work, mid: h.imageFull && h.image !== h.imageFull && h.image !== first ? h.image : null, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
     } else if (h.flat) {        // letters set on the wall (the wall text): a sheet with no body, the wall showing through where it has no ground
       tex.colorSpace = THREE.SRGBColorSpace;
       box = new THREE.Mesh(new THREE.PlaneGeometry(wM, hM), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.01, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2 }));
@@ -755,7 +755,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       box.userData.kind = 'work';
       const edges = canvasEdges(wM, hM, dM, h.sides, tex);
       g.add(box, ...edges);
-      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges, title: h.work, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
+      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges, title: h.work, mid: h.imageFull && h.image !== h.imageFull && h.image !== first ? h.image : null, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
     }
     const sh = new THREE.Mesh(new THREE.PlaneGeometry(bw + Math.min(0.08, 0.15 * Math.min(bw, bh)), bh + Math.min(0.1, 0.18 * Math.min(bw, bh))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.07, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
     sh.position.set(bx + Math.min(0.012, 0.03 * bw), by - Math.min(0.03, 0.06 * bh), -dM / 2 - 0.002);   // just off the wall, never in it
@@ -1360,14 +1360,17 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     // over the budget, or no longer looked at: the farthest sharp work goes back to its light image
     const back = pendingFull.filter(f => f.fullTex && f.reach < 1e8 && (f.want === 0 || f.want * 1.4 <= f.cur) && f.d > 2).sort((a, z) => z.d - a.d);
     for (const f of back.slice(0, used > TIER_MB ? 3 : 1)) if (used > TIER_MB || f.d > 6) { setFront(f, f.small); f.fullTex.dispose(); f.fullTex = null; f.cur = Math.max(f.small.image.width, f.small.image.height); }
-    const f = loading < LOADS && pendingFull.filter(x => x.full && !x.tries && !x.busy && x.want > x.cur * 1.05 && (x.reach >= 1e8 || x.want > 0)).sort((a, z) => a.d - z.d)[0];
+    const f = loading < LOADS && pendingFull.filter(x => x.full && !x.tries && !x.busy && !x.top && x.want > x.cur * 1.05 && !(x.usedMid && x.want <= 1280) && (x.reach >= 1e8 || x.want > 0)).sort((a, z) => a.d - z.d)[0];
     if (f) {
       loading++; f.busy = true;
-      (f.reach >= 1e8 ? loadRetry([f.full]) : Promise.race([loadTex(f.full), new Promise(r => setTimeout(() => r(null), 9000))])).then(t => {      // (a sharper picture is optional: one try and a time limit, so a missing or slow file never holds the line)
+      const srcU = f.mid && !f.usedMid && f.want <= 1280 ? f.mid : f.full;      // (the 1200 px picture serves the middle tiers; the large scan only the sharpest)
+      (f.reach >= 1e8 ? loadRetry([f.full]) : Promise.race([loadTex(srcU), new Promise(r => setTimeout(() => r(null), 9000))])).then(t => {      // (a sharper picture is optional: one try and a time limit, so a missing or slow file never holds the line)
         loading--; f.busy = false;
         if (!t) { f.tries = 1; return; }
         t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
         if (f.reach >= 1e8) { f.small = t; f.reach = 0; f.cur = Math.max(t.image.width, t.image.height); f.ar = t.image.height / t.image.width; setFront(f, t); return; }     // a work that had only its plain tone
+        const nat = Math.max(t.image.naturalWidth || t.image.width, t.image.naturalHeight || t.image.height);
+        if (srcU === f.mid) f.usedMid = true; else if (nat <= f.want * 1.05) f.top = true;      // (the largest picture there is: no further upgrade to try)
         const tex = shrinkTo(t, Math.max(f.want, 1024));
         if (f.fullTex) f.fullTex.dispose();
         f.fullTex = tex; f.cur = Math.max(tex.image.width, tex.image.height); setFront(f, tex); dirty = true;
@@ -1432,6 +1435,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (ibrChoose && now > nextChoose) { ibrChoose(pos, new THREE.Vector3().subVectors(look, pos).normalize()); nextChoose = now + 700; }
     if (ibrNear) ibrNear(pos, new THREE.Vector3().subVectors(look, pos).normalize());
     if (!root.classList.contains('planning')) renderer.render(scene, camera);   // the plan covers the room: do not draw it (battery)
+    globalThis.osVitals?.frame(renderer);      // real-phone data (app.js): the first frame drawn, and the canvas to watch for a lost context
   }
   renderer.setAnimationLoop(frame);
 
