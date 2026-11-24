@@ -8,5 +8,6 @@
  "2026-11-21_virtual_shows_order.sql",
  "2026-11-24_phone_vitals.sql",
  "2026-11-24_phone_vitals_summary.sql",
- "2026-11-24_works_bucket_ktx2.sql"
+ "2026-11-24_works_bucket_ktx2.sql",
+ "2026-11-24_work_items.sql"
 ]
