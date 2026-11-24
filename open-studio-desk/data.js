@@ -36,6 +36,11 @@ const real = {
   async signOut() { const c = await client(); await c.auth.signOut(); },
   async isAdmin() { const c = await client(); return !!ok(await c.rpc('is_admin')); },
 
+  async workItems() { const c = await client(); return ok(await c.from('work_items').select('*').order('created_at', { ascending: false }).limit(500)); },
+  async workNotes() { const c = await client(); return ok(await c.from('work_notes').select('*').order('created_at').limit(2000)); },
+  async addWorkItem(row) { const c = await client(); return ok(await c.from('work_items').insert(row).select().single()); },
+  async saveWorkItem(id, patch) { const c = await client(); return ok(await c.from('work_items').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id).select().single()); },
+  async addWorkNote(item_id, body, author = 'owner') { const c = await client(); ok(await c.from('work_notes').insert({ item_id, author, body })); ok(await c.from('work_items').update({ updated_at: new Date().toISOString() }).eq('id', item_id)); },
   async queue() {
     const c = await client();
     const [waiting, fresh, withShows] = await Promise.all([
@@ -168,10 +173,20 @@ async function museum() {
     { slot: 3, exhibition_id: null, app_slug: 'celebration-virtual', live: true, from_date: null, to_date: null, colour: null, content: null, published_at: null }] };
   return MU;
 }
-let mockStreet = null, mockPlan = null;
+let mockStreet = null, mockPlan = null, mockW = null;
+const mockWork = () => mockW || (mockW = (() => { const t = n => new Date(Date.now() - n * 36e5).toISOString();
+  return { items: [
+    { id: 'w1', title: 'לאחד את חלון העריכה של התערוכות', details: 'היום יש שני מסכים לאותו דבר.', priority: 1, status: 'in_progress', area: 'museum', created_at: t(30), updated_at: t(2), created_by: 'owner', seen_by_lead_at: t(20) },
+    { id: 'w2', title: 'סיור תלת-ממד לתערוכה החדשה', details: '', priority: 2, status: 'planned', area: 'tours', created_at: t(50), updated_at: t(40), created_by: 'owner', seen_by_lead_at: null }],
+    notes: [{ id: 'n1', item_id: 'w1', author: 'owner', body: 'חשוב שזה יעבוד גם בטלפון.', created_at: t(29) }, { id: 'n2', item_id: 'w1', author: 'lead', body: 'ראיתי. מתחיל מהמסך המשותף ואבדוק בטלפון לפני שאסגור.', created_at: t(20) }] }; })());
 const mock = {
   mode: 'mock',
   async session() { return { email: 'guest@demo' }; }, async returnFromLink() {}, async sendCode() {}, async verify() {}, async signOut() { location.search = ''; }, async isAdmin() { return true; },
+  async workItems() { await wait(); return mockWork().items.map(x => ({ ...x })); },
+  async workNotes() { return mockWork().notes.map(x => ({ ...x })); },
+  async addWorkItem(row) { const x = { id: 'w' + Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), created_by: 'owner', seen_by_lead_at: null, ...row }; mockWork().items.unshift(x); return { ...x }; },
+  async saveWorkItem(id, patch) { const x = mockWork().items.find(q => q.id === id); Object.assign(x, patch, { updated_at: new Date().toISOString() }); return { ...x }; },
+  async addWorkNote(item_id, body, author = 'owner') { const m = mockWork(); m.notes.push({ id: 'n' + Date.now() + Math.random(), item_id, author, body, created_at: new Date().toISOString() }); m.items.find(q => q.id === item_id).updated_at = new Date().toISOString(); },
   async queue() {
     const w = await world(); await wait();
     const waiting = w.artists.filter(a => a.status === 'pending').map(a => ({ ...strip(a), works: a.works }));
