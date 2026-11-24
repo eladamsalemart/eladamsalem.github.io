@@ -895,7 +895,7 @@ export async function buildStreet(rooms, src, thumbOf = w => w.image, opts = {})
     };
     const put = (work, wm, hm, run, ac, y) => {
       const [px, pz] = run.at(ac), N = [run.n[0], 0, run.n[1]], off = 0.039, ux = N[2], uz = -N[0];
-      works.push({ id: work.slug || work.id, work: work.title, image: work.image, imageSmall: thumbOf(work), size: [wm * 100, hm * 100], measured: [wm * 100, hm * 100],
+      works.push({ id: work.slug || work.id, work: work.title, image: work.image, imageSmall: thumbOf(work), ...(work.full ? { imageFull: work.full } : {}), size: [wm * 100, hm * 100], measured: [wm * 100, hm * 100],
         centre: [px + N[0] * off, y, pz + N[2] * off], axes: [[N[2], 0, -N[0]], [0, 1, 0], N], depth: 0.035, lightScale: 1 });
       if (r.labels) {
         const sg = ac + wm / 2 + 0.55 > run.len ? -1 : 1, d = sg * (wm / 2 + 0.3);
@@ -1006,7 +1006,7 @@ export async function buildHall(rooms, src, thumbOf = w => w.image, opts = {}) {
   // a work on a wall: p = its middle on the wall's face, n = the wall's normal
   const hangAt = (work, wm, hm, p, n, y, label) => {
     const N = [n[0], 0, n[1]], off = 0.039, ux = N[2], uz = -N[0];
-    works.push({ id: work.slug || work.id, work: work.title, image: work.image, imageSmall: thumbOf(work), size: [wm * 100, hm * 100], measured: [wm * 100, hm * 100],
+    works.push({ id: work.slug || work.id, work: work.title, image: work.image, imageSmall: thumbOf(work), ...(work.full ? { imageFull: work.full } : {}), size: [wm * 100, hm * 100], measured: [wm * 100, hm * 100],
       centre: [p[0] + N[0] * off, y, p[1] + N[2] * off], axes: [[N[2], 0, -N[0]], [0, 1, 0], N], depth: 0.035, lightScale: 1 });
     if (label) { const d = (label.side || 1) * (wm / 2 + 0.3);
       plate(`lab${works.length}`, label.lines, p[0] + ux * d + N[0] * 0.012, Math.max(0.6, y - hm / 2 + 0.2), p[1] + uz * d + N[2] * 0.012, N, 0.4, 0.28); }
@@ -1213,7 +1213,7 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
   };
   const hangAt = (work, wm, hm, p, n, y, label) => {
     const N = [n[0], 0, n[1]], off = 0.039, ux = N[2], uz = -N[0];
-    works.push({ id: work.slug || work.id, work: work.title, image: work.image, imageSmall: thumbOf(work), size: [wm * 100, hm * 100], measured: [wm * 100, hm * 100],
+    works.push({ id: work.slug || work.id, work: work.title, image: work.image, imageSmall: thumbOf(work), ...(work.full ? { imageFull: work.full } : {}), size: [wm * 100, hm * 100], measured: [wm * 100, hm * 100],
       centre: [p[0] + N[0] * off, y, p[1] + N[2] * off], axes: [[N[2], 0, -N[0]], [0, 1, 0], N], depth: 0.035, lightScale: 1 });
     if (label) { const d = (label.side || 1) * (wm / 2 + 0.3);
       plate(`lab${works.length}`, label.lines, p[0] + ux * d + N[0] * 0.012, Math.max(0.6, y - hm / 2 + 0.2), p[1] + uz * d + N[2] * 0.012, N, 0.4, 0.28); }
@@ -1350,25 +1350,26 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
       orect(`${sec.id}${i}-ceil`, 'ceiling', P, R, o, aL, aR, b0, b1, h, false, bay.sky ? sky : plain('#f5f2ec'));
       const left = wall(`${sec.id}${i}-l`, ...P(aL, b0 + len / 2), R[0], R[1], len, { h, tex: wtex });
       const right = wall(`${sec.id}${i}-r`, ...P(aR, b0 + len / 2), -R[0], -R[1], len, { h, tex: wtex });
-      for (const [nm, a, nx, nz] of [['l', aL - 0.03, -R[0], -R[1]], ['r', aR + 0.03, R[0], R[1]]]) wall(`${sec.id}${i}-sk${nm}`, ...P(a, b0 + len / 2), nx, nz, len, { h, tex: stoneTex, noSolid: true });
+      for (const [nm, a, nx, nz] of [['l', aL - 0.3, -R[0], -R[1]], ['r', aR + 0.3, R[0], R[1]]]) wall(`${sec.id}${i}-sk${nm}`, ...P(a, b0 + len / 2), nx, nz, len, { h, tex: stoneTex, noSolid: true });
       // the dividing wall at the end of this bay (or the facade, for the first): spans both bays, one opening
       const next = bays[i + 1];
       if (i === 0) {                                                       // the facade, with the way in and the title over it
         const A0 = aL, A1 = aR, aC = (A0 + A1) / 2, w = A1 - A0, dw = bay.door || 3.4, oc = (aL + aR) / 2, s0 = along(true, aC, w, oc + dw / 2), s1 = along(true, aC, w, oc - dw / 2);
-        wall(`${sec.id}-facade`, ...P(aC, 0), o[0], o[1], w, { h, tex: wtex, holes: [[s0, s1]] });
-        wall(`${sec.id}-facade-sk`, ...P(aC, -0.03), -o[0], -o[1], w, { h, tex: stoneTex, noSolid: true, holes: [[along(false, aC, w, oc - dw / 2), along(false, aC, w, oc + dw / 2)]] });
+        wall(`${sec.id}-facade`, ...P(aC, 0), o[0], o[1], w, { h, tex: wtex, holes: [[s0, s1]], depth: 0.3 });      // (the wing's walls are 30 cm thick: the doorway shows its jambs and head)
+        wall(`${sec.id}-facade-sk`, ...P(aC, -0.3), -o[0], -o[1], w + 0.6, { h, tex: stoneTex, noSolid: true, holes: [[along(false, aC, w + 0.6, oc - dw / 2), along(false, aC, w + 0.6, oc + dw / 2)]] });
         const cv = canvas(1024, 256), x = cv.getContext('2d'); x.fillStyle = tintHex('#c9bba3', { tint: [1, 1, 1] }); x.fillRect(0, 0, 1024, 256); x.fillStyle = 'rgba(40,36,30,0.9)'; x.textAlign = 'center'; x.textBaseline = 'middle';
         let fs = 120, t = sec.title; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(t).width > 940 && fs > 24) { fs -= 4; x.font = `500 ${fs}px Georgia, serif`; } x.fillText(t, 512, 100);
         x.font = '400 46px Georgia, serif'; x.fillStyle = 'rgba(40,36,30,0.62)'; x.fillText(sec.years || '', 512, 200);
-        const q = P(oc, -0.06), th = Math.min(0.9, h - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
+        const q = P(oc, -0.33), th = Math.min(0.9, h - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
         surfaces.push({ name: `${sec.id}-title`, kind: 'wall', texture: jpg(cv, 0.92), origin: [q[0] - R[0] * 1.8, y1, q[1] - R[1] * 1.8], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [3.6, th], normal: [-o[0], 0, -o[1]], openings: [] });
       }
       if (next) {
         const A0 = Math.min(aL, next.aL), A1 = Math.max(aR, next.aR), aC = (A0 + A1) / 2, w = A1 - A0, lo = Math.max(aL, next.aL), hi = Math.min(aR, next.aR), oc = (lo + hi) / 2, dw = Math.min(bay.open || 5, hi - lo - 1.6);
         const H = Math.max(h, next.h), wide = next.aR - next.aL > aR - aL ? next : bay;
-        wall(`${sec.id}${i}-div`, ...P(aC, len + b0), o[0], o[1], w, { h: H, tex: wallTex(next.wall || '#efe9de', false), holes: [[along(true, aC, w, oc + dw / 2), along(true, aC, w, oc - dw / 2)]] });
+        wall(`${sec.id}${i}-div`, ...P(aC, len + b0), o[0], o[1], w, { h: H, tex: wallTex(next.wall || '#efe9de', false), holes: [[along(true, aC, w, oc + dw / 2), along(true, aC, w, oc - dw / 2)]], depth: 0.3 });
+        { const bc = (aL + aR) / 2, bw = aR - aL; wall(`${sec.id}${i}-divb`, ...P(bc, len + b0 - 0.3), -o[0], -o[1], bw, { h, tex: wtex, noSolid: true, holes: [[along(false, bc, bw, oc - dw / 2), along(false, bc, bw, oc + dw / 2)]] }); }      // (its face toward this bay, 30 cm before the next one's: a wall with a body)
         // outside faces of the step (where one bay is wider than the other) in the plain outdoor colour, looking back at the narrower bay
-        for (const [x0, x1] of [[A0, lo], [hi, A1]]) if (x1 - x0 > 0.2) { const m = (x0 + x1) / 2; wall(`${sec.id}${i}-stp${x0 > A0 ? 'r' : 'l'}`, ...P(m, b0 + len - 0.03), -o[0], -o[1], x1 - x0, { h: H, tex: stoneTex, noSolid: true }); }
+        for (const [x0, x1] of [[A0, lo], [hi, A1]]) if (x1 - x0 > 0.2) { const m = (x0 + x1) / 2; wall(`${sec.id}${i}-stp${x0 > A0 ? 'r' : 'l'}`, ...P(m, b0 + len - 0.3), -o[0], -o[1], x1 - x0, { h: H, tex: stoneTex, noSolid: true }); }
         void wide;
       } else {                                                             // the last bay: a closed far wall with what comes next
         const aC = (aL + aR) / 2, w = aR - aL;
@@ -1395,7 +1396,7 @@ export async function buildCluster(rooms, src, thumbOf = w => w.image, opts = {}
       for (const s of sized) { while (ri < runs.length && bucket[ri].reduce((t, q) => t + q.w + GAP, 0) + s.w > runs[ri].w.len - runs[ri].from - 0.5) ri++; if (ri >= runs.length) break; bucket[ri].push(s); }
       bucket.forEach((items, k) => { let at = runs[k].from + 0.3; for (const s of items) {
         const wm = s.w, hm = s.h, c = s.c, y = Math.min(Math.max(1.55, hm / 2 + 0.55), h - hm / 2 - 0.45), run = runs[k].w, ac = at + wm / 2;
-        hangAt({ slug: c.slug, id: c.slug, title: c.title, image: c.image, thumb: c.thumb }, wm, hm, run.at(ac), run.n, y, { side: 1, lines: [c.title, [c.artist, c.year].filter(Boolean).join(', '), c.medium || '', String(c.licence || '').split(' (')[0]].filter(Boolean) });
+        hangAt({ slug: c.slug, id: c.slug, title: c.title, image: c.image, thumb: c.thumb, full: c.full }, wm, hm, run.at(ac), run.n, y, { side: 1, lines: [c.title, [c.artist, c.year].filter(Boolean).join(', '), c.medium || '', String(c.licence || '').split(' (')[0]].filter(Boolean) });
         at += wm + GAP; } });
       // sculpture and maquettes
       for (const p of bay.props || []) { const q = P(p.a, b0 + p.b), pl = p.plinth || { w: 0.7, d: 0.7, h: 1.0 };
@@ -1499,7 +1500,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   const wall = (name, cx, cz, nx, nz, len, o = {}) => {
     const ux = nz, uz = -nx, x = cx - ux * len / 2, z = cz - uz * len / 2, holes = o.holes || [], h = o.h || 3.8;
     surfaces.push({ name, kind: 'wall', texture: o.tex, origin: [x, h, z], u: [ux, 0, uz], v: [0, -1, 0], size: [len, h], normal: [nx, 0, nz],
-      openings: holes.map(([a, b, sill, top]) => ({ from: a, to: b, height: top || DOOR_H, sill: sill || 0, arch: false, depth: 0.1, through: true, bare: true })) });
+      openings: holes.map(([a, b, sill, top]) => ({ from: a, to: b, height: top || DOOR_H, sill: sill || 0, arch: false, depth: o.depth || 0.1, through: true, bare: true })) });
     if (o.noSolid) return { n: [nx, nz], len, at: s => [x + ux * s, z + uz * s] };
     let a = 0; for (const [f, t] of [...holes.filter(q => !q[2]), [len, len]].sort((p, q) => p[0] - q[0])) { if (f > a + 0.01) solids.push([x + ux * a, z + uz * a, x + ux * f, z + uz * f]); a = Math.max(a, t); }
     for (const q of holes.filter(q => q[2])) solids.push([x + ux * q[0], z + uz * q[0], x + ux * q[1], z + uz * q[1]]);       // (a window is not a way through)
@@ -1519,7 +1520,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
   };
   const hangAt = (work, wm, hm, p, n, y, label) => {
     const N = [n[0], 0, n[1]], off = 0.039, ux = N[2], uz = -N[0];
-    works.push({ id: work.slug || work.id, work: work.title, image: work.image, imageSmall: thumbOf(work), size: [wm * 100, hm * 100], measured: [wm * 100, hm * 100],
+    works.push({ id: work.slug || work.id, work: work.title, image: work.image, imageSmall: thumbOf(work), ...(work.full ? { imageFull: work.full } : {}), size: [wm * 100, hm * 100], measured: [wm * 100, hm * 100],
       centre: [p[0] + N[0] * off, y, p[1] + N[2] * off], axes: [[N[2], 0, -N[0]], [0, 1, 0], N], depth: 0.035, lightScale: 1 });
     if (label) { const d = (label.side || 1) * (wm / 2 + 0.3);
       plate(`lab${works.length}`, label.lines, p[0] + ux * d + N[0] * 0.012, Math.max(0.6, y - hm / 2 + 0.2), p[1] + uz * d + N[2] * 0.012, N, 0.4, 0.28); }
@@ -1937,17 +1938,17 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       orect(`${sec.id}${i}-ceil`, 'ceiling', P, R, o, aL, aR, b0, b1, h, false, bay.sky ? sky : plain('#f5f2ec'));
       const left = wall(`${sec.id}${i}-l`, ...P(aL, b0 + len / 2), R[0], R[1], len, { h, tex: wtex });
       const right = wall(`${sec.id}${i}-r`, ...P(aR, b0 + len / 2), -R[0], -R[1], len, { h, tex: wtex });
-      for (const [nm, a, nx, nz] of [['l', aL - 0.03, -R[0], -R[1]], ['r', aR + 0.03, R[0], R[1]]]) wall(`${sec.id}${i}-sk${nm}`, ...P(a, b0 + len / 2), nx, nz, len, { h, tex: stoneTex, noSolid: true });
+      for (const [nm, a, nx, nz] of [['l', aL - 0.3, -R[0], -R[1]], ['r', aR + 0.3, R[0], R[1]]]) wall(`${sec.id}${i}-sk${nm}`, ...P(a, b0 + len / 2), nx, nz, len, { h, tex: stoneTex, noSolid: true });
       // the dividing wall at the end of this bay (or the facade, for the first): spans both bays, one opening
       const next = bays[i + 1];
       if (i === 0) {                                                       // the facade, with the way in and the title over it
         const A0 = aL, A1 = aR, aC = (A0 + A1) / 2, w = A1 - A0, dw = bay.door || 3.4, oc = (aL + aR) / 2, s0 = along(true, aC, w, oc + dw / 2), s1 = along(true, aC, w, oc - dw / 2);
-        wall(`${sec.id}-facade`, ...P(aC, 0), o[0], o[1], w, { h, tex: wtex, holes: [[s0, s1]] });
-        wall(`${sec.id}-facade-sk`, ...P(aC, -0.03), -o[0], -o[1], w, { h, tex: stoneTex, noSolid: true, holes: [[along(false, aC, w, oc - dw / 2), along(false, aC, w, oc + dw / 2)]] });
+        wall(`${sec.id}-facade`, ...P(aC, 0), o[0], o[1], w, { h, tex: wtex, holes: [[s0, s1]], depth: 0.3 });      // (the wing's walls are 30 cm thick: the doorway shows its jambs and head)
+        wall(`${sec.id}-facade-sk`, ...P(aC, -0.3), -o[0], -o[1], w + 0.6, { h, tex: stoneTex, noSolid: true, holes: [[along(false, aC, w + 0.6, oc - dw / 2), along(false, aC, w + 0.6, oc + dw / 2)]] });
         const cv = canvas(1024, 256), x = cv.getContext('2d'); x.fillStyle = tintHex('#c9bba3', { tint: [1, 1, 1] }); x.fillRect(0, 0, 1024, 256); x.fillStyle = 'rgba(40,36,30,0.9)'; x.textAlign = 'center'; x.textBaseline = 'middle';
         let fs = 120, t = sec.title; x.font = `500 ${fs}px Georgia, serif`; while (x.measureText(t).width > 940 && fs > 24) { fs -= 4; x.font = `500 ${fs}px Georgia, serif`; } x.fillText(t, 512, 100);
         x.font = '400 46px Georgia, serif'; x.fillStyle = 'rgba(40,36,30,0.62)'; x.fillText(sec.years || '', 512, 200);
-        const q = P(oc, -0.06), th = Math.min(0.9, h - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
+        const q = P(oc, -0.33), th = Math.min(0.9, h - DOOR_H - 0.2), y1 = DOOR_H + 0.1 + th;
         surfaces.push({ name: `${sec.id}-title`, kind: 'wall', texture: jpg(cv, 0.92), origin: [q[0] - R[0] * 1.8, y1, q[1] - R[1] * 1.8], u: [R[0], 0, R[1]], v: [0, -1, 0], size: [3.6, th], normal: [-o[0], 0, -o[1]], openings: [] });
         // the wing's text at its entrance, beside the door (every exhibition has its text at the way in): what it is and what its rooms are
         { const paras = [[sec.title, sec.years].filter(Boolean).join(', ') + '.', ...(sec.before && sec.after ? [`From the ${sec.before} to the ${sec.after}.`] : []), `${bays.length} rooms: ` + bays.map(q => q.title).join('; ') + '.'];
@@ -1959,16 +1960,17 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
           const lines = []; for (const para of paras.slice(1)) { let ln = ''; for (const w of para.split(/\s+/)) { const t = ln ? ln + ' ' + w : w; if (x2.measureText(t).width > 560) { lines.push(ln); ln = w; } else ln = t; } if (ln) lines.push(ln); lines.push(''); }
           const room = Math.floor((790 - yy) / 44); lines.slice(0, room).forEach((l, k) => x2.fillText(l, 40, yy + k * 44));
           x2.font = '600 26px system-ui, sans-serif'; x2.fillStyle = '#8a7a62'; x2.textAlign = 'center'; x2.fillText('Tap to read', 320, 812);
-          const side = dw / 2 + 0.35 + pw / 2, qq = P(oc + side - pw / 2, -0.07), o0 = [qq[0], 0.9 + ph, qq[1]], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
+          const side = dw / 2 + 0.35 + pw / 2, qq = P(oc + side - pw / 2, -0.34), o0 = [qq[0], 0.9 + ph, qq[1]], u = [R[0], 0, R[1]], nrm = [-o[0], 0, -o[1]];
           surfaces.push({ name: `${sec.id}-intro`, kind: 'wall', texture: jpg(cv2, 0.92), origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, openings: [] });
           hotspots.push({ id: `${sec.id}-intro`, title: sec.title, sub: sec.years || '', text: paras, lang: 'en', kind: 'text', origin: o0, u, v: [0, -1, 0], size: [pw, ph], normal: nrm, enter: null }); }
       }
       if (next) {
         const A0 = Math.min(aL, next.aL), A1 = Math.max(aR, next.aR), aC = (A0 + A1) / 2, w = A1 - A0, lo = Math.max(aL, next.aL), hi = Math.min(aR, next.aR), oc = (lo + hi) / 2, dw = Math.min(bay.open || 5, hi - lo - 1.6);
         const H = Math.max(h, next.h), wide = next.aR - next.aL > aR - aL ? next : bay;
-        wall(`${sec.id}${i}-div`, ...P(aC, len + b0), o[0], o[1], w, { h: H, tex: wallTex(next.wall || '#efe9de', false), holes: [[along(true, aC, w, oc + dw / 2), along(true, aC, w, oc - dw / 2)]] });
+        wall(`${sec.id}${i}-div`, ...P(aC, len + b0), o[0], o[1], w, { h: H, tex: wallTex(next.wall || '#efe9de', false), holes: [[along(true, aC, w, oc + dw / 2), along(true, aC, w, oc - dw / 2)]], depth: 0.3 });
+        { const bc = (aL + aR) / 2, bw = aR - aL; wall(`${sec.id}${i}-divb`, ...P(bc, len + b0 - 0.3), -o[0], -o[1], bw, { h, tex: wtex, noSolid: true, holes: [[along(false, bc, bw, oc - dw / 2), along(false, bc, bw, oc + dw / 2)]] }); }      // (its face toward this bay, 30 cm before the next one's: a wall with a body)
         // outside faces of the step (where one bay is wider than the other) in the plain outdoor colour, looking back at the narrower bay
-        for (const [x0, x1] of [[A0, lo], [hi, A1]]) if (x1 - x0 > 0.2) { const m = (x0 + x1) / 2; wall(`${sec.id}${i}-stp${x0 > A0 ? 'r' : 'l'}`, ...P(m, b0 + len - 0.03), -o[0], -o[1], x1 - x0, { h: H, tex: stoneTex, noSolid: true }); }
+        for (const [x0, x1] of [[A0, lo], [hi, A1]]) if (x1 - x0 > 0.2) { const m = (x0 + x1) / 2; wall(`${sec.id}${i}-stp${x0 > A0 ? 'r' : 'l'}`, ...P(m, b0 + len - 0.3), -o[0], -o[1], x1 - x0, { h: H, tex: stoneTex, noSolid: true }); }
         void wide;
       } else {                                                             // the last bay: a closed far wall with what comes next
         const aC = (aL + aR) / 2, w = aR - aL;
@@ -1996,7 +1998,7 @@ export async function buildSky(rooms, src, thumbOf = w => w.image, opts = {}) {
       for (const s of sized) { while (ri < runs.length && bucket[ri].reduce((t, q) => t + q.w + GAP, 0) + s.w > runs[ri].w.len - runs[ri].from - 0.5) ri++; if (ri >= runs.length) break; bucket[ri].push(s); }
       bucket.forEach((items, k) => { let at = runs[k].from + 0.3; for (const s of items) {
         const wm = s.w, hm = s.h, c = s.c, y = Math.min(Math.max(1.55, hm / 2 + 0.55), h - hm / 2 - 0.45), run = runs[k].w, ac = at + wm / 2;
-        hangAt({ slug: c.slug, id: c.slug, title: c.title, image: c.image, thumb: c.thumb }, wm, hm, run.at(ac), run.n, y, { side: 1, lines: [c.title, [c.artist, c.year].filter(Boolean).join(', '), c.medium || '', String(c.licence || '').split(' (')[0]].filter(Boolean) });
+        hangAt({ slug: c.slug, id: c.slug, title: c.title, image: c.image, thumb: c.thumb, full: c.full }, wm, hm, run.at(ac), run.n, y, { side: 1, lines: [c.title, [c.artist, c.year].filter(Boolean).join(', '), c.medium || '', String(c.licence || '').split(' (')[0]].filter(Boolean) });
         at += wm + GAP; } });
       // sculpture and maquettes
       for (const p of bay.props || []) { const q = P(p.a, b0 + p.b), pl = p.plinth || { w: 0.7, d: 0.7, h: 1.0 };
