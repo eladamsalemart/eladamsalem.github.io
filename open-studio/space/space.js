@@ -88,7 +88,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
     const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.anisotropy = t.anisotropy; t.dispose(); return n;
   };
-  const surfTex = s => { if (!held.has(s.texture)) held.set(s.texture, loadTex(s.texture).then(t => fit(t, s.kind === 'wall' ? 2048 : 1536))); return held.get(s.texture); };
+  const surfTex = s => { if (!held.has(s.texture)) held.set(s.texture, loadTex(s.texture).then(t => fit(t, s.maxPx || (s.kind === 'wall' ? 2048 : 1536)))); return held.get(s.texture); };
   const texs = await Promise.all(surfaces.map(async s => {
     const t = await surfTex(s);
     if (!t || !s.repeat) return t;
