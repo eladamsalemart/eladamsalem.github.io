@@ -11,6 +11,8 @@ session goes into that folder.
 Fewer sessions (24.11): short work runs as a background subagent of the main session, not a new session. A separate
 session only for long work, at most 2-3 at once, and it archives itself (archive_session "self") once the lead has
 approved its result. A night-shift run archives itself when it ends.
+Every session keeps its row in `studio/health/work.json` (the Desk's עבודה tab), in Hebrew: when it starts, finishes, or
+needs the owner.
 
 - Reply and summarise to the owner in Hebrew. App content stays in English.
 - Studio lives on the `studio` branch; the app is published from it ("Open Studio app" workflow), and every
