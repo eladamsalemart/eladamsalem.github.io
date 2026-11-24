@@ -77,6 +77,10 @@ the owner approves something, or a new link between parts appears.
 - `synth.js` or `space.js`: the hang editor, the artist preview, the Desk preview, the museum, the Home films, and
   every tour rebuilt by "Studio spaces". Run the inspection and the phone pass.
 - A new file the app loads: add it to the copy step of "Open Studio app", or the publish check fails.
+- A picture the 3D viewer loads (works, tour walls and floors, the museum's): its phone copies come from `studio/app/texopt/texopt.py`
+  (KTX2, 768 px works, surfaces at a phone's size; made by the publish and the "Textures" workflow, artists' uploads hourly) and are read
+  by `space/texopt.js`. A new kind of picture goes into `site_images`; a change is measured with `tests/tex_memory.cjs` (memory, px/m at
+  1 m, colour, GL errors) and `tests/tex_speed.cjs` (4G: first frame, works sharp). Far works open in their plain tone and stream in.
 - A scheduled or by-hand workflow: change it on both `main` and `studio`.
 - `app_hidden`: it changes what App health counts as broken.
 - An exhibition shown in one place (Home, the map, the artist page, the museum, Shows): check all the others.

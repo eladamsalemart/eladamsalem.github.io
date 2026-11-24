@@ -36,6 +36,11 @@ full sharpness as the visitor nears them; measure the start view AND the inside 
 ~2000 px uploads held in full on a phone filled 438 of 643 MB; now 768 px from afar, full up close: 386 MB.)
 Sharpness is measured, not guessed: pixels per metre on a wall against the room's own tour. (Ritual in the museum,
 23.11: a phone cut its 14 m walls to 73 px/m against the tour's 200. Walls now keep 2048 px.)
+GPU-compressed pictures (KTX2, texopt) have both sides a multiple of 4, or the GPU refuses them and the surface draws black: Ritual's
+ceiling, floor and a wall went black in its tour while the museum test passed (24.11). A test of the copies looks inside each room it
+touches and fails on any GL_INVALID message (tests/tex_memory.cjs). A local `--inspect` rewrites the tour's own files (ritual.json,
+index.json): run it in a separate checkout, with PYTHONUTF8=1 (a console-encoding crash left ritual.json broken and index.json empty in
+the shared folder, 24.11).
 
 **Physically possible and finished (7 times).** It must work as a real building would:
 - Pedestals only indoors. Plants on the ground. Works on walls. Signs on posts or walls.

@@ -7,3 +7,8 @@ studio/app/space/.artist/
 .cache/
 
 studio/agent/.token
+
+# texture optimizer: made locally and by the publish workflow, never committed
+studio/app/opt/
+studio/app/data/tex.json
+studio/app/data/tex.report.json
