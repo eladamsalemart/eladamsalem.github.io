@@ -1343,6 +1343,38 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const lastPos = new THREE.Vector3(1e9, 0, 0), lastLook = new THREE.Vector3(), frameTimes = [];
   const maxRatio = Math.min(devicePixelRatio, 2);
   THREE.DefaultLoadingManager.onLoad = () => { dirty = true; };      // a texture arrived: show it
+  function serveTiers(now) {
+  // the sharpness of every work follows what the eye needs: from its real size, its distance and the screen's pixels, the picture it should
+  // hold (640 / 1024 / 1536 / 2048 px across); a better one comes in (one download at a time) for the work the visitor looks at, a worse one
+  // is kept where nobody looks, inside a budget of picture memory (the paintings are the museum's point: memory is spent on them, where the visitor is)
+  if (pendingFull.length && now > nextFull) {
+    nextFull = now + 300;
+    const dir = new THREE.Vector3().subVectors(look, pos).normalize(), tanH = Math.tan(camera.fov * Math.PI / 360) * camera.aspect, pxW = renderer.domElement.width;
+    let used = 0;
+    for (const f of pendingFull) {
+      const v = new THREE.Vector3().subVectors(f.centre, pos), d = Math.max(0.5, v.length()), seen = d < 3 || v.dot(dir) / d > 0.25;
+      const need = f.span * pxW / (2 * d * tanH) * 1.15;
+      f.d = d; f.want = !seen ? 0 : d > TIER_FAR ? 0 : TIERS.find(t => t >= need) || TIERS[TIERS.length - 1];
+      used += f.cur * f.cur * (f.ar || 1) * 4 * 1.34 / 1048576;
+    }
+    // over the budget, or no longer looked at: the farthest sharp work goes back to its light image
+    const back = pendingFull.filter(f => f.fullTex && f.reach < 1e8 && (f.want === 0 || f.want * 1.4 <= f.cur) && f.d > 2).sort((a, z) => z.d - a.d);
+    for (const f of back.slice(0, used > TIER_MB ? 3 : 1)) if (used > TIER_MB || f.d > 6) { setFront(f, f.small); f.fullTex.dispose(); f.fullTex = null; f.cur = Math.max(f.small.image.width, f.small.image.height); }
+    const f = loading < LOADS && pendingFull.filter(x => x.full && !x.tries && !x.busy && x.want > x.cur * 1.05 && (x.reach >= 1e8 || x.want > 0)).sort((a, z) => a.d - z.d)[0];
+    if (f) {
+      loading++; f.busy = true;
+      (f.reach >= 1e8 ? loadRetry([f.full]) : Promise.race([loadTex(f.full), new Promise(r => setTimeout(() => r(null), 9000))])).then(t => {      // (a sharper picture is optional: one try and a time limit, so a missing or slow file never holds the line)
+        loading--; f.busy = false;
+        if (!t) { f.tries = 1; return; }
+        t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
+        if (f.reach >= 1e8) { f.small = t; f.reach = 0; f.cur = Math.max(t.image.width, t.image.height); f.ar = t.image.height / t.image.width; setFront(f, t); return; }     // a work that had only its plain tone
+        const tex = shrinkTo(t, Math.max(f.want, 1024));
+        if (f.fullTex) f.fullTex.dispose();
+        f.fullTex = tex; f.cur = Math.max(tex.image.width, tex.image.height); setFront(f, tex); dirty = true;
+      });
+    }
+  }
+  }
   function frame(now) {
     if (!running) return;
     const dt = Math.min((now - last) / 1000, 0.05); last = now;
@@ -1380,6 +1412,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     // nothing moved and nothing new to show: the last frame still stands (a phone keeps its battery)
     const still = !renderer.xr.isPresenting && pos.distanceToSquared(lastPos) < 1e-10 && look.distanceToSquared(lastLook) < 1e-10 && Math.abs(camera.fov - lastFov) < 1e-4;
     lastPos.copy(pos); lastLook.copy(look); lastFov = camera.fov;
+    serveTiers(now);        // (before the still-frame return: a visitor standing in front of a work is exactly when its sharp picture must come in)
     if (still && !dirty) return;
     // the hang editor's plan covers the room: nothing to draw behind it (it is drawn again the moment the plan closes)
     if (root.classList.contains('planning')) { dirty = true; return; }
@@ -1398,36 +1431,6 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (mode === 'walk' && now > nextFocus) { focus(); nextFocus = now + 200; }
     if (ibrChoose && now > nextChoose) { ibrChoose(pos, new THREE.Vector3().subVectors(look, pos).normalize()); nextChoose = now + 700; }
     if (ibrNear) ibrNear(pos, new THREE.Vector3().subVectors(look, pos).normalize());
-    // the sharpness of every work follows what the eye needs: from its real size, its distance and the screen's pixels, the picture it should
-    // hold (640 / 1024 / 1536 / 2048 px across); a better one comes in (one download at a time) for the work the visitor looks at, a worse one
-    // is kept where nobody looks, inside a budget of picture memory (the paintings are the museum's point: memory is spent on them, where the visitor is)
-    if (pendingFull.length && now > nextFull) {
-      nextFull = now + 300;
-      const dir = new THREE.Vector3().subVectors(look, pos).normalize(), tanH = Math.tan(camera.fov * Math.PI / 360) * camera.aspect, pxW = renderer.domElement.width;
-      let used = 0;
-      for (const f of pendingFull) {
-        const v = new THREE.Vector3().subVectors(f.centre, pos), d = Math.max(0.5, v.length()), seen = d < 3 || v.dot(dir) / d > 0.25;
-        const need = f.span * pxW / (2 * d * tanH) * 1.15;
-        f.d = d; f.want = !seen ? 0 : d > TIER_FAR ? 0 : TIERS.find(t => t >= need) || TIERS[TIERS.length - 1];
-        used += f.cur * f.cur * (f.ar || 1) * 4 * 1.34 / 1048576;
-      }
-      // over the budget, or no longer looked at: the farthest sharp work goes back to its light image
-      const back = pendingFull.filter(f => f.fullTex && f.reach < 1e8 && (f.want === 0 || f.want * 1.4 <= f.cur) && f.d > 2).sort((a, z) => z.d - a.d);
-      for (const f of back.slice(0, used > TIER_MB ? 3 : 1)) if (used > TIER_MB || f.d > 6) { setFront(f, f.small); f.fullTex.dispose(); f.fullTex = null; f.cur = Math.max(f.small.image.width, f.small.image.height); }
-      const f = loading < LOADS && pendingFull.filter(x => x.full && !x.tries && !x.busy && x.want > x.cur * 1.05 && (x.reach >= 1e8 || x.want > 0)).sort((a, z) => a.d - z.d)[0];
-      if (f) {
-        loading++; f.busy = true;
-        (f.reach >= 1e8 ? loadRetry([f.full]) : Promise.race([loadTex(f.full), new Promise(r => setTimeout(() => r(null), 9000))])).then(t => {      // (a sharper picture is optional: one try and a time limit, so a missing or slow file never holds the line)
-          loading--; f.busy = false;
-          if (!t) { f.tries = 1; return; }
-          t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
-          if (f.reach >= 1e8) { f.small = t; f.reach = 0; f.cur = Math.max(t.image.width, t.image.height); f.ar = t.image.height / t.image.width; setFront(f, t); return; }     // a work that had only its plain tone
-          const tex = shrinkTo(t, Math.max(f.want, 1024));
-          if (f.fullTex) f.fullTex.dispose();
-          f.fullTex = tex; f.cur = Math.max(tex.image.width, tex.image.height); setFront(f, tex); dirty = true;
-        });
-      }
-    }
     if (!root.classList.contains('planning')) renderer.render(scene, camera);   // the plan covers the room: do not draw it (battery)
   }
   renderer.setAnimationLoop(frame);
