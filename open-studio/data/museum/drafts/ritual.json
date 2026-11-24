@@ -21,32 +21,38 @@
    {
     "id": "tour_live",
     "pass": true,
-    "why": "the tour passed its own build and inspection"
+    "why": "the tour passed its own build and inspection",
+    "he": "הסיור עבר את הבנייה והבדיקה שלו"
    },
    {
     "id": "real_openings",
     "pass": true,
-    "why": "2 real opening(s) on wall-z1: arch 3.32 x 2.96 m, doorway 1.44 x 3.03 m"
+    "why": "2 real opening(s) on wall-z1: arch 3.32 x 2.96 m, doorway 1.44 x 3.03 m",
+    "he": "2 פתחים אמיתיים בקיר wall-z1: קשת 3.32 × 2.96 מ', דלת 1.44 × 3.03 מ'"
    },
    {
     "id": "free_place",
     "pass": true,
-    "why": "door at [28,64.5] facing 90°, every opening linked (walk from the start 24 m, 19 m), no space cut off"
+    "why": "door at [28,64.5] facing 90°, every opening linked (walk from the start 24 m, 19 m), no space cut off",
+    "he": "הכניסה ב־[28,64.5], פונה 90°; כל פתח מחובר לשבילים (הליכה מנקודת ההגעה: 24 m, 19 m); אף מרחב אחר לא נחסם"
    },
    {
     "id": "jambs",
     "pass": true,
-    "why": "2 opening(s): full 0.22 m jambs and head, same shape, nothing across the way"
+    "why": "2 opening(s): full 0.22 m jambs and head, same shape, nothing across the way",
+    "he": "2 פתחים: משקופים וראש בעובי קיר מלא (0.22 מ'), באותה צורה, ושום דבר לא חוסם את המעבר"
    },
    {
     "id": "text_flush",
     "pass": true,
-    "why": "the wall text is flush on the door wall, in a solid run, clear of the openings"
+    "why": "the wall text is flush on the door wall, in a solid run, clear of the openings",
+    "he": "טקסט הקיר צמוד לקיר הכניסה, על קטע קיר שלם, רחוק מהפתחים"
    },
    {
     "id": "works",
     "pass": true,
-    "why": "10 works at their measured size and place"
+    "why": "10 works at their measured size and place",
+    "he": "10 עבודות בגודל ובמקום שנמדדו"
    },
    {
     "id": "phone_memory",
@@ -56,7 +62,8 @@
      "start": 410,
      "inside": 411,
      "without": 350
-    }
+    },
+    "he": "410 MB בנקודת ההגעה, 411 MB בתוך הביתן (תקציב 460); המוזיאון בלי הטיוטה: 350 MB, כלומר הביתן מוסיף 60 MB"
    },
    {
     "id": "floor_mirror",
@@ -65,7 +72,8 @@
     "data": {
      "gain": 16.8,
      "reflect": 0.293
-    }
+    },
+    "he": "הרצפה בסיור מבריקה (החזר 0.293): רצפת הביתן מקבלת את צבע המראה כמו שצריך (עלייה 16.8, מראה o8-floor)"
    },
    {
     "id": "px_per_m",
@@ -107,7 +115,8 @@
       "built": 333,
       "gpu": true
      }
-    ]
+    ],
+    "he": "כמו בסיור או יותר: wall-x0 200/200, wall-x1 200/200, wall-z0 200/200, wall-z1 200/200, אריח הרצפה 333/333 px/m (5 מתוך 5 נמדדו בכרטיס הגרפי, השאר מהתמונות שנבנו), מפות האור הועברו"
    },
    {
     "id": "side_by_side",
@@ -135,7 +144,8 @@
       "worksInTour": 2,
       "missing": []
      }
-    ]
+    ],
+    "he": "3 מבטים נשמרו; כל עבודה שנראית בסיור נראית גם במוזיאון, בלי חורים"
    }
   ]
  },

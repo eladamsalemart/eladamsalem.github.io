@@ -27,7 +27,7 @@ export async function mountDrafts(el, { api, APP, toast = () => {}, planOf = p =
     const ok = d.gate && d.gate.pass, live = inPlan(d);
     return `<article class="dr-card" data-slug="${esc(d.slug)}">
       <header><b dir="auto">${esc(d.title)}</b><span class="chip ${live ? 'ok' : ok ? '' : 'warn'}">${live ? 'במוזיאון' : ok ? 'עבר את הבדיקות: מחכה לך' : 'לא עבר: לא מוצע'}</span></header>
-      <ul class="dr-checks">${(d.gate ? d.gate.checks : []).map(c => `<li class="${c.pass ? 'ok' : 'no'}"><span>${c.pass ? '✓' : '✗'}</span> ${esc(CHECK[c.id] || c.id)}<small dir="ltr">${esc(c.why)}</small></li>`).join('')}</ul>
+      <ul class="dr-checks">${(d.gate ? d.gate.checks : []).map(c => `<li class="${c.pass ? 'ok' : 'no'}"><span>${c.pass ? '✓' : '✗'}</span> ${esc(CHECK[c.id] || c.id)}<small dir="auto">${esc(c.he || c.why)}</small></li>`).join('')}</ul>
       ${(d.views || []).length ? `<div class="dr-sbs">${d.views.map((v, i) => `<a href="${APP}data/museum/drafts/${esc(d.slug)}/side-by-side-${i + 1}-${esc(v.id)}.jpg" target="_blank"><img loading="lazy" alt="" src="${APP}data/museum/drafts/${esc(d.slug)}/side-by-side-${i + 1}-${esc(v.id)}.jpg"></a>`).join('')}</div>` : ''}
       ${ok && !live ? `<button class="btn primary" data-add>הוספה למוזיאון</button>` : ''}
     </article>`; }).join('');
