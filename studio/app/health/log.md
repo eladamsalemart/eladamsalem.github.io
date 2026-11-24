@@ -2,6 +2,10 @@
 
 Each run of the scheduled session adds an entry (newest first). See PLAYBOOK.md.
 
+## 2026-11-24: nothing new
+
+- No owner requests; the pages, Home's check, check_app and deps pass on the live site. The one open item is the same as 11-22/23, the owner's: 4 of the Desk's 6 live museum slots name exhibitions the app no longer has (Home shows 2). The last improvement was 11-22: none tonight. Still available: three 0.187, supabase-js 2.119.2, playwright 1.65.1.
+
 ## 2026-11-23: a new control under 44 px; Show on now more patient
 
 - Issue #8 (standing report): Artist (Elad): "Step through" (`.sec.mos .mos-go`, the artist page's virtual-exhibition card, new) was 101x30, missed by a finger. Added to the invisible touch-area lists in index.html. Proved: with the fix health.cjs passes on that page locally, without it fails with the same message.

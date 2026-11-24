@@ -67,7 +67,7 @@ published, what On View means, and why a tour needs many photos. Two clear paths
 small beats big: when he says "smaller", make it clearly smaller. No clutter. Ask before changing a look.
 
 **English app, Hebrew to him.** The app is English everywhere except the owner's control room. Hebrew elsewhere
-is a bug. Every report to him is in Hebrew.
+is a bug. Every report to him is in Hebrew. That includes choice popups: the question, the header and every option in Hebrew (24.11, a popup went out in English).
 
 **Real content only.** Real artists, works allowed for use, real exhibitions, a real map, real days and hours.
 Never invented ones.
@@ -93,6 +93,11 @@ Show works at their real size, lit as in a gallery.
   checked.
 - Work alone and long, nights included. Resume after a quota reset unasked. Do the chores yourself (tools,
   downloads), never send him on them.
+- **Never idle waiting for him (a SEVERE FAULT, 24.11).** Work runs continuously until he says stop, above all at
+  night: he leaves the computer on for it and sleeps. A question never pauses the work: write it down (log, morning
+  note, one popup), take the reversible default, and go straight to the next open item. "Nothing to do without his
+  decision" and "I think I finished" are not states: re-measure, audit against the reference, improve the weakest
+  thing, learn. (Night 23-24.11: the shift asked about the floor and then idled for three hours with a long list open.)
 - One main session leads (the "Open studio" folder). Sub-sessions take parallel parts, never the same files, and
   their results are checked before they reach him.
 - Approval gates before anything goes live.
@@ -107,3 +112,9 @@ Show works at their real size, lit as in a gallery.
 5. Quality pass: put it beside the best room in the app. If it is worse, it isn't done.
 6. Read your diff for anything removed by accident.
 7. Report in Hebrew what you saw working, with one shot, and say plainly what was not checked.
+
+**A screenshot can lie.** Prove an effect by its mechanism (a tint test, a pixel read, a measured value), not only by one image.
+A test for it must fail before the fix and pass after. (24.11: Ritual's floor reflection was approved on one picture while the
+mirror stood at the origin under the hall floor and drew nothing; the gloss in the picture was the hall's own floor showing
+through. `studio/app/tests/pad_mirror.cjs` now tints the mirror red and reads the floor's pixels.)
+

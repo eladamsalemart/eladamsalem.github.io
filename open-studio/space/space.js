@@ -81,6 +81,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
     const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.anisotropy = t.anisotropy; t.dispose(); return n;
   };
+  const shrinkTo = (t, max) => {                  // (a picture held at `max` px across, on any device; the source texture is freed)
+    const im = t.image, w = im.naturalWidth || im.width, h = im.naturalHeight || im.height;
+    if (Math.max(w, h) <= max) return t;
+    const k = max / Math.max(w, h), c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    const n = new THREE.CanvasTexture(c); n.colorSpace = t.colorSpace; n.anisotropy = t.anisotropy; t.dispose(); return n;
+  };
   const surfTex = s => { if (!held.has(s.texture)) held.set(s.texture, loadTex(s.texture).then(t => fit(t, s.kind === 'wall' ? 2048 : 1536))); return held.get(s.texture); };
   const texs = await Promise.all(surfaces.map(async s => {
     const t = await surfTex(s);
@@ -242,6 +249,47 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       dirty = true;
     }, 3500);
   }
+  const padList = [];
+  // the floor of a room joined to a bigger space (an exhibition's original room inside the museum, spec.floorPads): its light as in the room's
+  // own tour (the tile under the room's light map), and its reflection made only while the visitor is in it, faded in, then freed when they leave
+  // (memory is spent where the visitor is, never where they aren't; the lead's review, 24.11)
+  function padFloor(fm, s, i, pad) {
+    if (lights[i]) { fm.material.lightMap = lights[i]; fm.material.lightMapIntensity = Math.PI * (s.lightScale || 1); fm.material.needsUpdate = true; }
+    const [rNear, rLow] = pad.reflect || [0, 0]; if (!(rLow > 0.03)) return;
+    const prev = fm.material.onBeforeCompile, mU = { value: 0 };
+    fm.material.customProgramCacheKey = () => 'pad' + (prev ? 'hq' : '') + rNear + '_' + rLow;
+    fm.material.onBeforeCompile = sh => {
+      if (prev) prev(sh); sh.uniforms.mirrorOn = mU;
+      sh.vertexShader = sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorldP = (modelMatrix * vec4(transformed, 1.0)).xyz;').replace('void main() {', 'varying vec3 vWorldP;\nvoid main() {');
+      sh.fragmentShader = sh.fragmentShader.replace('void main() {', 'uniform float mirrorOn;\nvarying vec3 vWorldP;\nvoid main() {').replace('#include <dithering_fragment>',
+        `float facing = clamp(normalize(cameraPosition - vWorldP).y, 0.0, 1.0);
+         gl_FragColor.a = mix(1.0, 1.0 - mix(${rNear.toFixed(3)}, ${rLow.toFixed(3)}, pow(1.0 - facing, 3.0)), mirrorOn);
+         #include <dithering_fragment>`);
+    };
+    const U = V(s.u), Vd = V(s.v), [su, sv] = s.size, O = V(s.origin), c = O.clone().addScaledVector(U, su / 2).addScaledVector(Vd, sv / 2);
+    const within = m => { const d = pos.clone().sub(c); return Math.abs(d.dot(U)) - su / 2 < m && Math.abs(d.dot(Vd)) - sv / 2 < m; };
+    let mirror = null;
+    padList.push({ name: s.name, get on() { return !!mirror; }, fade: () => mU.value, tint(rgb) { if (mirror) { mirror.material.uniforms.color.value.setRGB(...rgb); dirty = true; } } });
+    const make = () => {
+      const res = Math.min(2048, Math.round(Math.max(innerWidth, innerHeight) * Math.min(devicePixelRatio, 2) * (COARSE ? 0.3 : 0.5)));      // (half the tour's on a phone)
+      mirror = new Reflector(new THREE.PlaneGeometry(su, sv), { textureWidth: res, textureHeight: res, color: 0xffffff, clipBias: 0.003 });
+      mirror.material.fragmentShader = mirror.material.fragmentShader.replace('blendOverlay( base.rgb, color )', 'base.rgb * color');
+      const up = new THREE.Vector3(0, 1, 0), Y = Vd.clone(); if (new THREE.Vector3().crossVectors(U, Y).dot(up) < 0) Y.negate();
+      mirror.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(U, Y, up)); mirror.position.set(c.x, O.y - 0.004, c.z);      /* (between the hall's floor, 0.02 m, and this one: under the hall floor it reflected only the hall floor's underside, 24.11) */      /* (a hand-set matrix with automatic updates off never reached matrixWorld: the mirror stood upright at the origin, 24.11) */ mirror.userData.kind = 'mirror';
+      const draw = mirror.onBeforeRender; let lastKey = '', frame = 0;
+      mirror.onBeforeRender = (...a) => { const cam = a[2], key = cam.matrixWorld.elements.join(',') + cam.fov; if (key === lastKey && frame > 0) return; lastKey = key; if (++frame % 3 !== 1 && frame > 3) return;
+        fm.visible = false; draw.apply(mirror, a); fm.visible = true; };
+      scene.add(mirror); fm.material.transparent = true; dirty = true;
+    };
+    const free = () => { scene.remove(mirror); mirror.getRenderTarget().dispose(); mirror.geometry.dispose(); mirror.material.dispose(); mirror = null; mU.value = 0; fm.material.transparent = false; dirty = true; };
+    const tick = setInterval(() => {
+      if (!root.isConnected) { clearInterval(tick); if (mirror) free(); return; }
+      try { pos; } catch { return; }                 // (the visitor is placed a little later than the room is built)
+      const inn = within(0.6);
+      if (inn && !mirror) make();
+      if (mirror) { const v = Math.max(0, Math.min(1, mU.value + (inn ? 0.2 : -0.2))); if (v !== mU.value) { mU.value = v; dirty = true; } if (!inn && v === 0 && !within(3)) free(); }
+    }, 100);
+  }
   const batches = {};                       // small translucent surfaces that share one picture (the houses' trim, the light shafts) are drawn as ONE mesh each: a phone pays per draw call
   surfaces.forEach((s, i) => {
     if (glassWalls.has(s.name)) return;
@@ -252,6 +300,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const m = planeMesh(s, enhance(room(new THREE.MeshBasicMaterial({ map: texs[i], color: texs[i] ? 0xffffff : wallColor, toneMapped: false, side: THREE.DoubleSide })), texs[i], s.kind === 'wall' ? 0 : 2, s.size, masks, '', s.stand ? 0.3 : 1, detailOf(s.detail)), s.openings || [], s.kind === 'wall' && !s.stand ? 0.03 : 0);
       m.userData.kind = s.kind; if (s.stand) m.userData.stand = s.stand; scene.add(m);
       if (spec.mirrorSurface && s.name === spec.mirrorSurface.name) hallMirror(m, s);
+      { const pad = (spec.floorPads || []).find(q => q.name === s.name); if (pad) padFloor(m, s, i, pad); }
       for (const o of s.openings || []) addOpening(s, o);
       if (s.stand && s.capT && /-a$/.test(s.name)) {   // a coulisse is a board, not two sheets: a solid core a hair inside its two faces shows its top and both ends
         const Uc = V(s.u), Nc = V(s.normal), Oc = V(s.origin), t = s.capT, L = s.size[0], h = s.size[1];
@@ -538,7 +587,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   })();
   // relief from the image itself: brightness changes become tiny slopes that catch the light at an angle
   function reliefFrom(img) {
-    const w = Math.min(1024, img.width), h = Math.round(w * img.height / img.width);
+    const w = Math.min(512, img.width), h = Math.round(w * img.height / img.width);      // (the varnish relief is subtle: 512 px across is enough, and a 1024 px one cost 8 MB a work)
     const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
     x.drawImage(img, 0, 0, w, h);
     const d = x.getImageData(0, 0, w, h), p = d.data, L = new Float32Array(w * h);
@@ -621,7 +670,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   // keeps in it is held to a budget
   const PHONE = matchMedia('(pointer: coarse)').matches && !inspecting;   // (true in the phone pass too)
   const FULL_AT_ONCE = PHONE ? 2 : 4;
-  let upgrading = false, opened = performance.now(), nextFull = 0;
+  const TIERS = [640, 1024, 1536, 2048], TIER_FAR = 16, TIER_MB = PHONE ? 110 : 320, LOADS = PHONE ? 2 : 3;      // (the pictures the works may hold: sizes, how far the eye is served, MB for the sharpened ones)
+  let loading = 0, opened = performance.now(), nextFull = 0;
   function setFront(f, t) {
     f.front.emissiveMap = t; if (f.front.map) f.front.map = t; f.front.needsUpdate = true; dirty = true;
     for (const e of f.edges || []) e.material.uniforms.img.value = t;
@@ -634,7 +684,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     // until one arrives the canvas shows a plain tone (and keeps trying in the background)
     const [got, light] = await Promise.all([loadRetry([first, first === h.image ? h.imageSmall : h.image]), loadTex(h.light, false)]);
     // memory is saved where the visitor isn't looking, never where they are: on a phone a work that came without a small copy (an artist's
-    // upload, ~2000 px) is held at 768 px from afar, and its full image comes back as the visitor nears it (pendingFull), freed again as they leave
+    // upload, ~2000 px) is held at 768 px from afar, and its full image comes back as the visitor nears it (pendingFull), freed again as they leave (memory is saved where the visitor is not looking, never where they are)
     const big = PHONE && got && Math.max(got.image.naturalWidth || got.image.width || 0, got.image.naturalHeight || got.image.height || 0) > 1024;
     const tex = big ? fit(got, 768) : got || plainTex();
     if (!got) failed.push(h.work);
@@ -695,7 +745,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       const edges = canvasEdges(bw, bh, dM, h.sides, null);
       edges.forEach(e => e.position.set(bx, by, 0));
       g.add(face, body, ...edges); box = face;
-      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges: [] });
+      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges: [], title: h.work, mid: h.imageFull && h.image !== h.imageFull && h.image !== first ? h.image : null, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
     } else if (h.flat) {        // letters set on the wall (the wall text): a sheet with no body, the wall showing through where it has no ground
       tex.colorSpace = THREE.SRGBColorSpace;
       box = new THREE.Mesh(new THREE.PlaneGeometry(wM, hM), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.01, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2 }));
@@ -705,7 +755,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
       box.userData.kind = 'work';
       const edges = canvasEdges(wM, hM, dM, h.sides, tex);
       g.add(box, ...edges);
-      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges });
+      if (full) pendingFull.push({ front, centre: V(h.centre), full, reach: got ? reach : 1e9, small: tex, edges, title: h.work, mid: h.imageFull && h.image !== h.imageFull && h.image !== first ? h.image : null, span: Math.max(wM, hM), cur: got ? Math.max(tex.image.width, tex.image.height) : 0, ar: got ? tex.image.height / tex.image.width : 1 });
     }
     const sh = new THREE.Mesh(new THREE.PlaneGeometry(bw + Math.min(0.08, 0.15 * Math.min(bw, bh)), bh + Math.min(0.1, 0.18 * Math.min(bw, bh))), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.07, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
     sh.position.set(bx + Math.min(0.012, 0.03 * bw), by - Math.min(0.03, 0.06 * bh), -dM / 2 - 0.002);   // just off the wall, never in it
@@ -1293,6 +1343,41 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const lastPos = new THREE.Vector3(1e9, 0, 0), lastLook = new THREE.Vector3(), frameTimes = [];
   const maxRatio = Math.min(devicePixelRatio, 2);
   THREE.DefaultLoadingManager.onLoad = () => { dirty = true; };      // a texture arrived: show it
+  function serveTiers(now) {
+  // the sharpness of every work follows what the eye needs: from its real size, its distance and the screen's pixels, the picture it should
+  // hold (640 / 1024 / 1536 / 2048 px across); a better one comes in (one download at a time) for the work the visitor looks at, a worse one
+  // is kept where nobody looks, inside a budget of picture memory (the paintings are the museum's point: memory is spent on them, where the visitor is)
+  if (pendingFull.length && now > nextFull) {
+    nextFull = now + 300;
+    const dir = new THREE.Vector3().subVectors(look, pos).normalize(), tanH = Math.tan(camera.fov * Math.PI / 360) * camera.aspect, pxW = renderer.domElement.width;
+    let used = 0;
+    for (const f of pendingFull) {
+      const v = new THREE.Vector3().subVectors(f.centre, pos), d = Math.max(0.5, v.length()), seen = d < 3 || v.dot(dir) / d > 0.25;
+      const need = f.span * pxW / (2 * d * tanH) * 1.15;
+      f.d = d; f.want = !seen ? 0 : d > TIER_FAR ? 0 : TIERS.find(t => t >= need) || TIERS[TIERS.length - 1];
+      used += f.cur * f.cur * (f.ar || 1) * 4 * 1.34 / 1048576;
+    }
+    // over the budget, or no longer looked at: the farthest sharp work goes back to its light image
+    const back = pendingFull.filter(f => f.fullTex && f.reach < 1e8 && (f.want === 0 || f.want * 1.4 <= f.cur) && f.d > 2).sort((a, z) => z.d - a.d);
+    for (const f of back.slice(0, used > TIER_MB ? 3 : 1)) if (used > TIER_MB || f.d > 6) { setFront(f, f.small); f.fullTex.dispose(); f.fullTex = null; f.cur = Math.max(f.small.image.width, f.small.image.height); }
+    const f = loading < LOADS && pendingFull.filter(x => x.full && !x.tries && !x.busy && !x.top && x.want > x.cur * 1.05 && !(x.usedMid && x.want <= 1280) && (x.reach >= 1e8 || x.want > 0)).sort((a, z) => a.d - z.d)[0];
+    if (f) {
+      loading++; f.busy = true;
+      const srcU = f.mid && !f.usedMid && f.want <= 1280 ? f.mid : f.full;      // (the 1200 px picture serves the middle tiers; the large scan only the sharpest)
+      (f.reach >= 1e8 ? loadRetry([f.full]) : Promise.race([loadTex(srcU), new Promise(r => setTimeout(() => r(null), 9000))])).then(t => {      // (a sharper picture is optional: one try and a time limit, so a missing or slow file never holds the line)
+        loading--; f.busy = false;
+        if (!t) { f.tries = 1; return; }
+        t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
+        if (f.reach >= 1e8) { f.small = t; f.reach = 0; f.cur = Math.max(t.image.width, t.image.height); f.ar = t.image.height / t.image.width; setFront(f, t); return; }     // a work that had only its plain tone
+        const nat = Math.max(t.image.naturalWidth || t.image.width, t.image.naturalHeight || t.image.height);
+        if (srcU === f.mid) f.usedMid = true; else if (nat <= f.want * 1.05) f.top = true;      // (the largest picture there is: no further upgrade to try)
+        const tex = shrinkTo(t, Math.max(f.want, 1024));
+        if (f.fullTex) f.fullTex.dispose();
+        f.fullTex = tex; f.cur = Math.max(tex.image.width, tex.image.height); setFront(f, tex); dirty = true;
+      });
+    }
+  }
+  }
   function frame(now) {
     if (!running) return;
     const dt = Math.min((now - last) / 1000, 0.05); last = now;
@@ -1330,6 +1415,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     // nothing moved and nothing new to show: the last frame still stands (a phone keeps its battery)
     const still = !renderer.xr.isPresenting && pos.distanceToSquared(lastPos) < 1e-10 && look.distanceToSquared(lastLook) < 1e-10 && Math.abs(camera.fov - lastFov) < 1e-4;
     lastPos.copy(pos); lastLook.copy(look); lastFov = camera.fov;
+    serveTiers(now);        // (before the still-frame return: a visitor standing in front of a work is exactly when its sharp picture must come in)
     if (still && !dirty) return;
     // the hang editor's plan covers the room: nothing to draw behind it (it is drawn again the moment the plan closes)
     if (root.classList.contains('planning')) { dirty = true; return; }
@@ -1348,29 +1434,8 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     if (mode === 'walk' && now > nextFocus) { focus(); nextFocus = now + 200; }
     if (ibrChoose && now > nextChoose) { ibrChoose(pos, new THREE.Vector3().subVectors(look, pos).normalize()); nextChoose = now + 700; }
     if (ibrNear) ibrNear(pos, new THREE.Vector3().subVectors(look, pos).normalize());
-    // full images: for the few works nearest the visitor (within reach), one download at a time; a work
-    // left well behind goes back to its light image, so the page never holds every work's full image at once
-    if (pendingFull.length && now > nextFull) {
-      nextFull = now + 400;
-      const near = pendingFull.map(f => [f, pos.distanceTo(f.centre)]).filter(([f, d]) => d < f.reach).sort((a, b) => a[1] - b[1]).slice(0, FULL_AT_ONCE).map(([f]) => f);
-      for (const f of pendingFull) {
-        if (f.fullTex && !near.includes(f) && pos.distanceTo(f.centre) > f.reach * 1.3 && f.reach < 1e8) {
-          setFront(f, f.small); f.fullTex.dispose(); f.fullTex = null;
-        }
-      }
-      const f = !upgrading && near.find(x => !x.fullTex && !x.tries);
-      if (f) {
-        upgrading = true;
-        loadRetry([f.full]).then(t => {
-          upgrading = false;
-          if (!t) { f.tries = 1; return; }
-          t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
-          if (f.reach >= 1e8) { f.small = t; f.reach = 0; setFront(f, t); return; }     // a work that had only its plain tone
-          f.fullTex = t; setFront(f, t);
-        });
-      }
-    }
     if (!root.classList.contains('planning')) renderer.render(scene, camera);   // the plan covers the room: do not draw it (battery)
+    globalThis.osVitals?.frame(renderer);      // real-phone data (app.js): the first frame drawn, and the canvas to watch for a lost context
   }
   renderer.setAnimationLoop(frame);
 
@@ -1415,11 +1480,13 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
   const inspect = {
     pieces: pieces.map(p => ({ title: p.w.title, centre: p.centre.toArray(), facing: p.facing.toArray(), size: p.size, stand: p.stand.toArray(), image: p.h.image, core: p.h.core || null })),
     views, room: R, eye: EYE, start: { pos: pos.toArray(), look: look.toArray() },
+    walkTo(at, to) { goFree(); pos.set(...at); look.set(...to); tPos.copy(pos); tLook.copy(look); dirty = true; },      // stand there, looking there, with the room running (the tiers follow)
+    tiers: () => pendingFull.map(f => ({ title: f.title, cur: f.cur, want: f.want, d: +(f.d || 0).toFixed(1), full: f.full, tries: f.tries || 0 })),
     stand: p => clampStand(V(p)).toArray(),                 // where a visitor can actually stand
     failed,                                                  // works whose image never arrived
     ready: () => ibrReady(),                                 // the photos all in place on the room
     // each work as drawn now: its image's size (0: none), and whether it is in the scene and visible
-    works() { return pieces.map(p => { const m = p.mesh.material, mats = [].concat(m), f = mats.find(x => x.emissiveMap) || mats[0]; const t = f && f.emissiveMap; let vis = true; for (let o = p.mesh; o; o = o.parent) vis = vis && o.visible; return { title: p.w.title, image: t && t.image ? [t.image.width, t.image.height] : [0, 0], visible: vis, inScene: !!p.mesh.parent && !!p.mesh.parent.parent }; }); },
+    works() { return pieces.map(p => { const m = p.mesh.material, mats = [].concat(m), f = mats.find(x => x.emissiveMap) || mats[0]; const t = f && f.emissiveMap; let vis = true; for (let o = p.mesh; o; o = o.parent) vis = vis && o.visible; return { title: p.w.title, cm: [p.size.w, p.size.h], stand: p.stand.toArray(), at: p.centre.toArray(), image: t && t.image ? [t.image.width, t.image.height] : [0, 0], visible: vis, inScene: !!p.mesh.parent && !!p.mesh.parent.parent }; }); },
     // stand somewhere and look at something, as a visitor walking would (the room keeps running: for testing
     // what a phone does as one walks, unlike shot() below)
     hot: () => HOT.map(h => [h.spec.id, String(h.spec.title || '').slice(0, 40), h.spec.kind || '', (h.spec.text || []).length, (h.spec.origin || []).map(v => +(+v).toFixed(1)), h.spec.u, h.spec.v, h.spec.size, h.spec.normal]),
@@ -1427,6 +1494,7 @@ export async function openSpace({ spec, works, src, onClose, onOpenWork, choose,
     setVisible: (kind, v) => { scene.traverse(m => { if (m.userData && m.userData.kind === kind) m.visible = !!v; }); dirty = true; },
     stats: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, textures: renderer.info.memory.textures, geometries: renderer.info.memory.geometries, programs: (renderer.info.programs || []).length }),
     heavy: () => { const o = []; scene.traverse(m => { if (m.isMesh && m.geometry) { const g = m.geometry, n = (g.index ? g.index.count : g.attributes.position.count) / 3; if (n > 2000) o.push([m.userData.kind || m.name || m.type, Math.round(n), m.visible]); } }); return o.sort((a, b) => b[1] - a[1]).slice(0, 12); },
+    pads: () => padList,
     eco: () => ({ pixelRatio: renderer.getPixelRatio(), mirror: hallMirrorCtl ? hallMirrorCtl.isOn : mirrorCtl ? mirrorCtl.isOn : null }), setMirror: v => { if (hallMirrorCtl) hallMirrorCtl.set(!!v); else if (mirrorCtl) mirrorCtl.set(!!v); },
     where() { return { pos: pos.toArray(), look: look.toArray(), fov: camera.fov }; },
     place(at, to) { setMode('walk'); goFree(); walkTo = null; pos.set(...at); tPos.set(...at); aimFrom(pos, V(to)); dirty = true; },

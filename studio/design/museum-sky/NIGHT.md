@@ -1,6 +1,9 @@
 # The museum's night shift (owner's standing order, 21.11.2026)
 
 **First, every run: read `studio/QUALITY.md` and `studio/GROWTH.md`** (the owner's standard, 23.11). Nothing reaches the owner or `studio` until it passes its "Before calling anything done" list. When he corrects something new, add it there as a rule.
+**Last, every run:** after the log and the push, archive this run's own session (`archive_session` with "self"), so the owner's sidebar stays clean (24.11).
+
+**NEVER IDLE (Elad, 24.11: a severe fault, said many times).** The shift works the whole night without a pause. A question for Elad is written in the log and the morning note (or one popup) and the work goes on at once with the reversible default; waiting for his answer, "only checking every 30 minutes", or "nothing left to do" are faults. When the list looks done: measure again, compare with the reference, take the weakest thing in the museum and improve it.
 
 **What Elad asked for:** every night from 22:00 to 08:00 (Israel time) the museum technology keeps improving by itself, as long as the app is in development: code, looks, design, textures,
 the virtual exhibition spaces, everything defined in `ROADMAP.md` and in the queue below. A new definition from Elad is added to the QUEUE and gets worked on the same night. With no new word
@@ -19,6 +22,10 @@ Run by the scheduled task `museum-night-shift` (local time every hour at :11 fro
 4. Read `ROADMAP.md` (the unchecked items), the QUEUE below, `night-log.md` (the last 15 lines). Nothing else is read whole.
 
 ## 2. What to work on, in this order
+0. FIRST, every night: the visitor robot's RED flags from its last run (`studio/health/robot/latest.json`, `flags` with
+   `sev: "red"`; the same in the Desk, tab "בדיקות לילה"). Each one is a bug a visitor would meet: fix it with proof, and the
+   robot's next night must show it gone. A flag that is the robot's own mistake: fix the robot (`studio/robot/`), say so in the log.
+   Yellow flags only after the QUEUE and ROADMAP, as audit items.
 1. The QUEUE below (Elad's own additions), oldest first.
 2. The next unchecked item of `ROADMAP.md`.
 3. If both are empty: audit once, cheaply: render the reference (`blender/hall_reference.py`, ~50 s) and the app from the same view (`blender/` README line in the script header; the app shot via `inspect.shot`), look at the difference, write the 3 biggest gaps as new ROADMAP items, start the first. Also allowed: a recurring job Elad named (adding an artist's original exhibition: ROADMAP "Adding an artist's original exhibition").

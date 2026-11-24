@@ -1,0 +1,217 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Visitor robot</title>
+<style>
+:root{--bg:#f6f3ee;--fg:#1d1b18;--mute:#6d675e;--line:#ddd6cb;--card:#fff;--bad:#b3261e;--badbg:#fbe9e7;--warn:#8a5a00;--warnbg:#fff3d6;--ok:#1f6b3a;--okbg:#e3f3e8}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#16140f;--fg:#ece7de;--mute:#a39b8e;--line:#3a352d;--card:#211e18;--bad:#ff8a80;--badbg:#3b1d1a;--warn:#ffcc66;--warnbg:#3a2f14;--ok:#7fd69b;--okbg:#17321f}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,sans-serif;padding:24px 16px 60px;max-width:1280px;margin-inline:auto}
+h1{font:600 28px/1.1 Georgia,serif;margin:0 0 4px}h2{font:600 20px Georgia,serif;margin:0 0 6px}h2 small{font:13px system-ui;color:var(--mute)}
+.lede{color:var(--mute);margin:0 0 18px}.kpis{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 22px}.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:120px}
+.kpi b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.kpi span{color:var(--mute);font-size:13px}
+table{border-collapse:collapse;width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:14px}
+td,th{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--mute);font-weight:500}
+.tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600}.tag.bad,.tag.red{background:var(--badbg);color:var(--bad)}.tag.warn,.tag.yellow{background:var(--warnbg);color:var(--warn)}.tag.ok{background:var(--okbg);color:var(--ok)}
+.over{color:var(--bad);font-weight:600}section{margin:30px 0}.facts{color:var(--mute);margin:0 0 12px}
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}.shot{margin:0;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.shot img{display:block;width:100%;height:auto;aspect-ratio:390/844;object-fit:cover;background:#000}.shot.one{max-width:240px;margin-top:12px}
+figcaption{padding:8px 10px;font-size:13px}dl{display:grid;grid-template-columns:auto 1fr;gap:1px 8px;margin:6px 0 0}dt{color:var(--mute)}dd{margin:0;font-variant-numeric:tabular-nums}
+.mini{font-size:12px;margin-top:6px}.mini td,.mini th{padding:2px 4px}.pair{margin:0 0 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;max-width:820px}.pair img{display:block;width:100%;height:auto}
+ul.diff{padding-left:18px}ul.diff li.reg{color:var(--bad)}details summary{cursor:pointer;color:var(--mute);margin-top:6px}
+</style></head><body>
+<h1>Visitor robot</h1><p class="lede">2026-11-24 · https://eladamsalem.com/open-studio/ · a phone at 390×844 (DPR 1, touch), the museum at 14:00 · 9 min · software GL on the server (swiftshader): frame times compare night to night, not with a real phone.</p>
+<div class="kpis"><div class="kpi"><b>3</b><span>red</span></div><div class="kpi"><b>2</b><span>yellow</span></div><div class="kpi"><b>0</b><span>regressions since —</span></div>
+<div class="kpi"><b>10/10</b><span>checks proved tonight</span></div><div class="kpi"><b>460 MB · 260</b><span>budget (NIGHT.md)</span></div></div>
+<section><h2>Flags</h2><table><tr><th></th><th>Where</th><th>Check</th><th>What</th></tr><tr class="red"><td><span class="tag red">Red</span></td><td>museum</td><td>request failed</td><td>404 space/tropics.js</td></tr><tr class="red"><td><span class="tag red">Red</span></td><td>museum</td><td>text not flush</td><td>&quot;My Open Studio&quot;: 40 mm off the wall</td></tr><tr class="red"><td><span class="tag red">Red</span></td><td>museum</td><td>text not flush</td><td>&quot;The Renaissance&quot;: 40 mm off the wall</td></tr><tr class="yellow"><td><span class="tag yellow">Yellow</span></td><td>museum · pavilion-ritual-work-2</td><td>unlike its tour</td><td>surface detail x1.60 (floor gloss or wall grain)</td></tr><tr class="yellow"><td><span class="tag yellow">Yellow</span></td><td>museum · pavilion-ritual-work-1</td><td>unlike its tour</td><td>surface detail x6.11 (floor gloss or wall grain)</td></tr></table></section>
+<section><h2>Since the previous night</h2><p>The first night: nothing to compare with yet.</p></section>
+<section class="space"><h2>ritual <small>#/exhibition/ritual/space</small></h2>
+    
+    
+    <p class="facts">First frame <b>1.9 s</b> · ready <b>3.4 s</b> ·
+    checked 0 standing objects, 0 wall texts, 0 openings, 32 textures · <b>0</b> physics flags</p>
+    <div class="shots"><figure class="shot"><a href="shots/ritual--start.jpg"><img loading="lazy" src="shots/ritual--start.jpg" alt="the way in" width="390" height="844"></a>
+      <figcaption><b>the way in</b>
+      <dl><dt>Memory</dt><dd class="">105 MB</dd><dt>Calls</dt><dd class="">53</dd>
+      <dt>Frame</dt><dd>17 ms <small>p95 317</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure><figure class="shot"><a href="shots/ritual--work-1.jpg"><img loading="lazy" src="shots/ritual--work-1.jpg" alt="Flowers 1" width="390" height="844"></a>
+      <figcaption><b>Flowers 1</b>
+      <dl><dt>Memory</dt><dd class="">105 MB</dd><dt>Calls</dt><dd class="">27</dd>
+      <dt>Frame</dt><dd>83 ms <small>p95 167</small></dd>
+      <dt>Works near</dt><dd>3 <small>least sharp 160%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>Flowers 1</td><td>2.2</td><td>1024</td><td>2000</td><td>108</td><td>3436</td></tr><tr class=""><td>Flowers 3</td><td>2.3</td><td>1024</td><td>2000</td><td>108</td><td>3391</td></tr><tr class=""><td>Flowers 2</td><td>2.3</td><td>1024</td><td>2000</td><td>103</td><td>3413</td></tr></table></details>
+      </figcaption></figure><figure class="shot"><a href="shots/ritual--work-2.jpg"><img loading="lazy" src="shots/ritual--work-2.jpg" alt="Adam, Adam and a Lamp" width="390" height="844"></a>
+      <figcaption><b>Adam, Adam and a Lamp</b>
+      <dl><dt>Memory</dt><dd class="">105 MB</dd><dt>Calls</dt><dd class="">20</dd>
+      <dt>Frame</dt><dd>67 ms <small>p95 150</small></dd>
+      <dt>Works near</dt><dd>1 <small>least sharp 160%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>Adam, Adam and a Lamp</td><td>2.9</td><td>1024</td><td>2000</td><td>337</td><td>856</td></tr></table></details>
+      </figcaption></figure><figure class="shot"><a href="shots/ritual--work-3.jpg"><img loading="lazy" src="shots/ritual--work-3.jpg" alt="Two" width="390" height="844"></a>
+      <figcaption><b>Two</b>
+      <dl><dt>Memory</dt><dd class="">100 MB</dd><dt>Calls</dt><dd class="">21</dd>
+      <dt>Frame</dt><dd>83 ms <small>p95 117</small></dd>
+      <dt>Works near</dt><dd>1 <small>least sharp 160%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>Two</td><td>3.4</td><td>1024</td><td>2000</td><td>336</td><td>735</td></tr></table></details>
+      </figcaption></figure></div></section><section class="space"><h2>celebration-virtual <small>#/exhibition/celebration-virtual/space</small></h2>
+    
+    
+    <p class="facts">First frame <b>3.7 s</b> · ready <b>4.1 s</b> ·
+    checked 0 standing objects, 0 wall texts, 0 openings, 27 textures · <b>0</b> physics flags</p>
+    <div class="shots"><figure class="shot"><a href="shots/celebration-virtual--start.jpg"><img loading="lazy" src="shots/celebration-virtual--start.jpg" alt="the way in" width="390" height="844"></a>
+      <figcaption><b>the way in</b>
+      <dl><dt>Memory</dt><dd class="">111 MB</dd><dt>Calls</dt><dd class="">41</dd>
+      <dt>Frame</dt><dd>50 ms <small>p95 83</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure><figure class="shot"><a href="shots/celebration-virtual--work-1.jpg"><img loading="lazy" src="shots/celebration-virtual--work-1.jpg" alt="Together" width="390" height="844"></a>
+      <figcaption><b>Together</b>
+      <dl><dt>Memory</dt><dd class="">111 MB</dd><dt>Calls</dt><dd class="">12</dd>
+      <dt>Frame</dt><dd>50 ms <small>p95 67</small></dd>
+      <dt>Works near</dt><dd>2 <small>least sharp 120%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>Together</td><td>2.2</td><td>768</td><td>2000</td><td>324</td><td>853</td></tr><tr class=""><td>Sunflower</td><td>2.6</td><td>768</td><td>2000</td><td>198</td><td>1182</td></tr></table></details>
+      </figcaption></figure><figure class="shot"><a href="shots/celebration-virtual--work-2.jpg"><img loading="lazy" src="shots/celebration-virtual--work-2.jpg" alt="Flowers 3" width="390" height="844"></a>
+      <figcaption><b>Flowers 3</b>
+      <dl><dt>Memory</dt><dd class="">111 MB</dd><dt>Calls</dt><dd class="">17</dd>
+      <dt>Frame</dt><dd>33 ms <small>p95 50</small></dd>
+      <dt>Works near</dt><dd>3 <small>least sharp 120%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>Flowers 2</td><td>2.4</td><td>768</td><td>2000</td><td>100</td><td>2560</td></tr><tr class=""><td>Flowers 3</td><td>2.2</td><td>768</td><td>2000</td><td>108</td><td>2560</td></tr><tr class=""><td>Here</td><td>2.5</td><td>768</td><td>2000</td><td>230</td><td>1097</td></tr></table></details>
+      </figcaption></figure><figure class="shot"><a href="shots/celebration-virtual--work-3.jpg"><img loading="lazy" src="shots/celebration-virtual--work-3.jpg" alt="Nature" width="390" height="844"></a>
+      <figcaption><b>Nature</b>
+      <dl><dt>Memory</dt><dd class="">111 MB</dd><dt>Calls</dt><dd class="">12</dd>
+      <dt>Frame</dt><dd>33 ms <small>p95 67</small></dd>
+      <dt>Works near</dt><dd>1 <small>least sharp 120%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>Nature</td><td>2.2</td><td>768</td><td>2000</td><td>162</td><td>1707</td></tr></table></details>
+      </figcaption></figure></div></section><section class="space"><h2>green-hour <small>#/exhibition/green-hour/space</small></h2>
+    
+    
+    <p class="facts">First frame <b>5.6 s</b> · ready <b>6.0 s</b> ·
+    checked 0 standing objects, 0 wall texts, 0 openings, 25 textures · <b>0</b> physics flags</p>
+    <div class="shots"><figure class="shot"><a href="shots/green-hour--start.jpg"><img loading="lazy" src="shots/green-hour--start.jpg" alt="the way in" width="390" height="844"></a>
+      <figcaption><b>the way in</b>
+      <dl><dt>Memory</dt><dd class="">103 MB</dd><dt>Calls</dt><dd class="">46</dd>
+      <dt>Frame</dt><dd>50 ms <small>p95 100</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure><figure class="shot"><a href="shots/green-hour--work-1.jpg"><img loading="lazy" src="shots/green-hour--work-1.jpg" alt="Sunflower" width="390" height="844"></a>
+      <figcaption><b>Sunflower</b>
+      <dl><dt>Memory</dt><dd class="">103 MB</dd><dt>Calls</dt><dd class="">13</dd>
+      <dt>Frame</dt><dd>33 ms <small>p95 83</small></dd>
+      <dt>Works near</dt><dd>2 <small>least sharp 120%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>Sunflower</td><td>2.2</td><td>768</td><td>2000</td><td>234</td><td>1182</td></tr><tr class=""><td>The Green Stripe</td><td>2.6</td><td>768</td><td>2393</td><td>127</td><td>1896</td></tr></table></details>
+      </figcaption></figure><figure class="shot"><a href="shots/green-hour--work-2.jpg"><img loading="lazy" src="shots/green-hour--work-2.jpg" alt="Nature" width="390" height="844"></a>
+      <figcaption><b>Nature</b>
+      <dl><dt>Memory</dt><dd class="">103 MB</dd><dt>Calls</dt><dd class="">13</dd>
+      <dt>Frame</dt><dd>33 ms <small>p95 50</small></dd>
+      <dt>Works near</dt><dd>3 <small>least sharp 120%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>Irises</td><td>2.7</td><td>768</td><td>1920</td><td>286</td><td>814</td></tr><tr class=""><td>Nature</td><td>2.2</td><td>768</td><td>2000</td><td>162</td><td>1707</td></tr><tr class=""><td>Woman in the Garden</td><td>2.7</td><td>768</td><td>1920</td><td>305</td><td>760</td></tr></table></details>
+      </figcaption></figure><figure class="shot"><a href="shots/green-hour--work-3.jpg"><img loading="lazy" src="shots/green-hour--work-3.jpg" alt="The Starry Night" width="390" height="844"></a>
+      <figcaption><b>The Starry Night</b>
+      <dl><dt>Memory</dt><dd class="">110 MB</dd><dt>Calls</dt><dd class="">12</dd>
+      <dt>Frame</dt><dd>50 ms <small>p95 67</small></dd>
+      <dt>Works near</dt><dd>1 <small>least sharp 120%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>The Starry Night</td><td>2.2</td><td>768</td><td>1920</td><td>331</td><td>834</td></tr></table></details>
+      </figcaption></figure></div></section><section class="space"><h2>The museum <small>#/museum</small></h2>
+    
+    
+    <p class="facts">First frame <b>8.8 s</b> · ready <b>9.7 s</b> ·
+    checked 7 standing objects, 7 wall texts, 15 openings, 119 textures · <b>2</b> physics flags</p>
+    <div class="shots"><figure class="shot"><a href="shots/museum--place-the-square.jpg"><img loading="lazy" src="shots/museum--place-the-square.jpg" alt="The Square" width="390" height="844"></a>
+      <figcaption><b>The Square</b>
+      <dl><dt>Memory</dt><dd class="">303 MB</dd><dt>Calls</dt><dd class="">127</dd>
+      <dt>Frame</dt><dd>583 ms <small>p95 817</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure><figure class="shot"><a href="shots/museum--room-ritual.jpg"><img loading="lazy" src="shots/museum--room-ritual.jpg" alt="Ritual" width="390" height="844"></a>
+      <figcaption><b>Ritual</b>
+      <dl><dt>Memory</dt><dd class="">303 MB</dd><dt>Calls</dt><dd class="">36</dd>
+      <dt>Frame</dt><dd>550 ms <small>p95 800</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure><figure class="shot"><a href="shots/museum--room-my-open-studio.jpg"><img loading="lazy" src="shots/museum--room-my-open-studio.jpg" alt="My Open Studio" width="390" height="844"></a>
+      <figcaption><b>My Open Studio</b>
+      <dl><dt>Memory</dt><dd class="">303 MB</dd><dt>Calls</dt><dd class="">79</dd>
+      <dt>Frame</dt><dd>450 ms <small>p95 1250</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure><figure class="shot"><a href="shots/museum--history-the-renaissance.jpg"><img loading="lazy" src="shots/museum--history-the-renaissance.jpg" alt="The Renaissance" width="390" height="844"></a>
+      <figcaption><b>The Renaissance</b>
+      <dl><dt>Memory</dt><dd class="">303 MB</dd><dt>Calls</dt><dd class="">284</dd>
+      <dt>Frame</dt><dd>483 ms <small>p95 1633</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure><figure class="shot"><a href="shots/museum--history-at-the-threshold.jpg"><img loading="lazy" src="shots/museum--history-at-the-threshold.jpg" alt="At the threshold" width="390" height="844"></a>
+      <figcaption><b>At the threshold</b>
+      <dl><dt>Memory</dt><dd class="">303 MB</dd><dt>Calls</dt><dd class="">199</dd>
+      <dt>Frame</dt><dd>1050 ms <small>p95 2083</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure><figure class="shot"><a href="shots/museum--history-florence-1430-1500.jpg"><img loading="lazy" src="shots/museum--history-florence-1430-1500.jpg" alt="Florence, 1430-1500" width="390" height="844"></a>
+      <figcaption><b>Florence, 1430-1500</b>
+      <dl><dt>Memory</dt><dd class="">303 MB</dd><dt>Calls</dt><dd class="">94</dd>
+      <dt>Frame</dt><dd>1017 ms <small>p95 2050</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure><figure class="shot"><a href="shots/museum--history-rome-and-venice.jpg"><img loading="lazy" src="shots/museum--history-rome-and-venice.jpg" alt="Rome and Venice" width="390" height="844"></a>
+      <figcaption><b>Rome and Venice</b>
+      <dl><dt>Memory</dt><dd class="">303 MB</dd><dt>Calls</dt><dd class="">53</dd>
+      <dt>Frame</dt><dd>917 ms <small>p95 1933</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure><figure class="shot"><a href="shots/museum--history-after-the-summit.jpg"><img loading="lazy" src="shots/museum--history-after-the-summit.jpg" alt="After the summit" width="390" height="844"></a>
+      <figcaption><b>After the summit</b>
+      <dl><dt>Memory</dt><dd class="">303 MB</dd><dt>Calls</dt><dd class="">20</dd>
+      <dt>Frame</dt><dd>833 ms <small>p95 2167</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure><figure class="shot"><a href="shots/museum--pavilion-ritual-work-3.jpg"><img loading="lazy" src="shots/museum--pavilion-ritual-work-3.jpg" alt="ritual in the museum: Two" width="390" height="844"></a>
+      <figcaption><b>ritual in the museum: Two</b>
+      <dl><dt>Memory</dt><dd class="">304 MB</dd><dt>Calls</dt><dd class="">28</dd>
+      <dt>Frame</dt><dd>767 ms <small>p95 2100</small></dd>
+      <dt>Works near</dt><dd>1 <small>least sharp 160%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>Two</td><td>3.3</td><td>1024</td><td>2000</td><td>336</td><td>735</td></tr></table></details>
+      </figcaption></figure><figure class="shot"><a href="shots/museum--pavilion-ritual-work-2.jpg"><img loading="lazy" src="shots/museum--pavilion-ritual-work-2.jpg" alt="ritual in the museum: Adam, Adam and a Lamp" width="390" height="844"></a>
+      <figcaption><b>ritual in the museum: Adam, Adam and a Lamp</b>
+      <dl><dt>Memory</dt><dd class="">304 MB</dd><dt>Calls</dt><dd class="">156</dd>
+      <dt>Frame</dt><dd>750 ms <small>p95 1817</small></dd>
+      <dt>Works near</dt><dd>1 <small>least sharp 160%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>Adam, Adam and a Lamp</td><td>2.9</td><td>1024</td><td>2000</td><td>336</td><td>856</td></tr></table></details>
+      </figcaption></figure><figure class="shot"><a href="shots/museum--pavilion-ritual-work-1.jpg"><img loading="lazy" src="shots/museum--pavilion-ritual-work-1.jpg" alt="ritual in the museum: Flowers 1" width="390" height="844"></a>
+      <figcaption><b>ritual in the museum: Flowers 1</b>
+      <dl><dt>Memory</dt><dd class="">304 MB</dd><dt>Calls</dt><dd class="">140</dd>
+      <dt>Frame</dt><dd>1200 ms <small>p95 2100</small></dd>
+      <dt>Works near</dt><dd>3 <small>least sharp 160%</small></dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      <details><summary>Sharpness</summary><table class="mini"><tr><th>Work</th><th>m</th><th>px</th><th>src</th><th>need</th><th>px/m</th></tr><tr class=""><td>Flowers 1</td><td>2.2</td><td>1024</td><td>2000</td><td>107</td><td>3436</td></tr><tr class=""><td>Flowers 2</td><td>2.4</td><td>1024</td><td>2000</td><td>103</td><td>3413</td></tr><tr class=""><td>Flowers 3</td><td>2.3</td><td>1024</td><td>2000</td><td>107</td><td>3391</td></tr></table></details>
+      </figcaption></figure><figure class="shot"><a href="shots/museum--pavilion-ritual-start.jpg"><img loading="lazy" src="shots/museum--pavilion-ritual-start.jpg" alt="ritual in the museum: the way in" width="390" height="844"></a>
+      <figcaption><b>ritual in the museum: the way in</b>
+      <dl><dt>Memory</dt><dd class="">304 MB</dd><dt>Calls</dt><dd class="">79</dd>
+      <dt>Frame</dt><dd>1050 ms <small>p95 1150</small></dd>
+      <dt>Works near</dt><dd>0</dd>
+      <dt>Errors</dt><dd class="">0</dd></dl>
+      
+      </figcaption></figure></div></section><section class="space"><h2>Pavilion: ritual beside its tour</h2>
+    <p class="facts">Found by its 10 works (frame error 0 m, turned 0°). Limits: brightness ±12%, colour 10 levels, surface detail (floor gloss or wall grain) x0.6–1.6.</p>
+    <figure class="pair"><a href="shots/pair-ritual-work-3.jpg"><img loading="lazy" src="shots/pair-ritual-work-3.jpg" alt="ritual in the museum: Two"></a><figcaption><b>ritual in the museum: Two</b> brightness 0% · colour 0.7 · detail x1.25 <span class="tag ok">alike</span></figcaption></figure><figure class="pair"><a href="shots/pair-ritual-work-2.jpg"><img loading="lazy" src="shots/pair-ritual-work-2.jpg" alt="ritual in the museum: Adam, Adam and a Lamp"></a><figcaption><b>ritual in the museum: Adam, Adam and a Lamp</b> brightness 0% · colour 0.1 · detail x1.6 <span class="tag warn">surface detail x1.60 (floor gloss or wall grain)</span></figcaption></figure><figure class="pair"><a href="shots/pair-ritual-work-1.jpg"><img loading="lazy" src="shots/pair-ritual-work-1.jpg" alt="ritual in the museum: Flowers 1"></a><figcaption><b>ritual in the museum: Flowers 1</b> brightness 0% · colour 0 · detail x6.11 <span class="tag warn">surface detail x6.11 (floor gloss or wall grain)</span></figcaption></figure><figure class="pair"><a href="shots/pair-ritual-start.jpg"><img loading="lazy" src="shots/pair-ritual-start.jpg" alt="ritual in the museum: the way in"></a><figcaption><b>ritual in the museum: the way in</b> brightness -2% · colour 0.2 · detail x1.17 <span class="tag ok">alike</span></figcaption></figure></section><section class="space"><h2>Proof: a known bug of each kind, put in</h2><p class="facts">The museum opened again with every bug below planted at once. A check that does not catch its bug makes its results worthless, so this runs every night.</p>
+    <table><tr><th>Check</th><th>Bug put in</th><th>Result</th></tr><tr><td>floating</td><td>a plinth lifted 30 cm at (56, 46)</td><td><span class="tag ok">caught</span></td></tr><tr><td>text not flush</td><td>&quot;Ritual&quot; moved 15 cm off its wall</td><td><span class="tag ok">caught</span></td></tr><tr><td>opening blocked</td><td>a wall across glass-s doorway 10.0 m</td><td><span class="tag ok">caught</span></td></tr><tr><td>texture missing</td><td>/open-studio/data/spaces/ritual/wall-z0.jpg answers 404</td><td><span class="tag ok">caught</span></td></tr><tr><td>texture black</td><td>/open-studio/data/spaces/ritual/wall-x0.jpg answers a black picture</td><td><span class="tag ok">caught</span></td></tr><tr><td>console errors</td><td>a script error thrown</td><td><span class="tag ok">caught</span></td></tr><tr><td>memory</td><td>three 4096 px pictures put on a wall (+268 MB) <small>(536)</small></td><td><span class="tag ok">caught</span></td></tr><tr><td>sharpness</td><td>the sharp picture of &quot;The Holy Trinity&quot; never arrives <small>(480 px of 0)</small></td><td><span class="tag ok">caught</span></td></tr><tr><td>camera at open</td><td>the lens thrown to -50000 deg as the room opens <small>(-50000)</small></td><td><span class="tag ok">caught</span></td></tr><tr><td>side by side (brightness)</td><td>the canvas brightened 1.6x <small>(0.22)</small></td><td><span class="tag ok">caught</span></td></tr></table>
+    <figure class="shot one"><img loading="lazy" src="shots/proof.jpg" alt="the planted view" width="390" height="844"><figcaption>The planted view</figcaption></figure></section>
+</body></html>

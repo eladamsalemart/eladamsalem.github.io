@@ -8,6 +8,11 @@ turns, or a new link between parts appears, add a line to GROWTH.
 **Sessions (23.11).** Every Open Studio session is filed under the sidebar folder "Open studio". The owner's main
 session leads: it hands out the parallel work, checks what comes back, and reports to the owner. Any new Open Studio
 session goes into that folder.
+Fewer sessions (24.11): short work runs as a background subagent of the main session, not a new session. A separate
+session only for long work, at most 2-3 at once, and it archives itself (archive_session "self") once the lead has
+approved its result. A night-shift run archives itself when it ends.
+Every session keeps its row in `studio/health/work.json` (the Desk's עבודה tab), in Hebrew: when it starts, finishes, or
+needs the owner.
 
 - Reply and summarise to the owner in Hebrew. App content stays in English.
 - Studio lives on the `studio` branch; the app is published from it ("Open Studio app" workflow), and every

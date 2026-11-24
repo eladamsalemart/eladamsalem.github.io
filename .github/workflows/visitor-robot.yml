@@ -1,0 +1,69 @@
+# The visitor robot (studio/robot/robot.cjs): every night it walks the live app as a phone (390 x 844, touch), through every
+# published tour and the museum with its pavilions, and measures memory, draw calls, frame and load times, the sharpness of
+# the works in front, console errors, things floating, wall text off its wall, blocked openings, missing or black textures,
+# and each pavilion beside its own tour. Every check proves each night that it still catches a bug put in on purpose.
+# It writes studio/health/robot/ on `studio` (latest.json for the lead session's morning review and the Desk's tab
+# "בדיקות לילה", report.html, trend.json, history/, shots/). No AI inside, only measurements.
+# Like "App health", the run never ends red (a failed run mails the owner): a robot that breaks shows in its own files.
+name: "Visitor robot"
+
+on:
+  schedule:
+    - cron: "17 22 * * *"          # 00:17 in Israel (winter), before the night shift reads it
+  push:                            # a change to the robot itself is walked at once (its own nightly commits are outside these paths)
+    branches: [studio]
+    paths:
+      - 'studio/robot/*.cjs'
+      - '.github/workflows/visitor-robot.yml'
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "walk only these spaces (comma list: museum, ritual, ...); empty = all"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: visitor-robot
+  cancel-in-progress: false
+
+jobs:
+  walk:
+    runs-on: ubuntu-24.04            # the OS playwright 1.56.1 installs on (as App health)
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: A browser to look with
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw && npm install --no-save --no-package-lock playwright@1.56.1 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Walk the app as a phone
+        id: walk
+        continue-on-error: true
+        env:
+          NODE_PATH: /tmp/pw/node_modules
+          ROBOT_ONLY: ${{ github.event.inputs.only }}
+        run: node studio/robot/robot.cjs https://eladamsalem.com/open-studio/ studio/health/robot | tee "$RUNNER_TEMP/robot.txt"
+      - name: Keep the night's files for two weeks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visitor-robot
+          path: studio/health/robot
+          retention-days: 14
+      - name: Write the night to the repository (studio)
+        if: always()
+        run: |
+          git config user.name "open-studio-robot"; git config user.email "ooopenstudio@gmail.com"
+          git add studio/health/robot studio/robot/viewpoints.json
+          if git diff --cached --quiet; then echo "nothing new"; exit 0; fi
+          git commit -q -m "Visitor robot: $(date -u +%F) — $(tail -1 "$RUNNER_TEMP/robot.txt" 2>/dev/null | cut -c1-120)"
+          for i in 1 2 3; do git pull -q --no-rebase -X ours origin studio && git push -q origin HEAD:studio && exit 0; sleep 10; done
+          echo "could not push"; exit 0

@@ -1,0 +1,21 @@
+{
+  "about": "What each Open Studio session and helper is doing, for the Desk's \"עבודה\" tab. Each session updates its own row (state: working | waiting | done | paused; needs_owner: true when it waits on the owner) and sets updated (ISO time). Write the task title in plain Hebrew (short code names such as KTX2 may stay): the Desk is the owner's, in Hebrew. One short row per task.",
+  "updated": "2026-11-24T11:00:00Z",
+  "tasks": [
+    { "task": "ראש הצוות: מחלק את העבודה, בודק את התוצאות ומדווח לך", "session": "STUDIO OPEN SYUDIO NEW", "id": "local_8035a88b-5588-4df6-8a40-145e26faae89", "state": "working", "updated": "2026-11-24T08:24:55Z", "needs_owner": false },
+    { "task": "נתוני טלפונים אמיתיים: מדידות מהמכשירים של המבקרים, הלשונית טלפונים בדסק וסיכום 24 שעות", "session": "phone-data", "id": "local_cfa1eda7-c487-474a-bf7c-88a947bf1e9c", "state": "done", "updated": "2026-11-24T11:00:00Z", "needs_owner": false },
+    { "task": "רובוט מבקר: עובר על האפליקציה כמו טלפון כל לילה, הלשונית בדיקות לילה בדסק", "session": "visitor-robot", "id": "local_55d76d08-aab8-46f1-9293-da72b96d297b", "state": "working", "updated": "2026-11-24T08:29:17Z", "needs_owner": false },
+    { "task": "מכווץ טקסטורות: KTX2 ועותקים קטנים, פחות זיכרון בטלפון", "session": "texture-opt", "id": "local_b7e8294b-2f9c-48b2-a1c5-10e5a10037bc", "state": "working", "updated": "2026-11-24T08:27:17Z", "needs_owner": false },
+    { "task": "המוזיאון: כניסה מהבית, פרסום חי והאדריכלות החדשה", "session": "museum", "id": "local_7581ff38-4efa-4225-ad5b-02368d7bd5eb", "state": "working", "updated": "2026-11-24T08:25:41Z", "needs_owner": false },
+    { "task": "מחוץ למוזיאון: הגן הטרופי ופרטי הפסלים", "session": "museum-outside", "id": "local_6c01740f-914d-442e-be45-87adb807abc4", "state": "paused", "updated": "2026-11-23T22:09:30Z", "needs_owner": false },
+    { "task": "מייבא תערוכות: סיור הופך לביתן במוזיאון", "session": "importer", "id": "local_9b322672-b345-44bf-8432-4fac39bb3061", "state": "paused", "updated": "2026-11-24T06:34:26Z", "needs_owner": false },
+    { "task": "מפתח ANTHROPIC_API_KEY בסודות של GitHub, התחברות ל־claude והפעלת start-agent.cmd במחשב, Tailscale לטלפון (הסוכן בענן)", "session": "backlog", "state": "waiting", "updated": "2026-11-21T00:00:00Z", "needs_owner": true },
+    { "task": "החלטה: הכיוון של העולם האמיתי קודם בבית ובתערוכות (ESSENCE.md)", "session": "backlog", "state": "waiting", "updated": "2026-11-21T00:00:00Z", "needs_owner": true },
+    { "task": "הרשמה ידנית ל־13 הניוזלטרים שמאחורי CAPTCHA (newsletters.json)", "session": "backlog", "state": "waiting", "updated": "2026-11-21T00:00:00Z", "needs_owner": true },
+    { "task": "שלב א: מסכי עיצוב התערוכה, נגישות ופשטות", "session": "backlog", "state": "working", "updated": "2026-11-21T00:00:00Z", "needs_owner": false },
+    { "task": "שלב ב: הבאת עבודות במסך אחד, ופס התקדמות במסע של האמן", "session": "backlog", "state": "paused", "updated": "2026-11-21T00:00:00Z", "needs_owner": false },
+    { "task": "שלב ג: תערוכות אמיתיות קודם, בבית ובתערוכות", "session": "backlog", "state": "paused", "updated": "2026-11-21T00:00:00Z", "needs_owner": false },
+    { "task": "שלב ה: עוד לא נבדק בשום מקום: כניסה בקישור מהמייל, ו״בקשת שינוי״ בחדר הבקרה", "session": "backlog", "state": "paused", "updated": "2026-11-21T00:00:00Z", "needs_owner": false },
+    { "task": "שרשרת האישור לתערוכות, לשוניות חדר הבקרה, אלעד אמסלם אחד, עמוד העריכה, עורך התלייה, ״בגודל אמיתי״, הסרטים בבית", "session": "backlog", "state": "done", "updated": "2026-11-21T00:00:00Z", "needs_owner": false }
+  ]
+}

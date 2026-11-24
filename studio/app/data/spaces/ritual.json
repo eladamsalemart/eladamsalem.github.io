@@ -1,7 +1,7 @@
 {
  "version": 2,
  "title": "Ritual",
- "generated": "2026-11-23",
+ "generated": "2026-11-24",
  "source": "Built from 6 installation photos",
  "room": {
   "x0": -8.821,
@@ -1292,7 +1292,7 @@
   {
    "rule": "phone",
    "passed": true,
-   "why": "בטלפון: כל העבודות בכל עצירה, 227 MB תמונות בזיכרון"
+   "why": "בטלפון: כל העבודות בכל עצירה, 139 MB תמונות בזיכרון"
   },
   {
    "rule": "photo_match",
