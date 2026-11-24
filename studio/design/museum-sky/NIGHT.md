@@ -22,6 +22,10 @@ Run by the scheduled task `museum-night-shift` (local time every hour at :11 fro
 4. Read `ROADMAP.md` (the unchecked items), the QUEUE below, `night-log.md` (the last 15 lines). Nothing else is read whole.
 
 ## 2. What to work on, in this order
+0. FIRST, every night: the visitor robot's RED flags from its last run (`studio/health/robot/latest.json`, `flags` with
+   `sev: "red"`; the same in the Desk, tab "בדיקות לילה"). Each one is a bug a visitor would meet: fix it with proof, and the
+   robot's next night must show it gone. A flag that is the robot's own mistake: fix the robot (`studio/robot/`), say so in the log.
+   Yellow flags only after the QUEUE and ROADMAP, as audit items.
 1. The QUEUE below (Elad's own additions), oldest first.
 2. The next unchecked item of `ROADMAP.md`.
 3. If both are empty: audit once, cheaply: render the reference (`blender/hall_reference.py`, ~50 s) and the app from the same view (`blender/` README line in the script header; the app shot via `inspect.shot`), look at the difference, write the 3 biggest gaps as new ROADMAP items, start the first. Also allowed: a recurring job Elad named (adding an artist's original exhibition: ROADMAP "Adding an artist's original exhibition").

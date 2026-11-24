@@ -33,8 +33,8 @@ function viewerCss() {
     const el = document.createElement('style'); el.textContent = out.join(' ') + ' .sv{left:0!important;transform:none!important;width:100%!important}'; document.head.append(el);
   }).catch(e => console.warn('viewer styles', e)));
 }
-const NAV = [['artists', 'אמנים'], ['lovers', 'חובבי אמנות'], ['exhibitions', 'תערוכות'], ['museum', 'מוזיאון'], ['approvals', 'אישורים'], ['system', 'מערכת'], ['phones', 'טלפונים'], ['work', 'עבודה'], ['talk', 'שיחות']];
-const TITLES = { approvals: 'אישורים', artists: 'אמנים', lovers: 'חובבי אמנות', exhibitions: 'תערוכות', museum: 'מוזיאון', system: 'מערכת', phones: 'טלפונים', work: 'עבודה', talk: 'שיחות' };
+const NAV = [['artists', 'אמנים'], ['lovers', 'חובבי אמנות'], ['exhibitions', 'תערוכות'], ['museum', 'מוזיאון'], ['approvals', 'אישורים'], ['system', 'מערכת'], ['nights', 'בדיקות לילה'], ['phones', 'טלפונים'], ['work', 'עבודה'], ['talk', 'שיחות']];
+const TITLES = { approvals: 'אישורים', artists: 'אמנים', lovers: 'חובבי אמנות', exhibitions: 'תערוכות', museum: 'מוזיאון', system: 'מערכת', nights: 'בדיקות לילה', phones: 'טלפונים', work: 'עבודה', talk: 'שיחות' };
 let me = null, QN = 0, KEYS = null;
 
 // --- small helpers ------------------------------------------------------------------------------------------------------
@@ -104,6 +104,7 @@ async function route() {
     else if (tab === 'lovers' || tab === 'people') await peopleView();
     else if (tab === 'museum') { const m = await import('./museum.js'); if (id === 'ex') { const x = await import('./exedit.js'); KEYS && document.removeEventListener('keydown', KEYS); KEYS = null; root.innerHTML = ''; await x.editor(mctx(), location.hash.split('/')[3]); } else await m.home(mctx()); }
     else if (tab === 'system') await systemView();
+    else if (tab === 'nights') await (await import('./nights.js')).nights(mctx());       // the visitor robot's last night (studio/robot)
     else if (tab === 'phones') await (await import('./phones.js')).phones(mctx());       // real-phone data from visitors' devices (public.phone_vitals)
     else if (tab === 'work') await (await import('./work.js')).work(mctx());             // what each session is doing (studio/health/work.json)
     else if (tab === 'exhibitions') await exhibitionsView();

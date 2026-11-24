@@ -67,6 +67,8 @@ the owner approves something, or a new link between parts appears.
 - "Virtual show films": every 2 h.
 - "Open Studio app": publishes `studio/app` and `studio/desk`.
 - "App health": runs after each publish.
+- "Visitor robot" (24.11): nightly, walks the live app as a phone (`studio/robot/`), writes `studio/health/robot/latest.json`;
+  the Desk shows it ("בדיקות לילה"), the night shift takes its red flags first (NIGHT.md). Each check proves itself on a planted bug every night.
 - "Supabase migrations": additive only.
 
 **A change in X must be checked in Y**

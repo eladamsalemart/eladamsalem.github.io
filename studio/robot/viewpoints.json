@@ -1,0 +1,355 @@
+{
+ "tours": {
+  "ritual": [
+   {
+    "id": "start",
+    "name": "the way in",
+    "eye": [
+     -7.420999999999999,
+     1.6,
+     1.901
+    ],
+    "look": [
+     12.201500000000001,
+     1.5,
+     1.901
+    ]
+   },
+   {
+    "id": "work-1",
+    "name": "Flowers 1",
+    "eye": [
+     -7.11,
+     1.6,
+     1.69
+    ],
+    "look": [
+     -7.11,
+     1.65,
+     3.93
+    ]
+   },
+   {
+    "id": "work-2",
+    "name": "Adam, Adam and a Lamp",
+    "eye": [
+     -3.99,
+     1.6,
+     1.06
+    ],
+    "look": [
+     -3.99,
+     1.53,
+     3.93
+    ]
+   },
+   {
+    "id": "work-3",
+    "name": "Two",
+    "eye": [
+     2.07,
+     1.6,
+     3.22
+    ],
+    "look": [
+     2.07,
+     1.4,
+     -0.13
+    ]
+   }
+  ],
+  "celebration-virtual": [
+   {
+    "id": "start",
+    "name": "the way in",
+    "eye": [
+     9.6,
+     1.6,
+     3.5
+    ],
+    "look": [
+     -5.5,
+     1.5,
+     3.5
+    ]
+   },
+   {
+    "id": "work-1",
+    "name": "Together",
+    "eye": [
+     5.28,
+     1.6,
+     2.28
+    ],
+    "look": [
+     5.28,
+     1.5,
+     0.04
+    ]
+   },
+   {
+    "id": "work-2",
+    "name": "Flowers 3",
+    "eye": [
+     2.28,
+     1.6,
+     2.37
+    ],
+    "look": [
+     0.04,
+     1.5,
+     2.37
+    ]
+   },
+   {
+    "id": "work-3",
+    "name": "Nature",
+    "eye": [
+     2.79,
+     1.6,
+     4.72
+    ],
+    "look": [
+     2.79,
+     1.5,
+     6.96
+    ]
+   }
+  ],
+  "green-hour": [
+   {
+    "id": "start",
+    "name": "the way in",
+    "eye": [
+     16.6,
+     1.6,
+     3.25
+    ],
+    "look": [
+     -9,
+     1.5,
+     3.25
+    ]
+   },
+   {
+    "id": "work-1",
+    "name": "Sunflower",
+    "eye": [
+     14.13,
+     1.6,
+     2.28
+    ],
+    "look": [
+     14.13,
+     1.48,
+     0.04
+    ]
+   },
+   {
+    "id": "work-2",
+    "name": "Nature",
+    "eye": [
+     7.61,
+     1.6,
+     2.28
+    ],
+    "look": [
+     7.61,
+     1.48,
+     0.04
+    ]
+   },
+   {
+    "id": "work-3",
+    "name": "The Starry Night",
+    "eye": [
+     2.28,
+     1.6,
+     2.32
+    ],
+    "look": [
+     0.04,
+     1.48,
+     2.32
+    ]
+   }
+  ]
+ },
+ "museum": [
+  {
+   "id": "place-the-square",
+   "name": "The Square",
+   "eye": [
+    48,
+    1.6,
+    66.5
+   ],
+   "look": [
+    48,
+    1.7,
+    34
+   ]
+  },
+  {
+   "id": "room-ritual",
+   "name": "Ritual",
+   "eye": [
+    41,
+    1.6,
+    22.4
+   ],
+   "look": [
+    41,
+    1.7,
+    16.75
+   ]
+  },
+  {
+   "id": "room-my-open-studio",
+   "name": "My Open Studio",
+   "eye": [
+    32.19,
+    1.6,
+    47.6
+   ],
+   "look": [
+    31.99,
+    1.7,
+    53.25
+   ]
+  },
+  {
+   "id": "history-the-renaissance",
+   "name": "The Renaissance",
+   "eye": [
+    14,
+    1.6,
+    52
+   ],
+   "look": [
+    14,
+    1.7,
+    39
+   ]
+  },
+  {
+   "id": "history-at-the-threshold",
+   "name": "At the threshold",
+   "eye": [
+    14,
+    1.6,
+    44.6
+   ],
+   "look": [
+    14,
+    1.7,
+    38
+   ]
+  },
+  {
+   "id": "history-florence-1430-1500",
+   "name": "Florence, 1430-1500",
+   "eye": [
+    15,
+    1.6,
+    35.6
+   ],
+   "look": [
+    15,
+    1.7,
+    28
+   ]
+  },
+  {
+   "id": "history-rome-and-venice",
+   "name": "Rome and Venice",
+   "eye": [
+    16.5,
+    1.6,
+    25.6
+   ],
+   "look": [
+    16.5,
+    1.7,
+    15
+   ]
+  },
+  {
+   "id": "history-after-the-summit",
+   "name": "After the summit",
+   "eye": [
+    12,
+    1.6,
+    12.6
+   ],
+   "look": [
+    12,
+    1.7,
+    6
+   ]
+  }
+ ],
+ "pavilions": {
+  "ritual": {
+   "note": "in the tour own coordinates; the robot finds the pavilion by its works",
+   "views": [
+    {
+     "id": "start",
+     "name": "the way in",
+     "eye": [
+      -7.420999999999999,
+      1.6,
+      1.901
+     ],
+     "look": [
+      12.201500000000001,
+      1.5,
+      1.901
+     ]
+    },
+    {
+     "id": "work-1",
+     "name": "Flowers 1",
+     "eye": [
+      -7.11,
+      1.6,
+      1.69
+     ],
+     "look": [
+      -7.11,
+      1.65,
+      3.93
+     ]
+    },
+    {
+     "id": "work-2",
+     "name": "Adam, Adam and a Lamp",
+     "eye": [
+      -3.99,
+      1.6,
+      1.06
+     ],
+     "look": [
+      -3.99,
+      1.53,
+      3.93
+     ]
+    },
+    {
+     "id": "work-3",
+     "name": "Two",
+     "eye": [
+      2.07,
+      1.6,
+      3.22
+     ],
+     "look": [
+      2.07,
+      1.4,
+      -0.13
+     ]
+    }
+   ]
+  }
+ }
+}
