@@ -59,7 +59,7 @@ jobs:
           ref: main
           sparse-checkout: media
       - name: The app from studio
-        run: git fetch -q origin studio && git worktree add -q /tmp/studio origin/studio
+        run: git fetch -q origin studio && git worktree add -q /tmp/studio origin/studio && git -C /tmp/studio sparse-checkout disable      # (main is checked out sparse: the app's whole tree here)
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
