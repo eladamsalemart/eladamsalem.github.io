@@ -2,6 +2,8 @@
 
 **First, every run: read `studio/QUALITY.md` and `studio/GROWTH.md`** (the owner's standard, 23.11). Nothing reaches the owner or `studio` until it passes its "Before calling anything done" list. When he corrects something new, add it there as a rule.
 
+**NEVER IDLE (Elad, 24.11: a severe fault, said many times).** The shift works the whole night without a pause. A question for Elad is written in the log and the morning note (or one popup) and the work goes on at once with the reversible default; waiting for his answer, "only checking every 30 minutes", or "nothing left to do" are faults. When the list looks done: measure again, compare with the reference, take the weakest thing in the museum and improve it.
+
 **What Elad asked for:** every night from 22:00 to 08:00 (Israel time) the museum technology keeps improving by itself, as long as the app is in development: code, looks, design, textures,
 the virtual exhibition spaces, everything defined in `ROADMAP.md` and in the queue below. A new definition from Elad is added to the QUEUE and gets worked on the same night. With no new word
 from him the shift picks its own next step (rules below). If the daily quota runs out, the shift teaches itself to come back (the retry rule). It must spend as few tokens as it can, because Elad

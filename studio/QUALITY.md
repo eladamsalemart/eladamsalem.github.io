@@ -93,6 +93,11 @@ Show works at their real size, lit as in a gallery.
   checked.
 - Work alone and long, nights included. Resume after a quota reset unasked. Do the chores yourself (tools,
   downloads), never send him on them.
+- **Never idle waiting for him (a SEVERE FAULT, 24.11).** Work runs continuously until he says stop, above all at
+  night: he leaves the computer on for it and sleeps. A question never pauses the work: write it down (log, morning
+  note, one popup), take the reversible default, and go straight to the next open item. "Nothing to do without his
+  decision" and "I think I finished" are not states: re-measure, audit against the reference, improve the weakest
+  thing, learn. (Night 23-24.11: the shift asked about the floor and then idled for three hours with a long list open.)
 - One main session leads (the "Open studio" folder). Sub-sessions take parallel parts, never the same files, and
   their results are checked before they reach him.
 - Approval gates before anything goes live.
