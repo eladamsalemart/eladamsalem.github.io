@@ -1,0 +1,343 @@
+{
+ "slug": "nature-of-man",
+ "title": "Nature of Man",
+ "made": "2026-11-24T13:28:28.081Z",
+ "status": "failed",
+ "approved": false,
+ "space": {
+  "id": "nature-of-man",
+  "type": "house",
+  "slot": 57,
+  "tour": "nature-of-man",
+  "door": [
+   34.5,
+   65.5
+  ],
+  "dir": 90
+ },
+ "gate": {
+  "pass": false,
+  "checks": [
+   {
+    "id": "tour_live",
+    "pass": false,
+    "why": "the tour has not passed its own checks (state \"not yet\"): 8 of 15 works were found in the installation photos; Size missing, or not matching the work's image: Arising, Left Right Center, Three, Q, Emptiness, Man shape; The photos show a different size than recorded: Arising, Emptiness; Only 2 of the room's 4 walls could be measured; The photos don't fit together precisely enough yet; Only 44% of the walls are in the photos; The rebuilt room doesn't match the photos closely enough yet; The rebuilt room doesn't match the photos closely enough yet"
+   },
+   {
+    "id": "real_openings",
+    "pass": false,
+    "why": "the tour has no measured walkable opening (arch or doorway); the importer will not invent one (the pavilion code would cut a 1.9 m door into wall-z0)"
+   },
+   {
+    "id": "free_place",
+    "pass": true,
+    "why": "door at [34.5,65.5] facing 90°, every opening linked (walk from the start 16 m), no space cut off"
+   },
+   {
+    "id": "jambs",
+    "pass": false,
+    "why": "the only way in is invented (no real opening): built, but not real"
+   },
+   {
+    "id": "text_flush",
+    "pass": true,
+    "why": "the wall text is flush on the door wall, in a solid run, clear of the openings"
+   },
+   {
+    "id": "works",
+    "pass": true,
+    "why": "8 works at their measured size and place"
+   },
+   {
+    "id": "phone_memory",
+    "pass": true,
+    "why": "419 MB at the start view, 419 MB inside the pavilion (budget 460); the museum without this draft: 350 MB, so the pavilion adds 69 MB at the start",
+    "data": {
+     "start": 419,
+     "inside": 419,
+     "without": 350
+    }
+   },
+   {
+    "id": "floor_mirror",
+    "pass": true,
+    "why": "the tour's floor is nearly matte (reflect 0.05): the museum floor takes the mirror's tint as it should (gain 4.2, mirror o8-floor)",
+    "data": {
+     "gain": 4.2,
+     "reflect": 0.05
+    }
+   },
+   {
+    "id": "px_per_m",
+    "pass": true,
+    "why": "at or above the tour: wall-x0 200/200, wall-x1 200/200, wall-z0 200/200, wall-z1 200/200, floor tile 333/333 px/m (4/5 measured on the GPU, the rest from the built pictures), light maps carried",
+    "data": [
+     {
+      "name": "wall-x0",
+      "tour": 200,
+      "museum": 200
+     },
+     {
+      "name": "wall-x1",
+      "tour": 200,
+      "museum": 200,
+      "built": 200,
+      "gpu": true
+     },
+     {
+      "name": "wall-z0",
+      "tour": 200,
+      "museum": 200,
+      "built": 200,
+      "gpu": true
+     },
+     {
+      "name": "wall-z1",
+      "tour": 200,
+      "museum": 200,
+      "built": 200,
+      "gpu": true
+     },
+     {
+      "name": "floor tile",
+      "tour": 333,
+      "museum": 333,
+      "built": 333,
+      "gpu": true
+     }
+    ]
+   },
+   {
+    "id": "side_by_side",
+    "pass": true,
+    "why": "3 views saved; every work seen in the tour is seen in the museum, no holes",
+    "data": [
+     {
+      "file": "side-by-side-1-from-the-way-in.jpg",
+      "view": "from-the-way-in",
+      "holes": 0,
+      "worksInTour": 0,
+      "missing": []
+     },
+     {
+      "file": "side-by-side-2-middle-to-the-longest-wall.jpg",
+      "view": "middle-to-the-longest-wall",
+      "holes": 0,
+      "worksInTour": 3,
+      "missing": []
+     },
+     {
+      "file": "side-by-side-3-back-to-the-openings.jpg",
+      "view": "back-to-the-openings",
+      "holes": 0,
+      "worksInTour": 2,
+      "missing": []
+     }
+    ]
+   }
+  ]
+ },
+ "needs": [
+  {
+   "kind": "sizes",
+   "he": "מידות של 6 עבודות (רוחב × גובה בס\"מ, בשדה המידה של כל עבודה):\n  - Arising: שדה המידה ריק, בתיאור כתוב 210×105 ס\"מ; הפרופורציה של התמונה רחוקה ב-51% מהמידה, אולי התמונה חתוכה או שהרוחב והגובה התהפכו\n  - Left Right Center: שדה המידה ריק, בתיאור כתוב 100×120 ס\"מ לכל קנבס (יצירה מכמה קנבסים): צריך את המידה הכוללת כפי שנתלתה, כולל הרווחים, או תמונה של קנבס אחד; הפרופורציה של התמונה רחוקה ב-52% מהמידה, אולי התמונה חתוכה או שהרוחב והגובה התהפכו\n  - Three: שדה המידה ריק, בתיאור כתוב 30×40 ס\"מ; הפרופורציה של התמונה רחוקה ב-19% מהמידה, אולי התמונה חתוכה או שהרוחב והגובה התהפכו\n  - Q: שדה המידה ריק, בתיאור כתוב 35×35 ס\"מ; הפרופורציה של התמונה רחוקה ב-14% מהמידה, אולי התמונה חתוכה או שהרוחב והגובה התהפכו\n  - Emptiness: שדה המידה ריק, בתיאור כתוב 35×45 ס\"מ לכל קנבס (יצירה מכמה קנבסים): צריך את המידה הכוללת כפי שנתלתה, כולל הרווחים, או תמונה של קנבס אחד; הפרופורציה של התמונה רחוקה ב-42% מהמידה, אולי התמונה חתוכה או שהרוחב והגובה התהפכו\n  - Man shape: שדה המידה ריק, בתיאור כתוב 37×57 ס\"מ; הפרופורציה של התמונה רחוקה ב-13% מהמידה, אולי התמונה חתוכה או שהרוחב והגובה התהפכו",
+   "works": [
+    "Arising",
+    "Left Right Center",
+    "Three",
+    "Q",
+    "Emptiness",
+    "Man shape"
+   ]
+  },
+  {
+   "kind": "size-vs-photo",
+   "he": "בצילומים נמדדה מידה אחרת מהרשומה: Arising, Emptiness. לבדוק את המידה או את התמונה.",
+   "works": [
+    "Arising",
+    "Emptiness"
+   ]
+  },
+  {
+   "kind": "works-not-in-photos",
+   "he": "7 עבודות לא נראות באף צילום הצבה: In nature, Left Right Center, Two, Three, Toda, Moroccan pattern, Man shape. צריך צילומים רחבים שבכל אחד 2–3 עבודות ופינת חדר.",
+   "works": [
+    "In nature",
+    "Left Right Center",
+    "Two",
+    "Three",
+    "Toda",
+    "Moroccan pattern",
+    "Man shape"
+   ]
+  },
+  {
+   "kind": "walls",
+   "he": "2 קירות לא נמדדו, רק נוחשו: הקיר הקצר השמאלי (x0), הקיר הקצר הימני (x1). צריך שני צילומים לפחות של כל אחד מהם, מזוויות שונות, כל אחד עם עבודה או פינה בתוכו.",
+   "walls": [
+    "x0",
+    "x1"
+   ]
+  },
+  {
+   "kind": "openings",
+   "he": "לא נמדד שום פתח אמיתי (קשת או דלת) שדרכו נכנסים לחדר. צריך צילומים של הכניסה עצמה: מבפנים, מול הפתח ובאלכסון, כשרואים את שני צדי המשקוף ואת הרצפה מתחתיו, ועוד צילום מבחוץ. כך הביתן במוזיאון ייכנס דרך הפתח האמיתי שלו."
+  },
+  {
+   "kind": "video",
+   "he": "הדרך הבטוחה ביותר במקום כל אלה: סרטון הליכה של דקה–שתיים. טלפון לרוחב, לאט באמצע החדר הלוך וחזור, כל הקירות בתמונה, סיבוב איטי בקצוות עם קצת רצפה ותקרה, ולעבור גם דרך הכניסה."
+  }
+ ],
+ "measures": {
+  "room": {
+   "x0": -6.74,
+   "x1": 3.071,
+   "z0": 0.159,
+   "z1": 3.446,
+   "height": 3.679
+  },
+  "openings": [],
+  "walls": [
+   {
+    "name": "wall-x0",
+    "len": 3.2875,
+    "px": 657,
+    "pxm": 199.84790874524714,
+    "light": false
+   },
+   {
+    "name": "wall-x1",
+    "len": 3.2875,
+    "px": 657,
+    "pxm": 199.84790874524714,
+    "light": false
+   },
+   {
+    "name": "wall-z0",
+    "len": 9.8111,
+    "px": 1962,
+    "pxm": 199.97757641854633,
+    "light": false
+   },
+   {
+    "name": "wall-z1",
+    "len": 9.8111,
+    "px": 1962,
+    "pxm": 199.97757641854633,
+    "light": false
+   }
+  ],
+  "floor": {
+   "texture": "data/spaces/nature-of-man/floor-detail.jpg",
+   "px": [
+    333,
+    333
+   ],
+   "tile": [
+    1,
+    1
+   ],
+   "pxm": 333,
+   "light": true
+  },
+  "works": [
+   {
+    "size": [
+     135,
+     165
+    ]
+   },
+   {
+    "size": [
+     135,
+     165
+    ]
+   },
+   {
+    "size": [
+     105,
+     210
+    ]
+   },
+   {
+    "size": [
+     45,
+     35
+    ]
+   },
+   {
+    "size": [
+     115,
+     190
+    ]
+   },
+   {
+    "size": [
+     110,
+     130
+    ]
+   },
+   {
+    "size": [
+     64.3,
+     78.7
+    ]
+   },
+   {
+    "size": [
+     35,
+     35
+    ]
+   }
+  ],
+  "floorReflect": [
+   0.02,
+   0.05
+  ]
+ },
+ "views": [
+  {
+   "id": "from-the-way-in",
+   "at": [
+    -1.8345,
+    1.6,
+    0.659
+   ],
+   "to": [
+    -6.74,
+    1.5,
+    3.446
+   ],
+   "fov": 75
+  },
+  {
+   "id": "middle-to-the-longest-wall",
+   "at": [
+    -1.8348499999999999,
+    1.6,
+    0.6521499999999998
+   ],
+   "to": [
+    -1.8348499999999999,
+    1.6,
+    3.4461
+   ],
+   "fov": 75
+  },
+  {
+   "id": "back-to-the-openings",
+   "at": [
+    -6.140000000000001,
+    1.6,
+    3.0460000000000003
+   ],
+   "to": [
+    -1.8345,
+    1.5,
+    0.159
+   ],
+   "fov": 75
+  }
+ ],
+ "note": "A draft: nothing of it is live. The Desk adds `space` to museum_plan only when the owner approves."
+}

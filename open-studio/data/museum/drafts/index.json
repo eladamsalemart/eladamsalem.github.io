@@ -1,0 +1,18 @@
+{
+ "ritual": {
+  "title": "Ritual",
+  "status": "ready",
+  "made": "2026-11-24T13:25:02.235Z",
+  "fails": []
+ },
+ "nature-of-man": {
+  "title": "Nature of Man",
+  "status": "failed",
+  "made": "2026-11-24T13:28:28.081Z",
+  "fails": [
+   "tour_live",
+   "real_openings",
+   "jambs"
+  ]
+ }
+}
