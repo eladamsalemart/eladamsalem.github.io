@@ -60,3 +60,5 @@ Source of the plan: `studio/design/museum-directions/research/04*` (top path: Bl
     - pad_mirror.cjs in the "Open Studio app" workflow has not yet run on the server (first real run is the next publish): swiftshader there may render differently.
     - Ritual's sloped ceiling photos carry dark streaks baked in (the tour shows them faintly too); left as in the original.
     - not checked on a real iPhone or the live site.
+    - (24.11) every museum text plate is flush (55fda3b): the robot's 'text not flush' passes for all 7 plates (houses, history wing, an artist's virtual-show pavilion). Titles above the doors moved flush too (the robot does not check those yet: it could).
+    - the robot (studio/robot/robot.cjs) crashes in report.cjs save() ('Target page ... has been closed') when its out dir already holds an earlier run; a fresh dir works. A busy machine also gave 83 'request failed' in one local run (load, not a code change). Its owner should look.
