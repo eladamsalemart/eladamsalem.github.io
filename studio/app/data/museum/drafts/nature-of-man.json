@@ -21,32 +21,38 @@
    {
     "id": "tour_live",
     "pass": false,
-    "why": "the tour has not passed its own checks (state \"not yet\"): 8 of 15 works were found in the installation photos; Size missing, or not matching the work's image: Arising, Left Right Center, Three, Q, Emptiness, Man shape; The photos show a different size than recorded: Arising, Emptiness; Only 2 of the room's 4 walls could be measured; The photos don't fit together precisely enough yet; Only 44% of the walls are in the photos; The rebuilt room doesn't match the photos closely enough yet; The rebuilt room doesn't match the photos closely enough yet"
+    "why": "the tour has not passed its own checks (state \"not yet\"): 8 of 15 works were found in the installation photos; Size missing, or not matching the work's image: Arising, Left Right Center, Three, Q, Emptiness, Man shape; The photos show a different size than recorded: Arising, Emptiness; Only 2 of the room's 4 walls could be measured; The photos don't fit together precisely enough yet; Only 44% of the walls are in the photos; The rebuilt room doesn't match the photos closely enough yet; The rebuilt room doesn't match the photos closely enough yet",
+    "he": "הסיור עוד לא עבר את הבדיקות שלו (מצב \"not yet\"): 8 מתוך 15 עבודות נמצאו בצילומי ההצבה; מידה חסרה או לא תואמת לתמונה: Arising, Left Right Center, Three, Q, Emptiness, Man shape; בצילומים נמדדה מידה אחרת מהרשומה: Arising, Emptiness; רק 2 מתוך 4 הקירות נמדדו; הצילומים עוד לא מתחברים זה לזה בדיוק מספיק; רק 44% מהקירות נראים בצילומים; החדר שנבנה עוד לא תואם לצילומים מספיק; החדר שנבנה עוד לא תואם לצילומים מספיק"
    },
    {
     "id": "real_openings",
     "pass": false,
-    "why": "the tour has no measured walkable opening (arch or doorway); the importer will not invent one (the pavilion code would cut a 1.9 m door into wall-z0)"
+    "why": "the tour has no measured walkable opening (arch or doorway); the importer will not invent one (the pavilion code would cut a 1.9 m door into wall-z0)",
+    "he": "בסיור לא נמדד שום פתח שאפשר לעבור בו (קשת או דלת); המייבא לא ממציא פתח (אחרת הביתן היה חותך דלת של 1.9 מ' בקיר wall-z0)"
    },
    {
     "id": "free_place",
     "pass": true,
-    "why": "door at [34.5,65.5] facing 90°, every opening linked (walk from the start 16 m), no space cut off"
+    "why": "door at [34.5,65.5] facing 90°, every opening linked (walk from the start 16 m), no space cut off",
+    "he": "הכניסה ב־[34.5,65.5], פונה 90°; כל פתח מחובר לשבילים (הליכה מנקודת ההגעה: 16 m); אף מרחב אחר לא נחסם"
    },
    {
     "id": "jambs",
     "pass": false,
-    "why": "the only way in is invented (no real opening): built, but not real"
+    "why": "the only way in is invented (no real opening): built, but not real",
+    "he": "הכניסה היחידה מומצאת (אין פתח אמיתי): נבנתה, אבל לא אמיתית"
    },
    {
     "id": "text_flush",
     "pass": true,
-    "why": "the wall text is flush on the door wall, in a solid run, clear of the openings"
+    "why": "the wall text is flush on the door wall, in a solid run, clear of the openings",
+    "he": "טקסט הקיר צמוד לקיר הכניסה, על קטע קיר שלם, רחוק מהפתחים"
    },
    {
     "id": "works",
     "pass": true,
-    "why": "8 works at their measured size and place"
+    "why": "8 works at their measured size and place",
+    "he": "8 עבודות בגודל ובמקום שנמדדו"
    },
    {
     "id": "phone_memory",
@@ -56,7 +62,8 @@
      "start": 419,
      "inside": 419,
      "without": 350
-    }
+    },
+    "he": "419 MB בנקודת ההגעה, 419 MB בתוך הביתן (תקציב 460); המוזיאון בלי הטיוטה: 350 MB, כלומר הביתן מוסיף 69 MB"
    },
    {
     "id": "floor_mirror",
@@ -65,7 +72,8 @@
     "data": {
      "gain": 4.2,
      "reflect": 0.05
-    }
+    },
+    "he": "הרצפה בסיור כמעט מטה (החזר 0.05): רצפת הביתן מקבלת את צבע המראה כמו שצריך (עלייה 4.2, מראה o8-floor)"
    },
    {
     "id": "px_per_m",
@@ -105,7 +113,8 @@
       "built": 333,
       "gpu": true
      }
-    ]
+    ],
+    "he": "כמו בסיור או יותר: wall-x0 200/200, wall-x1 200/200, wall-z0 200/200, wall-z1 200/200, אריח הרצפה 333/333 px/m (4 מתוך 5 נמדדו בכרטיס הגרפי, השאר מהתמונות שנבנו), מפות האור הועברו"
    },
    {
     "id": "side_by_side",
@@ -133,7 +142,8 @@
       "worksInTour": 2,
       "missing": []
      }
-    ]
+    ],
+    "he": "3 מבטים נשמרו; כל עבודה שנראית בסיור נראית גם במוזיאון, בלי חורים"
    }
   ]
  },

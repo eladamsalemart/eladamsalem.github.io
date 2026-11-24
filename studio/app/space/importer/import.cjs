@@ -5,6 +5,7 @@
 //   (playwright: NODE_PATH=$(npm root -g) when it is installed globally)
 const fs = require('fs'), path = require('path'), http = require('http');
 const { chromium } = require('playwright');
+const toHe = require('./heb.cjs');                   // (the Desk shows each check's detail in Hebrew)
 const REPO = path.resolve(__dirname, '../../../..'), ROOT = path.resolve(process.env.ROOT || REPO), PORT = +(process.env.PORT || 0);
 const APP = path.join(ROOT, 'studio/app'); let BASE = '';
 const OUT_ROOT = path.join(REPO, 'studio/app/data/museum/drafts');
@@ -34,7 +35,7 @@ const server = http.createServer((q, r) => { let p = decodeURIComponent(q.url.sp
 (async () => {
   const F = await import(path.join(__dirname, 'frame.mjs').replace(/\\/g, '/').replace(/^([A-Z]):/i, 'file:///$1:'));
   const out = path.join(OUT_ROOT, slug); fs.mkdirSync(out, { recursive: true });
-  const gate = [], say = (id, pass, why, data) => { gate.push({ id, pass: !!pass, why, ...(data ? { data } : {}) }); console.log(`${pass ? 'PASS' : 'FAIL'} ${id}: ${why}`); };
+  const gate = [], say = (id, pass, why, data) => { gate.push({ id, pass: !!pass, why, he: toHe(why), ...(data ? { data } : {}) }); console.log(`${pass ? 'PASS' : 'FAIL'} ${id}: ${why}`); };
   const errors = [];
 
   // ================= 1. the tour, read =================
