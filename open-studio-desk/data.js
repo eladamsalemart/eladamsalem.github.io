@@ -227,4 +227,5 @@ const mock = {
 };
 
 export const api = guest ? mock : real;
+export const db = client;      // the Supabase client itself, for a tab that reads a table of its own (phones.js: phone_vitals)
 export { abs };
