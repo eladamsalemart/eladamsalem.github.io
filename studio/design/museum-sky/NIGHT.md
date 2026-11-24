@@ -1,6 +1,7 @@
 # The museum's night shift (owner's standing order, 21.11.2026)
 
 **First, every run: read `studio/QUALITY.md` and `studio/GROWTH.md`** (the owner's standard, 23.11). Nothing reaches the owner or `studio` until it passes its "Before calling anything done" list. When he corrects something new, add it there as a rule.
+**Last, every run:** after the log and the push, archive this run's own session (`archive_session` with "self"), so the owner's sidebar stays clean (24.11).
 
 **NEVER IDLE (Elad, 24.11: a severe fault, said many times).** The shift works the whole night without a pause. A question for Elad is written in the log and the morning note (or one popup) and the work goes on at once with the reversible default; waiting for his answer, "only checking every 30 minutes", or "nothing left to do" are faults. When the list looks done: measure again, compare with the reference, take the weakest thing in the museum and improve it.
 
