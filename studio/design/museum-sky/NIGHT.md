@@ -26,6 +26,10 @@ Run by the scheduled task `museum-night-shift` (local time every hour at :11 fro
    `sev: "red"`; the same in the Desk, tab "בדיקות לילה"). Each one is a bug a visitor would meet: fix it with proof, and the
    robot's next night must show it gone. A flag that is the robot's own mistake: fix the robot (`studio/robot/`), say so in the log.
    Yellow flags only after the QUEUE and ROADMAP, as audit items.
+   Then the real phones' flags from the last 24 h: `select * from public.phone_vitals_summary();` (Supabase connector,
+   project hlpzqeosdavfuzjgpwhy; the Desk's tab "טלפונים"). Rows with crashes, a lost context, a slow load or a slow frame
+   are bugs that real visitors met. Reproduce each one as that device would (390×844, 4G throttled), fix it with proof,
+   and log it. If it can't be reproduced, write down what was tried.
 1. The QUEUE below (Elad's own additions), oldest first.
 2. The next unchecked item of `ROADMAP.md`.
 3. If both are empty: audit once, cheaply: render the reference (`blender/hall_reference.py`, ~50 s) and the app from the same view (`blender/` README line in the script header; the app shot via `inspect.shot`), look at the difference, write the 3 biggest gaps as new ROADMAP items, start the first. Also allowed: a recurring job Elad named (adding an artist's original exhibition: ROADMAP "Adding an artist's original exhibition").
