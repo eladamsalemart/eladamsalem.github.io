@@ -1,12 +1,12 @@
 {
  "images": 361,
  "listed": 357,
- "made_now": 167,
+ "made_now": 0,
  "fails": [
   "data/museum/renaissance/works/giotto-lamentation-s.jpg: 480px uastc: psnr 37.65 dE 0.828 shift 0.105",
   "data/museum/renaissance/works/giotto-lamentation.jpg: 768px uastc: psnr 37.75 dE 0.817 shift 0.088",
   "media/works/img-5877-1780926453069.jpg: 768px uastc: psnr 37.81 dE 0.636 shift 0.089",
   "media/works/nature-of-man-1780926065258.jpg: 768px uastc: psnr 36.76 dE 0.756 shift 0.206"
  ],
- "seconds": 519
+ "seconds": 0
 }
