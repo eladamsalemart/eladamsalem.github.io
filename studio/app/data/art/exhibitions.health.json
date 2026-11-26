@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25",
+ "updated": "2026-11-26",
  "sources": [
   {
    "source": "haifa-museum",
@@ -112,7 +112,7 @@
    "url": "https://www.tamuseum.org.il/he/exhibitions/",
    "read": "browser",
    "status": "ok",
-   "shows": 12,
+   "shows": 13,
    "events": 0
   },
   {
@@ -543,9 +543,9 @@
    "place": "moby-museums-of-bat-yam",
    "url": "https://moby.org.il/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
-   "events": 4
+   "status": "unreachable: TimeoutError",
+   "shows": 0,
+   "events": 0
   },
   {
    "source": "site:municipal-art-gallery-rishon-lezion",
@@ -678,8 +678,8 @@
    "place": "sommer-contemporary-art",
    "url": "https://www.sommergallery.com/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -687,8 +687,8 @@
    "place": "sommer-contemporary-art-2",
    "url": "http://www.sommergallery.com",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -786,8 +786,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 19,
-   "seconds": 1463,
+   "calls": 21,
+   "seconds": 845,
    "status": "ok"
   },
   {
