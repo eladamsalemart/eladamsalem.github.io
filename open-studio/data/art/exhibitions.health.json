@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26",
+ "updated": "2026-11-27",
  "sources": [
   {
    "source": "haifa-museum",
@@ -38,9 +38,9 @@
    "source": "artists-house-tlv",
    "place": "tel-aviv-artists-house",
    "url": "https://www.artistshouse.org.il/",
-   "via": "wordpress",
-   "status": "ok",
-   "shows": 13,
+   "read": "browser",
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -49,7 +49,7 @@
    "url": "https://www.cca.org.il/exhibitions-hebrew",
    "read": "browser",
    "status": "ok",
-   "shows": 8,
+   "shows": 6,
    "events": 0
   },
   {
@@ -165,8 +165,8 @@
    "place": "art-shelter-gallery",
    "url": "https://asg.org.il/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -210,8 +210,8 @@
    "place": "barbur-gallery",
    "url": "https://barburgallery.org/",
    "auto": true,
-   "status": "ok",
-   "shows": 2,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -228,8 +228,8 @@
    "place": "beeri-gallery",
    "url": "https://gallerybeeri.co.il/",
    "auto": true,
-   "status": "ok",
-   "shows": 2,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -246,9 +246,9 @@
    "place": "beit-benyamini",
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
-   "status": "ok",
-   "shows": 2,
-   "events": 1
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
   },
   {
    "source": "site:beit-castel",
@@ -282,9 +282,9 @@
    "place": "benyamini-contemporary-ceramics-center",
    "url": "http://www.benyaminiceramics.org/",
    "auto": true,
-   "status": "ok",
-   "shows": 2,
-   "events": 1
+   "status": "nothing found",
+   "shows": 0,
+   "events": 0
   },
   {
    "source": "site:bet-ot-ha-motsar-ha-yerushalmi",
@@ -399,8 +399,8 @@
    "place": "hansen-house",
    "url": "https://hansen.co.il/",
    "auto": true,
-   "status": "ok",
-   "shows": 3,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -435,8 +435,8 @@
    "place": "hezi-cohen-gallery",
    "url": "https://hezicohengallery.co.il/",
    "auto": true,
-   "status": "ok",
-   "shows": 1,
+   "status": "nothing found",
+   "shows": 0,
    "events": 0
   },
   {
@@ -543,9 +543,9 @@
    "place": "moby-museums-of-bat-yam",
    "url": "https://moby.org.il/",
    "auto": true,
-   "status": "unreachable: TimeoutError",
-   "shows": 0,
-   "events": 0
+   "status": "ok",
+   "shows": 1,
+   "events": 4
   },
   {
    "source": "site:municipal-art-gallery-rishon-lezion",
@@ -723,7 +723,7 @@
    "place": "wikidata-Q115089736",
    "url": "https://www.kehilatayim.org.il/%D7%94%D7%92%D7%9C%D7%A8%D7%99%D7%94-%D7%94%D7%A2%D7%99%D7%A8%D7%95%D7%A0%D7%99%D7%AA-%D7%9E%D7%9B%D7%95%D7%9F-%D7%94%D7%9E%D7%99%D7%9D/",
    "auto": true,
-   "status": "unreachable: TimeoutError",
+   "status": "nothing found",
    "shows": 0,
    "events": 0
   },
@@ -786,8 +786,8 @@
   {
    "source": "model",
    "model": "qwen2.5:7b",
-   "calls": 21,
-   "seconds": 845,
+   "calls": 23,
+   "seconds": 513,
    "status": "ok"
   },
   {
@@ -795,7 +795,7 @@
    "place": "(many)",
    "url": "https://www.makore.co.il/browse/category/%D7%AA%D7%A2%D7%A8%D7%95%D7%9B%D7%94",
    "status": "ok",
-   "events": 7
+   "events": 10
   }
  ]
 }
